@@ -1,0 +1,28 @@
+{
+  "case_id": "FN-phaseA-bitable-127",
+  "phase": "A",
+  "error_type": "FN",
+  "severity": "critical",
+  "title": "权限配置验证，无权限时通过URL直接访问，未被拦截",
+  "root_cause": "KNOWLEDGE",
+  "fix_target": "references/risk-and-exception-catalog.md",
+  "tags": [
+    "客服",
+    "安全问题"
+  ],
+  "created_at": "2026-03-13",
+  "status": "open",
+  "source": {
+    "bitable_record_id": "recveid9wap5Ac",
+    "category1": "非单测相关",
+    "category2": "安全问题",
+    "requirement": "客服承接主数据相关需求26Q1"
+  },
+  "expected": {
+    "content": "客服统一工作台菜单权限绕过问题-治理方案"
+  },
+  "actual": {
+    "content": "前端权限校验问题，只对菜单路由做了权限校验，未对直接URL访问页面做权限校验"
+  },
+  "lesson": "客服统一工作台菜单权限绕过问题-治理方案"
+}

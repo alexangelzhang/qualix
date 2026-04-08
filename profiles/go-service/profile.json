@@ -1,0 +1,13 @@
+{
+  "profile_id": "go-service",
+  "name": "Go Service",
+  "description": "Profile for Go microservices with layered architecture and RPC/HTTP boundaries.",
+  "baseline_path": "profiles/go-service/baseline.md",
+  "risk_catalog_path": "references/risk-and-exception-catalog.md",
+  "quality_thresholds": {
+    "line_coverage": 0.75,
+    "branch_coverage": 0.7,
+    "race_check": 1.0,
+    "integration_critical_paths": 1.0
+  }
+}

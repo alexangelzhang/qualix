@@ -1,0 +1,83 @@
+{
+  "project": {
+    "name": "car-mrs",
+    "description": "小米汽车售后维修保养服务系统 (Car Maintenance and Repair Service)",
+    "groupId": "com.xiaomi.cnzone.car.mrs",
+    "artifactId": "car-mrs",
+    "version": "0.0.1-SNAPSHOT",
+    "packaging": "pom"
+  },
+  "java_version": "1.8",
+  "spring_boot_version": "2.2.2.RELEASE",
+  "modules": [
+    "car-mrs-api",
+    "car-mrs-domain",
+    "car-mrs-infrastructure",
+    "car-mrs-app",
+    "car-mrs-server",
+    "car-mrs-debug"
+  ],
+  "key_dependencies": {
+    "framework": {
+      "spring-boot": "2.2.2.RELEASE",
+      "dubbo": "2.7.12-mone-v20-SNAPSHOT",
+      "mybatis-plus": "3.5.9",
+      "mapstruct": "1.4.2.Final",
+      "lombok": "1.18.16"
+    },
+    "middleware": {
+      "elasticsearch": "1.7.1",
+      "nacos-client": "1.2.1-mone-v7-SNAPSHOT",
+      "fastjson": "1.2.83",
+      "commons-pool2": "2.9.0"
+    },
+    "internal_rpc": {
+      "cis-api": "1.0.31-SNAPSHOT",
+      "order-api": "1.7.67-RELEASE",
+      "car-mrs-schedule-api": "1.0.2-RELEASE",
+      "soc-api": "1.7.9-RELEASE",
+      "pay-api": "1.0.0-SNAPSHOT",
+      "car-invoice-api": "1.2-RELEASE",
+      "nr-eiam-api": "2.0-SNAPSHOT",
+      "nr-upc-client": "2.0-SNAPSHOT",
+      "car-drivemate-api": "1.0.2-RELEASE",
+      "mro-policy-api": "1.1.32-SNAPSHOT",
+      "car-service-equity-api": "1.0.0-RELEASE",
+      "wms-process-api": "1.7.0-RELEASE",
+      "car-service-appointment-api": "1.0.3-RELEASE",
+      "fund-risk-center-api": "1.0.0",
+      "nr-goods-service-api": "5.0.8-SNAPSHOT",
+      "assets-api": "1.1-SNAPSHOT",
+      "cp-refund-client": "1.0.0-REFUND-SNAPSHOT",
+      "coupon-api": "1.1.5-SNAPSHOT",
+      "message-hub-sdk": "1.0.3-SNAPSHOT",
+      "car-aftersale-finance-api": "1.0.1-RELEASE"
+    },
+    "testing": {
+      "junit-jupiter": "5.9.3",
+      "junit4": "4.13.2",
+      "mockito": "4.11.0",
+      "jacoco": "0.8.12"
+    },
+    "utilities": {
+      "guava": "31.0.1-jre",
+      "hutool-all": "5.8.12",
+      "commons-lang3": "3.7",
+      "poi": "5.0.0",
+      "pagehelper": "5.3.2"
+    }
+  },
+  "scale": {
+    "provider_interfaces": 66,
+    "domain_services": "85+",
+    "gateway_interfaces": "120+",
+    "gateway_implementations": 132,
+    "mappers": 63,
+    "mq_consumers": 13,
+    "strategy_factories": 12,
+    "aggregation_roots": 12,
+    "domain_events": 8,
+    "domain_enums": "100+"
+  },
+  "generated_at": "2026-03-30"
+}

@@ -1,0 +1,53 @@
+metadata:
+  service: rights-platform
+  domain: 权益中心
+  generated: 2026-04-01
+
+summary:
+  description: 权益中心二期，负责车辆权益的正逆向全生命周期管理。核心能力包括权益包下发、退款、作废、查询、配置管理。架构采用 DDD + TMF (Step-Ability-Extension)，通过 CP/BP 分离实现业务前台差异化扩展
+  tech_stack: Java / Spring Boot / Dubbo RPC / TMF(Step-Ability-Extension) / MySQL(新旧库双写) / Redis / RocketMQ / Nacos / BPM审批流
+  architecture: DDD + TMF分层（Provider → CmdExe → DomainService → TMF → Step → Ability → Extension），两应用协作 center(CP层核心逻辑) + admin(BFF层/定时任务/MQ消费)
+
+scale:
+  modules: 2（退款模块 + 查询模块）
+  aggregation_roots: 10（7退款 + 2查询独有 + 1基类）
+  tmf_chains: 4（退款12步/退款完成3步/查询11步/展示内容3步）
+  state_enums: 6（ValidStatus/RefundRecord/RefundAudit/EquityCancel/EquityIssue/PackageCategory）
+  provider_methods: ~20（退款15 + 查询5）
+
+top5_call_chains[5]{name,entry,complexity}:
+  权益包退款主链路,PackageRefundCmdExe.execute(),分布式锁+幂等+TMF 12步+事务+凭证回收+订单退款
+  BPM审批回调,RefundBpmCallbackCmdExe.execute(),三分支(Accept/Refuse/Cancel)均无分布式锁
+  Pad/客服权益详情查询,PackageListQueryCmdExe.execute(),TMF 11步+BP前台扩展+多端适配
+  退款完成(MQ),PackageRefundCompletionService.handleRefundCompletion(),分布式锁+TMF 3步+新旧库双写
+  取消退款,CancelRefundCmdExe.execute(),绕过TMF直接编排+无分布式锁+异常被吞
+
+state_machines[2]{name,states,note}:
+  权益发放状态(ValidStatusEnum),10个状态(PENDING→ACTIVE→REFUNDING→REFUNDED),无显式状态机类靠应用层if判断
+  退款记录状态(RefundRecordStatusEnum),6个状态(NOT_REFUND→REFUND_REVIEW→REFUNDING→REFUND_SUCCESS),center表存字符串code旧表存数字equityCode
+
+external_dependencies[4]{system,usage}:
+  BPM审批系统,审批发起/回调处理
+  订单系统,OrderRefund退款执行
+  旧权益库,旧库查询+双写兼容
+  Redis,分布式锁(SerializableIsolationAbility)
+
+known_risks[7]{severity,description}:
+  high,SQL状态更新无WHERE status CAS守卫导致并发状态覆盖(NEW-001)
+  high,cancelRefund/BPM回调入口缺分布式锁(NEW-002)
+  high,退款完成新旧库双写不在同一事务(EXC-002)
+  high,BPM审批通过后凭证回收成功但退款失败导致权益丢失(FM-004)
+  medium,凭证回收失败无完整补偿机制(NEW-003)
+  medium,新旧库双写无事务且关键查询走从表(NEW-004)
+  medium,VID批量作废部分失败不可回滚(EXC-001)
+
+architecture_highlights[4]:
+  TMF DDD分层严格: Provider→CmdExe→DomainService→TMF→Step→Ability→Extension
+  退款主链路保护完备: 分布式锁+幂等+事务+状态校验四重保护
+  Admin防腐层完整: PackageRefundCenterGatewayImpl实现DTO转换和错误处理
+  BP/CP分离: CnCar业务前台通过Extension实现差异化(如凭证回收按权益形态分发)
+
+knowledge_files[3]{name,content}:
+  01-服务概述.toon,服务信息/边界/依赖/场景/DDD分层/设计模式/已知风险
+  02-接口链路.toon,API清单/9条调用链路/保护点矩阵
+  03-数据模型.toon,聚合根/状态枚举/状态流转/领域事件/关键字段结构

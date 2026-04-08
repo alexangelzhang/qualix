@@ -1,0 +1,27 @@
+{
+  "case_id": "AUTO-phaseA-20260402215711-17",
+  "phase": "A",
+  "error_type": "WRONG",
+  "severity": "medium",
+  "title": "Field required [type=missing, input_value={'id': 'REQ-003', 'title'...R-003-04', 'BR-003-05']}, inpu",
+  "root_cause": "SCHEMA",
+  "fix_target": "src/dqg/schemas/phase_a.py",
+  "tags": [
+    "auto-generated",
+    "project:damage-assessment"
+  ],
+  "created_at": "2026-04-02",
+  "status": "open",
+  "source": {
+    "project_id": "damage-assessment",
+    "auto_generated": true,
+    "validation_error": "Field required [type=missing, input_value={'id': 'REQ-003', 'title'...R-003-04', 'BR-003-05']}, input_type=dict]"
+  },
+  "expected": {
+    "content": "（需人工确认）"
+  },
+  "actual": {
+    "content": "Field required [type=missing, input_value={'id': 'REQ-003', 'title'...R-003-04', 'BR-003-05']}, input_type=dict]"
+  },
+  "lesson": ""
+}

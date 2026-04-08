@@ -1,0 +1,180 @@
+metadata:
+  service: rights-platform
+  domain: 权益中心
+  module_count: 2
+
+# API清单
+api_entries[4]{id,type,class,methods}:
+  API-001,dubbo,PackageRefundProviderImpl,refund(退款申请)|cancelRefund(取消退款)|refundBpmCallBack(BPM审批回调)|executeBatchByVid(VID批量作废)|handleRefundCompletion(退款完成)|+3more
+  API-002,dubbo,ServicePackageRefundProviderImpl,servicePackageRefund(权益包退款)|refundBpmCallBack(BPM审批回调)|+5more
+  API-003,dubbo,PackageInfoProviderImpl,getPackageDetail(权益详情查询)|+2more
+  API-004,dubbo,EquityConfigProviderImpl,queryEquityDisplayConfig(展示配置查询)|getEquityContent(展示内容查询)
+
+# 核心调用链路
+
+# 链路1: 权益包退款主链路（12步TMF）
+call_chain_001:
+  name: 权益包退款主链路
+  priority: P0
+  protection: 分布式锁+幂等+事务+状态校验
+  flow:
+    Admin ServicePackageRefundProviderImpl.servicePackageRefund() [admin]:
+      PackageRefundCenterGatewayImpl.refund() [admin/gateway, 防腐层, Dubbo RPC]:
+        Center PackageRefundProviderImpl.refund() [center/provider]:
+          PackageRefundCmdExe.execute() [app/cmdexe]:
+            PackageRefundService.refund() [domain/service]:
+              SerializableIsolationAbility.acquireLock() [保护点: 分布式锁, Redis, lockKey=orderId]:
+              DecideStepsAbility.decideSteps() [BP扩展点决定步骤链]:
+              TMF.execute(chainId='CnCar_packageRefund') [domain/step]:
+                Step01 RefundParamParseStep: 参数解析校验
+                Step02 DuplicateRefundCheckStep: [保护点: 幂等] idempotentId=orderId_packageIssueId
+                Step03 EquityInfoQueryStep: 查询权益信息(旧库4次DB)
+                Step04 RefundRuleQueryStep: 退款规则查询
+                Step05 RefundLimitCheckStep: [保护点: 状态校验] 7天窗口/使用状态
+                Step06 RefundAmountCalculateStep: 退款金额计算
+                Step07 BpmApprovalStartStep: BPM审批发起
+                Step08 RefundRecordSaveStep: [保护点: 事务] @Transactional 退款记录保存
+                Step09 RefundingStatusUpdateStep: 权益状态→退款中
+                Step10 VoucherRecallStep: 凭证回收(reduceExtensions)
+                Step11 PostRecallActionStep: 后置动作(积分补偿)
+                Step12 OrderRefundStep: 订单退款(firstExtension)
+              lock.unlock():
+
+# 链路2: VID批量作废（退换车）
+call_chain_002:
+  name: VID批量作废
+  priority: P1
+  protection: 复用主链路保护（含分布式锁）
+  flow:
+    PackageRefundCmdExe.executeBatchByVid(cmd) [app/cmdexe]:
+      PackageRefundService.listActivePackagesByVid(vid) [domain/service]:
+      for each activePkg:
+        PackageRefundService.refund(creator) [复用Chain 1完整TMF链路, 含分布式锁]:
+      聚合结果: allSuccess ? 成功 : Result.fail("部分权益包作废失败")
+  known_issue: 部分失败不可回滚(EXC-001)
+
+# 链路3: BPM审批回调
+call_chain_003:
+  name: BPM审批回调
+  priority: P0
+  protection: 状态校验（无分布式锁!）
+  flow:
+    Admin ServicePackageRefundProviderImpl.refundBpmCallBack() [admin]:
+      PackageRefundCenterGatewayImpl.refundBpmCallBack() [admin/gateway, 防腐层]:
+        Center RefundBpmCallbackCmdExe.execute() [app/cmdexe]:
+          Accept → PackageRefundService.executeAfterBpmApproveCancel() [无锁!]:
+            TMF(bpmApproveCancel): EquityInfoQuery→UsageCheck→StatusUpdate→VoucherRecall→OrderRefund
+          Refuse → BpmRejectAbility.rejectRefund() [无锁! 绕过TMF!]:
+          Cancel → CancelRefundCmdExe.execute() [复用取消链路]:
+  known_issue: 三个分支均无分布式锁(NEW-002)
+
+# 链路4: 取消退款
+call_chain_004:
+  name: 取消退款
+  priority: P1
+  protection: 状态校验REFUNDING（无分布式锁!）
+  flow:
+    Center CancelRefundCmdExe.execute() [app/cmdexe]:
+      PackageRefundCancelService.cancel() [domain/service]:
+        CancelRefundAbility.cancel() [绕过TMF, 直接编排]:
+          resolveOrderId():
+          findByOrderId() + 校验 status==REFUNDING:
+          bpmGateway.cancelProcess():
+          updateStatusWithAudit(CANCELLED, REVOKE):
+          restoreEquityValid() [异常被吞!]:
+          operateLogGateway.save():
+  known_issue: 无分布式锁(NEW-002), 异常被吞(NEW-005), 绕过TMF(ARCH-007)
+
+# 链路5: 退款完成（MQ触发）
+call_chain_005:
+  name: 退款完成
+  priority: P1
+  protection: 分布式锁+TMF 3步
+  flow:
+    Admin OrderRefundResultConsumer.onMessage() [admin/mq]:
+      过滤 orderFlow=62:
+      PackageRefundCenterGatewayImpl.handleRefundCompletion() [admin/gateway, 防腐层]:
+        Center PackageRefundCompletionService.handleRefundCompletion() [domain/service]:
+          SerializableIsolationAbility.acquireLock() [保护点: 分布式锁]:
+          TMF.execute(chainId='CnCar_refundCompletion') [domain/step]:
+            Step1 RefundCompletionParamParserStep: 参数校验
+            Step2 RefundCompletionInfoQueryStep: 信息查询
+            Step3 RefundCompletedStatusUpdateStep: 状态更新
+              updateOldLibraryToInvalid() [旧库]:
+              updateRefundRecordStatus() [新库, 双写]:
+              notifyStatusChange():
+  known_issue: 新旧库双写不在同一事务(EXC-002)
+
+# 链路6: 到期自动退款（定时任务）
+call_chain_006:
+  name: 到期自动退款
+  priority: P2
+  protection: Nacos开关+复用主链路保护
+  flow:
+    Admin AdminPackageRefundTaskProviderImpl [admin/task]:
+      PackageRefundTaskService.executeExpiredRefundTask() [domain/service]:
+        NacosConfig.isAutoRefundTaskEnabled() [Nacos开关]:
+        PackageRefundDomainService.refund() [refundSource=AUTO, 复用Chain 1]:
+
+# 链路7: Pad/客服权益详情查询（11步TMF）
+call_chain_007:
+  name: Pad/客服权益详情查询
+  priority: P0
+  protection: 纯读操作无并发风险
+  flow:
+    Center PackageInfoProviderImpl.getPackageDetail() [center/provider]:
+      PackageListQueryCmdExe.execute() [app/cmdexe]:
+        transferDisplayAppSource(creator) [clientType→displayAppSource映射]:
+        PackageInfoService.getPackageList() [domain/service]:
+          TMF.execute() [domain/step]:
+            Step01 PackageListQueryParamParserStep: vid必填校验
+            Step02 PersonVehicleRelationCheckStep: 人车关系校验
+            Step03 ValidPackageInfoQueryStep: 查有效权益包
+            Step04 LocalEquityQueryStep: 查本地权益发放记录
+            Step05 ExpiredEquityFilterStep: 过期权益过滤
+            Step06 TransferEquityTypeStep: 权益类型转换
+            Step07 EquityEnrichmentStep: 权益信息丰富(配置+展示)
+            Step08 EquityStNosProcessStep: NOS图片处理
+            Step09 ExtendInfoEnrichStep: 扩展信息丰富
+            Step10 VipEquityQueryStep: VIP权益查询
+            Step11 CarItemDetailSetStep: 车辆详情设置
+        PackageDetailTranslator.toDetailResponse():
+        CustomModelAbility.render() [BP前台响应模型扩展]:
+  performance_note: 11步链路RT关注(PERF-006)
+
+# 链路8: 权益展示配置查询
+call_chain_008:
+  name: 权益展示配置查询
+  priority: P2
+  protection: 纯读操作
+  flow:
+    Center EquityConfigProviderImpl.queryEquityDisplayConfig() [center/provider]:
+      EquityDisplayConfigQueryCmdExe.execute() [app/cmdexe]:
+        EquityDisplayConfigService.queryEquityDisplayConfig() [domain/service]:
+          TMF链路:
+        EquityDisplayConfigTranslator.toResponse():
+
+# 链路9: 权益展示内容查询
+call_chain_009:
+  name: 权益展示内容查询
+  priority: P2
+  protection: 纯读操作
+  flow:
+    Center EquityConfigProviderImpl.getEquityContent() [center/provider]:
+      EquityContentQueryCmdExe.execute() [app/cmdexe]:
+        TMF(activity=equityContentQuery) [domain/step]:
+          Step1 EquityContentQueryParamParserStep: 参数解析
+          Step2 EquityContentEquityNameQueryStep: 权益名称查询
+          Step3 EquityContentDisplayConfigQueryStep: 展示配置查询
+
+# 保护点矩阵
+protection_matrix:
+  headers: [保护能力, 退款主链路, 退款完成, 取消退款, BPM回调, 查询]
+  rows[6]:
+    分布式锁, refund() ✅, refundCompletion() ✅, cancelRefund() ❌, bpmCallback() ❌, N/A(纯读)
+    幂等, DuplicateRefundCheckStep(orderId查表) ✅, 锁保护 ✅, 状态校验 ✅, -, 天然幂等
+    事务, RefundRecordSaveStep @Transactional ✅ 但Step9-12无事务 ⚠️, Step3 ✅, ❌, ❌, N/A
+    状态校验, Step2+5 ✅, ✅, REFUNDING ✅, REFUNDING ✅, N/A
+    SQL CAS, 无WHERE status ❌, ❌, ❌, ❌, N/A
+    防腐层, PackageRefundCenterGatewayImpl ✅, ✅, -, ✅, admin通过Dubbo直调
+    降级/熔断, 未配置 ⚠️, 未配置 ⚠️, 未配置 ⚠️, 未配置 ⚠️, 未配置 ⚠️

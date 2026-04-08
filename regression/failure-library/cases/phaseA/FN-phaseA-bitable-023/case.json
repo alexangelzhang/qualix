@@ -1,0 +1,29 @@
+{
+  "case_id": "FN-phaseA-bitable-023",
+  "phase": "A",
+  "error_type": "FN",
+  "severity": "high",
+  "title": "【103334】工单中心筛选条件，需求增加“来源”筛选，当前未实现",
+  "root_cause": "SKILL_RULE",
+  "fix_target": "skills/requirement-structuring.md",
+  "tags": [
+    "国际",
+    "客服",
+    "需求实现遗漏"
+  ],
+  "created_at": "2026-03-06",
+  "status": "open",
+  "source": {
+    "bitable_record_id": "recvdm653ZsKw3",
+    "category1": "非单测相关",
+    "category2": "需求实现遗漏",
+    "requirement": "国际-客服-客服工单&服务申请"
+  },
+  "expected": {
+    "content": "将功能点在单测用例里面体现"
+  },
+  "actual": {
+    "content": "功能开发漏了"
+  },
+  "lesson": "将功能点在单测用例里面体现"
+}

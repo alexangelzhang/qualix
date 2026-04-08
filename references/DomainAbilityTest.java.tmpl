@@ -1,0 +1,54 @@
+package com.example.domain.ability;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.MockitoAnnotations;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
+/**
+ * 【强制】TMF DomainAbility 标准基线。
+ * 护栏规范必须通过 ut-audit-zh 内 “扩展点调用方式是否匹配业务（firstExtension vs allOf）” 的防漏审计。
+ */
+class CompliantDomainAbilityTest {
+
+    @InjectMocks
+    private TargetDomainAbility targetDomainAbility;
+
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+    }
+
+    @Test
+    @DisplayName("EUT-YYY [SEM-YYY]: FirstExtension精准备命中，非兜底降级")
+    void givenMatchedExtension_whenExecute_thenDelegateExactlyToExtension() {
+        // Given
+        // TODO: mock ExtensionManager.getExtension(...) 返回特定的前台客制化 Extension
+
+        // When
+        // Object result = targetDomainAbility.executeAbility(model);
+
+        // Then 【ut-audit-zh 断言约束】：
+        // verify(customizedExtension, times(1)).calculate();
+        // assertEquals(ExpectedValue, result, "断言值穿透返回无误");
+    }
+
+    @Test
+    @DisplayName("EUT-YYY [SEM-YYY]: 保底与防腐层兜底，没有任何前台支持时的降级态")
+    void givenNoMatch_whenExecute_thenFallbackToDefaultSafeExecute() {
+        // Given
+        // TODO: mock ExtensionManager.getExtension(...) 返回空列表/null
+
+        // When
+        // Object result = targetDomainAbility.executeAbility(model);
+
+        // Then 【ut-audit-zh 断言约束】：
+        // verify(customizedExtension, never()).calculate();
+        // assertEquals(SafeFallbackValue, result, "业务要求降级兜底时，结果必须为约定的降级结果常量");
+    }
+}

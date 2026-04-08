@@ -1,0 +1,28 @@
+{
+  "case_id": "FN-phaseA-bitable-241",
+  "phase": "A",
+  "error_type": "FN",
+  "severity": "high",
+  "title": "新增/编辑技能名称重复校验，不可保存相同名称的技能",
+  "root_cause": "SKILL_RULE",
+  "fix_target": "skills/requirement-structuring.md",
+  "tags": [
+    "客服",
+    "需求实现遗漏"
+  ],
+  "created_at": "2026-03-25",
+  "status": "open",
+  "source": {
+    "bitable_record_id": "recveW7bclxLNe",
+    "category1": "非单测相关",
+    "category2": "需求实现遗漏",
+    "requirement": "销服-客服-工单流转分配策略升级"
+  },
+  "expected": {
+    "content": "技术方案为什么会漏"
+  },
+  "actual": {
+    "content": "实现漏了，AI生成技术方案阶段就漏了，需要人工检查和AI做功能点检查"
+  },
+  "lesson": "技术方案为什么会漏"
+}

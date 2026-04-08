@@ -1,0 +1,93 @@
+service_info:
+  name: soc-gw
+  domain: 客服系统BFF网关
+  description: 小米汽车SOC网关（Service Operation Center Gateway），客服系统的BFF层，为客服工作台（Web/PAD）和车主APP提供统一的数据聚合查询服务，将分散在car-mrs、car-soc、CIS、理赔、救援、投诉等50+下游系统的数据聚合为面向前端的视图模型
+  tech_stack: Java 21 / Spring Boot 2.7.18 / Dubbo RPC (MSF-Mesh) / MyBatis + MySQL / Redis / Nacos / MapStruct + Lombok / JUnit 5 + Mockito 5
+  core_responsibilities[4]:
+    聚合50+个下游RPC服务的数据
+    按前端视图模型组装响应
+    少量本地DB存储（超级工单、服务单、CSW工单）
+    策略模式处理20+种工单类型的差异化展示
+
+service_boundaries:
+  owns[5]{capability,description}:
+    超级工单聚合查询,20+种工单类型的差异化详情聚合（策略模式）
+    车主APP服务首页,车辆列表/门店/预约/权益等多源数据聚合
+    服务单查询,客服按客户维度查询服务单列表和详情
+    呼叫中心工单列表,客户工单列表+并发详情填充（CompletableFuture）
+    门店容量监控,门店维修容量的计算和监控
+  delegates_to[12]{service,capability,usage}:
+    CIS整车中心,车辆/VIN/保险信息,CisRpcGateway/CisVinVidServiceGateway/CisInsuranceGateway
+    car-mrs维保,维保单/环检,CarMrsGateway/MrOrderGateway/MrLightGateway/InspectionProviderGateway
+    car-soc客服,客服工单/回声/积分,CsCenterRpcGateway/CswEchoGateway/CswOrderQueryProviderGateway/CswPointGateway
+    理赔系统,理赔案件,ClaimRpcGateway
+    道路救援,救援工单,RoadRescueGateway
+    技术支持,技术支持/远程诊断,TecSupportGateway/RemoteDiagnosisTecSupportGateway
+    投诉管理,投诉信息,ComplaintManageRpcGateway/ComplaintViewGateway
+    门店系统,门店/容量,StoreProviderGateway/StoreRepairCapacityDataGateway
+    三方履约,三方服务商,ThirdPerformanceGateway
+    用户系统,用户/账号,CarUserGateway/MiAccountGateway/UserInfoGateway/UserConsultViewGateway
+    权益系统,权益/积分,CarEquityGateway/CarEquityPkgGateway/PointsGrantGateway
+    其他30+系统,地址/线索/调度/取送车/押金/配件/文件/协议/授权/配置/TSP/评价/WMS等,各类辅助Gateway
+  provides_to[2]{service,capability,interface}:
+    客服工作台(Web/PAD),超级工单/服务单/呼叫中心等聚合视图,26个Dubbo Provider接口
+    车主APP,服务首页/门店/预约等聚合视图,CarAppProvider等
+
+ddd_layers[6]{layer,module,responsibility,scale}:
+  API契约层,soc-gw-api,26个Dubbo Provider接口+DTO+枚举,~310个Java文件
+  应用层,soc-gw-app,26个ProviderImpl+3个JobHandler+切面,~44个Java文件
+  领域层,soc-gw-domain,30个Service接口+55+实现+策略模式+80个Gateway接口,~650个Java文件
+  基础设施层,soc-gw-infrastructure,81个Gateway实现(RPC/Repository)+15个Mapper+27个Convert,~120个Java文件
+  启动层,soc-gw-server,Spring Boot启动+多环境配置,2个Java文件
+  调试层,soc-gw-debug,调试工具,开发辅助
+
+code_stats:
+  java_files: ~1127
+  code_lines: ~87000
+  test_files: ~164
+  provider_interfaces: 26
+  domain_services: 30接口/55+实现
+  gateway_interfaces: 80
+  gateway_impls: 81(RPC 50+/Repository 14/HTTP 1)
+  mappers: 15
+  strategy_patterns: WorkOrderQuery 5策略/WorkDetail 20+策略/RemoteDiagnosis 5策略
+
+deploy_profiles[7]:
+  dev
+  staging
+  preview
+  preview_ctrl
+  c3
+  c4
+  yc
+
+architecture_strengths[5]:
+  策略模式设计良好：WorkDetailSimpleFactory+20+策略类，优雅处理多工单类型差异化查询，新增工单类型只需加策略类
+  Gateway抽象完整：80个Gateway接口定义在Domain层，Infrastructure层实现，解耦彻底
+  并发优化：呼叫中心列表使用CompletableFuture+线程池并发填充详情
+  降级机制：DynamicConfig支持Nacos动态配置降级开关（如callCenterSuperTicketListDowngrade）
+  数据脱敏：DataDesensitizaUtil/SensitiveNoUtil/keyCenterUtil统一处理手机号等敏感数据
+
+architecture_risks[7]{id,risk,severity,location}:
+  R1,RPC扇出过高：超级工单详情单次请求可能触发5-10个RPC调用无并行优化,High,SuperTicketDetailServiceImpl
+  R2,App层业务泄漏：ServiceOrderQueryProviderImpl.allServiceOrderList()包含分页计算/去重/排序/白名单等逻辑(~60行)应下沉到Domain,Medium,ServiceOrderQueryProviderImpl:139-199
+  R3,缺少统一异常处理：部分Provider手动try-catch返回Result.fail部分依赖@CarLogProvider切面风格不统一,Medium,多个ProviderImpl
+  R4,静态工具类耦合：ContextUtil/RpcContextUtil静态方法获取登录用户测试需MockedStatic,Medium,全局
+  R5,MapStruct Convert分散：App层和Infrastructure层各有独立的Convert接口命名冲突(都叫Convert),Low,app/convert/Convert.java vs infra/convert/*
+  R6,本地DB与RPC数据一致性：超级工单数据同时存在本地DB和soc系统无明确同步机制,Medium,SuperTicketRepositoryGateway
+  R7,线程池配置不透明：superTicketExecutor线程池参数未在代码中可见依赖外部配置,Low,SuperTicketProviderImpl
+
+scenarios:
+  P0[2]{id,entry_class,name,trigger,desc}:
+    SC-001,SuperTicketProviderImpl,超级工单详情查询,dubbo,聚合20+种工单类型的差异化数据（策略模式+5-10个RPC扇出）
+    SC-002,CarAppProviderImpl,车主APP服务首页,dubbo,聚合车辆列表/门店/预约/权益等多源数据
+  P1[3]{id,entry_class,name,trigger,desc}:
+    SC-003,ServiceOrderQueryProviderImpl,服务单查询,dubbo,客服按客户维度查询服务单列表和详情（本地DB分页+VIN映射+脱敏）
+    SC-004,SuperTicketProviderImpl,呼叫中心工单列表,dubbo,客户工单列表+前3个进行中工单并发补充详情（CompletableFuture+线程池）
+    SC-005,StoreRepairCapacityCalculateProviderImpl,门店容量监控,dubbo,门店维修容量的多源数据聚合计算
+  P2[0]{id,entry_class,name,trigger,desc}:
+
+middleware[3]:
+  MySQL
+  Redis
+  Nacos

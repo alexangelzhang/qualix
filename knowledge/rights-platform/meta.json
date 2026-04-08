@@ -1,0 +1,107 @@
+{
+  "project_id": "rights-platform",
+  "project_name": "权益中心二期",
+  "description": "车辆权益正逆向流程建设、流水/对账信息、多端权益展示、图文配置",
+  "tech_stack": {
+    "architecture": "DDD + TMF (Step-Ability-Extension)",
+    "framework": "Spring Boot + Apache Dubbo",
+    "messaging": "RocketMQ",
+    "lock": "Redis 分布式锁",
+    "approval": "BPM 审批流",
+    "config": "Nacos 配置中心",
+    "rpc": "Dubbo RPC"
+  },
+  "modules": [
+    {
+      "module_id": "refund",
+      "module_name": "权益退款",
+      "branch": "feature_main_20260309_refund",
+      "repos": [
+        {
+          "repo": "car-equity-center",
+          "path": "/Users/zhangyiqian/git_dev/rights/car-equity-center",
+          "role": "center (CP层 + BP层)",
+          "structure": {
+            "cp": {
+              "path": "equity-center-cp",
+              "submodules": [
+                "cp-equity-center-api (Provider接口 + DTO + 枚举)",
+                "cp-equity-center-app (CmdExe编排层)",
+                "cp-equity-center-domain (DomainService + TMF Step/Ability/Extension)",
+                "cp-equity-center-infrastructure (Gateway实现 + RPC + MQ + Lock)",
+                "cp-equity-center-spec (接口规范 IMain/IDelegate)",
+                "cp-equity-center-server (启动入口)"
+              ]
+            },
+            "bp": {
+              "path": "equity-center-bp-cncar",
+              "description": "CnCar 业务前台扩展点实现"
+            }
+          }
+        },
+        {
+          "repo": "car-equity-admin",
+          "path": "/Users/zhangyiqian/git_dev/rights/car-equity-admin",
+          "role": "admin (BFF层 + 定时任务 + MQ消费者)",
+          "structure": {
+            "adapter_api": "car-equity-adapter-api (外部适配接口)",
+            "admin_api": "car-equity-admin-api (admin Provider接口)",
+            "domain": "car-equity-domain (admin 领域服务 + Gateway防腐层)",
+            "infrastructure": "car-equity-infrastructure (RPC实现)",
+            "server": "car-equity-server (启动入口 + MQ Consumer)"
+          }
+        }
+      ]
+    },
+    {
+      "module_id": "query",
+      "module_name": "权益查询",
+      "branch": "feature_main_20260203_equity_move",
+      "repos": [
+        {
+          "repo": "car-equity-center",
+          "path": "/Users/zhangyiqian/git_dev/rights/query/car-equity-center",
+          "role": "center (CP层)",
+          "structure": {
+            "cp": {
+              "path": "equity-center-cp",
+              "submodules": [
+                "cp-equity-center-api",
+                "cp-equity-center-app",
+                "cp-equity-center-domain",
+                "cp-equity-center-infrastructure",
+                "cp-equity-center-spec",
+                "cp-equity-center-server"
+              ]
+            }
+          }
+        },
+        {
+          "repo": "car-equity-admin",
+          "path": "/Users/zhangyiqian/git_dev/rights/query/car-equity-admin",
+          "role": "admin (BFF层)",
+          "structure": {
+            "adapter_api": "car-equity-adapter-api",
+            "admin_api": "car-equity-admin-api",
+            "domain": "car-equity-domain",
+            "infrastructure": "car-equity-infrastructure",
+            "server": "car-equity-server"
+          }
+        }
+      ]
+    }
+  ],
+  "key_dependencies": {
+    "internal": [
+      "car-service-equity (旧权益服务, 数据迁移源)",
+      "nr-service-package (旧服务包, 数据迁移源)"
+    ],
+    "external": [
+      "订单系统 (退款接口)",
+      "BPM 审批系统",
+      "凭证系统 (流量包/延保/卡券回收)",
+      "车辆档案系统 (VID/人车关系)",
+      "NOS 图片服务"
+    ]
+  }
+}

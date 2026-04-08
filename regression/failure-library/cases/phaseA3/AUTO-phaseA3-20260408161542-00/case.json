@@ -1,0 +1,27 @@
+{
+  "case_id": "AUTO-phaseA3-20260408161542-00",
+  "phase": "A.3",
+  "error_type": "FN",
+  "severity": "medium",
+  "title": "未知的 Phase ID: A.3",
+  "root_cause": "SKILL_RULE",
+  "fix_target": "skills/tech-design-generation.md",
+  "tags": [
+    "auto-generated",
+    "project:damage-assessment"
+  ],
+  "created_at": "2026-04-08",
+  "status": "open",
+  "source": {
+    "project_id": "damage-assessment",
+    "auto_generated": true,
+    "validation_error": "未知的 Phase ID: A.3"
+  },
+  "expected": {
+    "content": "（需人工确认）"
+  },
+  "actual": {
+    "content": "未知的 Phase ID: A.3"
+  },
+  "lesson": ""
+}

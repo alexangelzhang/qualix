@@ -1,0 +1,28 @@
+{
+  "case_id": "FN-phaseA6-bitable-221",
+  "phase": "A.6",
+  "error_type": "FN",
+  "severity": "medium",
+  "title": "【117011】切换补库建议TAB页，后端接口频繁出现超时",
+  "root_cause": "KNOWLEDGE",
+  "fix_target": "references/risk-and-exception-catalog.md",
+  "tags": [
+    "备件",
+    "性能问题"
+  ],
+  "created_at": "2026-03-18",
+  "status": "open",
+  "source": {
+    "bitable_record_id": "recvej9mc2f1qO",
+    "category1": "非单测相关",
+    "category2": "性能问题",
+    "requirement": "服务通PC-库管收货"
+  },
+  "expected": {
+    "content": "优化老的SQL"
+  },
+  "actual": {
+    "content": "一个老接口出现了慢查询，需要优化"
+  },
+  "lesson": "优化老的SQL"
+}

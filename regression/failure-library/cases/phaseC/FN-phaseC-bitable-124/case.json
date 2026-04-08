@@ -1,0 +1,28 @@
+{
+  "case_id": "FN-phaseC-bitable-124",
+  "phase": "C",
+  "error_type": "FN",
+  "severity": "high",
+  "title": "【127904】待审核tab显示数量与列表实际数量不相符",
+  "root_cause": "SKILL_RULE",
+  "fix_target": "skills/unit-test-audit.md",
+  "tags": [
+    "工单",
+    "函数未覆盖"
+  ],
+  "created_at": "2026-03-13",
+  "status": "open",
+  "source": {
+    "bitable_record_id": "recveid8nTIq5C",
+    "category1": "单测相关",
+    "category2": "函数未覆盖",
+    "requirement": "反冲单优化"
+  },
+  "expected": {
+    "content": "补充单测，覆盖条件查询"
+  },
+  "actual": {
+    "content": "count接口本次新写的，没和列表的逻辑对齐"
+  },
+  "lesson": "补充单测，覆盖条件查询"
+}

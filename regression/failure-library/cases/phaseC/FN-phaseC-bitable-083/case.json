@@ -1,0 +1,28 @@
+{
+  "case_id": "FN-phaseC-bitable-083",
+  "phase": "C",
+  "error_type": "FN",
+  "severity": "high",
+  "title": "追加车辆清单，上传了重复的vin未拦截",
+  "root_cause": "SKILL_RULE",
+  "fix_target": "skills/unit-test-audit.md",
+  "tags": [
+    "汽车",
+    "函数异常分支未覆盖"
+  ],
+  "created_at": "2026-03-04",
+  "status": "open",
+  "source": {
+    "bitable_record_id": "recvdKheMT6Spx",
+    "category1": "单测相关",
+    "category2": "函数异常分支未覆盖",
+    "requirement": "泰山计划1/2—服务活动"
+  },
+  "expected": {
+    "content": "单元测试注意覆盖provider层"
+  },
+  "actual": {
+    "content": "（需人工补充）"
+  },
+  "lesson": "单元测试注意覆盖provider层"
+}

@@ -1,0 +1,27 @@
+{
+  "case_id": "AUTO-phaseA5-20260407215427-01",
+  "phase": "A.5",
+  "error_type": "FN",
+  "severity": "medium",
+  "title": "coverage_summary",
+  "root_cause": "SKILL_RULE",
+  "fix_target": "skills/tech-coverage-audit.md",
+  "tags": [
+    "auto-generated",
+    "project:damage-assessment"
+  ],
+  "created_at": "2026-04-07",
+  "status": "open",
+  "source": {
+    "project_id": "damage-assessment",
+    "auto_generated": true,
+    "validation_error": "coverage_summary"
+  },
+  "expected": {
+    "content": "（需人工确认）"
+  },
+  "actual": {
+    "content": "coverage_summary"
+  },
+  "lesson": ""
+}

@@ -1,0 +1,29 @@
+{
+  "case_id": "FN-phaseC-bitable-341",
+  "phase": "C",
+  "error_type": "FN",
+  "severity": "high",
+  "title": "创建咨询工单关联预约维保单，零售通卡片页关联维保工单为空",
+  "root_cause": "SKILL_RULE",
+  "fix_target": "skills/unit-test-audit.md",
+  "tags": [
+    "汽车",
+    "汽车履约",
+    "函数未覆盖"
+  ],
+  "created_at": "2026-03-25",
+  "status": "open",
+  "source": {
+    "bitable_record_id": "recveWXobUKjKK",
+    "category1": "单测相关",
+    "category2": "函数未覆盖",
+    "requirement": "线上线下协同-咨询单链路支持"
+  },
+  "expected": {
+    "content": "关注数据来源，增加数据正确性校验"
+  },
+  "actual": {
+    "content": "数据获取bug，导致获取字段的地方出现偏差"
+  },
+  "lesson": "关注数据来源，增加数据正确性校验"
+}

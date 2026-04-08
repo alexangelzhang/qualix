@@ -1,0 +1,213 @@
+metadata:
+  service: car-mrs
+  domain: 售后维修保养
+  provider_count: 66
+
+# API清单（Top Provider）
+api_entries[10]{id,type,class,methods}:
+  API-001,dubbo,MrOrderMainProviderImpl,createWorkNo(维保单创建)|cancel(取消)|submitOrder(结算下单)|delivery(交车)
+  API-002,dubbo,MrAppointProviderImpl,mrMakeAppoint(预约)|applyReassignMobile(改派申请)
+  API-003,dubbo,InspectionProviderImpl,inspectionAdd(环检)
+  API-004,dubbo,QuoteProviderImpl,update(报价单更新)
+  API-005,dubbo,MrRefundProviderImpl,submitRefund(退款申请)
+  API-006,dubbo,MrItemProviderImpl,服务项管理（添加/确认/修改）
+  API-007,dubbo,MrDispatchProviderImpl,派工管理
+  API-008,dubbo,QualityCheckProviderImpl,质检管理
+  API-009,dubbo,AcceptanceProviderImpl,验车管理
+  API-010,dubbo,MrPickUpDeliveryProviderImpl,取送车管理
+
+# 核心调用链路
+
+# 链路1: 维保单创建（SOC超级工单触发）
+call_chain_001:
+  name: 维保单创建（对接超级工单）
+  priority: P0
+  protection: Redis锁幂等+idempotentId查重+策略模式(5种建单)+事件驱动(ES同步)
+  flow:
+    MrOrderMainProvider.createWorkNo() [api]:
+      MrOrderMainProviderImpl.createWorkNo() [app]:
+        参数校验+checkCreateNoParam():
+        MrOrderMainService.createWorkNo() [domain]:
+          Redis分布式锁(幂等控制) [infra]:
+          MrOrderRepositoryGateway.getByIdempotent() [infra]: 幂等校验
+          CreateMrWorkNoFactory.getCreateMrWorkNoStrategy() [domain/strategy]:
+            InOrgMrWorkNo(到店维保):
+            ToDoorMrWorkNo(上门维保):
+            SDZBMrWorkNo(到店整备):
+            YDZBMrWorkNo(移动整备):
+            SqMrWorkNo(售前维保):
+          strategy.createMrWorkNo(param) [domain/strategy]:
+            NoGeneratorRpcGateway.generateNo() [infra/rpc]: RPC生成单号
+            MrOrderRepositoryGatewayImpl.save() [infra]: @Transactional
+              MrOrderMapper.insert(): 维保单入库
+              MrOrderLogMapper.insert(): 操作日志
+              eventPublisher.publishEvent(): Spring Event→ES同步
+            CarScheduleGateway.createSchedule() [infra/rpc]: RPC排程系统
+
+# 链路2: 维保单取消
+call_chain_002:
+  name: 维保单取消
+  priority: P0
+  protection: 状态机(<=DISPATCHED可取消)+Redis锁+聚合根权限校验+事件驱动
+  flow:
+    MrOrderMainProvider.cancel() [api]:
+      MrOrderMainProviderImpl.cancel() [app]:
+        MrOrderCancelService.cancel() [domain]:
+          MrStateMachine.execAction(CANCEL) [domain/stateMachine]: 状态校验(<=DISPATCHED可取消)
+          Redis分布式锁(防并发取消) [infra]:
+          checkCancelAbility() [domain]: 校验服务项是否全部放弃
+          checkRelationStatus() [domain]: 校验车周边订单核销状态
+          MrTocAuthAggregation.tocAuthFilter() [domain/aggregation]: C端权限校验（聚合根）
+          MrOrderRepositoryGatewayImpl.cancel() [infra]: @Transactional
+            MrOrderMapper.cancel(): 更新状态
+            MrCancelRecordMapper.insert(): 取消记录
+            MrOrderLogMapper.insert(): 操作日志
+            eventPublisher.publishEvent(): ES同步+异步通知
+          RmqGateway.modifyScheduleTocCswMessage() [infra/mq]: MQ通知排程
+          MessageInformedEventFactory→异步消息通知 [domain/strategy]:
+
+# 链路3: 结算下单（最复杂）
+call_chain_003:
+  name: 结算下单
+  priority: P0
+  protection: 双重Redis锁+状态机+多线程并行查询+BPM审批流+0元订单处理
+  flow:
+    MrOrderMainProvider.submitOrder() [api]:
+      MrOrderMainProviderImpl.submitOrder() [app]:
+        Redis分布式锁(Provider层) [infra]:
+        CompletableFuture.allOf()并行查询 [app]:
+          MrUserDemandGateWay.selectByMrNo() [infra]: 用户诉求
+          CisRpcGateway.getSimpleByVidList() [infra/rpc]: 车辆信息
+          EquityGrantRecordGateway.getEquityGrantRecord() [infra/rpc]: 权益记录
+          MrItemLightGateway.listMrItemHourRelation() [infra]: 服务项信息
+        MrOrderMainService.submitOrder() [domain]:
+          Redis分布式锁(Service层,submit_order:mrNo) [infra]:
+          MrStateMachine.execAction(SETTLED_ORDER) [domain/stateMachine]: 状态扭转
+          handlerAdjust()调价处理 [domain]:
+            MrSubProcessGateway [infra]:
+            MrAdjustPriceFactory.doAdjustPrice() [domain/strategy]: 计算调价
+            checkAdjustPriceNeedApproval() [domain]: 判断是否需要审批
+            BpmGateway.processCreate() [infra/rpc]: 发起BPM审批流
+          submitOrderToRemote()远程下单 [domain]:
+            OrderRemoteGateway.getMrOrderIdMaster()/cancelOrder() [infra/rpc]: 取消旧订单
+            NrBuyRpcGateway.submit() [infra/rpc]: 交易系统下单
+          processAfterSubmit()后置处理 [domain]:
+            isZeroOrder(): 判断0元订单
+            afterSubmitSuccess() [domain]: @Transactional事务更新
+              MrOrderRepositoryGateway.updateByMrNo() [infra]:
+              MrSubProcessGateway.updateStatus() [infra]:
+            zeroPaidHandle()(异步) [domain]: 0元订单自动完成
+          handleSubmitOrderException() [domain]: 异常回滚BPM
+
+# 链路4: 报价单管理
+call_chain_004:
+  name: 报价单管理
+  priority: P1
+  protection: ES双写+数据脱敏(kcEncrypt)
+  flow:
+    QuoteProvider.update() [api]:
+      QuoteProviderImpl.update() [app]:
+        QuoteService.update() [domain]:
+          QuoteGateway [infra]: DB操作
+          CarSsuRpcGateway [infra/rpc]: SSU配件查询
+          EsQuoteIndexUpdateService [domain]: ES索引同步
+
+# 链路5: 环检
+call_chain_005:
+  name: 环检
+  priority: P1
+  protection: 状态机
+  flow:
+    InspectionProvider.inspectionAdd() [api]:
+      InspectionProviderImpl.inspectionAdd() [app]:
+        InspectionService.inspectionAdd() [domain]:
+          MrStateMachine.execAction(INSPECTED) [domain/stateMachine]: 状态扭转
+          InspectionGateway.save() [infra]: 环检数据入库
+          MrOrderRepositoryGateway.updateByMrNo() [infra]: 更新维保单状态
+          异步通知:
+
+# 链路6: 交车
+call_chain_006:
+  name: 交车
+  priority: P0
+  protection: 状态机+多重前置校验+聚合根(取送车)
+  flow:
+    MrOrderMainProvider.delivery() [api]:
+      MrOrderMainProviderImpl.delivery() [app]:
+        MrOrderMainService.delivery() [domain]:
+          MrStateMachine.execAction(DELIVERY) [domain/stateMachine]: ORDER_PAID→DELIVERY_COMPLETED
+          OrderRemoteGateway.getMrOrder() [infra/rpc]: 校验交易订单状态
+          MrOldPartsReturnGateway.selectByMrNo() [infra]: 校验旧件完整性
+          MrAdjustPriceFactory.checkCanDelivery() [domain/strategy]: 直营店审批校验
+          MrPickUpDeliveryAggregationFactory [domain/aggregation]: 还车单聚合校验
+          MrDeliveryServiceHelper.finishDelivery() [domain]: @Transactional
+
+# 链路7: 退款
+call_chain_007:
+  name: 退款
+  priority: P0
+  protection: Redis锁+BPM审批
+  flow:
+    MrRefundProvider.submitRefund() [api]:
+      MrRefundProviderImpl.submitRefund() [app]:
+        MrRefundService/MrRefundAggregateService [domain]:
+          MrRefundRecordGateway [infra]: 退款记录
+          BpmGateway.processCreate() [infra/rpc]: 发起退款审批
+          PayCenterGateway [infra/rpc]: 支付中心退款
+          MessageInformedEventFactory [domain/strategy]: 退款通知
+
+# 链路8: 预约与改派
+call_chain_008:
+  name: 预约与改派
+  priority: P1
+  protection: 改派聚合根
+  flow:
+    MrAppointProvider.mrMakeAppoint() [api]:
+      MrAppointProviderImpl [app]:
+        MrAppointService.mrMakeAppoint() [domain]:
+          CarScheduleGateway.createSchedule() [infra/rpc]: RPC排程系统
+          MrUserDemandGateWay.update() [infra]: 更新预约信息
+          ScheduleTaskManager.addReceiveNotice() [domain]: 添加接单提醒
+    MrAppointProvider.applyReassignMobile() [api]:
+      MrAppointProviderImpl [app]:
+        MrAppointService.applyReassignMobile() [domain]:
+          MrReassignOrderAggregation [domain/aggregation]: 改派聚合根
+          CarScheduleGateway.modifySchedule() [infra/rpc]: RPC排程改约
+          MrReassignOrderGateway [infra]: 改派单CRUD
+          MessageInformedEventFactory [domain/strategy]: 改派通知
+
+# 策略模式清单
+strategy_groups[12]{factory,directory,usage}:
+  CreateMrWorkNoFactory,strategy/createMrWorkNo/,建单策略（到店/上门/到店整备/移动整备/售前5种）
+  MessageInformedEventFactory,strategy/notice/,消息通知策略
+  MrAdjustPriceFactory,strategy/,调价策略
+  AbstractAppPush,strategy/,APP推送模板方法
+  签字策略,strategy/sign/,签字流程
+  文件策略,strategy/file/,文件处理
+  上门策略,strategy/toDoor/,上门服务
+  工单列表策略,strategy/,列表展示
+  权益策略,strategy/,权益处理
+  +3more,strategy/,其他策略
+
+# Gateway清单
+gateway_summary:
+  db_gateways: 120+个Gateway接口（含Repository 4个）
+  rpc_gateways[16]{system,gateway}:
+    CIS整车中心,CisRpcGateway
+    交易系统,NrBuyRpcGateway+OrderRemoteGateway
+    排程系统,CarScheduleGateway
+    BPM审批,BpmGateway
+    支付中心,PayCenterGateway
+    取送车系统,PickUpOrderRemoteGateway
+    SSU配件,CarSsuRpcGateway
+    商品中台,GoodsServiceGateway
+    权益中心,EquityGrantRecordGateway
+    EIAM,NrEiamGateway
+    文件服务,FileRemoteGateway
+    发票中心,InvoiceCenterGateway
+    风控系统,RiskControlGateway
+    门店系统,OrgDataGateway
+    单号生成,NoGeneratorRpcGateway
+    Redis,RedisLockUtil
+  mq_gateways: RmqGateway（异步消息）
+  es_gateways: EsQuoteIndexUpdateService（ES索引同步）

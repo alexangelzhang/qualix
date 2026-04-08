@@ -1,0 +1,14 @@
+{
+  "case_id": "fn-weak-doc-summary",
+  "library": "failure-library",
+  "sample_type": "failure-library",
+  "error_type": "漏报",
+  "case_kind": "弱文档输入",
+  "trigger_condition": "需求文档只有摘要和流程标题，异常路径未显式展开，历史上容易漏掉 GAP。",
+  "fix_strategy": "对弱文档输入启用 GAP/OPEN 兜底推断。",
+  "regression_case": "phase-a-weak-doc-gap",
+  "actual_dir": "regression/fixtures/failure-library/fn-weak-doc-summary/actual",
+  "include": [
+    "summary.json"
+  ]
+}

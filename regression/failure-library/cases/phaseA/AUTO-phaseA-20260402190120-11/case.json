@@ -1,0 +1,27 @@
+{
+  "case_id": "AUTO-phaseA-20260402190120-11",
+  "phase": "A",
+  "error_type": "FN",
+  "severity": "medium",
+  "title": "Input should be a valid boolean [type=bool_type, input_value=['REQ-002'], input_type=list]",
+  "root_cause": "SKILL_RULE",
+  "fix_target": "skills/requirement-structuring.md",
+  "tags": [
+    "auto-generated",
+    "project:insurance-damage-assessment"
+  ],
+  "created_at": "2026-04-02",
+  "status": "open",
+  "source": {
+    "project_id": "insurance-damage-assessment",
+    "auto_generated": true,
+    "validation_error": "Input should be a valid boolean [type=bool_type, input_value=['REQ-002'], input_type=list]"
+  },
+  "expected": {
+    "content": "（需人工确认）"
+  },
+  "actual": {
+    "content": "Input should be a valid boolean [type=bool_type, input_value=['REQ-002'], input_type=list]"
+  },
+  "lesson": ""
+}

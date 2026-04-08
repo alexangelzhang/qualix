@@ -1,0 +1,29 @@
+{
+  "case_id": "FN-phaseC-bitable-208",
+  "phase": "C",
+  "error_type": "FN",
+  "severity": "high",
+  "title": "更新停车场静态数据，高度/重量/宽度每个属性对应两个字段，更新时未进行同步更新，具体看描述",
+  "root_cause": "SKILL_RULE",
+  "fix_target": "skills/unit-test-audit.md",
+  "tags": [
+    "汽车",
+    "充电桩",
+    "函数未覆盖"
+  ],
+  "created_at": "2026-03-12",
+  "status": "open",
+  "source": {
+    "bitable_record_id": "recveiVcM4v3YE",
+    "category1": "单测相关",
+    "category2": "函数未覆盖",
+    "requirement": "停车场深度信息互联互通"
+  },
+  "expected": {
+    "content": "单测多场景覆盖"
+  },
+  "actual": {
+    "content": "单测场景未覆盖到"
+  },
+  "lesson": "单测多场景覆盖"
+}

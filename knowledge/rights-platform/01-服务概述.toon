@@ -1,0 +1,105 @@
+service_info:
+  name: rights-platform
+  domain: 权益中心
+  description: 权益中心二期，负责车辆权益的正逆向全生命周期管理。核心能力包括权益包下发、退款、作废、查询、配置管理。架构采用 DDD + TMF (Step-Ability-Extension)，通过 CP/BP 分离实现业务前台差异化扩展
+  tech_stack: Java / Spring Boot / Dubbo RPC / TMF(Step-Ability-Extension) / MySQL(新旧库双写) / Redis / RocketMQ / Nacos / BPM审批流
+  core_responsibilities[6]:
+    权益包退款全生命周期管理（退款申请/取消/BPM审批/退款完成/到期自动退款/VID批量作废）
+    权益包下发管理
+    权益查询（多端权益详情/权益列表/展示配置/展示内容）
+    权益配置管理
+    权益作废管理
+    权益到期提醒
+
+service_boundaries:
+  owns[6]{capability,description}:
+    权益包退款,退款申请→BPM审批→退款执行→退款完成全流程（TMF 12步链路）
+    权益查询,Pad/客服/零售通多端权益详情查询（TMF 11步链路）
+    权益展示配置,权益展示配置查询+权益展示内容查询
+    权益包下发,权益包下发全流程管理
+    权益作废,VID批量作废（退换车场景）
+    权益到期提醒,权益到期自动退款（定时任务+Nacos开关）
+  delegates_to[5]{service,capability,usage}:
+    BPM审批系统,审批流,BPM审批发起/回调处理
+    订单系统,订单退款,OrderRefund退款执行
+    Redis,分布式锁,SerializableIsolationAbility.acquireLock()
+    Nacos,配置中心,自动退款开关/业务配置
+    旧权益库,权益数据,旧库查询+双写兼容
+  provides_to[2]{service,capability,interface}:
+    Admin(BFF层),退款/查询操作,ServicePackageRefundProvider/PackageInfoProvider（Dubbo RPC + Gateway防腐层）
+    MQ消费者,退款完成通知,OrderRefundResultConsumer（orderFlow=62）
+
+dependencies:
+  upstream[3]{service,interface,trigger,description}:
+    Admin(BFF层),Dubbo RPC,用户/客服操作,admin通过PackageRefundCenterGatewayImpl防腐层调用center
+    BPM审批系统,Dubbo回调,审批完成,RefundBpmCallbackCmdExe处理Accept/Refuse/Cancel
+    RocketMQ,MQ消费,退款完成,OrderRefundResultConsumer消费退款结果消息(orderFlow=62)
+  downstream[4]{service,capability,usage}:
+    BPM审批系统,审批流,bpmGateway发起/取消审批流程
+    订单系统,订单退款,OrderRefundStep执行退款
+    旧权益库,权益数据,旧库4次DB查询+双写更新
+    操作日志,日志记录,operateLogGateway.save()
+  mq_upstream[1]{topic,consumer,description}:
+    订单退款结果,OrderRefundResultConsumer,消费退款完成消息(过滤orderFlow=62)
+  mq_downstream[0]{topic,producer,description}:
+
+app_collaboration:
+  center: CP层核心逻辑（CmdExe → DomainService → TMF → Step → Ability → Extension）
+  admin: BFF层/定时任务/MQ消费，通过Dubbo RPC + Gateway防腐层调用center
+
+scale_stats:
+  modules: 2（退款模块 + 查询模块）
+  refund_provider_methods: 8（PackageRefundProvider）+ 7（ServicePackageRefundProvider）
+  query_provider_methods: 3（PackageInfoProvider）+ 2（EquityConfigProvider）
+  tmf_chains: 4（退款主链路12步/退款完成3步/查询主链路11步/展示内容3步）
+  aggregation_roots: 8（PackageRefundMain/PackageIssueMain/EquityConfigMain/EquityIssueMain/EquityRemindMain/PackageConfigMain/ServicePackageMain/BasicMain）+ 2查询独有（PackageDetailMain/EquityCancelMain）
+
+scenarios:
+  P0[3]{id,entry_class,name,trigger,desc}:
+    SC-001,PackageRefundCmdExe,权益包退款主链路,dubbo,用户/客服/定时任务触发退款（分布式锁+幂等+TMF 12步+事务）
+    SC-002,RefundBpmCallbackCmdExe,BPM审批回调,dubbo,Accept走TMF/Refuse走Ability/Cancel复用取消链路（三分支均无锁!）
+    SC-003,PackageListQueryCmdExe,Pad/客服权益详情查询,dubbo,多端权益详情查询（TMF 11步+BP前台扩展）
+  P1[3]{id,entry_class,name,trigger,desc}:
+    SC-004,PackageRefundCmdExe,VID批量作废,dubbo,退换车场景批量作废（复用主链路，部分失败不可回滚）
+    SC-005,CancelRefundCmdExe,取消退款,dubbo,取消退款（绕过TMF直接编排，无分布式锁）
+    SC-006,PackageRefundCompletionService,退款完成,mq,MQ消费退款结果（分布式锁+TMF 3步+新旧库双写）
+  P2[2]{id,entry_class,name,trigger,desc}:
+    SC-007,AdminPackageRefundTaskProviderImpl,到期自动退款,cron,定时任务+Nacos开关复用主链路
+    SC-008,EquityConfigProviderImpl,权益展示配置/内容查询,dubbo,展示配置查询+展示内容查询（TMF链路）
+
+ddd_layers:
+  api[2]{module,responsibility,scale}:
+    provider/,Provider接口（Dubbo服务契约）,PackageRefundProvider(8方法)+ServicePackageRefundProvider(7方法)+PackageInfoProvider(3方法)+EquityConfigProvider(2方法)
+    model/,DTO请求/响应对象+枚举,数据传输
+  app[3]{module,responsibility,scale}:
+    cmdexe/,CmdExe命令执行器,PackageRefundCmdExe/RefundBpmCallbackCmdExe/CancelRefundCmdExe/PackageListQueryCmdExe等
+    mq/consumer/,MQ消费者,OrderRefundResultConsumer
+    task/,定时任务,AdminPackageRefundTaskProviderImpl
+  domain[4]{module,responsibility,scale}:
+    service/,DomainService领域服务,PackageRefundService/PackageRefundCancelService/PackageInfoService等
+    entity/,聚合根实体,PackageRefundMain/PackageDetailMain等10个Main
+    ability/,TMF Ability扩展点,SerializableIsolationAbility/DecideStepsAbility/CancelRefundAbility等
+    step/,TMF Step步骤,退款12步+退款完成3步+查询11步+展示内容3步
+  infrastructure[3]{module,responsibility,scale}:
+    gatewayimpl/,Gateway实现,DB操作+RPC调用+BPM+旧库兼容
+    translator/,翻译器,PackageDetailTranslator等DTO转换
+    extension/,BP Extension实现,CnCar业务前台差异化扩展
+
+design_patterns[6]{pattern,usage,location}:
+  TMF Step-Ability-Extension,核心业务编排,domain/step/+domain/ability/+infrastructure/extension/
+  CmdExe命令执行器,应用层命令分发,app/cmdexe/
+  聚合根,领域实体+业务规则,domain/entity/*Main
+  Gateway防腐层,admin→center调用隔离,PackageRefundCenterGatewayImpl
+  CP/BP分离,业务前台差异化扩展,CnCar Extension实现
+  分布式锁,并发控制,SerializableIsolationAbility.acquireLock()
+
+known_risks[7]{id,severity,description}:
+  NEW-001,high,SQL状态更新无WHERE status CAS守卫导致并发状态覆盖
+  NEW-002,high,cancelRefund/BPM回调入口缺分布式锁导致并发操作同一订单状态混乱
+  EXC-002,high,退款完成新旧库双写不在同一事务导致中间失败新旧库状态不一致
+  FM-004,high,BPM审批通过后凭证回收成功但退款失败导致用户权益丢失
+  NEW-003,medium,凭证回收成功但退款失败无完整补偿（无最大重试次数和告警升级）
+  NEW-004,medium,新旧库双写无事务且无补偿关键查询走从表（BPM回调因从表未同步而失败）
+  EXC-001,medium,VID批量作废部分失败不可回滚（部分权益已作废部分未作废）
+  ARCH-007,medium,CancelRefund/BpmReject绕过TMF步骤链降低可扩展性和可观测性
+  NEW-005,low,CancelRefund中restoreEquityValid()异常被吞

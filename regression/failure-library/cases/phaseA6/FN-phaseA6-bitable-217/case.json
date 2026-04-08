@@ -1,0 +1,28 @@
+{
+  "case_id": "FN-phaseA6-bitable-217",
+  "phase": "A.6",
+  "error_type": "FN",
+  "severity": "medium",
+  "title": "【117173】待发货TAB接口存在性能问题，改为分页返回",
+  "root_cause": "KNOWLEDGE",
+  "fix_target": "references/risk-and-exception-catalog.md",
+  "tags": [
+    "备件",
+    "性能问题"
+  ],
+  "created_at": "2026-03-18",
+  "status": "open",
+  "source": {
+    "bitable_record_id": "recvej9kR73x0y",
+    "category1": "非单测相关",
+    "category2": "性能问题",
+    "requirement": "服务通PC-库管收货"
+  },
+  "expected": {
+    "content": "用索引字段分页"
+  },
+  "actual": {
+    "content": "4张表数据联查，设计之初没有考虑分页，是因为一个机构下此状态的单据不会太多，但在测试环境验证时还是出现了慢查询"
+  },
+  "lesson": "用索引字段分页"
+}

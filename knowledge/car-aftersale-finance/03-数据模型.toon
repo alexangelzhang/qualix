@@ -1,0 +1,123 @@
+metadata:
+  service: car-aftersale-finance
+  domain: 售后财务
+  mapper_count: 9
+
+# 状态机框架（押金单）
+statemachine_framework:
+  core_classes[6]{name,description}:
+    StateMachine<S,E,C>,泛型状态机支持vertify+executeAction
+    StateMachineBuilder,构建器按事件分组Transition
+    Transition<S,E,C>,状态转换定义（from→to+event+condition+action）
+    StateNode<S,E,C>,状态节点包含目标状态+前置状态列表
+    OrderContext,押金单状态机上下文（depositNo）
+    AbstractStateMachineHandler,抽象处理器默认action更新押金单状态
+  handlers[2]{name,description}:
+    CreateDepositHandler,创建押金单状态处理器（action=null使用父类默认）
+    CancelDepositHandler,取消押金单状态处理器（使用父类默认action）
+  note: 自研轻量级状态机，StateMachineHandler接口定义condition+action
+
+# 状态流转工厂（喷漆理赔单）
+claim_settlement_factory:
+  core_classes[4]{name,description}:
+    ClaimSettlementStatusEventFactory,按source-target路由到对应StatusTransition策略
+    ClaimSettlementStatusEventHandler<R,T>,状态流转处理器接口（trigger+getMessage）
+    BaseClaimSettlementEventHandler,基类提供通用方法
+    ClaimSettlementStatusEnum,领域层理赔状态枚举（SAVED/SUBMITTED/REJECTED/PASSED/DELETED/DISCARDED/REFUSED）
+  strategies[11]{name,from,to}:
+    EmptyToSavedStatusTransition,null,SAVED(新建保存)
+    SavedToSavedStatusTransition,SAVED,SAVED(再次保存)
+    SavedToSubmittedStatusTransition,SAVED,SUBMITTED(提交保司)
+    SavedToDeletedStatusTransition,SAVED,DELETED(删除)
+    SavedToDiscardedStatusTransition,SAVED,DISCARDED(废弃)
+    RejectedToSubmittedStatusTransition,REJECTED,SUBMITTED(驳回后补传)
+    RejectedToPassedStatusTransition,REJECTED,PASSED(驳回后通过)
+    RejectedToDiscardedStatusTransition,REJECTED,DISCARDED(驳回后废弃)
+    SubmittedToRejectedStatusTransition,SUBMITTED,REJECTED(保司驳回)
+    SubmittedToPassedStatusTransition,SUBMITTED,PASSED(保司通过)
+    SubmittedToRefusedStatusTransition,SUBMITTED,REFUSED(保司拒赔)
+
+# BPM审批回调处理器
+bpm_callback_handlers[3]{name,key,description}:
+  DepositCreateCallBackHandler,DEPOSIT_CREATE_KEY,押金单创建审批回调（通过→更新状态为待收款）
+  DepositRefundCallBackHandler,DEPOSIT_REFUND_KEY,押金单退款审批回调（通过→调用订单中台退款+状态机扭转）
+  DepositWithdrawalCallBackHandler,DEPOSIT_WITHDRAWAL_KEY,押金单提现审批回调（通过→结算中台入账户+MQ推送）
+
+# 领域事件
+domain_events[1]{name,directory,trigger}:
+  ClaimSettlementInformedEvent,domain/model/event/,理赔消息通知事件（保司回调触发）
+
+# API层枚举（18个）
+api_enums[18]{name,usage}:
+  DepositOrderStatusEnum,押金单状态（6个：已创建/待收款/已收款/退款中/已退款/已取消）
+  DepositEventEnum,押金事件（6个：创建/确认收款/收款/退款/退款到账/取消）
+  DepositTypeEnum,押金类型（提前交车/大额自费维修/代步车等）
+  BusinessTypeEnum,业务类型（押金创建/押金退款/押金提现）
+  WithdrawalStateEnum,提现状态（未提现/待提现/已提现）
+  UserCheckStateEnum,用户确认状态（未确认/已确认）
+  LogRecordEnum,操作日志类型（20+种：创建/收款/退款/提现等）
+  LogTypeEnum,日志大类
+  MrOrderStatusEnum,维保单状态
+  MrOrderTypeEnum,维保单类型
+  SsuTypeEnum,商品类型（配件/工时）
+  FixedSsuFlagEnum,固定SSU标记
+  MessageTypeEnum,消息类型
+  ClaimSettlementStatusEnum,理赔单状态（7个：待提交/待审核/已驳回/已通过/已删除/已废弃/已拒赔）
+  ClaimSettlementOperationEnum,理赔操作类型
+  ClaimSettlementTypeEnum,理赔类型
+  ClaimSettlementButtonEnum,理赔按钮（编辑/删除/查看/补传）
+  CouponSettlementOperateEnum,优惠券结算操作
+
+# Domain层枚举/常量
+domain_enums[10]{name,usage}:
+  ApprovalStatusEnum,审批状态（待审批/已通过/已驳回/已取消）
+  ApprovalTypeEnum,审批类型Key（DEPOSIT_CREATE/DEPOSIT_REFUND/DEPOSIT_WITHDRAWAL）
+  ErrorCodeEnums,错误码枚举
+  ArticleTypeEnum,文章类型
+  PayStatusEnum,支付状态
+  RoleTypeEnum,角色类型
+  CarEmployeeEnum,汽车员工枚举
+  MessagePushChannelEnum,消息推送渠道
+  FinanceRoleConstant,财务角色常量
+  MrRoleConstant,维保角色常量
+
+# Mapper清单（9个）
+mappers[9]{name,table}:
+  DepositOrderMapper,押金单主表
+  DepositOrderAccessoryRelationMapper,押金单配件关系表
+  OperationLogMapper,操作日志表
+  ProcessInstanceMapper,审批流程实例表
+  RefundRecordMapper,退款记录表
+  AftersaleFinanceSignMapper,签字确认表
+  CarVoucherSettlementLogMapper,车券结算日志表
+  ClaimSettlementOrderMapper,理赔单主表
+  ClaimSettlementOperationLogMapper,理赔操作日志表
+
+# DO模型（infrastructure层）
+data_objects[8]{name,table_desc}:
+  DepositOrderModel,押金单（depositOrderNo/orgId/deposit/depositState/withdrawState/tradeOrderId/extension）
+  DepositOrderAccessoryRelationModel,配件关系（ssuId/ssuName/ssuType/num/unitPrice/duration/fixedSsuFlag）
+  OperationLogModel,操作日志（bindNo/operationType/operationContent/operatorMid）
+  ProcessInstanceModel,审批实例（processInstanceId/businessType/status/bindNo）
+  RefundRecordModel,退款记录（refundNo/bindNo/mid/orderCenterRefundNo/remark/extension）
+  AftersaleFinanceSignModel,签字确认
+  ClaimSettlementOrderModel,理赔单（claimSettlementOrderNo/superTicketNo/mrNo/vid/orgId/status/couponId）
+  ClaimSettlementOperationLogModel,理赔操作日志
+
+# MQ消费者
+mq_consumers[1]{name,topic,description}:
+  OrderStatusConsumer,订单状态变更,消费支付/退款/关单消息→OrderCallBack处理
+
+# 定时任务
+job_handlers[2]{name,description}:
+  ClaimSettlementJobHandler,理赔单定时任务（超时废弃等）
+  UpdateWithdrawAmountJobHandler,更新提现金额（查询结算中台手续费）
+
+# Spring Event监听器
+event_listeners[1]{name,description}:
+  ClaimSettlementEventListener,监听ClaimSettlementInformedEvent执行理赔消息通知
+
+# 转换器
+converters:
+  app_layer[1]: DepositOrderMainConvert（MapStruct DTO↔GoIn转换）
+  infrastructure_layer[3]: DepositConvert|FileConvert|EiamConvert（DO↔Model转换）

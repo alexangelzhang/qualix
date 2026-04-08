@@ -1,0 +1,181 @@
+{
+  "project_id": "rights-platform",
+  "modules": [
+    {
+      "module_id": "refund",
+      "module_name": "权益退款",
+      "providers": {
+        "center": [
+          {
+            "interface": "PackageRefundProvider",
+            "package": "com.xiaomi.cnzone.car.equity.cp.api",
+            "methods": [
+              {"name": "refund", "desc": "执行权益包退款", "params": "PackageRefundReq", "returns": "PackageRefundResp"},
+              {"name": "listFailedRefundRecords", "desc": "查询退款失败记录(重试用)", "params": "FailedRefundRecordQueryReq", "returns": "List<FailedRefundRecordResp>"},
+              {"name": "getRefundStatus", "desc": "查询退款状态", "params": "RefundStatusReq", "returns": "RefundStatusResp"},
+              {"name": "cancelRefund", "desc": "取消退款", "params": "CancelRefundReq", "returns": "CancelRefundResp"},
+              {"name": "refundBpmCallBack", "desc": "BPM审批回调", "params": "RefundBpmCallbackReq", "returns": "RefundBpmCallbackResp"},
+              {"name": "verifyRefundPermission", "desc": "退款权限校验", "params": "VerifyRefundPermissionReq", "returns": "VerifyRefundPermissionResp"},
+              {"name": "getRefundDetail", "desc": "退款详情/预退款金额查询", "params": "RefundDetailReq", "returns": "RefundDetailResp"},
+              {"name": "handleRefundCompletion", "desc": "退款完成消息处理", "params": "HandleRefundCompletionReq", "returns": "Boolean"}
+            ]
+          },
+          {
+            "interface": "EquityConfigProvider",
+            "package": "com.xiaomi.cnzone.car.equity.cp.api",
+            "methods": [
+              {"name": "listEquityConfigByPage", "desc": "分页查询权益配置项", "params": "EquityConfigPageQueryReq", "returns": "PageResp<EquityConfigQueryResp>"},
+              {"name": "saveOrUpdateEquityConfig", "desc": "新增/修改权益配置项", "params": "EquityConfigSaveReq", "returns": "Long"},
+              {"name": "getEquityConfigDetail", "desc": "查询权益配置项详情", "params": "EquityConfigReq", "returns": "EquityConfigDetailResp"},
+              {"name": "deleteEquityConfig", "desc": "删除权益配置项", "params": "EquityConfigReq", "returns": "Boolean"},
+              {"name": "listEquityConfigLog", "desc": "权益配置操作日志查询", "params": "EquityConfigLogQueryReq", "returns": "List<EquityConfigLogResp>"},
+              {"name": "getEquityContent", "desc": "查询权益展示内容", "params": "EquityContentQueryReq", "returns": "EquityContentQueryResp"}
+            ]
+          },
+          {
+            "interface": "PackageIssueProvider",
+            "package": "com.xiaomi.cnzone.car.equity.cp.api",
+            "methods": [
+              {"name": "issuePackage", "desc": "权益包下发", "params": "PackageIssueReq", "returns": "PackageIssueResp"}
+            ]
+          },
+          {
+            "interface": "EquityCancelProvider",
+            "package": "com.xiaomi.cnzone.car.equity.cp.api",
+            "methods": [
+              {"name": "invalidIntelligentDrive", "desc": "车辆信息变更触发智驾权益作废", "params": "InvalidIntelligentDriveReq", "returns": "Boolean"}
+            ]
+          },
+          {
+            "interface": "PackageConfigProvider", "package": "com.xiaomi.cnzone.car.equity.cp.api", "methods": []
+          },
+          {
+            "interface": "ServicePackageProvider", "package": "com.xiaomi.cnzone.car.equity.cp.api", "methods": []
+          },
+          {
+            "interface": "EquityPerformProvider", "package": "com.xiaomi.cnzone.car.equity.cp.api", "methods": []
+          },
+          {
+            "interface": "EquityReconcileProvider", "package": "com.xiaomi.cnzone.car.equity.cp.api", "methods": []
+          },
+          {
+            "interface": "EquityRemindProvider", "package": "com.xiaomi.cnzone.car.equity.cp.api", "methods": []
+          },
+          {
+            "interface": "ExpiredPackageIssueProvider", "package": "com.xiaomi.cnzone.car.equity.cp.api", "methods": []
+          },
+          {
+            "interface": "SimProvider", "package": "com.xiaomi.cnzone.car.equity.cp.api", "methods": []
+          },
+          {
+            "interface": "TrafficPackageIssueProvider", "package": "com.xiaomi.cnzone.car.equity.cp.api", "methods": []
+          }
+        ],
+        "admin": [
+          {
+            "interface": "ServicePackageRefundProvider",
+            "package": "com.xiaomi.cnzone.car.equity.admin.api",
+            "methods": [
+              {"name": "servicePackageRefund", "desc": "发起服务包退款", "params": "ServicePackageRefundReq", "returns": "Boolean"},
+              {"name": "servicePackageCancelRefund", "desc": "取消退款", "params": "ServicePackageCancelRefundReq", "returns": "Boolean"},
+              {"name": "refundBpmCallBack", "desc": "BPM退款审批回调", "params": "ServicePackageRefundBpmCallbackReq", "returns": "ServicePackageRefundBpmCallbackResp"},
+              {"name": "getOrderRefundStatus", "desc": "查询订单退款状态", "params": "GetOrderRefundStatusReq", "returns": "GetOrderRefundStatusResp"},
+              {"name": "verifyRefundPermission", "desc": "退款权限校验", "params": "VerifyRefundPermissionReq", "returns": "VerifyRefundPermissionResp"},
+              {"name": "getRefundDetail", "desc": "退款详情查询", "params": "GetRefundDetailReq", "returns": "GetRefundDetailResp"},
+              {"name": "invalidateEquityByOutside", "desc": "外部触发权益失效", "params": "InvalidateEquityByOutsideReq", "returns": "InvalidateEquityByOutsideResp"}
+            ]
+          },
+          {
+            "interface": "PackageRefundTaskProvider",
+            "package": "com.xiaomi.cnzone.car.equity.admin.api",
+            "methods": [
+              {"name": "executeExpiredRefundTask", "desc": "执行到期退款任务", "params": "PackageRefundTaskReq", "returns": "PackageRefundTaskResp"},
+              {"name": "batchRetryFailedRefund", "desc": "批量重试退款失败订单", "params": "void", "returns": "PackageRefundTaskResp"}
+            ]
+          },
+          {
+            "interface": "EquityCancelProvider",
+            "package": "com.xiaomi.cnzone.car.equity.admin.api",
+            "methods": [
+              {"name": "invalidateEquity", "desc": "权益作废执行", "params": "InvalidateEquityParam", "returns": "Boolean"}
+            ]
+          },
+          {
+            "interface": "EquityConfigProvider", "package": "com.xiaomi.cnzone.car.equity.admin.api", "methods": []},
+          {"interface": "EquityIssueProvider", "package": "com.xiaomi.cnzone.car.equity.admin.api", "methods": []},
+          {"interface": "EquityPerformProvider", "package": "com.xiaomi.cnzone.car.equity.admin.api", "methods": []},
+          {"interface": "EquityRemindProvider", "package": "com.xiaomi.cnzone.car.equity.admin.api", "methods": []},
+          {"interface": "PackageConfigProvider", "package": "com.xiaomi.cnzone.car.equity.admin.api", "methods": []},
+          {"interface": "CarEquityInfoProvider", "package": "com.xiaomi.cnzone.car.equity.admin.api", "methods": []},
+          {"interface": "SimProvider", "package": "com.xiaomi.cnzone.car.equity.admin.api", "methods": []},
+          {"interface": "TaskProvider", "package": "com.xiaomi.cnzone.car.equity.admin.api", "methods": []}
+        ]
+      }
+    },
+    {
+      "module_id": "query",
+      "module_name": "权益查询",
+      "providers": {
+        "center": [
+          {
+            "interface": "PackageInfoProvider",
+            "package": "com.xiaomi.cnzone.car.equity.cp.api",
+            "note": "查询模块新增",
+            "methods": [
+              {"name": "getPackageDetail", "desc": "Pad/客服权益详情查询", "params": "PackageDetailQueryReq", "returns": "PackageDetailResp"},
+              {"name": "getIssueEquityPackageInfo", "desc": "下发权益列表查询", "params": "EquityPackageInfoReq", "returns": "List<EquityPackageInfoResp>"},
+              {"name": "getIssueEquityDetail", "desc": "下发权益详情查询", "params": "EquityDetailInfoReq", "returns": "EquityPackageInfoResp"}
+            ]
+          },
+          {
+            "interface": "EquityConfigProvider",
+            "package": "com.xiaomi.cnzone.car.equity.cp.api",
+            "note": "查询模块增强: 新增 queryEquityDisplayConfig",
+            "methods": [
+              {"name": "listEquityConfigByPage", "desc": "分页查询权益配置项", "params": "EquityConfigPageQueryReq", "returns": "PageResp<EquityConfigQueryResp>"},
+              {"name": "saveOrUpdateEquityConfig", "desc": "新增/修改权益配置项", "params": "EquityConfigSaveReq", "returns": "Long"},
+              {"name": "getEquityConfigDetail", "desc": "查询权益配置项详情", "params": "EquityConfigReq", "returns": "EquityConfigDetailResp"},
+              {"name": "deleteEquityConfig", "desc": "删除权益配置项", "params": "EquityConfigReq", "returns": "Boolean"},
+              {"name": "listEquityConfigLog", "desc": "权益配置操作日志查询", "params": "EquityConfigLogQueryReq", "returns": "List<EquityConfigLogResp>"},
+              {"name": "getEquityContent", "desc": "查询权益展示内容", "params": "EquityContentQueryReq", "returns": "EquityContentQueryResp"},
+              {"name": "queryEquityDisplayConfig", "desc": "查询权益展示配置(新增)", "params": "EquityDisplayConfigQueryReq", "returns": "EquityDisplayConfigResp"}
+            ]
+          },
+          {
+            "interface": "PackageRefundProvider", "package": "com.xiaomi.cnzone.car.equity.cp.api", "note": "与退款模块共享", "methods": []
+          },
+          {
+            "interface": "EquityCancelProvider", "package": "com.xiaomi.cnzone.car.equity.cp.api", "methods": []
+          },
+          {
+            "interface": "PackageIssueProvider", "package": "com.xiaomi.cnzone.car.equity.cp.api", "methods": []
+          },
+          {
+            "interface": "ServicePackageProvider", "package": "com.xiaomi.cnzone.car.equity.cp.api", "methods": []
+          }
+        ],
+        "admin": [
+          {
+            "interface": "PackageInfoProvider",
+            "package": "adapter.com.xiaomi.cnzone.car.equity.api",
+            "note": "查询模块新增 adapter 层",
+            "methods": [
+              {"name": "getAppPackageList", "desc": "APP端权益列表查询"},
+              {"name": "getAppPackageDetail", "desc": "APP端权益详情查询"},
+              {"name": "getPackageConfig", "desc": "权益包配置查询(空实现)"},
+              {"name": "setPackageExtraInfo", "desc": "设置权益包扩展信息(空实现)"},
+              {"name": "getFirstOwnerEquity", "desc": "首任车主权益查询(空实现)"},
+              {"name": "getPackageGrantInfo", "desc": "权益包下发信息查询(空实现)"}
+            ]
+          },
+          {
+            "interface": "EquityConfigProvider", "package": "com.xiaomi.cnzone.car.equity.admin.api", "methods": []},
+          {"interface": "EquityCancelProvider", "package": "com.xiaomi.cnzone.car.equity.admin.api", "methods": []},
+          {"interface": "EquityIssueProvider", "package": "com.xiaomi.cnzone.car.equity.admin.api", "methods": []},
+          {"interface": "PackageRefundTaskProvider", "package": "com.xiaomi.cnzone.car.equity.admin.api", "methods": []},
+          {"interface": "ServicePackageRefundProvider", "package": "com.xiaomi.cnzone.car.equity.admin.api", "methods": []}
+        ]
+      }
+    }
+  ]
+}

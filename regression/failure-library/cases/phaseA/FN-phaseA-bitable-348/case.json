@@ -1,0 +1,29 @@
+{
+  "case_id": "FN-phaseA-bitable-348",
+  "phase": "A",
+  "error_type": "FN",
+  "severity": "medium",
+  "title": "客服工作台和零售通PAD上，多了一个服务投诉判责的记录，但是里面没有数据",
+  "root_cause": "CONTEXT",
+  "fix_target": "skills/requirement-structuring.md",
+  "tags": [
+    "汽车",
+    "汽车履约",
+    "产品需求不明确"
+  ],
+  "created_at": "2026-03-20",
+  "status": "open",
+  "source": {
+    "bitable_record_id": "recveWXrijCmMr",
+    "category1": "非单测相关",
+    "category2": "产品需求不明确",
+    "requirement": "客诉管理-服务投诉判责优化"
+  },
+  "expected": {
+    "content": "common sence"
+  },
+  "actual": {
+    "content": "沟通问题，新增服务判责比较特殊，只需要审批结果的跟进记录，不需要发起审批的跟进记录。两名研发在分工之后，没有沟通清楚，另一位研发没注意到这一点。"
+  },
+  "lesson": "common sence"
+}

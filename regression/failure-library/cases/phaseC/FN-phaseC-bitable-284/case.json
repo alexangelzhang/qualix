@@ -1,0 +1,28 @@
+{
+  "case_id": "FN-phaseC-bitable-284",
+  "phase": "C",
+  "error_type": "FN",
+  "severity": "high",
+  "title": "【105846】字段映射-退货描述、退货时间取值来源是应该质量退权益，不是七无权益",
+  "root_cause": "SKILL_RULE",
+  "fix_target": "skills/unit-test-audit.md",
+  "tags": [
+    "工单",
+    "函数未覆盖"
+  ],
+  "created_at": "2026-03-23",
+  "status": "open",
+  "source": {
+    "bitable_record_id": "recveW7sK77wbF",
+    "category1": "单测相关",
+    "category2": "函数未覆盖",
+    "requirement": "主数据对接-C端政策展示"
+  },
+  "expected": {
+    "content": "（需人工补充）"
+  },
+  "actual": {
+    "content": "没适配好，自测不充分"
+  },
+  "lesson": ""
+}

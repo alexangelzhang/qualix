@@ -1,0 +1,29 @@
+{
+  "case_id": "FN-phaseC-bitable-342",
+  "phase": "C",
+  "error_type": "FN",
+  "severity": "high",
+  "title": "创建咨询工单不选择期望回电时间，零售通展示期望回电时间展示不对",
+  "root_cause": "SKILL_RULE",
+  "fix_target": "skills/unit-test-audit.md",
+  "tags": [
+    "汽车",
+    "汽车履约",
+    "函数未覆盖"
+  ],
+  "created_at": "2026-03-25",
+  "status": "open",
+  "source": {
+    "bitable_record_id": "recveWXrijlSoS",
+    "category1": "单测相关",
+    "category2": "函数未覆盖",
+    "requirement": "线上线下协同-咨询单链路支持"
+  },
+  "expected": {
+    "content": "增加内容格式比对"
+  },
+  "actual": {
+    "content": "未做格式转化"
+  },
+  "lesson": "增加内容格式比对"
+}

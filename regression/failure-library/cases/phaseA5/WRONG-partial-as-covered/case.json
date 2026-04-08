@@ -1,0 +1,21 @@
+{
+  "case_id": "WRONG-phaseA5-001",
+  "phase": "A.5",
+  "error_type": "WRONG",
+  "severity": "high",
+  "title": "技术方案只覆盖了正向流程，缺少异常分支，但判为 COVERED",
+  "root_cause": "SKILL_RULE",
+  "fix_target": "skills/tech-coverage-audit.md",
+  "tags": ["覆盖度判定", "异常分支"],
+  "created_at": "2026-04-02",
+  "status": "open",
+  "expected": {
+    "item_type": "coverage_status",
+    "content": "PARTIAL — 技术方案仅覆盖正向流程，缺少 SE-003 要求的超时重试和降级策略"
+  },
+  "actual": {
+    "item_type": "coverage_status",
+    "content": "COVERED — 技术方案提到了该接口调用，判定为已覆盖"
+  },
+  "lesson": "覆盖度判定不能只看「是否提到」，需要检查 SE 中的具体验证条件是否在技术方案中有对应设计"
+}

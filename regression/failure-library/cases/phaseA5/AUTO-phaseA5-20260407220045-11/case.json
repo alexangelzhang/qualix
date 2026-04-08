@@ -1,0 +1,27 @@
+{
+  "case_id": "AUTO-phaseA5-20260407220045-11",
+  "phase": "A.5",
+  "error_type": "WRONG",
+  "severity": "medium",
+  "title": "Phase A.5 引用了 SE-024，但 Phase A 中不存在",
+  "root_cause": "SKILL_RULE",
+  "fix_target": "skills/tech-coverage-audit.md",
+  "tags": [
+    "auto-generated",
+    "project:damage-assessment"
+  ],
+  "created_at": "2026-04-07",
+  "status": "open",
+  "source": {
+    "project_id": "damage-assessment",
+    "auto_generated": true,
+    "validation_error": "Phase A.5 引用了 SE-024，但 Phase A 中不存在"
+  },
+  "expected": {
+    "content": "（需人工确认）"
+  },
+  "actual": {
+    "content": "Phase A.5 引用了 SE-024，但 Phase A 中不存在"
+  },
+  "lesson": ""
+}

@@ -1,0 +1,10 @@
+{
+  "generated_at": "<normalized>",
+  "project_id": "refactor-demo",
+  "signals": {
+    "changed_modules": 5,
+    "snapshot_status": "stable",
+    "test_delta": 12
+  },
+  "status": "approved"
+}

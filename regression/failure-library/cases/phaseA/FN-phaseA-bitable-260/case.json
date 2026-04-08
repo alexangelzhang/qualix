@@ -1,0 +1,28 @@
+{
+  "case_id": "FN-phaseA-bitable-260",
+  "phase": "A",
+  "error_type": "FN",
+  "severity": "medium",
+  "title": "七无政策描述间隔符优化",
+  "root_cause": "CONTEXT",
+  "fix_target": "skills/requirement-structuring.md",
+  "tags": [
+    "工单",
+    "产品需求不明确"
+  ],
+  "created_at": "2026-03-24",
+  "status": "open",
+  "source": {
+    "bitable_record_id": "recveW7inaevRX",
+    "category1": "非单测相关",
+    "category2": "产品需求不明确",
+    "requirement": "主数据对接-C端政策展示"
+  },
+  "expected": {
+    "content": "（需人工补充）"
+  },
+  "actual": {
+    "content": "prd文案没定义，延用顿号"
+  },
+  "lesson": ""
+}

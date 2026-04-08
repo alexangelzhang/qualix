@@ -1,0 +1,8 @@
+{
+  "case": "fp-placeholder-noise",
+  "status": "pass",
+  "signal": {
+    "false_positive_guard": true,
+    "noise_filtered": true
+  }
+}

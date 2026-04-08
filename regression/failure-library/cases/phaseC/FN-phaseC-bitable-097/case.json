@@ -1,0 +1,28 @@
+{
+  "case_id": "FN-phaseC-bitable-097",
+  "phase": "C",
+  "error_type": "FN",
+  "severity": "high",
+  "title": "存储停车场静态数据 - xm_parking_info-type字段，三方数据没有值的场景存储了1",
+  "root_cause": "SKILL_RULE",
+  "fix_target": "skills/unit-test-audit.md",
+  "tags": [
+    "汽车",
+    "函数未覆盖"
+  ],
+  "created_at": "2026-03-11",
+  "status": "open",
+  "source": {
+    "bitable_record_id": "recvdKheMT50e7",
+    "category1": "单测相关",
+    "category2": "函数未覆盖",
+    "requirement": "https://project.f.mioffice.cn/mit/story/detail/3749090"
+  },
+  "expected": {
+    "content": "写完单测再进行提测"
+  },
+  "actual": {
+    "content": "单测编写阶段滞后，提测后研发才开始准备"
+  },
+  "lesson": "写完单测再进行提测"
+}

@@ -1,0 +1,8 @@
+{
+  "case": "weak-doc-table-missing",
+  "status": "pass",
+  "signal": {
+    "needs_context_marked": true,
+    "contract_minimum_check": true
+  }
+}

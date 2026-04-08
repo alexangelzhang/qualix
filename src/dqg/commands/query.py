@@ -1,0 +1,197 @@
+"""查询命令：status / next / detail / log / startup."""
+
+from __future__ import annotations
+
+import sys
+from pathlib import Path
+
+from dqg.json_utils import dump_json_str, load_json_strict
+from dqg.core.state_machine import (
+    PHASE_DEFS,
+    PHASE_ORDER,
+    PhaseStatus,
+    get_available_phases,
+    get_parallel_groups,
+    internal_dir as _internal_dir,
+    load_state,
+    phase_dir as _phase_dir,
+    save_state,
+)
+from dqg.reporting.telemetry import print_run_summary
+
+STATUS_ICONS = {
+    PhaseStatus.NOT_STARTED: "⬜",
+    PhaseStatus.IN_PROGRESS: "🔶",
+    PhaseStatus.PENDING_REVIEW: "🔍",
+    PhaseStatus.APPROVED: "✅",
+    PhaseStatus.SKIPPED: "⏭",
+}
+
+
+def print_status(state, output_dir: Path) -> None:
+    """打印状态看板."""
+    print()
+    print("=" * 68)
+    print(f"  项目状态看板 — {state.project_id}")
+    print(f"  当前 Profile — {state.profile_id}")
+    print("=" * 68)
+    print(f"  {'Phase':<8} {'名称':<20} {'状态':<18} {'耗时':<12} {'备注'}")
+    print("-" * 68)
+
+    for phase_id in PHASE_ORDER:
+        ps = state.phases[phase_id]
+        icon = STATUS_ICONS.get(ps.status, "?")
+        name = PHASE_DEFS[phase_id]["name"]
+        duration = f"{ps.duration_seconds:.0f}s" if ps.duration_seconds else "—"
+        comment = ps.comment[:20] if ps.comment else ""
+        errors = f" ({len(ps.validation_errors)} errors)" if ps.validation_errors else ""
+        judge = f" [J:{ps.judge_score:.1f}{'✅' if ps.judge_passed else '⚠'}]" if ps.judge_score is not None else ""
+        print(f"  {phase_id:<8} {name:<20} {icon} {ps.status:<14} {duration:<12} {comment}{errors}{judge}")
+
+    print("=" * 68)
+
+    available = get_available_phases(state)
+    if available:
+        groups = get_parallel_groups(state)
+        print("\n  可执行:")
+        for group in groups:
+            if len(group) > 1:
+                names = " + ".join(f"{pid}({PHASE_DEFS[pid]['name']})" for pid in group)
+                print(f"    [并行] {names}")
+            else:
+                print(f"    dqg-run {state.project_id} execute {group[0]}")
+    else:
+        all_done = all(
+            state.phases[pid].status in (PhaseStatus.APPROVED, PhaseStatus.SKIPPED)
+            for pid in PHASE_ORDER
+        )
+        print("\n  所有 Phase 已完成!" if all_done else "\n  无可执行的 Phase（检查前置依赖）")
+
+
+def cmd_status(args, output_dir: Path) -> int:
+    from dqg.core.profiles import get_profile
+    state = load_state(output_dir, args.project_id)
+    if getattr(args, "profile", None):
+        state.profile_id = get_profile(args.profile).profile_id
+        save_state(output_dir, state)
+    print_status(state, output_dir)
+    return 0
+
+
+def cmd_next(args, output_dir: Path) -> int:
+    state = load_state(output_dir, args.project_id)
+    groups = get_parallel_groups(state)
+    if not groups:
+        print("  无可执行的 Phase")
+        return 0
+    for group in groups:
+        if len(group) > 1:
+            print("  [可并行]")
+            for pid in group:
+                print(f"    dqg-run {args.project_id} execute {pid}  # {PHASE_DEFS[pid]['name']}")
+        else:
+            pid = group[0]
+            print(f"  dqg-run {args.project_id} execute {pid}  # {PHASE_DEFS[pid]['name']}")
+    return 0
+
+
+def cmd_detail(args, output_dir: Path) -> int:
+    state = load_state(output_dir, args.project_id)
+    phase_id = args.phase
+    phase_def = PHASE_DEFS.get(phase_id)
+    if not phase_def:
+        print(f"  ERROR: 未知的 Phase: {phase_id}", file=sys.stderr)
+        return 1
+
+    ps = state.phases[phase_id]
+    print()
+    print("=" * 60)
+    print(f"  Phase {phase_id} — {phase_def['name']}")
+    print("=" * 60)
+
+    print(f"\n  状态: {ps.status}")
+    if ps.started_at:
+        print(f"  开始: {ps.started_at[:19]}")
+    if ps.finished_at:
+        print(f"  完成: {ps.finished_at[:19]}")
+    if ps.duration_seconds:
+        print(f"  耗时: {ps.duration_seconds:.0f}s")
+    if ps.comment:
+        print(f"  备注: {ps.comment}")
+
+    phase_dir = _phase_dir(output_dir, args.project_id, phase_def)
+    deliverables = phase_def.get("deliverables", [])
+    if deliverables:
+        print("\n  交付物:")
+        for d in deliverables:
+            filename = d.split("—")[0].strip().split(" ")[0].strip()
+            filepath = phase_dir / filename
+            exists = filepath.exists()
+            size = f"({filepath.stat().st_size} bytes)" if exists else "(未找到)"
+            print(f"    {'✓' if exists else '✗'} {d} {size}")
+
+    from dqg.path_utils import resolve_internal_file
+    inputs_path = resolve_internal_file(phase_dir, "_inputs.json")
+    if inputs_path.exists():
+        inputs = load_json_strict(inputs_path)
+        if inputs:
+            print("\n  输入记录:")
+            for key, value in inputs.items():
+                print(f"    {key}: {value}")
+
+    if ps.validation_errors:
+        print(f"\n  校验问题 ({len(ps.validation_errors)}):")
+        for err in ps.validation_errors[:5]:
+            print(f"    - {err}")
+    elif ps.status == PhaseStatus.APPROVED:
+        print("\n  校验: PASS")
+
+    print()
+    print("=" * 60)
+    return 0
+
+
+def cmd_log(args, output_dir: Path) -> int:
+    print_run_summary(output_dir, args.project_id)
+    return 0
+
+
+def cmd_startup(args, output_dir: Path) -> int:
+    state = load_state(output_dir, args.project_id)
+    available = get_available_phases(state)
+    groups = get_parallel_groups(state)
+
+    menu_items = []
+    for phase_id in PHASE_ORDER:
+        ps = state.phases[phase_id]
+        phase_def = PHASE_DEFS[phase_id]
+        menu_items.append({
+            "phase_id": phase_id,
+            "name": phase_def["name"],
+            "status": ps.status.value,
+            "icon": STATUS_ICONS.get(ps.status, "?"),
+            "available": phase_id in available,
+            "skippable": phase_def.get("skippable", False),
+            "skip_condition": phase_def.get("skip_condition", None),
+            "skill": phase_def["skill"],
+            "required_inputs": phase_def.get("required_inputs", []),
+            "optional_inputs": phase_def.get("optional_inputs", []),
+            "deliverables": phase_def.get("deliverables", []),
+            "approve_checklist": phase_def.get("approve_checklist", []),
+            "duration": f"{ps.duration_seconds:.0f}s" if ps.duration_seconds else None,
+            "comment": ps.comment or None,
+        })
+
+    all_done = all(
+        state.phases[pid].status in (PhaseStatus.APPROVED, PhaseStatus.SKIPPED)
+        for pid in PHASE_ORDER
+    )
+
+    print(dump_json_str({
+        "project_id": args.project_id,
+        "profile_id": state.profile_id,
+        "all_done": all_done,
+        "menu": menu_items,
+        "next_groups": [{"phases": g, "parallel": len(g) > 1} for g in groups],
+    }))
+    return 0

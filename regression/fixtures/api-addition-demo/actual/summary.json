@@ -1,0 +1,10 @@
+{
+  "project_id": "api-addition-demo",
+  "generated_at": "2026-03-31",
+  "status": "approved",
+  "signals": {
+    "new_endpoints": 3,
+    "new_tests": 5,
+    "risk_level": "medium"
+  }
+}

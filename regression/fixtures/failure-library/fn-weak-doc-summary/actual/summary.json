@@ -1,0 +1,8 @@
+{
+  "case": "fn-weak-doc-summary",
+  "status": "pass",
+  "signal": {
+    "gap_inferred": true,
+    "weak_doc_fallback": true
+  }
+}

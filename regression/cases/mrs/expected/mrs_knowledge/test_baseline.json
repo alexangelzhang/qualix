@@ -1,0 +1,81 @@
+{
+  "anti_patterns": {
+    "LENIENT_strictness": "MrOrderMainServiceTest",
+    "MockitoAnnotations_initMocks_deprecated": "6 files",
+    "ReflectionTestUtils_setField": "35 files, MrOrderMainServiceTest has 45 usages",
+    "assertDoesNotThrow_overuse": "76 usages",
+    "assertThrows_Exception_too_broad": "16 usages",
+    "commented_out_tests": "MrOrderMainServiceTest has 3 commented tests"
+  },
+  "backup_integration_tests": 128,
+  "by_layer": {
+    "api": 3,
+    "app": 47,
+    "domain": 192,
+    "infrastructure": 58,
+    "server_backups": 120,
+    "server_non_backups": 8
+  },
+  "critical_gaps": [
+    "DepositOrderService (涉及资金/押金)",
+    "MrInvoiceService (涉及发票)",
+    "MrRefundAggregateService (涉及退款聚合)",
+    "EquityService (涉及权益发放)",
+    "CarAuthorizationCenterService",
+    "CarSafeDriveDataService",
+    "CarTransferService",
+    "MaterialLendReturnService",
+    "MrOrderForUserSupervisionService",
+    "QualityFeedbackService",
+    "RemoteDiagnosisService"
+  ],
+  "domain_breakdown": {
+    "other": 10,
+    "result_factory": 4,
+    "service": 100,
+    "stateMachine": 3,
+    "strategy": 60,
+    "util_manager_model": 15
+  },
+  "effective_unit_tests": 300,
+  "frameworks": {
+    "AssertJ": "少量",
+    "MockedStatic": "widespread",
+    "SpringBootTest": "117 files in backups",
+    "junit4_RunWith": "backups only",
+    "junit5_ExtendWith": "~300 files",
+    "mockito_Mock_InjectMocks": "all unit tests"
+  },
+  "generated_at": "<normalized>",
+  "key_findings": {
+    "P0_critical": [
+      "~120个backups集成测试无断言，占总量28%，虚增覆盖率",
+      "MrOrderMainServiceTest 1793行质量差：45处反射注入、3个测试被注释、LENIENT模式",
+      "高风险业务(押金/发票/退款聚合/权益)无测试"
+    ],
+    "P1_important": [
+      "静态工具类耦合严重(ContextUtil/RedisLockUtil需MockedStatic)",
+      "ReflectionTestUtils滥用(35个文件)",
+      "反射调用私有方法(MrOrderMainServiceTest中4个)"
+    ],
+    "P2_improvement": [
+      "assertDoesNotThrow过度使用(76处)",
+      "测试数据构造重复(CostInfoBO 30+行setter重复)",
+      "JUnit4/initMocks残留(6个文件)"
+    ]
+  },
+  "missing_test_scenarios": [
+    "并发场景 (RedisLock仅mock，未测试真实并发)",
+    "数据一致性 (跨gateway事务回滚未测试)",
+    "幂等性 (重复提交场景未覆盖)",
+    "大数据量 (批量接口分页/超限未测试)",
+    "状态机完整路径 (仅3个stateMachine测试文件)"
+  ],
+  "quality": {
+    "invalid": "15%",
+    "medium_B": "45%",
+    "strong_A": "25%",
+    "weak_C": "15%"
+  },
+  "total_files": 428
+}

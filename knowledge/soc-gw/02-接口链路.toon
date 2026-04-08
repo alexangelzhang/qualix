@@ -1,0 +1,255 @@
+metadata:
+  service: soc-gw
+  domain: 客服系统BFF网关
+
+# API清单（26个Dubbo Provider）
+api_entries[26]{id,type,class,methods}:
+  API-001,dubbo,SuperTicketProviderImpl,superTicketDetail(超级工单详情查询)|callCenterSuperTicketList(呼叫中心工单列表含并发详情填充)|comstomerSuperTicketList(客户超级工单列表)|storeActualCapacityList(门店在修工单)
+  API-002,dubbo,CarAppProviderImpl,getCarList(车主APP车辆列表)|getAppServiceConfig(APP服务配置)|selectStoreListBetaToC(门店列表ToC)
+  API-003,dubbo,ServiceOrderQueryProviderImpl,serviceOrderList(服务单列表查询)|serviceOrderDetail(服务单详情)|allServiceOrderList(全量服务单列表)
+  API-004,dubbo,StoreRepairCapacityCalculateProviderImpl,getStoreRepairCapacity(门店维修容量计算)
+  API-005,dubbo,CswOrderProviderImpl,-
+  API-006,dubbo,CswEchoProviderImpl,-
+  API-007,dubbo,SuperTicketFollowProviderImpl,-
+  API-008,dubbo,SuperTicketLogProviderImpl,-
+  API-009,dubbo,WorkOrderRelaProviderImpl,-
+  API-010,dubbo,WorkOrderSessionProviderImpl,-
+  API-011,dubbo,HealthLinkOrderProviderImpl,-
+  API-012,dubbo,RemoteDiagnosisProviderImpl,-
+  API-013,dubbo,ComplaintProviderImpl,-
+  API-014,dubbo,UrgeProviderImpl,-
+  API-015,dubbo,LeadProviderImpl,-
+  API-016,dubbo,DispatchProviderImpl,-
+  API-017,dubbo,EcallTspProviderImpl,-
+  API-018,dubbo,ThirdPerformanceProviderImpl,-
+  API-019,dubbo,DepositProviderImpl,-
+  API-020,dubbo,CarAccessoryOrderProviderImpl,-
+  API-021,dubbo,AgreementProviderImpl,-
+  API-022,dubbo,AuthorizationProviderImpl,-
+  API-023,dubbo,FileProviderImpl,-
+  API-024,dubbo,ConfigProviderImpl,-
+  API-025,dubbo,CommentProviderImpl,-
+  API-026,dubbo,HoloTaskCenterProviderImpl,-
+
+# 核心调用链路
+call_chains[5]{id,name,complexity,entry}:
+  CC-001,超级工单详情查询,最复杂,SuperTicketProvider.superTicketDetail(stNo)
+  CC-002,车主APP服务首页,高,CarAppProvider.getCarList()/getAppServiceConfig()/selectStoreListBetaToC()
+  CC-003,服务单查询,中,ServiceOrderQueryProvider.serviceOrderList(req)/serviceOrderDetail(req)
+  CC-004,呼叫中心工单列表,高,SuperTicketProvider.callCenterSuperTicketList(req)
+  CC-005,门店容量监控,中,StoreRepairCapacityCalculateProvider.getStoreRepairCapacity(req)
+
+chain_details:
+  CC-001:
+    description: 客服查看工单详情时聚合20+种工单类型的差异化数据
+    flow:
+      SuperTicketProvider.superTicketDetail(stNo)
+        -> SuperTicketProviderImpl
+          -> SuperTicketDetailService.superTicketDetail(stNo,loginMid)
+            -> SuperTicketDetailServiceImpl
+              -> SuperTicketRepositoryGateway.findByStNo() [本地DB:工单基础信息]
+              -> CisRpcGateway.getCarInfo() [RPC:车辆信息]
+              -> CarUserGateway/MiAccountGateway [RPC:车主/用户信息]
+              -> ServiceOrderRepositoryGateway.findBySoNo() [本地DB:服务单]
+              -> WorkDetailSimpleFactory.getStrategy(ticketTypeId) [策略工厂]
+                -> CarMrsInfoQuery -> CarMrsGateway [RPC:维保单详情]
+                -> RoadRescueInfoQuery -> RoadRescueGateway [RPC:救援信息]
+                -> ClaimInfoQuery -> ClaimRpcGateway [RPC:理赔信息]
+                -> TecSupportInfoQuery -> TecSupportGateway [RPC:技术支持]
+                -> HealthLinkInfoQuery -> HealthLinkOrderGateway [本地DB:健康链路]
+                -> EcallTspQuery -> EcallTspGateway [HTTP:TSP紧急呼叫]
+                -> ThirdPerformanceQuery -> ThirdPerformanceGateway [RPC:三方履约]
+                -> ...(20+策略)
+              -> ComplaintViewGateway.getComplaintDetail() [RPC:投诉信息]
+              -> EmployeeGateway.getEmployeeInfo() [RPC:员工信息]
+  CC-002:
+    description: 车主打开APP服务页聚合车辆列表/门店/预约等信息
+    flow:
+      CarAppProvider.getCarList()/getAppServiceConfig()/selectStoreListBetaToC()
+        -> CarAppProviderImpl
+          -> CarAppService.getCarList(mid)/getAppServiceConfig()/selectStoreListBetaToC()
+            -> CarAppServiceImpl
+              -> CisRpcGateway.getCarRelationList() [RPC:车辆列表]
+              -> CisRpcGateway.getSimpleInfo() [RPC:车辆详情]
+              -> CarEquityGateway/CarEquityPkgGateway [RPC:权益信息]
+              -> StoreProviderGateway.queryAllStoreList() [RPC:门店列表]
+              -> MrStoreCapacityCalculateProviderGateway [RPC:门店容量]
+              -> MaintenanceReminderGateway [RPC:保养提醒]
+              -> ConfigurationsAdminProviderGateway [RPC:配置中心]
+  CC-003:
+    description: 客服按客户维度查询服务单列表和详情
+    flow:
+      ServiceOrderQueryProvider.serviceOrderList(req)/serviceOrderDetail(req)
+        -> ServiceOrderQueryProviderImpl
+          -> ServiceOrderQueryService.queryServiceOrder(req)
+            -> ServiceOrderQueryServiceImpl
+              -> ServiceOrderRepositoryGateway.selectByParam() [本地DB:分页查询]
+              -> CisRpcGateway.getVinRelationMap() [RPC:VIN-VID映射]
+              -> WhiteLiteServiceGateway.isTestTag() [RPC:白名单校验]
+              -> DataDesensitizaUtil.kcDecrypt() [手机号脱敏解密]
+  CC-004:
+    description: 呼叫中心查看客户工单列表前3个进行中工单并发补充详情
+    flow:
+      SuperTicketProvider.callCenterSuperTicketList(req)
+        -> SuperTicketProviderImpl
+          -> SuperTicketService.comstomerSuperTicketList(req)
+            -> SuperTicketRepositoryGateway.findByCustomer() [本地DB]
+          -> fillProcessingDetail() [并发填充:CompletableFuture+线程池]
+            -> [前3个DOING/WAIT_RESPONSE工单]
+              -> SuperTicketDetailService.superTicketDetail() [复用CC-001链路]
+  CC-005:
+    description: 门店维修容量的计算和监控
+    flow:
+      StoreRepairCapacityCalculateProvider.getStoreRepairCapacity(req)
+        -> StoreRepairCapacityCalculateProviderImpl
+          -> StoreRepairCapacityCalculateService.calculate()
+            -> StoreRepairCapacityCalculateServiceImpl
+              -> StoreRepairCapacityDataGateway.getCapacityData() [RPC:容量基础数据]
+              -> MrStoreCapacityCalculateProviderGateway [RPC:MRS容量计算]
+              -> SuperTicketService.storeActualCapacityList() [本地DB:在修工单]
+              -> StoreProviderGateway.getStoreInfo() [RPC:门店信息]
+
+# 策略模式
+strategy_patterns[3]{name,interface,base_class,strategies}:
+  工单列表查询,WorkOrderQueryStrategy,AbstractWorkOrderQuery,IndoorMrWorkOrderQuery(到店维保)|CustomServiceWorkOrderQuery(客服工单)|ProcessingWorkOrderQuery(处理中工单)|RoadRescueWorkOrderQuery(道路救援)|CsUpgradeUrgeQuery(客服升级催办)
+  工单详情差异化查询,WorkDetailStrategy,AbstractSuperTicketInfoQuery,CarMrsInfoQuery|RoadRescueInfoQuery|ClaimInfoQuery|TecSupportInfoQuery|HealthLinkInfoQuery|EcallTspQuery|ThirdPerformanceQuery|DispatchInfoQuery|EchoFeedbackQuery|CsEnquireInfoQuery|CsUpdateInfoQuery|CsConfirmInfoQuery|CalloutTaskInfoQuery|CarInspectionAuditQuery|CarOwnerChangeInfoQuery|MajorRiskInfoQuery|CsDdMrInfoQuery|CsPointsGrantInfoQuery|...(20+策略由WorkDetailSimpleFactory路由)
+  远程诊断,RemoteDiagnosisWorkOrderDetailStrategy,AbstractRemoteDiagnosisWorkOrderDetailStrategy,CustomerWorkOrderRemoteDiagnosisWorkOrderDetailStrategy|MaintenanceWorkOrderRemoteDiagnosisWorkOrderDetailStrategy|ServiceOrderRemoteDiagnosisWorkOrderDetailStrategy|TechSupportWorkOrderRemoteDiagnosisWorkOrderDetailStrategy
+
+# 工单类型体系（TicketTypeEnum来自soc-api）
+ticket_types[19]{type,description,detail_strategy}:
+  BOOK_DD_MR,预约到店维保,CarMrsInfoQuery
+  BOOK_YD_MR,预约移动维保,CarMrsInfoQuery
+  USER_BOOK_DD_MR,用户预约到店维保,CarMrsInfoQuery
+  ROAD_RESCUE,道路救援,RoadRescueInfoQuery
+  CLAIM,理赔,ClaimInfoQuery
+  TEC_SUPPORT,技术支持,TecSupportInfoQuery
+  HEALTH_LINK,健康链路,HealthLinkInfoQuery
+  ECALL_TSP,紧急呼叫,EcallTspQuery
+  THIRD_PERFORMANCE,三方履约,ThirdPerformanceQuery
+  CS_ENQUIRE,客服咨询,CsEnquireInfoQuery
+  CS_UPDATE,客服升级,CsUpdateInfoQuery
+  CS_CONFIRM,客服确认,CsConfirmInfoQuery
+  DISPATCH,派工,DispatchInfoQuery
+  ECHO_FEEDBACK,回声反馈,EchoFeedbackQuery
+  CALLOUT_TASK,外呼任务,CalloutTaskInfoQuery
+  CAR_INSPECTION_AUDIT,验车审核,CarInspectionAuditQuery
+  CAR_OWNER_CHANGE,车主变更,CarOwnerChangeInfoQuery
+  MAJOR_RISK,重大风险,MajorRiskInfoQuery
+  CS_DD_MR,客服到店维保,CsDdMrInfoQuery
+
+# 外部依赖（50+ RPC Gateway）
+external_system_dependencies:
+  CIS整车中心:
+    gateways[3]: CisRpcGateway,CisVinVidServiceGateway,CisInsuranceGateway
+    usage: 车辆/VIN/保险信息
+  car-mrs维保:
+    gateways[4]: CarMrsGateway,MrOrderGateway,MrLightGateway,InspectionProviderGateway
+    usage: 维保单/环检
+  car-soc客服:
+    gateways[4]: CsCenterRpcGateway,CswEchoGateway,CswOrderQueryProviderGateway,CswPointGateway
+    usage: 客服工单/回声/积分
+  理赔系统:
+    gateways[1]: ClaimRpcGateway
+    usage: 理赔案件
+  道路救援:
+    gateways[1]: RoadRescueGateway
+    usage: 救援工单
+  技术支持:
+    gateways[2]: TecSupportGateway,RemoteDiagnosisTecSupportGateway
+    usage: 技术支持/远程诊断
+  投诉管理:
+    gateways[2]: ComplaintManageRpcGateway,ComplaintViewGateway
+    usage: 投诉信息
+  门店系统:
+    gateways[2]: StoreProviderGateway,StoreRepairCapacityDataGateway
+    usage: 门店/容量
+  三方履约:
+    gateways[1]: ThirdPerformanceGateway
+    usage: 三方服务商
+  用户系统:
+    gateways[4]: CarUserGateway,MiAccountGateway,UserInfoGateway,UserConsultViewGateway
+    usage: 用户/账号
+  权益系统:
+    gateways[3]: CarEquityGateway,CarEquityPkgGateway,PointsGrantGateway
+    usage: 权益/积分
+  固资系统:
+    gateways[1]: AssetsRpcGateway
+    usage: 服务车/固定资产
+  地址服务:
+    gateways[2]: AddressRpcGateway,GaoDeGateway
+    usage: 地址/高德地图
+  线索系统:
+    gateways[2]: LeadQueryProviderGateway,LeadRecordListRpcGateway
+    usage: 售后线索
+  调度系统:
+    gateways[1]: DispatchGateway
+    usage: 派工
+  取送车:
+    gateways[1]: ToDoorServiceCarGateway
+    usage: 上门服务
+  押金系统:
+    gateways[1]: DepositGateway
+    usage: 押金查询
+  配件系统:
+    gateways[1]: CarAccessoryOrderGateway
+    usage: 配件订单
+  白名单:
+    gateways[1]: WhiteLiteServiceGateway
+    usage: 测试白名单
+  文件服务:
+    gateways[1]: FileRemoteGateway
+    usage: 文件上传
+  协议服务:
+    gateways[1]: AgreementRpcGateway
+    usage: 协议查询
+  授权服务:
+    gateways[1]: AuthorizationRpcRpcGateway
+    usage: 授权校验
+  配置中心:
+    gateways[2]: CommonConfigProviderGateway,ConfigurationsAdminProviderGateway
+    usage: 动态配置
+  定时任务:
+    gateways[1]: NrJobGateway
+    usage: Job管理
+  TSP:
+    gateways[1]: EcallTspGateway(HTTP)
+    usage: 紧急呼叫
+  客户关怀:
+    gateways[1]: CustomerCareGateway
+    usage: 客户关怀
+  评价系统:
+    gateways[1]: CommentRpcGateway
+    usage: 服务评价
+  保养提醒:
+    gateways[1]: MaintenanceReminderGateway
+    usage: 保养提醒
+  驾驶伴侣:
+    gateways[1]: CarDriveMateGateway
+    usage: 驾驶数据
+  安全驾驶:
+    gateways[1]: CarAccidentGateway
+    usage: 事故信息
+  技能组:
+    gateways[1]: SkillGroupGateway
+    usage: 客服技能组
+  WMS:
+    gateways[1]: WmsProcessRpcGateway
+    usage: 配件领退料
+  订单服务:
+    gateways[1]: OrderInfoServiceGateway
+    usage: 订单查询
+  服务动作:
+    gateways[1]: ServiceActionGateway
+    usage: 服务动作记录
+  预约系统:
+    gateways[2]: AppointQuestionCategoryGateway,MrQuestionCategoryGateway
+    usage: 预约问题分类
+  容量计算:
+    gateways[1]: MrStoreCapacityCalculateProviderGateway
+    usage: MRS容量
+  远程诊断:
+    gateways[1]: RemoteDiagnosisMrGateway
+    usage: 远程诊断维保
+  用户监督:
+    gateways[1]: UserSupervisionViewGateway
+    usage: 用户监督

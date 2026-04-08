@@ -1,0 +1,104 @@
+metadata:
+  service: complaint-manage
+  domain: 客诉管理
+  mapper_count: 11
+
+# 聚合根
+aggregation_roots[5]{name,directory,responsibility}:
+  ComplaintOrderAggregation,domain/aggregation/,服务投诉单核心聚合：建单/接单/跟进/催单/升级/编辑（750+行）
+  ComplaintAuditAggregation,domain/aggregation/,审批聚合：改派/免责/72H/结案申请构建+BPM回调处理
+  ComplaintOrderBatchAggregation,domain/aggregation/,批量操作聚合：批量更新客服跟进人
+  RetailComplaintAuditAggregation,domain/aggregation/,零售客诉审批聚合：BPM改派申请构建
+  ComplaintOrderAggregationFactory,domain/aggregation/,聚合工厂：创建ComplaintOrderAggregation
+  ComplaintAuditAggregationFactory,domain/aggregation/,聚合工厂：创建ComplaintAuditAggregation（注入订单+门店+员工信息）
+  RetailComplaintAuditAggregationFactory,domain/aggregation/,聚合工厂：创建RetailComplaintAuditAggregation
+
+# 领域事件
+domain_events[1]{name,directory,trigger}:
+  MessageInformedEvent,domain/event/,消息通知事件（飞书/消息中台推送）
+
+# 权限管理器
+managers[5]{name,responsibility}:
+  UserAuthManager,通用用户权限管理
+  RetailAuthManager,零售客诉权限管理
+  ReportAuthManager,举报单权限管理
+  ComplaintAuditManager,审批权限管理
+  UpcConfigLocalCache,UPC配置本地缓存
+
+# API层枚举（30+）
+api_enums[16]{name,usage}:
+  ComplaintStatusEnum,服务投诉单状态（6个）
+  RetailComplaintOrderStatusEnum,零售/交付客诉单状态（5个）
+  AuditStatusEnum,审批状态
+  AuditTypeEnum,审批类型（改派/免责/72H/结案/产品风险结案/判责）
+  BusinessTypeEnum,业务类型
+  CreateSourceEnum,创建来源（线上客服/服务门店）
+  ProcessTypeEnum,跟进记录类型（接单/首响/跟进/催单/改派/申请等）
+  RiskLevelEnum,风险等级
+  UrgencyLevelEnum,紧急程度
+  HandleResultEnum,处理结果
+  ConsultStatusEnum,咨询单状态
+  UcOrderTypeEnum,用户投诉单类型
+  UcOrderEventEnum,用户投诉单事件
+  MediaInvolvedEnum,是否涉媒
+  ReviewedEnum,是否已复盘
+  TagTypeEnum,标签类型
+
+# Domain层枚举
+domain_enums[6]{name,usage}:
+  ComplaintTypeEnum,投诉分类（服务投诉/产品投诉/产品风险）
+  ConsultOrderStatusEnum,咨询单状态
+  ComplaintChannelEnum,投诉渠道
+  PositionEnum,岗位枚举
+  DeliverPositionEnum,交付岗位枚举
+  RetailTypeEnum,零售类型
+
+# 状态机框架
+statemachine_framework:
+  core_classes[4]{name,description}:
+    StateMachine<S,E,C>,泛型状态机支持verify+executeAction
+    StateMachineBuilder,构建器按事件分组Transition
+    Transition<S,E,C>,状态转换定义（from→to+event+condition+action）
+    UcOrderContext,用户投诉/举报单状态机上下文
+  note: 自研轻量级状态机非COLA StateMachine
+
+# Mapper清单（11个）
+mappers[11]{name}:
+  ComplaintOrderMapper
+  ComplaintAuditMapper
+  ComplaintFollowProcessMapper
+  ComplaintTagMapper
+  DeliverComplaintMapper
+  RetailComplaintMapper
+  ConsultMapper
+  ReportMapper
+  ComplaintExpandMapper
+  ComplaintContactMapper
+  ComplaintOperateLogMapper
+
+# 事务服务
+transaction_services[3]{name,responsibility}:
+  ComplaintApplyTransactionService,审批申请事务（审批单+跟进记录+客诉单状态更新）
+  ComplaintEditTransactionService,编辑事务（字段变更+跟进记录）
+  ComplaintSubmitReviewTransactionService,提交复盘事务
+
+# 转换器
+converters:
+  app_layer[11]: ComplaintOperateConvert|ComplaintAuditConvert|ComplaintQueryConvert|DeliverComplaintConvert|RetailComplaintConvert|ConsultConvert|ReportConvert|ComplaintListConvert|ComplaintExportConvert|+2more
+  infrastructure_layer[10]: ComplaintOrderConverter|ComplaintAuditConverter|ComplaintFollowProcessConverter|ComplaintTagConverter|DeliverComplaintConverter|RetailComplaintConverter|ConsultConverter|ReportConverter|ComplaintExpandConverter|ComplaintContactConverter
+  domain_layer: domain/converter/（领域对象间转换）
+
+# MQ消费者
+mq_consumers[2]{name,topic,description}:
+  OrderStatusConsumer,工单状态变更,消费工单状态变更消息处理下游逻辑
+  StoreChangeConsumer,门店变更,消费门店变更消息更新关联数据
+
+# 定时任务
+nrjob_tasks[3]{name,description}:
+  ComplaintListNrJob,列表记录定时任务
+  DeliverComplaintListNrJob,交付客诉列表定时任务
+  RetailComplaintExpandNrJob,零售客诉扩展信息填充
+
+# Spring Event监听器
+event_listeners[1]{name,description}:
+  MessageInformedEventListener,监听MessageInformedEvent执行消息通知（飞书/消息中台异步推送）

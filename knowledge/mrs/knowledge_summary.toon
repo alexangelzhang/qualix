@@ -1,0 +1,91 @@
+metadata:
+  service: car-mrs
+  domain: 售后维修保养
+  generated: 2026-04-01
+
+summary:
+  description: 小米汽车售后维修保养服务系统（Car Maintenance and Repair Service），覆盖从预约、建单、环检、服务项管理、派工、作业、质检、验车、结算、交车的完整维保工单生命周期
+  tech_stack: Java 8 / Spring Boot 2.2 / Dubbo RPC（MSF-Mesh） / MyBatis + MySQL（读写分离） / Elasticsearch / Redis / RocketMQ / Nacos / BPM审批流
+  architecture: DDD五层架构（api/app/domain/infrastructure/server）
+
+scale:
+  providers: 66
+  domain_services: 85+
+  gateways: 120+接口/132实现（含Repository4+RPC30+DB/ES/MQ/文件等）
+  aggregation_roots: 12
+  strategy_groups: 12
+  mappers: 63
+  mq_consumers: 13
+  domain_events: 7
+  enums: 100+
+  total_java_files: 大型项目
+
+top8_call_chains[8]{name,entry,complexity}:
+  维保单创建,MrOrderMainProvider.createWorkNo(),Redis锁幂等+策略模式5种建单+事件驱动ES同步
+  维保单取消,MrOrderMainProvider.cancel(),状态机+Redis锁+聚合根权限校验
+  结算下单,MrOrderMainProvider.submitOrder(),最复杂:双重Redis锁+多线程并行+BPM审批+0元订单
+  报价单管理,QuoteProvider.update(),ES双写+数据脱敏
+  环检,InspectionProvider.inspectionAdd(),状态机扭转+标准流程
+  交车,MrOrderMainProvider.delivery(),状态机+多重前置校验+聚合根(取送车)
+  退款,MrRefundProvider.submitRefund(),Redis锁+BPM审批+支付中心退款
+  预约改派,MrAppointProvider.mrMakeAppoint(),排程系统RPC+改派聚合根
+
+state_machine:
+  name: 维保单状态机(MrStateMachine)
+  states: 16个状态(INIT→COMPLETED/CANCEL)
+  events: 23个事件
+  framework: 内存级状态校验与扭转集中管理
+  forward_flow: INIT(0)→PICKUP(10)→INSPECTED(40)→ADDED_ITEM(55)→CONFIRMATION(60)→DISPATCHED(70)→WORK_FINISH(75)→QUALITY_CHECKED(80)→ACCEPTANCE_FINISH(85)→SETTLED_ORDER(90)→ORDER_PAID(94)→DELIVERY_COMPLETED(97)→COMPLETED(95)
+  reverse: CHECK_REFUSE→DISPATCHED / CHECK_WITHDRAW→WORK_FINISH / ADDED_ITEM可从高状态回退
+  cancel: status<=DISPATCHED(70)均可取消→CANCEL(100)
+
+external_dependencies[16]{system,gateway}:
+  CIS整车中心,CisRpcGateway
+  交易系统,NrBuyRpcGateway+OrderRemoteGateway
+  排程系统,CarScheduleGateway
+  BPM审批,BpmGateway
+  支付中心,PayCenterGateway
+  取送车系统,PickUpOrderRemoteGateway
+  SSU配件,CarSsuRpcGateway
+  商品中台,GoodsServiceGateway
+  权益中心,EquityGrantRecordGateway
+  EIAM,NrEiamGateway
+  文件服务,FileRemoteGateway
+  发票中心,InvoiceCenterGateway
+  风控系统,RiskControlGateway
+  门店系统,OrgDataGateway
+  单号生成,NoGeneratorRpcGateway
+  UPC用户中心,UPC
+
+middleware[5]{name,usage}:
+  MySQL(读写分离),主数据存储car_mrs_write/car_mrs_read
+  Elasticsearch,工单列表查询/报价单搜索
+  Redis,分布式锁/缓存/状态标记
+  RocketMQ,异步消息/延迟消息补偿
+  Nacos,配置中心/服务注册
+
+known_risks[10]{severity,description}:
+  high,MrOrderMainService 2800+行God Service承担建单/结算/交车/审批回调等多职责应拆分
+  high,ProviderImpl层业务逻辑泄漏submitOrder含并行查询编排/参数组装
+  high,Domain Service直接依赖API DTO破坏DDD层间隔离
+  medium,事务边界不统一部分@Transactional在Domain Service部分在Infrastructure层
+  medium,submitOrder双重分布式锁嵌套存在死锁风险
+  medium,异步处理缺乏补偿CompletableFuture.runAsync异常仅打日志
+  medium,ES双写通过Spring Event同步无最终一致性保障
+  medium,缺少CmdExe模式app层ProviderImpl直接调用Domain Service
+  low,MrDeliveryServiceHelper作为内部@Service类增加复杂度
+  low,部分Gateway接口命名混乱职责边界模糊
+
+test_baseline:
+  total_files: 428（有效~300/backups~128）
+  quality: A强25%/B中45%/C弱15%/无效15%
+  domain_tests: 192个测试文件覆盖最充分
+  app_tests: 47个测试文件
+  infra_tests: 58个测试文件
+  framework: JUnit5+Mockito+MockedStatic
+  risk: ~120个backups集成测试无断言虚增覆盖率
+
+knowledge_files[3]{name,content}:
+  01-服务概述.toon,服务信息/边界/依赖/场景/DDD分层/业务流转/设计模式/已知风险
+  02-接口链路.toon,API清单/8条核心调用链路/策略模式/Gateway清单
+  03-数据模型.toon,聚合根/领域事件/状态机(16态23事件)/枚举(100+)/策略模式/Mapper/MQ/定时任务/转换器

@@ -1,0 +1,29 @@
+{
+  "case_id": "WRONG-phaseC-bitable-039",
+  "phase": "C",
+  "error_type": "WRONG",
+  "severity": "high",
+  "title": "【132768】校验新增价格模板，create_time_ts、vat字段的值有问题",
+  "root_cause": "SKILL_RULE",
+  "fix_target": "skills/unit-test-audit.md",
+  "tags": [
+    "国际",
+    "主数据",
+    "函数覆盖assert不对"
+  ],
+  "created_at": "2026-03-10",
+  "status": "open",
+  "source": {
+    "bitable_record_id": "recvdwlKCYzY9L",
+    "category1": "单测相关",
+    "category2": "函数覆盖assert不对",
+    "requirement": "国际-主数据-产品、技术、备件主数据"
+  },
+  "expected": {
+    "content": "（需人工补充）"
+  },
+  "actual": {
+    "content": "国内页面功能不需要插入vat字段，仅国际需要，回归的功能为国内环境"
+  },
+  "lesson": ""
+}

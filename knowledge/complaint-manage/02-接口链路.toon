@@ -1,0 +1,206 @@
+metadata:
+  service: complaint-manage
+  domain: 客诉管理
+  provider_count: 14
+
+# API清单
+api_entries[14]{id,type,class,methods}:
+  API-001,dubbo,ComplaintOperateProviderImpl,createComplaintOrder(服务投诉单创建)|pickUpOrder(接单)|addFollowRecordV2(添加跟进记录)|remindComplaintOrder(催单)|upgradeComplaintOrder(升级)|editComplaintOrder(编辑)
+  API-002,dubbo,ComplaintApplyProviderImpl,submitChangeOrgApply(改派门店申请)|submitExemptionApply(免责申请)|submit72HFreeApply(72H无法结案申请)|submitFinishApplyV2(结案申请V2)
+  API-003,dubbo,BpmCallBackProviderImpl,callBack(BPM审批回调)
+  API-004,dubbo,DeliverComplaintProviderImpl,startProcess(交付客诉启动)|followUp(跟进)|reassign(改派)|finish(结案)
+  API-005,dubbo,RetailComplaintOperateProviderImpl,createComplaintOrder(零售客诉单创建)
+  API-006,dubbo,ComplaintListProviderImpl,queryComplaintList(客诉列表查询)
+  API-007,dubbo,ComplaintQueryProviderImpl,queryComplaintDetail(客诉详情查询)
+  API-008,dubbo,ConsultProviderImpl,createConsultOrder(咨询单创建)|queryConsultList(咨询单列表)
+  API-009,dubbo,ReportProviderImpl,createReport(举报单创建)|pickUpReport(举报单接单)|addFollowRecord(举报跟进)|judgeReport(举报判定)|remindReport(举报催单)
+  API-010,dubbo,RetailComplaintQueryProviderImpl,queryRetailComplaintList(零售客诉列表)
+  API-011,dubbo,ComplaintExportProviderImpl,exportComplaintList(客诉导出)
+  API-012,dubbo,ComplaintAuditProviderImpl,queryAuditList(审批列表查询)
+  API-013,dubbo,ComplaintTagProviderImpl,queryTagList(标签查询)
+  API-014,dubbo,ComplaintDataFixProviderImpl,dataFix(数据修复)
+
+# 核心调用链路
+
+# 链路1: 服务投诉单创建（SOC超级工单触发）
+call_chain_001:
+  name: 服务投诉单创建
+  priority: P0
+  protection: Redis锁幂等+联系人加密+异步消息
+  flow:
+    ComplaintOperateProvider.createComplaintOrder() [api]:
+      ComplaintOperateProviderImpl.createComplaintOrder() [app]:
+        ComplaintOperateConvert.toSoIn(req) [app/convert]: DTO→SoIn转换
+        ComplaintOperateService.createComplaintOrder() [domain]:
+          Redis分布式锁(幂等控制lockKey=idempotentId) [infra]:
+          ComplaintOrderRepositoryGateway.findList() [infra]: 幂等校验
+          NoGeneratorRemoteGateway.generateComplaintNo() [infra/rpc]: RPC生成单号
+          CarRemoteGateway.getCarSimpleInfo() [infra/rpc]: RPC查车辆信息(VIN)
+          ComplaintOrderAggregationFactory.getComplaintOrderAggregation() [domain/aggregation]:
+            ComplaintOrderAggregation.createComplaintOrder() [domain/aggregation]:
+              extractExpandInfo(): 解析模板字段（投诉类型/门店/风险等级/责任归属）
+              KeyCenterUtil.encrypt(): 联系人信息加密
+              判断是否免考核标签: 产品投诉/产品风险/门店来源
+          StoreRemoteGateway.getStoreInfo() [infra/rpc]: RPC查门店大区/小区/城市
+          ComplaintOrderRepositoryGateway.saveComplaintInfo() [infra]: 持久化
+          ComplaintTagGateway.insertTag() [infra]: 标签入库
+          MessageInformedEventFactory→SpringEvent [domain/strategy]: 异步消息通知
+
+# 链路2: 审批申请（最复杂：5种审批类型+BPM+事务拆分）
+call_chain_002:
+  name: 审批申请（改派/免责/72H/结案）
+  priority: P0
+  protection: 状态校验+业务规则+事务拆分
+  flow:
+    ComplaintApplyProvider.submit*() [api]:
+      ComplaintApplyProviderImpl.*() [app]:
+        ComplaintAuditConvert.toSoIn(req) [app/convert]: DTO→SoIn
+        设置auditType: 改派/免责/72H/结案/产品风险结案
+        ComplaintApplyService.submitApply() [domain]:
+          ComplaintOrderRepositoryGateway.findList() [infra]: 查客诉单
+          校验: 免责次数限制/改派门店不能相同/门店来源不能改派
+          resolveAuditTypeForFinishApplyV2(): V2动态设置auditType
+          EiamRemoteGateway.getEmployeeList() [infra/rpc]: RPC查员工信息
+          FileRemoteGateway.fileCommit() [infra/rpc]: RPC文件持久化
+          门店来源结案→直接通过不走审批:
+            ComplaintApplyTransactionService.doSubmitFinishApplyFromStore() [domain]: 事务处理
+          StoreRemoteGateway.getStoreListInfo() [infra/rpc]: RPC查门店信息
+          免责→BPMRemoteGateway.processCreate() [infra/rpc]: 发起BPM审批流
+          ComplaintAuditAggregationFactory→ComplaintAuditAggregation [domain/aggregation]:
+            createApply(soIn):
+              handleReassignmentStores(): 改派门店
+              handleApplicationForWaiver(): 免责申请
+              create72HNOFinishProcess(): 72H无法结案
+              createFinishProcess(): 结案申请
+          ComplaintApplyTransactionService.doSubmitApplyInTransaction() [domain]: @Transactional
+            ComplaintAuditRepositoryGateway.save() [infra]: 审批单入库
+            ComplaintFollowProcessRepositoryGateway.save() [infra]: 跟进记录入库
+            ComplaintOrderRepositoryGateway.update() [infra]: 更新客诉单状态
+          asyncSubmitApplySendMsg(): 异步飞书/消息通知
+
+# 链路3: 接单+跟进记录
+call_chain_003:
+  name: 接单+跟进记录
+  priority: P0
+  protection: 状态校验+首响判断
+  flow:
+    ComplaintOperateProvider.pickUpOrder() [api]:
+      ComplaintOperateProviderImpl.pickUpOrder() [app]:
+        ComplaintOperateService.pickUpOrder() [domain]:
+          ComplaintOrderRepositoryGateway.findList() [infra]: 查客诉单
+          ComplaintOrderAggregation.pickUpComplaintOrder() [domain/aggregation]:
+            校验状态==PENDING_ORDER:
+            状态扭转→FIRST_RESPONSE_PENDING:
+            构建接单跟进记录:
+          ComplaintOrderRepositoryGateway.update() [infra]: 更新状态
+          ComplaintFollowProcessRepositoryGateway.save() [infra]: 跟进记录入库
+          异步消息通知:
+    ComplaintOperateProvider.addFollowRecordV2() [api]:
+      ComplaintOperateProviderImpl.addFollowRecordV2() [app]:
+        ComplaintOperateService.addFollowUpRecordsV2() [domain]:
+          ComplaintOrderAggregation.addFollowUpRecordV2() [domain/aggregation]:
+            判断是否首响(canFirstResponse):
+            首响→状态APPLY_FINISH_PENDING+记录首响时间:
+            构建跟进记录(含里程数):
+          @Transactional持久化:
+          异步消息通知:
+
+# 链路4: 交付/零售客诉单处理
+call_chain_004:
+  name: 交付/零售客诉单处理
+  priority: P1
+  protection: 状态流转校验
+  flow:
+    DeliverComplaintProvider.startProcess/followUp/reassign/finish() [api]:
+      DeliverComplaintProviderImpl.*() [app]:
+        DeliverComplaintService.*() [domain]:
+          DeliverComplaintGateway.selectByDrNo() [infra]: 查工单
+          checkStatus(): 状态校验
+          DeliverComplaintGateway.update() [infra]: 更新状态
+          ComplaintFollowProcessRepositoryGateway.save() [infra]: 跟进记录
+          NewMessageInformedEventFactory→异步消息通知:
+    RetailComplaintOperateProvider.createComplaintOrder() [api]:
+      RetailComplaintOperateProviderImpl.createComplaintOrder() [app]:
+        RetailComplaintOperateService.createComplaintOrder() [domain]:
+          UserComplaintStatusEventFactory.getStatusEventHandler() [domain/stateflow]: 状态流转
+          RetailComplaintGateway.save() [infra]: 入库
+          异步消息通知:
+
+# 链路5: BPM审批回调
+call_chain_005:
+  name: BPM审批回调
+  priority: P0
+  protection: 审批单校验
+  flow:
+    BpmCallBackProvider.callBack() [api]:
+      BpmCallBackProviderImpl.callBack() [app]:
+        ComplaintAuditService.handleBpmCallBack() [domain]:
+          ComplaintAuditRepositoryGateway.findByProcessInstanceId() [infra]: 查审批单
+          改派通过→ComplaintAuditAggregation.acceptOrgChangeAudit() [domain/aggregation]:
+            更新门店信息+状态回退FIRST_RESPONSE_PENDING:
+          改派驳回→ComplaintAuditAggregation.refuseOrgChangeAudit() [domain/aggregation]:
+          免责/结案→更新审批状态:
+          ComplaintAuditRepositoryGateway.update() [infra]: 更新审批单
+          ComplaintOrderRepositoryGateway.update() [infra]: 更新客诉单
+          异步消息通知(审批结果飞书推送):
+
+# 状态机定义
+
+state_machines:
+  service_complaint[6]{state,code,description}:
+    PENDING_ORDER,1,待接单
+    ORG_REASSIGN_PENDING,15,申请改派门店待审核
+    FIRST_RESPONSE_PENDING,30,待首响
+    APPLY_FINISH_PENDING,50,待申请结案
+    FINISH_EVALUATION_PENDING,70,待结案评估
+    FINISH_COMPLETE,90,结案完成
+  service_complaint_transitions[6]{from,to,event}:
+    PENDING_ORDER,FIRST_RESPONSE_PENDING,接单(pickUpComplaintOrder)
+    FIRST_RESPONSE_PENDING,APPLY_FINISH_PENDING,首响跟进(addFollowUpRecordV2)
+    APPLY_FINISH_PENDING,FINISH_EVALUATION_PENDING,结案评估
+    FINISH_EVALUATION_PENDING,FINISH_COMPLETE,结案完成
+    PENDING_ORDER/FIRST_RESPONSE_PENDING,ORG_REASSIGN_PENDING,改派申请
+    APPLY_FINISH_PENDING,FIRST_RESPONSE_PENDING,升级(upgradeComplaintOrder)
+  service_complaint_note: 无统一状态机框架管控，流转逻辑散落在ComplaintOrderAggregation各方法中
+
+  retail_complaint[5]{state,code,description}:
+    FIRST_RESPONSE_PENDING,10,待首响
+    WAIT_CHANGE_ORG,15,待改派完成
+    IN_PROGRESS,20,待结案（处理中）
+    APPLICATION_FOR_CLOSURE,30,待结案完成（结案申请中）
+    FINISH_COMPLETE,50,已结案
+  retail_complaint_transitions[7]{from,to,handler}:
+    null,FIRST_RESPONSE_PENDING(10),EmptyToPendingStatusEventHandler
+    FIRST_RESPONSE_PENDING(10),IN_PROGRESS(20),PendingToProgressStatusEventHandler
+    FIRST_RESPONSE_PENDING(10),WAIT_CHANGE_ORG(15),PendingToChangeOrgStatusEventHandler
+    WAIT_CHANGE_ORG(15),FIRST_RESPONSE_PENDING(10),ChangeOrgToPendingStatusEventHandler
+    FIRST_RESPONSE_PENDING/IN_PROGRESS,APPLICATION_FOR_CLOSURE(30),PendingOrProgressToWaitClosureStatusEventHandler
+    APPLICATION_FOR_CLOSURE(30),IN_PROGRESS(20),WaitClosureToProgressStatusEventHandler
+    APPLICATION_FOR_CLOSURE(30),FINISH_COMPLETE(50),WaitClosureToFinishedStatusEventHandler
+  retail_complaint_note: stateflow EventHandler模式，UserComplaintStatusEventFactory按orderType-source-target路由
+
+  report_handlers[5]{handler,event}:
+    CreateEventHandler,建单
+    PickUpEventHandler,接单
+    AddFollowRecordEventHandler,添加跟进记录
+    JudgeEventHandler,判定
+    RemindEventHandler,催单
+  report_note: 自研StateMachine<S,E,C>框架，StateMachineBuilder按事件分组Transition
+
+# 策略模式清单
+strategy_groups[8]{factory,directory,usage}:
+  MessageInformedEventFactory,strategy/message/,服务投诉消息通知（20+策略：新单/催单/审批/超时等）
+  NewMessageInformedEventFactory,strategy/deliver/message/,交付客诉消息通知（7策略）
+  ConsultMessageInformedEventFactory,strategy/consult/message/,咨询单消息通知（3策略）
+  ComplaintMessageInformedEventFactory,strategy/pushmessage/,举报单消息推送（3策略）
+  ComplaintListFactory,strategy/complaintlist/,客诉列表查询策略（按角色：城市经理/区域运营/体验专员/Pad）
+  UserComplaintListFactory,strategy/view/,用户投诉列表查询策略
+  FollowProcessFactory,strategy/process/,跟进记录查询策略（投诉/咨询/交付零售/举报）
+  UserComplaintOperateFactory,strategy/operate/,用户投诉操作策略
+
+# Gateway清单
+gateway_summary:
+  db_gateways[12]: ComplaintOrderRepositoryGateway|ComplaintAuditRepositoryGateway|ComplaintFollowProcessRepositoryGateway|ComplaintTagGateway|DeliverComplaintGateway|RetailComplaintGateway|ConsultGateway|ReportGateway|+4more
+  rpc_gateways[16]: CarRemoteGateway|CarUserRemoteGateway|CisVinVidServiceGateway|EiamRemoteGateway|StoreRemoteGateway|BPMRemoteGateway|NoGeneratorRemoteGateway|FileRemoteGateway|RedisRemoteGateway|RmqGateway|OrderInfoGateway|MrOrderGateway|WarrantyInfoGateway|ClueGateway|CarDeliveryGateway|ClubRpcGateway
+  http_gateways[1]: LarkGateway（飞书机器人通知）
+  other_gateways[4]: NrJobGateway|UpcConfigGateway|+2more

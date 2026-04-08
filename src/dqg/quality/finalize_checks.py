@@ -1,0 +1,161 @@
+"""Finalize 硬性校验：推理日志 + 重跑防回退.
+
+在 finalize 时强制检查：
+1. _reasoning_log.md 必须存在
+2. 重跑时产物数量不得减少（REQ/BR/SE/GAP/OPEN）
+"""
+
+from __future__ import annotations
+
+from pathlib import Path
+from typing import Any
+
+from dqg.json_utils import load_json, save_json
+from dqg.path_utils import resolve_internal_file
+from dqg.text_utils import STRUCTURED_JSON_MAP
+from dqg.core.state_machine import PHASE_DEFS, internal_dir as _internal_dir, phase_dir as _phase_dir
+
+
+
+# Phase → 需要检查数量的字段
+_COUNT_FIELDS: dict[str, list[str]] = {
+    "A": ["requirements", "semantic_expectations", "gaps", "open_items"],
+    "A.5": ["req_coverage", "se_coverage", "gap_closure", "open_closure"],
+    "A.6": ["issues", "failure_modes"],
+    "C": ["audit_items"],
+    "D": ["findings"],
+}
+
+
+def check_reasoning_log(output_dir: Path, project_id: str, phase_id: str) -> list[str]:
+    """检查 _reasoning_log.md 是否存在.
+
+    Returns:
+        错误列表，空表示通过
+    """
+    phase_def = PHASE_DEFS.get(phase_id)
+    if not phase_def:
+        return []
+
+    pd = _phase_dir(output_dir, project_id, phase_def)
+    int_dir = _internal_dir(output_dir, project_id, phase_def)
+    log_path = resolve_internal_file(pd, "_reasoning_log.md")
+
+    errors = []
+    if not log_path.exists():
+        errors.append(
+            f"BLOCKED: _reasoning_log.md 不存在。"
+            f"推理日志是必须交付物，记录每步决策过程。"
+            f"请在 {int_dir}/_reasoning_log.md 中记录执行过程后重新 finalize。"
+        )
+    else:
+        # 检查内容不为空且有实质内容
+        content = log_path.read_text(encoding="utf-8").strip()
+        if len(content) < 100:
+            errors.append(
+                f"BLOCKED: _reasoning_log.md 内容过少（{len(content)} 字符）。"
+                f"推理日志必须记录每个 Step 的决策过程、依据、发现。"
+            )
+
+    return errors
+
+
+def check_no_regression(output_dir: Path, project_id: str, phase_id: str) -> list[str]:
+    """检查重跑时产物数量不减少.
+
+    通过对比 telemetry 中的历史记录判断是否是重跑。
+    如果是重跑，对比当前产物和上一次的产物数量。
+
+    Returns:
+        错误列表，空表示通过
+    """
+    phase_def = PHASE_DEFS.get(phase_id)
+    if not phase_def:
+        return []
+
+    pd = _phase_dir(output_dir, project_id, phase_def)
+    int_dir = _internal_dir(output_dir, project_id, phase_def)
+    json_file = STRUCTURED_JSON_MAP.get(phase_id)
+    if not json_file:
+        return []
+
+    current_path = pd / json_file
+    if not current_path.exists():
+        return []
+
+    # 检查是否有历史快照（上次 finalize 时保存的数量）
+    snapshot_path = resolve_internal_file(pd, "_prev_counts.json")
+    if not snapshot_path.exists():
+        # 首次执行，保存当前数量作为基线
+        int_dir.mkdir(parents=True, exist_ok=True)
+        _save_counts_snapshot(current_path, int_dir / "_prev_counts.json", phase_id)
+        return []
+
+    # 有历史快照 → 这是重跑，检查数量不减少
+    errors = []
+    try:
+        prev_counts = load_json(snapshot_path)
+        if prev_counts is None:
+            return []
+        current_counts = _count_items(current_path, phase_id)
+
+        for field, prev_count in prev_counts.items():
+            curr_count = current_counts.get(field, 0)
+            if curr_count < prev_count:
+                errors.append(
+                    f"REGRESSION: {field} 数量从 {prev_count} 减少到 {curr_count}。"
+                    f"重跑时产物数量不得减少，新版必须是旧版超集。"
+                    f"请检查是否遗漏了旧版中的内容。"
+                )
+
+        if not errors:
+            # 通过检查，更新快照（始终写入 _internal/）
+            int_dir.mkdir(parents=True, exist_ok=True)
+            _save_counts_snapshot(current_path, int_dir / "_prev_counts.json", phase_id)
+
+    except OSError:
+        pass  # 快照损坏不阻断
+
+    return errors
+
+
+def _count_items(json_path: Path, phase_id: str) -> dict[str, int]:
+    """统计结构化 JSON 中各字段的数量."""
+    data = load_json(json_path)
+    if data is None:
+        return {}
+
+    counts: dict[str, int] = {}
+    fields = _COUNT_FIELDS.get(phase_id, [])
+
+    for field in fields:
+        items = data.get(field, [])
+        if isinstance(items, list):
+            counts[field] = len(items)
+
+    # Phase A 特殊处理：分别统计 REQ 和 BR
+    if phase_id == "A":
+        reqs = data.get("requirements", [])
+        counts["req_count"] = len([r for r in reqs if r.get("req_id", "").startswith("REQ-")])
+        counts["br_count"] = len([r for r in reqs if r.get("req_id", "").startswith("BR-")])
+
+    return counts
+
+
+def _save_counts_snapshot(json_path: Path, snapshot_path: Path, phase_id: str) -> None:
+    """保存当前产物数量快照."""
+    counts = _count_items(json_path, phase_id)
+    if counts:
+        save_json(snapshot_path, counts)
+
+
+def run_finalize_checks(output_dir: Path, project_id: str, phase_id: str) -> list[str]:
+    """运行所有 finalize 硬性校验.
+
+    Returns:
+        错误列表。有 BLOCKED 前缀的错误会阻断 finalize。
+    """
+    errors = []
+    errors.extend(check_reasoning_log(output_dir, project_id, phase_id))
+    errors.extend(check_no_regression(output_dir, project_id, phase_id))
+    return errors

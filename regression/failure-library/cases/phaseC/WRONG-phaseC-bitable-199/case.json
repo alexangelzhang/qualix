@@ -1,0 +1,29 @@
+{
+  "case_id": "WRONG-phaseC-bitable-199",
+  "phase": "C",
+  "error_type": "WRONG",
+  "severity": "high",
+  "title": "/publicCharger/parking2/search和/publicCharger/parking2/detail接口 - parkingPrice返回了eligibility 不为 DEFA",
+  "root_cause": "SKILL_RULE",
+  "fix_target": "skills/unit-test-audit.md",
+  "tags": [
+    "汽车",
+    "充电桩",
+    "函数覆盖assert不对"
+  ],
+  "created_at": "2026-03-13",
+  "status": "open",
+  "source": {
+    "bitable_record_id": "recveiVcM4D7LR",
+    "category1": "单测相关",
+    "category2": "函数覆盖assert不对",
+    "requirement": "停车场深度信息互联互通"
+  },
+  "expected": {
+    "content": "提高单测覆盖度"
+  },
+  "actual": {
+    "content": "Sql缺少过滤条件"
+  },
+  "lesson": "提高单测覆盖度"
+}

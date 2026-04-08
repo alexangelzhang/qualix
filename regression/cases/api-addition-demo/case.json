@@ -1,0 +1,9 @@
+{
+  "case_id": "api-addition-demo",
+  "sample_type": "interface-addition",
+  "actual_dir": "regression/fixtures/api-addition-demo/actual",
+  "include": [
+    "summary.json",
+    "report.md"
+  ]
+}

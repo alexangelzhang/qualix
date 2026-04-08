@@ -1,0 +1,27 @@
+{
+  "case_id": "AUTO-phaseA-20260402215711-19",
+  "phase": "A",
+  "error_type": "FN",
+  "severity": "medium",
+  "title": "requirements.3.req_id",
+  "root_cause": "SKILL_RULE",
+  "fix_target": "skills/requirement-structuring.md",
+  "tags": [
+    "auto-generated",
+    "project:damage-assessment"
+  ],
+  "created_at": "2026-04-02",
+  "status": "open",
+  "source": {
+    "project_id": "damage-assessment",
+    "auto_generated": true,
+    "validation_error": "requirements.3.req_id"
+  },
+  "expected": {
+    "content": "（需人工确认）"
+  },
+  "actual": {
+    "content": "requirements.3.req_id"
+  },
+  "lesson": ""
+}

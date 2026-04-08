@@ -1,0 +1,13 @@
+{
+  "profile_id": "java-ddd-tmf",
+  "name": "Java + DDD + TMF",
+  "description": "Default profile for Java microservices using DDD and TMF orchestration.",
+  "baseline_path": "profiles/java-ddd-tmf/baseline.md",
+  "risk_catalog_path": "references/risk-and-exception-catalog.md",
+  "quality_thresholds": {
+    "line_coverage": 0.8,
+    "branch_coverage": 0.8,
+    "t1_mutation_score": 0.8,
+    "t2_mutation_score": 0.6
+  }
+}

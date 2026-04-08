@@ -1,0 +1,14 @@
+{
+  "case_id": "edge-enum-normalization",
+  "library": "failure-library",
+  "sample_type": "failure-library",
+  "error_type": "边界输入",
+  "case_kind": "边界输入",
+  "trigger_condition": "中英文枚举值和大小写混用，历史上容易触发边界判断漂移。",
+  "fix_strategy": "在规则前置阶段做归一化映射。",
+  "regression_case": "phase-c-enum-normalization",
+  "actual_dir": "regression/fixtures/failure-library/edge-enum-normalization/actual",
+  "include": [
+    "summary.json"
+  ]
+}

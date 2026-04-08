@@ -1,0 +1,188 @@
+metadata:
+  service: proretail-customer-care
+  domain: 售后善意关怀/权益发放
+
+# API清单
+api_entries[5]{id,type,class,methods}:
+  API-001,dubbo,RightsDistributionProviderImpl,commitRightsDistribution(积分发放提交)|findRightsDistributionList(发放列表查询)|findRightsDistributionDetail(发放详情查询)|doAudit(手动审核)|export(积分导出)|deleteRightsDistribution(删除发放记录)|findPointBatch(积分批次查询)
+  API-002,dubbo,RightsDistributionTaskProviderImpl,distributionExportJob(积分导出异步Job)
+  API-003,dubbo,BpmCallbackProviderImpl,auditCallback(BPM审批回调)
+  API-004,dubbo,RightsSceneProviderImpl,findSceneInfo(场景查询)
+  API-005,dubbo,DubboHealthProviderImpl,health(健康检查)
+
+# 核心调用链
+
+# 链路1: 积分发放提交（最核心）
+chain_001:
+  name: 积分发放提交
+  entry: RightsDistributionProvider.commitRightsDistribution()
+  complexity: 最高（客诉/维保双入口+6档审批+近7天汇总）
+  flow:
+    RightsDistributionProvider.commitRightsDistribution():
+      layer: api
+      calls:
+        RightsDistributionProviderImpl.commitRightsDistribution():
+          layer: app
+          steps:
+            RightsDistributionAppConvert→RightsDistributionEntity
+          calls:
+            RightsDistributionService.commitRightsDistribution():
+              layer: domain
+              steps[11]:
+                Redis setNx 幂等控制（COMMIT_KEY, 60s防重复提交）
+                分支1-complaintNo非空→客诉单路径→ComplaintGateway.getSimpleComplaintDetail() [infra RPC→客诉系统]
+                分支2-complaintNo为空→维保单路径→MrsGateway.getSimpleMrOrderByStNo() [infra RPC→维保系统]
+                FileRpcGateway.commitFile() [infra RPC→文件服务]
+                新增→RightsDistributionGateway.insertRightsDistribution() @Transactional [infra DB写入+场景关联]
+                更新→RightsDistributionGateway.updateRightsDistribution() @Transactional [infra DB更新+场景关联]
+                holdStaging==2时提交审批→commitBpmTask()
+                commitBpmTask→StoreDataGateway.getStoreDetail() [infra RPC→门店系统]
+                commitBpmTask→queryRecentRightsList()→近7天同车积分记录
+                commitBpmTask→EmployeeGateway.findClerkInfoByMid() [infra RPC→员工系统]
+                commitBpmTask→FileRpcGateway.getFileList() [infra RPC→文件服务]
+              bpm_submit:
+                BpmGateway.processCreate() [infra RPC→BPM审批]
+                RightsDistributionGateway.updateRightsDistribution()
+                DistributionLogGateway.addOperateLog()
+                ComplaintGateway.addPointsDistributionRecord() [infra RPC→客诉系统]
+              hold_staging:
+                holdStaging==1时暂存→DistributionLogGateway.addOperateLog()
+
+# 链路2: BPM审批回调
+chain_002:
+  name: BPM审批回调
+  entry: BpmCallbackProvider.auditCallback()
+  complexity: 高（审批通过后自动触发积分发放）
+  flow:
+    BpmCallbackProvider.auditCallback():
+      layer: api
+      calls:
+        BpmCallbackProviderImpl.auditCallback():
+          layer: app
+          calls:
+            RightsDistributionService.auditCallback():
+              layer: domain
+              steps[7]:
+                RightsDistributionGateway.findByAuditProcessId()→查找发放记录
+                状态校验（必须在AUDITING/WAIT_AUDIT）
+                Accept+Finished→更新auditStatus=AUDIT_PASS,distributionStatus=WAIT_DISTRIBUTE
+                Accept+Finished→assignPoint()触发积分发放
+                assignPoint→AriesGateway.generateUniqueId()→生成幂等ID
+                assignPoint→AriesGateway.assignPoint() [infra RPC→积分系统]
+                Refuse→更新auditStatus=AUDIT_REJECT
+              post_steps:
+                EmployeeGateway完善审批人信息
+                DistributionLogGateway.addOperateLog()
+                RightsDistributionGateway.updateDistributionStatus()
+
+# 链路3: 手动审核
+chain_003:
+  name: 手动审核
+  entry: RightsDistributionProvider.doAudit()
+  complexity: 中
+  flow:
+    RightsDistributionProvider.doAudit():
+      layer: api
+      calls:
+        RightsDistributionProviderImpl.doAudit():
+          layer: app
+          calls:
+            RightsDistributionService.doAudit():
+              layer: domain
+              steps[4]:
+                RightsDistributionGateway.findRightsDistributionDetail()
+                状态校验（必须AUDITING）
+                BpmGateway.getCurrentTaskInfo()→获取当前审批任务
+                校验当前用户是否为审核人→BpmGateway.taskAudit() [infra RPC→BPM]
+
+# 链路4: 积分导出
+chain_004:
+  name: 积分导出
+  entry: RightsDistributionProvider.export()
+  complexity: 中（异步Job）
+  flow:
+    RightsDistributionProvider.export():
+      layer: api
+      calls:
+        RightsDistributionProviderImpl.export():
+          layer: app
+          calls:
+            RightsDistributionService.export():
+              layer: domain
+              steps[1]:
+                NrJobGateway.triggerJob() [infra 触发异步Job]
+    DistributionExportJobHandler.distributionExportJob():
+      layer: app/job
+      steps[4]:
+        RightsDistributionService分页查询
+        EasyExcel写入+水印
+        FileRpcGateway.uploadPublicFile()→上传文件
+        JobHelper.handleSuccess()→回调Job中心
+
+# 链路5: 场景查询
+chain_005:
+  name: 场景查询
+  entry: RightsSceneProvider.findSceneInfo()
+  complexity: 低
+  flow:
+    RightsSceneProvider.findSceneInfo():
+      layer: api
+      calls:
+        RightsSceneProviderImpl.findSceneInfo():
+          layer: app
+          calls:
+            RightsSceneGateway.findAllRightsSceneByLevel() [infra DB查询]
+
+# Gateway接口清单
+gateway_entries[11]{name,type,method_count,target}:
+  RightsDistributionGateway,DB,8,MySQL（读写分离）
+  DistributionLogGateway,DB,2,MySQL
+  RightsSceneGateway,DB,1,MySQL
+  AriesGateway,RPC,5,积分系统（Aries）
+  BpmGateway,RPC,4,BPM审批系统
+  MrsGateway,RPC,1,维保系统（car-mrs）
+  ComplaintGateway,RPC,2,客诉系统（complaint-manage）
+  EmployeeGateway,RPC,3,员工系统（EIAM）
+  StoreDataGateway,RPC,1,门店系统
+  FileRpcGateway,RPC,5,文件服务
+  NrJobGateway,RPC,1,异步任务中心（NrJob）
+
+# 入口数据表映射
+entry_tables[5]{entry_id,tables}:
+  API-001,cc_rights_distribution|cc_distribution_log|cc_rights_scene|cc_distribution_scene_rel
+  API-002,cc_rights_distribution|cc_distribution_log
+  API-003,cc_rights_distribution|cc_distribution_log
+  API-004,cc_rights_scene
+  API-005,无
+
+# 外部系统依赖
+external_system_dependencies:
+  积分系统Aries:
+    dubbo[2]{caller_class,ext_interfaces}:
+      RightsDistributionProviderImpl,AriesGateway(积分批次查询/积分发放/生成幂等ID)
+      BpmCallbackProviderImpl,AriesGateway(积分发放/生成幂等ID)
+  BPM审批系统:
+    dubbo[3]{caller_class,ext_interfaces}:
+      RightsDistributionProviderImpl,BpmGateway(创建审批/获取任务/执行审核)
+      BpmCallbackProviderImpl,BpmGateway(查询任务)
+      RightsDistributionProviderImpl,BpmGateway(taskAudit)
+  维保系统car-mrs:
+    dubbo[1]{caller_class,ext_interfaces}:
+      RightsDistributionProviderImpl,MrsGateway(查询维保工单)
+  客诉系统complaint-manage:
+    dubbo[1]{caller_class,ext_interfaces}:
+      RightsDistributionProviderImpl,ComplaintGateway(查询客诉单/写入积分记录)
+  员工系统EIAM:
+    dubbo[2]{caller_class,ext_interfaces}:
+      RightsDistributionProviderImpl,EmployeeGateway(员工信息查询)
+      BpmCallbackProviderImpl,EmployeeGateway(审批人信息)
+  门店系统:
+    dubbo[1]{caller_class,ext_interfaces}:
+      RightsDistributionProviderImpl,StoreDataGateway(门店信息查询)
+  文件服务:
+    dubbo[2]{caller_class,ext_interfaces}:
+      RightsDistributionProviderImpl,FileRpcGateway(文件提交/文件列表)
+      RightsDistributionTaskProviderImpl,FileRpcGateway(上传导出文件)
+  异步任务NrJob:
+    dubbo[1]{caller_class,ext_interfaces}:
+      RightsDistributionProviderImpl,NrJobGateway(触发导出任务)

@@ -1,0 +1,330 @@
+"""SQLite 存储层核心：连接管理、schema 初始化、通用工具函数."""
+
+from __future__ import annotations
+
+import json
+import sqlite3
+from contextlib import contextmanager
+from pathlib import Path
+from typing import Any, Generator
+
+from dqg.constants import DB_FILENAME as _DB_FILENAME
+from dqg.log import get_logger
+
+log = get_logger(__name__)
+
+_SCHEMA = """
+CREATE TABLE IF NOT EXISTS telemetry (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    project_id TEXT NOT NULL,
+    phase_id TEXT NOT NULL,
+    phase_name TEXT DEFAULT '',
+    action TEXT DEFAULT '',
+    status TEXT DEFAULT '',
+    started_at TEXT,
+    finished_at TEXT,
+    duration_seconds REAL,
+    validation_errors TEXT DEFAULT '[]',
+    comment TEXT DEFAULT '',
+    timestamp TEXT NOT NULL,
+    os_type TEXT DEFAULT '',
+    python_version TEXT DEFAULT '',
+    created_at TEXT DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_telemetry_project ON telemetry(project_id);
+CREATE INDEX IF NOT EXISTS idx_telemetry_phase ON telemetry(project_id, phase_id);
+CREATE INDEX IF NOT EXISTS idx_telemetry_timestamp ON telemetry(timestamp);
+
+CREATE TABLE IF NOT EXISTS preferences (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    project_id TEXT NOT NULL,
+    phase_id TEXT NOT NULL,
+    preferred TEXT DEFAULT '',
+    confidence TEXT DEFAULT '',
+    dimensions TEXT DEFAULT '{}',
+    critique_effectiveness TEXT DEFAULT '[]',
+    summary TEXT DEFAULT '',
+    timestamp TEXT NOT NULL,
+    created_at TEXT DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_pref_project ON preferences(project_id);
+
+CREATE TABLE IF NOT EXISTS bug_cases (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    case_id TEXT UNIQUE NOT NULL,
+    phase TEXT NOT NULL,
+    error_type TEXT NOT NULL,
+    severity TEXT DEFAULT 'medium',
+    title TEXT DEFAULT '',
+    root_cause TEXT DEFAULT '',
+    fix_target TEXT DEFAULT '',
+    tags TEXT DEFAULT '[]',
+    status TEXT DEFAULT 'open',
+    source TEXT DEFAULT '{}',
+    expected TEXT DEFAULT '{}',
+    actual TEXT DEFAULT '{}',
+    lesson TEXT DEFAULT '',
+    created_at TEXT NOT NULL,
+    updated_at TEXT DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_bug_phase ON bug_cases(phase);
+CREATE INDEX IF NOT EXISTS idx_bug_status ON bug_cases(status);
+
+CREATE TABLE IF NOT EXISTS metrics (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    project_id TEXT NOT NULL,
+    phase_id TEXT,
+    metric_name TEXT NOT NULL,
+    metric_value REAL,
+    metric_data TEXT DEFAULT '{}',
+    period TEXT DEFAULT 'daily',
+    timestamp TEXT NOT NULL,
+    created_at TEXT DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_metrics_project ON metrics(project_id);
+CREATE INDEX IF NOT EXISTS idx_metrics_name ON metrics(metric_name);
+CREATE INDEX IF NOT EXISTS idx_metrics_timestamp ON metrics(timestamp);
+
+CREATE TABLE IF NOT EXISTS judge_results (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    project_id TEXT NOT NULL,
+    phase_id TEXT NOT NULL,
+    overall_score REAL,
+    precision_estimate REAL,
+    recall_estimate REAL,
+    dimensions TEXT DEFAULT '[]',
+    gate_checklist TEXT DEFAULT '[]',
+    top_issues TEXT DEFAULT '[]',
+    summary TEXT DEFAULT '',
+    judged_at TEXT NOT NULL,
+    created_at TEXT DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_judge_project ON judge_results(project_id, phase_id);
+
+CREATE TABLE IF NOT EXISTS experiments (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    experiment_id TEXT UNIQUE NOT NULL,
+    skill_file TEXT NOT NULL,
+    phase_id TEXT NOT NULL,
+    cycle INTEGER NOT NULL,
+    benchmark_case TEXT DEFAULT '',
+    prompt_diff TEXT DEFAULT '',
+    prompt_hash TEXT DEFAULT '',
+    judge_score REAL,
+    judge_dimensions TEXT DEFAULT '{}',
+    baseline_score REAL,
+    delta REAL,
+    accepted INTEGER DEFAULT 0,
+    reason TEXT DEFAULT '',
+    duration_seconds REAL,
+    token_count INTEGER,
+    started_at TEXT NOT NULL,
+    finished_at TEXT,
+    created_at TEXT DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_exp_skill ON experiments(skill_file);
+CREATE INDEX IF NOT EXISTS idx_exp_phase ON experiments(phase_id);
+CREATE INDEX IF NOT EXISTS idx_exp_accepted ON experiments(accepted);
+
+CREATE TABLE IF NOT EXISTS image_semantics (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    project_id TEXT NOT NULL,
+    phase_id TEXT NOT NULL,
+    filename TEXT NOT NULL,
+    kind TEXT DEFAULT 'image',
+    description TEXT DEFAULT '',
+    related_reqs TEXT DEFAULT '[]',
+    mermaid_code TEXT DEFAULT '',
+    section_context TEXT DEFAULT '',
+    token_estimate INTEGER DEFAULT 0,
+    created_at TEXT DEFAULT (datetime('now')),
+    UNIQUE(project_id, phase_id, filename)
+);
+
+CREATE INDEX IF NOT EXISTS idx_img_project ON image_semantics(project_id, phase_id);
+CREATE VIRTUAL TABLE IF NOT EXISTS image_semantics_fts USING fts5(
+    filename, description, related_reqs, mermaid_code, section_context,
+    content='image_semantics', content_rowid='id'
+);
+
+CREATE TRIGGER IF NOT EXISTS img_sem_ai AFTER INSERT ON image_semantics BEGIN
+    INSERT INTO image_semantics_fts(rowid, filename, description, related_reqs, mermaid_code, section_context)
+    VALUES (new.id, new.filename, new.description, new.related_reqs, new.mermaid_code, new.section_context);
+END;
+
+CREATE TRIGGER IF NOT EXISTS img_sem_ad AFTER DELETE ON image_semantics BEGIN
+    INSERT INTO image_semantics_fts(image_semantics_fts, rowid, filename, description, related_reqs, mermaid_code, section_context)
+    VALUES ('delete', old.id, old.filename, old.description, old.related_reqs, old.mermaid_code, old.section_context);
+END;
+
+CREATE TABLE IF NOT EXISTS text_segments (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    project_id TEXT NOT NULL,
+    phase_id TEXT NOT NULL,
+    doc_name TEXT DEFAULT '',
+    section_path TEXT DEFAULT '',
+    heading TEXT DEFAULT '',
+    content TEXT DEFAULT '',
+    content_tokenized TEXT DEFAULT '',
+    line_start INTEGER DEFAULT 0,
+    line_end INTEGER DEFAULT 0,
+    char_count INTEGER DEFAULT 0,
+    keywords TEXT DEFAULT '[]',
+    created_at TEXT DEFAULT (datetime('now')),
+    UNIQUE(project_id, phase_id, doc_name, line_start)
+);
+CREATE INDEX IF NOT EXISTS idx_textseg_project ON text_segments(project_id, phase_id);
+CREATE VIRTUAL TABLE IF NOT EXISTS text_segments_fts USING fts5(
+    heading, content_tokenized, keywords,
+    content='text_segments', content_rowid='id'
+);
+
+CREATE TABLE IF NOT EXISTS structured_facts (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    project_id TEXT NOT NULL,
+    phase_id TEXT NOT NULL,
+    fact_type TEXT NOT NULL,
+    fact_id TEXT NOT NULL,
+    description TEXT DEFAULT '',
+    related_ids TEXT DEFAULT '[]',
+    extra TEXT DEFAULT '{}',
+    created_at TEXT DEFAULT (datetime('now')),
+    UNIQUE(project_id, phase_id, fact_id)
+);
+CREATE INDEX IF NOT EXISTS idx_fact_project ON structured_facts(project_id, phase_id);
+CREATE INDEX IF NOT EXISTS idx_fact_type ON structured_facts(fact_type);
+CREATE VIRTUAL TABLE IF NOT EXISTS structured_facts_fts USING fts5(
+    fact_id, description, related_ids,
+    content='structured_facts', content_rowid='id'
+);
+
+CREATE TABLE IF NOT EXISTS knowledge_nodes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    node_id TEXT UNIQUE NOT NULL,
+    node_type TEXT NOT NULL,
+    project_id TEXT DEFAULT '',
+    phase_id TEXT DEFAULT '',
+    title TEXT DEFAULT '',
+    content TEXT DEFAULT '',
+    tags TEXT DEFAULT '[]',
+    created_at TEXT DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_knode_type ON knowledge_nodes(node_type);
+CREATE INDEX IF NOT EXISTS idx_knode_project ON knowledge_nodes(project_id);
+
+CREATE TABLE IF NOT EXISTS knowledge_links (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    source_id TEXT NOT NULL,
+    target_id TEXT NOT NULL,
+    link_type TEXT NOT NULL,
+    strength REAL DEFAULT 1.0,
+    reason TEXT DEFAULT '',
+    created_at TEXT DEFAULT (datetime('now')),
+    UNIQUE(source_id, target_id, link_type)
+);
+CREATE INDEX IF NOT EXISTS idx_klink_source ON knowledge_links(source_id);
+CREATE INDEX IF NOT EXISTS idx_klink_target ON knowledge_links(target_id);
+
+CREATE TABLE IF NOT EXISTS requirement_versions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    project_id TEXT NOT NULL,
+    phase_id TEXT NOT NULL,
+    fact_id TEXT NOT NULL,
+    fact_type TEXT NOT NULL,
+    description TEXT DEFAULT '',
+    version INTEGER NOT NULL DEFAULT 1,
+    status TEXT DEFAULT 'active',
+    prev_description TEXT DEFAULT '',
+    change_type TEXT DEFAULT 'added',
+    change_reason TEXT DEFAULT '',
+    valid_from TEXT NOT NULL,
+    valid_until TEXT,
+    created_at TEXT DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_reqver_project ON requirement_versions(project_id, phase_id);
+CREATE INDEX IF NOT EXISTS idx_reqver_fact ON requirement_versions(fact_id);
+CREATE INDEX IF NOT EXISTS idx_reqver_status ON requirement_versions(status);
+
+CREATE TABLE IF NOT EXISTS query_cache (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    query_hash TEXT UNIQUE NOT NULL,
+    query_text TEXT NOT NULL,
+    result_type TEXT DEFAULT '',
+    result_json TEXT DEFAULT '[]',
+    hit_count INTEGER DEFAULT 0,
+    created_at REAL NOT NULL,
+    last_hit_at REAL
+);
+CREATE INDEX IF NOT EXISTS idx_qcache_hash ON query_cache(query_hash);
+
+CREATE TABLE IF NOT EXISTS code_symbols (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    repo_path TEXT NOT NULL,
+    file_path TEXT NOT NULL,
+    symbol_type TEXT NOT NULL,
+    symbol_name TEXT NOT NULL,
+    parent_symbol TEXT DEFAULT '',
+    annotations TEXT DEFAULT '[]',
+    line_number INTEGER DEFAULT 0,
+    signature TEXT DEFAULT '',
+    doc_comment TEXT DEFAULT '',
+    created_at TEXT DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_codesym_repo ON code_symbols(repo_path);
+CREATE INDEX IF NOT EXISTS idx_codesym_type ON code_symbols(symbol_type);
+CREATE INDEX IF NOT EXISTS idx_codesym_name ON code_symbols(symbol_name);
+CREATE VIRTUAL TABLE IF NOT EXISTS code_symbols_fts USING fts5(
+    symbol_name, signature, doc_comment, annotations,
+    content='code_symbols', content_rowid='id'
+);
+"""
+
+# Schema 初始化缓存：每个数据库文件只执行一次
+_initialized_dbs: set[str] = set()
+
+
+def _db_path(output_dir: Path) -> Path:
+    return output_dir / _DB_FILENAME
+
+
+@contextmanager
+def get_connection(output_dir: Path) -> Generator[sqlite3.Connection, None, None]:
+    """获取数据库连接（schema 只在首次执行）."""
+    db = _db_path(output_dir)
+    db.parent.mkdir(parents=True, exist_ok=True)
+    db_str = str(db)
+    conn = sqlite3.connect(db_str)
+    conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA journal_mode=WAL")
+    if db_str not in _initialized_dbs:
+        conn.executescript(_SCHEMA)
+        _initialized_dbs.add(db_str)
+        log.debug("Schema initialized: %s", db_str)
+    try:
+        yield conn
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+
+
+def row_to_dict(row: sqlite3.Row) -> dict[str, Any]:
+    """将 sqlite3.Row 转为 dict，自动解析 JSON 字段."""
+    d = dict(row)
+    for key in ("validation_errors", "dimensions", "critique_effectiveness",
+                "tags", "source", "expected", "actual", "metric_data",
+                "gate_checklist", "top_issues"):
+        if key in d and isinstance(d[key], str):
+            try:
+                d[key] = json.loads(d[key])
+            except (json.JSONDecodeError, TypeError):
+                pass
+    return d

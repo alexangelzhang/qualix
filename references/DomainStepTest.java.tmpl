@@ -1,0 +1,60 @@
+package com.example.domain.step;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.MockitoAnnotations;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
+/**
+ * 【强制】TMF DomainStep 标准基线。
+ * 要求直接通过 ut-audit-zh 中 "Step 直接注入 Ability 且无拦截测试，至少判 HIGH" 的门禁约束。
+ */
+class CompliantDomainStepTest {
+
+    @InjectMocks
+    private TargetDomainStep targetDomainStep;
+
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+        // 【合规约束】：严禁通过 @Resource 或反射直接打桩具体的 Ability
+        // mockStatic(TMF.class); -> when(TMF.findAbility(X.class)).thenReturn(mockAbility)
+    }
+
+    @Test
+    @DisplayName("EUT-XXX [SEM-XXX]: 正常流程，副作用被精确捕获 (反白盒伪断言)")
+    void givenValidContext_whenProcess_thenAbilityInvokedAndStateMutated() {
+        // Given
+        // TODO: 配置 TMF Ability 正常返回
+
+        // When
+        // TODO: targetDomainStep.process(context);
+
+        // Then 【ut-audit-zh 防伪装断言审查点】：
+        // 1. 验证被叫了： verify(mockAbility, times(1)).doBusiness(any());
+        // 2. 验证业务含义： assertEquals(ExpectedEnum.SUCCESS, context.getResultStatus(), "必须校验终态是否跃迁");
+    }
+
+    @Test
+    @DisplayName("EUT-XXX [SEM-XXX]: 异常与事务回归，拦截第三方 RPC 超时")
+    void givenAbilityTimeout_whenProcess_thenThrowAndRollback() {
+        // Given
+        // TODO: 强制配置 TMF Ability 抛出 TimeoutException
+
+        // When
+        // BizException ex = assertThrows(BizException.class, () -> targetDomainStep.process(context));
+
+        // Then 【ut-audit-zh 异常门禁点】：
+        // assertEquals(ExpectedBizCode.TIMEOUT_ERROR, ex.getErrorCode(), "断言具体错误枚举，严禁含糊");
+        
+        // 【强制 TMF 闭环验证】：确认后续编排层发起了回滚
+        // targetDomainStep.rollback(context);
+        // verify(mockCompensationClient, times(1)).compensate(any());
+    }
+}

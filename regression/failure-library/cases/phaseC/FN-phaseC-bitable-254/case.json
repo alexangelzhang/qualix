@@ -1,0 +1,28 @@
+{
+  "case_id": "FN-phaseC-bitable-254",
+  "phase": "C",
+  "error_type": "FN",
+  "severity": "high",
+  "title": "【105541】非自营sn政策只显示政策说明，不显示退换修政策详情，sn：20466/2710183837",
+  "root_cause": "SKILL_RULE",
+  "fix_target": "skills/unit-test-audit.md",
+  "tags": [
+    "工单",
+    "函数正常分支未覆盖"
+  ],
+  "created_at": "2026-03-25",
+  "status": "open",
+  "source": {
+    "bitable_record_id": "recveW7ganKV75",
+    "category1": "单测相关",
+    "category2": "函数正常分支未覆盖",
+    "requirement": "主数据对接-C端政策展示"
+  },
+  "expected": {
+    "content": "（需人工补充）"
+  },
+  "actual": {
+    "content": "代码不健壮，自测应该可以发现"
+  },
+  "lesson": ""
+}

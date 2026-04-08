@@ -1,0 +1,28 @@
+{
+  "case_id": "FN-phaseC-bitable-299",
+  "phase": "C",
+  "error_type": "FN",
+  "severity": "high",
+  "title": "主数据同步的问题分类，部分数据无法选择问题三级，直接搜索可以搜到，待排查数据问题",
+  "root_cause": "SKILL_RULE",
+  "fix_target": "skills/unit-test-audit.md",
+  "tags": [
+    "主数据",
+    "函数未覆盖"
+  ],
+  "created_at": "2026-03-20",
+  "status": "open",
+  "source": {
+    "bitable_record_id": "recveW7ytaR3HB",
+    "category1": "单测相关",
+    "category2": "函数未覆盖",
+    "requirement": "客服承接主数据相关需求26Q1"
+  },
+  "expected": {
+    "content": "补充单测"
+  },
+  "actual": {
+    "content": "问题搜索接口未实现source_type字段过滤逻辑"
+  },
+  "lesson": "补充单测"
+}

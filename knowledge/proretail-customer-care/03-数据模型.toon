@@ -1,0 +1,64 @@
+metadata:
+  service: proretail-customer-care
+  domain: 售后善意关怀/权益发放
+  table_count: 4
+
+# 表→API映射（快速定位哪些API操作该表）
+table_class_map[4]{name,comment,classes}:
+  cc_rights_distribution,积分发放主表,RightsDistributionProviderImpl|BpmCallbackProviderImpl|RightsDistributionTaskProviderImpl
+  cc_distribution_log,操作日志表,RightsDistributionProviderImpl|BpmCallbackProviderImpl|RightsDistributionTaskProviderImpl
+  cc_rights_scene,发放场景配置表,RightsSceneProviderImpl|RightsDistributionProviderImpl
+  cc_distribution_scene_rel,发放-场景关联表,RightsDistributionProviderImpl
+
+# 核心Entity
+entities[15]{name,description,key_fields}:
+  RightsDistributionEntity,积分发放主实体（聚合根）,id|orgCode|sceneTypes|rightsType|rightsBatch|num|mid|vid|stNo|complaintNo|auditStatus|distributionStatus|auditProcessId|distributeUniqueNo
+  RightsSceneEntity,发放场景配置,sceneType|sceneTypeName|parentSceneType
+  CcDistributionLogEntity,操作日志,distributionId|status|operator|operateType|operateTime
+  DistributionLogEntity,日志查询结果,distributionId|status|operateTime
+  SimpleMrOderEntity,维保单精简信息,stNo|miId|carInfo(vid/carType)
+  SimpleComplaintDetailEntity,客诉单精简信息,complaintNo|carInfo(vid/ownerMiId/carType)
+  PointBatchDetailEntity,积分批次,batchId|batchName
+  AssignPointResult,积分发放结果,redPacketId
+  StoreInfoEntity,门店信息,orgId|shopName
+  BpmTableDetailEntity,BPM审批表单,tableName|column|data|controlGroup
+  BpmTaskInfo,BPM任务信息,taskId|reviewerList
+  BpmAuditRecordEntity,BPM审批记录,instanceName|processor|auditResult
+  TaskAuditEntity,审核请求,user|taskId|auditOperate|refuseReason
+  FileInfoEntity,文件信息,fileId|fileUrl
+  ClerkInfoBo,员工信息,mid|name|email|emailPrefix
+
+# 枚举
+enums[3]{name,description,values}:
+  DistributeStatusEnum,发放状态机,WAIT_SUBMIT(1)|WAIT_AUDIT(2)|AUDITING(3)|AUDIT_PASS(4)|AUDIT_REJECT(5)|WAIT_DISTRIBUTE(6)|DISTRIBUTE_SUCCESS(7)|DISTRIBUTE_FAIL(8)|FINISHED(9)
+  RightsTypeEnum,权益类型,积分(1)|反向拖车(2)|代步车(3)|保修亲善(4)|现金(5)
+  SceneTypeEnums,发放场景（二级树）,S级品质(100)|A级品质(200)|B级品质(300)|其他车辆品质(400)|品质纠纷(500)|精品品质(600)|配件供应时效(700)|配件供应品质(800)|维保效率(900)|维保效果(1000)|售后服务(2000)|门店网络(3000)|其他(4000)
+
+# 表结构摘要（字段级别）
+table_schemas:
+  customer_care.sql[4]{name,fields}:
+    cc_rights_distribution,id:bigint(主键)|org_code:varchar(门店编码)|scene_types:varchar(场景类型)|rights_type:int(权益类型)|rights_batch:varchar(积分批次)|num:int(积分数量)|mid:bigint(车主MID)|vid:varchar(车辆VID)|st_no:varchar(维保单号)|complaint_no:varchar(客诉单号)|audit_status:int(审核状态)|distribution_status:int(发放状态)|audit_process_id:varchar(BPM审批流程ID)|distribute_unique_no:varchar(发放幂等号)|hold_staging:int(暂存标识1暂存2提交)|file_ids:varchar(附件文件ID)|remark:varchar(备注)|create_time:datetime(创建时间)|update_time:datetime(更新时间)|creator:varchar(创建人)|updater:varchar(更新人)
+    cc_distribution_log,id:bigint(主键)|distribution_id:bigint(发放记录ID)|status:int(状态)|operator:varchar(操作人)|operate_type:int(操作类型)|operate_time:datetime(操作时间)|remark:varchar(备注)
+    cc_rights_scene,id:bigint(主键)|scene_type:int(场景类型编码)|scene_type_name:varchar(场景类型名称)|parent_scene_type:int(父场景类型)|level:int(层级1一级2二级)|status:int(状态)|create_time:datetime(创建时间)|update_time:datetime(更新时间)
+    cc_distribution_scene_rel,id:bigint(主键)|distribution_id:bigint(发放记录ID)|scene_type:int(场景类型编码)|create_time:datetime(创建时间)
+
+# Gateway接口（领域层定义）
+gateway_schemas[11]{name,type,method_count,methods}:
+  RightsDistributionGateway,DB,8,insertRightsDistribution|updateRightsDistribution|findRightsDistributionList|findRightsDistributionDetail|findByAuditProcessId|updateDistributionStatus|deleteRightsDistribution|queryRecentRightsList
+  DistributionLogGateway,DB,2,addOperateLog|findLogsByDistributionId
+  RightsSceneGateway,DB,1,findAllRightsSceneByLevel
+  AriesGateway,RPC,5,findPointBatchList|findPointBatchDetail|assignPoint|generateUniqueId|queryPointBalance
+  BpmGateway,RPC,4,processCreate|taskAudit|getCurrentTaskInfo|getAuditRecords
+  MrsGateway,RPC,1,getSimpleMrOrderByStNo
+  ComplaintGateway,RPC,2,getSimpleComplaintDetail|addPointsDistributionRecord
+  EmployeeGateway,RPC,3,findClerkInfoByMid|findClerkInfoByEmail|batchFindClerkInfo
+  StoreDataGateway,RPC,1,getStoreDetail
+  FileRpcGateway,RPC,5,commitFile|getFileList|uploadPublicFile|getFileUrl|downloadFile
+  NrJobGateway,RPC,1,triggerJob
+
+# Mapper（基础设施层）
+mapper_schemas[4]{name,target_table}:
+  CcRightsDistributionMapper,cc_rights_distribution
+  CcDistributionLogMapper,cc_distribution_log
+  CcRightsSceneMapper,cc_rights_scene
+  CcDistributionSceneRelMapper,cc_distribution_scene_rel

@@ -1,0 +1,9 @@
+{
+  "case_id": "refactor-demo",
+  "sample_type": "refactor",
+  "actual_dir": "regression/fixtures/refactor-demo/actual",
+  "include": [
+    "summary.json",
+    "report.md"
+  ]
+}

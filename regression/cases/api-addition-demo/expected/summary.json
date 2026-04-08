@@ -1,0 +1,10 @@
+{
+  "generated_at": "<normalized>",
+  "project_id": "api-addition-demo",
+  "signals": {
+    "new_endpoints": 3,
+    "new_tests": 5,
+    "risk_level": "medium"
+  },
+  "status": "approved"
+}

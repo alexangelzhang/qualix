@@ -1,0 +1,167 @@
+metadata:
+  service: rights-platform
+  domain: 权益中心
+  aggregation_root_count: 10
+
+# 聚合根
+
+## 退款模块
+aggregation_roots_refund[7]{name,class,path,responsibility}:
+  权益包退款,PackageRefundMain,cp-equity-center-domain/.../entity/,退款全生命周期聚合根(退款记录/权益发放记录/取消记录/操作日志)
+  权益包下发,PackageIssueMain,cp-equity-center-domain/.../entity/,权益包下发聚合根
+  权益配置,EquityConfigMain,cp-equity-center-domain/.../entity/,权益配置管理聚合根
+  权益下发,EquityIssueMain,cp-equity-center-domain/.../entity/,权益项下发聚合根
+  权益提醒,EquityRemindMain,cp-equity-center-domain/.../entity/,权益到期提醒聚合根
+  权益包配置,PackageConfigMain,cp-equity-center-domain/.../entity/,权益包配置管理聚合根
+  服务包,ServicePackageMain,cp-equity-center-domain/.../entity/,服务包聚合根
+
+## 查询模块（独有）
+aggregation_roots_query[2]{name,class,path,responsibility}:
+  权益详情,PackageDetailMain,cp-equity-center-domain/.../entity/,查询模块独有 权益详情查询聚合根(vid/mid/clientType/displayType 按权益类型分组base/valueAdded/servicePackage/vip)
+  权益作废,EquityCancelMain,cp-equity-center-domain/.../entity/,查询模块独有 权益作废聚合根
+
+## 基类
+base_class:
+  BasicMain: 所有Main的基类 支持TMF步骤执行
+
+# PackageRefundMain 关键字段
+PackageRefundMain_structure:
+  extends: BasicMain implements IPackageRefundMain
+  退款记录:
+    refundRecordDelegate: IPackageCancelRecordDelegate(退款记录)
+    cancelRecordDelegates: List<IEquityCancelRecordDelegate>(权益取消记录)
+    operateLogDelegates: List<IPackageIssueOperateLogDelegate>
+  原权益包信息:
+    packageIssueDelegate: IPackageIssueDelegate(权益包发放记录)
+    equityIssueDelegates: List<IEquityIssueDelegate>(权益项发放记录)
+    equityIssueDetailDelegates: List<IEquityIssueDetailDelegate>(凭证发放记录)
+    packageConfigDelegate: IPackageConfigDelegate(权益包配置)
+  流程控制:
+    activityCode: String(TMF步骤链选择)
+    alreadyRefunded: boolean(幂等标识)
+    equityCancelled: boolean(权益已作废标识)
+    refundApplied: boolean(退款已发起标识)
+  计算结果:
+    refundAmountDelegate: IRefundAmountDelegate(退款金额)
+    refundRuleRuntimeDelegate: IRefundRuleRuntimeDelegate(退款规则快照)
+  工厂方法:
+    createWith(Long packageIssueId)
+    createWith(IPackageIssueDelegate)
+
+# PackageDetailMain 关键字段（查询模块）
+PackageDetailMain_structure:
+  extends: BasicMain implements IPackageDetailMain
+  查询参数:
+    vid: String
+    mid: Long
+    displayType: DisplayTypeEnum
+    clientType: ClientTypeEnum
+    querySource: String
+  查询结果(按权益类型分组):
+    allEquityGrants: List<IEquityGrantDelegate>
+    baseEquityGrants: List<IEquityGrantDelegate>(基础权益)
+    valueAddedEquityGrants: List<IEquityGrantDelegate>(增值权益)
+    servicePackageEquityGrants: List<IEquityGrantDelegate>(服务包权益)
+    vipEquityGrants: List<IEquityGrantDelegate>(会员权益)
+  车辆信息:
+    carItemDetail: CarItemDetail
+    warrantyInfo: ICarWarrantyInfoDelegate
+  扩展:
+    extendData: Map<String, Object>
+
+# 状态枚举
+
+## ValidStatusEnum — 权益发放有效性状态
+state_enum_valid_status[10]{code,name}:
+  INVALID,无效
+  VALID,有效
+  PROCESSING,处理中
+  ACTIVE,已生效
+  PENDING,待生效
+  REFUND_REVIEW,退款审核中
+  REFUNDED,已退款
+  REFUNDING,退款中
+  REFUND,退款失效
+  CANCEL,系统取消
+
+valid_status_transitions[4]{from,to,event}:
+  PENDING,ACTIVE,生效
+  ACTIVE,REFUNDING,发起退款
+  REFUNDING,REFUNDED,退款成功
+  REFUNDING,REFUND,退款失效
+  ACTIVE,CANCEL,系统取消
+  ACTIVE,INVALID,无效化
+
+## RefundRecordStatusEnum — 退款记录状态
+state_enum_refund_record[6]{code,value,name}:
+  REFUNDING,1,退款中
+  REFUND_SUCCESS,2,退款成功
+  REFUND_FAILED,3,退款失败
+  REFUND_REVIEW,4,退款审核中
+  REFUND_CANCELLED,5,已取消
+  NOT_REFUND,6,未退款
+
+refund_record_transitions[5]{from,to,event}:
+  NOT_REFUND,REFUND_REVIEW,发起退款审核
+  REFUND_REVIEW,REFUNDING,审批通过
+  REFUNDING,REFUND_SUCCESS,退款成功
+  REFUNDING,REFUND_FAILED,退款失败(可重试→REFUNDING)
+  REFUNDING,REFUND_CANCELLED,取消退款
+  REFUND_REVIEW,REFUND_CANCELLED,审批拒绝/撤销
+
+refund_record_note: center表存字符串code equity旧表存数字equityCode
+
+## RefundAuditStatusEnum — BPM审批状态
+state_enum_refund_audit[5]{code,name,description}:
+  NONE,无审批,直接退款场景
+  PENDING,待审核,已发起BPM
+  PASS,审核通过,BPM Accept
+  REJECT,审核驳回,BPM Refuse
+  REVOKE,审核撤销,BPM Cancel/用户撤销
+
+## EquityCancelStatusEnum — 权益取消状态
+state_enum_equity_cancel[5]{code,name}:
+  PENDING_CANCEL,待取消
+  CANCELLING,取消中
+  CANCELLED,已取消
+  CANCEL_FAILED,取消失败
+  NON_CANCELLABLE,不可取消
+
+## EquityIssueStatusEnum — 权益下发状态
+state_enum_equity_issue[6]{code,name,note}:
+  PENDING,待下发,
+  ISSUING,下发中,
+  ISSUED,已下发,终态
+  FAILED,下发失败,终态
+  PARTIAL_ISSUED,部分下发,
+  CANCELLED,已取消,终态
+
+## PackageCategoryEnum — 权益包分类
+enum_package_category[5]{code,name}:
+  TRAFFIC,流量
+  EXTENDED_WARRANTY,延保
+  SERVICE_PACKAGE,服务包
+  BASIC,基础
+  CONSUMABLES,耗材
+
+# 其他关键枚举
+other_enums[9]{name,usage,key_values}:
+  PackageGrantModeEnum,下发模式,车辆交付/订单成交/车主自主领取/主动赠送
+  EquityCategoryEnum,权益类别,基础权益/无忧包/耗材包
+  EquityFormEnum,权益形态,凭证回收时按形态分发Extension
+  DisplayAppSourceEnum,展示端,APP/售后工作台/零售通PAD/客服工作台
+  ClientTypeEnum,客户端类型,查询模块独有 区分多端
+  DisplayTypeEnum,展示类型,查询模块独有
+  RefundSourceEnum,退款来源,手动/AUTO(定时任务)
+  RefundLimitEnum,退款限制,7天时间窗口等
+  PublishStatusEnum,发布状态,权益配置发布状态
+
+state_machine_note: 无显式状态机类 靠应用层if判断实现 SQL层无CAS守卫
+
+# 领域事件
+domain_events:
+  note: 代码中未发现显式Domain Event类 状态变更通知通过以下方式实现
+  mechanisms[3]{name,description}:
+    EquityLifecycleStatusNotifyAbility,退款完成时通知状态变更(notifyStatusChange)
+    OrderRefundResultConsumer,MQ消费退款完成消息
+    BPM回调,审批结果通知(RefundBpmCallbackCmdExe)

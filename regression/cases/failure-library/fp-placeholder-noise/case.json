@@ -1,0 +1,14 @@
+{
+  "case_id": "fp-placeholder-noise",
+  "library": "failure-library",
+  "sample_type": "failure-library",
+  "error_type": "误报",
+  "case_kind": "边界输入",
+  "trigger_condition": "文档只包含占位说明和空白标题，规则误判为真实需求缺失。",
+  "fix_strategy": "增加占位文本过滤和最小证据阈值。",
+  "regression_case": "phase-a-placeholder-noise",
+  "actual_dir": "regression/fixtures/failure-library/fp-placeholder-noise/actual",
+  "include": [
+    "summary.json"
+  ]
+}

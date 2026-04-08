@@ -1,0 +1,58 @@
+metadata:
+  service: car-aftersale-finance
+  domain: 售后财务
+  generated: 2026-04-01
+
+summary:
+  description: 小米汽车售后财务系统，覆盖押金管理（创建/收款/退款/提现+BPM审批）和喷漆理赔（创建/提交/保司回调+平安保司对接）两大业务线，支持押金单6状态StateMachine驱动+理赔单7状态EventHandler驱动的完整生命周期
+  tech_stack: Java 8 / Spring Boot 2.2 / Dubbo RPC / MyBatis-Plus / MySQL(读写分离) / Redis / RocketMQ / Nacos / BPM审批流 / 平安保司HTTP
+  architecture: DDD五层架构（api/app/domain/infrastructure/server）
+
+scale:
+  providers: 7
+  domain_services: 6接口/7实现+3个BPM回调Handler
+  gateways: 29接口（DB11+RPC18）+2个HTTP+1个MQ
+  statemachine_handlers: 2（押金单）
+  claim_settlement_strategies: 11（理赔单状态流转）
+  mappers: 9
+  mq_consumers: 1
+  job_handlers: 2
+
+top5_call_chains[5]{name,entry,complexity}:
+  押金单创建,DepositOrderMainProvider.create(),门店归属校验+折扣校验+BPM审批(提前交车)+状态机
+  押金单退款,DepositPaymentProvider.refund(),最复杂:状态校验+提现互斥+BPM审批+订单中台退款+状态机
+  押金提现,DepositWithdrawalProvider.withdrawal(),BPM审批+结算中台手续费+入账户+RocketMQ清结算
+  喷漆理赔提交+回调,ClaimSettlementProvider.submit()+InsuranceCallBackProvider,EventHandler状态流转+保司HTTP
+  订单状态MQ回调,OrderStatusConsumer,支付/退款/关单消息+状态机扭转+重试机制
+
+state_machines[2]{name,states,framework}:
+  押金单,6个状态(ALREADY_CREATE→ALREADY_CANCEL),自研StateMachine<S,E,C>框架
+  喷漆理赔单,7个状态(SAVED→REFUSED),ClaimSettlementStatusEventFactory+11个策略
+
+external_dependencies[14]{system,gateway}:
+  订单中台,OrderRpcGateway+BuyRpcGateway
+  结算中台,SettlementRpcGateway
+  EIAM组织中台,EmployeeRpcGateway
+  门店系统,SelectListRpcGateway
+  BPM审批,ApprovalInfoGateway
+  单号生成,NoGeneratorRpcGateway
+  文件服务,FileRemoteGateway
+  商品中台,GoodsServiceRpcGateway
+  维保策略,MroPolicyRpcGateway
+  CIS整车中心,CarInfoGateway
+  维保单系统,CarMrsGateway
+  平安保司,PingAnHttpGateway+PingAnIobsGateway
+  Redis,RedisUtil
+  RocketMQ,RocketMQGateway
+
+known_risks[5]{severity,description}:
+  high,DepositOrderServiceImpl 1300+行承担多职责违反单一职责
+  high,DepositPaymentServiceImpl 750+行混杂退款申请/退款执行/收款/BPM表单构建
+  medium,Domain层直接依赖API层DTO（DepositRefundReq/DepositBaseReq）破坏层间隔离
+  medium,押金单和理赔单使用两套不同状态管理机制增加维护成本
+  low,OrderCallBack中Thread.sleep重试而非异步重试机制
+
+knowledge_files[3]{name,content}:
+  01-服务概述.toon,服务信息/边界/依赖/场景/DDD分层/设计模式/已知风险
+  02-接口链路.toon,API清单/5条核心调用链路/状态机定义/Gateway清单
+  03-数据模型.toon,状态机框架/理赔工厂策略/BPM回调/枚举/Mapper/DO模型/MQ/定时任务

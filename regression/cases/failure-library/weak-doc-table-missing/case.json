@@ -1,0 +1,14 @@
+{
+  "case_id": "weak-doc-table-missing",
+  "library": "failure-library",
+  "sample_type": "failure-library",
+  "error_type": "弱文档输入",
+  "case_kind": "弱文档输入",
+  "trigger_condition": "文档缺少字段表和异常表，仅有流程正文，历史上容易导致上下游约束缺失。",
+  "fix_strategy": "在技术方案审计时补充最小契约检查和 NEEDS_CONTEXT 标记。",
+  "regression_case": "phase-a5-weak-doc-contract",
+  "actual_dir": "regression/fixtures/failure-library/weak-doc-table-missing/actual",
+  "include": [
+    "summary.json"
+  ]
+}

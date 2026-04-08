@@ -1,0 +1,28 @@
+metadata:
+  service: soc-gw
+  domain: 客服系统BFF网关
+  generated: 2026-04-01
+  files[3]:
+    01-服务概述.toon,服务信息/DDD分层/架构评估/场景分级/已知风险
+    02-接口链路.toon,API清单/5条核心调用链/策略模式/工单类型体系/50+外部依赖
+    03-数据模型.toon,8个核心实体/15个Mapper/3组策略层次/19种工单类型枚举
+
+summary:
+  positioning: 典型BFF网关层，不承担核心业务写入逻辑，主要做50+下游RPC数据聚合+策略模式差异化展示
+  tech_stack: Java 21 / Spring Boot 2.7 / Dubbo RPC / MyBatis / MySQL / Redis / Nacos
+  scale: ~1127 Java文件 / ~87000行代码 / 26个Provider / 80个Gateway / 15个Mapper
+  ddd_compliance: 合规（API纯接口/App薄编排/Domain核心逻辑/Infrastructure实现/依赖方向正确）
+
+top5_chains[5]{id,name,entry,complexity}:
+  CC-001,超级工单详情,SuperTicketProvider.superTicketDetail(),最复杂(策略模式20+种工单+5-10个RPC扇出)
+  CC-002,车主APP服务首页,CarAppProvider.getCarList(),高(多RPC聚合:车辆+门店+权益+容量)
+  CC-003,服务单查询,ServiceOrderQueryProvider.serviceOrderList(),中(本地DB分页+VIN映射+脱敏)
+  CC-004,呼叫中心工单列表,SuperTicketProvider.callCenterSuperTicketList(),高(CompletableFuture并发填充前3个详情)
+  CC-005,门店容量监控,StoreRepairCapacityCalculateProvider.getStoreRepairCapacity(),中(多源数据聚合计算)
+
+key_risks[5]{id,severity,description}:
+  R1,High,RPC扇出过高：超级工单详情单次请求触发5-10个串行RPC无并行优化延迟风险大
+  R2,Medium,App层业务泄漏：ServiceOrderQueryProviderImpl.allServiceOrderList()含~60行业务逻辑
+  R3,Medium,异常处理不统一：部分Provider手动try-catch部分依赖@CarLogProvider切面
+  R4,Medium,静态工具类耦合：ContextUtil/RpcContextUtil静态方法获取登录用户测试需MockedStatic
+  R5,Medium,本地DB与RPC数据一致性：超级工单数据同时存在本地DB和soc系统无明确同步机制

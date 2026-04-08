@@ -1,0 +1,24 @@
+{
+  "case_id": "FN-phaseA-001",
+  "phase": "A",
+  "error_type": "FN",
+  "severity": "high",
+  "title": "PRD 提到「同一用户并发下单」但未提取为 SE 和 GAP",
+  "root_cause": "SKILL_RULE",
+  "fix_target": "skills/requirement-structuring.md",
+  "tags": ["并发", "幂等", "隐式语义"],
+  "created_at": "2026-04-02",
+  "status": "open",
+  "expected": {
+    "item_type": "SE+GAP",
+    "items": [
+      {"type": "SE", "content": "同一用户并发下单时，系统应保证幂等性，不产生重复订单"},
+      {"type": "GAP", "content": "PRD 未定义并发下单的幂等策略（乐观锁/分布式锁/唯一约束）"}
+    ]
+  },
+  "actual": {
+    "item_type": null,
+    "content": "Phase A 仅提取了「用户可以下单」作为 REQ，未识别并发场景的隐式语义"
+  },
+  "lesson": "当 PRD 出现「并发」「同时」「批量」等关键词时，应主动提取幂等性/并发控制相关的 SE 和 GAP"
+}

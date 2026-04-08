@@ -1,0 +1,29 @@
+{
+  "case_id": "FN-phaseC-bitable-343",
+  "phase": "C",
+  "error_type": "FN",
+  "severity": "high",
+  "title": "门店申请结案，咨询详情跟进记录和结案的信息展示为空",
+  "root_cause": "SKILL_RULE",
+  "fix_target": "skills/unit-test-audit.md",
+  "tags": [
+    "汽车",
+    "汽车履约",
+    "函数未覆盖"
+  ],
+  "created_at": "2026-03-25",
+  "status": "open",
+  "source": {
+    "bitable_record_id": "recveWXrijzJJo",
+    "category1": "单测相关",
+    "category2": "函数未覆盖",
+    "requirement": "线上线下协同-咨询单链路支持"
+  },
+  "expected": {
+    "content": "（需人工补充）"
+  },
+  "actual": {
+    "content": "对非必填信息（上传附件ID）判空造成"
+  },
+  "lesson": ""
+}

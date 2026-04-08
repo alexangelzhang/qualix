@@ -1,0 +1,62 @@
+{
+  "phases": {
+    "A": {
+      "approved_at": "<normalized>",
+      "comment": "有条件通过，8 GAP + 4 OPEN 待闭环",
+      "duration_seconds": "<normalized>",
+      "finished_at": "<normalized>",
+      "started_at": "<normalized>",
+      "status": "approved",
+      "validation_errors": []
+    },
+    "A.5": {
+      "approved_at": "<normalized>",
+      "comment": "有条件通过，GAP-001/003必须闭环",
+      "duration_seconds": "<normalized>",
+      "finished_at": "<normalized>",
+      "started_at": "<normalized>",
+      "status": "approved",
+      "validation_errors": []
+    },
+    "A.6": {
+      "approved_at": "<normalized>",
+      "comment": "v3链路追踪版，退款主链路保护完备，2个P0待修复",
+      "duration_seconds": "<normalized>",
+      "finished_at": "<normalized>",
+      "started_at": "<normalized>",
+      "status": "approved",
+      "validation_errors": []
+    },
+    "B": {
+      "approved_at": "<normalized>",
+      "comment": "v3退款+查询，29文件108用例",
+      "duration_seconds": "<normalized>",
+      "finished_at": "<normalized>",
+      "started_at": "<normalized>",
+      "status": "approved",
+      "validation_errors": []
+    },
+    "C": {
+      "approved_at": "<normalized>",
+      "comment": "v3分模块审计，退款DqgTest有效补充",
+      "duration_seconds": "<normalized>",
+      "finished_at": "<normalized>",
+      "started_at": "<normalized>",
+      "status": "approved",
+      "validation_errors": []
+    },
+    "D": {
+      "approved_at": "<normalized>",
+      "comment": "v3链路级CR，3 CRITICAL降级，4 MAJOR新增",
+      "duration_seconds": "<normalized>",
+      "finished_at": "<normalized>",
+      "started_at": "<normalized>",
+      "status": "approved",
+      "validation_errors": []
+    }
+  },
+  "project_id": "rights-platform",
+  "created_at": "<normalized>",
+  "updated_at": "<normalized>",
+  "version": "1.0"
+}

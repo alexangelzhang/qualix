@@ -1,0 +1,29 @@
+{
+  "case_id": "FN-phaseA-bitable-193",
+  "phase": "A",
+  "error_type": "FN",
+  "severity": "medium",
+  "title": "待复盘列表没有按照 创建来源为“线上客服”和投诉分类为“服务投诉”去过滤数据",
+  "root_cause": "SKILL_RULE",
+  "fix_target": "skills/requirement-structuring.md",
+  "tags": [
+    "汽车",
+    "汽车履约",
+    "需求理解未对齐"
+  ],
+  "created_at": "2026-03-18",
+  "status": "open",
+  "source": {
+    "bitable_record_id": "recveiVcM4edfc",
+    "category1": "非单测相关",
+    "category2": "需求理解未对齐",
+    "requirement": "客诉管理-服务投诉判责优化"
+  },
+  "expected": {
+    "content": "提升单测覆盖率"
+  },
+  "actual": {
+    "content": "（需人工补充）"
+  },
+  "lesson": "提升单测覆盖率"
+}

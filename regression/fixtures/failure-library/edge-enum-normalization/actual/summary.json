@@ -1,0 +1,8 @@
+{
+  "case": "edge-enum-normalization",
+  "status": "pass",
+  "signal": {
+    "enum_normalized": true,
+    "boundary_stable": true
+  }
+}

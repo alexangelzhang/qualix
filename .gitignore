@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+
+# 项目运行时产物
+output/
+tmp/
+.dqg-runtime/
+
+# 回归测试运行时数据
+regression/runs/
+regression/preference_history.jsonl
+regression/failure-library/history.jsonl
+regression/failure-library/trends/
+
+# 可观测性运行时数据（已迁移到 .dqg-runtime/）
+observability/
+
+# 工具缓存（自动生成，不提交）
+.pytest_cache/
+.ruff_cache/
+.deepeval/
+.dqg-wiki/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# macOS
+.DS_Store

@@ -1,0 +1,23 @@
+---
+description: DQG 研发质量门禁框架项目规则
+globs: ["**/*"]
+---
+
+# dev-quality-gate (DQG) — Cursor 适配层
+
+> 通用项目知识见 `AGENTS.md`（Phase 流程、代码规范、架构、Agent 角色等）。
+> 本文件只放 Cursor 特有的规则提示。
+
+## 快速入口
+
+- 全流程引导: 读取 `dqg_starter.md` 开始
+- CLI 启动: `python -m dqg.runner <project_id> startup`
+- 全量检查: `ruff check src/ tests/ && pytest tests/ -q`
+
+## Cursor 特有提示
+
+- 代码补全时遵循 `AGENTS.md` 中的代码铁律（常量管理/JSON操作/异常处理/日志/模块组织）
+- 新建文件时参考 `AGENTS.md` 的包结构表，放入正确的子包
+- 修改 Phase 相关代码时参考 `AGENTS.md` 的 Common Tasks → Files 表
+
+*最后更新：2026-04-08*

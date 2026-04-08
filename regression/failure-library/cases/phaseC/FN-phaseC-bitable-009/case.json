@@ -1,0 +1,28 @@
+{
+  "case_id": "FN-phaseC-bitable-009",
+  "phase": "C",
+  "error_type": "FN",
+  "severity": "medium",
+  "title": "故障原因代码导致工单检测节点处理的时候报错，没有判空走了空指针【自动化发现】",
+  "root_cause": "CONTEXT",
+  "fix_target": "skills/unit-test-audit.md",
+  "tags": [
+    "工单",
+    "有单测未运行"
+  ],
+  "created_at": "2026-03-06",
+  "status": "open",
+  "source": {
+    "bitable_record_id": "recvd36axpyKSR",
+    "category1": "单测相关",
+    "category2": "有单测未运行",
+    "requirement": "问题分类-故障原因模块"
+  },
+  "expected": {
+    "content": "（需人工补充）"
+  },
+  "actual": {
+    "content": "@罗杰加了接口，接口兼容场景，调试阶段上到测试环境，以为没影响"
+  },
+  "lesson": ""
+}
