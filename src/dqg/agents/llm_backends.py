@@ -10,6 +10,29 @@ from typing import Any
 
 
 # ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+def _extract_json(text: str) -> dict[str, Any] | None:
+    """Extract JSON object from text. Returns None if no valid JSON found."""
+    import re as _re
+    m = _re.search(r"```json\s*\n([\s\S]*?)\n```", text)
+    if m:
+        try:
+            return json.loads(m.group(1))
+        except json.JSONDecodeError:
+            pass
+    start = text.find("{")
+    end = text.rfind("}") + 1
+    if start >= 0 and end > start:
+        try:
+            return json.loads(text[start:end])
+        except json.JSONDecodeError:
+            pass
+    return None
+
+
+# ---------------------------------------------------------------------------
 # LLM Backend 抽象层
 # ---------------------------------------------------------------------------
 
@@ -57,6 +80,14 @@ class LLMConfig:
         return self._resolve_api_key(self.fallback)
 
 
+@dataclass
+class StructuredChatResult:
+    """Return type for chat_structured — preserves raw text for guard/audit."""
+    parsed: dict[str, Any]
+    raw_text: str
+    provider_meta: dict[str, Any]
+
+
 class LLMBackend(ABC):
     """LLM 后端抽象接口."""
 
@@ -67,6 +98,35 @@ class LLMBackend(ABC):
     @abstractmethod
     def name(self) -> str:
         ...
+
+    def chat_structured(
+        self, messages: list[dict[str, Any]], response_schema: dict[str, Any], **kwargs,
+    ) -> StructuredChatResult:
+        """Structured output with schema enforcement. Default: prompt-based fallback."""
+        prompt_suffix = (
+            "\n\nIMPORTANT: Output ONLY a valid JSON object matching this schema, nothing else:\n"
+            + json.dumps(response_schema, indent=2, ensure_ascii=False)
+        )
+        augmented = list(messages)
+        if augmented:
+            last = augmented[-1].copy()
+            last["content"] = last["content"] + prompt_suffix
+            augmented[-1] = last
+
+        raw_text, usage = self.chat(augmented, **kwargs)
+        parsed = _extract_json(raw_text)
+        if parsed is None:
+            retry_msgs = augmented + [
+                {"role": "assistant", "content": raw_text},
+                {"role": "user", "content": "你的回复不是有效 JSON。请只输出 JSON 对象，不要包含任何其他文本。"},
+            ]
+            raw_text_2, usage_2 = self.chat(retry_msgs, **kwargs)
+            parsed = _extract_json(raw_text_2)
+            if parsed is not None:
+                raw_text = raw_text_2
+                usage = usage_2
+
+        return StructuredChatResult(parsed=parsed or {}, raw_text=raw_text, provider_meta={"usage": usage})
 
 
 class AnthropicBackend(LLMBackend):
@@ -89,20 +149,19 @@ class AnthropicBackend(LLMBackend):
         for m in messages:
             content = m.get("content", "")
             if m["role"] == "system":
-                if len(content) > 500:
-                    system_blocks.append({
-                        "type": "text",
-                        "text": content,
-                        "cache_control": {"type": "ephemeral"}
-                    })
-                else:
-                    system_blocks.append({
-                        "type": "text",
-                        "text": content
-                    })
+                # 调用方通过 cache_control=True 显式标记需要缓存的 system block
+                # 未标记的 system block：仅对 >1024 tokens 的内容自动标记（Anthropic 最低要求）
+                explicit_cache = m.get("cache_control", False)
+                should_cache = explicit_cache or len(content) > 4000
+                block = {"type": "text", "text": content}
+                if should_cache:
+                    block["cache_control"] = {"type": "ephemeral"}
+                system_blocks.append(block)
             else:
-                cache_control = m.get("cache_control", False)
-                if cache_control or len(content) > 2000:
+                # 调用方通过 cache_control=True 显式标记需要缓存的 user message
+                # 典型场景：evidence pack、bug cases、rubric 等跨轮稳定内容
+                explicit_cache = m.get("cache_control", False)
+                if explicit_cache:
                     chat_msgs.append({
                         "role": m["role"],
                         "content": [
@@ -114,7 +173,7 @@ class AnthropicBackend(LLMBackend):
                         ]
                     })
                 else:
-                    chat_msgs.append(m)
+                    chat_msgs.append({"role": m["role"], "content": content})
 
         system_param = system_blocks if system_blocks else ""
 
@@ -123,8 +182,11 @@ class AnthropicBackend(LLMBackend):
             max_tokens=kwargs.get("max_tokens", self.max_tokens),
             system=system_param,
             messages=chat_msgs,
-            extra_headers={"anthropic-beta": "prompt-caching-2024-09-02"}
         )
+
+        # SDK 0.88.0+ 可能返回 SSE 字符串而非 Message 对象
+        if isinstance(response, str):
+            return self._parse_sse_response(response)
 
         usage = {
             "input_tokens": response.usage.input_tokens,
@@ -140,6 +202,39 @@ class AnthropicBackend(LLMBackend):
 
     def name(self) -> str:
         return f"anthropic:{self.model}"
+
+    @staticmethod
+    def _parse_sse_response(sse_text: str) -> tuple[str, dict[str, int]]:
+        """解析 SDK 0.88.0+ 返回的 SSE 字符串."""
+        import json as _json
+        content_parts: list[str] = []
+        usage: dict[str, int] = {"input_tokens": 0, "output_tokens": 0}
+
+        for line in sse_text.split("\n"):
+            if not line.startswith("data: "):
+                continue
+            try:
+                data = _json.loads(line[6:])
+            except _json.JSONDecodeError:
+                continue
+
+            event_type = data.get("type", "")
+            if event_type == "content_block_delta":
+                delta = data.get("delta", {})
+                if delta.get("type") == "text_delta":
+                    content_parts.append(delta.get("text", ""))
+            elif event_type == "message_start":
+                msg_usage = data.get("message", {}).get("usage", {})
+                usage["input_tokens"] = msg_usage.get("input_tokens", 0)
+            elif event_type == "message_delta":
+                delta_usage = data.get("usage", {})
+                usage["output_tokens"] = delta_usage.get("output_tokens", 0)
+                if "cache_creation_input_tokens" in delta_usage:
+                    usage["cache_creation_input_tokens"] = delta_usage["cache_creation_input_tokens"]
+                if "cache_read_input_tokens" in delta_usage:
+                    usage["cache_read_input_tokens"] = delta_usage["cache_read_input_tokens"]
+
+        return "".join(content_parts), usage
 
 
 class OpenAICompatibleBackend(LLMBackend):
@@ -194,6 +289,43 @@ class OpenAICompatibleBackend(LLMBackend):
 
     def name(self) -> str:
         return f"openai-compat:{self.model}"
+
+    def chat_structured(
+        self, messages: list[dict[str, Any]], response_schema: dict[str, Any], **kwargs,
+    ) -> StructuredChatResult:
+        """OpenAI-compatible: use response_format=json_object when available."""
+        try:
+            import openai
+        except ImportError:
+            raise RuntimeError("pip install openai")
+
+        client = openai.OpenAI(api_key=self.api_key, base_url=self.base_url)
+        clean_msgs = [{"role": m["role"], "content": m["content"]} for m in messages]
+        schema_hint = (
+            "\n\nOutput ONLY a valid JSON object matching this schema:\n"
+            + json.dumps(response_schema, indent=2, ensure_ascii=False)
+        )
+        clean_msgs[-1]["content"] += schema_hint
+
+        try:
+            response = client.chat.completions.create(
+                model=self.model,
+                messages=clean_msgs,
+                max_tokens=kwargs.get("max_tokens", self.max_tokens),
+                temperature=kwargs.get("temperature", 0.0),
+                response_format={"type": "json_object"},
+            )
+            raw_text = response.choices[0].message.content
+            usage = {}
+            if response.usage:
+                usage = {
+                    "input_tokens": response.usage.prompt_tokens,
+                    "output_tokens": response.usage.completion_tokens,
+                }
+            parsed = _extract_json(raw_text)
+            return StructuredChatResult(parsed=parsed or {}, raw_text=raw_text, provider_meta={"usage": usage})
+        except Exception:
+            return super().chat_structured(messages, response_schema, **kwargs)
 
 
 class GeminiBackend(LLMBackend):

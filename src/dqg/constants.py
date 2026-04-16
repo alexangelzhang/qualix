@@ -45,11 +45,11 @@ REPORT_MAP: dict[str, str] = {
 
 # Phase ID → Skill 文件路径
 SKILL_FILE_MAP: dict[str, str] = {
-    "A": "skills/requirement-structuring.md",
-    "A.3": "skills/tech-design-generation.md",
-    "A.5": "skills/tech-coverage-audit.md",
-    "A.6": "skills/tech-quality-review.md",
-    "C": "skills/unit-test-audit.md",
+    "A": "skills/requirement-structuring/SKILL.md",
+    "A.3": "skills/tech-design-generation/SKILL.md",
+    "A.5": "skills/tech-coverage-audit/SKILL.md",
+    "A.6": "skills/tech-quality-review/SKILL.md",
+    "C": "skills/unit-test-audit/SKILL.md",
 }
 
 # Phase ID → 知识库参考文件路径
@@ -111,11 +111,17 @@ AGENT_EVIDENCE_TOTAL_LIMIT = 12_000
 
 DEFAULT_PRIMARY_MODEL = "claude-opus-4-6"
 DEFAULT_FALLBACK_MODEL = "deepseek-chat"
-DEFAULT_JUDGE_MODEL = "claude-sonnet-4-6"
+DEFAULT_JUDGE_MODEL = "deepseek-chat"
 DEFAULT_ADAPTIVE_JUDGE_MODELS: tuple[str, ...] = (
-    "claude-sonnet-4-6",
+    "deepseek-chat",
     "deepseek-chat",
 )
+
+# 模型等级映射：Phase 的 recommended_model 字段 → 实际模型名
+MODEL_TIER: dict[str, str] = {
+    "strong": DEFAULT_PRIMARY_MODEL,     # 需要深度理解的 Phase（A/A.3/A.6/D）
+    "standard": "claude-sonnet-4-6",     # 模式化执行的 Phase（B/C/A.5）
+}
 DEFAULT_TEMPERATURE = 0.0
 DEFAULT_MAX_TOKENS = 8192
 DEFAULT_TIMEOUT = 120
@@ -149,6 +155,30 @@ PERF_DURATION_WARNING = 600         # perf_tracker: 耗时告警（秒）
 PERF_OUTPUT_TOKEN_WARNING = 500     # perf_tracker: 输出 token 告警
 
 # ---------------------------------------------------------------------------
+# Anti-Rationalization Runtime Enforcement
+# ---------------------------------------------------------------------------
+
+RATIONALIZATION_PATTERNS: list[str] = [
+    r"虽然.{0,20}但.{0,20}(可以接受|尚可|足够)",
+    r"(基本|整体|总体).{0,10}(清晰|达标|合格|可接受)",
+    r"考虑到.{0,15}(时间|复杂度|限制)",
+    r"影响不大",
+    r"已经(有了?|存在).{0,10}(改进|提升)",
+    r"覆盖率.{0,5}达标",
+    r"(不需要|没必要).{0,10}(边界|并发|异常)",
+    r"上一轮已经",
+]
+
+DEFAULT_RATIONALIZATION_CONFIRM_MODEL = "claude-haiku-4-5-20251001"
+RATIONALIZATION_MAX_REJUDGE = 1
+
+# Holdout replay
+HOLDOUT_DIR = "regression/holdout"
+HOLDOUT_SUITE_BASELINE_FILE = "suite_baseline.json"
+HOLDOUT_SUITE_REGRESSION_THRESHOLD = 0.95
+HOLDOUT_CASE_REGRESSION_THRESHOLD = 0.90
+
+# ---------------------------------------------------------------------------
 # Wiki
 # ---------------------------------------------------------------------------
 
@@ -162,3 +192,10 @@ WIKI_LINT_FILE_EXCERPT_LIMIT = 4_000
 # ---------------------------------------------------------------------------
 
 DASHBOARD_PORT = 8501
+
+# ---------------------------------------------------------------------------
+# DAG 调度器
+# ---------------------------------------------------------------------------
+
+DAG_DEFAULT_MAX_PARALLEL = 3
+DAG_DEFAULT_MODE = "adaptive"  # adaptive / agent-run
