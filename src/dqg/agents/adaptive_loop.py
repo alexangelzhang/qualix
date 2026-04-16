@@ -498,6 +498,28 @@ class AdaptiveLoop:
         total_duration = time.time() - start
         models_used = list(set([worker_model, *judge_models, fallback]))
 
+        # SkillReflector trigger: all iterations exhausted with FAIL
+        all_judge_results = [r.judge_result for r in iterations if r.judge_result is not None]
+        all_failed = final_verdict not in ("PASS", "PASS_WITH_CONCERNS") and len(iterations) >= max_iterations
+        if all_failed and all_judge_results:
+            health = judge_health_check(all_judge_results)
+            if health == "SEMANTIC_FAIL":
+                log.info("All iterations FAIL with healthy judges → triggering SkillReflector")
+                from dqg.tracking.skill_reflector import SkillReflector
+                reflector = SkillReflector(phase=phase_id, project_id=project_id)
+                judge_dicts = []
+                for vr in all_judge_results:
+                    for v in vr.votes:
+                        judge_dicts.append({
+                            "verdict": v.verdict,
+                            "overall": v.overall,
+                            "issues": v.issues,
+                        })
+                evolution_outcome = reflector.reflect_and_write(judge_dicts)
+                log.info("SkillReflector outcome: %s", evolution_outcome.action)
+            elif health == "INFRA_FAILURE":
+                log.warning("Judge infrastructure failure detected, skipping skill evolution")
+
         # Task store: 标记完成
         complete_task_run(
             self.output_dir, task_id,
