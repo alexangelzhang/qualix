@@ -121,7 +121,6 @@
 - `adaptive_loop` 已复用 `Agent.query_cache`，重复 Worker/Judge/Fixer/Critique 路径可直接命中缓存，补齐应用层 LLM result cache 主执行链路
 - FTS5 中文检索已改为边界感知分词 + identifier subtoken，fact/text/image/code 统一使用 MATCH builder 与轻量 post-filter，降低中文单字误命中
 - Phase C `execute` 新增 `_internal/_weak_assert_context.{json,md}`，把 `assertNotNull` / `verify-only` / `assertThrows-only` 等 `WRONG_TARGET` 候选前置暴露给审计流程
-- 架构级优化路线图已单列：`ARCHITECTURE_OPTIMIZATION_ROADMAP.md`，覆盖高/中/低优先级与两项 P0（应用层 LLM result cache、retrieval-first evidence pack）
 
 ---
 
@@ -225,6 +224,117 @@
 - Multi-Agent Phase 2（模型无关 Agent Framework，Claude/DeepSeek/Qwen/Gemini/Kimi/Codex 自动 fallback，`dqg-run agent-run`）
 - Multi-Agent Phase 3（自适应循环：Judge 不通过自动修正重试 + 多 Judge 投票取共识，`dqg-run adaptive`）
 
+2026-04-08 新增：
+
+- Phase 顺序重构：A → A.3(可选) → A.6 → A.5 → B → C → D（先生成方案，再评审质量，最后审覆盖度）
+- Phase A.3 技术方案生成（资深架构师 Agent，含 HLD+LLD+DTO+流程图+伪代码）
+- 技术方案 AI 亲和性原则（完整到 AI 可直接编码和写单测）
+- 技术方案完整性标准（参考飞书模板：接口协议清单+外部依赖+部署灰度+影响范围+可观测性）
+- LLM Result Cache 100%（缓存键含 skill/rubric 签名 + 全局统计 + Preference 缓存）
+- FTS5 中文分词 jieba 集成（词级分词+停用词过滤，降级兼容 n-gram）
+- 弱断言检测 tree-sitter Java AST（链式调用/变量追踪/跨方法 Helper 分析/5种弱断言信号）
+- 弱断言业务语义映射（断言与 Phase A SE / Phase B EUT 自动关联）
+- DAG 并行调度器（`dqg-run dag`，Phase 间全自动并行执行，ThreadPoolExecutor）
+- CLAUDE.md/AGENTS.md 职责分离（AGENTS.md 为通用知识单一来源，CLAUDE.md/GEMINI.md/.cursor 为适配层）
+- SKIPPED 状态可满足依赖（可选 Phase 跳过后不阻塞下游）
+- Phase A.3 schema 校验（`schemas/phase_a3.py`）
+
+2026-04-09 新增：
+
+- 跨项目知识自动注入（`phase_service.py` 在 execute 时调用 knowledge_network，历史 GAP/BUG/LESSON 自动注入 prompt）
+- 案例相关性二级匹配（`case_selector.py` 同义词扩展，"幂等"↔"重复提交"↔"并发安全" 等语义等价词自动关联）
+- 图片→Mermaid 验证闭环（VLM prompt 要求输出 Mermaid 代码+节点/边数量，`validate_mermaid.py` 自动校验结构完整性）
+- Phase B 编译验证 gate（`compile_check.py`，finalize 前自动编译检查，失败则 BLOCKED，支持 Maven/Gradle/Go）
+- A.5 覆盖度结构化映射表（`coverage_matrix.py`，从 Phase A 自动生成 REQ/BR/SE→技术设计映射矩阵，LLM 填充而非自由审计）
+- 业务域变异测试推导（`business_mutations.py`，从 Phase A SE 自动推导金额精度/状态机跳转/并发保护/空值注入等变异规则）
+- Harness/Domain 分层 Phase 0（`PHASE_DEFS` 提取到 `phase_registry.py`，store schema 拆为 `_HARNESS_SCHEMA` + `_DOMAIN_SCHEMA`）
+- Runtime Kernel Phase 0（`src/dqg/runtime/` 包：PhaseResult 结构化结果、EventType 生命周期事件、ExecutionContext 执行上下文、LifecycleRegistry handler 注册机制、execute/finalize sidecar 下沉为 11 个独立 handler）
+- 跨 session 进度文件（`_progress.json`，Phase 级 + 项目级，finalize 后自动生成，记录执行摘要/关键数字/下一步建议）
+- Session startup protocol（`session_startup.py`，标准化启动序列：读 state → 读 progress → 读 reasoning log → 输出 orientation summary）
+- Task store + resume 基础设施（`task_store.py`，SQLite task_runs/task_events/task_checkpoints 表，支持崩溃恢复和进度查询）
+- 动态 Judge grading criteria（`dynamic_rubric.py`，从 Phase A SE 类型分布自动生成针对性评分维度，追加到静态 rubric）
+- Blast radius 影响范围分析（`blast_radius.py`，tree-sitter/regex 调用图 + git diff → 受影响 callers/tests，注入 Phase C）
+- Judge/Critique anti-rationalization table（8 条常见放水借口 + 反驳，防止虚高评分）
+- 事实索引 confidence tagging（EXTRACTED/INFERRED/AMBIGUOUS 三级标注，REQ/BR=EXTRACTED，SE=INFERRED，GAP=INFERRED，OPEN=AMBIGUOUS）
+- Phase skill progressive disclosure（`skill_loader.py`，`<!-- @include -->` 标记按需加载详细 rubric/规则，减少 adaptive loop token 消耗）
+- Hyperedge 跨项目多实体关联（`knowledge_hyperedges` + `knowledge_hyperedge_members` 表，按业务域自动聚合 SE+BR+GAP 为多节点关联链，`build_business_hyperedges()` 在 index_phase 时自动构建）
+- Phase B/D Judge rubric 补齐（B: EUT 覆盖/断言强度/可编译性/SE 追溯 4 维度；D: 发现有效率/需求对齐/严重级别/链路追踪 4 维度）
+- 覆盖率门禁代码化（`coverage_gate.py`，解析 JaCoCo XML，Phase C finalize 时硬性校验 line >= 80% / branch >= 80%）
+- `commands/phase.py` 切换到 runtime 入口（cmd_execute/cmd_finalize 瘦身为薄壳，调用 runtime_execute/runtime_finalize + lifecycle handler）
+- `dqg_starter.md` 全面更新（Phase DAG、A.3、推理日志、Judge/Critique 前置、sidecar 说明、覆盖率门禁）
+- 新增模块测试补齐（compile_check/blast_radius/coverage_matrix/dynamic_rubric/coverage_gate 共 21 条测试）
+- multi_agent.py judge prompt 统一到 quality/judge.py（消除 Phase-A-only 的独立实现，dag_scheduler 自动获得全 Phase rubric）
+- cmd_auto 切换到 runtime 入口（execute/finalize handler 在 auto 模式下正常触发）
+- adaptive_loop report_map 补齐 A.3/B/C/D（消除 fallback 到不存在文件的问题）
+- skill_loader 接入 dag_scheduler（progressive disclosure 从死代码变为活代码）
+- Skill 结构标准化（`SKILL_TEMPLATE.md` 模板 + 7 个 Phase skill 统一追加 Anti-Rationalization / Verification 节）
+- Agent Persona 行为描述（Judge: 10 年质量负责人视角；Critique: 资深 QA 架构师视角）
+- Phase A 假设前置（Step 0.5 Assumption Surfacing，列出假设等用户确认后再继续，防止 Agent 默默填充模糊需求）
+- Phase B Mock 优先级层级（Real > Fake > Stub > Mock）+ DAMP 原则（测试可读性优先）
+- Phase D 变更大小门禁（~100 行好/~300 可接受/~1000 必须拆分）+ 评论严重级别标签（Critical/Important/Suggestion/Nit/FYI）
+- 全局错误恢复协议（`error-recovery-protocol.md`，Stop-the-Line + Triage 五步法：Reproduce→Localize→Reduce→Fix→Guard）
+- 上下文层级模型（`context-hierarchy.md`，五级金字塔 + 信任级别 + 行数阈值，统一所有 Phase 的上下文加载策略）
+- Phase A.3 实施切片指导（垂直切片 + 风险优先 + XS/S/M/L/XL 任务分级 + Contract-first）
+- Phase C Judge 新增"场景覆盖质量"维度（测试数据是否覆盖多记录/边界值/枚举组合等真实故障路径）
+- Phase C 覆盖状态新增 CONFLICT（团队有意的模式与审计标准冲突时，标记交人工裁决而非误判 WRONG_TARGET）
+- Phase A 输出增加"边界约定"节（必须做/需确认/禁止做三级，下游 Phase 可引用）
+- 下游→上游反馈触发机制（UPSTREAM_UPDATE_NEEDED 标记，下游发现需求问题时显式标记而非静默处理）
+- 错误恢复协议增强（bisection 回归定位 + 不可复现 bug 四分支决策树：时序/环境/状态/随机）
+- 范围外发现协议（Phase A/A.3/B 输出模板增加 Noticed But Not Touching 节）
+- 上下文硬性行数阈值（2000 行/任务聚焦，5000 行降级触发，写入 system-rules.md）
+- Phase D 依赖新增 5 问审查 + feature flag 检查
+- Skill Factory（`skill_factory.py`，基于 bug case 库自动分析失败模式，生成 Anti-Rationalization 条目 + 红线规则补充建议，finalize 时自动触发，输出 `_skill_suggestions.md` 供人工 review）
+- Bug Case Lesson 自动推断（`lesson_inference.py`，从 title/tags/error_type/source 字段推断缺失的 lesson，覆盖率从 26% 提升到 86%）
+- 测试数据模式推导（`data_patterns.py`，从 Phase C bug case 提取 8 种故障数据模式，Phase B/C execute 时自动注入 `_data_patterns.md`，解决 Layer 3 场景 gap）
+- Skill Evolution 技能自进化闭环（`skill_evolution.py`，生成具体 diff 而非建议文本 + 进化谱系记录 + 高置信度规则标记自动合入，借鉴 OpenSpace FIX/CAPTURED 模式）
+- 代码语义检索增强（`code_semantic_search.py`，SE→Code 自动映射 + 概念映射动态扩展 + 调用链查询，零新依赖复用 FTS5+tree-sitter，Phase B/C/D execute 时自动注入 `_se_code_mapping.md`）
+- Skill 目录结构改造为 agentskills.io 标准（7 个 Phase skill 从扁平 .md 改为 `skills/<name>/SKILL.md` + `references/` 目录结构，所有 SKILL.md < 500 行，详细规则拆到 references/，旧路径保留 facade 兼容）
+- Reasoning Sandwich（`phase_registry.py` 每个 Phase 增加 `reasoning_profile`，`context_loader.py` 按 execution level 动态调整 budget：high=100%/standard=60%，为推理留更多空间）
+- Worker 内部拆分（`two_phase_worker.py`，Collector Agent 只做证据收集输出 `_evidence_pack.json`，Writer Agent 只看 evidence pack 不看原始文档，context 更干净）
+
+2026-04-16 新增：
+
+- Skill Evolution 全自动闭环（`skill_reflector.py`，adaptive loop 耗尽后触发 Reflect→Persist→Cluster→Write pipeline，v1 仅 SKILL_RULE 可自动合并，KNOWLEDGE/CONTEXT/SCHEMA 降级人审）
+- Anti-Rationalization 运行时强制（`rationalization_guard.py`，两层检测：关键词正则扫描 + LLM 确认，Judge 放水时自动拦截并重审，预算耗尽标记 GUARD_EXHAUSTED 降级手动 judge）
+- JudgeRunner 统一 Judge 执行（`judge_runner.py`，canonical schema 线兼容现有 `_judge_result.json` 消费方，primary→fallback 模型链，structured output 硬约束）
+- LLM Backend 结构化输出（`llm_backends.py` 新增 `chat_structured()` → `StructuredChatResult(parsed, raw_text, provider_meta)`，OpenAI 兼容后端支持 `response_format=json_object`）
+- Adaptive Loop 集成升级（`_run_single_judge()` 收口为 JudgeRunner thin wrapper，Guard 按 round 拦截 primary judge，`judge_health_check()` 区分 SEMANTIC_FAIL vs INFRA_FAILURE）
+- resolve_worker_prompt() 统一 skill 解析入口（`skill_loader.py`，以 PHASE_DEFS 为主，所有生产调用方迁移：commands/agents.py + dag_scheduler.py）
+- Phase 报告章节 contract（`phase_registry.py` 新增 `required_report_sections` 含别名归一，`phase_contract.py` 新增 `check_report_structure()` 模糊匹配校验）
+- Eval-Driven 量化质量基线（`eval_baseline.py`，每个 Phase 定义固定评估指标，finalize 自动计算并对比历史基线，指标退化超 5% 触发 WARNING）
+- Phase Contract 执行合同（`phase_contract.py`，execute 时自动生成 done_definition + verification_targets + evidence_refs + hard_checks，Judge 按 contract 逐条打分）
+- Verification Bundle 统一验证包（`verification_bundle.py`，finalize 时收集所有自动化验证结果到 `_verification_bundle.json`，Judge 先看确定性证据再做语义判断）
+- Context Compressor 迭代摘要（`context_compressor.py`，tool result 裁剪 + 结构化摘要 Goal/Progress/Decisions/Next Steps + 增量更新 + tool_call 孤儿修复）
+- Memory on_pre_compress 钩子（`compress_hooks.py`，压缩前提取已修复问题/已确认决策/评分趋势到持久化存储，防止 adaptive loop 信息丢失）
+- 多凭证轮转（`credential_pool.py`，多 API key 配置 + 429 自动轮转 + least_used 策略 + 冷却机制）
+- Preflight 增强（`preflight.py`，adaptive/dag 每轮预检：checkpoint 恢复 + 产物完整性 + 依赖检查 + contract 存在性）
+- Harness Ablation Matrix（`harness_ablation.py`，24 个组件注册表 + compact/full/review-heavy 三种 profile + 成本估算 + ablation 报告）
+- DeepEval 评分校准层（`score_calibration.py`，Judge 评分一致性检测：DQG Judge vs DeepEval GEval 独立打分，drift > 1.0 触发告警；评分趋势监控：通胀/通缩检测）
+- 断线修复：DAG scheduler 接入 runtime（execute/finalize handler 在 dag 模式下正常触发）
+- 断线修复：score_calibration 注册为 finalize handler（order=95，自动触发一致性检测+趋势监控）
+- 断线修复：session_startup 接入 CLI startup 命令（orientation 输出到 stderr，不影响 JSON stdout）
+- 断线修复：task_store 接入 adaptive_loop + dag_scheduler（create_task_run 启动时、save_checkpoint 每轮/每批次、complete_task_run 结束时，支持崩溃恢复）
+
+2026-04-11 新增（Hermes Agent 借鉴 + 架构升级）：
+
+- **安全模块**：`security/content_scanner.py`（Memory/Wiki 写入安全扫描：prompt injection + 凭证泄露 + 不可见 unicode + 状态篡改）+ `security/tool_permissions.py`（Agent 工具权限白名单：Worker 全部 / Judge 只读 / Critique 可写不可委派）
+- **spawn_subagent 安全**：深度限制 MAX_DEPTH=2 + 返回值截断 16k 字符（可配置）
+- **性能优化**：Tool output pruning（旧工具返回值替换占位符）+ Frozen Snapshot（Adaptive Loop system prompt 不变保护 prefix cache）+ 按 Phase 配置模型等级（strong/standard → MODEL_TIER 映射）
+- **Context 压缩**：跨 Phase 结构化摘要模板（ID 级摘要替代全文）+ Facts 数量监控（超 5000 阈值自动降级为摘要模式）
+- **Trajectory Compressor**：`quality/trajectory.py`（压缩 Agent 执行轨迹为 JSONL，保护首尾 turn，压缩中间 tool call）
+- **AutoHarness finalize**：`quality/auto_checks.py`（从 Pydantic schema + phase_registry 自动推导校验：schema 合规 / 交叉引用 / 严重等级 / RSM 覆盖率）
+- **行为指纹回归**：`quality/behavioral_fingerprint.py`（从 trajectory 提取工具调用模式 / ID 数量 / 输出长度，统计分布替代 binary diff，PASS/FAIL/INCONCLUSIVE 三态判定）
+- **batch_query 工具**：一次提交多个 search/wiki 查询，O(N)→O(1) token overhead
+- **Memory 防污染**：`memory/memory_filter.py`（条目按 global/project 标签分级，Phase A 只注入 global，注入时加免责声明）+ Wiki 读取加不可靠提示 + 写入加来源元数据
+- **Worker 结构化优先**：输出以 JSON 为主，md 从 JSON 自动渲染（`reporting/render.py`），JSON 是 source of truth
+- **Judge 升级**：deterministic checker（auto_checks）先跑 → 结果作为 evidence 注入 LLM → LLM 只负责语义判断（需求完整性/逻辑一致性/可实现性/风险识别）
+- **Critique 可执行反馈**：`schemas/critique_feedback.py`（target_id + action + patch + confidence + evidence_source），低置信度自动过滤，生成 `_critique_instructions.md` 供 Worker 消费
+- **RSM 全局语义模型**：`schemas/rsm.py`（RequirementLifecycle 跨 Phase 追踪 + CoverageReport 6 指标 + 可写数据总线 apply_mutations + 持久化 `_rsm.json`）
+- **闭环1 Critique→RSM 回流**：Critique 的 add/modify/delete 反馈自动 apply 到 RSM，下游 Phase 感知变化
+- **闭环2 Coverage Gap→自动补充**：finalize 发现覆盖率缺口时生成 `_coverage_gap_tasks.json`，列出需补充的具体 ID 和目标 Phase
+- **闭环3 Memory→RSM 进化**：`memory/rsm_patterns.py`（从多项目 RSM 提取高频 GAP 模式，沉淀为 global Memory，新项目 Phase A 自动注入检查清单）
+- 测试：296 passed（从 238 新增 58 个），零破坏
+
 ### P1（下一阶段）
 
 已完成（本轮架构优化）：
@@ -232,9 +342,14 @@
 - `adaptive` 多 Judge 并行投票（去重重复 model、单 Judge 失败容错、投票结果顺序稳定）
 - 版本感知 cache namespace + 定向失效（`semantic_cache` / `MemoryLayer.search`）
 - 增量索引 / 变更感知知识层（`MemoryLayer.index_phase` 跳过未变化重建，`finalize` 统一接入）
+- DAG Scheduler 增强（`dqg-run dag`，Phase 间全自动并行执行 + `--plan` 预览）
+- LLM Result Cache 完善（缓存键含 skill/rubric 签名、全局统计、Preference 缓存）
+- FTS5 中文分词 jieba 集成（词级分词 + 停用词过滤）
+- 弱断言 tree-sitter Java AST（跨方法 Helper 分析 + 业务语义映射）
 
 仍待推进：
 
+- Task store + resume/background runner（SQLite task_runs/task_events/task_checkpoints 表已建，CLI `dqg-run task list/resume` 待接入）
 - CI/PR 门禁模板化接入（GitHub Action）
 - 飞书 Bot 通知（Phase 完成/失败推送）
 - 失败样例库扩容与标签化
@@ -243,13 +358,15 @@
 - 团队聚合看板（跨项目 Phase 通过率、GAP 闭环率趋势）
 - PyPI 发布（`pip install dev-quality-gate`）
 - 断点续跑（Phase 失败后从断点继续）
-- DAG Scheduler 增强（Phase 间自动并行执行，不只是生成 prompt）
 - LSP 集成（代码智能，jedi/Java LSP）
+- FTS5 自定义 tokenizer（让 SQLite 原生使用 jieba 分词，当前是应用层分词后写入）
 
 ### P2（平台化规模阶段）
 
-- **DeepEval 集成** — 引入 DeepEval 作为自动化评分引擎，替代 prompt-based judge
-- 代码 Embedding + 语义搜索（替代 FTS5 n-gram）
+- **Harness/Domain 分层 Phase 1** — 定义 `HarnessApp` 协议（provider/hooks/task_runner/output_protocol/session_resume），Domain 层通过注册而非 import 接入 Harness
+- **Harness/Domain 分层 Phase 2** — `context_loader.py` 的 phase-specific 分支改为 Domain 层注册的 context_policy；`multi_agent.py` 的 prompt 模板改为 Domain 层提供；`row_to_dict` 的 JSON 字段列表改为 schema 驱动
+- **DeepEval 集成** — ~~引入 DeepEval 作为自动化评分引擎，替代 prompt-based judge~~ → 已完成：作为评分校准层（一致性检测 + 趋势监控），不替代 Judge
+- ~~代码 Embedding + 语义搜索（替代 FTS5 n-gram）~~ → 已完成：`code_semantic_search.py` 基于 FTS5 + 概念映射 + 调用链实现，零新依赖
 - 指标正式入库（Prometheus/ClickHouse）
 - Dashboard 分层（管理视图/研发视图）
 - 告警接 IM/值班链路
@@ -274,3 +391,31 @@
 2. 每次规则改动在合并前强制执行 `dqg-regression run`
 3. 先选 1 条 CI 流水线试点接入，再逐步推广
 4. 将告警命中项纳入周会闭环（责任人 + 截止时间）
+
+---
+
+## 7. 架构级优化（原 ARCHITECTURE_OPTIMIZATION_ROADMAP.md，已合并）
+
+> 面向大量文档、知识库、代码仓库和图片输入场景的架构级优化。
+> 目标：减少重复 I/O、降低 prompt token 浪费、提升证据相关性和执行稳定性。
+
+### 优化方向总表
+
+| 优先级 | 方向 | 状态 | 收益 |
+|--------|------|------|------|
+| P0 | 应用层 LLM result cache | **已完成(100%)** | 降低重复 LLM 调用，缓存键含 skill/rubric 签名，全局统计，Judge/Critique/Preference 全覆盖 |
+| P0 | retrieval-first evidence pack | **已完成(95%)** | evidence pack schema（概览+摘要+关键引用），Phase A 当前输入证据与 bug case 去重 |
+| 高 | FTS5 中文分词完善 | **已完成(85%)** | jieba 词级分词+停用词+bigram 补充召回，降级兼容 n-gram。待完善：FTS5 自定义 tokenizer |
+| 高 | 弱断言检测 | **已完成(95%)** | tree-sitter Java AST 解析+跨方法 Helper 分析+业务语义映射(SE/EUT)。待完善：多语言支持 |
+| 高 | DAG 并行调度器 | **已完成(100%)** | `dqg-run dag` 端到端并行执行，ThreadPoolExecutor，支持 --skip/--max-parallel/--plan |
+| 中 | 证据与结果的可观测性闭环 | 进行中 | 缓存命中率/证据包大小/上下文 token/LLM 调用次数统一指标 |
+| 低 | Prompt 细节和文档治理 | 规划中 | 统一提示词风格、报告模板、引用格式 |
+
+### 落地原则
+
+1. 缓存失效：只要输入证据变更就强制失效（文件 mtime+size 签名）
+2. 证据优先级：结构化事实 > 相关摘录 > 摘要 > 全文
+3. 检索兜底：召回不足时允许回退到更宽松的摘要层，但不直接回全文
+4. 渐进落地：先覆盖最频繁的应用路径，每次落地配命中率/token 变化/调用次数三类指标
+
+*最后更新：2026-04-11*
