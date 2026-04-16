@@ -1,0 +1,230 @@
+"""Phase 注册表：DQG Domain 层的 Phase 定义.
+
+所有 Phase 的元数据（名称、skill、依赖、输入、交付物、审批清单）
+集中在此文件定义。state_machine.py 通过 import 引用，只负责状态流转机制。
+
+分层定位：
+- phase_registry.py = Domain 层（DQG 业务知识）
+- state_machine.py = Harness 层（通用状态机机制）
+
+模型等级说明（recommended_model）：
+- "strong": 需要深度理解和推理的 Phase（需求结构化、技术方案、代码评审）
+- "standard": 模式化执行的 Phase（单测生成、覆盖度审计）
+- 未指定时默认 "strong"
+- Judge/Critique 始终使用 Judge 专用模型，不受此配置影响
+"""
+
+from __future__ import annotations
+
+# Phase 定义：DQG 特有的业务元数据
+PHASE_DEFS: dict[str, dict] = {
+    "A": {
+        "name": "需求结构化",
+        "dir_suffix": "phaseA",
+        "skill": "skills/requirement-structuring/SKILL.md",
+        "recommended_model": "strong",
+        "reasoning_profile": {"planning": "high", "execution": "standard", "verification": "high"},
+        "depends_on": [],
+        "parallel_with": [],
+        "required_inputs": [
+            {"key": "prd", "label": "需求文档", "prompt": "PRD 路径或飞书链接", "required": True},
+        ],
+        "optional_inputs": [
+            {"key": "images", "label": "补充图片目录", "prompt": "图片/原型图目录路径（没有直接回车跳过）"},
+        ],
+        "deliverables": [
+            "phase_a_report.md — REQ/BR/SE + GAP + OPEN 结构化报告",
+            "phase_a_structured.json — 机器可读的结构化产物",
+        ],
+        "approve_checklist": [
+            "所有需求点已结构化为 REQ/BR",
+            "关键语义已显式化为 SE",
+            "缺口已记录为 GAP，待确认项已记录为 OPEN",
+        ],
+        "required_report_sections": [
+            {"canonical": "需求清单", "aliases": ["REQ/BR 需求清单", "需求列表", "需求点"]},
+            {"canonical": "SE 列表", "aliases": ["SE 关键语义清单", "关键语义", "SE List"]},
+            {"canonical": "业务规则", "aliases": ["BR 业务规则", "Business Rules"]},
+            {"canonical": "Gap 分析", "aliases": ["GAP 缺口清单", "缺口分析", "Gap Analysis"]},
+        ],
+    },
+    "A.3": {
+        "name": "技术方案生成",
+        "dir_suffix": "phaseA3",
+        "skill": "skills/tech-design-generation/SKILL.md",
+        "recommended_model": "strong",
+        "reasoning_profile": {"planning": "high", "execution": "high", "verification": "high"},
+        "depends_on": ["A"],
+        "parallel_with": [],
+        "skippable": True,
+        "skip_condition": "已有技术方案文档时可跳过，直接进入 A.6 质量评审",
+        "required_inputs": [],
+        "optional_inputs": [
+            {"key": "existing_tech_design", "label": "已有技术方案", "prompt": "如已有技术方案文档，提供路径或飞书链接（提供则跳过生成，直接进入评审）"},
+            {"key": "code_repo", "label": "代码仓库", "prompt": "现有代码仓库路径，用于理解现有架构（没有直接回车跳过）"},
+            {"key": "knowledge_base", "label": "架构规范/知识库", "prompt": "架构规范或知识库路径（没有直接回车跳过）"},
+        ],
+        "deliverables": [
+            "tech_design.md — 技术方案文档（架构设计 + 接口设计 + 数据模型 + 异常处理）",
+            "phase_a3_structured.json — 结构化技术方案",
+        ],
+        "approve_checklist": [
+            "业务需求到技术方案的映射完整（每条 REQ/BR 有对应设计）",
+            "架构设计符合 DDD + TMF 规范",
+            "接口设计完整（含入参/出参/异常码/幂等性）",
+            "数据模型设计合理（含索引/约束/扩展性）",
+            "异常处理和边界条件已覆盖",
+            "性能和扩展性已考虑",
+        ],
+        "required_report_sections": [
+            {"canonical": "技术方案概述", "aliases": ["方案概述", "Technical Overview"]},
+            {"canonical": "接口设计", "aliases": ["API Design", "接口协议"]},
+            {"canonical": "数据模型", "aliases": ["Data Model", "DDL", "表结构"]},
+        ],
+    },
+    "A.6": {
+        "name": "技术方案质量评审",
+        "dir_suffix": "phaseA6",
+        "skill": "skills/tech-quality-review/SKILL.md",
+        "recommended_model": "strong",
+        "reasoning_profile": {"planning": "high", "execution": "standard", "verification": "high"},
+        "depends_on": ["A.3"],
+        "parallel_with": [],
+        "required_inputs": [
+            {"key": "tech_design", "label": "技术方案文档", "prompt": "技术方案路径或飞书链接（A.3 跳过时必填）", "required": True},
+        ],
+        "optional_inputs": [
+            {"key": "code_repo", "label": "代码仓库(feature分支)", "prompt": "代码仓库路径，用于追踪改动功能点的完整 TMF 链路（没有直接回车跳过）"},
+            {"key": "feature_branch", "label": "feature 分支名", "prompt": "要分析的 feature 分支名（没有直接回车跳过）"},
+        ],
+        "deliverables": [
+            "tech_design_quality_review.md — 质量评审报告（含调用链路图）",
+            "phase_a6_structured.json — 结构化问题清单",
+        ],
+        "approve_checklist": [
+            "架构/接口/数据/异常/性能五个维度已逐项检查",
+            "改动功能点的完整 TMF 链路已梳理",
+            "Failure Mode 分析已完成",
+            "无 CRITICAL_GAP",
+        ],
+        "required_report_sections": [
+            {"canonical": "质量问题", "aliases": ["Quality Issues", "问题列表"]},
+            {"canonical": "异常场景", "aliases": ["Exception Scenarios", "异常分析"]},
+        ],
+    },
+    "A.5": {
+        "name": "技术方案覆盖度审计",
+        "dir_suffix": "phaseA5",
+        "skill": "skills/tech-coverage-audit/SKILL.md",
+        "recommended_model": "standard",
+        "reasoning_profile": {"planning": "standard", "execution": "standard", "verification": "high"},
+        "depends_on": ["A.6"],
+        "parallel_with": [],
+        "required_inputs": [
+            {"key": "tech_design", "label": "技术方案文档", "prompt": "技术方案路径或飞书链接（多个用逗号分隔）", "required": True},
+        ],
+        "optional_inputs": [
+            {"key": "code_repo", "label": "代码仓库(master分支)", "prompt": "代码仓库路径，用于扫描已有实现和 TMF 链路（没有直接回车跳过）"},
+            {"key": "knowledge_base", "label": "知识库", "prompt": "知识库路径或飞书链接（没有直接回车跳过）"},
+        ],
+        "deliverables": [
+            "tech_design_coverage_review.md — 覆盖度审计报告",
+            "phase_a5_structured.json — 结构化覆盖矩阵",
+        ],
+        "approve_checklist": [
+            "每条 REQ/SE 都已标注覆盖状态",
+            "GAP/OPEN 闭环状态已检查",
+            "反向审计已完成（NEW_DESIGN + NOT_IN_SCOPE）",
+        ],
+        "required_report_sections": [
+            {"canonical": "覆盖度分析", "aliases": ["Coverage Analysis", "覆盖率"]},
+            {"canonical": "缺失项", "aliases": ["Missing Items", "遗漏"]},
+        ],
+    },
+    "B": {
+        "name": "单测生成",
+        "dir_suffix": "phaseB",
+        "skill": "skills/unit-test-generation/SKILL.md",
+        "recommended_model": "standard",
+        "reasoning_profile": {"planning": "high", "execution": "standard", "verification": "standard"},
+        "depends_on": ["A"],
+        "parallel_with": [],
+        "required_inputs": [
+            {"key": "code_repo", "label": "代码仓库", "prompt": "代码仓库路径（本地路径或 Git URL）", "required": True},
+            {"key": "target_modules", "label": "目标模块", "prompt": "要生成单测的模块/类路径（多个用逗号分隔）", "required": True},
+        ],
+        "optional_inputs": [],
+        "deliverables": [
+            "eut_matrix.md — EUT 测试大纲",
+            "phase_b_structured.json — 结构化 EUT 矩阵",
+            "生成的单测代码文件",
+        ],
+        "approve_checklist": [
+            "EUT 矩阵覆盖了所有 REQ/BR/SE",
+            "单测代码使用强断言（非仅执行流程）",
+            "异常路径有对应测试",
+        ],
+        "required_report_sections": [
+            {"canonical": "测试用例清单", "aliases": ["单测用例", "Test Cases", "EUT Matrix"]},
+            {"canonical": "覆盖率矩阵", "aliases": ["Coverage Matrix", "覆盖率"]},
+        ],
+    },
+    "C": {
+        "name": "单测覆盖审计",
+        "dir_suffix": "phaseC",
+        "skill": "skills/unit-test-audit/SKILL.md",
+        "recommended_model": "standard",
+        "reasoning_profile": {"planning": "standard", "execution": "standard", "verification": "high"},
+        "depends_on": ["A"],
+        "parallel_with": [],
+        "required_inputs": [
+            {"key": "code_repo", "label": "代码仓库", "prompt": "代码仓库路径（含单测代码）", "required": True},
+            {"key": "coverage_report", "label": "覆盖率报告", "prompt": "JaCoCo/覆盖率报告路径（没有直接回车跳过）", "required": False},
+        ],
+        "optional_inputs": [],
+        "deliverables": [
+            "ut_audit_report.md — 单测审计报告",
+            "phase_c_structured.json — 结构化审计结果",
+        ],
+        "approve_checklist": [
+            "覆盖率门禁达标（line >= 80%, branch >= 80%）",
+            "T1 核心异常分支 100% 覆盖",
+            "无 WRONG_TARGET 问题",
+        ],
+        "required_report_sections": [
+            {"canonical": "审计结果", "aliases": ["Audit Results", "审计发现"]},
+            {"canonical": "覆盖率分析", "aliases": ["Coverage Analysis", "覆盖率"]},
+        ],
+    },
+    "D": {
+        "name": "代码评审",
+        "dir_suffix": "phaseD",
+        "skill": "skills/code-review/SKILL.md",
+        "recommended_model": "strong",
+        "reasoning_profile": {"planning": "high", "execution": "standard", "verification": "high"},
+        "depends_on": ["A"],
+        "parallel_with": [],
+        "required_inputs": [
+            {"key": "code_repo", "label": "代码仓库", "prompt": "代码仓库路径", "required": True},
+            {"key": "branch", "label": "评审分支", "prompt": "要评审的分支名（如 feature/xxx）", "required": True},
+            {"key": "base_branch", "label": "基线分支", "prompt": "基线分支名（默认 master）", "required": False},
+        ],
+        "optional_inputs": [],
+        "deliverables": [
+            "review_report.md — 代码评审报告",
+            "phase_d_structured.json — 结构化评审发现",
+        ],
+        "approve_checklist": [
+            "所有 BLOCKER 级问题已修复",
+            "REQ/BR/SEM → CODE/TEST 覆盖缺口已确认",
+            "无未确认的自动修改",
+        ],
+        "required_report_sections": [
+            {"canonical": "评审发现", "aliases": ["Review Findings", "发现列表"]},
+            {"canonical": "需求代码对齐", "aliases": ["Req-Code Alignment", "对齐分析"]},
+        ],
+    },
+}
+
+# Phase 执行顺序
+PHASE_ORDER: list[str] = ["A", "A.3", "A.6", "A.5", "B", "C", "D"]
