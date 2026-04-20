@@ -4,7 +4,7 @@
   "error_type": "FN",
   "severity": "high",
   "title": "更新停车场静态数据，高度/重量/宽度每个属性对应两个字段，更新时未进行同步更新，具体看描述",
-  "root_cause": "SKILL_RULE",
+  "root_cause": "函数未覆盖",
   "fix_target": "skills/unit-test-audit.md",
   "tags": [
     "汽车",
@@ -25,5 +25,6 @@
   "actual": {
     "content": "单测场景未覆盖到"
   },
-  "lesson": "单测多场景覆盖"
+  "lesson": "单测多场景覆盖",
+  "holdout": true
 }

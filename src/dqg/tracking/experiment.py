@@ -26,11 +26,11 @@ from dqg.tracking.case_selector import render_relevant_cases_for_prompt
 
 # Phase → skill 文件映射
 _PHASE_SKILL_MAP: dict[str, str] = {
-    "A": "skills/requirement-structuring.md",
-    "A.5": "skills/tech-coverage-audit.md",
-    "A.6": "skills/tech-quality-review.md",
-    "C": "skills/unit-test-audit.md",
-    "D": "skills/code-review.md",
+    "Q01": "skills/requirement-structuring.md",
+    "Q04": "skills/tech-coverage-audit.md",
+    "Q03": "skills/tech-quality-review.md",
+    "Q06": "skills/unit-test-audit.md",
+    "Q07": "skills/code-review.md",
 }
 
 

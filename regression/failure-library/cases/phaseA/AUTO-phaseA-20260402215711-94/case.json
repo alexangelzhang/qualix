@@ -23,5 +23,6 @@
   "actual": {
     "content": "gaps.6.description"
   },
-  "lesson": ""
+  "lesson": "",
+  "holdout": false
 }

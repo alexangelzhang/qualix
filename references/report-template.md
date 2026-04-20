@@ -1,7 +1,7 @@
-# 需求评审产出报告（Phase A：产品需求阶段）
+# 需求评审产出报告（Phase Q01：产品需求阶段）
 
 > 本模板用于产品需求阶段，默认仅输出：`REQ/BR/SE + GAP + OPEN`。
-> `UT/EUT` 在后续单测阶段（Phase B）单独输出。
+> `UT/EUT` 在后续单测阶段（Phase Q05）单独输出。
 
 ## PROFILE_CONTEXT
 > 从 `output/<project>_phaseA/_profile_context.md` 复制，声明本次分析使用的 profile、baseline、风险词典和阈值。
@@ -44,7 +44,7 @@
 |---|---|---|---|---|---|
 | OPEN-001 | REQ-001 / BR-001 / SE-001 |  | A/B |  |  |
 
-## 4. 完整性校验（Phase A Gate）
+## 4. 完整性校验（Phase Q01 Gate）
 - [ ] 每条明确需求都已结构化到 `REQ/BR`
 - [ ] 每条关键语义都已进入 `SE`
 - [ ] 每个冲突点都已进入 `OPEN`
@@ -54,4 +54,4 @@
 ## 5. 结论
 - 评审结论：`通过 / 有条件通过 / 不通过`
 - 结论依据：
-- 下一步：进入 Phase A.5（技术方案覆盖度审计）或继续补齐 `GAP/OPEN`
+- 下一步：进入 Phase Q04（技术方案覆盖度审计）或继续补齐 `GAP/OPEN`

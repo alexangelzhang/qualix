@@ -1,0 +1,28 @@
+{
+  "case_id": "AUTO-phaseA6-20260411143731-73",
+  "phase": "A.6",
+  "error_type": "FN",
+  "severity": "medium",
+  "title": "failure_modes.1.status",
+  "root_cause": "SKILL_RULE",
+  "fix_target": "skills/tech-quality-review/SKILL.md",
+  "tags": [
+    "auto-generated",
+    "project:store-operation-model"
+  ],
+  "created_at": "2026-04-11",
+  "status": "open",
+  "source": {
+    "project_id": "store-operation-model",
+    "auto_generated": true,
+    "validation_error": "failure_modes.1.status"
+  },
+  "expected": {
+    "content": "（需人工确认）"
+  },
+  "actual": {
+    "content": "failure_modes.1.status"
+  },
+  "lesson": "",
+  "holdout": true
+}

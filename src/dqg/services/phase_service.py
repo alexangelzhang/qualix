@@ -115,6 +115,9 @@ def write_phase_profile_manifest(
     else:
         _cleanup_bug_case_manifest(phase_root)
 
+    # 跨项目知识自动注入：关联历史相似项目的 GAP/BUG/LESSON
+    _inject_cross_project_insights(output_dir, project_id, phase_id, int_dir)
+
 
 def profile_context_warnings(output_dir: Path, project_id: str, phase_id: str) -> list[str]:
     """检查 phase 报告是否包含 PROFILE_CONTEXT 章节."""
@@ -133,3 +136,51 @@ def profile_context_warnings(output_dir: Path, project_id: str, phase_id: str) -
     if report_path.exists() and "## PROFILE_CONTEXT" not in report_path.read_text(encoding="utf-8"):
         warnings.append(f"报告未包含 PROFILE_CONTEXT: {report_path}")
     return warnings
+
+
+def _inject_cross_project_insights(
+    output_dir: Path,
+    project_id: str,
+    phase_id: str,
+    int_dir: Path,
+) -> None:
+    """将跨项目知识网络的相似经验注入到 Phase 上下文中.
+
+    调用 knowledge_network 的 get_cross_project_insights()，
+    格式化后写入 _cross_project_insights.md，供 skill prompt 引用。
+    """
+    try:
+        from dqg.memory.knowledge_network import (
+            build_cross_project_links,
+            format_insights,
+            get_cross_project_insights,
+            index_bug_cases,
+            index_project_facts,
+        )
+
+        # 确保当前项目的事实已索引
+        index_project_facts(output_dir, project_id, phase_id)
+        index_bug_cases(output_dir)
+        build_cross_project_links(output_dir)
+
+        insights = get_cross_project_insights(output_dir, project_id, phase_id)
+        if not insights:
+            # 清理旧文件
+            old = int_dir / "_cross_project_insights.md"
+            if old.exists():
+                old.unlink()
+            return
+
+        formatted = format_insights(insights)
+        md_lines = [
+            "## CROSS_PROJECT_INSIGHTS — 跨项目历史经验（自动注入）",
+            "",
+            "以下是从历史项目中关联到的相似经验，请在执行时参考避免重犯。",
+            "",
+            formatted,
+        ]
+        (int_dir / "_cross_project_insights.md").write_text(
+            "\n".join(md_lines), encoding="utf-8"
+        )
+    except Exception:
+        pass  # 知识网络不可用时不阻断主流程

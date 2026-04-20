@@ -25,5 +25,6 @@
   "actual": {
     "content": "场景遗漏：国际化未分析到"
   },
-  "lesson": "补充单测"
+  "lesson": "补充单测",
+  "holdout": false
 }

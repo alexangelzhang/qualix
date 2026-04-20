@@ -23,5 +23,6 @@
   "actual": {
     "content": "Input should be a valid boolean [type=bool_type, input_value=['REQ-004'], input_type=list]"
   },
-  "lesson": ""
+  "lesson": "",
+  "holdout": false
 }

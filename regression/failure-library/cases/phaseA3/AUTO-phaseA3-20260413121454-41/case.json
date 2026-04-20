@@ -1,0 +1,28 @@
+{
+  "case_id": "AUTO-phaseA3-20260413121454-41",
+  "phase": "A.3",
+  "error_type": "WRONG",
+  "severity": "medium",
+  "title": "Field required [type=missing, input_value={'url': '/mtop/proretailc...T', 'desc': 'Pad列表'}, input_ty",
+  "root_cause": "SCHEMA",
+  "fix_target": "src/dqg/schemas/phase_a3.py",
+  "tags": [
+    "auto-generated",
+    "project:damage-assessment"
+  ],
+  "created_at": "2026-04-13",
+  "status": "open",
+  "source": {
+    "project_id": "damage-assessment",
+    "auto_generated": true,
+    "validation_error": "Field required [type=missing, input_value={'url': '/mtop/proretailc...T', 'desc': 'Pad列表'}, input_type=dict]"
+  },
+  "expected": {
+    "content": "（需人工确认）"
+  },
+  "actual": {
+    "content": "Field required [type=missing, input_value={'url': '/mtop/proretailc...T', 'desc': 'Pad列表'}, input_type=dict]"
+  },
+  "lesson": "",
+  "holdout": false
+}

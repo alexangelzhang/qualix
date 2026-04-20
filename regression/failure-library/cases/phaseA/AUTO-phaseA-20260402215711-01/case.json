@@ -23,5 +23,6 @@
   "actual": {
     "content": "requirements.0.req_id"
   },
-  "lesson": ""
+  "lesson": "",
+  "holdout": false
 }

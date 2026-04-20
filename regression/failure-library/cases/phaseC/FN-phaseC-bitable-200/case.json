@@ -4,7 +4,7 @@
   "error_type": "FN",
   "severity": "high",
   "title": "小事故标签工单，工单考核截止时间计算不对",
-  "root_cause": "SKILL_RULE",
+  "root_cause": "函数正常分支未覆盖",
   "fix_target": "skills/unit-test-audit.md",
   "tags": [
     "汽车",
@@ -25,5 +25,6 @@
   "actual": {
     "content": "单测分支未覆盖小事故标签的计算规则"
   },
-  "lesson": "提升单测覆盖率"
+  "lesson": "提升单测覆盖率",
+  "holdout": false
 }

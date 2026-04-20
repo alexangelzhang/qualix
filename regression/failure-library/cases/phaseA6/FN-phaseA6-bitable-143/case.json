@@ -24,5 +24,6 @@
   "actual": {
     "content": "sql按照条件查询，未按变更的ID列表查询，导致大数据量情况下sql查询超时"
   },
-  "lesson": ""
+  "lesson": "",
+  "holdout": false
 }

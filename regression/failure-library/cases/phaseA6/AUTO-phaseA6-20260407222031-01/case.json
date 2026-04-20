@@ -23,5 +23,6 @@
   "actual": {
     "content": "issues"
   },
-  "lesson": ""
+  "lesson": "",
+  "holdout": false
 }

@@ -58,19 +58,19 @@ def test_load_cases_by_phase_preloads_input_excerpt_and_render_reuses_it(tmp_pat
         cases_root,
         "phaseA",
         "CASE-001",
-        phase="A",
+        phase="Q01",
         title="权限缺失",
         lesson="必须补权限校验",
         input_text=input_text,
     )
 
-    cases = load_cases_by_phase("A", cases_root)
+    cases = load_cases_by_phase("Q01", cases_root)
     assert len(cases) == 1
     assert cases[0]["_has_input"] is True
     assert cases[0]["_input_excerpt"].startswith("权限校验失败")
     assert cases[0]["_input_excerpt"].endswith("...(截断)")
 
-    rendered = render_cases_for_prompt("A", cases_root)
+    rendered = render_cases_for_prompt("Q01", cases_root)
     assert "权限校验失败" in rendered
     assert "...(截断)" in rendered
 
@@ -81,7 +81,7 @@ def test_select_relevant_cases_uses_preloaded_case_content(tmp_path: Path) -> No
         cases_root,
         "phaseA",
         "CASE-001",
-        phase="A",
+        phase="Q01",
         title="权限缺失",
         lesson="命中 lesson",
         input_text="权限校验失败，需要补充拦截逻辑",
@@ -90,7 +90,7 @@ def test_select_relevant_cases_uses_preloaded_case_content(tmp_path: Path) -> No
         cases_root,
         "phaseA",
         "CASE-002",
-        phase="A",
+        phase="Q01",
         title="无关案例",
         lesson="其他问题",
         input_text="库存同步异常",
@@ -100,12 +100,12 @@ def test_select_relevant_cases_uses_preloaded_case_content(tmp_path: Path) -> No
 
     original_load = case_selector.load_cases_by_phase
 
-    def patched_load_cases_by_phase(phase: str):
-        return original_load(phase, cases_root)
+    def patched_load_cases_by_phase(phase: str, **kwargs):
+        return original_load(phase, cases_root, **kwargs)
 
     case_selector.load_cases_by_phase = patched_load_cases_by_phase
     try:
-        selected = select_relevant_cases("A", "这里要求补权限校验和拦截", max_cases=1)
+        selected = select_relevant_cases("Q01", "这里要求补权限校验和拦截", max_cases=1)
     finally:
         case_selector.load_cases_by_phase = original_load
 

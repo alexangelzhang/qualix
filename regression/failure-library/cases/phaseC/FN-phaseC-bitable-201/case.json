@@ -4,7 +4,7 @@
   "error_type": "FN",
   "severity": "high",
   "title": "/publicCharger/parking2/search和/publicCharger/parking2/detail接口- parkingPrice-time字段，当rate_value=PT1",
-  "root_cause": "SKILL_RULE",
+  "root_cause": "函数异常分支未覆盖",
   "fix_target": "skills/unit-test-audit.md",
   "tags": [
     "汽车",
@@ -25,5 +25,6 @@
   "actual": {
     "content": "测试用例未覆盖到PT1H场景"
   },
-  "lesson": "提高单测覆盖度"
+  "lesson": "提高单测覆盖度",
+  "holdout": false
 }

@@ -21,5 +21,6 @@
   "actual": {
     "content": "支付完成不需要系统状态但标为GAP，定损与结算金额不一致是正常业务但标为GAP"
   },
-  "lesson": "标GAP前先问：这个缺失是否有合理的设计原因？不确定标OPEN不标GAP"
+  "lesson": "标GAP前先问：这个缺失是否有合理的设计原因？不确定标OPEN不标GAP",
+  "holdout": false
 }

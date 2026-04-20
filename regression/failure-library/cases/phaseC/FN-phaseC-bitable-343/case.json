@@ -4,7 +4,7 @@
   "error_type": "FN",
   "severity": "high",
   "title": "门店申请结案，咨询详情跟进记录和结案的信息展示为空",
-  "root_cause": "SKILL_RULE",
+  "root_cause": "函数未覆盖",
   "fix_target": "skills/unit-test-audit.md",
   "tags": [
     "汽车",
@@ -25,5 +25,6 @@
   "actual": {
     "content": "对非必填信息（上传附件ID）判空造成"
   },
-  "lesson": ""
+  "lesson": "",
+  "holdout": false
 }

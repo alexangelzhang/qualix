@@ -4,7 +4,7 @@
   "error_type": "FN",
   "severity": "high",
   "title": "【129078】平台商换货规则，按时间搜索报错",
-  "root_cause": "SKILL_RULE",
+  "root_cause": "函数未覆盖",
   "fix_target": "skills/unit-test-audit.md",
   "tags": [
     "国际",
@@ -25,5 +25,6 @@
   "actual": {
     "content": "系统的jackson版本不支持\"2025-08-02\"这种时间格式的的解析，转换会报错"
   },
-  "lesson": "新增代码增加单测卡控（长期处于维护阶段的项目）"
+  "lesson": "新增代码增加单测卡控（长期处于维护阶段的项目）",
+  "holdout": false
 }

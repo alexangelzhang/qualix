@@ -4,7 +4,7 @@
   "error_type": "FN",
   "severity": "high",
   "title": "【127904】待审核tab显示数量与列表实际数量不相符",
-  "root_cause": "SKILL_RULE",
+  "root_cause": "函数未覆盖",
   "fix_target": "skills/unit-test-audit.md",
   "tags": [
     "工单",
@@ -24,5 +24,6 @@
   "actual": {
     "content": "count接口本次新写的，没和列表的逻辑对齐"
   },
-  "lesson": "补充单测，覆盖条件查询"
+  "lesson": "补充单测，覆盖条件查询",
+  "holdout": false
 }

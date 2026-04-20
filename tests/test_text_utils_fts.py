@@ -49,7 +49,7 @@ def test_search_image_semantics_uses_shared_fts_query_builder(tmp_path) -> None:
     save_image_semantic(
         output_dir,
         "demo",
-        "A",
+        "Q01",
         {
             "filename": "board.png",
             "kind": "board",
@@ -61,7 +61,7 @@ def test_search_image_semantics_uses_shared_fts_query_builder(tmp_path) -> None:
     save_image_semantic(
         output_dir,
         "demo",
-        "A",
+        "Q01",
         {
             "filename": "other.png",
             "kind": "image",

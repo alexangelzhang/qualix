@@ -39,7 +39,7 @@ def test_relevance_matching_used_by_judge_critique_and_experiment(tmp_path: Path
         cases_root,
         "phaseA",
         "CASE-001",
-        phase="A",
+        phase="Q01",
         title="权限缺失",
         lesson="需要补权限校验",
         input_text="权限校验失败，请补权限拦截",
@@ -49,7 +49,7 @@ def test_relevance_matching_used_by_judge_critique_and_experiment(tmp_path: Path
         cases_root,
         "phaseA",
         "CASE-002",
-        phase="A",
+        phase="Q01",
         title="库存无关",
         lesson="库存逻辑",
         input_text="库存同步异常",
@@ -58,7 +58,7 @@ def test_relevance_matching_used_by_judge_critique_and_experiment(tmp_path: Path
 
     import dqg.tracking.case_selector as case_selector
     original_load = case_selector.load_cases_by_phase
-    monkeypatch.setattr(case_selector, "load_cases_by_phase", lambda phase: original_load(phase, cases_root))
+    monkeypatch.setattr(case_selector, "load_cases_by_phase", lambda phase, **kwargs: original_load(phase, cases_root, **kwargs))
 
     phase_dir = tmp_path / "output" / "demo" / "phaseA"
     phase_dir.mkdir(parents=True, exist_ok=True)
@@ -66,14 +66,14 @@ def test_relevance_matching_used_by_judge_critique_and_experiment(tmp_path: Path
     (phase_dir / "phase_a_report.md").write_text(f"权限校验失败\n{long_tail}", encoding="utf-8")
     (phase_dir / "phase_a_structured.json").write_text('{"project_id":"demo"}', encoding="utf-8")
 
-    judge_prompt = generate_judge_prompt(tmp_path / "output", "demo", "A")
-    critique_prompt = generate_critique_prompt(tmp_path / "output", "demo", "A")
+    judge_prompt = generate_judge_prompt(tmp_path / "output", "demo", "Q01")
+    critique_prompt = generate_critique_prompt(tmp_path / "output", "demo", "Q01")
 
     assert judge_prompt and "权限缺失" in judge_prompt and "库存无关" not in judge_prompt
     assert critique_prompt and "权限缺失" in critique_prompt and "库存无关" not in critique_prompt
     assert judge_prompt.count("尾部不应进入相关性输入") < 100
     assert critique_prompt.count("尾部不应进入相关性输入") < 100
-    selected = select_relevant_cases("A", "权限校验失败，请补权限拦截", max_cases=2)
+    selected = select_relevant_cases("Q01", "权限校验失败，请补权限拦截", max_cases=2)
     assert [case["case_id"] for case in selected] == ["CASE-001"]
 
     # experiment uses skill content as relevance input
@@ -82,7 +82,7 @@ def test_relevance_matching_used_by_judge_critique_and_experiment(tmp_path: Path
     old = skill_path.read_text(encoding="utf-8") if skill_path.exists() else None
     try:
         skill_path.write_text("权限校验与拦截" + ("尾部不应进入相关性输入" * 1200), encoding="utf-8")
-        exp_prompt = generate_experiment_prompt(tmp_path / "output", "A", 1)
+        exp_prompt = generate_experiment_prompt(tmp_path / "output", "Q01", 1)
         assert exp_prompt and "权限缺失" in exp_prompt and "库存无关" not in exp_prompt
         assert exp_prompt.count("尾部不应进入相关性输入") < 100
     finally:

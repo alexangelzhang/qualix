@@ -4,7 +4,7 @@
 
 ### 新增能力
 
-- **LLM-as-Judge 自动评审** — `finalize` 后自动生成 `_judge_prompt.md`，支持 Phase A/A.5/A.6/C 四个阶段的独立评审，输出 precision/recall 估计和问题列表。CLI: `dqg-run <project> judge <phase>`
+- **LLM-as-Judge 自动评审** — `finalize` 后自动生成 `_judge_prompt.md`，支持 Phase Q01/Q04/Q03/Q06 四个阶段的独立评审，输出 precision/recall 估计和问题列表。CLI: `dqg-run <project> judge <phase>`
 - **Self-Critique + RLAIF 融合闭环** — Phase 执行后自我批评生成 v2，偏好比较判定哪个更好，有效 critique 自动沉淀为 bug case。CLI: `dqg-run <project> critique <phase>` / `dqg-run <project> preference <phase>`
 - **Bug 案例库** — 按 Phase 分类的结构化案例库（case.json + input.md），支持归因（SKILL_RULE/KNOWLEDGE/CONTEXT/SCHEMA）和修复路径建议。CLI: `python -m dqg.bug_cases`
 - **案例自动注入** — skill 执行时基于上游产物内容做相关性匹配，只注入相关案例为反例，token 节省 77%
@@ -33,5 +33,5 @@
 
 ### 新增
 
-- 87 条真实 bug 案例从飞书 Bitable 导入（Phase C: 56, Phase A: 22, Phase A.6: 6, Phase A.5: 1）
+- 87 条真实 bug 案例从飞书 Bitable 导入（Phase Q06: 56, Phase Q01: 22, Phase Q03: 6, Phase Q04: 1）
 - 4 条手动创建的示例案例（并发幂等、覆盖度错判、RPC 无补偿、弱断言）

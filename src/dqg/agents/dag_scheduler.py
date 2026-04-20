@@ -170,71 +170,10 @@ class DAGScheduler:
             batch = groups[0]
             log.info("DAG 批次执行: %s", " + ".join(batch))
 
-            # 标记 in_progress + 执行 runtime handler
-            for pid in batch:
-                import dqg.runtime  # noqa: F401
-                from dqg.runtime.execution_context import ExecutionContext
-                from dqg.runtime.phase_runtime import runtime_execute
-
-                ctx = ExecutionContext(
-                    output_dir=self.output_dir,
-                    project_id=project_id,
-                    phase_id=pid,
-                )
-                result = runtime_execute(ctx)
-                if not result.success:
-                    log.warning("Phase %s 启动失败: %s", pid, result.errors)
-                    dag_result.phase_results.append(
-                        PhaseResult(phase_id=pid, status="failed",
-                                    error="; ".join(result.errors))
-                    )
-                    dag_result.phases_failed += 1
-                    continue
-
-            # 并行执行
-            batch_results = self.execute_parallel_phases(
-                project_id,
-                batch,
-                mode=mode,
-                max_parallel=max_parallel,
-                primary_model=primary_model,
-                fallback_model=fallback_model,
+            self._execute_dag_batch(
+                project_id, batch, dag_result, mode, max_parallel,
+                primary_model, fallback_model, task_id,
             )
-
-            # finalize 每个成功的 Phase（通过 runtime handler 链）
-            for pr in batch_results:
-                dag_result.phase_results.append(pr)
-                dag_result.phases_executed += 1
-                if pr.status == "failed":
-                    dag_result.phases_failed += 1
-                    continue
-
-                from dqg.runtime.execution_context import ExecutionContext
-                from dqg.runtime.phase_runtime import runtime_finalize
-
-                fin_ctx = ExecutionContext(
-                    output_dir=self.output_dir,
-                    project_id=project_id,
-                    phase_id=pr.phase_id,
-                )
-                fin_result = runtime_finalize(fin_ctx)
-                if not fin_result.success:
-                    log.warning("Phase %s finalize 失败: %s",
-                                pr.phase_id, fin_result.errors)
-
-            # Task store: 批次完成检查点
-            add_task_event(self.output_dir, task_id, "batch_completed", {
-                "batch": [pr.phase_id for pr in batch_results],
-                "executed": dag_result.phases_executed,
-                "failed": dag_result.phases_failed,
-            })
-            save_checkpoint(self.output_dir, task_id,
-                            checkpoint_id=f"batch-{dag_result.phases_executed}",
-                            state_snapshot={
-                                "phases_executed": dag_result.phases_executed,
-                                "phases_failed": dag_result.phases_failed,
-                                "completed_phases": [pr.phase_id for pr in dag_result.phase_results if pr.status != "failed"],
-                            })
 
         dag_result.total_duration = time.time() - dag_start
 
@@ -248,6 +187,74 @@ class DAGScheduler:
         return dag_result
 
     # -- 内部方法 ----------------------------------------------------------
+
+    def _execute_dag_batch(
+        self, project_id: str, batch: list[str], dag_result: DAGResult,
+        mode: str, max_parallel: int, primary_model: str, fallback_model: str,
+        task_id: str,
+    ) -> None:
+        from dqg.runtime.task_store import add_task_event, save_checkpoint
+
+        # 标记 in_progress + 执行 runtime handler
+        for pid in batch:
+            import dqg.runtime  # noqa: F401
+            from dqg.runtime.execution_context import ExecutionContext
+            from dqg.runtime.phase_runtime import runtime_execute
+
+            ctx = ExecutionContext(
+                output_dir=self.output_dir,
+                project_id=project_id,
+                phase_id=pid,
+            )
+            result = runtime_execute(ctx)
+            if not result.success:
+                log.warning("Phase %s 启动失败: %s", pid, result.errors)
+                dag_result.phase_results.append(
+                    PhaseResult(phase_id=pid, status="failed",
+                                error="; ".join(result.errors))
+                )
+                dag_result.phases_failed += 1
+
+        # 并行执行
+        batch_results = self.execute_parallel_phases(
+            project_id, batch,
+            mode=mode, max_parallel=max_parallel,
+            primary_model=primary_model, fallback_model=fallback_model,
+        )
+
+        # finalize 每个成功的 Phase
+        for pr in batch_results:
+            dag_result.phase_results.append(pr)
+            dag_result.phases_executed += 1
+            if pr.status == "failed":
+                dag_result.phases_failed += 1
+                continue
+
+            from dqg.runtime.execution_context import ExecutionContext
+            from dqg.runtime.phase_runtime import runtime_finalize
+
+            fin_ctx = ExecutionContext(
+                output_dir=self.output_dir,
+                project_id=project_id,
+                phase_id=pr.phase_id,
+            )
+            fin_result = runtime_finalize(fin_ctx)
+            if not fin_result.success:
+                log.warning("Phase %s finalize 失败: %s", pr.phase_id, fin_result.errors)
+
+        # Task store: 批次完成检查点
+        add_task_event(self.output_dir, task_id, "batch_completed", {
+            "batch": [pr.phase_id for pr in batch_results],
+            "executed": dag_result.phases_executed,
+            "failed": dag_result.phases_failed,
+        })
+        save_checkpoint(self.output_dir, task_id,
+                        checkpoint_id=f"batch-{dag_result.phases_executed}",
+                        state_snapshot={
+                            "phases_executed": dag_result.phases_executed,
+                            "phases_failed": dag_result.phases_failed,
+                            "completed_phases": [pr.phase_id for pr in dag_result.phase_results if pr.status != "failed"],
+                        })
 
     def _run_single_phase(
         self,

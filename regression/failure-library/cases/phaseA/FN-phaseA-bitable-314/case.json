@@ -4,7 +4,7 @@
   "error_type": "FN",
   "severity": "medium",
   "title": "【133428】送装网点预约选择时间并回填-失败 AS2603200000477 在送装签收预约时间后 但是到工单详情页并没有自动带出时间",
-  "root_cause": "SKILL_RULE",
+  "root_cause": "需求理解未对齐",
   "fix_target": "skills/requirement-structuring.md",
   "tags": [
     "工单",
@@ -24,5 +24,6 @@
   "actual": {
     "content": "非bug，线上就是这样，log信息不刷新"
   },
-  "lesson": ""
+  "lesson": "",
+  "holdout": false
 }

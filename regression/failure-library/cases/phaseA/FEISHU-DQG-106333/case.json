@@ -1,0 +1,16 @@
+{
+  "case_id": "FEISHU-DQG-106333",
+  "phase": "A",
+  "error_type": "MISS",
+  "severity": "medium",
+  "title": "【106333】寄修中心-多商品订单退货",
+  "root_cause": "需求遗漏",
+  "tags": "[\"feishu-import\", \"dqg-relevant\", \"category:需求遗漏\"]",
+  "created_at": "2026-04-15",
+  "status": "open",
+  "source": "{\"feishu_table\": \"tblGxARLByCc5h3T\", \"bug_id\": \"106333\", \"original_cat1\": \"非单测相关\", \"original_cat2\": \"需求遗漏\", \"requirement\": \"国际-售后-寄修维修流程差异化适配\"}",
+  "expected": "{\"content\": \"（需人工确认）\"}",
+  "actual": "{\"content\": \"PRD未明确提及多商品订单的退货的规则(受理意向转换的规则)\"}",
+  "lesson": "PRD未明确提及多商品订单的退货的规则(受理意向转换的规则)",
+  "holdout": "False"
+}

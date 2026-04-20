@@ -24,5 +24,6 @@
   "actual": {
     "content": "一个老接口出现了慢查询，需要优化"
   },
-  "lesson": "优化老的SQL"
+  "lesson": "优化老的SQL",
+  "holdout": false
 }

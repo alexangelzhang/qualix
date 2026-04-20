@@ -4,7 +4,7 @@
   "error_type": "FN",
   "severity": "high",
   "title": "提醒类活动选择后提交服务项报错",
-  "root_cause": "SKILL_RULE",
+  "root_cause": "需求实现遗漏",
   "fix_target": "skills/requirement-structuring.md",
   "tags": [
     "汽车",
@@ -24,5 +24,6 @@
   "actual": {
     "content": "需要对没有服务项的互动单独处理\n需求有明确表示，但没覆盖到"
   },
-  "lesson": "增加提醒类单测"
+  "lesson": "增加提醒类单测",
+  "holdout": false
 }

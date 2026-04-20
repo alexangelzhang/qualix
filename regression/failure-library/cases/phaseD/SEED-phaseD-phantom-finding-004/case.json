@@ -1,0 +1,28 @@
+{
+  "case_id": "SEED-phaseD-phantom-finding-004",
+  "phase": "D",
+  "error_type": "FP",
+  "severity": "medium",
+  "title": "评审报告编造了不存在的接口调用，基于猜测而非代码证据",
+  "root_cause": "SKILL_RULE",
+  "fix_target": "skills/code-review.md",
+  "tags": [
+    "幻觉",
+    "误报",
+    "无证据"
+  ],
+  "created_at": "2026-04-09",
+  "status": "open",
+  "source": {
+    "seed_case": true,
+    "pattern": "评审报告声称 OrderService 调用了 InventoryService.deduct()，但代码中不存在这个调用——评审基于'订单通常需要扣库存'的推测"
+  },
+  "expected": {
+    "content": "每个 finding 必须引用具体的文件:行号和代码片段，不能基于推测"
+  },
+  "actual": {
+    "content": "finding 引用了不存在的方法调用，是 LLM 幻觉"
+  },
+  "lesson": "代码评审的每条 finding 必须标注 [来源: 文件名:行号]。无法在代码中找到证据的问题不能写入报告。反幻觉公约是 BLOCKER 级规则。",
+  "holdout": false
+}

@@ -4,7 +4,7 @@
   "error_type": "FN",
   "severity": "high",
   "title": "咨询单卡片上期望回电时间格式展示同prd不一致",
-  "root_cause": "SKILL_RULE",
+  "root_cause": "函数未覆盖",
   "fix_target": "skills/unit-test-audit.md",
   "tags": [
     "汽车",
@@ -25,5 +25,6 @@
   "actual": {
     "content": "未做格式转化"
   },
-  "lesson": "增加内容格式比对"
+  "lesson": "增加内容格式比对",
+  "holdout": false
 }

@@ -98,7 +98,7 @@ def test_resolve_effective_context_files_deduplicates_new_layout_with_upstream(t
 def test_collect_phase_metrics_counts_tokens_sizes_and_reuses_cache(tmp_path: Path, monkeypatch) -> None:
     output_dir = tmp_path / "output"
     project_id = "demo"
-    phase_id = "B"
+    phase_id = "Q05"
     phase_root = _phase_root(output_dir, project_id, phase_id)
 
     upstream_text = "upstream block\n" * 4

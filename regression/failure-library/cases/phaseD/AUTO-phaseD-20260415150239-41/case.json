@@ -1,0 +1,27 @@
+{
+  "case_id": "AUTO-phaseD-20260415150239-41",
+  "phase": "D",
+  "error_type": "FN",
+  "severity": "medium",
+  "title": "Input should be 'BLOCKER', 'MAJOR', 'MINOR' or 'INFO' [type=enum, input_value='Important', input_typ",
+  "root_cause": "SKILL_RULE",
+  "fix_target": "",
+  "tags": [
+    "auto-generated",
+    "project:insurance-damage-assessment"
+  ],
+  "created_at": "2026-04-15",
+  "status": "open",
+  "source": {
+    "project_id": "insurance-damage-assessment",
+    "auto_generated": true,
+    "validation_error": "Input should be 'BLOCKER', 'MAJOR', 'MINOR' or 'INFO' [type=enum, input_value='Important', input_type=str]"
+  },
+  "expected": {
+    "content": "（需人工确认）"
+  },
+  "actual": {
+    "content": "Input should be 'BLOCKER', 'MAJOR', 'MINOR' or 'INFO' [type=enum, input_value='Important', input_type=str]"
+  },
+  "lesson": ""
+}

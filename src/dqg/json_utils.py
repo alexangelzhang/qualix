@@ -10,11 +10,21 @@ import json
 from pathlib import Path
 from typing import Any
 
+# 模块级 JSON 解析缓存：按 (路径, mtime_ns, size) 缓存，文件变更自动失效
+_json_cache: dict[tuple[str, int, int], Any] = {}
+
 
 def load_json(path: Path) -> Any:
-    """读取 JSON 文件并解析，失败返回 None."""
+    """读取 JSON 文件并解析（带缓存），失败返回 None."""
     try:
-        return json.loads(path.read_text(encoding="utf-8"))
+        stat = path.stat()
+        key = (str(path.resolve()), stat.st_mtime_ns, stat.st_size)
+        cached = _json_cache.get(key)
+        if cached is not None:
+            return cached
+        data = json.loads(path.read_text(encoding="utf-8"))
+        _json_cache[key] = data
+        return data
     except (json.JSONDecodeError, OSError):
         return None
 

@@ -4,7 +4,7 @@
   "error_type": "FN",
   "severity": "high",
   "title": "主数据同步的问题分类，部分数据无法选择问题三级，直接搜索可以搜到，待排查数据问题",
-  "root_cause": "SKILL_RULE",
+  "root_cause": "函数未覆盖",
   "fix_target": "skills/unit-test-audit.md",
   "tags": [
     "主数据",
@@ -24,5 +24,6 @@
   "actual": {
     "content": "问题搜索接口未实现source_type字段过滤逻辑"
   },
-  "lesson": "补充单测"
+  "lesson": "补充单测",
+  "holdout": false
 }

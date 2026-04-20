@@ -4,7 +4,7 @@
   "error_type": "FN",
   "severity": "high",
   "title": "创建咨询工单不选择期望回电时间，零售通展示期望回电时间展示不对",
-  "root_cause": "SKILL_RULE",
+  "root_cause": "函数未覆盖",
   "fix_target": "skills/unit-test-audit.md",
   "tags": [
     "汽车",
@@ -25,5 +25,6 @@
   "actual": {
     "content": "未做格式转化"
   },
-  "lesson": "增加内容格式比对"
+  "lesson": "增加内容格式比对",
+  "holdout": false
 }

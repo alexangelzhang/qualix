@@ -140,11 +140,39 @@ def cache_invalidate(
 
 
 def cache_stats(output_dir: Path) -> dict[str, Any]:
-    """缓存统计."""
+    """缓存统计，包含命中率可观测指标."""
     with get_connection(output_dir) as conn:
         total = conn.execute("SELECT COUNT(*) FROM query_cache").fetchone()[0]
-        hits = conn.execute("SELECT SUM(hit_count) FROM query_cache").fetchone()[0] or 0
-        return {"total_entries": total, "total_hits": hits}
+        total_hits = conn.execute("SELECT SUM(hit_count) FROM query_cache").fetchone()[0] or 0
+        # 有命中记录的条目数（hit_count > 0）
+        hit_entries = conn.execute(
+            "SELECT COUNT(*) FROM query_cache WHERE hit_count > 0"
+        ).fetchone()[0]
+        # 最近 24h 新增条目（miss = 首次查询）
+        recent_misses = conn.execute(
+            "SELECT COUNT(*) FROM query_cache WHERE created_at > ?",
+            (time.time() - 86400,),
+        ).fetchone()[0]
+        # 最近 24h 命中次数
+        recent_hits = conn.execute(
+            "SELECT SUM(hit_count) FROM query_cache WHERE last_hit_at > ?",
+            (time.time() - 86400,),
+        ).fetchone()[0] or 0
+
+    total_queries = total_hits + total  # hits + unique misses (each entry = 1 miss)
+    hit_rate = total_hits / total_queries if total_queries > 0 else 0.0
+    recent_total = recent_hits + recent_misses
+    recent_hit_rate = recent_hits / recent_total if recent_total > 0 else 0.0
+
+    return {
+        "total_entries": total,
+        "total_hits": total_hits,
+        "hit_entries": hit_entries,
+        "hit_rate": round(hit_rate, 3),
+        "recent_misses_24h": recent_misses,
+        "recent_hits_24h": recent_hits,
+        "recent_hit_rate_24h": round(recent_hit_rate, 3),
+    }
 
 
 def cached_search(

@@ -16,7 +16,7 @@ from dqg.constants import PHASE_DIR_MAP, REPORT_MAP
 from dqg.tracking.regression import build_failure_trend
 from dqg.reporting.telemetry import PhaseRunRecord, load_records
 
-ALLOWED_PHASES = {"A", "A.5", "A.6", "B", "C", "D"}
+ALLOWED_PHASES = {"Q01", "Q04", "Q03", "Q05", "Q06", "Q07"}
 DATE_FMT = "%Y-%m-%d"
 
 
@@ -81,7 +81,7 @@ def _phase_from_validation_errors(records: list[PhaseRunRecord], phase: str) -> 
 
 
 def _extract_phase_d_blockers(output_dir: Path, project_id: str) -> int:
-    report = output_dir / project_id / PHASE_DIR_MAP["D"] / REPORT_MAP["D"]
+    report = output_dir / project_id / PHASE_DIR_MAP["Q07"] / REPORT_MAP["Q07"]
     if not report.exists():
         return 0
     text = report.read_text(encoding="utf-8")
@@ -140,18 +140,6 @@ def _history_path(output_dir: Path) -> Path:
     root = output_dir.parent / "observability"
     root.mkdir(parents=True, exist_ok=True)
     return root / "metrics_history.jsonl"
-
-
-def _alerts_path(output_dir: Path, label: str) -> tuple[Path, Path]:
-    root = output_dir.parent / "observability" / "alerts"
-    root.mkdir(parents=True, exist_ok=True)
-    return root / f"{label}.json", root / f"{label}.md"
-
-
-def _prometheus_path(output_dir: Path, label: str) -> Path:
-    root = output_dir.parent / "observability" / "prometheus"
-    root.mkdir(parents=True, exist_ok=True)
-    return root / f"{label}.prom"
 
 
 def _failure_history_path(output_dir: Path) -> Path:
@@ -259,108 +247,18 @@ def _build_alerts(
     phase_failure_threshold: float,
     failure_library: dict[str, Any] | None = None,
 ) -> list[dict[str, Any]]:
-    alerts: list[dict[str, Any]] = []
-    today_rows = [r for r in history if r.get("date") == current_label]
-    grouped_today: dict[tuple[str, str], dict[str, Any]] = {}
-    for row in today_rows:
-        grouped_today[(row["project_id"], row["phase"])] = row
-
-    for (project_id, phase), row in grouped_today.items():
-        if phase == "ALL":
-            historical = [
-                r
-                for r in history
-                if r.get("project_id") == project_id and r.get("phase") == "ALL" and r.get("date") != current_label
-            ]
-            if historical:
-                baseline = mean([float(r.get("block_count", 0)) for r in historical[-7:]])
-                current = float(row.get("block_count", 0))
-                if baseline > 0 and current >= baseline * block_spike_ratio:
-                    alerts.append(
-                        {
-                            "severity": "HIGH",
-                            "rule": "BLOCK_SPIKE",
-                            "project_id": project_id,
-                            "phase": phase,
-                            "message": f"BLOCK 激增: current={current:.0f}, baseline={baseline:.2f}",
-                        }
-                    )
-        else:
-            failure_rate = float(row.get("failure_rate", 0))
-            finalized = int(row.get("finalized", 0))
-            if finalized > 0 and failure_rate >= phase_failure_threshold:
-                alerts.append(
-                    {
-                        "severity": "MEDIUM",
-                        "rule": "PHASE_FAILURE_RATE",
-                        "project_id": project_id,
-                        "phase": phase,
-                        "message": f"Phase 失败率过高: {failure_rate:.2%} (threshold={phase_failure_threshold:.2%})",
-                    }
-                )
-    if failure_library:
-        for week in failure_library.get("weeks", []):
-            failed_cases = int(week.get("failed_cases", 0))
-            total_cases = int(week.get("total_cases", 0))
-            if failed_cases > 0:
-                alerts.append(
-                    {
-                        "severity": "HIGH",
-                        "rule": "FAILURE_LIBRARY_REGRESSION",
-                        "project_id": "failure-library",
-                        "phase": "ALL",
-                        "message": f"失败样例回归失败: week={week.get('label')}, failed={failed_cases}, total={total_cases}",
-                    }
-                )
-    return alerts
+    from dqg.reporting.observability_alerts import build_alerts
+    return build_alerts(history, current_label, block_spike_ratio, phase_failure_threshold, failure_library)
 
 
 def _write_alerts(output_dir: Path, label: str, alerts: list[dict[str, Any]]) -> tuple[Path, Path]:
-    json_path, md_path = _alerts_path(output_dir, label)
-    json_path.write_text(json.dumps({"label": label, "alerts": alerts}, ensure_ascii=False, indent=2), encoding="utf-8")
-    lines = [f"# DQG 告警 — {label}", ""]
-    if not alerts:
-        lines.append("- 无异常告警")
-    else:
-        lines.append("| Severity | Rule | Project | Phase | Message |")
-        lines.append("| --- | --- | --- | --- | --- |")
-        for item in alerts:
-            lines.append(
-                f"| {item['severity']} | {item['rule']} | {item['project_id']} | {item['phase']} | {item['message']} |"
-            )
-    md_path.write_text("\n".join(lines).strip() + "\n", encoding="utf-8")
-    return json_path, md_path
+    from dqg.reporting.observability_alerts import write_alerts
+    return write_alerts(output_dir, label, alerts)
 
 
 def _write_prometheus_snapshot(output_dir: Path, payload: dict[str, Any], alerts: list[dict[str, Any]]) -> Path:
-    path = _prometheus_path(output_dir, payload["label"])
-    lines = [
-        "# HELP dqg_project_phase_approval_rate Phase approval rate by project.",
-        "# TYPE dqg_project_phase_approval_rate gauge",
-        "# HELP dqg_project_avg_duration_seconds Average finalize duration by project.",
-        "# TYPE dqg_project_avg_duration_seconds gauge",
-        "# HELP dqg_project_gap_closure_rate GAP closure rate by project.",
-        "# TYPE dqg_project_gap_closure_rate gauge",
-        "# HELP dqg_project_block_count BLOCK count by project.",
-        "# TYPE dqg_project_block_count gauge",
-        "# HELP dqg_phase_failure_rate Phase failure rate by project and phase.",
-        "# TYPE dqg_phase_failure_rate gauge",
-        "# HELP dqg_alert_count Alert count in this report.",
-        "# TYPE dqg_alert_count gauge",
-    ]
-    for item in payload["projects"]:
-        project = item["project_id"]
-        lines.append(f'dqg_project_phase_approval_rate{{project="{project}"}} {item["phase_approval_rate"]}')
-        lines.append(f'dqg_project_avg_duration_seconds{{project="{project}"}} {item["avg_duration_seconds"]}')
-        lines.append(f'dqg_project_gap_closure_rate{{project="{project}"}} {item["gap_closure_rate"]}')
-        lines.append(f'dqg_project_block_count{{project="{project}"}} {item["block_count"]}')
-        for phase, stat in item["phase_stats"].items():
-            lines.append(
-                f'dqg_phase_failure_rate{{project="{project}",phase="{phase}"}} {stat["failure_rate"]}'
-            )
-    lines.append(f"dqg_alert_count {len(alerts)}")
-    path.write_text("\n".join(lines).strip() + "\n", encoding="utf-8")
-    return path
+    from dqg.reporting.observability_alerts import write_prometheus_snapshot
+    return write_prometheus_snapshot(output_dir, payload, alerts)
 
 
 def generate_report(

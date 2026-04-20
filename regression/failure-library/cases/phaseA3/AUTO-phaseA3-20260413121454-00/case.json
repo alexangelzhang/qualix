@@ -1,0 +1,28 @@
+{
+  "case_id": "AUTO-phaseA3-20260413121454-00",
+  "phase": "A.3",
+  "error_type": "WRONG",
+  "severity": "medium",
+  "title": "26 validation errors for PhaseA3Output",
+  "root_cause": "SCHEMA",
+  "fix_target": "src/dqg/schemas/phase_a3.py",
+  "tags": [
+    "auto-generated",
+    "project:damage-assessment"
+  ],
+  "created_at": "2026-04-13",
+  "status": "open",
+  "source": {
+    "project_id": "damage-assessment",
+    "auto_generated": true,
+    "validation_error": "26 validation errors for PhaseA3Output"
+  },
+  "expected": {
+    "content": "（需人工确认）"
+  },
+  "actual": {
+    "content": "26 validation errors for PhaseA3Output"
+  },
+  "lesson": "",
+  "holdout": false
+}

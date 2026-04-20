@@ -8,6 +8,20 @@ from typing import Any
 from dqg.tracking.bug_cases import load_cases_by_phase
 
 
+# 同义词扩展表：复用 knowledge_network 的 pattern 关键词组
+# 当 case 关键词命中某 group 中的任一词时，把该 group 所有词加入匹配集
+_SYNONYM_GROUPS: dict[str, list[str]] = {
+    "并发": ["并发", "幂等", "锁", "竞争", "冲突", "重复提交", "并发安全"],
+    "权限": ["权限", "隔离", "越权", "鉴权", "角色"],
+    "状态机": ["状态机", "状态流转", "状态迁移", "驳回", "循环", "非法跳转"],
+    "金额": ["金额", "计算", "精度", "BigDecimal", "分", "精度丢失"],
+    "超时": ["超时", "重试", "降级", "熔断", "补偿"],
+    "通知": ["通知", "消息", "推送", "飞书", "提醒"],
+    "导出": ["导出", "异步", "大数据量"],
+    "缓存": ["缓存", "失效", "一致性"],
+}
+
+
 def _extract_keywords(text: str) -> set[str]:
     """从文本中提取关键词（中文分词简化版：按标点和空格切分）."""
     stopwords = {"的", "了", "在", "是", "和", "与", "或", "等", "为", "对", "从", "到", "中", "上", "下", "不", "有", "无"}
@@ -15,8 +29,20 @@ def _extract_keywords(text: str) -> set[str]:
     return {t for t in tokens if t not in stopwords and len(t) >= 2}
 
 
+def _expand_synonyms(keywords: set[str]) -> set[str]:
+    """基于同义词组扩展关键词集合，提升语义相似但关键词不同的案例召回率."""
+    expanded = set(keywords)
+    for _group_name, group_words in _SYNONYM_GROUPS.items():
+        if any(kw in keywords for kw in group_words):
+            expanded.update(group_words)
+    return expanded
+
+
 def _compute_relevance(case: dict[str, Any], input_keywords: set[str]) -> float:
-    """计算案例与输入的相关性分数 (0-1)."""
+    """计算案例与输入的相关性分数 (0-1).
+
+    使用同义词扩展提升语义相似但关键词不同的案例召回率。
+    """
     actual = case.get("actual", {})
     expected = case.get("expected", {})
     source = case.get("source", {})
@@ -35,8 +61,11 @@ def _compute_relevance(case: dict[str, Any], input_keywords: set[str]) -> float:
     if not case_keywords or not input_keywords:
         return 0.0
 
-    overlap = case_keywords & input_keywords
-    return len(overlap) / max(len(case_keywords), 1)
+    # 二级匹配：同义词扩展后再计算重叠
+    expanded_case = _expand_synonyms(case_keywords)
+    expanded_input = _expand_synonyms(input_keywords)
+    overlap = expanded_case & expanded_input
+    return len(overlap) / max(len(expanded_case), 1)
 
 
 def select_relevant_cases(
@@ -46,7 +75,7 @@ def select_relevant_cases(
     min_relevance: float = 0.05,
 ) -> list[dict[str, Any]]:
     """选择与当前输入最相关的 bug 案例."""
-    cases = [c for c in load_cases_by_phase(phase) if c.get("status") == "open"]
+    cases = [c for c in load_cases_by_phase(phase, exclude_holdout=True) if c.get("status") == "open"]
     if not cases:
         return []
 
@@ -63,7 +92,7 @@ def select_relevant_cases(
         score += severity_bonus.get(case.get("severity", "low"), 0)
         scored.append((score, case))
 
-    scored.sort(key=lambda x: -x[0])
+    scored.sort(key=lambda x: (-x[0], x[1].get("case_id", "")))
 
     result = []
     for score, case in scored:

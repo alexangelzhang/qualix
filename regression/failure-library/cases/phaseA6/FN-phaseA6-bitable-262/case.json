@@ -24,5 +24,6 @@
   "actual": {
     "content": "历史问题 目前还在定位为什么加锁没有生效导致不幂等，以及为什么重复提交会导致工单取消（tmf流程）"
   },
-  "lesson": ""
+  "lesson": "",
+  "holdout": false
 }

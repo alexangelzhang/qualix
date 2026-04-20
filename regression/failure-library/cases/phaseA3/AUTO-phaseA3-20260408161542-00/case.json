@@ -23,5 +23,6 @@
   "actual": {
     "content": "未知的 Phase ID: A.3"
   },
-  "lesson": ""
+  "lesson": "",
+  "holdout": false
 }

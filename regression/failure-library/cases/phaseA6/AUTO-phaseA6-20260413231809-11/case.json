@@ -1,0 +1,27 @@
+{
+  "case_id": "AUTO-phaseA6-20260413231809-11",
+  "phase": "A.6",
+  "error_type": "WRONG",
+  "severity": "medium",
+  "title": "Field required [type=missing, input_value={'scenario': '审批流...tant', 'risk': 'MEDIUM'}, input_type=d",
+  "root_cause": "SCHEMA",
+  "fix_target": "src/dqg/schemas/phase_a6.py",
+  "tags": [
+    "auto-generated",
+    "project:insurance-damage-assessment"
+  ],
+  "created_at": "2026-04-13",
+  "status": "open",
+  "source": {
+    "project_id": "insurance-damage-assessment",
+    "auto_generated": true,
+    "validation_error": "Field required [type=missing, input_value={'scenario': '审批流...tant', 'risk': 'MEDIUM'}, input_type=dict]"
+  },
+  "expected": {
+    "content": "（需人工确认）"
+  },
+  "actual": {
+    "content": "Field required [type=missing, input_value={'scenario': '审批流...tant', 'risk': 'MEDIUM'}, input_type=dict]"
+  },
+  "lesson": ""
+}

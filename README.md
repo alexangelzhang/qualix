@@ -23,10 +23,10 @@
 
 | 痛点 | 表现 | DQG 解法 |
 |:---|:---|:---|
-| 需求遗漏 | PRD 到代码层层衰减，上线后发现漏需求 | Phase A 结构化提取 + 全链路 ID 追踪 |
-| 技术方案与需求脱节 | 技术方案写了但没人逐条比对需求 | Phase A.5 逐条覆盖度审计 |
-| 单测形式主义 | 覆盖率达标但测的不是业务场景 | Phase B 需求驱动生成 + Phase C 变异测试 |
-| 代码评审靠经验 | 评审无结构、无证据、无追踪 | Phase D 结构化评审 + confirm-first |
+| 需求遗漏 | PRD 到代码层层衰减，上线后发现漏需求 | Phase Q01 结构化提取 + 全链路 ID 追踪 |
+| 技术方案与需求脱节 | 技术方案写了但没人逐条比对需求 | Phase Q04 逐条覆盖度审计 |
+| 单测形式主义 | 覆盖率达标但测的不是业务场景 | Phase Q05 需求驱动生成 + Phase Q06 变异测试 |
+| 代码评审靠经验 | 评审无结构、无证据、无追踪 | Phase Q07 结构化评审 + confirm-first |
 | AI 幻觉 | AI 编造接口、字段、逻辑 | 反幻觉公约：来源追溯 + 置信度标注 |
 
 ---
@@ -48,27 +48,36 @@ Agent 会自动：
 ## Pipeline 总览
 
 ```
-A ──→ A.5 ──→ A.6      (A.5 和 A.6 可并行)
+Q01 ──→ Q04 ──→ Q03      (Q04 和 Q03 可并行)
 │
-├──→ B ──→ C
+├──→ Q05 ──→ Q06
 │
-└──→ D
+└──→ Q07
 ```
 
 | Phase | 名称 | 你需要提供 | 交付物 |
 |-------|------|-----------|--------|
-| A | 需求结构化 | PRD 或飞书需求文档 | REQ/BR/SE + GAP + OPEN 结构化清单 |
-| A.5 | 技术方案覆盖度审计 | 技术方案文档 + (可选)代码仓库 | 覆盖度矩阵 + GAP/OPEN 闭环状态 |
-| A.6 | 技术方案质量评审 | 技术方案文档 | 架构/接口/数据/异常/性能评审报告 |
-| B | 单测生成 | 代码仓库 + 目标模块路径 | EUT 矩阵 + 单测代码 |
-| C | 单测覆盖审计 | 代码仓库(含单测) + (可选)覆盖率报告 | 审计报告 + 变异测试结果 |
-| D | 代码评审 | 代码仓库 + 评审分支名 | 评审报告 + 覆盖缺口摘要 |
+| Q01 | 需求结构化 | PRD 或飞书需求文档 | REQ/BR/SE + GAP + OPEN 结构化清单 |
+| Q04 | 技术方案覆盖度审计 | 技术方案文档 + (可选)代码仓库 | 覆盖度矩阵 + GAP/OPEN 闭环状态 |
+| Q03 | 技术方案质量评审 | 技术方案文档 | 架构/接口/数据/异常/性能评审报告 |
+| Q05 | 单测生成 | 代码仓库 + 目标模块路径 | EUT 矩阵 + 单测代码 |
+| Q06 | 单测覆盖审计 | 代码仓库(含单测) + (可选)覆盖率报告 | 审计报告 + 变异测试结果 |
+| Q07 | 代码评审 | 代码仓库 + 评审分支名 | 评审报告 + 覆盖缺口摘要 |
 
 每个 Phase 的执行流程：
 
 ```
-收集输入 → execute → 加载 skill 执行 → 产出交付物 → finalize(校验) → judge/critique(可选) → approve(人工确认) → 下一个 Phase
+收集输入 → execute(phase_contract + sidecar handlers) → 加载 skill 执行 → 产出交付物
+→ finalize(hard gates + verification_bundle + eval_baseline) → judge/critique → approve → 下一个 Phase
 ```
+
+核心自动化能力：
+- **Phase Contract**：execute 时自动生成执行合同（done_definition + verification_targets），Judge 按 contract 逐条打分
+- **Verification Bundle**：finalize 时收集所有自动化验证结果，Judge 先看确定性证据再做语义判断
+- **Eval Baseline**：每次 finalize 自动计算指标并对比历史基线，退化超 5% 触发 WARNING
+- **Reasoning Sandwich**：planning/verification 阶段用 high budget，execution 阶段用 standard（60%）
+- **Skill Evolution**：从 bug case 自动生成 skill 规则补充建议 + 进化谱系记录
+- **Context Compressor**：adaptive loop 多轮执行时自动裁剪旧 tool results + 结构化迭代摘要
 
 ## 安装
 
@@ -99,26 +108,26 @@ pip install -e ".[dev]"
 dqg-run PROJ status
 
 # 逐步执行
-dqg-run PROJ execute A          # 启动 Phase A
-dqg-run PROJ finalize A         # 校验产物
-dqg-run PROJ approve A          # 确认通过
+dqg-run PROJ execute Q01         # 启动 Phase Q01
+dqg-run PROJ finalize Q01        # 校验产物
+dqg-run PROJ approve Q01         # 确认通过
 
 # 质量进化（finalize 后自动生成 prompt 文件）
-dqg-run PROJ judge A            # LLM-as-Judge 独立评审
-dqg-run PROJ critique A         # Self-Critique 自我批评 → 生成 v2
-dqg-run PROJ preference A       # RLAIF 偏好比较 v1 vs v2
+dqg-run PROJ judge Q01           # LLM-as-Judge 独立评审
+dqg-run PROJ critique Q01        # Self-Critique 自我批评 → 生成 v2
+dqg-run PROJ preference Q01      # RLAIF 偏好比较 v1 vs v2
 
 # 全自动模式（交互式，每个 Phase 暂停等 approve）
 dqg-run PROJ auto
 dqg-run PROJ auto --model claude-opus-4-1m    # 指定模型
-dqg-run PROJ auto --skip A.6                  # 跳过某 Phase
+dqg-run PROJ auto --skip Q03                  # 跳过某 Phase
 
 # 查看执行记录
 dqg-run PROJ log
 
 # 独立校验
 dqg-validate PROJ --all
-dqg-validate PROJ --phase A
+dqg-validate PROJ --phase Q01
 
 # 度量采集
 dqg-metrics PROJ
@@ -134,48 +143,46 @@ python -m dqg.import_bug_cases <ingest.json>  # 从飞书 Bitable 批量导入
 bash examples/mini-prd/run_demo.sh
 ```
 
-一键体验 Phase A 的完整流程（execute → finalize → approve），使用脱敏的示例 PRD。
+一键体验 Phase Q01 的完整流程（execute → finalize → approve），使用脱敏的示例 PRD。
 
 ## 项目结构
 
 ```
 dev-quality-gate/
 ├── dqg_starter.md              # AI IDE 入口 skill（@dqg-starter 触发）
-├── SKILL.md                    # Pipeline 路由器（Phase 总览 + 依赖关系）
-├── AGENTS.md                   # Agent 角色索引（Codex/opencode/IntelliJ 通用）
+├── AGENTS.md                   # 通用项目知识（所有 IDE/CLI 共享）
 ├── CLAUDE.md                   # Claude Code 专用指令
 ├── GEMINI.md                   # Gemini CLI 专用指令
 ├── .cursor/rules/dqg.mdc      # Cursor 规则
-├── skills/                     # Phase skill + 通用规则 + 工作流
-│   ├── requirement-structuring.md    # Phase A
-│   ├── tech-coverage-audit.md        # Phase A.5
-│   ├── tech-quality-review.md        # Phase A.6（含链路追踪）
-│   ├── unit-test-generation.md       # Phase B
-│   ├── unit-test-audit.md            # Phase C
-│   ├── code-review.md               # Phase D（链路级评审）
-│   ├── quality-judge.md             # LLM-as-Judge 评审 skill
-│   ├── system-rules.md              # 通用规则（含 TMF 链路追踪规则）
+├── skills/                     # Phase skill（agentskills.io 标准目录结构）
+│   ├── requirement-structuring/     # Phase Q01（SKILL.md + references/）
+│   ├── tech-design-generation/      # Phase Q02
+│   ├── tech-quality-review/         # Phase Q03
+│   ├── tech-coverage-audit/         # Phase Q04
+│   ├── unit-test-generation/        # Phase Q05
+│   ├── unit-test-audit/             # Phase Q06
+│   ├── code-review/                 # Phase Q07
+│   ├── system-rules.md              # 通用规则（含 TMF 链路追踪）
+│   ├── SKILL_TEMPLATE.md            # agentskills.io 标准模板
 │   └── workflow/                    # 工作流定义
-│       ├── dqg_flow_phases.md       # 全流程（每个 Phase 的完整生命周期）
-│       ├── dqg_flow_multi_module.md # 多模块（按模块拆分、并行、汇总）
-│       └── dqg_flow_iteration.md    # 迭代（增量重跑、收敛判断）
+│       ├── dqg_flow_phases.md
+│       ├── dqg_flow_multi_module.md
+│       ├── dqg_flow_iteration.md
+│       └── error-recovery-protocol.md
 ├── src/dqg/                    # Python package
-│   ├── state_machine.py        # Phase 状态机（gate + 依赖 + 并行）
-│   ├── runner.py               # dqg-run CLI（pipeline 入口）
-│   ├── context_loader.py       # 上游产物自动加载 + 智能分块
-│   ├── model_registry.py       # 模型感知 + token budget
-│   ├── cross_phase_check.py    # 跨 Phase ID 引用校验
-│   ├── telemetry.py            # 执行记录 + 可观测性
-│   ├── judge.py                # LLM-as-Judge 评审 prompt 生成
-│   ├── critique.py             # Self-Critique + RLAIF 融合闭环
-│   ├── skill_tracker.py        # 规则级质量追踪 + 案例相关性匹配
-│   ├── bug_cases.py            # Bug 案例库管理 + 归因 + 修复建议
-│   ├── import_bug_cases.py     # 从飞书 Bitable 批量导入 bug 案例
-│   ├── validate.py             # schema 校验 CLI
-│   ├── schemas/                # 6 个 Phase 的 Pydantic 数据契约
-│   ├── orchestrator.py         # 旧版编排器（兼容）
-│   ├── collect_metrics.py      # 度量采集
-│   └── feishu_ingest_modules/  # 飞书文档抓取（docx + bitable）
+│   ├── core/                   # 状态机 + Phase 注册表
+│   ├── runtime/                # 执行引擎（phase_contract, preflight, credential_pool, harness_ablation, task_store）
+│   ├── quality/                # 质量评审链（judge, critique, verification_bundle, eval_baseline, score_calibration）
+│   ├── agents/                 # Multi-Agent（adaptive_loop, two_phase_worker, agent_orchestrator）
+│   ├── context/                # 上下文（context_loader, context_compressor, skill_loader）
+│   ├── cache/                  # FTS5 索引（code_search, code_semantic_search, fact_cache）
+│   ├── tracking/               # Bug 案例 + Skill Evolution（skill_factory, lesson_inference, data_patterns）
+│   ├── memory/                 # 记忆层（memory_layer, knowledge_network, compress_hooks）
+│   ├── security/               # 安全扫描（content_scanner, tool_permissions）
+│   ├── schemas/                # Phase 数据契约 + RSM + Critique Feedback
+│   ├── reporting/              # 性能/指标/渲染
+│   ├── ingest/                 # 文档抓取（飞书）
+│   └── media/                  # 图片处理
 ├── modules/                    # Phase 详细规则（skill 引用）
 ├── profiles/                   # 可切换 profile（baseline + 阈值 + 风险词典）
 ├── regression/                 # 基准回放集 + 回放结果
@@ -205,7 +212,7 @@ dqg-run PROJ --profile java-ddd-tmf execute A
 dqg-run PROJ --profile go-service auto
 ```
 
-选中的 profile 会持久化到项目状态，并在 `A.5/A.6/B/C/D` 自动注入：
+选中的 profile 会持久化到项目状态，并在 `Q04/Q03/Q05/Q06/Q07` 自动注入：
 
 - baseline 文档
 - 风险词典
@@ -220,9 +227,9 @@ dqg-run PROJ --profile go-service auto
 
 推荐报告模板（均包含 `PROFILE_CONTEXT` 区块）：
 
-- Phase B：`references/eut-matrix-template.md`
-- Phase C：`references/ut-audit-template.md`
-- Phase D：`references/code-review-template.md`
+- Phase Q05：`references/eut-matrix-template.md`
+- Phase Q06：`references/ut-audit-template.md`
+- Phase Q07：`references/code-review-template.md`
 
 如需扩展新技术栈，只需新增 `profiles/<profile-id>/profile.json` 和对应 baseline 文档，无需改 Python 代码。
 
@@ -238,9 +245,9 @@ DQG 借鉴 OpenSpace 的自进化思路，实现了三层质量进化机制：
 
 ```bash
 # 质量进化命令
-dqg-run PROJ judge A            # 独立评审
-dqg-run PROJ critique A         # 自我批评 → v2
-dqg-run PROJ preference A       # v1 vs v2 偏好比较
+dqg-run PROJ judge Q01           # 独立评审
+dqg-run PROJ critique Q01        # 自我批评 → v2
+dqg-run PROJ preference Q01      # v1 vs v2 偏好比较
 
 # Bug 案例库
 python -m dqg.bug_cases         # 查看报告
@@ -269,7 +276,7 @@ ruff check src/ tests/ && pytest tests/ -q
 dqg-observe report --period daily
 
 # 生成周报，并按项目/Phase 过滤
-dqg-observe report --period weekly --project rights-platform --phase A.6
+dqg-observe report --period weekly --project rights-platform --phase Q03
 
 # 每日任务：生成日报 + 写入历史指标仓 + 告警输出（建议配合 cron）
 dqg-observe daily
@@ -287,7 +294,7 @@ dqg-observe daily
 - `Phase 通过率`
 - `平均处理时长`
 - `GAP 闭环率`
-- `BLOCK 数`（A.6 `CRITICAL_GAP` + Phase D `BLOCKER`）
+- `BLOCK 数`（Q03 `CRITICAL_GAP` + Phase Q07 `BLOCKER`）
 
 当前告警规则：
 

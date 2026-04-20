@@ -82,7 +82,7 @@ def _count_all_fields(data: dict[str, Any], phase_id: str) -> dict[str, int]:
             counts[key] = len(value)
 
     # Phase A 特殊：分别统计 REQ 和 BR
-    if phase_id == "A":
+    if phase_id == "Q01":
         reqs = data.get("requirements", [])
         counts["req_count"] = len([r for r in reqs if r.get("req_id", "").startswith("REQ-")])
         counts["br_count"] = len([r for r in reqs if r.get("req_id", "").startswith("BR-")])

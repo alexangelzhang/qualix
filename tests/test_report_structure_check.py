@@ -22,7 +22,7 @@ BR-001: 密码复杂度
 
 GAP-001: 未定义超时策略
 """
-    result = check_report_structure(report, "A")
+    result = check_report_structure(report, "Q01")
     assert result["passed"] is True
     assert len(result["missing"]) == 0
 
@@ -38,7 +38,7 @@ REQ-001: 用户登录
 
 BR-001: 密码复杂度
 """
-    result = check_report_structure(report, "A")
+    result = check_report_structure(report, "Q01")
     assert result["passed"] is False
     assert len(result["missing"]) >= 1
 
@@ -62,7 +62,7 @@ content
 
 content
 """
-    result = check_report_structure(report, "A")
+    result = check_report_structure(report, "Q01")
     assert result["passed"] is True
 
 
@@ -83,5 +83,5 @@ TC-001
 
 | SE | Test |
 """
-    result = check_report_structure(report, "B")
+    result = check_report_structure(report, "Q05")
     assert result["passed"] is True

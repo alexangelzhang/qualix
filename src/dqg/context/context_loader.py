@@ -10,46 +10,20 @@
 
 from __future__ import annotations
 
-import json
-import re
 from dataclasses import dataclass, field
 from pathlib import Path
 
 from dqg.constants import (
     BUG_CASE_RELEVANCE_SEED_LIMIT,
     EVIDENCE_PACK_HEADER,
-    EVIDENCE_PACK_MAX_QUOTES,
-    EVIDENCE_PACK_QUOTE_CHAR_LIMIT,
-    EVIDENCE_PACK_SUMMARY_MAX_LINES,
-    EVIDENCE_PACK_TOTAL_QUOTE_CHAR_LIMIT,
 )
-from dqg.context.chunk_processor import (
-    _auto_compact_chunks,
-    _collect_current_phase_inputs,
-    _collect_phase_artifacts,
-    _split_large_chunk,
-)
-from dqg.context.doc_summary import extract_summary
+from dqg.context.chunk_processor import _auto_compact_chunks, _split_large_chunk
+from dqg.context.evidence_renderer import render_chunk_body, render_key_quotes, truncate_chars
 from dqg.core.model_registry import ModelProfile, estimate_tokens, get_model_profile
-from dqg.core.profiles import get_profile, load_profile_context
-from dqg.core.state_machine import PHASE_DEFS, PhaseStatus, load_state
-from dqg.path_utils import resolve_internal_file
-from dqg.skill_tracker import render_relevant_cases_for_prompt
+from dqg.core.state_machine import PHASE_DEFS, load_state
 
-_KEY_QUOTE_PATTERN = re.compile(
-    r"REQ-|BR-|SE-|GAP-|OPEN-|状态|流程|权限|异常|并发|幂等|校验|提示|接口|字段|图片|泳道|Mermaid",
-    re.IGNORECASE,
-)
-_ID_KEYS: tuple[str, ...] = (
-    "req_id",
-    "br_id",
-    "se_id",
-    "gap_id",
-    "open_id",
-    "fact_id",
-    "id",
-    "case_id",
-)
+# Re-export for backward compatibility (chunk_processor imports ContextChunk from here)
+__all__ = ["ContextChunk", "LoadedContext", "load_context"]
 
 
 @dataclass
@@ -91,13 +65,40 @@ class LoadedContext:
 
         lines.extend(["", "## 证据摘要"])
         for chunk in self.chunks:
-            lines.extend(["", f"### {chunk.source}", _render_chunk_body(chunk)])
+            lines.extend(["", f"### {chunk.source}", render_chunk_body(chunk)])
 
-        key_quotes = _render_key_quotes(self.chunks)
+        # 根据 root cause 趋势动态调整 Evidence Pack 参数
+        try:
+            from dqg.quality.root_cause_tuner import get_adjusted_evidence_limits
+            limits = get_adjusted_evidence_limits(self.phase_id)
+            key_quotes = render_key_quotes(
+                self.chunks,
+                max_quotes=limits["max_quotes"],
+                total_char_limit=limits["total_quote_char_limit"],
+            )
+        except Exception:
+            key_quotes = render_key_quotes(self.chunks)
         if key_quotes:
             lines.extend(["", "## 关键引用", *key_quotes])
 
-        return "\n".join(lines)
+        result = "\n".join(lines)
+
+        # Lossless compression: reduce Evidence Pack token footprint
+        try:
+            from dqg.context.prompt_compressor import compress, compression_ratio
+            compressed = compress(result)
+            ratio = compression_ratio(result, compressed)
+            if ratio >= 0.08:
+                from dqg.log import get_logger
+                get_logger(__name__).info(
+                    "Evidence Pack compressed: %.0f%% reduction (%d → %d chars)",
+                    ratio * 100, len(result), len(compressed),
+                )
+                return compressed
+        except Exception:
+            pass
+
+        return result
 
     def iter_rendered_blocks(self):
         """按 block 产出 evidence pack 文本。"""
@@ -130,11 +131,7 @@ class LoadedContext:
         )
 
 
-def _truncate_chars(text: str, limit: int) -> str:
-    text = text.strip()
-    if len(text) <= limit:
-        return text
-    return text[:limit].rstrip() + "\n...(截断)"
+# --- Relevance seed helpers (used by upstream_collector) ---
 
 
 def _is_relevance_seed_chunk(chunk: ContextChunk) -> bool:
@@ -161,210 +158,16 @@ def _build_relevance_seed(chunks: list[ContextChunk]) -> str:
     return " ".join(parts)
 
 
-def _sample_ids(items: list[object], max_items: int = 3) -> list[str]:
-    samples: list[str] = []
-    for item in items:
-        if not isinstance(item, dict):
-            continue
-        for key in _ID_KEYS:
-            value = item.get(key)
-            if value:
-                samples.append(str(value))
-                break
-        if len(samples) >= max_items:
-            break
-    return samples
+# --- Assembly ---
 
 
-def _summarize_json_content(content: str) -> str:
-    try:
-        data = json.loads(content)
-    except json.JSONDecodeError:
-        return _truncate_chars(content, EVIDENCE_PACK_QUOTE_CHAR_LIMIT)
-
-    lines: list[str] = []
-    if isinstance(data, dict):
-        for key, value in data.items():
-            if isinstance(value, list):
-                line = f"- {key}: {len(value)} 项"
-                samples = _sample_ids(value)
-                if samples:
-                    line += f"；示例: {', '.join(samples)}"
-                lines.append(line)
-            elif isinstance(value, dict):
-                lines.append(f"- {key}: {len(value)} 个字段")
-            elif value not in (None, "", []):
-                rendered = _truncate_chars(str(value), 80).replace("\n", " ")
-                lines.append(f"- {key}: {rendered}")
-    elif isinstance(data, list):
-        lines.append(f"- list: {len(data)} 项")
-        samples = _sample_ids(data)
-        if samples:
-            lines.append(f"- 示例: {', '.join(samples)}")
-    else:
-        lines.append(f"- value: {_truncate_chars(str(data), 120)}")
-
-    return "\n".join(lines[: min(EVIDENCE_PACK_SUMMARY_MAX_LINES, 12)]) or _truncate_chars(content, 200)
-
-
-def _summarize_text_content(content: str) -> str:
-    summary = extract_summary(content, max_lines=min(EVIDENCE_PACK_SUMMARY_MAX_LINES, 12)).strip()
-    if not summary:
-        paragraphs = [part.strip() for part in content.split("\n\n") if part.strip()]
-        summary = "\n\n".join(paragraphs[:2])
-    return _truncate_chars(summary, 1_200)
-
-
-def _render_chunk_body(chunk: ContextChunk) -> str:
-    content = chunk.content.strip()
-    if not content:
-        return "（空）"
-
-    if "Bug cases" in chunk.source or "Diff context" in chunk.source:
-        return _truncate_chars(content, 2_000)
-    if content.startswith("{") or content.startswith("["):
-        return _summarize_json_content(content)
-    return _summarize_text_content(content)
-
-
-def _pick_quote_candidates(content: str) -> list[str]:
-    paragraphs = [part.strip() for part in re.split(r"\n\s*\n", content) if part.strip()]
-    candidates: list[str] = []
-    for para in paragraphs:
-        if para.startswith(("#", "- ", "|")) or _KEY_QUOTE_PATTERN.search(para):
-            candidates.append(para)
-    if not candidates:
-        candidates = paragraphs[:2]
-
-    deduped: list[str] = []
-    seen: set[str] = set()
-    for para in candidates:
-        normalized = para.strip()
-        if normalized and normalized not in seen:
-            seen.add(normalized)
-            deduped.append(normalized)
-    return deduped
-
-
-def _render_key_quotes(chunks: list[ContextChunk]) -> list[str]:
-    lines: list[str] = []
-    quote_count = 0
-    used_chars = 0
-
-    for chunk in chunks:
-        if quote_count >= EVIDENCE_PACK_MAX_QUOTES or used_chars >= EVIDENCE_PACK_TOTAL_QUOTE_CHAR_LIMIT:
-            break
-        for para in _pick_quote_candidates(chunk.content):
-            if quote_count >= EVIDENCE_PACK_MAX_QUOTES or used_chars >= EVIDENCE_PACK_TOTAL_QUOTE_CHAR_LIMIT:
-                break
-            remaining = EVIDENCE_PACK_TOTAL_QUOTE_CHAR_LIMIT - used_chars
-            if remaining <= 0:
-                break
-            quote = _truncate_chars(para, min(EVIDENCE_PACK_QUOTE_CHAR_LIMIT, remaining))
-            if not quote:
-                continue
-            quote_count += 1
-            used_chars += len(quote)
-            lines.append(f"### 引用 {quote_count}: {chunk.source}")
-            lines.extend(f"> {line}" for line in quote.splitlines())
-            lines.append("")
-
-    if not lines:
-        return ["（无可用关键引用）"]
-    if lines[-1] == "":
-        lines.pop()
-    return lines
-
-
-def load_context(
-    output_dir: Path,
-    project_id: str,
+def _assemble_context(
     target_phase: str,
-    model_name: str | None = None,
+    model: ModelProfile,
+    budget: int,
+    all_chunks: list[ContextChunk],
 ) -> LoadedContext:
-    """为目标 Phase 加载上游产物上下文.
-
-    自动：
-    1. 根据依赖关系找到需要加载的上游 Phase
-    2. 收集本 Phase 输入证据与上游产物
-    3. 按优先级排序
-    4. 根据模型 token budget 截断
-    """
-    model = get_model_profile(model_name)
-    budget = model.available_for_context
-
-    phase_def = PHASE_DEFS.get(target_phase)
-    if not phase_def:
-        return LoadedContext(phase_id=target_phase, model=model, budget_tokens=budget)
-
-    state = load_state(output_dir, project_id)
-    upstream_phases = phase_def["depends_on"]
-    phase_root = output_dir / project_id / phase_def["dir_suffix"]
-
-    all_chunks: list[ContextChunk] = []
-    inject_bug_cases = target_phase in {"A", "A.5", "A.6", "B", "C", "D"}
-
-    current_phase_chunks = _collect_current_phase_inputs(phase_root, target_phase)
-    if current_phase_chunks:
-        all_chunks.extend(current_phase_chunks)
-
-    if target_phase in {"A.5", "A.6", "B", "C", "D"}:
-        profile = get_profile(getattr(state, "profile_id", None))
-        profile_context = load_profile_context(profile)
-        all_chunks.append(
-            ContextChunk(
-                source=f"Profile {profile.profile_id} baseline and thresholds",
-                content=profile_context,
-                token_estimate=estimate_tokens(profile_context),
-                priority=-1,
-            )
-        )
-
-    for dep_id in upstream_phases:
-        dep_state = state.phases.get(dep_id)
-        if dep_state and dep_state.status in (PhaseStatus.APPROVED, PhaseStatus.PENDING_REVIEW):
-            all_chunks.extend(_collect_phase_artifacts(output_dir, project_id, dep_id))
-
-    if target_phase in ("C", "D"):
-        diff_path = resolve_internal_file(phase_root, "_diff_context.md")
-        if diff_path.exists():
-            diff_text = diff_path.read_text(encoding="utf-8")
-            all_chunks.append(
-                ContextChunk(
-                    source=f"Diff context for Phase {target_phase} (incremental)",
-                    content=diff_text,
-                    token_estimate=estimate_tokens(diff_text),
-                    priority=-2,
-                )
-            )
-
-    mem_file = Path(".dqg/MEMORY.md")
-    if mem_file.exists():
-        mem_text = mem_file.read_text(encoding="utf-8")
-        if mem_text.strip():
-            all_chunks.append(
-                ContextChunk(
-                    source="Persistent Memory (.dqg/MEMORY.md)",
-                    content=mem_text,
-                    token_estimate=estimate_tokens(mem_text),
-                    priority=-3,
-                )
-            )
-
-    if inject_bug_cases:
-        relevance_input = _build_relevance_seed(all_chunks)
-        if relevance_input.strip():
-            bug_cases_md = render_relevant_cases_for_prompt(target_phase, relevance_input)
-            if bug_cases_md:
-                all_chunks.append(
-                    ContextChunk(
-                        source=f"Bug cases for Phase {target_phase} (relevance-matched)",
-                        content=bug_cases_md,
-                        token_estimate=estimate_tokens(bug_cases_md),
-                        priority=0,
-                    )
-                )
-
+    """排序、分块、压缩、截断，组装最终 LoadedContext."""
     all_chunks.sort(key=lambda c: c.priority)
 
     max_chunk_tokens = budget // 3
@@ -392,14 +195,12 @@ def load_context(
             cut_pos = chunk.content.rfind("\n\n", 0, cut_pos)
             if cut_pos > 0:
                 truncated_content = chunk.content[:cut_pos] + "\n\n<!-- ... 已截断 -->"
-                selected.append(
-                    ContextChunk(
-                        source=f"{chunk.source} (截断)",
-                        content=truncated_content,
-                        token_estimate=remaining,
-                        priority=chunk.priority,
-                    )
-                )
+                selected.append(ContextChunk(
+                    source=f"{chunk.source} (截断)",
+                    content=truncated_content,
+                    token_estimate=remaining,
+                    priority=chunk.priority,
+                ))
                 used_tokens += remaining
         break
 
@@ -411,3 +212,51 @@ def load_context(
         total_tokens=used_tokens,
         budget_tokens=budget,
     )
+
+
+# --- Public API ---
+
+
+def load_context(
+    output_dir: Path,
+    project_id: str,
+    target_phase: str,
+    model_name: str | None = None,
+) -> LoadedContext:
+    """为目标 Phase 加载上游产物上下文.
+
+    自动：
+    1. 根据依赖关系找到需要加载的上游 Phase
+    2. 收集本 Phase 输入证据与上游产物（并行 I/O）
+    3. 加载 sidecar 文件（diff, memory, bug cases）
+    4. 按优先级排序，根据模型 token budget 截断
+    """
+    from dqg.context.upstream_collector import load_sidecar_context, load_upstream_context
+
+    model = get_model_profile(model_name)
+    budget = model.available_for_context
+
+    phase_def = PHASE_DEFS.get(target_phase)
+    if not phase_def:
+        return LoadedContext(phase_id=target_phase, model=model, budget_tokens=budget)
+
+    # Reasoning Sandwich：根据 reasoning_profile 动态调整 budget
+    reasoning_profile = phase_def.get("reasoning_profile", {})
+    execution_level = reasoning_profile.get("execution", "standard")
+    if execution_level == "standard" and reasoning_profile:
+        budget = int(budget * 0.6)
+
+    state = load_state(output_dir, project_id)
+    upstream_phases = phase_def["depends_on"]
+    phase_root = output_dir / project_id / phase_def["dir_suffix"]
+
+    # Phase 1: 并行加载上游产物 + 当前 Phase 输入
+    all_chunks, _ = load_upstream_context(
+        output_dir, project_id, target_phase, phase_root, state, upstream_phases,
+    )
+
+    # Phase 2: 加载 sidecar（diff, memory, bug cases）
+    load_sidecar_context(output_dir, project_id, target_phase, phase_root, all_chunks)
+
+    # Phase 3: 组装最终 context
+    return _assemble_context(target_phase, model, budget, all_chunks)

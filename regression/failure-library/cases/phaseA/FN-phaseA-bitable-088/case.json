@@ -4,7 +4,7 @@
   "error_type": "FN",
   "severity": "high",
   "title": "保存成功的草稿未生成行动id",
-  "root_cause": "SKILL_RULE",
+  "root_cause": "需求实现遗漏",
   "fix_target": "skills/requirement-structuring.md",
   "tags": [
     "汽车",
@@ -24,5 +24,6 @@
   "actual": {
     "content": "未关注到该需求"
   },
-  "lesson": "增加关注PRD细节"
+  "lesson": "增加关注PRD细节",
+  "holdout": false
 }

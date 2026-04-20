@@ -4,7 +4,7 @@
   "error_type": "FN",
   "severity": "high",
   "title": "更新停车场静态数据，features字段，原来有值，本次数据没有值，执行定时任务更新时未清空之前的数据",
-  "root_cause": "SKILL_RULE",
+  "root_cause": "函数未覆盖",
   "fix_target": "skills/unit-test-audit.md",
   "tags": [
     "汽车",
@@ -25,5 +25,6 @@
   "actual": {
     "content": "Sql边界条件缺失"
   },
-  "lesson": "多场景单测覆盖"
+  "lesson": "多场景单测覆盖",
+  "holdout": false
 }

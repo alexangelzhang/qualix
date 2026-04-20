@@ -34,6 +34,11 @@ class AgentResult:
     output_files: list[str] = field(default_factory=list)
     cache_hit: bool = False
     cached: bool = False
+    trajectory: list[dict[str, str]] = field(default_factory=list)
+
+
+_PRUNED_TOOL_PLACEHOLDER = "[旧工具输出已清理以节省 context]"
+_TOOL_RESULT_TAG_RE = re.compile(r"<tool_result\s+name=\".*?\">\n.*?\n</tool_result>", re.DOTALL)
 
 
 class Agent:
@@ -224,9 +229,11 @@ class Agent:
             if cached_result is not None:
                 return cached_result
 
-        messages = [{"role": "system", "content": system_content}]
+        messages = []
+        if system_content and system_content.strip():
+            messages.append({"role": "system", "content": system_content, "cache_control": True})
         if context_payload:
-            messages.append({"role": "user", "content": context_payload})
+            messages.append({"role": "user", "content": context_payload, "cache_control": True})
         messages.append({"role": "user", "content": user_message})
 
         total_input_tokens = 0
@@ -234,10 +241,21 @@ class Agent:
         final_content = ""
         model_used = None
         saw_tool_call = False
+        raw_trajectory: list[dict[str, str]] = [dict(m) for m in messages]  # 保存初始 messages 快照
 
         # Tool-Calling Loop
         MAX_TURNS = 10
         for turn in range(MAX_TURNS):
+            # Prune old tool results to save context (keep only the latest)
+            if turn > 0:
+                for i, msg in enumerate(messages):
+                    if (
+                        msg["role"] == "user"
+                        and _TOOL_RESULT_TAG_RE.search(msg["content"])
+                        and i < len(messages) - 2  # 保留最近一轮的工具结果
+                    ):
+                        msg["content"] = _PRUNED_TOOL_PLACEHOLDER
+
             # 尝试主模型
             try:
                 content, usage = self._backend.chat(messages, max_tokens=self.model.max_tokens, temperature=self.model.temperature)
@@ -267,7 +285,10 @@ class Agent:
             total_output_tokens += usage.get("output_tokens", 0)
             final_content += content + "\n\n"
 
-            # 解析 tool_call
+            # 解析 tool_call（仅当 Agent 有注册工具时才处理）
+            if not self.tools:
+                # 无工具注册，直接结束（忽略模型输出的 tool_call 幻觉）
+                break
             match = re.search(r"<tool_call\s+name=\"(.*?)\">(.*?)</tool_call>", content, re.DOTALL)
             if not match:
                 #没有工具调用，结束任务
@@ -290,6 +311,13 @@ class Agent:
 
             messages.append({"role": "assistant", "content": content})
             messages.append({"role": "user", "content": f"<tool_result name=\"{tool_name}\">\n{tool_result}\n</tool_result>"})
+            # 记录原始 trajectory（pruning 前）
+            raw_trajectory.append({"role": "assistant", "content": content})
+            raw_trajectory.append({"role": "user", "content": f"<tool_result name=\"{tool_name}\">\n{tool_result}\n</tool_result>"})
+
+        # 最终 assistant 回复加入 trajectory
+        if final_content.strip():
+            raw_trajectory.append({"role": "assistant", "content": final_content.strip()})
 
         result = AgentResult(
             agent_name=self.name,
@@ -301,6 +329,7 @@ class Agent:
             token_usage={"input_tokens": total_input_tokens, "output_tokens": total_output_tokens},
             cache_hit=False,
             cached=False,
+            trajectory=raw_trajectory,
         )
 
         if not saw_tool_call:

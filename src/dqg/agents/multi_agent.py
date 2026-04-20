@@ -5,7 +5,7 @@ Phase 1 实现：用 Claude Code 的 Agent tool 模拟独立 agent，
 
 用法:
     orchestrator = MultiAgentOrchestrator(output_dir)
-    result = orchestrator.run_phase("damage-assessment", "A", {
+    result = orchestrator.run_phase("damage-assessment", "Q01", {
         "prd_url": "https://...",
     })
 """
@@ -65,12 +65,12 @@ PHASE_A_AGENTS = {
 
 # Phase 间 DAG
 PHASE_DAG: dict[str, list[str]] = {
-    "A": [],
-    "A.5": ["A"],
-    "A.6": ["A"],
-    "B": ["A"],
-    "C": ["B"],
-    "D": ["A.5", "A.6"],
+    "Q01": [],
+    "Q04": ["Q01"],
+    "Q03": ["Q01"],
+    "Q05": ["Q01"],
+    "Q06": ["Q05"],
+    "Q07": ["Q04", "Q03"],
 }
 
 
@@ -135,90 +135,24 @@ def generate_judge_prompt(
     project_id: str,
     phase_id: str,
 ) -> str:
-    """生成 Judge Agent 的 prompt（独立 context，看不到 Worker 推理过程）."""
+    """生成 Judge Agent 的 prompt（委托 quality/judge.py 的标准实现）.
+
+    保留此函数签名以兼容 dag_scheduler 等调用方。
+    """
+    from dqg.quality.judge import generate_judge_prompt as _canonical_judge_prompt
+
+    result = _canonical_judge_prompt(output_dir, project_id, phase_id)
+    if result:
+        return result
+
+    # fallback: 如果 quality/judge.py 不支持该 Phase（不应发生），返回最小 prompt
     phase_def = PHASE_DEFS.get(phase_id, {})
     pd = _phase_dir(output_dir, project_id, phase_def)
-
-    report_map = {
-        "A": "phase_a_report.md",
-        "A.5": "tech_design_coverage_review.md",
-        "A.6": "tech_design_quality_review.md",
-        "B": "eut_matrix.md",
-        "C": "ut_audit_report.md",
-        "D": "review_report.md",
-    }
-    report_file = report_map.get(phase_id, "")
-
-    parts = [
-        f"# Judge Agent — Phase {phase_id}",
-        f"项目: {project_id}",
-        "",
-        "## 你的角色",
-        "你是独立的评审 Agent。你看不到 Worker 的推理过程，只看最终产物。",
-        "你的任务是客观评估产物质量，不要被产物中的'自信'表述影响。",
-        "",
-        "## 评审对象",
-        f"报告文件: {pd / report_file}",
-        "",
-        "## 评审维度（1-5 Likert 量表）",
-        "",
-        "### faithfulness（忠实度）",
-        "- 5: 每条结论都有 PRD 原文行号引用，零幻觉",
-        "- 4: 绝大多数有引用，个别推导已标注置信度",
-        "- 3: 部分结论缺少引用",
-        "- 2: 多处无引用或引用错误",
-        "- 1: 大量幻觉",
-        "",
-        "### completeness（完整度）",
-        "- 5: PRD 所有功能模块+图片语义+操作流程全覆盖",
-        "- 4: 主要功能覆盖，个别细节遗漏",
-        "- 3: 有明显遗漏（如缺状态机/缺操作流程）",
-        "- 2: 大量遗漏",
-        "- 1: 严重不完整",
-        "",
-        "### se_explicitness（语义显式化）",
-        "- 5: 每个 SE 有判定依据表格，可直接写测试",
-        "- 4: 绝大多数有判定依据",
-        "- 3: 部分 SE 缺判定依据",
-        "- 2: 多数 SE 无判定依据",
-        "- 1: SE 形同虚设",
-        "",
-        "### gap_detection（缺口发现）",
-        "- 5: GAP 全部有风险等级，无过度推断，无遗漏",
-        "- 4: GAP 基本准确，个别可商榷",
-        "- 3: 有过度推断或明显遗漏",
-        "- 2: 多处过度推断",
-        "- 1: GAP 不可信",
-        "",
-        "### structure_quality（结构质量）",
-        "- 5: 状态机准确（节点/边区分正确），流程图无错误节点，BR 保留层级",
-        "- 4: 基本准确，个别瑕疵",
-        "- 3: 有结构性错误（如动作当状态）",
-        "- 2: 多处结构错误",
-        "- 1: 结构不可用",
-        "",
-        "## 重点检查（已知 bug 模式）",
-        "- 状态机：是否把迁移动作画成了状态节点？",
-        "- 状态机：驳回循环的目标节点是否正确？",
-        "- 状态机：正常路径和异常终结是否分开？",
-        "- 流程图：是否把 UI 提示当成了流程节点？",
-        "- BR：是否压平了 PRD 的层级结构？",
-        "- GAP：是否把正常设计决策当成了缺口？",
-        "- 是否缺少用户操作流程视角？",
-        "",
-        "## 输出格式",
-        f"写入 JSON 到: {pd / '_judge_result.json'}",
-        "```json",
-        '{',
-        '  "scores": {"faithfulness": N, "completeness": N, "se_explicitness": N, "gap_detection": N, "structure_quality": N},',
-        '  "overall": N.N,',
-        '  "issues": [{"type": "FN/FP/VAGUE", "severity": "critical/high/medium/low", "description": "...", "suggestion": "..."}],',
-        '  "verdict": "PASS / PASS_WITH_CONCERNS / FAIL"',
-        '}',
-        "```",
-    ]
-
-    return "\n".join(parts)
+    return (
+        f"# Judge Agent — Phase {phase_id}\n"
+        f"项目: {project_id}\n\n"
+        f"请评审 {pd} 下的产物质量，按 1-5 分打分。\n"
+    )
 
 
 def generate_critique_prompt(

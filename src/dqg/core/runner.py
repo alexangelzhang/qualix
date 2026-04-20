@@ -17,7 +17,6 @@ import sys
 from pathlib import Path
 
 from dqg.constants import DEFAULT_ADAPTIVE_JUDGE_MODELS, DEFAULT_FALLBACK_MODEL, DEFAULT_JUDGE_MODEL, DEFAULT_PRIMARY_MODEL
-from dqg.core.profiles import list_profiles
 
 
 def main() -> int:
@@ -27,7 +26,6 @@ def main() -> int:
     parser.add_argument(
         "--profile",
         default=None,
-        choices=[profile.profile_id for profile in list_profiles()],
         help="技术栈 profile（默认 java-ddd-tmf）",
     )
 
@@ -55,6 +53,12 @@ def main() -> int:
     p_skip = sub.add_parser("skip", help="跳过 Phase")
     p_skip.add_argument("phase", help="Phase ID")
     p_skip.add_argument("--comment", "-c", default="", help="跳过原因")
+
+    # reset
+    p_reset = sub.add_parser("reset", help="重置 Phase 到 not_started（允许重新执行）")
+    p_reset.add_argument("phase", help="Phase ID")
+    p_reset.add_argument("--clean", action="store_true", help="直接删除产出物（默认归档到 _archive/）")
+    p_reset.add_argument("--cascade", action="store_true", help="级联重置所有下游 Phase")
 
     # status
     sub.add_parser("status", help="查看状态看板")
@@ -115,48 +119,82 @@ def main() -> int:
     p_adapt.add_argument("--max-iter", type=int, default=3, help="最大迭代次数")
     p_adapt.add_argument("--threshold", type=float, default=3.5, help="通过阈值（1-5）")
 
+    # dag
+    p_dag = sub.add_parser("dag", help="DAG 并行调度: 全自动推进所有可执行 Phase")
+    p_dag.add_argument("--skip", nargs="*", default=[], help="跳过指定 Phase（如 A.6 B）")
+    p_dag.add_argument("--max-parallel", type=int, default=3, help="最大并行数（默认 3）")
+    p_dag.add_argument("--mode", choices=["agent-run", "adaptive"], default="adaptive", help="执行模式（默认 adaptive）")
+    p_dag.add_argument("--primary", default=DEFAULT_PRIMARY_MODEL, help="Worker 模型")
+    p_dag.add_argument("--fallback", default=DEFAULT_FALLBACK_MODEL, help="备用模型")
+    p_dag.add_argument("--plan", action="store_true", help="只显示执行计划，不执行")
+
     # wiki-compile
     sub.add_parser("wiki-compile", help="从历史提取并编译生成该项目的初始 LLM-Wiki")
 
     # wiki-lint
     sub.add_parser("wiki-lint", help="启动清理智能体：打扫并梳理当前的 .dqg-wiki 全景拓扑")
 
+    # init
+    sub.add_parser("init", help="一键初始化项目（创建目录结构、state.json、version.json）")
+
+    # doctor
+    sub.add_parser("doctor", help="环境健康检查（Python/依赖/脚本/profiles/飞书 token）")
+
+    # update
+    sub.add_parser("update", help="更新 DQG 到最新版本（git pull + version.json 同步）")
+
+    # version
+    sub.add_parser("version", help="显示 DQG 版本号")
+
     args = parser.parse_args()
     base_dir = Path(args.base_dir).resolve()
     output_dir = base_dir / "output"
 
-    # 延迟导入，按需加载对应命令模块
-    from dqg.commands.phase import cmd_execute, cmd_finalize, cmd_approve, cmd_skip, cmd_auto
-    from dqg.commands.query import cmd_status, cmd_next, cmd_detail, cmd_log, cmd_startup
-    from dqg.commands.review import cmd_judge, cmd_critique, cmd_preference, cmd_golden
-    from dqg.commands.agents import cmd_orchestrate, cmd_agent_run, cmd_adaptive
-    from dqg.commands.wiki import cmd_wiki_compile, cmd_wiki_lint
+    # 真正的按需导入：只加载当前命令需要的模块
+    cmd = args.command
 
-    cmd_map = {
-        "execute": cmd_execute,
-        "finalize": cmd_finalize,
-        "approve": cmd_approve,
-        "skip": cmd_skip,
-        "status": cmd_status,
-        "next": cmd_next,
-        "log": cmd_log,
-        "startup": cmd_startup,
-        "detail": cmd_detail,
-        "auto": cmd_auto,
-        "judge": cmd_judge,
-        "critique": cmd_critique,
-        "preference": cmd_preference,
-        "golden": cmd_golden,
-        "orchestrate": cmd_orchestrate,
-        "agent-run": cmd_agent_run,
-        "adaptive": cmd_adaptive,
-        "wiki-compile": cmd_wiki_compile,
-        "wiki-lint": cmd_wiki_lint,
-    }
+    if cmd in ("execute", "finalize", "approve", "skip", "reset", "auto"):
+        from dqg.commands.phase import cmd_execute, cmd_finalize, cmd_approve, cmd_skip, cmd_auto, cmd_reset
+        cmd_map = {
+            "execute": cmd_execute, "finalize": cmd_finalize, "approve": cmd_approve,
+            "skip": cmd_skip, "reset": cmd_reset, "auto": cmd_auto,
+        }
+    elif cmd in ("status", "next", "log", "detail"):
+        from dqg.commands.query import cmd_status, cmd_next, cmd_detail, cmd_log
+        cmd_map = {
+            "status": cmd_status, "next": cmd_next, "log": cmd_log, "detail": cmd_detail,
+        }
+    elif cmd == "startup":
+        from dqg.commands.startup_fast import cmd_startup
+        cmd_map = {"startup": cmd_startup}
+    elif cmd in ("judge", "critique", "preference", "golden"):
+        from dqg.commands.review import cmd_judge, cmd_critique, cmd_preference, cmd_golden
+        cmd_map = {
+            "judge": cmd_judge, "critique": cmd_critique,
+            "preference": cmd_preference, "golden": cmd_golden,
+        }
+    elif cmd in ("orchestrate", "agent-run", "adaptive", "dag"):
+        from dqg.commands.agents import cmd_orchestrate, cmd_agent_run, cmd_adaptive, cmd_dag
+        cmd_map = {
+            "orchestrate": cmd_orchestrate, "agent-run": cmd_agent_run,
+            "adaptive": cmd_adaptive, "dag": cmd_dag,
+        }
+    elif cmd in ("wiki-compile", "wiki-lint"):
+        from dqg.commands.wiki import cmd_wiki_compile, cmd_wiki_lint
+        cmd_map = {"wiki-compile": cmd_wiki_compile, "wiki-lint": cmd_wiki_lint}
+    elif cmd in ("init", "doctor", "update", "version"):
+        from dqg.commands.setup import cmd_init, cmd_doctor, cmd_update, cmd_version
+        cmd_map = {
+            "init": cmd_init, "doctor": cmd_doctor,
+            "update": cmd_update, "version": cmd_version,
+        }
+    else:
+        print(f"未知命令: {cmd}", file=sys.stderr)
+        return 1
 
-    handler = cmd_map.get(args.command)
+    handler = cmd_map.get(cmd)
     if not handler:
-        print(f"未知命令: {args.command}", file=sys.stderr)
+        print(f"未知命令: {cmd}", file=sys.stderr)
         return 1
 
     return handler(args, output_dir)

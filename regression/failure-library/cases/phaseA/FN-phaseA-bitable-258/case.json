@@ -4,7 +4,7 @@
   "error_type": "FN",
   "severity": "medium",
   "title": "【132553】多岗位切换岗位角色后，查询返回的是所有角色权限，没有做对应的权限隔离",
-  "root_cause": "SKILL_RULE",
+  "root_cause": "需求理解未对齐",
   "fix_target": "skills/requirement-structuring.md",
   "tags": [
     "工单",
@@ -26,5 +26,6 @@
   "actual": {
     "content": "产研对此功能未达成一致，服务端认为将查询数据源从 xms 切换至天工即可，产品认为前后端应该保持统一查询权限时均需要指定当前用户登录岗位"
   },
-  "lesson": ""
+  "lesson": "",
+  "holdout": false
 }

@@ -23,5 +23,6 @@
   "actual": {
     "content": "1 validation error for PhaseA5Output"
   },
-  "lesson": ""
+  "lesson": "",
+  "holdout": false
 }

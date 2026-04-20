@@ -4,7 +4,7 @@
   "error_type": "FN",
   "severity": "high",
   "title": "咨询单 待接单状态进行编辑操作，提交提示编辑咨询单异常",
-  "root_cause": "SKILL_RULE",
+  "root_cause": "函数异常分支未覆盖",
   "fix_target": "skills/unit-test-audit.md",
   "tags": [
     "汽车",
@@ -25,5 +25,6 @@
   "actual": {
     "content": "对非必填字段缺少判空"
   },
-  "lesson": "提升覆盖率"
+  "lesson": "提升覆盖率",
+  "holdout": false
 }

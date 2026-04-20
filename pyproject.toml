@@ -17,16 +17,12 @@ dev = [
 ]
 
 [project.scripts]
-dqg = "dqg.cli:main"
-dqg-orchestrate = "dqg.orchestrator:main"
-dqg-metrics = "dqg.collect_metrics:main"
-dqg-feishu-ingest = "dqg.feishu_ingest:main"
-dqg-parse-images = "dqg.parse_images:main"
-dqg-generate-eut = "dqg.generate_eut:main"
-dqg-validate = "dqg.validate:main"
-dqg-run = "dqg.runner:main"
-dqg-observe = "dqg.observability:main"
-dqg-regression = "dqg.regression:main"
+dqg = "dqg.core.cli:main"
+dqg-run = "dqg.core.runner:main"
+dqg-orchestrate = "dqg.services.orchestrator:main"
+dqg-metrics = "dqg.reporting.collect_metrics:main"
+dqg-observe = "dqg.reporting.observability:main"
+dqg-regression = "dqg.tracking.regression:main"
 
 [build-system]
 requires = ["hatchling"]

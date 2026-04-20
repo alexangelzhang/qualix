@@ -25,18 +25,18 @@ from dqg.constants import PHASE_DIR_MAP, REPORT_MAP
 
 # 从 PHASE_DEFS 常量派生，仅补充 orchestrator 专用字段（command / description / inputs）
 _ORCH_EXTRA: dict[str, dict] = {
-    "A":   {"command": "/dev-quality-gate",      "description": "PRD → 需求点/关键语义/缺口/待确认项", "inputs": []},
-    "A.5": {"command": "/tech-coverage-audit",   "description": "验证技术方案有没有漏掉需求",           "inputs": ["A"]},
-    "A.6": {"command": "/tech-quality-review",   "description": "审架构/接口/数据/异常/性能",           "inputs": ["A"]},
-    "B":   {"command": "/ut-generator",          "description": "从需求生成测试大纲和单测代码",         "inputs": ["A"]},
-    "C":   {"command": "/ut-audit-zh",           "description": "验证单测是否真正测对了业务场景",       "inputs": ["A"]},
-    "D":   {"command": "/review-zh",             "description": "验证代码是否与需求和设计一致",         "inputs": ["A"]},
+    "Q01":   {"command": "/dev-quality-gate",      "description": "PRD → 需求点/关键语义/缺口/待确认项", "inputs": []},
+    "Q04": {"command": "/tech-coverage-audit",   "description": "验证技术方案有没有漏掉需求",           "inputs": ["Q01"]},
+    "Q03": {"command": "/tech-quality-review",   "description": "审架构/接口/数据/异常/性能",           "inputs": ["Q01"]},
+    "Q05":   {"command": "/ut-generator",          "description": "从需求生成测试大纲和单测代码",         "inputs": ["Q01"]},
+    "Q06":   {"command": "/ut-audit-zh",           "description": "验证单测是否真正测对了业务场景",       "inputs": ["Q01"]},
+    "Q07":   {"command": "/review-zh",             "description": "验证代码是否与需求和设计一致",         "inputs": ["Q01"]},
 }
 
 # Phase 名称映射
 _PHASE_NAMES: dict[str, str] = {
-    "A": "需求结构化", "A.5": "技术方案覆盖度审计", "A.6": "技术方案质量评审",
-    "B": "单测生成", "C": "单测覆盖审计", "D": "代码评审",
+    "Q01": "需求结构化", "Q04": "技术方案覆盖度审计", "Q03": "技术方案质量评审",
+    "Q05": "单测生成", "Q06": "单测覆盖审计", "Q07": "代码评审",
 }
 
 # 组装 PHASES 列表（权威数据来自 constants.py，orchestrator 只补充自己的字段）
@@ -48,7 +48,7 @@ PHASES = [
         "key_file": REPORT_MAP[pid],
         **_ORCH_EXTRA[pid],
     }
-    for pid in ["A", "A.5", "A.6", "B", "C", "D"]
+    for pid in ["Q01", "Q04", "Q03", "Q05", "Q06", "Q07"]
 ]
 
 
@@ -78,7 +78,7 @@ def detect_phase_status(output_dir: Path, project_id: str, phase: dict) -> Phase
     ]
 
     # 旧版命名兼容（仅 Phase A）
-    if phase["id"] == "A":
+    if phase["id"] == "Q01":
         # 匹配 <id>_requirements*, <id>_larkkit_cli 等旧目录
         for p in sorted(output_dir.iterdir()):
             if not p.is_dir():
@@ -93,8 +93,8 @@ def detect_phase_status(output_dir: Path, project_id: str, phase: dict) -> Phase
                 candidates.append(p)
 
     # A.5/A.6 也检查扁平目录（报告放在 phaseA 目录下）
-    if phase["id"] in ("A.5", "A.6"):
-        phase_a_dir = output_dir / project_id / PHASE_DIR_MAP["A"]
+    if phase["id"] in ("Q04", "Q03"):
+        phase_a_dir = output_dir / project_id / PHASE_DIR_MAP["Q01"]
         if phase_a_dir.is_dir() and phase_a_dir not in candidates:
             candidates.append(phase_a_dir)
 
@@ -126,7 +126,7 @@ def detect_phase_status(output_dir: Path, project_id: str, phase: dict) -> Phase
         )
 
     # 旧版目录有 ingest 数据但无报告
-    if phase["id"] == "A":
+    if phase["id"] == "Q01":
         for candidate in candidates[1:]:  # 跳过标准命名（已检查）
             if candidate and candidate.is_dir():
                 has_ingest = (candidate / "ingest.json").exists() or (candidate / "aggregate_ingest.json").exists()

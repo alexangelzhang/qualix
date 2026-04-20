@@ -1,0 +1,29 @@
+{
+  "case_id": "SEED-phaseD-miss-call-chain-003",
+  "phase": "D",
+  "error_type": "FN",
+  "severity": "high",
+  "title": "评审只看了 Service 层，未追踪到 Gateway/RPC 调用链，遗漏超时无补偿问题",
+  "root_cause": "CONTEXT",
+  "fix_target": "skills/code-review.md",
+  "tags": [
+    "调用链",
+    "Gateway",
+    "超时",
+    "链路不完整"
+  ],
+  "created_at": "2026-04-09",
+  "status": "open",
+  "source": {
+    "seed_case": true,
+    "pattern": "PaymentService.charge() 调用了 PaymentGateway.deduct()，但评审只分析了 Service 层逻辑，未追踪到 Gateway 的 RPC 调用超时无重试/补偿"
+  },
+  "expected": {
+    "content": "评审应追踪完整链路 Controller→Service→Domain→Gateway，标记 Gateway.deduct() 缺少超时配置和补偿机制"
+  },
+  "actual": {
+    "content": "评审报告只覆盖了 PaymentService 的业务逻辑，Gateway 层未提及"
+  },
+  "lesson": "DDD+TMF 项目的代码评审必须追踪完整调用链到 Gateway 层。每个 RPC/HTTP 调用点必须检查：超时配置、重试策略、降级方案、补偿机制。",
+  "holdout": false
+}

@@ -178,7 +178,7 @@ def test_adaptive_loop_passes_output_dir_to_all_agents(monkeypatch, tmp_path: Pa
     loop = AdaptiveLoop(tmp_path / "output")
     loop.run(
         project_id="demo",
-        phase_id="A",
+        phase_id="Q01",
         worker_prompt="worker prompt",
         judge_rubric="judge prompt",
         critique_prompt="critique prompt",

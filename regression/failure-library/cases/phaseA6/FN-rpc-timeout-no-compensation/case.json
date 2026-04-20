@@ -6,7 +6,11 @@
   "title": "RPC 调用无补偿机制但未识别为质量问题",
   "root_cause": "KNOWLEDGE",
   "fix_target": "references/risk-and-exception-catalog.md",
-  "tags": ["RPC", "补偿", "数据一致性"],
+  "tags": [
+    "RPC",
+    "补偿",
+    "数据一致性"
+  ],
   "created_at": "2026-04-02",
   "status": "open",
   "expected": {
@@ -17,5 +21,6 @@
     "item_type": null,
     "content": "Phase A.6 未识别该问题，Failure Mode 分析中该路径标记为 SAFE"
   },
-  "lesson": "跨服务写操作（扣库存+创建订单）必须检查是否有补偿/saga/TCC 机制，缺失即为 RISK 或 CRITICAL_GAP"
+  "lesson": "跨服务写操作（扣库存+创建订单）必须检查是否有补偿/saga/TCC 机制，缺失即为 RISK 或 CRITICAL_GAP",
+  "holdout": false
 }

@@ -23,5 +23,6 @@
   "actual": {
     "content": "semantic_expectations.10.mapped_to_req_br"
   },
-  "lesson": ""
+  "lesson": "",
+  "holdout": false
 }

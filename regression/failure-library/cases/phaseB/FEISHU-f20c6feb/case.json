@@ -1,0 +1,17 @@
+{
+  "case_id": "FEISHU-f20c6feb",
+  "phase": "B",
+  "error_type": "MISS",
+  "severity": "high",
+  "title": "退款节点状态未国际化",
+  "root_cause": "国际化多语言问题",
+  "fix_target": "",
+  "tags": "[\"feishu-import\", \"category:国际化多语言问题\", \"bug_class:后端\"]",
+  "created_at": "2026-04-15",
+  "status": "open",
+  "source": "{\"feishu_table\": \"tblGxARLByCc5h3T\", \"bug_id\": null, \"requirement\": \"国际-售后-寄修维修流程差异化适配\"}",
+  "expected": "{\"content\": \"（需人工确认）\"}",
+  "actual": "{\"content\": \"国际化问题：前端+后端\"}",
+  "lesson": "",
+  "holdout": "False"
+}

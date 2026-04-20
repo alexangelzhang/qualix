@@ -18,7 +18,7 @@ from __future__ import annotations
 
 # Phase 定义：DQG 特有的业务元数据
 PHASE_DEFS: dict[str, dict] = {
-    "A": {
+    "Q01": {
         "name": "需求结构化",
         "dir_suffix": "phaseA",
         "skill": "skills/requirement-structuring/SKILL.md",
@@ -48,16 +48,16 @@ PHASE_DEFS: dict[str, dict] = {
             {"canonical": "Gap 分析", "aliases": ["GAP 缺口清单", "缺口分析", "Gap Analysis"]},
         ],
     },
-    "A.3": {
+    "Q02": {
         "name": "技术方案生成",
         "dir_suffix": "phaseA3",
         "skill": "skills/tech-design-generation/SKILL.md",
         "recommended_model": "strong",
         "reasoning_profile": {"planning": "high", "execution": "high", "verification": "high"},
-        "depends_on": ["A"],
+        "depends_on": ["Q01"],
         "parallel_with": [],
         "skippable": True,
-        "skip_condition": "已有技术方案文档时可跳过，直接进入 A.6 质量评审",
+        "skip_condition": "已有技术方案文档时可跳过，直接进入 Q03 质量评审",
         "required_inputs": [],
         "optional_inputs": [
             {"key": "existing_tech_design", "label": "已有技术方案", "prompt": "如已有技术方案文档，提供路径或飞书链接（提供则跳过生成，直接进入评审）"},
@@ -82,16 +82,16 @@ PHASE_DEFS: dict[str, dict] = {
             {"canonical": "数据模型", "aliases": ["Data Model", "DDL", "表结构"]},
         ],
     },
-    "A.6": {
+    "Q03": {
         "name": "技术方案质量评审",
         "dir_suffix": "phaseA6",
         "skill": "skills/tech-quality-review/SKILL.md",
         "recommended_model": "strong",
         "reasoning_profile": {"planning": "high", "execution": "standard", "verification": "high"},
-        "depends_on": ["A.3"],
+        "depends_on": ["Q02"],
         "parallel_with": [],
         "required_inputs": [
-            {"key": "tech_design", "label": "技术方案文档", "prompt": "技术方案路径或飞书链接（A.3 跳过时必填）", "required": True},
+            {"key": "tech_design", "label": "技术方案文档", "prompt": "技术方案路径或飞书链接（Q02 跳过时必填）", "required": True},
         ],
         "optional_inputs": [
             {"key": "code_repo", "label": "代码仓库(feature分支)", "prompt": "代码仓库路径，用于追踪改动功能点的完整 TMF 链路（没有直接回车跳过）"},
@@ -112,13 +112,13 @@ PHASE_DEFS: dict[str, dict] = {
             {"canonical": "异常场景", "aliases": ["Exception Scenarios", "异常分析"]},
         ],
     },
-    "A.5": {
+    "Q04": {
         "name": "技术方案覆盖度审计",
         "dir_suffix": "phaseA5",
         "skill": "skills/tech-coverage-audit/SKILL.md",
         "recommended_model": "standard",
         "reasoning_profile": {"planning": "standard", "execution": "standard", "verification": "high"},
-        "depends_on": ["A.6"],
+        "depends_on": ["Q03"],
         "parallel_with": [],
         "required_inputs": [
             {"key": "tech_design", "label": "技术方案文档", "prompt": "技术方案路径或飞书链接（多个用逗号分隔）", "required": True},
@@ -141,13 +141,13 @@ PHASE_DEFS: dict[str, dict] = {
             {"canonical": "缺失项", "aliases": ["Missing Items", "遗漏"]},
         ],
     },
-    "B": {
+    "Q05": {
         "name": "单测生成",
         "dir_suffix": "phaseB",
         "skill": "skills/unit-test-generation/SKILL.md",
         "recommended_model": "standard",
         "reasoning_profile": {"planning": "high", "execution": "standard", "verification": "standard"},
-        "depends_on": ["A"],
+        "depends_on": ["Q01"],
         "parallel_with": [],
         "required_inputs": [
             {"key": "code_repo", "label": "代码仓库", "prompt": "代码仓库路径（本地路径或 Git URL）", "required": True},
@@ -169,13 +169,13 @@ PHASE_DEFS: dict[str, dict] = {
             {"canonical": "覆盖率矩阵", "aliases": ["Coverage Matrix", "覆盖率"]},
         ],
     },
-    "C": {
+    "Q06": {
         "name": "单测覆盖审计",
         "dir_suffix": "phaseC",
         "skill": "skills/unit-test-audit/SKILL.md",
         "recommended_model": "standard",
         "reasoning_profile": {"planning": "standard", "execution": "standard", "verification": "high"},
-        "depends_on": ["A"],
+        "depends_on": ["Q01"],
         "parallel_with": [],
         "required_inputs": [
             {"key": "code_repo", "label": "代码仓库", "prompt": "代码仓库路径（含单测代码）", "required": True},
@@ -196,13 +196,13 @@ PHASE_DEFS: dict[str, dict] = {
             {"canonical": "覆盖率分析", "aliases": ["Coverage Analysis", "覆盖率"]},
         ],
     },
-    "D": {
+    "Q07": {
         "name": "代码评审",
         "dir_suffix": "phaseD",
         "skill": "skills/code-review/SKILL.md",
         "recommended_model": "strong",
         "reasoning_profile": {"planning": "high", "execution": "standard", "verification": "high"},
-        "depends_on": ["A"],
+        "depends_on": ["Q01"],
         "parallel_with": [],
         "required_inputs": [
             {"key": "code_repo", "label": "代码仓库", "prompt": "代码仓库路径", "required": True},
@@ -227,4 +227,4 @@ PHASE_DEFS: dict[str, dict] = {
 }
 
 # Phase 执行顺序
-PHASE_ORDER: list[str] = ["A", "A.3", "A.6", "A.5", "B", "C", "D"]
+PHASE_ORDER: list[str] = ["Q01", "Q02", "Q03", "Q04", "Q05", "Q06", "Q07"]

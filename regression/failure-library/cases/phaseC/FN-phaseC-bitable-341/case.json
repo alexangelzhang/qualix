@@ -4,7 +4,7 @@
   "error_type": "FN",
   "severity": "high",
   "title": "创建咨询工单关联预约维保单，零售通卡片页关联维保工单为空",
-  "root_cause": "SKILL_RULE",
+  "root_cause": "函数未覆盖",
   "fix_target": "skills/unit-test-audit.md",
   "tags": [
     "汽车",
@@ -25,5 +25,6 @@
   "actual": {
     "content": "数据获取bug，导致获取字段的地方出现偏差"
   },
-  "lesson": "关注数据来源，增加数据正确性校验"
+  "lesson": "关注数据来源，增加数据正确性校验",
+  "holdout": false
 }

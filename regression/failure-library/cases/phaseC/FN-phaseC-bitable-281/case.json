@@ -4,7 +4,7 @@
   "error_type": "FN",
   "severity": "high",
   "title": "【106171】有七无权益，没有退货权益失败，在服务单详情页展示了7无政策",
-  "root_cause": "SKILL_RULE",
+  "root_cause": "函数未覆盖",
   "fix_target": "skills/unit-test-audit.md",
   "tags": [
     "工单",
@@ -24,5 +24,6 @@
   "actual": {
     "content": "没适配好，自测不充分"
   },
-  "lesson": ""
+  "lesson": "",
+  "holdout": false
 }

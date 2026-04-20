@@ -1,0 +1,16 @@
+{
+  "case_id": "FEISHU-INF-107529a2",
+  "phase": "B",
+  "error_type": "MISS",
+  "severity": "medium",
+  "title": "/customer/register接口配置为走迁移后逻辑，接口报500，配置走迁移前逻辑可以正常提交",
+  "root_cause": "函数异常分支未覆盖",
+  "tags": "[\"feishu-import\", \"inferred-from-title\", \"category:函数异常分支未覆盖\"]",
+  "created_at": "2026-04-15",
+  "status": "open",
+  "source": "{\"feishu_table\": \"tblGxARLByCc5h3T\", \"bug_id\": \"107529a2\", \"original_cat1\": \"未分类\", \"inferred_cat2\": \"函数异常分支未覆盖\", \"inference_reason\": \"接口500/报错，异常分支未处理\", \"requirement\": \"桩云微服务拆分\"}",
+  "expected": "{\"content\": \"（根据bug描述推理，需人工确认）\"}",
+  "actual": "{\"content\": \"/customer/register接口配置为走迁移后逻辑，接口报500，配置走迁移前逻辑可以正常提交\"}",
+  "lesson": "接口500/报错，异常分支未处理",
+  "holdout": "False"
+}

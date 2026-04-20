@@ -1,0 +1,16 @@
+{
+  "case_id": "FEISHU-DQG-106769",
+  "phase": "A",
+  "error_type": "MISS",
+  "severity": "medium",
+  "title": "【106769】国际化检查失败",
+  "root_cause": "需求遗漏",
+  "tags": "[\"feishu-import\", \"dqg-relevant\", \"category:需求遗漏\"]",
+  "created_at": "2026-04-15",
+  "status": "open",
+  "source": "{\"feishu_table\": \"tblGxARLByCc5h3T\", \"bug_id\": \"106769\", \"original_cat1\": \"非单测相关\", \"original_cat2\": \"需求遗漏\", \"requirement\": \"国际-售后-寄修维修流程差异化适配\"}",
+  "expected": "{\"content\": \"（需人工确认）\"}",
+  "actual": "{\"content\": \"国际化 未关注到 枚举没用通用工具覆盖\"}",
+  "lesson": "国际化 未关注到 枚举没用通用工具覆盖",
+  "holdout": "False"
+}

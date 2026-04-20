@@ -212,44 +212,44 @@ def extract_phase_c_metrics(report_path: Path) -> dict:
 
 def collect_all_metrics(output_dir: Path, project_id: str) -> dict:
     """采集所有阶段的指标。"""
-    phase_a_dir = output_dir / project_id / PHASE_DIR_MAP["A"]
+    phase_a_dir = output_dir / project_id / PHASE_DIR_MAP["Q01"]
 
     metrics = {
         "project_id": project_id,
         "collected_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "phases": {
-            "A": extract_phase_a_metrics(phase_a_dir / REPORT_MAP["A"]),
-            "A.5": extract_phase_a5_metrics(
-                phase_a_dir / REPORT_MAP["A.5"]
-                if (phase_a_dir / REPORT_MAP["A.5"]).exists()
-                else output_dir / project_id / PHASE_DIR_MAP["A.5"] / REPORT_MAP["A.5"]
+            "Q01": extract_phase_a_metrics(phase_a_dir / REPORT_MAP["Q01"]),
+            "Q04": extract_phase_a5_metrics(
+                phase_a_dir / REPORT_MAP["Q04"]
+                if (phase_a_dir / REPORT_MAP["Q04"]).exists()
+                else output_dir / project_id / PHASE_DIR_MAP["Q04"] / REPORT_MAP["Q04"]
             ),
-            "A.6": extract_phase_a6_metrics(
-                phase_a_dir / REPORT_MAP["A.6"]
-                if (phase_a_dir / REPORT_MAP["A.6"]).exists()
-                else output_dir / project_id / PHASE_DIR_MAP["A.6"] / REPORT_MAP["A.6"]
+            "Q03": extract_phase_a6_metrics(
+                phase_a_dir / REPORT_MAP["Q03"]
+                if (phase_a_dir / REPORT_MAP["Q03"]).exists()
+                else output_dir / project_id / PHASE_DIR_MAP["Q03"] / REPORT_MAP["Q03"]
             ),
-            "C": extract_phase_c_metrics(
-                output_dir / project_id / PHASE_DIR_MAP["C"] / REPORT_MAP["C"]
+            "Q06": extract_phase_c_metrics(
+                output_dir / project_id / PHASE_DIR_MAP["Q06"] / REPORT_MAP["Q06"]
             ),
         },
     }
 
     # 计算汇总指标
     summary = {}
-    a = metrics["phases"]["A"]
+    a = metrics["phases"]["Q01"]
     if a.get("status") == "COLLECTED":
         summary["total_requirements"] = a["req_count"] + a["br_count"]
         summary["total_semantics"] = a["se_count"]
         summary["total_gaps"] = a["gap_count"]
         summary["total_opens"] = a["open_count"]
 
-    a5 = metrics["phases"]["A.5"]
+    a5 = metrics["phases"]["Q04"]
     if a5.get("status") == "COLLECTED":
         gap_closure = a5.get("gap_closure", {})
         summary["gap_closure_rate"] = gap_closure.get("closure_rate", 0)
 
-    a6 = metrics["phases"]["A.6"]
+    a6 = metrics["phases"]["Q03"]
     if a6.get("status") == "COLLECTED":
         summary["total_quality_issues"] = a6.get("issue_density", {}).get("total", 0)
         summary["critical_gaps"] = a6.get("failure_mode", {}).get("critical_gap", 0)
@@ -266,7 +266,7 @@ def print_metrics_summary(metrics: dict):
     print(f"  采集时间: {metrics['collected_at']}")
     print("=" * 56)
 
-    a = metrics["phases"]["A"]
+    a = metrics["phases"]["Q01"]
     if a.get("status") == "COLLECTED":
         print("\n  Phase A — 需求结构化")
         print(f"    需求点: {a['req_count']} REQ + {a['br_count']} BR")
@@ -274,13 +274,13 @@ def print_metrics_summary(metrics: dict):
         print(f"    缺口: {a['gap_count']} GAP / 待确认: {a['open_count']} OPEN")
         print(f"    结论: {a['conclusion']}")
 
-    a5 = metrics["phases"]["A.5"]
+    a5 = metrics["phases"]["Q04"]
     if a5.get("status") == "COLLECTED":
         print("\n  Phase A.5 — 覆盖度审计")
         gc = a5.get("gap_closure", {})
         print(f"    GAP 闭环: {gc.get('closed', 0)}/{gc.get('total', 0)} ({gc.get('closure_rate', 0):.0%})")
 
-    a6 = metrics["phases"]["A.6"]
+    a6 = metrics["phases"]["Q03"]
     if a6.get("status") == "COLLECTED":
         density = a6.get("issue_density", {})
         fm = a6.get("failure_mode", {})
@@ -288,7 +288,7 @@ def print_metrics_summary(metrics: dict):
         print(f"    问题总数: {density.get('total', 0)} (ARCH:{density.get('architecture', 0)} API:{density.get('api_design', 0)} DATA:{density.get('data_model', 0)} EXC:{density.get('exception_handling', 0)} PERF:{density.get('performance', 0)})")
         print(f"    Failure Mode: SAFE:{fm.get('safe', 0)} RISK:{fm.get('risk', 0)} CRITICAL_GAP:{fm.get('critical_gap', 0)}")
 
-    c = metrics["phases"]["C"]
+    c = metrics["phases"]["Q06"]
     if c.get("status") == "COLLECTED":
         cq = c.get("coverage_quality", {})
         cg = c.get("coverage_gate", {})

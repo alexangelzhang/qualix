@@ -247,20 +247,31 @@ def _estimate_cost(input_tokens: int, output_tokens: int, cache_creation_tokens:
 
 
 def persist_phase_metrics(output_dir: Path, metrics: dict[str, Any]) -> None:
-    """将性能指标持久化到 SQLite."""
+    """将性能指标批量持久化到 SQLite."""
+    from dqg.store.core import get_connection
+
+    rows = []
+    ts = metrics.get("timestamp", datetime.now().isoformat())
+    pid = metrics.get("project_id", "")
+    phase = metrics.get("phase_id", "")
+
     for key in ("input_tokens", "output_tokens", "total_tokens",
                 "tokens_per_second", "cost_estimate_usd",
-                "output_dir_size_kb", "output_file_count"):
+                "output_dir_size_kb", "output_file_count",
+                "cache_read_input_tokens", "cache_creation_input_tokens"):
         value = metrics.get(key)
         if value is not None:
-            insert_metric(output_dir, {
-                "project_id": metrics.get("project_id", ""),
-                "phase_id": metrics.get("phase_id", ""),
-                "metric_name": key,
-                "metric_value": value,
-                "period": "phase_run",
-                "timestamp": metrics.get("timestamp", datetime.now().isoformat()),
-            })
+            rows.append((pid, phase, key, value, "{}", "phase_run", ts))
+
+    if rows:
+        with get_connection(output_dir) as conn:
+            conn.executemany(
+                """INSERT INTO metrics
+                (project_id, phase_id, metric_name, metric_value,
+                 metric_data, period, timestamp)
+                VALUES (?, ?, ?, ?, ?, ?, ?)""",
+                rows,
+            )
 
 
 def generate_improvement_suggestions(metrics: dict[str, Any]) -> list[str]:
@@ -324,6 +335,16 @@ def format_metrics_report(metrics: dict[str, Any]) -> str:
     output_t = metrics.get("output_tokens", 0)
     total_t = metrics.get("total_tokens", 0)
     lines.append(f"  Token 消耗: {total_t:,} (输入 {input_t:,} + 输出 {output_t:,})")
+
+    # Cache 指标
+    cache_read = metrics.get("cache_read_input_tokens", 0)
+    cache_creation = metrics.get("cache_creation_input_tokens", 0)
+    if cache_read or cache_creation:
+        cache_hit_rate = cache_read / max(input_t, 1)
+        lines.append(
+            f"  Prompt Cache: read={cache_read:,} creation={cache_creation:,} "
+            f"hit_rate={cache_hit_rate:.0%}"
+        )
 
     # 输入明细
     input_files = metrics.get("input_files", {})

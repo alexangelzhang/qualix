@@ -23,5 +23,6 @@
   "actual": {
     "content": "Field required [type=missing, input_value={'id': 'REQ-002', 'title'...R-002-01', 'BR-002-02']}, input_type=dict]"
   },
-  "lesson": ""
+  "lesson": "",
+  "holdout": true
 }

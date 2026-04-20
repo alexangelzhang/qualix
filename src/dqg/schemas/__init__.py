@@ -11,13 +11,13 @@ from pathlib import Path  # noqa: TC003 — used at runtime in validate_phase_ou
 
 from dqg.constants import PHASE_DIR_MAP, STRUCTURED_JSON_MAP
 from dqg.json_utils import load_json_strict
-from dqg.schemas.phase_a import PhaseAOutput
-from dqg.schemas.phase_a3 import PhaseA3Output
-from dqg.schemas.phase_a5 import PhaseA5Output
-from dqg.schemas.phase_a6 import PhaseA6Output
-from dqg.schemas.phase_b import PhaseBOutput
-from dqg.schemas.phase_c import PhaseCOutput
-from dqg.schemas.phase_d import PhaseDOutput
+from dqg.schemas.phase_q01 import PhaseAOutput
+from dqg.schemas.phase_q02 import PhaseA3Output
+from dqg.schemas.phase_q04 import PhaseA5Output
+from dqg.schemas.phase_q03 import PhaseA6Output
+from dqg.schemas.phase_q05 import PhaseBOutput
+from dqg.schemas.phase_q06 import PhaseCOutput
+from dqg.schemas.phase_q07 import PhaseDOutput
 
 __all__ = [
     "PhaseA3Output",
@@ -32,13 +32,13 @@ __all__ = [
 
 # Phase schema class 映射
 _SCHEMA_CLASS_MAP: dict[str, type] = {
-    "A": PhaseAOutput,
-    "A.3": PhaseA3Output,
-    "A.5": PhaseA5Output,
-    "A.6": PhaseA6Output,
-    "B": PhaseBOutput,
-    "C": PhaseCOutput,
-    "D": PhaseDOutput,
+    "Q01": PhaseAOutput,
+    "Q02": PhaseA3Output,
+    "Q03": PhaseA6Output,
+    "Q04": PhaseA5Output,
+    "Q05": PhaseBOutput,
+    "Q06": PhaseCOutput,
+    "Q07": PhaseDOutput,
 }
 
 # Phase ID → (目录后缀, 校验文件名, schema class) — 从 constants 组装
@@ -69,9 +69,9 @@ def validate_phase_output(
     # 查找产物目录
     phase_dir = output_dir / project_id / dir_suffix
 
-    # A.5/A.6 也可能放在 phaseA 目录下
-    if not phase_dir.is_dir() and phase_id in ("A.5", "A.6"):
-        phase_dir = output_dir / project_id / PHASE_DIR_MAP["A"]
+    # Q03/Q04 也可能放在 phaseA 目录下（历史兼容）
+    if not phase_dir.is_dir() and phase_id in ("Q03", "Q04"):
+        phase_dir = output_dir / project_id / PHASE_DIR_MAP["Q01"]
 
     if not phase_dir.is_dir():
         return None

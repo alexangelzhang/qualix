@@ -18,7 +18,7 @@ from pathlib import Path
 from typing import Any
 
 from dqg.cache.code_search import format_search_results, index_java_repo, search_code
-from dqg.cache.fact_cache import index_phase_facts, search_facts
+from dqg.cache.fact_cache import count_facts, index_phase_facts, search_facts
 from dqg.cache.image_cache import save_batch as save_image_batch
 from dqg.cache.image_cache import search_image_semantics
 from dqg.cache.semantic_cache import cache_invalidate, cache_stats, cached_search
@@ -125,6 +125,12 @@ class MemoryLayer:
     def _invalidate_project_fact_search_cache(self, project_id: str) -> None:
         cache_invalidate(self.output_dir, project_id=project_id, result_type="fact")
 
+    # ----- Fact 数量监控 -----
+
+    def get_fact_count(self, project_id: str | None = None) -> int:
+        """统计结构化事实总数，用于监控是否逼近 context 崩溃阈值."""
+        return count_facts(self.output_dir, project_id=project_id)
+
     # ----- 搜索（统一入口）-----
 
     def search(
@@ -137,10 +143,13 @@ class MemoryLayer:
         """统一搜索：同时查事实/图片/文本/代码，返回分类结果.
 
         scope: "all" | "facts" | "images" | "text" | "code"
+        当 scope="all" 时，四个搜索并行执行。
         """
+        from concurrent.futures import ThreadPoolExecutor
+
         results: dict[str, list[dict[str, Any]]] = {}
 
-        if scope in ("all", "facts"):
+        def _search_facts():
             if project_id:
                 facts, _ = cached_search(
                     self.output_dir,
@@ -153,16 +162,38 @@ class MemoryLayer:
                 )
             else:
                 facts = search_facts(self.output_dir, query, limit=limit)
-            results["facts"] = facts if isinstance(facts, list) else []
+            return "facts", facts if isinstance(facts, list) else []
 
-        if scope in ("all", "images"):
-            results["images"] = search_image_semantics(self.output_dir, query, project_id=project_id, limit=limit)
+        def _search_images():
+            return "images", search_image_semantics(self.output_dir, query, project_id=project_id, limit=limit)
 
-        if scope in ("all", "text"):
-            results["text"] = search_text(self.output_dir, query, project_id=project_id, limit=limit)
+        def _search_text():
+            return "text", search_text(self.output_dir, query, project_id=project_id, limit=limit)
 
-        if scope in ("all", "code"):
-            results["code"] = search_code(self.output_dir, query, limit=limit)
+        def _search_code():
+            return "code", search_code(self.output_dir, query, limit=limit)
+
+        scope_map = {
+            "facts": _search_facts,
+            "images": _search_images,
+            "text": _search_text,
+            "code": _search_code,
+        }
+
+        if scope == "all":
+            tasks = list(scope_map.values())
+        elif scope in scope_map:
+            tasks = [scope_map[scope]]
+        else:
+            return results
+
+        if len(tasks) == 1:
+            key, data = tasks[0]()
+            results[key] = data
+        else:
+            with ThreadPoolExecutor(max_workers=len(tasks)) as pool:
+                for key, data in pool.map(lambda fn: fn(), tasks):
+                    results[key] = data
 
         return results
 
@@ -191,6 +222,10 @@ class MemoryLayer:
         counts["knowledge_nodes"] = index_project_facts(self.output_dir, project_id, phase_id)
         counts["version_changes"] = 0
         counts["version_diff"] = None
+
+        # 构建业务域 hyperedge（多实体关联）
+        from dqg.memory.knowledge_network import build_business_hyperedges
+        counts["hyperedges"] = build_business_hyperedges(self.output_dir, project_id, phase_id)
 
         json_file = STRUCTURED_JSON_MAP.get(phase_id)
         phase_root = self._phase_root(project_id, phase_id)

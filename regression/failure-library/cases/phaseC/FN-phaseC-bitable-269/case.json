@@ -4,7 +4,7 @@
   "error_type": "FN",
   "severity": "high",
   "title": "【107241】非自营-无发票时间，有激活时间显示问题",
-  "root_cause": "SKILL_RULE",
+  "root_cause": "函数未覆盖",
   "fix_target": "skills/unit-test-audit.md",
   "tags": [
     "国际",
@@ -25,5 +25,6 @@
   "actual": {
     "content": "国际和国内三包展示规则不一致。"
   },
-  "lesson": "补充单测"
+  "lesson": "补充单测",
+  "holdout": false
 }

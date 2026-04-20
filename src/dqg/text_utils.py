@@ -1,4 +1,4 @@
-"""共享文本工具：中文 n-gram 分词、通用 row_to_dict.
+"""共享文本工具：中文分词（jieba 词级 + n-gram 兜底）、通用 row_to_dict.
 
 注意：REPORT_MAP / STRUCTURED_JSON_MAP 的权威定义已迁移到 constants.py，
 此处 re-export 保持向后兼容。
@@ -21,6 +21,38 @@ _IDENTIFIER_RE = re.compile(r"[A-Za-z0-9]+(?:[_\-][A-Za-z0-9]+)*")
 _CAMEL_PART_RE = re.compile(r"[A-Z]?[a-z]+|[A-Z]+(?![a-z])|\d+")
 _CHINESE_ONLY_RE = re.compile(r"[\u4e00-\u9fff]+")
 
+# ---------------------------------------------------------------------------
+# jieba 懒加载（可选依赖，不可用时降级到 n-gram）
+# ---------------------------------------------------------------------------
+
+_jieba_available: bool | None = None
+_jieba_module: Any = None
+
+# 中文停用词（高频无意义词）
+_CHINESE_STOPWORDS: frozenset[str] = frozenset({
+    "的", "了", "在", "是", "我", "有", "和", "就", "不", "人", "都", "一",
+    "一个", "上", "也", "很", "到", "说", "要", "去", "你", "会", "着",
+    "没有", "看", "好", "自己", "这", "他", "她", "它", "们", "那", "些",
+    "什么", "怎么", "如果", "因为", "所以", "但是", "而且", "或者", "以及",
+    "可以", "需要", "进行", "使用", "通过", "对于", "关于", "其中", "以下",
+    "以上", "之后", "之前", "目前", "已经", "正在", "将要", "应该", "必须",
+})
+
+
+def _ensure_jieba() -> bool:
+    """懒加载 jieba，返回是否可用."""
+    global _jieba_available, _jieba_module
+    if _jieba_available is not None:
+        return _jieba_available
+    try:
+        import jieba as _jb
+        _jb.setLogLevel(20)  # 抑制 jieba 的 DEBUG 日志
+        _jieba_module = _jb
+        _jieba_available = True
+    except ImportError:
+        _jieba_available = False
+    return _jieba_available
+
 
 def _split_identifier_parts(token: str) -> list[str]:
     parts: list[str] = []
@@ -35,15 +67,36 @@ def _split_identifier_parts(token: str) -> list[str]:
     return [part.lower() for part in parts if part]
 
 
-def _tokenize_chinese_segment(segment: str) -> list[str]:
+def _tokenize_chinese_segment_ngram(segment: str) -> list[str]:
+    """n-gram 分词（降级方案）：单字+双字."""
     chars = list(segment)
     tokens = chars[:]
     tokens.extend(chars[i] + chars[i + 1] for i in range(len(chars) - 1))
     return tokens
 
 
+def _tokenize_chinese_segment_jieba(segment: str) -> list[str]:
+    """jieba 词级分词 + 双字 n-gram 补充（提高召回率）."""
+    tokens: list[str] = []
+    # jieba 精确模式分词
+    words = _jieba_module.lcut(segment)
+    for word in words:
+        if word.strip() and word not in _CHINESE_STOPWORDS:
+            tokens.append(word)
+    # 补充双字 n-gram（覆盖 jieba 未识别的新词）
+    chars = list(segment)
+    for i in range(len(chars) - 1):
+        bigram = chars[i] + chars[i + 1]
+        if bigram not in _CHINESE_STOPWORDS:
+            tokens.append(bigram)
+    return tokens
+
+
 def tokenize_chinese(text: str) -> str:
-    """中文 n-gram 分词：单字+双字只在连续中文片段内生成，英文保留原词并拆 identifier 子 token."""
+    """中文分词：jieba 词级（可用时）或 n-gram 降级，英文保留原词并拆 identifier 子 token."""
+    use_jieba = _ensure_jieba()
+    segment_fn = _tokenize_chinese_segment_jieba if use_jieba else _tokenize_chinese_segment_ngram
+
     tokens: list[str] = []
     seen: set[str] = set()
 
@@ -61,7 +114,7 @@ def tokenize_chinese(text: str) -> str:
             add(ident)
             for part in _split_identifier_parts(ident):
                 add(part)
-        for token in _tokenize_chinese_segment(match.group()):
+        for token in segment_fn(match.group()):
             add(token)
         cursor = match.end()
 

@@ -23,5 +23,6 @@
   "actual": {
     "content": "For further information visit https://errors.pydantic.dev/2.12/v/missing"
   },
-  "lesson": ""
+  "lesson": "",
+  "holdout": false
 }

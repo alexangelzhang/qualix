@@ -4,7 +4,7 @@
   "error_type": "FN",
   "severity": "high",
   "title": "追加车辆清单，上传了重复的vin未拦截",
-  "root_cause": "SKILL_RULE",
+  "root_cause": "函数异常分支未覆盖",
   "fix_target": "skills/unit-test-audit.md",
   "tags": [
     "汽车",
@@ -24,5 +24,6 @@
   "actual": {
     "content": "（需人工补充）"
   },
-  "lesson": "单元测试注意覆盖provider层"
+  "lesson": "单元测试注意覆盖provider层",
+  "holdout": true
 }

@@ -1,0 +1,16 @@
+{
+  "case_id": "FEISHU-DQG-106864",
+  "phase": "A",
+  "error_type": "MISS",
+  "severity": "medium",
+  "title": "【106864】已经申请手工费减免（审批中），刷新页面重新流转检测时无法计算保外费用",
+  "root_cause": "产品需求不明确",
+  "tags": "[\"feishu-import\", \"dqg-relevant\", \"category:产品需求不明确\"]",
+  "created_at": "2026-04-15",
+  "status": "open",
+  "source": "{\"feishu_table\": \"tblGxARLByCc5h3T\", \"bug_id\": \"106864\", \"original_cat1\": \"非单测相关\", \"original_cat2\": \"产品需求不明确\", \"requirement\": \"国际-售后-保外手工费减免流程搭建\"}",
+  "expected": "{\"content\": \"（需人工确认）\"}",
+  "actual": "{\"content\": \"PRD和测试用例评审都未提及 产品期望在检测处理提交时再校验，而不是勾选人损触发费用计算就校验\"}",
+  "lesson": "PRD和测试用例评审都未提及 产品期望在检测处理提交时再校验，而不是勾选人损触发费用计算就校验",
+  "holdout": "False"
+}

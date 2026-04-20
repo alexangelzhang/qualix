@@ -4,7 +4,7 @@
   "error_type": "FN",
   "severity": "high",
   "title": "新增/编辑技能名称重复校验，不可保存相同名称的技能",
-  "root_cause": "SKILL_RULE",
+  "root_cause": "需求实现遗漏",
   "fix_target": "skills/requirement-structuring.md",
   "tags": [
     "客服",
@@ -24,5 +24,6 @@
   "actual": {
     "content": "实现漏了，AI生成技术方案阶段就漏了，需要人工检查和AI做功能点检查"
   },
-  "lesson": "技术方案为什么会漏"
+  "lesson": "技术方案为什么会漏",
+  "holdout": false
 }

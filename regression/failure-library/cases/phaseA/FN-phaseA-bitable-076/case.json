@@ -4,7 +4,7 @@
   "error_type": "FN",
   "severity": "high",
   "title": "车辆清单未上传建议维修门店id，服务活动下发异常",
-  "root_cause": "SKILL_RULE",
+  "root_cause": "需求实现遗漏",
   "fix_target": "skills/requirement-structuring.md",
   "tags": [
     "汽车",
@@ -24,5 +24,6 @@
   "actual": {
     "content": "维修门店本次不传，但是对应的字段之前是必传，在不传对应字段是报错"
   },
-  "lesson": "增加单测场景覆盖"
+  "lesson": "增加单测场景覆盖",
+  "holdout": false
 }

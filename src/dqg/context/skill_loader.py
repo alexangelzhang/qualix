@@ -7,12 +7,22 @@
 from __future__ import annotations
 
 import re
+from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
 from dqg.log import get_logger
 
 log = get_logger(__name__)
+
+
+@lru_cache(maxsize=32)
+def _read_skill_file(path_str: str) -> str:
+    """缓存 skill 文件读取，同一路径不重复读。"""
+    path = Path(path_str)
+    if not path.exists():
+        return ""
+    return path.read_text(encoding="utf-8")
 
 # Skill 文件中的按需加载标记格式：
 # <!-- @include: path/to/detail.md -->
@@ -89,7 +99,7 @@ def load_skill_progressive(
     if not skill_path.exists():
         return ""
 
-    content = skill_path.read_text(encoding="utf-8")
+    content = _read_skill_file(str(skill_path.resolve()))
 
     # 检查是否有 include 标记
     if "<!-- @include" not in content:
@@ -105,7 +115,7 @@ def resolve_worker_prompt(phase: str, skill_override: str | None = None) -> str:
     All paths go through load_skill_progressive() to ensure prompt equivalence.
 
     Args:
-        phase: Phase identifier (e.g., "A", "B", "C")
+        phase: Phase identifier (e.g., "Q01", "Q05", "Q06")
         skill_override: Optional path to override skill file
 
     Returns:

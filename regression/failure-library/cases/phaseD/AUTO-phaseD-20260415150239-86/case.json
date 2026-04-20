@@ -1,0 +1,27 @@
+{
+  "case_id": "AUTO-phaseD-20260415150239-86",
+  "phase": "D",
+  "error_type": "WRONG",
+  "severity": "medium",
+  "title": "Field required [type=missing, input_value={'id': 'D-015', 'severity...', 'confidence': 'High'}, inpu",
+  "root_cause": "SCHEMA",
+  "fix_target": "src/dqg/schemas/phase_d.py",
+  "tags": [
+    "auto-generated",
+    "project:insurance-damage-assessment"
+  ],
+  "created_at": "2026-04-15",
+  "status": "open",
+  "source": {
+    "project_id": "insurance-damage-assessment",
+    "auto_generated": true,
+    "validation_error": "Field required [type=missing, input_value={'id': 'D-015', 'severity...', 'confidence': 'High'}, input_type=dict]"
+  },
+  "expected": {
+    "content": "（需人工确认）"
+  },
+  "actual": {
+    "content": "Field required [type=missing, input_value={'id': 'D-015', 'severity...', 'confidence': 'High'}, input_type=dict]"
+  },
+  "lesson": ""
+}

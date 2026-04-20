@@ -12,7 +12,7 @@ class TestTelemetry:
 
         record = PhaseRunRecord(
             project_id="TEST",
-            phase_id="A",
+            phase_id="Q01",
             phase_name="需求结构化",
             action="execute",
             status="in_progress",
@@ -21,7 +21,7 @@ class TestTelemetry:
 
         record2 = PhaseRunRecord(
             project_id="TEST",
-            phase_id="A",
+            phase_id="Q01",
             phase_name="需求结构化",
             action="finalize",
             status="pending_review",
@@ -44,7 +44,7 @@ class TestTelemetry:
     def test_record_has_metadata(self):
         record = PhaseRunRecord(
             project_id="TEST",
-            phase_id="A",
+            phase_id="Q01",
             action="execute",
             status="in_progress",
         )

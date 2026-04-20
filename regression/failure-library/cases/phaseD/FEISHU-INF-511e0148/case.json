@@ -1,0 +1,16 @@
+{
+  "case_id": "FEISHU-INF-511e0148",
+  "phase": "D",
+  "error_type": "MISS",
+  "severity": "high",
+  "title": "pre - 所有工单出现两个一模一样的单子",
+  "root_cause": "幂等",
+  "tags": "[\"feishu-import\", \"inferred-from-title\", \"category:幂等\"]",
+  "created_at": "2026-04-15",
+  "status": "open",
+  "source": "{\"feishu_table\": \"tblGxARLByCc5h3T\", \"bug_id\": \"511e0148\", \"original_cat1\": \"未分类\", \"inferred_cat2\": \"幂等\", \"inference_reason\": \"数据重复，疑似幂等/并发问题\", \"requirement\": \"线上线下协同-咨询单链路支持\"}",
+  "expected": "{\"content\": \"（根据bug描述推理，需人工确认）\"}",
+  "actual": "{\"content\": \"pre - 所有工单出现两个一模一样的单子\"}",
+  "lesson": "数据重复，疑似幂等/并发问题",
+  "holdout": "False"
+}

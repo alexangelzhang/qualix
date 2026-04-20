@@ -23,5 +23,6 @@
   "actual": {
     "content": "requirements.5.description"
   },
-  "lesson": ""
+  "lesson": "",
+  "holdout": false
 }

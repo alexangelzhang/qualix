@@ -23,5 +23,6 @@
   "actual": {
     "content": "Input should be a valid list [type=list_type, input_value={'arch': [{'id': 'ARCH-00...c': '无监控告警'}]}, input_type=dict]"
   },
-  "lesson": ""
+  "lesson": "",
+  "holdout": false
 }

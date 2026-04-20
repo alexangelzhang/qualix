@@ -75,42 +75,87 @@ knowledge/<project_id>/
 
 ## 执行流程
 
+> 以下每个 Step 由 Agent 自行决定具体扫描策略，下方提供参考命令模板。
+
 ### Step 1: 项目元信息采集
+
+读取构建配置文件，提取技术栈和模块结构：
+
 ```bash
-# 自动检测
-- 读取 pom.xml / build.gradle 获取依赖和版本
-- 扫描模块目录结构
-- 识别 DDD 分层
+# Java/Maven 项目
+cat pom.xml | grep -E '<groupId>|<artifactId>|<version>|<dependency>' | head -50
+
+# Java/Gradle 项目
+cat build.gradle | grep -E 'implementation|api|plugins' | head -50
+
+# 扫描模块目录结构
+find . -name "pom.xml" -not -path "*/target/*" | sort
+
+# 识别 DDD 分层（按目录名推断）
+find . -type d -name "domain" -o -name "infrastructure" -o -name "application" -o -name "client" | grep -v target | sort
 ```
 
 ### Step 2: API 契约扫描
+
 ```bash
 # 扫描所有 Provider 接口
-grep -r "interface.*Provider" --include="*.java" <api_module>/
-# 提取方法签名
+grep -rn "interface.*Provider" --include="*.java" . | grep -v target | grep -v test
+
+# 提取 Provider 方法签名
+grep -A 5 "interface.*Provider" --include="*.java" -r . | grep -v target
 ```
 
 ### Step 3: 核心链路追踪
-对每个 Provider 方法：
-1. 找到 ProviderImpl
-2. 追踪 CmdExe 或直接调用的 DomainService
-3. 追踪 DomainService 内部逻辑
-4. 对 TMF 项目追踪 Step/Ability/Extension 链路
-5. 追踪 Gateway → Mapper
+
+对每个 Provider 方法，按 DDD+TMF 链路逐层追踪：
+
+```bash
+# 找 ProviderImpl
+grep -rn "implements.*Provider" --include="*.java" . | grep -v target
+
+# 找 CmdExe 调用
+grep -rn "CmdExe\|CommandExecutor" --include="*.java" . | grep -v target
+
+# 找 TMF 链路入口
+grep -rn "TMF.execute\|decideSteps\|findAbility" --include="*.java" . | grep -v target
+
+# 找 Gateway 实现
+grep -rn "implements.*Gateway" --include="*.java" . | grep -v target
+```
 
 ### Step 4: 领域模型提取
-- 扫描 domain 模块的 model/entity/aggregate 目录
-- 识别聚合根（通常是最大的实体类）
-- 扫描 event 目录识别领域事件
-- 扫描 StateMachine 或状态枚举
+
+```bash
+# 扫描聚合根和实体
+find . -path "*/domain/model/*" -o -path "*/domain/entity/*" -o -path "*/domain/aggregate/*" | grep -v target | sort
+
+# 扫描领域事件
+find . -path "*/domain/event/*" -name "*.java" | grep -v target
+
+# 扫描状态机
+grep -rn "StateMachine\|enum.*Status\|enum.*State" --include="*.java" . | grep -v target
+```
 
 ### Step 5: 数据模型提取
-- 扫描 Mapper XML 或注解获取表结构
-- 或从 infrastructure 的 DO 类推断
+
+```bash
+# 从 Mapper XML 提取表结构
+find . -name "*Mapper.xml" | grep -v target
+grep -h "resultMap\|<id\|<result" $(find . -name "*Mapper.xml" -not -path "*/target/*") 2>/dev/null | head -50
+
+# 从 DO 类推断
+find . -path "*/infrastructure/*" -name "*DO.java" -o -name "*PO.java" | grep -v target
+```
 
 ### Step 6: 测试基线采集
-- 统计测试文件分布
-- 抽样评估质量
+
+```bash
+# 统计测试文件分布（按 DDD 层）
+find . -path "*/test/*" -name "*Test.java" | grep -v target | sed 's|.*/test/||' | cut -d/ -f1-3 | sort | uniq -c | sort -rn
+
+# 抽样检查断言质量
+grep -c "assertEquals\|assertThat\|verify(" $(find . -path "*/test/*" -name "*Test.java" -not -path "*/target/*" | head -10) 2>/dev/null
+```
 
 ## 知识库使用方式
 

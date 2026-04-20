@@ -1,0 +1,28 @@
+{
+  "case_id": "AUTO-phaseA6-20260410205705-104",
+  "phase": "A.6",
+  "error_type": "WRONG",
+  "severity": "medium",
+  "title": "Field required [type=missing, input_value={'scenario': 'BI同步时...表或版本号校验'}, input_type=dict]",
+  "root_cause": "SCHEMA",
+  "fix_target": "src/dqg/schemas/phase_a6.py",
+  "tags": [
+    "auto-generated",
+    "project:store-operation-model"
+  ],
+  "created_at": "2026-04-10",
+  "status": "open",
+  "source": {
+    "project_id": "store-operation-model",
+    "auto_generated": true,
+    "validation_error": "Field required [type=missing, input_value={'scenario': 'BI同步时...表或版本号校验'}, input_type=dict]"
+  },
+  "expected": {
+    "content": "（需人工确认）"
+  },
+  "actual": {
+    "content": "Field required [type=missing, input_value={'scenario': 'BI同步时...表或版本号校验'}, input_type=dict]"
+  },
+  "lesson": "",
+  "holdout": false
+}

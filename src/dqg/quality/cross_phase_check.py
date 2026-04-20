@@ -30,7 +30,7 @@ def check_cross_phase_refs(output_dir: Path, project_id: str) -> list[str]:
     errors: list[str] = []
 
     # 加载 Phase A 产物
-    phase_a_path = output_dir / project_id / PHASE_DIR_MAP["A"] / STRUCTURED_JSON_MAP["A"]
+    phase_a_path = output_dir / project_id / PHASE_DIR_MAP["Q01"] / STRUCTURED_JSON_MAP["Q01"]
     phase_a = load_json(phase_a_path)
 
     if not phase_a:
@@ -43,10 +43,10 @@ def check_cross_phase_refs(output_dir: Path, project_id: str) -> list[str]:
     open_ids = _extract_ids(phase_a, "open_items", "open_id")
 
     # 校验 Phase A.5：覆盖矩阵引用的 REQ/BR/SE/GAP/OPEN 是否存在
-    phase_a5_path = output_dir / project_id / PHASE_DIR_MAP["A.5"] / STRUCTURED_JSON_MAP["A.5"]
+    phase_a5_path = output_dir / project_id / PHASE_DIR_MAP["Q04"] / STRUCTURED_JSON_MAP["Q04"]
     phase_a5 = load_json(phase_a5_path)
     if not phase_a5:
-        phase_a5_path = output_dir / project_id / PHASE_DIR_MAP["A"] / STRUCTURED_JSON_MAP["A.5"]
+        phase_a5_path = output_dir / project_id / PHASE_DIR_MAP["Q01"] / STRUCTURED_JSON_MAP["Q04"]
         phase_a5 = load_json(phase_a5_path)
 
     if phase_a5:
@@ -71,7 +71,7 @@ def check_cross_phase_refs(output_dir: Path, project_id: str) -> list[str]:
                 errors.append(f"Phase A.5 引用了 {ref_id}，但 Phase A 中不存在")
 
     # 校验 Phase B：EUT 绑定的 SE 是否存在
-    phase_b_path = output_dir / project_id / PHASE_DIR_MAP["B"] / STRUCTURED_JSON_MAP["B"]
+    phase_b_path = output_dir / project_id / PHASE_DIR_MAP["Q05"] / STRUCTURED_JSON_MAP["Q05"]
     phase_b = load_json(phase_b_path)
 
     if phase_b:
@@ -81,7 +81,7 @@ def check_cross_phase_refs(output_dir: Path, project_id: str) -> list[str]:
                 errors.append(f"Phase B EUT {item.get('eut_id', '?')} 绑定了 {bound_se}，但 Phase A 中不存在")
 
     # 校验 Phase C：审计的 EUT ID 是否在 Phase B 中存在
-    phase_c_path = output_dir / project_id / PHASE_DIR_MAP["C"] / STRUCTURED_JSON_MAP["C"]
+    phase_c_path = output_dir / project_id / PHASE_DIR_MAP["Q06"] / STRUCTURED_JSON_MAP["Q06"]
     phase_c = load_json(phase_c_path)
 
     if phase_b and phase_c:

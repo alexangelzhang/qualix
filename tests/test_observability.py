@@ -19,7 +19,7 @@ def _append_sample_records(output_dir: Path, project_id: str) -> None:
         output_dir,
         PhaseRunRecord(
             project_id=project_id,
-            phase_id="A",
+            phase_id="Q01",
             phase_name="需求结构化",
             action="finalize",
             status="pending_review",
@@ -31,7 +31,7 @@ def _append_sample_records(output_dir: Path, project_id: str) -> None:
         output_dir,
         PhaseRunRecord(
             project_id=project_id,
-            phase_id="A",
+            phase_id="Q01",
             phase_name="需求结构化",
             action="approve",
             status="approved",
@@ -42,7 +42,7 @@ def _append_sample_records(output_dir: Path, project_id: str) -> None:
         output_dir,
         PhaseRunRecord(
             project_id=project_id,
-            phase_id="A.6",
+            phase_id="Q03",
             phase_name="技术方案质量评审",
             action="finalize",
             status="pending_review",
@@ -105,7 +105,7 @@ def test_build_alerts_for_block_spike_and_failure_rate() -> None:
     history = [
         {"date": "2026-03-30", "project_id": "P1", "phase": "ALL", "block_count": 1},
         {"date": "2026-03-31", "project_id": "P1", "phase": "ALL", "block_count": 3},
-        {"date": "2026-03-31", "project_id": "P1", "phase": "A.6", "failure_rate": 0.8, "finalized": 2},
+        {"date": "2026-03-31", "project_id": "P1", "phase": "Q03", "failure_rate": 0.8, "finalized": 2},
     ]
     alerts = _build_alerts(
         history,
@@ -148,8 +148,8 @@ def test_write_prometheus_snapshot(tmp_path: Path) -> None:
                 "gap_closure_rate": 0.4,
                 "block_count": 2,
                 "phase_stats": {
-                    "A": {"failure_rate": 0.0},
-                    "A.6": {"failure_rate": 0.5},
+                    "Q01": {"failure_rate": 0.0},
+                    "Q03": {"failure_rate": 0.5},
                 },
             }
         ],
@@ -158,7 +158,7 @@ def test_write_prometheus_snapshot(tmp_path: Path) -> None:
     path = _write_prometheus_snapshot(output_dir, payload, alerts)
     text = path.read_text(encoding="utf-8")
     assert 'dqg_project_phase_approval_rate{project="P1"} 0.5' in text
-    assert 'dqg_phase_failure_rate{project="P1",phase="A.6"} 0.5' in text
+    assert 'dqg_phase_failure_rate{project="P1",phase="Q03"} 0.5' in text
     assert "dqg_alert_count 1" in text
 
 

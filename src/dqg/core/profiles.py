@@ -42,6 +42,7 @@ def _load_profile(path: Path) -> DqgProfile:
     )
 
 
+@lru_cache(maxsize=1)
 def list_profiles() -> list[DqgProfile]:
     profiles = []
     for path in sorted(_profiles_root().glob("*/profile.json")):

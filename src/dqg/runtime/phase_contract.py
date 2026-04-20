@@ -92,7 +92,13 @@ def load_phase_contract(
 
 
 def render_contract_for_judge(contract: dict[str, Any]) -> str:
-    """渲染 contract 为 Judge 可消费的 prompt 片段."""
+    """渲染 contract 为 Judge 可消费的 prompt 片段.
+
+    来源权重（从高到低）：
+    1. Profile Baseline（人类定义，不可篡改，Judge 必须全部验证）
+    2. Bug Case Library（历史教训，不可篡改，Judge 必须全部验证）
+    3. Phase A SE（Worker 生成，可质疑，Judge 应尽力验证但允许标注"证据不足"）
+    """
     lines = [
         "## PHASE_CONTRACT — 执行合同（Judge 必须逐条验证）",
         "",
@@ -103,31 +109,33 @@ def render_contract_for_judge(contract: dict[str, Any]) -> str:
 
     lines.append("")
     lines.append("### Verification Targets（验证目标）")
+    lines.append("")
+    lines.append("> **权重说明**：Profile Baseline ≥ Bug Case Library > Phase A SE")
+    lines.append("> - 🔴 HARD（不可篡改）：Profile Baseline + Bug Case Library，Judge 必须全部给出 PASS/FAIL")
+    lines.append("> - 🟡 SOFT（可质疑）：Phase A SE，Judge 应验证，证据不足时标注 INSUFFICIENT_EVIDENCE")
 
-    # 按来源分组展示
     se_targets = [vt for vt in contract.get("verification_targets", []) if vt.get("source") == "phase_a"]
     profile_targets = [vt for vt in contract.get("verification_targets", []) if vt.get("source") == "profile"]
     regression_targets = [vt for vt in contract.get("verification_targets", []) if vt.get("source") == "regression"]
-    # 兼容旧 contract（无 source 字段）
     legacy_targets = [vt for vt in contract.get("verification_targets", []) if "source" not in vt]
-
-    if se_targets or legacy_targets:
-        lines.append("")
-        lines.append("#### 来源：Phase A SE（Worker 生成）")
-        for vt in se_targets or legacy_targets:
-            lines.append(f"- {vt.get('se_id', '?')}: {vt.get('description', '')}")
 
     if profile_targets:
         lines.append("")
-        lines.append("#### 来源：Profile Baseline（人类定义，不可篡改）")
+        lines.append("#### 🔴 [HARD] Profile Baseline（人类定义，不可篡改）")
         for vt in profile_targets:
             lines.append(f"- {vt['se_id']}: {vt['description']}")
 
     if regression_targets:
         lines.append("")
-        lines.append("#### 来源：Bug Case Library（历史教训，不可篡改）")
+        lines.append("#### 🔴 [HARD] Bug Case Library（历史教训，不可篡改）")
         for vt in regression_targets:
-            lines.append(f"- {vt['se_id']}: {vt['description']}")
+            lines.append(f"- {vt.get('se_id', '?')}: {vt.get('description', '')}")
+
+    if se_targets or legacy_targets:
+        lines.append("")
+        lines.append("#### 🟡 [SOFT] Phase A SE（Worker 生成，可质疑）")
+        for vt in se_targets or legacy_targets:
+            lines.append(f"- {vt.get('se_id', '?')}: {vt.get('description', '')}")
 
     lines.append("")
     lines.append("### Hard Checks（硬性门禁）")
@@ -135,7 +143,14 @@ def render_contract_for_judge(contract: dict[str, Any]) -> str:
         lines.append(f"- [{hc['level']}] {hc['name']}")
 
     lines.append("")
-    lines.append("> Judge 必须对每条 Done Definition 给出 PASS/FAIL 判定，不能笼统评价。")
+    lines.append("> Judge 规则：")
+    lines.append("> 1. 对每条 Done Definition 给出 PASS/FAIL，不能笼统评价")
+    lines.append("> 2. 对所有 🔴 HARD 目标必须给出 PASS/FAIL")
+    lines.append("> 3. 对 🟡 SOFT 目标，证据不足时可标注 INSUFFICIENT_EVIDENCE（不算 FAIL）")
+    lines.append("> 4. 不得以「整体质量尚可」为由跳过任何 HARD 目标的验证")
+    lines.append("> 5. **FAIL 判定必须附带 evidence_lines**：至少一条 `{file}:{line}` 引用 + 功能性影响说明")
+    lines.append(">    缺少具体代码行号的 FAIL 将被降级为 INSUFFICIENT_EVIDENCE")
+    lines.append("> 6. 风格/命名/注释问题不得标记为 FAIL/BLOCKER，应标记为 SUGGESTION 或 INFO")
 
     return "\n".join(lines)
 
@@ -160,8 +175,8 @@ def _extract_verification_targets(
     targets: list[dict[str, str]] = []
 
     # 来源 1：Phase A SE 列表
-    phase_a_dir = PHASE_DIR_MAP.get("A", "phaseA")
-    phase_a_json = STRUCTURED_JSON_MAP.get("A", "phase_a_structured.json")
+    phase_a_dir = PHASE_DIR_MAP.get("Q01", "phaseA")
+    phase_a_json = STRUCTURED_JSON_MAP.get("Q01", "phase_a_structured.json")
     phase_a_path = output_dir / project_id / phase_a_dir / phase_a_json
 
     data = load_json(phase_a_path)
@@ -304,8 +319,8 @@ def _get_hard_checks(phase_id: str) -> list[dict[str, str]]:
     ]
 
     phase_specific: dict[str, list[dict[str, str]]] = {
-        "B": [{"name": "编译验证通过", "level": "BLOCKED"}],
-        "C": [{"name": "覆盖率 >= 80%", "level": "BLOCKED"}],
+        "Q05": [{"name": "编译验证通过", "level": "BLOCKED"}],
+        "Q06": [{"name": "覆盖率 >= 80%", "level": "BLOCKED"}],
     }
 
     return common + phase_specific.get(phase_id, [])
@@ -319,39 +334,14 @@ def check_report_structure(report_content: str, phase: str) -> dict[str, Any]:
     Returns:
         {"passed": bool, "missing": [str], "found": [str]}
     """
-    import re
+    from dqg.runtime.phase_constraints import check_report_structure as _check
+    return _check(report_content, phase)
 
-    from dqg.core.phase_registry import PHASE_DEFS
 
-    phase_def = PHASE_DEFS.get(phase, {})
-    required = phase_def.get("required_report_sections", [])
-    if not required:
-        return {"passed": True, "missing": [], "found": []}
-
-    headers = re.findall(r"^#{2,3}\s+(.+)$", report_content, re.MULTILINE)
-    headers_lower = [h.strip().lower() for h in headers]
-
-    found = []
-    missing = []
-    for section in required:
-        canonical = section["canonical"]
-        aliases = section.get("aliases", [])
-        all_names = [canonical] + aliases
-
-        matched = False
-        for name in all_names:
-            name_lower = name.lower()
-            if any(name_lower in h for h in headers_lower):
-                matched = True
-                break
-
-        if matched:
-            found.append(canonical)
-        else:
-            missing.append(canonical)
-
-    return {
-        "passed": len(missing) == 0,
-        "missing": missing,
-        "found": found,
-    }
+# ---------------------------------------------------------------------------
+# Backward-compat re-export: DSL constraints moved to phase_constraints.py
+# ---------------------------------------------------------------------------
+from dqg.runtime.phase_constraints import (  # noqa: E402, F401
+    PHASE_CONSTRAINTS,
+    enforce_phase_constraints,
+)

@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 
 def _prepare_phase_a(output_dir: Path, project_id: str) -> None:
     state = ProjectState(project_id=project_id)
-    state.phases["A"].status = PhaseStatus.IN_PROGRESS
+    state.phases["Q01"].status = PhaseStatus.IN_PROGRESS
     save_state(output_dir, state)
 
     phase_dir = output_dir / project_id / "phaseA"
@@ -32,11 +32,11 @@ def test_finalize_reuses_review_chain_payload_and_does_not_regenerate_prompts(
     _prepare_phase_a(output_dir, "demo")
 
     state = ProjectState(project_id="demo")
-    state.phases["A"].status = PhaseStatus.IN_PROGRESS
+    state.phases["Q01"].status = PhaseStatus.IN_PROGRESS
 
     monkeypatch.setattr("dqg.commands.phase.load_state", lambda *_: state)
     monkeypatch.setattr("dqg.commands.phase.save_state", lambda *args, **kwargs: None)
-    monkeypatch.setattr("dqg.commands.phase.append_record", lambda *args, **kwargs: None)
+    monkeypatch.setattr("dqg.reporting.telemetry.append_record", lambda *args, **kwargs: None)
     monkeypatch.setattr("dqg.commands.phase.finalize_phase", lambda *args, **kwargs: [])
     monkeypatch.setattr("dqg.commands.phase.record_judge_score", lambda *args, **kwargs: None)
 
@@ -84,7 +84,7 @@ def test_finalize_reuses_review_chain_payload_and_does_not_regenerate_prompts(
         lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError("critique prompt should be reused")),
     )
 
-    exit_code = cmd_finalize(SimpleNamespace(project_id="demo", phase="A", base_dir=str(tmp_path)), output_dir)
+    exit_code = cmd_finalize(SimpleNamespace(project_id="demo", phase="Q01", base_dir=str(tmp_path)), output_dir)
 
     assert exit_code == 0
     assert review_counts == {"judge": 1, "critique": 1}

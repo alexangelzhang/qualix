@@ -4,7 +4,7 @@
   "error_type": "WRONG",
   "severity": "high",
   "title": "【116831】编辑质检流程后，质检方案点击“日志”链接有记录失败",
-  "root_cause": "SKILL_RULE",
+  "root_cause": "函数覆盖assert不对",
   "fix_target": "skills/unit-test-audit.md",
   "tags": [
     "备件",
@@ -24,5 +24,6 @@
   "actual": {
     "content": "单测断言未验证日志表的字段，且日志流水非核心业务表"
   },
-  "lesson": "增加关键字段的断言"
+  "lesson": "增加关键字段的断言",
+  "holdout": false
 }

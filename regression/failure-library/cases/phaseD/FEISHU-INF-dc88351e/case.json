@@ -1,0 +1,16 @@
+{
+  "case_id": "FEISHU-INF-dc88351e",
+  "phase": "D",
+  "error_type": "MISS",
+  "severity": "high",
+  "title": "少件详情里的少件入库，点击入库后，重复调用接口，能调用成功，库存也会增加。预期：只有第一次增加，之后应该拦截",
+  "root_cause": "幂等",
+  "tags": "[\"feishu-import\", \"inferred-from-title\", \"category:幂等\"]",
+  "created_at": "2026-04-15",
+  "status": "open",
+  "source": "{\"feishu_table\": \"tblGxARLByCc5h3T\", \"bug_id\": \"dc88351e\", \"original_cat1\": \"未分类\", \"inferred_cat2\": \"幂等\", \"inference_reason\": \"bug描述含\\\"重复\\\"关键词，疑似幂等问题\", \"requirement\": \"汽车配件索赔2.0\"}",
+  "expected": "{\"content\": \"（根据bug描述推理，需人工确认）\"}",
+  "actual": "{\"content\": \"少件详情里的少件入库，点击入库后，重复调用接口，能调用成功，库存也会增加。预期：只有第一次增加，之后应该拦截\"}",
+  "lesson": "bug描述含\"重复\"关键词，疑似幂等问题",
+  "holdout": "False"
+}

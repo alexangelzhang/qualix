@@ -4,7 +4,7 @@
   "error_type": "FN",
   "severity": "high",
   "title": "【106867】手工费减免申请提交后需要审批，BPM看不到审批流程",
-  "root_cause": "SKILL_RULE",
+  "root_cause": "函数未覆盖",
   "fix_target": "skills/unit-test-audit.md",
   "tags": [
     "国际",
@@ -25,5 +25,6 @@
   "actual": {
     "content": "自测不充分，改完没详细自测，单测可以覆盖"
   },
-  "lesson": ""
+  "lesson": "",
+  "holdout": false
 }

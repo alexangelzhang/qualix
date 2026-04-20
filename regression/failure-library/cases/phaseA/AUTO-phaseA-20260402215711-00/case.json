@@ -23,5 +23,6 @@
   "actual": {
     "content": "40 validation errors for PhaseAOutput"
   },
-  "lesson": ""
+  "lesson": "",
+  "holdout": false
 }

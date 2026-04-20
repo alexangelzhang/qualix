@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections import defaultdict
+from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
@@ -28,26 +29,31 @@ ROOT_CAUSE_FIX_MAP = {
     "CONTEXT": {
         "action": "改进输入解析",
         "targets": {
-            "A": "src/dqg/ingest/feishu/",
-            "A.5": "src/dqg/context_loader.py",
-            "A.6": "src/dqg/context_loader.py",
-            "C": "src/dqg/context_loader.py",
+            "Q01": "src/dqg/ingest/feishu/",
+            "Q04": "src/dqg/context_loader.py",
+            "Q03": "src/dqg/context_loader.py",
+            "Q06": "src/dqg/context_loader.py",
         },
     },
     "SCHEMA": {
         "action": "修改结构化输出 schema",
         "targets": {
-            "A": "src/dqg/schemas/phase_a.py",
-            "A.5": "src/dqg/schemas/phase_a5.py",
-            "A.6": "src/dqg/schemas/phase_a6.py",
-            "C": "src/dqg/schemas/phase_c.py",
+            "Q01": "src/dqg/schemas/phase_a.py",
+            "Q04": "src/dqg/schemas/phase_a5.py",
+            "Q03": "src/dqg/schemas/phase_a6.py",
+            "Q06": "src/dqg/schemas/phase_c.py",
         },
     },
 }
 
 
-def load_cases(base_dir: Path | None = None) -> list[dict[str, Any]]:
-    """加载所有 bug 案例."""
+def load_cases(base_dir: Path | None = None, *, exclude_holdout: bool = False, holdout_only: bool = False) -> list[dict[str, Any]]:
+    """加载所有 bug 案例.
+
+    Args:
+        exclude_holdout: 排除 holdout 案例（用于训练/规则生成）
+        holdout_only: 只加载 holdout 案例（用于验证）
+    """
     root = base_dir or Path(CASES_DIR)
     cases: list[dict[str, Any]] = []
     for phase_dir in PHASE_DIRS:
@@ -58,26 +64,46 @@ def load_cases(base_dir: Path | None = None) -> list[dict[str, Any]]:
             data = _load_case(case_dir)
             if data is not None:
                 cases.append(data)
+    if exclude_holdout:
+        cases = [c for c in cases if not c.get("holdout", False)]
+    elif holdout_only:
+        cases = [c for c in cases if c.get("holdout", False)]
     return cases
 
 
-def load_cases_by_phase(phase: str, base_dir: Path | None = None) -> list[dict[str, Any]]:
-    """加载指定 Phase 的 bug 案例."""
-    root = base_dir or Path(CASES_DIR)
+@lru_cache(maxsize=16)
+def _load_cases_by_phase_cached(phase: str, base_dir_str: str, exclude_holdout: bool, holdout_only: bool) -> tuple[dict[str, Any], ...]:
+    """缓存版本：返回 tuple 以支持 lru_cache hashable 要求."""
+    root = Path(base_dir_str)
     dir_suffix = PHASE_DIR_MAP.get(phase)
     if not dir_suffix:
-        return [c for c in load_cases(base_dir) if c.get("phase") == phase]
+        cases = [c for c in load_cases(root) if c.get("phase") == phase]
+    else:
+        phase_path = root / dir_suffix
+        if not phase_path.is_dir():
+            return ()
+        cases = []
+        for case_dir in sorted(phase_path.iterdir()):
+            data = _load_case(case_dir)
+            if data is not None:
+                cases.append(data)
 
-    phase_path = root / dir_suffix
-    if not phase_path.is_dir():
-        return []
+    if exclude_holdout:
+        cases = [c for c in cases if not c.get("holdout", False)]
+    elif holdout_only:
+        cases = [c for c in cases if c.get("holdout", False)]
+    return tuple(cases)
 
-    cases: list[dict[str, Any]] = []
-    for case_dir in sorted(phase_path.iterdir()):
-        data = _load_case(case_dir)
-        if data is not None:
-            cases.append(data)
-    return cases
+
+def load_cases_by_phase(phase: str, base_dir: Path | None = None, *, exclude_holdout: bool = False, holdout_only: bool = False) -> list[dict[str, Any]]:
+    """加载指定 Phase 的 bug 案例（带缓存）.
+
+    Args:
+        exclude_holdout: 排除 holdout 案例（用于训练/规则生成）
+        holdout_only: 只加载 holdout 案例（用于验证）
+    """
+    root = base_dir or Path(CASES_DIR)
+    return list(_load_cases_by_phase_cached(phase, str(root), exclude_holdout, holdout_only))
 
 
 def _load_case(case_dir: Path) -> dict[str, Any] | None:

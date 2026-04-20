@@ -7,7 +7,6 @@ Judge 对照 PRD 原文、gate checklist、bug 案例库评判输出质量，
 
 from __future__ import annotations
 
-from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -17,200 +16,7 @@ from dqg.core.state_machine import PHASE_DEFS, phase_dir as _phase_dir
 from dqg.cache.llm_result_cache import get_cached_result, put_cached_result
 from dqg.services.phase_service import read_relevance_excerpt
 from dqg.tracking.case_selector import render_relevant_cases_for_prompt
-
-
-# Phase → 评审维度定义（1-5 Likert 量表，每级有明确标准）
-_JUDGE_RUBRICS: dict[str, dict[str, Any]] = {
-    "A": {
-        "name": "需求结构化",
-        "dimensions": [
-            {
-                "id": "faithfulness",
-                "name": "忠实度",
-                "description": "输出的 REQ/SE/GAP 是否忠实于 PRD 原文，不编造",
-                "weight": 0.25,
-                "rubric": {
-                    5: "所有 REQ/SE/GAP 都能在 PRD 原文中找到明确依据",
-                    4: "90%+ 有依据，少量合理推断已标注置信度",
-                    3: "70-90% 有依据，部分推断未标注",
-                    2: "50-70% 有依据，存在明显编造内容",
-                    1: "大量内容无法在 PRD 中找到依据",
-                },
-            },
-            {
-                "id": "completeness",
-                "name": "完备性",
-                "description": "PRD 中的所有需求点是否都被提取为 REQ/BR",
-                "weight": 0.3,
-                "rubric": {
-                    5: "PRD 所有功能点、业务规则、约束条件均已提取，无遗漏",
-                    4: "核心功能点全部覆盖，仅遗漏 1-2 个边缘场景",
-                    3: "主要功能点已覆盖，遗漏 3-5 个需求点",
-                    2: "明显遗漏多个功能点或整个业务模块",
-                    1: "大面积遗漏，仅提取了部分表面需求",
-                },
-            },
-            {
-                "id": "se_explicitness",
-                "name": "SE 显式率",
-                "description": "关键业务语义是否都被显式化为可验证的 SE",
-                "weight": 0.25,
-                "rubric": {
-                    5: "每个 REQ/BR 都有对应的可验证 SE，隐式语义全部显式化",
-                    4: "90%+ REQ 有对应 SE，少量隐式语义未提取",
-                    3: "70-90% 有 SE，并发/幂等/边界等隐式语义部分遗漏",
-                    2: "SE 覆盖不足 70%，大量业务语义隐含在 REQ 描述中",
-                    1: "几乎没有 SE，或 SE 与 REQ 重复无新增信息",
-                },
-            },
-            {
-                "id": "gap_detection",
-                "name": "GAP 发现率",
-                "description": "PRD 中的模糊点、缺失定义是否被识别为 GAP",
-                "weight": 0.2,
-                "rubric": {
-                    5: "所有模糊描述、缺失定义、歧义点均已识别为 GAP/OPEN",
-                    4: "主要模糊点已识别，仅遗漏 1-2 个非关键 GAP",
-                    3: "识别了部分 GAP，但遗漏了并发/幂等/安全等关键缺口",
-                    2: "GAP 识别明显不足，多个关键缺口未发现",
-                    1: "几乎未识别 GAP，或 GAP 为 0 但 PRD 明显有模糊点",
-                },
-            },
-        ],
-    },
-    "A.5": {
-        "name": "技术方案覆盖度审计",
-        "dimensions": [
-            {
-                "id": "coverage_accuracy",
-                "name": "覆盖判定准确率",
-                "description": "COVERED/PARTIAL/MISSING/IMPLICIT 的判定是否正确",
-                "weight": 0.4,
-                "rubric": {
-                    5: "所有覆盖状态判定正确，COVERED 确实有完整设计，MISSING 确实缺失",
-                    4: "90%+ 判定正确，个别 PARTIAL/COVERED 边界有争议",
-                    3: "70-90% 正确，存在将仅提到接口名就判为 COVERED 的情况",
-                    2: "多个判定错误，正向流程有但异常分支缺失仍判为 COVERED",
-                    1: "大面积判定错误，覆盖率虚高",
-                },
-            },
-            {
-                "id": "missing_detection",
-                "name": "遗漏检出率",
-                "description": "技术方案中真正缺失的需求点是否被标记为 MISSING",
-                "weight": 0.3,
-                "rubric": {
-                    5: "所有缺失的需求点都被准确标记为 MISSING",
-                    4: "核心缺失全部检出，仅遗漏 1-2 个边缘 MISSING",
-                    3: "检出了部分 MISSING，但遗漏了关键异常处理/并发场景的缺失",
-                    2: "MISSING 检出不足，多个关键缺失未发现",
-                    1: "几乎未检出 MISSING，或全部标为 COVERED",
-                },
-            },
-            {
-                "id": "reverse_audit",
-                "name": "反向审计完整性",
-                "description": "技术方案中的新增设计是否被标记为 NEW_DESIGN/NOT_IN_SCOPE",
-                "weight": 0.3,
-                "rubric": {
-                    5: "技术方案中所有超出 PRD 范围的设计都被识别并标记",
-                    4: "主要新增设计已识别，仅遗漏 1-2 个",
-                    3: "部分新增设计被识别，但遗漏了重要的范围外设计",
-                    2: "反向审计明显不足",
-                    1: "未做反向审计",
-                },
-            },
-        ],
-    },
-    "A.6": {
-        "name": "技术方案质量评审",
-        "dimensions": [
-            {
-                "id": "issue_validity",
-                "name": "问题有效率",
-                "description": "发现的质量问题是否是真问题（非噪音）",
-                "weight": 0.3,
-                "rubric": {
-                    5: "所有 issue 都是真问题，有具体代码/设计证据支撑",
-                    4: "90%+ 是真问题，个别 issue 证据稍弱",
-                    3: "70-90% 是真问题，存在噪音 issue",
-                    2: "噪音 issue 占比超 30%",
-                    1: "大量噪音，issue 缺乏证据",
-                },
-            },
-            {
-                "id": "failure_mode_coverage",
-                "name": "Failure Mode 覆盖率",
-                "description": "关键业务路径是否都做了故障场景分析",
-                "weight": 0.35,
-                "rubric": {
-                    5: "所有写操作/RPC 调用/状态迁移都有 Failure Mode 分析",
-                    4: "核心路径全覆盖，仅遗漏 1-2 个非关键路径",
-                    3: "主要路径已覆盖，但跨服务调用的部分失败场景遗漏",
-                    2: "Failure Mode 分析不完整，多个关键路径缺失",
-                    1: "几乎未做 Failure Mode 分析",
-                },
-            },
-            {
-                "id": "exception_coverage",
-                "name": "异常矩阵覆盖率",
-                "description": "异常分类目录中的类型是否都被检查",
-                "weight": 0.35,
-                "rubric": {
-                    5: "9 类异常分支全部检查，每类有具体的技术方案对应分析",
-                    4: "7-8 类已检查，仅遗漏 1-2 个低频异常类型",
-                    3: "5-6 类已检查，遗漏了 E-CONFLICT/E-TIMEOUT 等关键类型",
-                    2: "检查不足 5 类",
-                    1: "几乎未对照异常矩阵检查",
-                },
-            },
-        ],
-    },
-    "C": {
-        "name": "单测覆盖审计",
-        "dimensions": [
-            {
-                "id": "audit_accuracy",
-                "name": "审计判定准确率",
-                "description": "COVERED/MISSING/WRONG_TARGET 的判定是否正确",
-                "weight": 0.35,
-                "rubric": {
-                    5: "所有审计状态判定正确，COVERED 确实有强断言，WRONG_TARGET 确实是弱断言",
-                    4: "90%+ 判定正确，个别边界 case 有争议",
-                    3: "70-90% 正确，存在将 assertNotNull 判为 COVERED 的情况",
-                    2: "多个判定错误，弱断言未被识别",
-                    1: "大面积判定错误",
-                },
-            },
-            {
-                "id": "wrong_target_detection",
-                "name": "WRONG_TARGET 检出率",
-                "description": "弱断言的测试是否被正确标记为 WRONG_TARGET",
-                "weight": 0.3,
-                "rubric": {
-                    5: "所有弱断言（assertNotNull/assertTrue(true)等）都被标记为 WRONG_TARGET",
-                    4: "90%+ 弱断言被检出",
-                    3: "主要弱断言被检出，但遗漏了只验证返回值不验证业务语义的情况",
-                    2: "WRONG_TARGET 检出不足，多个弱断言被判为 COVERED",
-                    1: "几乎未检出 WRONG_TARGET",
-                },
-            },
-            {
-                "id": "exception_branch",
-                "name": "异常分支覆盖",
-                "description": "T1 核心异常分支是否都有对应测试",
-                "weight": 0.35,
-                "rubric": {
-                    5: "所有 T1 异常分支都有测试，断言包含异常类型+状态不变+无脏数据",
-                    4: "90%+ T1 异常有测试，个别断言不够完整",
-                    3: "主要异常有测试，但缺少并发冲突/事务回滚等场景",
-                    2: "异常分支测试明显不足",
-                    1: "几乎无异常分支测试",
-                },
-            },
-        ],
-    },
-}
+from dqg.quality.judge_rubrics import JUDGE_RUBRICS as _JUDGE_RUBRICS, ANTI_RATIONALIZATION_SECTION as _ANTI_RATIONALIZATION_SECTION
 
 
 def generate_judge_prompt(
@@ -231,6 +37,13 @@ def generate_judge_prompt(
     if not phase_def:
         return None
 
+    # 动态维度：根据 Phase A SE 分布追加针对性评分维度
+    from dqg.quality.dynamic_rubric import enrich_rubric_with_dynamic_dimensions, generate_dynamic_dimensions
+
+    dynamic_dims = generate_dynamic_dimensions(output_dir, project_id, phase_id)
+    if dynamic_dims:
+        rubric = enrich_rubric_with_dynamic_dimensions(rubric, dynamic_dims)
+
     pd = _phase_dir(output_dir, project_id, phase_def)
     checklist = phase_def.get("approve_checklist", [])
 
@@ -238,8 +51,16 @@ def generate_judge_prompt(
     lines = [
         f"# Quality Judge — Phase {phase_id}: {rubric['name']}",
         "",
-        "你是一个独立的质量评审员（Judge），负责评估 Phase 输出的准确性和完备性。",
-        "你的评审必须基于证据，每个判断都要引用具体的原文或代码位置。",
+        "## 你的身份",
+        "",
+        "你是一位有 10 年经验的质量负责人。你见过太多'测试通过但线上出事'、'评审通过但需求遗漏'的案例。",
+        "你不相信'看起来没问题'，只相信证据。你的口头禅是：'证据在哪？'",
+        "",
+        "你的行为准则：",
+        "- 你对每个结论都要求看到原文引用，没有引用的结论你不认可",
+        "- 你对'基本覆盖''整体还行'这类模糊表述零容忍",
+        "- 你知道 LLM 倾向于给高分和正面评价，所以你会刻意寻找问题",
+        "- 你宁可被认为苛刻，也不愿放过一个真问题",
         "",
         "## 评审规则",
         "",
@@ -298,9 +119,9 @@ def generate_judge_prompt(
             relevance_parts.append(excerpt)
 
     # 上游产物
-    if phase_id != "A":
-        upstream_dir = output_dir / project_id / PHASE_DIR_MAP["A"]
-        upstream_path = upstream_dir / STRUCTURED_JSON_MAP["A"]
+    if phase_id != "Q01":
+        upstream_dir = output_dir / project_id / PHASE_DIR_MAP["Q01"]
+        upstream_path = upstream_dir / STRUCTURED_JSON_MAP["Q01"]
         lines.append(f"{len(report_files) + 1}. Phase A 产物: `{upstream_path}`")
         excerpt = read_relevance_excerpt(upstream_path)
         if excerpt:
@@ -309,6 +130,8 @@ def generate_judge_prompt(
     bug_cases_md = render_relevant_cases_for_prompt(phase_id, "\n".join(relevance_parts), max_cases=10)
     if bug_cases_md:
         lines.extend(["", bug_cases_md, ""])
+
+    lines.extend(_ANTI_RATIONALIZATION_SECTION)
 
     lines.extend([
         "",
@@ -357,7 +180,7 @@ def write_judge_prompt(
     phase_id: str,
     prompt: str | None = None,
 ) -> Path | None:
-    """生成 judge prompt 并写入 phase 目录.
+    """生成 judge prompt 并写入 phase 目录，同时落盘 rubric 快照.
 
     Returns:
         写入的文件路径，不支持的 phase 返回 None
@@ -373,6 +196,19 @@ def write_judge_prompt(
 
     path = pd / "_judge_prompt.md"
     path.write_text(prompt, encoding="utf-8")
+
+    # 落盘 rubric 快照，用于趋势对比和可观测性
+    rubric = _JUDGE_RUBRICS.get(phase_id)
+    if rubric:
+        from dqg.quality.dynamic_rubric import enrich_rubric_with_dynamic_dimensions, generate_dynamic_dimensions
+        from dqg.json_utils import save_json
+        dynamic_dims = generate_dynamic_dimensions(output_dir, project_id, phase_id)
+        if dynamic_dims:
+            rubric = enrich_rubric_with_dynamic_dimensions(rubric, dynamic_dims)
+        rubric_path = pd / "_internal" / "_judge_rubric.json"
+        rubric_path.parent.mkdir(parents=True, exist_ok=True)
+        save_json(rubric_path, rubric)
+
     return path
 
 

@@ -32,7 +32,7 @@ def _phase_root(output_dir: Path, project_id: str, phase_id: str) -> Path:
 
 def test_agent_run_caches_final_response_and_reuses_it(tmp_path: Path, monkeypatch) -> None:
     output_dir = tmp_path / "output"
-    phase_root = _phase_root(output_dir, "demo", "B")
+    phase_root = _phase_root(output_dir, "demo", "Q05")
     phase_root.mkdir(parents=True, exist_ok=True)
     context_file = phase_root / "context.md"
     context_file.write_text("context payload", encoding="utf-8")

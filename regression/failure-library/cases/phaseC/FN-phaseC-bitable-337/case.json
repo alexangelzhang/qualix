@@ -4,7 +4,7 @@
   "error_type": "FN",
   "severity": "high",
   "title": "【106864】特殊情况类型需要国际化",
-  "root_cause": "SKILL_RULE",
+  "root_cause": "函数未覆盖",
   "fix_target": "skills/unit-test-audit.md",
   "tags": [
     "国际",
@@ -25,5 +25,6 @@
   "actual": {
     "content": "@万佳恒  自测不到位，没覆盖到"
   },
-  "lesson": ""
+  "lesson": "",
+  "holdout": false
 }

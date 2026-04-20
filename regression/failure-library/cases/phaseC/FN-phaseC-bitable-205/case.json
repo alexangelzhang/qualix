@@ -4,7 +4,7 @@
   "error_type": "FN",
   "severity": "high",
   "title": "/publicCharger/parking2/search和/publicCharger/parking2/detail接口查询时校验了xm_parking_info.timezone,但是存储的时",
-  "root_cause": "SKILL_RULE",
+  "root_cause": "函数异常分支未覆盖",
   "fix_target": "skills/unit-test-audit.md",
   "tags": [
     "汽车",
@@ -25,5 +25,6 @@
   "actual": {
     "content": "若三方传的时区数据有问题，应该使用系统默认时区，以防止出现异常"
   },
-  "lesson": "提高单测场景覆盖度"
+  "lesson": "提高单测场景覆盖度",
+  "holdout": false
 }

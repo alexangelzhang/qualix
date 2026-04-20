@@ -79,3 +79,73 @@ def get_quality_trend(
             params,
         ).fetchall()
         return [row_to_dict(r) for r in rows]
+
+
+# ---------------------------------------------------------------------------
+# P2 新增查询：Token 消耗、事件时间线、Phase 质量评分
+# ---------------------------------------------------------------------------
+
+
+def get_token_consumption(output_dir: Path, project_id: str | None = None) -> list[dict[str, Any]]:
+    """按 Phase 聚合 token 消耗和成本."""
+    conditions: list[str] = []
+    params: list[Any] = []
+    if project_id:
+        conditions.append("project_id = ?")
+        params.append(project_id)
+
+    conditions.append("metric_name IN ('input_tokens', 'output_tokens', 'total_tokens', 'cost_estimate_usd', 'tokens_per_second')")
+    where = f"WHERE {' AND '.join(conditions)}"
+
+    with get_connection(output_dir) as conn:
+        rows = conn.execute(
+            f"""SELECT project_id, phase_id, metric_name, metric_value, timestamp
+            FROM metrics {where}
+            ORDER BY timestamp""",
+            params,
+        ).fetchall()
+        return [row_to_dict(r) for r in rows]
+
+
+def get_phase_durations(output_dir: Path, project_id: str) -> list[dict[str, Any]]:
+    """获取项目各 Phase 的耗时（瀑布图用）."""
+    with get_connection(output_dir) as conn:
+        rows = conn.execute(
+            """SELECT phase_id, phase_name, action, status,
+                duration_seconds, started_at, finished_at, timestamp
+            FROM telemetry
+            WHERE project_id = ? AND action IN ('finalize', 'approve', 'skip')
+            ORDER BY timestamp""",
+            (project_id,),
+        ).fetchall()
+        return [row_to_dict(r) for r in rows]
+
+
+def get_event_timeline(output_dir: Path, project_id: str, phase_id: str | None = None) -> list[dict[str, Any]]:
+    """获取事件时间线."""
+    conditions = ["project_id = ?"]
+    params: list[Any] = [project_id]
+    if phase_id:
+        conditions.append("phase_id = ?")
+        params.append(phase_id)
+
+    where = f"WHERE {' AND '.join(conditions)}"
+    with get_connection(output_dir) as conn:
+        rows = conn.execute(
+            f"SELECT * FROM events {where} ORDER BY id ASC LIMIT 500",  # noqa: S608
+            params,
+        ).fetchall()
+        return [row_to_dict(r) for r in rows]
+
+
+def get_phase_scores(output_dir: Path, project_id: str) -> list[dict[str, Any]]:
+    """获取项目各 Phase 的 Judge 评分."""
+    with get_connection(output_dir) as conn:
+        rows = conn.execute(
+            """SELECT phase_id, overall_score, dimensions, judged_at
+            FROM judge_results
+            WHERE project_id = ?
+            ORDER BY judged_at DESC""",
+            (project_id,),
+        ).fetchall()
+        return [row_to_dict(r) for r in rows]

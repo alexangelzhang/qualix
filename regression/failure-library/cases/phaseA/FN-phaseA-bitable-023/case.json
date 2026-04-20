@@ -4,7 +4,7 @@
   "error_type": "FN",
   "severity": "high",
   "title": "【103334】工单中心筛选条件，需求增加“来源”筛选，当前未实现",
-  "root_cause": "SKILL_RULE",
+  "root_cause": "需求实现遗漏",
   "fix_target": "skills/requirement-structuring.md",
   "tags": [
     "国际",
@@ -25,5 +25,6 @@
   "actual": {
     "content": "功能开发漏了"
   },
-  "lesson": "将功能点在单测用例里面体现"
+  "lesson": "将功能点在单测用例里面体现",
+  "holdout": true
 }

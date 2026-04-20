@@ -37,6 +37,7 @@ from dqg.agents.agent import (  # noqa: F401
     Agent,
 )
 from dqg.agents.agent_orchestrator import AgentOrchestrator  # noqa: F401
+from dqg.agents.dag_scheduler import DAGScheduler  # noqa: F401
 
 __all__ = [
     "LLMConfig",
@@ -49,4 +50,5 @@ __all__ = [
     "AgentResult",
     "Agent",
     "AgentOrchestrator",
+    "DAGScheduler",
 ]

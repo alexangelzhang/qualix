@@ -19,66 +19,66 @@ from dqg.json_utils import load_json_strict
 CATEGORY_MAPPING: dict[str, dict[str, str]] = {
     # 单测相关
     "函数未覆盖": {
-        "phase": "C", "error_type": "FN", "root_cause": "SKILL_RULE",
+        "phase": "Q06", "error_type": "FN", "root_cause": "SKILL_RULE",
         "fix_target": "skills/unit-test-audit.md",
     },
     "函数正常分支未覆盖": {
-        "phase": "C", "error_type": "FN", "root_cause": "SKILL_RULE",
+        "phase": "Q06", "error_type": "FN", "root_cause": "SKILL_RULE",
         "fix_target": "skills/unit-test-audit.md",
     },
     "函数异常分支未覆盖": {
-        "phase": "C", "error_type": "FN", "root_cause": "SKILL_RULE",
+        "phase": "Q06", "error_type": "FN", "root_cause": "SKILL_RULE",
         "fix_target": "skills/unit-test-audit.md",
     },
     "函数覆盖assert不对": {
-        "phase": "C", "error_type": "WRONG", "root_cause": "SKILL_RULE",
+        "phase": "Q06", "error_type": "WRONG", "root_cause": "SKILL_RULE",
         "fix_target": "skills/unit-test-audit.md",
     },
     "有单测未运行": {
-        "phase": "C", "error_type": "FN", "root_cause": "CONTEXT",
+        "phase": "Q06", "error_type": "FN", "root_cause": "CONTEXT",
         "fix_target": "skills/unit-test-audit.md",
     },
     "提测前无单测": {
-        "phase": "C", "error_type": "FN", "root_cause": "CONTEXT",
+        "phase": "Q06", "error_type": "FN", "root_cause": "CONTEXT",
         "fix_target": "skills/unit-test-audit.md",
     },
     # 需求分析相关
     "需求实现遗漏": {
-        "phase": "A", "error_type": "FN", "root_cause": "SKILL_RULE",
+        "phase": "Q01", "error_type": "FN", "root_cause": "SKILL_RULE",
         "fix_target": "skills/requirement-structuring.md",
     },
     "需求遗漏": {
-        "phase": "A", "error_type": "FN", "root_cause": "SKILL_RULE",
+        "phase": "Q01", "error_type": "FN", "root_cause": "SKILL_RULE",
         "fix_target": "skills/requirement-structuring.md",
     },
     "需求理解未对齐": {
-        "phase": "A", "error_type": "FN", "root_cause": "SKILL_RULE",
+        "phase": "Q01", "error_type": "FN", "root_cause": "SKILL_RULE",
         "fix_target": "skills/requirement-structuring.md",
     },
     "产品需求不明确": {
-        "phase": "A", "error_type": "FN", "root_cause": "CONTEXT",
+        "phase": "Q01", "error_type": "FN", "root_cause": "CONTEXT",
         "fix_target": "skills/requirement-structuring.md",
     },
     # 技术方案相关
     "技术方案不清晰": {
-        "phase": "A.6", "error_type": "FN", "root_cause": "SKILL_RULE",
+        "phase": "Q03", "error_type": "FN", "root_cause": "SKILL_RULE",
         "fix_target": "skills/tech-quality-review.md",
     },
     "技术实现遗漏": {
-        "phase": "A.6", "error_type": "FN", "root_cause": "SKILL_RULE",
+        "phase": "Q03", "error_type": "FN", "root_cause": "SKILL_RULE",
         "fix_target": "skills/tech-quality-review.md",
     },
     # 安全/性能/幂等
     "安全问题": {
-        "phase": "A", "error_type": "FN", "root_cause": "KNOWLEDGE",
+        "phase": "Q01", "error_type": "FN", "root_cause": "KNOWLEDGE",
         "fix_target": "references/risk-and-exception-catalog.md",
     },
     "性能问题": {
-        "phase": "A.6", "error_type": "FN", "root_cause": "KNOWLEDGE",
+        "phase": "Q03", "error_type": "FN", "root_cause": "KNOWLEDGE",
         "fix_target": "references/risk-and-exception-catalog.md",
     },
     "幂等": {
-        "phase": "A.6", "error_type": "FN", "root_cause": "KNOWLEDGE",
+        "phase": "Q03", "error_type": "FN", "root_cause": "KNOWLEDGE",
         "fix_target": "references/risk-and-exception-catalog.md",
     },
 }

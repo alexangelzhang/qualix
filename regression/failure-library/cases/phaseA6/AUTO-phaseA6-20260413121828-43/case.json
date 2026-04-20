@@ -1,0 +1,28 @@
+{
+  "case_id": "AUTO-phaseA6-20260413121828-43",
+  "phase": "A.6",
+  "error_type": "FN",
+  "severity": "medium",
+  "title": "failure_modes.3.has_exception_handling",
+  "root_cause": "SKILL_RULE",
+  "fix_target": "skills/tech-quality-review/SKILL.md",
+  "tags": [
+    "auto-generated",
+    "project:damage-assessment"
+  ],
+  "created_at": "2026-04-13",
+  "status": "open",
+  "source": {
+    "project_id": "damage-assessment",
+    "auto_generated": true,
+    "validation_error": "failure_modes.3.has_exception_handling"
+  },
+  "expected": {
+    "content": "（需人工确认）"
+  },
+  "actual": {
+    "content": "failure_modes.3.has_exception_handling"
+  },
+  "lesson": "",
+  "holdout": false
+}

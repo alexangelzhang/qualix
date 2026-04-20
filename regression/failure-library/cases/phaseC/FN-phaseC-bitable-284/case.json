@@ -4,7 +4,7 @@
   "error_type": "FN",
   "severity": "high",
   "title": "【105846】字段映射-退货描述、退货时间取值来源是应该质量退权益，不是七无权益",
-  "root_cause": "SKILL_RULE",
+  "root_cause": "函数未覆盖",
   "fix_target": "skills/unit-test-audit.md",
   "tags": [
     "工单",
@@ -24,5 +24,6 @@
   "actual": {
     "content": "没适配好，自测不充分"
   },
-  "lesson": ""
+  "lesson": "",
+  "holdout": true
 }

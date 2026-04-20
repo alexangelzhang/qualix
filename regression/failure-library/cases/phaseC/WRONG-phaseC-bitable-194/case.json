@@ -4,7 +4,7 @@
   "error_type": "WRONG",
   "severity": "high",
   "title": "TIS购物车展示不同组批次时，推送时间早的需要在最下面，当前早的在最上面",
-  "root_cause": "SKILL_RULE",
+  "root_cause": "函数覆盖assert不对",
   "fix_target": "skills/unit-test-audit.md",
   "tags": [
     "汽车",
@@ -25,5 +25,6 @@
   "actual": {
     "content": "单测断言覆盖不够，未覆盖排序场景"
   },
-  "lesson": "提升单测覆盖率"
+  "lesson": "提升单测覆盖率",
+  "holdout": false
 }

@@ -1,0 +1,16 @@
+{
+  "case_id": "FEISHU-DQG-8eb1ed77",
+  "phase": "A",
+  "error_type": "MISS",
+  "severity": "medium",
+  "title": "工单取消原因未国际化",
+  "root_cause": "需求遗漏",
+  "tags": "[\"feishu-import\", \"dqg-relevant\", \"category:需求遗漏\"]",
+  "created_at": "2026-04-15",
+  "status": "open",
+  "source": "{\"feishu_table\": \"tblGxARLByCc5h3T\", \"bug_id\": null, \"original_cat1\": \"非单测相关\", \"original_cat2\": \"需求遗漏\", \"requirement\": \"国际-售后-送修退货流程\"}",
+  "expected": "{\"content\": \"（需人工确认）\"}",
+  "actual": "{\"content\": \"已跟测试拉齐，可以忽略，bug已删除。原因：提测前已做了修改，但为了第二天提测演示系统稳定性，未发布； 枚举没用通用工具覆盖\"}",
+  "lesson": "已跟测试拉齐，可以忽略，bug已删除。原因：提测前已做了修改，但为了第二天提测演示系统稳定性，未发布； 枚举没用通用工具覆盖",
+  "holdout": "False"
+}

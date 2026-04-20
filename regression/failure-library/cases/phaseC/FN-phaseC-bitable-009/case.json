@@ -24,5 +24,6 @@
   "actual": {
     "content": "@罗杰加了接口，接口兼容场景，调试阶段上到测试环境，以为没影响"
   },
-  "lesson": ""
+  "lesson": "",
+  "holdout": false
 }

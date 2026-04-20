@@ -4,7 +4,7 @@
   "error_type": "FN",
   "severity": "high",
   "title": "存储停车场静态数据 - xm_parking_info-type字段，三方数据没有值的场景存储了1",
-  "root_cause": "SKILL_RULE",
+  "root_cause": "函数未覆盖",
   "fix_target": "skills/unit-test-audit.md",
   "tags": [
     "汽车",
@@ -24,5 +24,6 @@
   "actual": {
     "content": "单测编写阶段滞后，提测后研发才开始准备"
   },
-  "lesson": "写完单测再进行提测"
+  "lesson": "写完单测再进行提测",
+  "holdout": false
 }

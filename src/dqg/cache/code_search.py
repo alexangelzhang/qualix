@@ -9,9 +9,12 @@
 from __future__ import annotations
 
 import json
+import logging
 import re
 from pathlib import Path
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 from dqg.store import get_connection
 from dqg.text_utils import build_fts_query, text_query_has_signal, tokenize_chinese
@@ -84,6 +87,7 @@ def index_java_repo(output_dir: Path, repo_path: str | Path, max_files: int = 50
             _save_symbols(output_dir, repo_str, symbols)
             count += len(symbols)
         except Exception:
+            logger.debug("Failed to parse %s, skipping", java_file, exc_info=True)
             continue
 
     return count
@@ -236,13 +240,13 @@ def search_code(
                 ).fetchall()
 
                 for r in rows:
-                    candidate = f"{r['symbol_name']} {r.get('signature', '')} {r.get('annotations', '')}"
+                    d = dict(r)
+                    candidate = f"{d['symbol_name']} {d.get('signature', '')} {d.get('annotations', '')}"
                     if not text_query_has_signal(kw, candidate):
                         continue
-                    key = (r["file_path"], r["line_number"])
+                    key = (d["file_path"], d["line_number"])
                     if key not in seen:
                         seen.add(key)
-                        d = dict(r)
                         d["matched_keyword"] = kw
                         all_results.append(d)
 

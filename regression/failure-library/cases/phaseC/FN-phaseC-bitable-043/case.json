@@ -4,7 +4,7 @@
   "error_type": "FN",
   "severity": "high",
   "title": "【116217】来料不良上报时，sn不在普通区，上报校验",
-  "root_cause": "SKILL_RULE",
+  "root_cause": "函数正常分支未覆盖",
   "fix_target": "skills/unit-test-audit.md",
   "tags": [
     "备件",
@@ -24,5 +24,6 @@
   "actual": {
     "content": "对于串号场景,未对串号所在库区做准确校验,导致借用区也可锁库存,与业务逻辑不符"
   },
-  "lesson": "对于关键字段要有严格校验覆盖,避免漏测"
+  "lesson": "对于关键字段要有严格校验覆盖,避免漏测",
+  "holdout": false
 }

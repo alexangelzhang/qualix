@@ -4,7 +4,7 @@
   "error_type": "FN",
   "severity": "high",
   "title": "【132711】待确认变更客户意向时校验了自身工单",
-  "root_cause": "SKILL_RULE",
+  "root_cause": "函数未覆盖",
   "fix_target": "skills/unit-test-audit.md",
   "tags": [
     "工单",
@@ -24,5 +24,6 @@
   "actual": {
     "content": "查询完成后没有过滤掉自身工单"
   },
-  "lesson": ""
+  "lesson": "",
+  "holdout": false
 }

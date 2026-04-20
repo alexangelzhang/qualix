@@ -66,7 +66,7 @@ def _setup_phase_a(output_dir: Path, project_id: str) -> None:
     """Helper: create Phase A artifacts and approved state."""
     # State
     state = ProjectState(project_id=project_id)
-    state.phases["A"].status = PhaseStatus.APPROVED
+    state.phases["Q01"].status = PhaseStatus.APPROVED
     save_state(output_dir, state)
 
     # Structured JSON
@@ -99,7 +99,7 @@ class TestContextLoader:
         state = ProjectState(project_id="TEST")
         save_state(output_dir, state)
 
-        ctx = load_context(output_dir, "TEST", "A")
+        ctx = load_context(output_dir, "TEST", "Q01")
         assert ctx.chunks == []
         assert not ctx.truncated
 
@@ -108,7 +108,7 @@ class TestContextLoader:
         output_dir.mkdir()
         _setup_phase_a(output_dir, "TEST")
 
-        ctx = load_context(output_dir, "TEST", "B")
+        ctx = load_context(output_dir, "TEST", "Q05")
         assert len(ctx.chunks) > 0
         assert any("结构化产物" in c.source for c in ctx.chunks)
         assert ctx.total_tokens > 0
@@ -118,7 +118,7 @@ class TestContextLoader:
         output_dir.mkdir()
         _setup_phase_a(output_dir, "TEST")
 
-        ctx = load_context(output_dir, "TEST", "B")
+        ctx = load_context(output_dir, "TEST", "Q05")
         text = ctx.full_text
         assert text.startswith("# Evidence Pack")
         assert "## 证据摘要" in text
@@ -130,7 +130,7 @@ class TestContextLoader:
         output_dir.mkdir()
         _setup_phase_a(output_dir, "TEST")
 
-        ctx = load_context(output_dir, "TEST", "B")
+        ctx = load_context(output_dir, "TEST", "Q05")
         out_path = tmp_path / "streamed.md"
 
         ctx.write_full_text(out_path)
@@ -160,14 +160,14 @@ class TestContextLoader:
             return "## BUG_CASES\n\n### 反例 1: 登录后未跳首页 [漏报]"
 
         monkeypatch.setattr(
-            "dqg.context.context_loader.render_relevant_cases_for_prompt",
+            "dqg.context.upstream_collector.render_relevant_cases_for_prompt",
             fake_render,
         )
 
-        ctx = load_context(output_dir, "TEST", "A")
+        ctx = load_context(output_dir, "TEST", "Q01")
 
-        assert any("Current Phase A 文档摘要" in chunk.source for chunk in ctx.chunks)
-        assert any("Bug cases for Phase A" in chunk.source for chunk in ctx.chunks)
+        assert any("Current Phase Q01 文档摘要" in chunk.source for chunk in ctx.chunks)
+        assert any("Bug cases for Phase Q01" in chunk.source for chunk in ctx.chunks)
         assert captured and "REQ-001 用户登录成功后跳转首页" in captured[0]
         assert ctx.full_text.startswith("# Evidence Pack")
         assert "登录后未跳首页" in ctx.full_text
@@ -177,7 +177,7 @@ class TestContextLoader:
         output_dir.mkdir()
         _setup_phase_a(output_dir, "TEST")
 
-        ctx = load_context(output_dir, "TEST", "B")
+        ctx = load_context(output_dir, "TEST", "Q05")
         seed = ctx.relevance_seed
 
         assert "REQ-001" in seed
@@ -188,18 +188,19 @@ class TestContextLoader:
         output_dir.mkdir()
         _setup_phase_a(output_dir, "TEST")
 
-        ctx = load_context(output_dir, "TEST", "B", model_name="claude-opus-4-1m")
+        ctx = load_context(output_dir, "TEST", "Q05", model_name="claude-opus-4-1m")
         assert ctx.model.name == "claude-opus-4-1m"
-        assert ctx.budget_tokens > 900_000
+        # Phase B execution=standard → budget 缩减到 60%（Reasoning Sandwich）
+        assert ctx.budget_tokens > 500_000
 
     def test_summary(self, tmp_path: Path):
         output_dir = tmp_path / "output"
         output_dir.mkdir()
         _setup_phase_a(output_dir, "TEST")
 
-        ctx = load_context(output_dir, "TEST", "B")
+        ctx = load_context(output_dir, "TEST", "Q05")
         summary = ctx.summary
-        assert "Phase B" in summary
+        assert "Phase Q05" in summary
         assert "chunks" in summary
 
     def test_phase_a_no_upstream(self, tmp_path: Path):
@@ -209,7 +210,7 @@ class TestContextLoader:
         state = ProjectState(project_id="TEST")
         save_state(output_dir, state)
 
-        ctx = load_context(output_dir, "TEST", "A")
+        ctx = load_context(output_dir, "TEST", "Q01")
         assert ctx.chunks == []
 
     def test_unapproved_upstream_skipped(self, tmp_path: Path):
@@ -217,7 +218,7 @@ class TestContextLoader:
         output_dir = tmp_path / "output"
         output_dir.mkdir()
         state = ProjectState(project_id="TEST")
-        state.phases["A"].status = PhaseStatus.IN_PROGRESS
+        state.phases["Q01"].status = PhaseStatus.IN_PROGRESS
         save_state(output_dir, state)
 
         # Create artifacts anyway
@@ -225,7 +226,7 @@ class TestContextLoader:
         phase_dir.mkdir(parents=True)
         (phase_dir / "phase_a_structured.json").write_text('{"project_id": "TEST", "requirements": []}')
 
-        ctx = load_context(output_dir, "TEST", "B")
+        ctx = load_context(output_dir, "TEST", "Q05")
         assert len(ctx.chunks) == 1
         assert "Profile java-ddd-tmf" in ctx.chunks[0].source
         assert ctx.relevance_seed == ""
@@ -239,5 +240,5 @@ class TestContextLoader:
         state.profile_id = "go-service"
         save_state(output_dir, state)
 
-        ctx = load_context(output_dir, "TEST", "B")
+        ctx = load_context(output_dir, "TEST", "Q05")
         assert any("Profile go-service" in chunk.source for chunk in ctx.chunks)

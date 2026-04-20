@@ -4,7 +4,7 @@
   "error_type": "FN",
   "severity": "medium",
   "title": "产品管理列表有查询结果时，导出Excl文件字段确认",
-  "root_cause": "SKILL_RULE",
+  "root_cause": "需求理解未对齐",
   "fix_target": "skills/requirement-structuring.md",
   "tags": [
     "国际",
@@ -25,5 +25,6 @@
   "actual": {
     "content": "需求理解不一致导致，研发认为的pid字段与测试理解的不一致"
   },
-  "lesson": "需要明确每个字段定义，避免歧义"
+  "lesson": "需要明确每个字段定义，避免歧义",
+  "holdout": true
 }

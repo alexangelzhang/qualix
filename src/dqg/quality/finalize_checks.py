@@ -19,11 +19,11 @@ from dqg.core.state_machine import PHASE_DEFS, internal_dir as _internal_dir, ph
 
 # Phase → 需要检查数量的字段
 _COUNT_FIELDS: dict[str, list[str]] = {
-    "A": ["requirements", "semantic_expectations", "gaps", "open_items"],
-    "A.5": ["req_coverage", "se_coverage", "gap_closure", "open_closure"],
-    "A.6": ["issues", "failure_modes"],
-    "C": ["audit_items"],
-    "D": ["findings"],
+    "Q01": ["requirements", "semantic_expectations", "gaps", "open_items"],
+    "Q04": ["req_coverage", "se_coverage", "gap_closure", "open_closure"],
+    "Q03": ["issues", "failure_modes"],
+    "Q06": ["audit_items"],
+    "Q07": ["findings"],
 }
 
 
@@ -134,7 +134,7 @@ def _count_items(json_path: Path, phase_id: str) -> dict[str, int]:
             counts[field] = len(items)
 
     # Phase A 特殊处理：分别统计 REQ 和 BR
-    if phase_id == "A":
+    if phase_id == "Q01":
         reqs = data.get("requirements", [])
         counts["req_count"] = len([r for r in reqs if r.get("req_id", "").startswith("REQ-")])
         counts["br_count"] = len([r for r in reqs if r.get("req_id", "").startswith("BR-")])
@@ -158,4 +158,42 @@ def run_finalize_checks(output_dir: Path, project_id: str, phase_id: str) -> lis
     errors = []
     errors.extend(check_reasoning_log(output_dir, project_id, phase_id))
     errors.extend(check_no_regression(output_dir, project_id, phase_id))
+
+    # AutoHarness: 从 schema + registry 自动推导校验
+    from dqg.quality.auto_checks import auto_derive_checks
+    errors.extend(auto_derive_checks(output_dir, project_id, phase_id))
+
+    # Phase B: 编译验证 gate（需要 code_repo 参数）
+    if phase_id == "Q05":
+        from dqg.quality.compile_check import check_phase_b_compilation
+
+        # 从 _inputs.json 读取 code_repo（execute 时用户输入）
+        phase_def = PHASE_DEFS.get(phase_id)
+        if phase_def:
+            int_dir = _internal_dir(output_dir, project_id, phase_def)
+            inputs_path = int_dir / "_inputs.json"
+            code_repo = None
+            if inputs_path.exists():
+                inputs_data = load_json(inputs_path)
+                if inputs_data:
+                    code_repo = inputs_data.get("code_repo")
+            errors.extend(check_phase_b_compilation(output_dir, project_id, code_repo))
+
+    # Phase C: 覆盖率门禁（解析 JaCoCo XML）
+    if phase_id == "Q06":
+        from dqg.quality.coverage_gate import check_phase_c_coverage
+
+        phase_def = PHASE_DEFS.get(phase_id)
+        if phase_def:
+            int_dir = _internal_dir(output_dir, project_id, phase_def)
+            inputs_path = int_dir / "_inputs.json"
+            code_repo = None
+            coverage_report = None
+            if inputs_path.exists():
+                inputs_data = load_json(inputs_path)
+                if inputs_data:
+                    code_repo = inputs_data.get("code_repo")
+                    coverage_report = inputs_data.get("coverage_report")
+            errors.extend(check_phase_c_coverage(output_dir, project_id, code_repo, coverage_report))
+
     return errors

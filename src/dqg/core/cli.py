@@ -120,8 +120,8 @@ def _cmd_init(args: argparse.Namespace) -> int:
         cases = load_cases()
         summary = summarize_cases(cases)
         print(f"   {summary['total']} 条案例 ({summary['open']} open, {summary['fixed']} fixed)")
-    except Exception:
-        print("   案例库为空")
+    except Exception as e:
+        print(f"   案例库加载失败: {e}")
 
     # 6. 启动看板
     if not getattr(args, "no_dashboard", False):
@@ -164,9 +164,9 @@ def _start_dashboard(port: int = _DASHBOARD_PORT) -> bool:
         print(f"   看板已在运行 (PID: {pid}, http://localhost:{port})")
         return True
 
-    dashboard_path = Path(__file__).parent / "dashboard.py"
+    dashboard_path = Path(__file__).parents[1] / "reporting" / "dashboard" / "__init__.py"
     if not dashboard_path.exists():
-        print("   dashboard.py 不存在")
+        print("   dashboard 包不存在")
         return False
 
     try:
@@ -245,6 +245,96 @@ def _cmd_experiment(args: argparse.Namespace) -> int:
     return cmd_experiment(args, _output_dir())
 
 
+def _cmd_cache(args) -> int:
+    """dqg cache export <project_id> [--phase Q01] [--output path]"""
+    from dqg.cache.fact_cache import export_facts_to_markdown
+    from dqg.constants import PHASE_DIR_MAP
+    from dqg.core.phase_registry import PHASE_DEFS
+    from dqg.store import get_connection
+
+    output_dir = _output_dir()
+    project_id = args.project_id
+    phase_filter = args.phase
+
+    phases = [phase_filter] if phase_filter else list(PHASE_DEFS.keys())
+
+    exported_paths = []
+    for phase_id in phases:
+        path = export_facts_to_markdown(output_dir, project_id, phase_id)
+        if path:
+            exported_paths.append(path)
+            print(f"  ✓ Phase {phase_id}: {path}")
+
+    # 全量 semantic_cache 快照
+    if not phase_filter:
+        snapshot_path = _export_semantic_cache(output_dir, project_id, args.output)
+        if snapshot_path:
+            exported_paths.append(snapshot_path)
+            print(f"  ✓ Semantic cache: {snapshot_path}")
+
+    if not exported_paths:
+        print("  暂无可导出的缓存数据")
+        return 0
+
+    print(f"\n  共导出 {len(exported_paths)} 个文件，可纳入 git 追踪")
+    return 0
+
+
+def _export_semantic_cache(output_dir, project_id: str, output_path: str | None) -> "Path | None":
+    """导出 semantic_cache 为 Markdown 快照."""
+    import json
+    from datetime import datetime
+    from pathlib import Path
+
+    from dqg.store import get_connection
+
+    try:
+        with get_connection(output_dir) as conn:
+            rows = conn.execute(
+                "SELECT query, result, phase_id, cache_version, updated_at "
+                "FROM semantic_cache WHERE project_id=? ORDER BY phase_id, updated_at DESC",
+                (project_id,),
+            ).fetchall()
+    except Exception as e:
+        from dqg.log import get_logger
+        get_logger(__name__).debug("Semantic cache export failed: %s", e)
+        return None
+
+    if not rows:
+        return None
+
+    lines = [
+        f"# Semantic Cache Snapshot — {project_id}",
+        "",
+        f"> 生成于 {datetime.now().strftime('%Y-%m-%d %H:%M')}，共 {len(rows)} 条缓存条目。",
+        "> 可纳入 git 追踪，用于审计 Judge 命中了哪些缓存结果。",
+        "",
+    ]
+
+    current_phase = None
+    for row in rows:
+        query, result, phase_id, cache_version, updated_at = row
+        if phase_id != current_phase:
+            current_phase = phase_id
+            lines.append(f"## Phase {phase_id}")
+            lines.append("")
+
+        lines.append(f"### 查询: {(query or '')[:80]}")
+        lines.append(f"- 版本: `{cache_version or '—'}` | 更新: {updated_at or '—'}")
+        result_preview = (result or "")[:200].replace("\n", " ")
+        lines.append(f"- 结果: {result_preview}{'...' if len(result or '') > 200 else ''}")
+        lines.append("")
+
+    content = "\n".join(lines)
+    if output_path:
+        dest = Path(output_path)
+    else:
+        dest = output_dir / project_id / "cache_snapshot.md"
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    dest.write_text(content, encoding="utf-8")
+    return dest
+
+
 # ---------------------------------------------------------------------------
 # main
 # ---------------------------------------------------------------------------
@@ -275,6 +365,14 @@ def main() -> int:
     p_exp.add_argument("--cycle", type=int, default=1, help="实验轮次")
     p_exp.add_argument("--benchmark", default="", help="Benchmark case ID")
 
+    # cache
+    p_cache = sub.add_parser("cache", help="缓存管理（审计导出）")
+    p_cache.add_argument("cache_action", choices=["export"], help="操作类型")
+    p_cache.add_argument("project_id", help="项目 ID")
+    p_cache.add_argument("--phase", default=None, help="指定 Phase（不填则导出所有）")
+    p_cache.add_argument("--format", dest="fmt", default="markdown", choices=["markdown"], help="输出格式")
+    p_cache.add_argument("--output", default=None, help="输出文件路径（默认写入 output/<project>/cache_snapshot.md）")
+
     # run (delegate to dqg-run)
     p_run = sub.add_parser("run", help="项目命令（等同于 dqg-run）")
     p_run.add_argument("run_args", nargs=argparse.REMAINDER, help="dqg-run 参数")
@@ -290,6 +388,7 @@ def main() -> int:
         "dashboard": _cmd_dashboard,
         "version": _cmd_version,
         "experiment": _cmd_experiment,
+        "cache": _cmd_cache,
     }
 
     handler = cmd_map.get(args.command)

@@ -1,0 +1,17 @@
+{
+  "case_id": "FEISHU-107254",
+  "phase": "B",
+  "error_type": "MISS",
+  "severity": "high",
+  "title": "【107254】保内：关单时间+30>整机维修截止日期，延保失败",
+  "root_cause": "提测前无单测",
+  "fix_target": "",
+  "tags": "[\"feishu-import\", \"category:提测前无单测\", \"bug_class:后端\"]",
+  "created_at": "2026-04-15",
+  "status": "open",
+  "source": "{\"feishu_table\": \"tblGxARLByCc5h3T\", \"bug_id\": \"107254\", \"requirement\": \"国际-售后-三包鉴权\"}",
+  "expected": "{\"content\": \"（需人工确认）\"}",
+  "actual": "{\"content\": \"代码问题，单测未覆盖到延保场景。\"}",
+  "lesson": "",
+  "holdout": "False"
+}

@@ -5,13 +5,12 @@ All modes produce the same canonical schema for downstream consumers.
 """
 from __future__ import annotations
 
-import os
 import time
 from dataclasses import dataclass, field
 from typing import Any
 
 from dqg.agents.llm_backends import (
-    StructuredChatResult, create_backend, _extract_json,
+    LLMConfig, StructuredChatResult, create_backend,
 )
 from dqg.log import get_logger
 
@@ -129,7 +128,7 @@ class JudgeRunner:
     def _call_judge(self, messages: list[dict], model: str, start: float) -> JudgeResult:
         """Single model call with structured output."""
         try:
-            api_key = self._resolve_api_key(model)
+            api_key = LLMConfig(primary=model)._resolve_api_key(model)
             backend = create_backend(model, api_key)
             structured = backend.chat_structured(
                 messages, JUDGE_RESPONSE_SCHEMA, max_tokens=2000,
@@ -144,11 +143,3 @@ class JudgeRunner:
                 overall_score=0, verdict="FAIL", dimensions=[], issues=[],
                 raw_output=str(e), health="INFRA_FAILURE", model=model,
             )
-
-    @staticmethod
-    def _resolve_api_key(model: str) -> str:
-        if any(p in model.lower() for p in ("claude", "opus", "sonnet", "haiku")):
-            return os.environ.get("ANTHROPIC_API_KEY", "")
-        if "deepseek" in model.lower():
-            return os.environ.get("DEEPSEEK_API_KEY", os.environ.get("OPENAI_API_KEY", ""))
-        return os.environ.get("OPENAI_API_KEY", "")

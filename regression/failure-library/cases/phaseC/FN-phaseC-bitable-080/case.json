@@ -4,7 +4,7 @@
   "error_type": "FN",
   "severity": "high",
   "title": "在车辆已经唤醒和解锁的情况下，车控查询没有展示已唤醒，闭锁的操作按钮",
-  "root_cause": "SKILL_RULE",
+  "root_cause": "函数异常分支未覆盖",
   "fix_target": "skills/unit-test-audit.md",
   "tags": [
     "汽车",
@@ -24,5 +24,6 @@
   "actual": {
     "content": "汽车电源模式acc模式下部分操作禁止，但维保侧不会感知"
   },
-  "lesson": "测试车辆状态异常，单测无法覆盖"
+  "lesson": "测试车辆状态异常，单测无法覆盖",
+  "holdout": false
 }

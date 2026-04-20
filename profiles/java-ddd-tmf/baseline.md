@@ -1,7 +1,7 @@
 # Java + DDD + TMF 技术栈基线
 
-> 本文件是 Phase B/C/D 的语言特定规则集，从主流程中解耦。
-> 主流程（SKILL.md）定义语言无关的审计框架，本文件提供 Java 生态的具体规则。
+> 本文件是 Phase Q05/Q06/Q07 的语言特定规则集，从主流程中解耦。
+> 主流程（AGENTS.md）定义语言无关的审计框架，本文件提供 Java 生态的具体规则。
 > 适配其他技术栈时，创建对应的 baseline 文件（如 `go-baseline.md`、`react-baseline.md`）即可。
 
 ---
@@ -153,7 +153,7 @@ ApiImpl → CmdExe → DomainService → TMF.execute → Step → Ability/Extens
 
 ### 存活变异体分类规则
 
-1. 比对 Phase A 的 `REQ/BR/SE` 契约
+1. 比对 Phase Q01 的 `REQ/BR/SE` 契约
 2. 被篡改代码行承载关键业务语义（SE 关联）→ `MUTATION_SURVIVED_CRITICAL`，必须补强断言
 3. 被篡改代码行不承载契约语义（日志、无关返回值）→ `MUTATION_SURVIVED_EXEMPT`，允许豁免
 

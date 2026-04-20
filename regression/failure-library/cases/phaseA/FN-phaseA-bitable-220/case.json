@@ -4,7 +4,7 @@
   "error_type": "FN",
   "severity": "high",
   "title": "【117017】补库清单没有按类型排序",
-  "root_cause": "SKILL_RULE",
+  "root_cause": "需求实现遗漏",
   "fix_target": "skills/requirement-structuring.md",
   "tags": [
     "备件",
@@ -24,5 +24,6 @@
   "actual": {
     "content": "遗漏了PRD中要求的排序规则"
   },
-  "lesson": "增加排序单测分支"
+  "lesson": "增加排序单测分支",
+  "holdout": false
 }

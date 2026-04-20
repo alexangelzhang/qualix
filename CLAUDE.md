@@ -5,7 +5,7 @@
 
 ## 入口
 
-- `@dqg-starter` — 全流程交互式引导（Claude Code skill 触发）
+- `/dqg-starter` — 快速启动（command 文件自包含启动逻辑，按需加载执行指南）
 - `dqg-run <project_id> startup` — CLI 启动
 
 ## Claude Code 特有规则
@@ -17,30 +17,34 @@
 
 ### Skill 驱动
 - Phase 任务必须读取对应 skill 文件执行，禁止脱离 skill 自由发挥
-- `dqg_starter.md` — AI IDE 入口 skill
-- `SKILL.md` — Pipeline 路由器
+- `.claude/commands/dqg-starter.md` — 启动骨架（自包含，无需额外加载）
+- `dqg_starter.md` — Phase 执行指南（用户选择 Phase 后按需加载）
 
 ### 状态管理
 - 状态管理必须通过 `dqg-run` CLI，禁止手动编辑 `state.json`
 - 收尾四步：产出检测 → 校验(finalize) → 人工确认(approve) → 刷新菜单
 
-### 飞书文档抓取
-```bash
-python3 scripts/feishu_direct_ingest.py "<feishu_url>" -o output/<project_id>/phaseA --save-raw-blocks
-```
+### Skill 文件结构（agentskills.io 标准）
+- 所有 Phase skill 已迁移为 `skills/<name>/SKILL.md` + `references/` 目录结构
+- SKILL.md < 500 行（执行骨架），详细规则在 references/ 按需加载
+- 旧路径 `skills/<name>.md` 保留 facade 兼容
+- 支持跨平台：Claude Code / Codex / Cursor / Gemini CLI
 
-### 图片语义解析
-```bash
-python3 scripts/parse_image_assets.py \
-  --manifest output/<project_id>/phaseA/asset_manifest.json \
-  --output-json output/<project_id>/phaseA/image_semantics.json \
-  --output-md output/<project_id>/phaseA/image_semantics.md \
-  --details-dir output/<project_id>/phaseA/image_details \
-  --backend auto
-```
+### 执行引擎
+- execute 时自动生成 Phase Contract（`_phase_contract.json`）：done_definition + verification_targets + hard_checks
+- finalize 时自动收集 Verification Bundle（`_verification_bundle.json`）：所有自动化验证结果
+- Judge 先看 contract + bundle（确定性证据），再做语义判断
+- Reasoning Sandwich：planning/verification 阶段用 high budget，execution 阶段用 standard（60%）
+- Eval Baseline：每次 finalize 自动计算指标并对比历史基线，退化超 5% 触发 WARNING
 
-### 文档维护约定
-- `Claude-Reflect Learnings` 由 `claude-reflect` 生成，禁止手工追加本轮改动；项目通用架构与性能进展统一维护在 `AGENTS.md`、`ROADMAP.md`、`ARCHITECTURE_OPTIMIZATION_ROADMAP.md` 与 `.claude/memory/`
+### 工具命令
+- 飞书抓取 / 图片解析命令见 `dqg_starter.md`
+
+### 编码行为准则
+- Karpathy 四原则（Think Before Coding / Simplicity First / Surgical Changes / Goal-Driven）— 详见 `AGENTS.md`
+
+### 文档同步铁律
+- 代码变更后必须同步指令文件 — 完整清单见 `AGENTS.md > 文档同步铁律`
 
 ## Claude-Reflect Learnings
 
@@ -58,4 +62,4 @@ python3 scripts/parse_image_assets.py \
 
 <!-- End claude-reflect section -->
 
-*最后更新：2026-04-08*
+*最后更新：2026-04-17*

@@ -23,5 +23,6 @@
   "actual": {
     "content": "coverage_summary"
   },
-  "lesson": ""
+  "lesson": "",
+  "holdout": false
 }

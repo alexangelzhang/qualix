@@ -23,5 +23,6 @@
   "actual": {
     "content": "gaps.7.gap_id"
   },
-  "lesson": ""
+  "lesson": "",
+  "holdout": false
 }

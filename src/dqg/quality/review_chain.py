@@ -10,7 +10,11 @@ from pathlib import Path
 
 from dqg.quality.critique import generate_critique_prompt
 from dqg.quality.judge import generate_judge_prompt
+from dqg.cache.llm_result_cache import get_cached_result
 from dqg.core.state_machine import PHASE_DEFS, phase_dir as _phase_dir
+from dqg.log import get_logger
+
+log = get_logger(__name__)
 
 
 def _strip_prompt_header(prompt: str) -> str:
@@ -34,10 +38,29 @@ def build_review_chain_payload(
         return None
 
     pd = _phase_dir(output_dir, project_id, phase_def)
-    judge = generate_judge_prompt(output_dir, project_id, phase_id)
-    critique = generate_critique_prompt(output_dir, project_id, phase_id)
 
-    if not judge and not critique:
+    # 检查缓存: 产物未变更时跳过 LLM 调用
+    cached_judge = get_cached_result(output_dir, project_id, phase_id, "judge")
+    cached_critique = get_cached_result(output_dir, project_id, phase_id, "critique")
+
+    if cached_judge and cached_critique:
+        log.info(
+            "Review chain: judge + critique 均命中缓存，跳过 prompt 生成 (%s/%s)",
+            project_id, phase_id,
+        )
+        return {
+            "judge_prompt": "",
+            "critique_prompt": "",
+            "review_chain_prompt": "",
+            "cached_judge": cached_judge,
+            "cached_critique": cached_critique,
+            "all_cached": True,
+        }
+
+    judge = generate_judge_prompt(output_dir, project_id, phase_id) if not cached_judge else None
+    critique = generate_critique_prompt(output_dir, project_id, phase_id) if not cached_critique else None
+
+    if not judge and not critique and not cached_judge and not cached_critique:
         return None
 
     lines = [
@@ -51,7 +74,9 @@ def build_review_chain_payload(
         "",
     ]
 
-    if judge:
+    if cached_judge:
+        lines.append(f"（Judge 结果已缓存，产物未变更，跳过。缓存评分: {cached_judge.get('overall_score', '?')}/5）")
+    elif judge:
         lines.append(_strip_prompt_header(judge))
     else:
         lines.append("（此 Phase 不支持 Judge 评审，跳过）")
@@ -64,7 +89,9 @@ def build_review_chain_payload(
         "",
     ])
 
-    if critique:
+    if cached_critique:
+        lines.append(f"（Critique 结果已缓存，产物未变更，跳过。）")
+    elif critique:
         lines.append(_strip_prompt_header(critique))
     else:
         lines.append("（此 Phase 不支持 Critique，跳过）")
@@ -81,10 +108,10 @@ def build_review_chain_payload(
 
     # Preference prompt 依赖 v2 产物，这里给出指引
     report_map = {
-        "A": ("phase_a_report.md", "phase_a_structured.json"),
-        "A.5": ("tech_design_coverage_review.md", "phase_a5_structured.json"),
-        "A.6": ("tech_design_quality_review.md", "phase_a6_structured.json"),
-        "C": ("ut_audit_report.md", "phase_c_structured.json"),
+        "Q01": ("phase_a_report.md", "phase_a_structured.json"),
+        "Q04": ("tech_design_coverage_review.md", "phase_a5_structured.json"),
+        "Q03": ("tech_design_quality_review.md", "phase_a6_structured.json"),
+        "Q06": ("ut_audit_report.md", "phase_c_structured.json"),
     }
     files = report_map.get(phase_id)
     if files:
@@ -140,6 +167,9 @@ def build_review_chain_payload(
         "judge_prompt": judge or "",
         "critique_prompt": critique or "",
         "review_chain_prompt": "\n".join(lines),
+        "cached_judge": cached_judge,
+        "cached_critique": cached_critique,
+        "all_cached": False,
     }
 
 

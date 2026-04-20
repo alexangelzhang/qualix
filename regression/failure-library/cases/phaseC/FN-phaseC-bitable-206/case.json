@@ -4,7 +4,7 @@
   "error_type": "FN",
   "severity": "high",
   "title": "更新停车场静态数据，更新后数据不符合预期，具体看描述【已补充评论】",
-  "root_cause": "SKILL_RULE",
+  "root_cause": "函数未覆盖",
   "fix_target": "skills/unit-test-audit.md",
   "tags": [
     "汽车",
@@ -25,5 +25,6 @@
   "actual": {
     "content": "有些字段未设置默认值"
   },
-  "lesson": "提高单测场景覆盖度"
+  "lesson": "提高单测场景覆盖度",
+  "holdout": false
 }

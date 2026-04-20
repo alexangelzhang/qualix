@@ -31,10 +31,10 @@ def _make_output(tmp_path: Path, project_id: str, phases: list[str]) -> Path:
 
 class TestDetectPhaseStatus:
     def test_completed_phase(self, tmp_path: Path):
-        output_dir = _make_output(tmp_path, "PROJ1", ["A"])
+        output_dir = _make_output(tmp_path, "PROJ1", ["Q01"])
         status = detect_phase_status(output_dir, "PROJ1", PHASES[0])
         assert status.completed is True
-        assert status.phase_id == "A"
+        assert status.phase_id == "Q01"
         assert status.key_file_path is not None
 
     def test_not_started_phase(self, tmp_path: Path):
@@ -63,7 +63,7 @@ class TestFindNextPhase:
         ]
         next_phase = find_next_phase(statuses, [])
         assert next_phase is not None
-        assert next_phase["id"] == "A"
+        assert next_phase["id"] == "Q01"
 
     def test_skip_to_b_after_a(self):
         statuses = []
@@ -72,13 +72,13 @@ class TestFindNextPhase:
                 PhaseStatus(
                     phase_id=p["id"],
                     name=p["name"],
-                    completed=(p["id"] == "A"),
+                    completed=(p["id"] == "Q01"),
                 )
             )
         next_phase = find_next_phase(statuses, [])
         assert next_phase is not None
         # A.5, A.6, B all depend on A — first one in order is A.5
-        assert next_phase["id"] == "A.5"
+        assert next_phase["id"] == "Q04"
 
     def test_all_completed(self):
         statuses = [
@@ -89,19 +89,19 @@ class TestFindNextPhase:
 
     def test_skip_phase(self):
         statuses = [
-            PhaseStatus(phase_id=p["id"], name=p["name"], completed=(p["id"] == "A"))
+            PhaseStatus(phase_id=p["id"], name=p["name"], completed=(p["id"] == "Q01"))
             for p in PHASES
         ]
-        next_phase = find_next_phase(statuses, ["A.5"])
+        next_phase = find_next_phase(statuses, ["Q04"])
         assert next_phase is not None
-        assert next_phase["id"] == "A.6"
+        assert next_phase["id"] == "Q03"
 
 
 class TestBuildNextCommand:
     def test_includes_input_files(self):
         statuses = [
             PhaseStatus(
-                phase_id="A",
+                phase_id="Q01",
                 name="需求结构化",
                 completed=True,
                 key_file_path="/output/PROJ1/phaseA/phase_a_report.md",
@@ -115,7 +115,7 @@ class TestBuildNextCommand:
 
 class TestDiscoverProjects:
     def test_discovers_standard_naming(self, tmp_path: Path):
-        output_dir = _make_output(tmp_path, "ABC", ["A", "B"])
+        output_dir = _make_output(tmp_path, "ABC", ["Q01", "Q05"])
         projects = discover_projects(output_dir)
         assert len(projects) == 1
         assert projects[0]["id"] == "ABC"

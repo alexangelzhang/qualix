@@ -4,7 +4,7 @@
   "error_type": "FN",
   "severity": "critical",
   "title": "【105877】我的设备详情中，读取政策时，都是读取的最新的政策，没有取版本政策",
-  "root_cause": "SKILL_RULE",
+  "root_cause": "需求遗漏",
   "fix_target": "skills/requirement-structuring.md",
   "tags": [
     "主数据",
@@ -24,5 +24,6 @@
   "actual": {
     "content": "没有考虑政策版本，设计遗漏"
   },
-  "lesson": ""
+  "lesson": "",
+  "holdout": false
 }

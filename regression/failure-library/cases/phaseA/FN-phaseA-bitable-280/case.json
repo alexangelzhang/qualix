@@ -24,5 +24,6 @@
   "actual": {
     "content": "没有明确定义，历史线上就这样，本轮修复"
   },
-  "lesson": ""
+  "lesson": "",
+  "holdout": true
 }

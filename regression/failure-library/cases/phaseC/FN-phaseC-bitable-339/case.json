@@ -4,7 +4,7 @@
   "error_type": "FN",
   "severity": "high",
   "title": "【106867】手工费减免申请，申请原因输入2000字符长，提交报错",
-  "root_cause": "SKILL_RULE",
+  "root_cause": "函数异常分支未覆盖",
   "fix_target": "skills/unit-test-audit.md",
   "tags": [
     "国际",
@@ -25,5 +25,6 @@
   "actual": {
     "content": "客观原因：PRD未提及，群里和前端聊过，后端同学遗漏\n\n主观原因：意识不强，基本的长度校验逻辑"
   },
-  "lesson": ""
+  "lesson": "",
+  "holdout": false
 }

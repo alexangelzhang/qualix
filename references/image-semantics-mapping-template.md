@@ -1,4 +1,4 @@
-# 图片语义映射模板（Phase A）
+# 图片语义映射模板（Phase Q01）
 
 > 用途：将流程图/状态图/原型图/表格截图中的隐含规则显式化为 `SE`，并映射到 `REQ/BR + GAP + OPEN`。
 > 注意：本模板属于产品需求阶段，不输出 `UT/EUT`。
@@ -28,7 +28,7 @@
 | GAP-IMG-001 | GAP | SE-IMG-001 |  |  |
 | OPEN-IMG-001 | OPEN | SE-IMG-001 |  |  |
 
-## 4. 防漏 Gate（Phase A）
+## 4. 防漏 Gate（Phase Q01）
 
 - [ ] 图片中的关键语义均已生成 `SE`
 - [ ] 每个图片 `SE` 均已绑定 `REQ/BR`

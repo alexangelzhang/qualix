@@ -4,7 +4,7 @@
   "error_type": "FN",
   "severity": "high",
   "title": "【116848】添加流程时,勾选三级故障大类时，保存失败",
-  "root_cause": "SKILL_RULE",
+  "root_cause": "函数异常分支未覆盖",
   "fix_target": "skills/unit-test-audit.md",
   "tags": [
     "备件",
@@ -24,5 +24,6 @@
   "actual": {
     "content": "字段超长，业务场景需要增加限制，后端接口同步增加限制"
   },
-  "lesson": "单测增加字段取值范围和长度的测试"
+  "lesson": "单测增加字段取值范围和长度的测试",
+  "holdout": false
 }

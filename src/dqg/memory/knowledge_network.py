@@ -211,6 +211,18 @@ def _extract_tags(text: str) -> list[str]:
 
 
 # ---------------------------------------------------------------------------
+# Backward-compat re-export: hyperedge functions moved to hyperedge.py
+# ---------------------------------------------------------------------------
+from dqg.memory.hyperedge import (  # noqa: F401
+    build_business_hyperedges,
+    create_hyperedge,
+    format_hyperedge_context,
+    get_hyperedge_members,
+    get_hyperedges_for_node,
+)
+
+
+# ---------------------------------------------------------------------------
 # 查询
 # ---------------------------------------------------------------------------
 

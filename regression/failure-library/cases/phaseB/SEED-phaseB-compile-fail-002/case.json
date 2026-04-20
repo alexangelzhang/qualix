@@ -1,0 +1,28 @@
+{
+  "case_id": "SEED-phaseB-compile-fail-002",
+  "phase": "B",
+  "error_type": "WRONG",
+  "severity": "high",
+  "title": "生成的单测编译失败：import 缺失或 mock 配置错误",
+  "root_cause": "CONTEXT",
+  "fix_target": "skills/unit-test-generation.md",
+  "tags": [
+    "编译失败",
+    "import缺失",
+    "mock配置"
+  ],
+  "created_at": "2026-04-09",
+  "status": "open",
+  "source": {
+    "seed_case": true,
+    "pattern": "生成的测试类缺少必要 import（如 Mockito.when/verify），或 @Mock 注解的类型与实际接口不匹配"
+  },
+  "expected": {
+    "content": "所有 import 正确，@Mock 类型与被测类的依赖接口一致，mvn compile 通过"
+  },
+  "actual": {
+    "content": "编译报错：cannot find symbol / incompatible types in mock setup"
+  },
+  "lesson": "生成单测前必须读取被测类的完整 import 列表和构造函数依赖，确保 mock 类型与实际接口一致。compile_check gate 会在 finalize 时拦截。",
+  "holdout": false
+}

@@ -4,7 +4,7 @@
   "error_type": "WRONG",
   "severity": "high",
   "title": "【117197】补库单详细信息展示失败",
-  "root_cause": "SKILL_RULE",
+  "root_cause": "函数覆盖assert不对",
   "fix_target": "skills/unit-test-audit.md",
   "tags": [
     "备件",
@@ -24,5 +24,6 @@
   "actual": {
     "content": "物料编码未正确展示，属于前端取错字段；价格问题，属于实现错误，用错了底层接口字段"
   },
-  "lesson": "单测增加字段返回值的正确性验证"
+  "lesson": "单测增加字段返回值的正确性验证",
+  "holdout": false
 }

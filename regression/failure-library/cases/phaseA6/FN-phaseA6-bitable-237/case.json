@@ -4,7 +4,7 @@
   "error_type": "FN",
   "severity": "medium",
   "title": "【132559】天工平台权限去除之后，但是信息员在工单管理中依然可以修改用户手机号 （查询的是xms权限）",
-  "root_cause": "SKILL_RULE",
+  "root_cause": "技术方案不清晰",
   "fix_target": "skills/tech-quality-review.md",
   "tags": [
     "组织中台",
@@ -26,5 +26,6 @@
   "actual": {
     "content": "未获取到版本标识导致请求未染色成功，仍然请求老的xmx权限\n根因是 x-uid 头的写成了uid，且自测用例未覆盖"
   },
-  "lesson": ""
+  "lesson": "",
+  "holdout": false
 }

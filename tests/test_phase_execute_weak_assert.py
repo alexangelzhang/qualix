@@ -18,13 +18,13 @@ if TYPE_CHECKING:
 
 def _prepare_state(output_dir: Path, project_id: str = "demo") -> None:
     state = ProjectState(project_id=project_id)
-    state.phases["A"].status = PhaseStatus.APPROVED
+    state.phases["Q01"].status = PhaseStatus.APPROVED
     save_state(output_dir, state)
 
 
 def _empty_context() -> LoadedContext:
     return LoadedContext(
-        phase_id="C",
+        phase_id="Q06",
         model=get_model_profile(None),
         budget_tokens=8_000,
     )
@@ -33,7 +33,7 @@ def _empty_context() -> LoadedContext:
 def _build_args(code_repo: str) -> SimpleNamespace:
     return SimpleNamespace(
         project_id="demo",
-        phase="C",
+        phase="Q06",
         profile=None,
         model=None,
         code_repo=code_repo,
@@ -44,8 +44,8 @@ def _build_args(code_repo: str) -> SimpleNamespace:
 
 def _stub_common_dependencies(monkeypatch) -> None:
     monkeypatch.setattr("dqg.context.context_loader.load_context", lambda *args, **kwargs: _empty_context())
-    monkeypatch.setattr("dqg.commands.phase.append_record", lambda *args, **kwargs: None)
-    monkeypatch.setattr("dqg.commands.phase.write_phase_profile_manifest", lambda *args, **kwargs: None)
+    monkeypatch.setattr("dqg.reporting.telemetry.append_record", lambda *args, **kwargs: None)
+    monkeypatch.setattr("dqg.services.phase_service.write_phase_profile_manifest", lambda *args, **kwargs: None)
     monkeypatch.setattr("dqg.context.doc_summary.generate_summary_file", lambda *args, **kwargs: None)
 
 

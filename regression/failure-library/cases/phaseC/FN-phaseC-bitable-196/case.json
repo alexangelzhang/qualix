@@ -4,7 +4,7 @@
   "error_type": "FN",
   "severity": "high",
   "title": "更新停车场静态数据，geometry原始数据存在point类型，更新后不存在point，没有进行更新直接报错了",
-  "root_cause": "SKILL_RULE",
+  "root_cause": "函数异常分支未覆盖",
   "fix_target": "skills/unit-test-audit.md",
   "tags": [
     "汽车",
@@ -25,5 +25,6 @@
   "actual": {
     "content": "单测场景未覆盖，todo"
   },
-  "lesson": "提高单测场景对比度"
+  "lesson": "提高单测场景对比度",
+  "holdout": false
 }

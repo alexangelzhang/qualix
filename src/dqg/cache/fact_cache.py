@@ -24,7 +24,7 @@ def index_phase_facts(
     project_id: str,
     phase_id: str,
 ) -> int:
-    """从结构化 JSON 中提取 SE/GAP/OPEN 存入 FTS5 索引."""
+    """从结构化 JSON 中提取 SE/GAP/OPEN 存入 FTS5 索引（批量写入）."""
 
     phase_def = PHASE_DEFS.get(phase_id)
     if not phase_def:
@@ -43,62 +43,83 @@ def index_phase_facts(
     if data is None:
         return 0
 
-    count = 0
+    # 收集所有 facts
+    facts: list[tuple[str, str, str, str, str, str, str]] = []
+
+    for se in data.get("semantic_expectations", []):
+        se_id = se.get("se_id", "")
+        desc = se.get("description", "")
+        target = se.get("mapping_target", "")
+        confidence = "EXTRACTED" if target else "INFERRED"
+        related_str = json.dumps([target] if target else [], ensure_ascii=False)
+        facts.append((project_id, phase_id, "SE", se_id, desc, related_str, confidence))
+
+    for gap in data.get("gaps", []):
+        gap_id = gap.get("gap_id", "")
+        desc = gap.get("description", "")
+        related_str = json.dumps(gap.get("related_ids", []), ensure_ascii=False)
+        facts.append((project_id, phase_id, "GAP", gap_id, desc, related_str, "INFERRED"))
+
+    for op in data.get("open_items", []):
+        open_id = op.get("open_id", "")
+        desc = op.get("question", "") or op.get("description", "")
+        related_str = json.dumps(op.get("related_ids", []), ensure_ascii=False)
+        facts.append((project_id, phase_id, "OPEN", open_id, desc, related_str, "AMBIGUOUS"))
+
+    for req in data.get("requirements", []):
+        req_id = req.get("req_id", "")
+        desc = req.get("description", "")
+        parent = req.get("parent_id", "")
+        fact_type = "REQ" if req_id.startswith("REQ") else "BR"
+        related_str = json.dumps([parent] if parent else [], ensure_ascii=False)
+        facts.append((project_id, phase_id, fact_type, req_id, desc, related_str, "EXTRACTED"))
+
+    if not facts:
+        return 0
 
     with get_connection(output_dir) as conn:
+        # 批量删除旧数据
         conn.execute(
             "DELETE FROM structured_facts WHERE project_id=? AND phase_id=?",
             (project_id, phase_id),
         )
 
-        for se in data.get("semantic_expectations", []):
-            se_id = se.get("se_id", "")
-            desc = se.get("description", "")
-            target = se.get("mapping_target", "")
-            _insert_fact(conn, project_id, phase_id, "SE", se_id, desc, [target] if target else [])
-            count += 1
+        # 批量插入主表
+        conn.executemany(
+            """INSERT INTO structured_facts (project_id, phase_id, fact_type, fact_id, description, related_ids, confidence)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(project_id, phase_id, fact_id) DO UPDATE SET
+                description=excluded.description, related_ids=excluded.related_ids, confidence=excluded.confidence""",
+            facts,
+        )
 
-        for gap in data.get("gaps", []):
-            gap_id = gap.get("gap_id", "")
-            desc = gap.get("description", "")
-            related = gap.get("related_ids", [])
-            _insert_fact(conn, project_id, phase_id, "GAP", gap_id, desc, related)
-            count += 1
+        # 批量查询 rowid 并插入 FTS5
+        rows = conn.execute(
+            "SELECT id, fact_id, description, related_ids FROM structured_facts WHERE project_id=? AND phase_id=?",
+            (project_id, phase_id),
+        ).fetchall()
 
-        for op in data.get("open_items", []):
-            open_id = op.get("open_id", "")
-            desc = op.get("question", "") or op.get("description", "")
-            related = op.get("related_ids", [])
-            _insert_fact(conn, project_id, phase_id, "OPEN", open_id, desc, related)
-            count += 1
+        fts_data = [
+            (row[0], tokenize_chinese(row[1]), tokenize_chinese(f"{row[1]} {row[2]}"), tokenize_chinese(row[3]))
+            for row in rows
+        ]
+        conn.executemany(
+            "INSERT OR REPLACE INTO structured_facts_fts(rowid, fact_id, description, related_ids) VALUES (?, ?, ?, ?)",
+            fts_data,
+        )
 
-        for req in data.get("requirements", []):
-            req_id = req.get("req_id", "")
-            desc = req.get("description", "")
-            parent = req.get("parent_id", "")
-            _insert_fact(
-                conn,
-                project_id,
-                phase_id,
-                "REQ" if req_id.startswith("REQ") else "BR",
-                req_id,
-                desc,
-                [parent] if parent else [],
-            )
-            count += 1
-
-    return count
+    return len(facts)
 
 
-def _insert_fact(conn, project_id, phase_id, fact_type, fact_id, description, related_ids):
+def _insert_fact(conn, project_id, phase_id, fact_type, fact_id, description, related_ids, confidence="EXTRACTED"):
     """插入一条事实并同步 FTS5."""
     related_str = json.dumps(related_ids, ensure_ascii=False)
     conn.execute(
-        """INSERT INTO structured_facts (project_id, phase_id, fact_type, fact_id, description, related_ids)
-        VALUES (?, ?, ?, ?, ?, ?)
+        """INSERT INTO structured_facts (project_id, phase_id, fact_type, fact_id, description, related_ids, confidence)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(project_id, phase_id, fact_id) DO UPDATE SET
-            description=excluded.description, related_ids=excluded.related_ids""",
-        (project_id, phase_id, fact_type, fact_id, description, related_str),
+            description=excluded.description, related_ids=excluded.related_ids, confidence=excluded.confidence""",
+        (project_id, phase_id, fact_type, fact_id, description, related_str, confidence),
     )
     row = conn.execute(
         "SELECT id FROM structured_facts WHERE project_id=? AND phase_id=? AND fact_id=?",
@@ -177,3 +198,101 @@ def search_facts(
             results = [row_to_dict(r) for r in rows]
 
     return results
+
+
+def count_facts(
+    output_dir: Path,
+    project_id: str | None = None,
+) -> int:
+    """统计结构化事实总数."""
+    with get_connection(output_dir) as conn:
+        if project_id:
+            row = conn.execute(
+                "SELECT COUNT(*) FROM structured_facts WHERE project_id = ?",
+                (project_id,),
+            ).fetchone()
+        else:
+            row = conn.execute("SELECT COUNT(*) FROM structured_facts").fetchone()
+    return row[0] if row else 0
+
+
+def export_facts_to_markdown(
+    output_dir: "Path",
+    project_id: str,
+    phase_id: str,
+) -> "Path | None":
+    """将指定 Phase 的结构化事实导出为 Markdown，纳入 git 追踪.
+
+    输出路径：output/<project_id>/<phase_dir>/facts_export.md
+    每次 finalize 后覆盖写入，git diff 可见变化。
+    """
+    from datetime import datetime
+
+    from dqg.constants import PHASE_DIR_MAP
+    from dqg.core.phase_registry import PHASE_DEFS
+
+    phase_def = PHASE_DEFS.get(phase_id)
+    if not phase_def:
+        return None
+
+    dir_suffix = PHASE_DIR_MAP.get(phase_id, phase_def.get("dir_suffix", ""))
+    phase_path = output_dir / project_id / dir_suffix
+    phase_path.mkdir(parents=True, exist_ok=True)
+
+    with get_connection(output_dir) as conn:
+        rows = conn.execute(
+            "SELECT fact_type, fact_id, description, related_ids, confidence, updated_at "
+            "FROM structured_facts WHERE project_id=? AND phase_id=? ORDER BY fact_type, fact_id",
+            (project_id, phase_id),
+        ).fetchall()
+
+    if not rows:
+        return None
+
+    # 按 fact_type 分组
+    groups: dict[str, list] = {}
+    for row in rows:
+        ft = row[0]
+        groups.setdefault(ft, []).append(row)
+
+    type_order = ["REQ", "BR", "SE", "GAP", "OPEN"]
+    type_labels = {
+        "REQ": "需求点 (REQ)",
+        "BR": "业务规则 (BR)",
+        "SE": "语义期望 (SE)",
+        "GAP": "缺口 (GAP)",
+        "OPEN": "待确认项 (OPEN)",
+    }
+
+    lines = [
+        f"# Facts Export — {project_id} / Phase {phase_id}",
+        "",
+        f"> 自动生成于 {datetime.now().strftime('%Y-%m-%d %H:%M')}，由 DQG finalize 写入，可纳入 git 追踪。",
+        f"> 共 {len(rows)} 条结构化事实。",
+        "",
+    ]
+
+    for ft in type_order + [k for k in groups if k not in type_order]:
+        if ft not in groups:
+            continue
+        label = type_labels.get(ft, ft)
+        lines.append(f"## {label} ({len(groups[ft])} 条)")
+        lines.append("")
+        lines.append("| ID | 描述 | 置信度 | 关联 |")
+        lines.append("|---|---|---|---|")
+        for row in groups[ft]:
+            fact_id = row[1] or ""
+            desc = (row[2] or "").replace("|", "｜").replace("\n", " ")[:120]
+            confidence = row[4] or ""
+            try:
+                related = json.loads(row[3] or "[]")
+                related_str = ", ".join(str(r) for r in related[:3]) if related else "—"
+            except Exception:
+                related_str = "—"
+            lines.append(f"| `{fact_id}` | {desc} | {confidence} | {related_str} |")
+        lines.append("")
+
+    content = "\n".join(lines)
+    export_path = phase_path / "facts_export.md"
+    export_path.write_text(content, encoding="utf-8")
+    return export_path

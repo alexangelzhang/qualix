@@ -4,7 +4,7 @@
   "error_type": "FN",
   "severity": "high",
   "title": "【116217】生成订料单，推仓后库存不足订料单履约取消。异常单上还是补发状态",
-  "root_cause": "SKILL_RULE",
+  "root_cause": "需求实现遗漏",
   "fix_target": "skills/requirement-structuring.md",
   "tags": [
     "备件",
@@ -24,5 +24,6 @@
   "actual": {
     "content": "设计阶段遗漏了一个状态"
   },
-  "lesson": "加强技术方案设计确认"
+  "lesson": "加强技术方案设计确认",
+  "holdout": true
 }

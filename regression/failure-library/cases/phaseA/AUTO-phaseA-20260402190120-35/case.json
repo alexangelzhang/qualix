@@ -23,5 +23,6 @@
   "actual": {
     "content": "Input should be a valid boolean [type=bool_type, input_value=['BR-035'], input_type=list]"
   },
-  "lesson": ""
+  "lesson": "",
+  "holdout": false
 }

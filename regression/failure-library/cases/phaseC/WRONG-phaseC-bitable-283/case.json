@@ -4,7 +4,7 @@
   "error_type": "WRONG",
   "severity": "high",
   "title": "【117234】来料不良拒收单据，报查询货位信息失败",
-  "root_cause": "SKILL_RULE",
+  "root_cause": "函数覆盖assert不对",
   "fix_target": "skills/unit-test-audit.md",
   "tags": [
     "备件",
@@ -24,5 +24,6 @@
   "actual": {
     "content": "同一个作业单号可以有多条数据，没有做到对应场景的兼容，单测没有做到覆盖"
   },
-  "lesson": "增加分支覆盖"
+  "lesson": "增加分支覆盖",
+  "holdout": true
 }

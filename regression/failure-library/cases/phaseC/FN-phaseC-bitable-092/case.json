@@ -4,7 +4,7 @@
   "error_type": "FN",
   "severity": "high",
   "title": "权益过期执行定时任务，退款成功，数据库+订单状态未置为失效",
-  "root_cause": "SKILL_RULE",
+  "root_cause": "函数正常分支未覆盖",
   "fix_target": "skills/unit-test-audit.md",
   "tags": [
     "汽车",
@@ -24,5 +24,6 @@
   "actual": {
     "content": "（需人工补充）"
   },
-  "lesson": "加强单测校验逻辑，对所有会变化的字段做校验"
+  "lesson": "加强单测校验逻辑，对所有会变化的字段做校验",
+  "holdout": true
 }

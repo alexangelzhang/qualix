@@ -5,8 +5,21 @@
 
 ## 入口
 
-- 全流程引导: 读取 `dqg_starter.md` 开始
-- CLI 启动: `python -m dqg.runner <project_id> startup`
+- `/dqg-starter` — 快速启动（command 文件自包含启动逻辑，按需加载执行指南）
+- CLI 启动: `dqg-run <project_id> startup`
+
+## Skill 文件结构（agentskills.io 标准）
+
+所有 Phase skill 已迁移为 `skills/<name>/SKILL.md` + `references/` 目录结构：
+- SKILL.md < 500 行（执行骨架），详细规则在 references/ 按需加载
+- 支持跨平台：Claude Code / Codex / Cursor / Gemini CLI
+
+## 执行引擎
+
+- execute 时自动生成 Phase Contract（`_phase_contract.json`）
+- finalize 时自动收集 Verification Bundle（`_verification_bundle.json`）
+- Eval Baseline：每次 finalize 自动对比历史基线
+- Reasoning Sandwich：planning/verification 用 high budget，execution 用 standard（60%）
 
 ## Gemini 工具映射
 
@@ -22,10 +35,10 @@
 
 | 工具 | 指令文件 |
 |------|---------|
-| Claude Code CLI | `CLAUDE.md`（Claude Code 专属）+ `AGENTS.md`（通用知识） |
+| Claude Code CLI | `CLAUDE.md` + `AGENTS.md` |
 | OpenAI Codex CLI / opencode | `AGENTS.md` |
-| Google Gemini CLI | `GEMINI.md`（本文件）+ `AGENTS.md`（通用知识） |
-| Cursor | `.cursor/rules/dqg.mdc` + `AGENTS.md`（通用知识） |
+| Google Gemini CLI | `GEMINI.md`（本文件）+ `AGENTS.md` |
+| Cursor | `.cursor/rules/dqg.mdc` + `AGENTS.md` |
 | IntelliJ IDEA | `AGENTS.md` |
 
-*最后更新：2026-04-08*
+*最后更新：2026-04-17*

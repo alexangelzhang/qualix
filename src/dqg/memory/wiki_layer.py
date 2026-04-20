@@ -46,12 +46,12 @@ class WikiManager:
 
     def _load_compile_context(self, project_id: str) -> str:
         """优先使用摘要，fallback 到原始文本，并截断到固定上限。"""
-        phase_a = _find_phase_file(self.output_dir, project_id, "A", "plain_text_summary.md")
+        phase_a = _find_phase_file(self.output_dir, project_id, "Q01", "plain_text_summary.md")
         summary = _read_excerpt(phase_a, WIKI_COMPILE_CONTEXT_LIMIT)
         if summary:
             return summary
 
-        raw_text = _read_excerpt(_find_phase_file(self.output_dir, project_id, "A", "plain_text.txt"), WIKI_RAW_TEXT_FALLBACK_LIMIT)
+        raw_text = _read_excerpt(_find_phase_file(self.output_dir, project_id, "Q01", "plain_text.txt"), WIKI_RAW_TEXT_FALLBACK_LIMIT)
         return raw_text
 
     def _collect_lint_bundle(self, project_id: str) -> str:

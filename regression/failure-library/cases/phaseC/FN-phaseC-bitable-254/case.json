@@ -4,7 +4,7 @@
   "error_type": "FN",
   "severity": "high",
   "title": "【105541】非自营sn政策只显示政策说明，不显示退换修政策详情，sn：20466/2710183837",
-  "root_cause": "SKILL_RULE",
+  "root_cause": "函数正常分支未覆盖",
   "fix_target": "skills/unit-test-audit.md",
   "tags": [
     "工单",
@@ -24,5 +24,6 @@
   "actual": {
     "content": "代码不健壮，自测应该可以发现"
   },
-  "lesson": ""
+  "lesson": "",
+  "holdout": false
 }

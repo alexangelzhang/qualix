@@ -4,7 +4,7 @@
   "error_type": "FN",
   "severity": "high",
   "title": "服务活动进度也导出，导出数据需删除部分列",
-  "root_cause": "SKILL_RULE",
+  "root_cause": "需求实现遗漏",
   "fix_target": "skills/requirement-structuring.md",
   "tags": [
     "汽车",
@@ -24,5 +24,6 @@
   "actual": {
     "content": "与查询共用接口，查询部分提供多方查询能力，所以没有做字段删除"
   },
-  "lesson": "增加单测覆盖"
+  "lesson": "增加单测覆盖",
+  "holdout": true
 }

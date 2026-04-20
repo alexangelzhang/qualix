@@ -17,7 +17,6 @@ from dqg.core.state_machine import (
     phase_dir as _phase_dir,
     save_state,
 )
-from dqg.reporting.telemetry import print_run_summary
 
 STATUS_ICONS = {
     PhaseStatus.NOT_STARTED: "⬜",
@@ -38,6 +37,11 @@ def print_status(state, output_dir: Path) -> None:
     print(f"  {'Phase':<8} {'名称':<20} {'状态':<18} {'耗时':<12} {'备注'}")
     print("-" * 68)
 
+    total = len(PHASE_ORDER)
+    done = 0
+    total_duration = 0.0
+    judge_scores: list[float] = []
+
     for phase_id in PHASE_ORDER:
         ps = state.phases[phase_id]
         icon = STATUS_ICONS.get(ps.status, "?")
@@ -48,7 +52,19 @@ def print_status(state, output_dir: Path) -> None:
         judge = f" [J:{ps.judge_score:.1f}{'✅' if ps.judge_passed else '⚠'}]" if ps.judge_score is not None else ""
         print(f"  {phase_id:<8} {name:<20} {icon} {ps.status:<14} {duration:<12} {comment}{errors}{judge}")
 
+        if ps.status in (PhaseStatus.APPROVED, PhaseStatus.SKIPPED):
+            done += 1
+        if ps.duration_seconds:
+            total_duration += ps.duration_seconds
+        if ps.judge_score is not None:
+            judge_scores.append(ps.judge_score)
+
     print("=" * 68)
+
+    # 全局进度摘要
+    pct = int(done / total * 100) if total else 0
+    avg_judge = f"{sum(judge_scores) / len(judge_scores):.1f}" if judge_scores else "—"
+    print(f"\n  进度: {done}/{total} ({pct}%) | 总耗时: {total_duration:.0f}s | 平均质量分: {avg_judge}")
 
     available = get_available_phases(state)
     if available:
@@ -152,6 +168,7 @@ def cmd_detail(args, output_dir: Path) -> int:
 
 
 def cmd_log(args, output_dir: Path) -> int:
+    from dqg.reporting.telemetry import print_run_summary
     print_run_summary(output_dir, args.project_id)
     return 0
 
@@ -187,11 +204,50 @@ def cmd_startup(args, output_dir: Path) -> int:
         for pid in PHASE_ORDER
     )
 
+    # 全局进度统计
+    total = len(PHASE_ORDER)
+    done = sum(
+        1 for pid in PHASE_ORDER
+        if state.phases[pid].status in (PhaseStatus.APPROVED, PhaseStatus.SKIPPED)
+    )
+    total_duration = sum(
+        state.phases[pid].duration_seconds or 0.0 for pid in PHASE_ORDER
+    )
+    judge_scores = [
+        state.phases[pid].judge_score
+        for pid in PHASE_ORDER
+        if state.phases[pid].judge_score is not None
+    ]
+    avg_judge = sum(judge_scores) / len(judge_scores) if judge_scores else None
+
     print(dump_json_str({
         "project_id": args.project_id,
         "profile_id": state.profile_id,
         "all_done": all_done,
+        "progress": {
+            "done": done,
+            "total": total,
+            "percent": int(done / total * 100) if total else 0,
+            "total_duration_seconds": round(total_duration, 1),
+            "avg_judge_score": round(avg_judge, 2) if avg_judge else None,
+        },
         "menu": menu_items,
         "next_groups": [{"phases": g, "parallel": len(g) > 1} for g in groups],
+        "shortcuts": {
+            "v": "详情模式（展示每个 Phase 的交付物和校验结果）",
+            "g": "全局进度（展示进度/耗时/质量分汇总）",
+            "数字": "选择要执行的阶段编号",
+        },
     }))
+
+    # Session orientation：输出跨 session 进度摘要到 stderr（不影响 JSON stdout）
+    try:
+        from dqg.runtime.session_startup import format_orientation, session_startup
+        orientation = session_startup(output_dir, args.project_id)
+        if orientation:
+            import sys
+            print(format_orientation(orientation), file=sys.stderr)
+    except Exception:
+        pass  # orientation 失败不阻断 startup
+
     return 0

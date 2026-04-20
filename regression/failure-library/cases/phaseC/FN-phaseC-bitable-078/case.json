@@ -4,7 +4,7 @@
   "error_type": "FN",
   "severity": "high",
   "title": "来访处理提交服务单工单上姓名脱敏格式不对",
-  "root_cause": "SKILL_RULE",
+  "root_cause": "函数正常分支未覆盖",
   "fix_target": "skills/unit-test-audit.md",
   "tags": [
     "汽车",
@@ -24,5 +24,6 @@
   "actual": {
     "content": "姓名存在二到四位，保留四位姓名的姓氏未正确脱敏"
   },
-  "lesson": "修改代码补全单测覆盖"
+  "lesson": "修改代码补全单测覆盖",
+  "holdout": false
 }

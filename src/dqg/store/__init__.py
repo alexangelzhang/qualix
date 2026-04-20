@@ -46,10 +46,19 @@ from dqg.store.experiments import insert_experiment  # noqa: F401
 from dqg.store.experiments import query_experiments  # noqa: F401
 from dqg.store.experiments import update_experiment  # noqa: F401
 
+# --- events ---
+from dqg.store.events import get_phase_timeline  # noqa: F401
+from dqg.store.events import insert_event  # noqa: F401
+from dqg.store.events import query_events  # noqa: F401
+
 # --- dashboard ---
 from dqg.store.dashboard import get_all_projects  # noqa: F401
+from dqg.store.dashboard import get_event_timeline  # noqa: F401
+from dqg.store.dashboard import get_phase_durations  # noqa: F401
+from dqg.store.dashboard import get_phase_scores  # noqa: F401
 from dqg.store.dashboard import get_project_summary  # noqa: F401
 from dqg.store.dashboard import get_quality_trend  # noqa: F401
+from dqg.store.dashboard import get_token_consumption  # noqa: F401
 
 
 # ---------------------------------------------------------------------------

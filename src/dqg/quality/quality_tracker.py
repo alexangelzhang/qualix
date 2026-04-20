@@ -62,11 +62,11 @@ def track_rule_quality(
     if not structured:
         return report
 
-    if phase_id == "C":
+    if phase_id == "Q06":
         _track_phase_c(structured, cases, report)
-    elif phase_id == "A":
+    elif phase_id == "Q01":
         _track_phase_a(structured, cases, report)
-    elif phase_id == "A.6":
+    elif phase_id == "Q03":
         _track_phase_a6(structured, cases, report)
 
     # 计算健康度

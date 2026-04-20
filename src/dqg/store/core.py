@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import sqlite3
+import threading
 from contextlib import contextmanager
 from pathlib import Path
 from typing import Any, Generator
@@ -13,7 +14,119 @@ from dqg.log import get_logger
 
 log = get_logger(__name__)
 
-_SCHEMA = """
+# ---------------------------------------------------------------------------
+# Harness 层 Schema：通用基础设施表（LLM cache、代码索引、知识图谱）
+# 这些表不含 DQG 业务概念，可被任何 Domain App 复用
+# ---------------------------------------------------------------------------
+
+_HARNESS_SCHEMA = """
+CREATE TABLE IF NOT EXISTS query_cache (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    query_hash TEXT UNIQUE NOT NULL,
+    query_text TEXT NOT NULL,
+    result_type TEXT DEFAULT '',
+    result_json TEXT DEFAULT '[]',
+    hit_count INTEGER DEFAULT 0,
+    created_at REAL NOT NULL,
+    last_hit_at REAL
+);
+CREATE INDEX IF NOT EXISTS idx_qcache_hash ON query_cache(query_hash);
+
+CREATE TABLE IF NOT EXISTS code_symbols (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    repo_path TEXT NOT NULL,
+    file_path TEXT NOT NULL,
+    symbol_type TEXT NOT NULL,
+    symbol_name TEXT NOT NULL,
+    parent_symbol TEXT DEFAULT '',
+    annotations TEXT DEFAULT '[]',
+    line_number INTEGER DEFAULT 0,
+    signature TEXT DEFAULT '',
+    doc_comment TEXT DEFAULT '',
+    created_at TEXT DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_codesym_repo ON code_symbols(repo_path);
+CREATE INDEX IF NOT EXISTS idx_codesym_type ON code_symbols(symbol_type);
+CREATE INDEX IF NOT EXISTS idx_codesym_name ON code_symbols(symbol_name);
+CREATE VIRTUAL TABLE IF NOT EXISTS code_symbols_fts USING fts5(
+    symbol_name, signature, doc_comment, annotations,
+    content='code_symbols', content_rowid='id'
+);
+
+CREATE TABLE IF NOT EXISTS knowledge_nodes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    node_id TEXT UNIQUE NOT NULL,
+    node_type TEXT NOT NULL,
+    project_id TEXT DEFAULT '',
+    phase_id TEXT DEFAULT '',
+    title TEXT DEFAULT '',
+    content TEXT DEFAULT '',
+    tags TEXT DEFAULT '[]',
+    created_at TEXT DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_knode_type ON knowledge_nodes(node_type);
+CREATE INDEX IF NOT EXISTS idx_knode_project ON knowledge_nodes(project_id);
+
+CREATE TABLE IF NOT EXISTS knowledge_links (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    source_id TEXT NOT NULL,
+    target_id TEXT NOT NULL,
+    link_type TEXT NOT NULL,
+    strength REAL DEFAULT 1.0,
+    reason TEXT DEFAULT '',
+    created_at TEXT DEFAULT (datetime('now')),
+    UNIQUE(source_id, target_id, link_type)
+);
+CREATE INDEX IF NOT EXISTS idx_klink_source ON knowledge_links(source_id);
+CREATE INDEX IF NOT EXISTS idx_klink_target ON knowledge_links(target_id);
+
+CREATE TABLE IF NOT EXISTS knowledge_hyperedges (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    hyperedge_id TEXT UNIQUE NOT NULL,
+    edge_type TEXT NOT NULL,
+    label TEXT DEFAULT '',
+    description TEXT DEFAULT '',
+    project_id TEXT DEFAULT '',
+    strength REAL DEFAULT 1.0,
+    created_at TEXT DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_hyper_type ON knowledge_hyperedges(edge_type);
+CREATE INDEX IF NOT EXISTS idx_hyper_project ON knowledge_hyperedges(project_id);
+
+CREATE TABLE IF NOT EXISTS knowledge_hyperedge_members (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    hyperedge_id TEXT NOT NULL,
+    node_id TEXT NOT NULL,
+    role TEXT DEFAULT '',
+    created_at TEXT DEFAULT (datetime('now')),
+    UNIQUE(hyperedge_id, node_id),
+    FOREIGN KEY (hyperedge_id) REFERENCES knowledge_hyperedges(hyperedge_id)
+);
+CREATE INDEX IF NOT EXISTS idx_hypermember_edge ON knowledge_hyperedge_members(hyperedge_id);
+CREATE INDEX IF NOT EXISTS idx_hypermember_node ON knowledge_hyperedge_members(node_id);
+
+CREATE TABLE IF NOT EXISTS metrics (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    project_id TEXT NOT NULL,
+    phase_id TEXT,
+    metric_name TEXT NOT NULL,
+    metric_value REAL,
+    metric_data TEXT DEFAULT '{}',
+    period TEXT DEFAULT 'daily',
+    timestamp TEXT NOT NULL,
+    created_at TEXT DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_metrics_project ON metrics(project_id);
+CREATE INDEX IF NOT EXISTS idx_metrics_name ON metrics(metric_name);
+CREATE INDEX IF NOT EXISTS idx_metrics_timestamp ON metrics(timestamp);
+"""
+
+# ---------------------------------------------------------------------------
+# Domain 层 Schema：DQG 质量门禁业务表
+# 这些表包含 Phase、Judge、Bug Case 等 DQG 特有概念
+# ---------------------------------------------------------------------------
+
+_DOMAIN_SCHEMA = """
 CREATE TABLE IF NOT EXISTS telemetry (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     project_id TEXT NOT NULL,
@@ -31,10 +144,26 @@ CREATE TABLE IF NOT EXISTS telemetry (
     python_version TEXT DEFAULT '',
     created_at TEXT DEFAULT (datetime('now'))
 );
-
 CREATE INDEX IF NOT EXISTS idx_telemetry_project ON telemetry(project_id);
 CREATE INDEX IF NOT EXISTS idx_telemetry_phase ON telemetry(project_id, phase_id);
 CREATE INDEX IF NOT EXISTS idx_telemetry_timestamp ON telemetry(timestamp);
+
+CREATE TABLE IF NOT EXISTS events (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    project_id TEXT NOT NULL,
+    phase_id TEXT NOT NULL,
+    event_type TEXT NOT NULL,
+    action TEXT DEFAULT '',
+    message TEXT DEFAULT '',
+    data_json TEXT DEFAULT '{}',
+    duration_ms INTEGER DEFAULT 0,
+    timestamp TEXT NOT NULL,
+    created_at TEXT DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_events_project ON events(project_id);
+CREATE INDEX IF NOT EXISTS idx_events_phase ON events(project_id, phase_id);
+CREATE INDEX IF NOT EXISTS idx_events_type ON events(event_type);
+CREATE INDEX IF NOT EXISTS idx_events_timestamp ON events(timestamp);
 
 CREATE TABLE IF NOT EXISTS preferences (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -48,7 +177,6 @@ CREATE TABLE IF NOT EXISTS preferences (
     timestamp TEXT NOT NULL,
     created_at TEXT DEFAULT (datetime('now'))
 );
-
 CREATE INDEX IF NOT EXISTS idx_pref_project ON preferences(project_id);
 
 CREATE TABLE IF NOT EXISTS bug_cases (
@@ -69,25 +197,8 @@ CREATE TABLE IF NOT EXISTS bug_cases (
     created_at TEXT NOT NULL,
     updated_at TEXT DEFAULT (datetime('now'))
 );
-
 CREATE INDEX IF NOT EXISTS idx_bug_phase ON bug_cases(phase);
 CREATE INDEX IF NOT EXISTS idx_bug_status ON bug_cases(status);
-
-CREATE TABLE IF NOT EXISTS metrics (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    project_id TEXT NOT NULL,
-    phase_id TEXT,
-    metric_name TEXT NOT NULL,
-    metric_value REAL,
-    metric_data TEXT DEFAULT '{}',
-    period TEXT DEFAULT 'daily',
-    timestamp TEXT NOT NULL,
-    created_at TEXT DEFAULT (datetime('now'))
-);
-
-CREATE INDEX IF NOT EXISTS idx_metrics_project ON metrics(project_id);
-CREATE INDEX IF NOT EXISTS idx_metrics_name ON metrics(metric_name);
-CREATE INDEX IF NOT EXISTS idx_metrics_timestamp ON metrics(timestamp);
 
 CREATE TABLE IF NOT EXISTS judge_results (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -103,7 +214,6 @@ CREATE TABLE IF NOT EXISTS judge_results (
     judged_at TEXT NOT NULL,
     created_at TEXT DEFAULT (datetime('now'))
 );
-
 CREATE INDEX IF NOT EXISTS idx_judge_project ON judge_results(project_id, phase_id);
 
 CREATE TABLE IF NOT EXISTS experiments (
@@ -127,7 +237,6 @@ CREATE TABLE IF NOT EXISTS experiments (
     finished_at TEXT,
     created_at TEXT DEFAULT (datetime('now'))
 );
-
 CREATE INDEX IF NOT EXISTS idx_exp_skill ON experiments(skill_file);
 CREATE INDEX IF NOT EXISTS idx_exp_phase ON experiments(phase_id);
 CREATE INDEX IF NOT EXISTS idx_exp_accepted ON experiments(accepted);
@@ -146,7 +255,6 @@ CREATE TABLE IF NOT EXISTS image_semantics (
     created_at TEXT DEFAULT (datetime('now')),
     UNIQUE(project_id, phase_id, filename)
 );
-
 CREATE INDEX IF NOT EXISTS idx_img_project ON image_semantics(project_id, phase_id);
 CREATE VIRTUAL TABLE IF NOT EXISTS image_semantics_fts USING fts5(
     filename, description, related_reqs, mermaid_code, section_context,
@@ -194,6 +302,7 @@ CREATE TABLE IF NOT EXISTS structured_facts (
     description TEXT DEFAULT '',
     related_ids TEXT DEFAULT '[]',
     extra TEXT DEFAULT '{}',
+    confidence TEXT DEFAULT 'EXTRACTED',
     created_at TEXT DEFAULT (datetime('now')),
     UNIQUE(project_id, phase_id, fact_id)
 );
@@ -203,33 +312,6 @@ CREATE VIRTUAL TABLE IF NOT EXISTS structured_facts_fts USING fts5(
     fact_id, description, related_ids,
     content='structured_facts', content_rowid='id'
 );
-
-CREATE TABLE IF NOT EXISTS knowledge_nodes (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    node_id TEXT UNIQUE NOT NULL,
-    node_type TEXT NOT NULL,
-    project_id TEXT DEFAULT '',
-    phase_id TEXT DEFAULT '',
-    title TEXT DEFAULT '',
-    content TEXT DEFAULT '',
-    tags TEXT DEFAULT '[]',
-    created_at TEXT DEFAULT (datetime('now'))
-);
-CREATE INDEX IF NOT EXISTS idx_knode_type ON knowledge_nodes(node_type);
-CREATE INDEX IF NOT EXISTS idx_knode_project ON knowledge_nodes(project_id);
-
-CREATE TABLE IF NOT EXISTS knowledge_links (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    source_id TEXT NOT NULL,
-    target_id TEXT NOT NULL,
-    link_type TEXT NOT NULL,
-    strength REAL DEFAULT 1.0,
-    reason TEXT DEFAULT '',
-    created_at TEXT DEFAULT (datetime('now')),
-    UNIQUE(source_id, target_id, link_type)
-);
-CREATE INDEX IF NOT EXISTS idx_klink_source ON knowledge_links(source_id);
-CREATE INDEX IF NOT EXISTS idx_klink_target ON knowledge_links(target_id);
 
 CREATE TABLE IF NOT EXISTS requirement_versions (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -250,70 +332,61 @@ CREATE TABLE IF NOT EXISTS requirement_versions (
 CREATE INDEX IF NOT EXISTS idx_reqver_project ON requirement_versions(project_id, phase_id);
 CREATE INDEX IF NOT EXISTS idx_reqver_fact ON requirement_versions(fact_id);
 CREATE INDEX IF NOT EXISTS idx_reqver_status ON requirement_versions(status);
-
-CREATE TABLE IF NOT EXISTS query_cache (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    query_hash TEXT UNIQUE NOT NULL,
-    query_text TEXT NOT NULL,
-    result_type TEXT DEFAULT '',
-    result_json TEXT DEFAULT '[]',
-    hit_count INTEGER DEFAULT 0,
-    created_at REAL NOT NULL,
-    last_hit_at REAL
-);
-CREATE INDEX IF NOT EXISTS idx_qcache_hash ON query_cache(query_hash);
-
-CREATE TABLE IF NOT EXISTS code_symbols (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    repo_path TEXT NOT NULL,
-    file_path TEXT NOT NULL,
-    symbol_type TEXT NOT NULL,
-    symbol_name TEXT NOT NULL,
-    parent_symbol TEXT DEFAULT '',
-    annotations TEXT DEFAULT '[]',
-    line_number INTEGER DEFAULT 0,
-    signature TEXT DEFAULT '',
-    doc_comment TEXT DEFAULT '',
-    created_at TEXT DEFAULT (datetime('now'))
-);
-CREATE INDEX IF NOT EXISTS idx_codesym_repo ON code_symbols(repo_path);
-CREATE INDEX IF NOT EXISTS idx_codesym_type ON code_symbols(symbol_type);
-CREATE INDEX IF NOT EXISTS idx_codesym_name ON code_symbols(symbol_name);
-CREATE VIRTUAL TABLE IF NOT EXISTS code_symbols_fts USING fts5(
-    symbol_name, signature, doc_comment, annotations,
-    content='code_symbols', content_rowid='id'
-);
 """
+
+# 合并后的完整 schema（向后兼容）
+_SCHEMA = _HARNESS_SCHEMA + _DOMAIN_SCHEMA
 
 # Schema 初始化缓存：每个数据库文件只执行一次
 _initialized_dbs: set[str] = set()
+
+# 线程本地连接池：同一线程内复用连接，避免重复 connect/close
+_thread_local = threading.local()
 
 
 def _db_path(output_dir: Path) -> Path:
     return output_dir / _DB_FILENAME
 
 
-@contextmanager
-def get_connection(output_dir: Path) -> Generator[sqlite3.Connection, None, None]:
-    """获取数据库连接（schema 只在首次执行）."""
-    db = _db_path(output_dir)
-    db.parent.mkdir(parents=True, exist_ok=True)
-    db_str = str(db)
-    conn = sqlite3.connect(db_str)
+def _get_cached_connection(db_str: str) -> sqlite3.Connection:
+    """获取线程本地缓存的连接，不存在则创建."""
+    cache: dict[str, sqlite3.Connection] = getattr(_thread_local, "connections", None) or {}
+    if not hasattr(_thread_local, "connections"):
+        _thread_local.connections = cache
+
+    conn = cache.get(db_str)
+    if conn is not None:
+        try:
+            conn.execute("SELECT 1")
+            return conn
+        except sqlite3.ProgrammingError:
+            # 连接已关闭，移除缓存
+            cache.pop(db_str, None)
+
+    conn = sqlite3.connect(db_str, check_same_thread=False)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA journal_mode=WAL")
     if db_str not in _initialized_dbs:
         conn.executescript(_SCHEMA)
         _initialized_dbs.add(db_str)
         log.debug("Schema initialized: %s", db_str)
+    cache[db_str] = conn
+    return conn
+
+
+@contextmanager
+def get_connection(output_dir: Path) -> Generator[sqlite3.Connection, None, None]:
+    """获取数据库连接（线程本地复用，schema 只在首次执行）."""
+    db = _db_path(output_dir)
+    db.parent.mkdir(parents=True, exist_ok=True)
+    db_str = str(db)
+    conn = _get_cached_connection(db_str)
     try:
         yield conn
         conn.commit()
     except Exception:
         conn.rollback()
         raise
-    finally:
-        conn.close()
 
 
 def row_to_dict(row: sqlite3.Row) -> dict[str, Any]:

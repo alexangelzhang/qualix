@@ -7,7 +7,7 @@ import pytest
 from pydantic import ValidationError
 
 from dqg.schemas import PhaseAOutput, validate_phase_output
-from dqg.schemas.phase_a import Gap, OpenItem, Requirement, SemanticExpectation
+from dqg.schemas.phase_q01 import Gap, OpenItem, Requirement, SemanticExpectation
 from dqg.schemas.phase_a5 import CoverageStatus, PhaseA5Output, ReqCoverageItem
 from dqg.schemas.phase_a6 import FailureModeItem, FailureModeStatus, PhaseA6Output, QualityIssue, Severity
 from dqg.schemas.phase_b import EutItem, PhaseBOutput, RiskTier, RouteType
@@ -130,14 +130,14 @@ class TestValidatePhaseOutput:
     def test_missing_dir_returns_none(self, tmp_path: Path):
         output_dir = tmp_path / "output"
         output_dir.mkdir()
-        result = validate_phase_output(output_dir, "PROJ1", "A")
+        result = validate_phase_output(output_dir, "PROJ1", "Q01")
         assert result is None
 
     def test_missing_json_returns_none(self, tmp_path: Path):
         output_dir = tmp_path / "output"
         phase_dir = output_dir / "PROJ1" / "phaseA"
         phase_dir.mkdir(parents=True)
-        result = validate_phase_output(output_dir, "PROJ1", "A")
+        result = validate_phase_output(output_dir, "PROJ1", "Q01")
         assert result is None
 
     def test_valid_json_passes(self, tmp_path: Path):
@@ -155,7 +155,7 @@ class TestValidatePhaseOutput:
         (phase_dir / "phase_a_structured.json").write_text(
             json.dumps(data, ensure_ascii=False), encoding="utf-8"
         )
-        result = validate_phase_output(output_dir, "PROJ1", "A")
+        result = validate_phase_output(output_dir, "PROJ1", "Q01")
         assert result == []
 
     def test_invalid_json_returns_errors(self, tmp_path: Path):
@@ -170,7 +170,7 @@ class TestValidatePhaseOutput:
         (phase_dir / "phase_a_structured.json").write_text(
             json.dumps(data), encoding="utf-8"
         )
-        result = validate_phase_output(output_dir, "PROJ1", "A")
+        result = validate_phase_output(output_dir, "PROJ1", "Q01")
         assert result is not None
         assert len(result) > 0
 
@@ -179,7 +179,7 @@ class TestValidatePhaseOutput:
         phase_dir = output_dir / "PROJ1" / "phaseA"
         phase_dir.mkdir(parents=True)
         (phase_dir / "phase_a_structured.json").write_text("{bad json", encoding="utf-8")
-        result = validate_phase_output(output_dir, "PROJ1", "A")
+        result = validate_phase_output(output_dir, "PROJ1", "Q01")
         assert result is not None
         assert any("JSON" in e for e in result)
 

@@ -23,5 +23,6 @@
   "actual": {
     "content": "Input should be a valid list [type=list_type, input_value={'req': {'total': 9, 'cov...pen': 2, 'rate': '80%'}}, input_type=dict]"
   },
-  "lesson": ""
+  "lesson": "",
+  "holdout": false
 }

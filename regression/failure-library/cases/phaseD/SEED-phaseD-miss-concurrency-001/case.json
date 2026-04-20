@@ -1,0 +1,29 @@
+{
+  "case_id": "SEED-phaseD-miss-concurrency-001",
+  "phase": "D",
+  "error_type": "FN",
+  "severity": "critical",
+  "title": "代码评审未发现并发竞争窗口：两个线程同时修改订单状态导致数据不一致",
+  "root_cause": "SKILL_RULE",
+  "fix_target": "skills/code-review.md",
+  "tags": [
+    "并发",
+    "竞争条件",
+    "状态不一致",
+    "漏检"
+  ],
+  "created_at": "2026-04-09",
+  "status": "open",
+  "source": {
+    "seed_case": true,
+    "pattern": "OrderService.updateStatus() 先 SELECT 再 UPDATE，无乐观锁/悲观锁保护，评审报告未提及并发风险"
+  },
+  "expected": {
+    "content": "评审应标记为 BLOCKER：updateStatus 存在 TOCTOU 竞争窗口，需要 WHERE version=? 乐观锁或 SELECT FOR UPDATE"
+  },
+  "actual": {
+    "content": "评审报告仅关注功能正确性，未分析并发场景"
+  },
+  "lesson": "代码评审必须对所有写操作检查并发安全：是否有锁保护、是否有幂等键、是否有版本号。SE 中包含'并发''幂等'关键词的改动点必须逐个分析竞争窗口。",
+  "holdout": false
+}

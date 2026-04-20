@@ -1,0 +1,16 @@
+{
+  "case_id": "FEISHU-DQG-123249",
+  "phase": "A",
+  "error_type": "MISS",
+  "severity": "medium",
+  "title": "【123249】品类方案页面处理方法筛选应该是or逻辑而不是 and 逻辑",
+  "root_cause": "产品需求不明确",
+  "tags": "[\"feishu-import\", \"dqg-relevant\", \"category:产品需求不明确\"]",
+  "created_at": "2026-04-15",
+  "status": "open",
+  "source": "{\"feishu_table\": \"tblGxARLByCc5h3T\", \"bug_id\": \"123249\", \"original_cat1\": \"非单测相关\", \"original_cat2\": \"产品需求不明确\", \"requirement\": \"手机服务方案(工程师端)采纳率提升&数据看板搭建迭代优化\"}",
+  "expected": "{\"content\": \"（需人工确认）\"}",
+  "actual": "{\"content\": \"prd不明确，只提到增加处理方法筛选，未提及多选命中条件，开发第一版实现的是包含全部处理方法时命中条件，后跟产品确认改成包含任意处理方法时命中条件。\"}",
+  "lesson": "prd不明确，只提到增加处理方法筛选，未提及多选命中条件，开发第一版实现的是包含全部处理方法时命中条件，后跟产品确认改成包含任意处理方法时命中条件。",
+  "holdout": "False"
+}

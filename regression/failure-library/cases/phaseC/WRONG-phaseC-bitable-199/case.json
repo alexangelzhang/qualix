@@ -4,7 +4,7 @@
   "error_type": "WRONG",
   "severity": "high",
   "title": "/publicCharger/parking2/search和/publicCharger/parking2/detail接口 - parkingPrice返回了eligibility 不为 DEFA",
-  "root_cause": "SKILL_RULE",
+  "root_cause": "函数覆盖assert不对",
   "fix_target": "skills/unit-test-audit.md",
   "tags": [
     "汽车",
@@ -25,5 +25,6 @@
   "actual": {
     "content": "Sql缺少过滤条件"
   },
-  "lesson": "提高单测覆盖度"
+  "lesson": "提高单测覆盖度",
+  "holdout": true
 }

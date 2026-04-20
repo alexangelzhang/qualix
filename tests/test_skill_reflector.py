@@ -7,15 +7,15 @@ from dqg.tracking.skill_reflector import (
 
 
 def test_compute_case_fingerprint():
-    fp1 = compute_case_fingerprint("A", "FN", "SKILL_RULE", "missing boundary check")
-    fp2 = compute_case_fingerprint("A", "FN", "SKILL_RULE", "missing boundary check")
-    fp3 = compute_case_fingerprint("A", "FP", "SKILL_RULE", "missing boundary check")
+    fp1 = compute_case_fingerprint("Q01", "FN", "SKILL_RULE", "missing boundary check")
+    fp2 = compute_case_fingerprint("Q01", "FN", "SKILL_RULE", "missing boundary check")
+    fp3 = compute_case_fingerprint("Q01", "FP", "SKILL_RULE", "missing boundary check")
     assert fp1 == fp2
     assert fp1 != fp3
 
 
 def test_reflect_extracts_patterns():
-    reflector = SkillReflector(phase="A", project_id="test-proj")
+    reflector = SkillReflector(phase="Q01", project_id="test-proj")
     judge_results = [
         {"verdict": "FAIL", "overall": 2.0, "issues": [
             {"severity": "high", "description": "missing boundary test for concurrent access"},
@@ -34,14 +34,14 @@ def test_reflect_extracts_patterns():
 
 
 def test_reflect_not_actionable_on_empty():
-    reflector = SkillReflector(phase="A", project_id="test-proj")
+    reflector = SkillReflector(phase="Q01", project_id="test-proj")
     result = reflector.reflect([{"verdict": "PASS", "overall": 4.0, "issues": []}])
     assert result.actionable is False
 
 
 def test_write_low_confidence_returns_human_review(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
-    reflector = SkillReflector(phase="A", project_id="test-proj")
+    reflector = SkillReflector(phase="Q01", project_id="test-proj")
     reflect_result = ReflectResult(
         actionable=True,
         root_cause="SKILL_RULE",
@@ -52,9 +52,9 @@ def test_write_low_confidence_returns_human_review(tmp_path, monkeypatch):
     assert result.mode == "HUMAN_REVIEW"
 
 
-def test_write_non_skill_rule_always_human_review(tmp_path, monkeypatch):
+def test_write_context_root_cause_auto_applies(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
-    reflector = SkillReflector(phase="A", project_id="test-proj")
+    reflector = SkillReflector(phase="Q01", project_id="test-proj")
     reflect_result = ReflectResult(
         actionable=True,
         root_cause="CONTEXT",
@@ -62,7 +62,7 @@ def test_write_non_skill_rule_always_human_review(tmp_path, monkeypatch):
         suggested_changes=["increase budget"],
     )
     result = reflector.write(reflect_result, support_count=5)
-    assert result.mode == "HUMAN_REVIEW"
+    assert result.mode == "AUTO_APPLY"
 
 
 def test_evolution_outcome_to_dict():

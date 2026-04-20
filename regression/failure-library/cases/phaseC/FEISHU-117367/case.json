@@ -1,0 +1,17 @@
+{
+  "case_id": "FEISHU-117367",
+  "phase": "C",
+  "error_type": "WRONG",
+  "severity": "high",
+  "title": "【117367】导入重复数据校验（文件内重复）失败",
+  "root_cause": "函数覆盖assert不对",
+  "fix_target": "",
+  "tags": "[\"feishu-import\", \"category:函数覆盖assert不对\", \"bug_class:后端\"]",
+  "created_at": "2026-04-15",
+  "status": "open",
+  "source": "{\"feishu_table\": \"tblGxARLByCc5h3T\", \"bug_id\": \"117367\", \"requirement\": \"备件分货自动化-仓调执行\"}",
+  "expected": "{\"content\": \"增加分支覆盖\"}",
+  "actual": "{\"content\": \"校验场景考虑不全,只做了数据库的查重校验, 遗漏了当前导入数据的查重校验\"}",
+  "lesson": "增加分支覆盖",
+  "holdout": "False"
+}

@@ -10,6 +10,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from functools import lru_cache
 
 
 @dataclass(frozen=True)
@@ -85,11 +86,13 @@ def get_model_profile(model_name: str | None = None) -> ModelProfile:
     return _DEFAULT
 
 
+@lru_cache(maxsize=512)
 def estimate_tokens(text: str) -> int:
     """粗略估算文本的 token 数.
 
     中文约 1.5 token/字，英文约 1.3 token/word。
     这里用简单的字符数估算，偏保守。
+    结果按 text 内容缓存，避免同一文本重复扫描。
     """
     if not text:
         return 0

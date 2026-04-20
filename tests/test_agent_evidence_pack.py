@@ -58,10 +58,10 @@ def test_agent_run_caps_total_context_bundle_size(monkeypatch, tmp_path: Path) -
     second = tmp_path / "second.md"
     third = tmp_path / "third.md"
     fourth = tmp_path / "fourth.md"
-    first.write_text("A" * 5000, encoding="utf-8")
-    second.write_text("B" * 5000, encoding="utf-8")
-    third.write_text("C" * 5000, encoding="utf-8")
-    fourth.write_text("D" * 5000, encoding="utf-8")
+    first.write_text("Q01" * 5000, encoding="utf-8")
+    second.write_text("Q05" * 5000, encoding="utf-8")
+    third.write_text("Q06" * 5000, encoding="utf-8")
+    fourth.write_text("Q07" * 5000, encoding="utf-8")
 
     agent = Agent(
         name="demo",

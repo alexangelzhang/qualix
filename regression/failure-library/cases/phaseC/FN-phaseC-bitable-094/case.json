@@ -4,7 +4,7 @@
   "error_type": "FN",
   "severity": "high",
   "title": "更新停车场静态数据失败-已存在的停车场，数据有变化，执行定时任务未进行更新",
-  "root_cause": "SKILL_RULE",
+  "root_cause": "函数未覆盖",
   "fix_target": "skills/unit-test-audit.md",
   "tags": [
     "汽车",
@@ -24,5 +24,6 @@
   "actual": {
     "content": "单测编写阶段滞后，提测后研发才开始准备"
   },
-  "lesson": "写完单测再进行提测"
+  "lesson": "写完单测再进行提测",
+  "holdout": false
 }

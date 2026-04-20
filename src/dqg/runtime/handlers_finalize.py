@@ -1,0 +1,320 @@
+"""Finalize 阶段的 lifecycle handler：从 cmd_finalize 下沉的 sidecar 逻辑."""
+
+from __future__ import annotations
+
+import json
+import threading
+from pathlib import Path
+from typing import TYPE_CHECKING
+
+from dqg.runtime.events import EventType
+from dqg.runtime.lifecycle import register_handler
+
+if TYPE_CHECKING:
+    from dqg.runtime.execution_context import ExecutionContext
+    from dqg.runtime.result import PhaseResult
+
+
+def _async_write_json(path: Path, data: object) -> None:
+    """异步落盘 JSON，不阻塞主流程，静默失败。"""
+    def _write():
+        try:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+        except Exception:
+            pass
+    threading.Thread(target=_write, daemon=True).start()
+
+
+def _emit_handler(ctx, event_type: EventType, message: str = "", **data) -> None:
+    """Handler 层事件埋点（缓冲写入，静默失败）."""
+    try:
+        from dqg.store.events import insert_event
+        insert_event(ctx.output_dir, ctx.project_id, ctx.phase_id,
+                     event_type.value, action="finalize", message=message, data=data if data else None)
+    except Exception:
+        pass
+
+
+def handle_perf_metrics(ctx: ExecutionContext, result: PhaseResult) -> None:
+    """收集并持久化性能指标."""
+    from dqg.reporting.perf_tracker import collect_phase_metrics, persist_phase_metrics
+
+    duration = ctx.shared.get("duration_seconds")
+    metrics = collect_phase_metrics(ctx.output_dir, ctx.project_id, ctx.phase_id, duration)
+    if not metrics:
+        return
+
+    persist_phase_metrics(ctx.output_dir, metrics)
+    ctx.internal_dir.mkdir(parents=True, exist_ok=True)
+    (ctx.internal_dir / "_perf_metrics.json").write_text(
+        json.dumps(metrics, ensure_ascii=False, indent=2), encoding="utf-8",
+    )
+    result.add_artifact("perf_metrics", str(ctx.internal_dir / "_perf_metrics.json"))
+    ctx.shared["perf_metrics"] = metrics
+    _emit_handler(ctx, EventType.PERF_COLLECTED, "Perf metrics collected",
+                  total_tokens=metrics.get("total_tokens", 0),
+                  cost_usd=metrics.get("cost_estimate_usd", 0))
+
+
+def handle_quality_tracking(ctx: ExecutionContext, result: PhaseResult) -> None:
+    """规则质量追踪 + 自动 bug case 生成."""
+    from dqg.skill_tracker import auto_generate_bug_case, suggest_prompt_fix, track_rule_quality
+
+    validation_errors = ctx.shared.get("validation_errors", [])
+    auto_cases = []
+    if validation_errors:
+        auto_cases = auto_generate_bug_case(ctx.project_id, ctx.phase_id, validation_errors)
+        if auto_cases:
+            ctx.shared["auto_bug_cases"] = auto_cases
+            fixes = suggest_prompt_fix(auto_cases)
+            ctx.shared["prompt_fixes"] = fixes
+            _async_write_json(ctx.internal_dir / "_auto_bug_cases.json", auto_cases)
+            _async_write_json(ctx.internal_dir / "_prompt_fixes.json", fixes)
+
+    quality_report = track_rule_quality(ctx.output_dir, ctx.project_id, ctx.phase_id)
+    if quality_report.get("matched_signals") or quality_report.get("potential_new_issues"):
+        ctx.shared["quality_report"] = quality_report
+        result.add_event(EventType.QUALITY_REPORT_READY, "Quality tracking completed")
+        _async_write_json(ctx.internal_dir / "_quality_report.json", quality_report)
+
+    if auto_cases:
+        _emit_handler(ctx, EventType.BUG_CASES_GENERATED, f"{len(auto_cases)} bug cases generated",
+                      count=len(auto_cases))
+
+
+def handle_memory_index(ctx: ExecutionContext, result: PhaseResult) -> None:
+    """结构化事实索引 + 版本追踪."""
+    from dqg.memory.memory_layer import MemoryLayer
+
+    memory = MemoryLayer(ctx.output_dir)
+    index_result = memory.index_phase(ctx.project_id, ctx.phase_id)
+    ctx.shared["index_result"] = index_result
+    if index_result.get("facts"):
+        result.add_event(
+            EventType.MEMORY_INDEXED,
+            f"Indexed {index_result['facts']} facts",
+            facts=index_result["facts"],
+        )
+        _async_write_json(ctx.internal_dir / "_memory_index.json", index_result)
+
+
+def handle_golden_sample(ctx: ExecutionContext, result: PhaseResult) -> None:
+    """Golden Sample 标杆对比."""
+    from dqg.quality.golden_sample import compare_with_golden
+
+    base_dir = ctx.output_dir.parent
+    golden_diff = compare_with_golden(ctx.output_dir, ctx.project_id, ctx.phase_id, base_dir)
+    ctx.shared["golden_diff"] = golden_diff
+    if golden_diff:
+        _async_write_json(ctx.internal_dir / "_golden_diff.json", golden_diff)
+
+
+def handle_rule_compliance(ctx: ExecutionContext, result: PhaseResult) -> None:
+    """规则执行率追踪."""
+    from dqg.quality.rule_compliance import compute_rule_compliance, persist_compliance
+
+    compliance = compute_rule_compliance(ctx.output_dir, ctx.project_id, ctx.phase_id)
+    if compliance:
+        persist_compliance(ctx.output_dir, compliance)
+        ctx.shared["compliance"] = compliance
+        _emit_handler(ctx, EventType.RULE_CHECK_COMPLETED, "Rule compliance checked",
+                      pass_rate=compliance.get("pass_rate", 0),
+                      passed=compliance.get("passed", 0),
+                      total=compliance.get("total", 0))
+
+
+def handle_review_chain(ctx: ExecutionContext, result: PhaseResult) -> None:
+    """生成评审链 prompt（Judge + Critique）."""
+    from dqg.quality.critique import write_critique_prompt
+    from dqg.quality.judge import write_judge_prompt
+    from dqg.quality.review_chain import build_review_chain_payload, write_review_chain_prompt
+
+    review_payload = build_review_chain_payload(ctx.output_dir, ctx.project_id, ctx.phase_id)
+    chain_path = write_review_chain_prompt(
+        ctx.output_dir, ctx.project_id, ctx.phase_id,
+        prompt=review_payload["review_chain_prompt"] if review_payload else None,
+    )
+    if chain_path:
+        result.add_artifact("review_chain_prompt", str(chain_path))
+        result.add_event(EventType.REVIEW_CHAIN_READY, "Review chain prompt generated")
+
+    write_judge_prompt(
+        ctx.output_dir, ctx.project_id, ctx.phase_id,
+        prompt=review_payload["judge_prompt"] if review_payload else None,
+    )
+    write_critique_prompt(
+        ctx.output_dir, ctx.project_id, ctx.phase_id,
+        prompt=review_payload["critique_prompt"] if review_payload else None,
+    )
+
+
+def handle_profile_context_check(ctx: ExecutionContext, result: PhaseResult) -> None:
+    """检查报告是否包含 PROFILE_CONTEXT."""
+    from dqg.path_utils import resolve_internal_file
+    from dqg.text_utils import REPORT_MAP
+
+    report_file = REPORT_MAP.get(ctx.phase_id)
+    if not report_file:
+        return
+
+    profile_ctx_path = resolve_internal_file(ctx.phase_root, "_profile_context.md")
+    if not profile_ctx_path.exists():
+        result.add_warning(f"Missing profile context: {profile_ctx_path}")
+
+    report_path = ctx.phase_root / report_file
+    if report_path.exists() and "## PROFILE_CONTEXT" not in report_path.read_text(encoding="utf-8"):
+        result.add_warning("Report missing PROFILE_CONTEXT section")
+
+
+def handle_progress_file(ctx: ExecutionContext, result: PhaseResult) -> None:
+    """生成跨 session 进度文件 _progress.json."""
+    from dqg.runtime.progress import write_phase_progress, write_project_progress
+
+    phase_path = write_phase_progress(ctx.output_dir, ctx.project_id, ctx.phase_id)
+    if phase_path:
+        result.add_artifact("phase_progress", str(phase_path))
+
+    project_path = write_project_progress(ctx.output_dir, ctx.project_id)
+    result.add_artifact("project_progress", str(project_path))
+
+
+def handle_skill_factory(ctx: ExecutionContext, result: PhaseResult) -> None:
+    """Skill Factory：基于 bug case 自动生成 skill 规则补充建议."""
+    from dqg.tracking.skill_factory import write_skill_suggestions
+
+    path = write_skill_suggestions(ctx.output_dir, ctx.project_id, ctx.phase_id)
+    if path:
+        result.add_artifact("skill_suggestions", str(path))
+
+    # Skill Evolution：生成具体 diff + 记录谱系
+    from dqg.tracking.skill_evolution import generate_evolution_report
+
+    evo_path = generate_evolution_report(ctx.output_dir, ctx.project_id, ctx.phase_id)
+    if evo_path:
+        result.add_artifact("skill_evolution", str(evo_path))
+        _emit_handler(ctx, EventType.SKILL_EVOLVED, "Skill evolution report generated")
+
+
+def handle_score_calibration(ctx: ExecutionContext, result: PhaseResult) -> None:
+    """DeepEval 评分校准：Judge 一致性检测 + 趋势监控."""
+    from dqg.quality.score_calibration import check_score_consistency, check_score_trend
+
+    # 一致性检测（需要 Judge 结果存在）
+    calibration = check_score_consistency(ctx.output_dir, ctx.project_id, ctx.phase_id)
+    if calibration:
+        result.add_artifact("score_calibration", str(ctx.internal_dir / "_score_calibration.json"))
+        if not calibration["consistent"]:
+            result.add_warning(
+                f"Score drift: DQG={calibration['dqg_score']:.1f} vs DeepEval={calibration['deepeval_score']:.1f} "
+                f"(drift={calibration['drift']:.1f})"
+            )
+
+    # 趋势监控
+    trend = check_score_trend(ctx.output_dir, ctx.project_id, ctx.phase_id)
+    if trend.get("trend") in ("inflation", "deflation"):
+        result.add_warning(
+            f"Score {trend['trend']}: Phase {ctx.phase_id} avg {trend['avg_previous']:.1f} → {trend['avg_recent']:.1f}"
+        )
+
+
+def handle_eval_baseline(ctx: ExecutionContext, result: PhaseResult) -> None:
+    """Eval-Driven：计算评估指标并对比历史基线."""
+    from dqg.quality.eval_baseline import write_eval_metrics
+
+    path = write_eval_metrics(ctx.output_dir, ctx.project_id, ctx.phase_id)
+    if path:
+        result.add_artifact("eval_metrics", str(path))
+
+
+def handle_facts_export(ctx: ExecutionContext, result: PhaseResult) -> None:
+    """将结构化事实导出为 Markdown，纳入 git 追踪."""
+    from dqg.cache.fact_cache import export_facts_to_markdown
+
+    path = export_facts_to_markdown(ctx.output_dir, ctx.project_id, ctx.phase_id)
+    if path:
+        result.add_artifact("facts_export", str(path))
+
+
+def handle_verification_bundle(ctx: ExecutionContext, result: PhaseResult) -> None:
+    """收集所有验证结果到统一 bundle."""
+    from dqg.quality.verification_bundle import write_verification_bundle
+
+    path = write_verification_bundle(ctx.output_dir, ctx.project_id, ctx.phase_id)
+    if path:
+        result.add_artifact("verification_bundle", str(path))
+
+
+def handle_requirement_graph(ctx: ExecutionContext, result: PhaseResult) -> None:
+    """Phase Q01: 需求层级图 GAP 检测."""
+    from dqg.quality.requirement_graph import write_requirement_graph_analysis
+
+    path = write_requirement_graph_analysis(ctx.output_dir, ctx.project_id)
+    if path:
+        result.add_artifact("requirement_graph", str(path))
+
+
+def register_finalize_handlers() -> None:
+    """注册所有 finalize 阶段的 handler."""
+    # Group 1: 无依赖，可并行
+    register_handler(
+        "perf_metrics", handle_perf_metrics,
+        stage="finalize", order=10,
+    )
+    register_handler(
+        "quality_tracking", handle_quality_tracking,
+        stage="finalize", order=20,
+    )
+    register_handler(
+        "memory_index", handle_memory_index,
+        stage="finalize", order=30,
+    )
+    register_handler(
+        "golden_sample", handle_golden_sample,
+        stage="finalize", order=40,
+    )
+    register_handler(
+        "rule_compliance", handle_rule_compliance,
+        stage="finalize", order=50,
+    )
+    register_handler(
+        "profile_context_check", handle_profile_context_check,
+        stage="finalize", order=60,
+    )
+    register_handler(
+        "requirement_graph", handle_requirement_graph,
+        stage="finalize", phases={"Q01"}, order=63,
+        depends_on=["memory_index"],
+    )
+    register_handler(
+        "verification_bundle", handle_verification_bundle,
+        stage="finalize", order=65,
+    )
+    register_handler(
+        "facts_export", handle_facts_export,
+        stage="finalize", order=66,
+    )
+    # Group 2: 依赖 memory_index（需要索引完成后才能生成评审链）
+    register_handler(
+        "review_chain", handle_review_chain,
+        stage="finalize", order=70,
+        depends_on=["memory_index"],
+    )
+    register_handler(
+        "progress_file", handle_progress_file,
+        stage="finalize", order=80,
+    )
+    register_handler(
+        "skill_factory", handle_skill_factory,
+        stage="finalize", order=90,
+    )
+    # Group 3: 依赖 quality_tracking（需要 Judge 结果）
+    register_handler(
+        "score_calibration", handle_score_calibration,
+        stage="finalize", order=95,
+        depends_on=["quality_tracking"],
+    )
+    register_handler(
+        "eval_baseline", handle_eval_baseline,
+        stage="finalize", order=98,
+    )
