@@ -11,6 +11,7 @@
 
 from __future__ import annotations
 
+import re
 import shutil
 import subprocess
 import tempfile
@@ -173,12 +174,34 @@ def collect_diff_context(
     else:
         merge_base = merge_base.strip()
 
-    # 获取变更文件列表（带状态）
-    ok, name_status = _run_git(repo, ["diff", "--name-status", merge_base, feature_branch])
-    if not ok:
-        ctx.error = f"git diff 失败: {name_status[:200]}"
-        return ctx
+    # 并行执行三个独立的 git 命令
+    from concurrent.futures import ThreadPoolExecutor
 
+    with ThreadPoolExecutor(max_workers=3) as pool:
+        fut_name_status = pool.submit(
+            _run_git, repo, ["diff", "--name-status", merge_base, feature_branch],
+        )
+        fut_stat = pool.submit(
+            _run_git, repo, ["diff", "--stat", merge_base, feature_branch],
+        )
+        fut_diff = pool.submit(
+            _run_git, repo, ["diff", merge_base, feature_branch], 60,
+        )
+
+        ok, name_status = fut_name_status.result()
+        if not ok:
+            ctx.error = f"git diff 失败: {name_status[:200]}"
+            return ctx
+
+        _parse_name_status(ctx, name_status)
+        _parse_diff_stat(ctx, fut_stat.result())
+        _parse_diff_text(ctx, fut_diff.result(), max_diff_lines)
+
+    _cleanup(cleanup_dir)
+    return ctx
+
+
+def _parse_name_status(ctx: DiffContext, name_status: str) -> None:
     for line in name_status.strip().split("\n"):
         if not line.strip():
             continue
@@ -194,32 +217,31 @@ def collect_diff_context(
         elif status.startswith("D"):
             ctx.deleted_files.append(filepath)
 
-    # 获取 diff stat
-    ok, stat = _run_git(repo, ["diff", "--stat", merge_base, feature_branch])
-    if ok:
-        ctx.diff_stat = stat.strip()
-        # 从 stat 最后一行提取 additions/deletions
-        for line in stat.strip().split("\n"):
-            if "insertion" in line or "deletion" in line:
-                import re
-                adds = re.search(r"(\d+) insertion", line)
-                dels = re.search(r"(\d+) deletion", line)
-                if adds:
-                    ctx.total_additions = int(adds.group(1))
-                if dels:
-                    ctx.total_deletions = int(dels.group(1))
 
-    # 获取 diff 文本（限制大小）
-    ok, diff = _run_git(repo, ["diff", merge_base, feature_branch], timeout=60)
-    if ok:
-        lines = diff.split("\n")
-        if len(lines) > max_diff_lines:
-            ctx.diff_text = "\n".join(lines[:max_diff_lines]) + f"\n\n... (截断，共 {len(lines)} 行)"
-        else:
-            ctx.diff_text = diff
+def _parse_diff_stat(ctx: DiffContext, result: tuple[bool, str]) -> None:
+    ok, stat = result
+    if not ok:
+        return
+    ctx.diff_stat = stat.strip()
+    for line in stat.strip().split("\n"):
+        if "insertion" in line or "deletion" in line:
+            adds = re.search(r"(\d+) insertion", line)
+            dels = re.search(r"(\d+) deletion", line)
+            if adds:
+                ctx.total_additions = int(adds.group(1))
+            if dels:
+                ctx.total_deletions = int(dels.group(1))
 
-    _cleanup(cleanup_dir)
-    return ctx
+
+def _parse_diff_text(ctx: DiffContext, result: tuple[bool, str], max_diff_lines: int) -> None:
+    ok, diff = result
+    if not ok:
+        return
+    lines = diff.split("\n")
+    if len(lines) > max_diff_lines:
+        ctx.diff_text = "\n".join(lines[:max_diff_lines]) + f"\n\n... (截断，共 {len(lines)} 行)"
+    else:
+        ctx.diff_text = diff
 
 
 def render_diff_context_for_prompt(ctx: DiffContext) -> str:

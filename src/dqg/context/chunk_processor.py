@@ -6,6 +6,7 @@
 3. 超大 chunk 按段落分块
 4. chunk 压缩（代码块/表格/段落截断）
 5. 自动压缩（超过 budget 阈值时）
+6. 结构化摘要（跨 Phase 传递时用 ID 级摘要替代全文）
 """
 
 from __future__ import annotations
@@ -21,6 +22,10 @@ from dqg.text_utils import REPORT_MAP, STRUCTURED_JSON_MAP
 
 log = get_logger(__name__)
 
+# 模块级文件读取缓存：同一进程内避免重复读同一文件（上限 128 条防止内存泄漏）
+_file_cache: dict[str, str | None] = {}
+_FILE_CACHE_MAX_SIZE = 128
+
 # 避免循环导入：运行时从 context_loader 导入 ContextChunk
 if TYPE_CHECKING:
     from pathlib import Path
@@ -29,13 +34,22 @@ if TYPE_CHECKING:
 
 
 def _read_file_safe(path: Path) -> str | None:
-    """安全读取文件."""
+    """安全读取文件（带模块级缓存）."""
+    key = str(path)
+    if key in _file_cache:
+        return _file_cache[key]
     if not path.exists():
+        _file_cache[key] = None
         return None
     try:
-        return path.read_text(encoding="utf-8")
+        content = path.read_text(encoding="utf-8")
+        if len(_file_cache) >= _FILE_CACHE_MAX_SIZE:
+            _file_cache.clear()
+        _file_cache[key] = content
+        return content
     except OSError:
         log.warning("Failed to read file: %s", path)
+        _file_cache[key] = None
         return None
 
 
@@ -365,3 +379,10 @@ def _auto_compact_chunks(
         current_total -= saved
 
     return result, True
+
+
+# ---------------------------------------------------------------------------
+# Backward-compat re-export: summarize_upstream_chunk moved to chunk_summarizer
+# ---------------------------------------------------------------------------
+from dqg.context.chunk_summarizer import summarize_upstream_chunk  # noqa: F401
+

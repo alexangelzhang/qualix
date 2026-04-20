@@ -10,15 +10,11 @@
 
 from __future__ import annotations
 
-import json
-from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from dqg.constants import CASES_DIR, PHASE_DIR_MAP, PREFERENCE_LOG as _PREFERENCE_LOG
-from dqg.json_utils import load_json
+from dqg.constants import PHASE_DIR_MAP, REPORT_MAP, STRUCTURED_JSON_MAP
 from dqg.core.state_machine import PHASE_DEFS, phase_dir as _phase_dir
-from dqg.cache.llm_result_cache import get_cached_result, put_cached_result
 from dqg.services.phase_service import read_relevance_excerpt
 from dqg.tracking.case_selector import render_relevant_cases_for_prompt
 
@@ -45,22 +41,24 @@ def generate_critique_prompt(
     checklist = phase_def.get("approve_checklist", [])
 
     # 报告文件映射
-    report_map = {
-        "A": ("phase_a_report.md", "phase_a_structured.json"),
-        "A.5": ("tech_design_coverage_review.md", "phase_a5_structured.json"),
-        "A.6": ("tech_design_quality_review.md", "phase_a6_structured.json"),
-        "C": ("ut_audit_report.md", "phase_c_structured.json"),
-    }
-    files = report_map.get(phase_id)
-    if not files:
+    report_file = REPORT_MAP.get(phase_id)
+    json_file = STRUCTURED_JSON_MAP.get(phase_id)
+    if not report_file or not json_file:
         return None
-
-    report_file, json_file = files
 
     lines = [
         f"# Self-Critique — Phase {phase_id}: {phase_def['name']}",
         "",
-        "你刚刚完成了这个 Phase 的执行。现在请切换到批评者视角，严格审视自己的输出。",
+        "## 你的身份",
+        "",
+        "你是一位资深的 QA 架构师，专门负责在发布前找出被遗漏的问题。",
+        "你的经验告诉你：执行者总是对自己的产出过于自信，最危险的 bug 藏在'我觉得没问题'的地方。",
+        "",
+        "你的行为准则：",
+        "- 你假设产出一定有遗漏，你的任务是证明这个假设",
+        "- 你特别关注并发、幂等、精度、超时这些'隐式需求'，因为它们最容易被跳过",
+        "- 你不接受'PRD 没提所以不用管'的借口——PRD 没提的恰恰是 GAP",
+        "- 你会从用户操作流程的角度审视，而不只是从技术实现的角度",
         "",
         "## 批评规则",
         "",
@@ -159,17 +157,11 @@ def generate_preference_prompt(
     pd = _phase_dir(output_dir, project_id, phase_def)
     checklist = phase_def.get("approve_checklist", [])
 
-    report_map = {
-        "A": ("phase_a_report.md", "phase_a_structured.json"),
-        "A.5": ("tech_design_coverage_review.md", "phase_a5_structured.json"),
-        "A.6": ("tech_design_quality_review.md", "phase_a6_structured.json"),
-        "C": ("ut_audit_report.md", "phase_c_structured.json"),
-    }
-    files = report_map.get(phase_id)
-    if not files:
+    report_file = REPORT_MAP.get(phase_id)
+    json_file = STRUCTURED_JSON_MAP.get(phase_id)
+    if not report_file or not json_file:
         return None
 
-    report_file, json_file = files
     v2_report = report_file.replace(".md", "_v2.md")
     v2_json = json_file.replace(".json", "_v2.json")
 
@@ -250,111 +242,15 @@ def generate_preference_prompt(
 
 
 # ---------------------------------------------------------------------------
-# Step 3: Feedback Loop — 偏好数据沉淀
+# Backward-compat re-export: feedback functions moved to critique_feedback.py
 # ---------------------------------------------------------------------------
+from dqg.quality.critique_feedback import (  # noqa: F401, E402
+    get_cached_critique_result,
+    get_cached_preference_result,
+    load_critique_result,
+    persist_preference,
+)
 
-
-
-def persist_preference(
-    output_dir: Path,
-    project_id: str,
-    phase_id: str,
-    base_dir: Path | None = None,
-) -> dict[str, Any] | None:
-    """读取 preference 结果，沉淀有效 critique 为 bug case.
-
-    Returns:
-        沉淀结果摘要，无 preference 文件时返回 None
-    """
-    phase_def = PHASE_DEFS.get(phase_id)
-    if not phase_def:
-        return None
-
-    pd = _phase_dir(output_dir, project_id, phase_def)
-    pref_path = pd / "_preference.json"
-    critique_path = pd / "_critique.json"
-
-    if not pref_path.exists():
-        return None
-
-    try:
-        preference = load_json(pref_path)
-        if preference is None:
-            return None
-
-        # 追加到偏好历史
-        log_path = base_dir / _PREFERENCE_LOG if base_dir else Path(_PREFERENCE_LOG)
-        log_path.parent.mkdir(parents=True, exist_ok=True)
-        log_entry = {
-            "project_id": project_id,
-            "phase": phase_id,
-            "preferred": preference.get("preferred", ""),
-            "confidence": preference.get("confidence", ""),
-            "timestamp": datetime.now().isoformat(),
-        }
-        with open(log_path, "a", encoding="utf-8") as f:
-            f.write(json.dumps(log_entry, ensure_ascii=False) + "\n")
-
-        # 如果 v2 更好，将有效的 critique issues 沉淀为 bug case
-        persisted_cases: list[str] = []
-        if preference.get("preferred") == "v2":
-            effectiveness = preference.get("critique_effectiveness", [])
-            valid_critiques = [
-                e for e in effectiveness
-                if e.get("was_valid") and e.get("should_persist") and e.get("impact") in ("high", "medium")
-            ]
-
-            if valid_critiques and critique_path.exists():
-                load_json(critique_path) or {}
-
-                cases_base = base_dir / CASES_DIR if base_dir else Path(CASES_DIR)
-                phase_dir_name = PHASE_DIR_MAP.get(phase_id, "")
-
-                ts = datetime.now().strftime("%Y%m%d%H%M%S")
-                for i, vc in enumerate(valid_critiques):
-                    case_id = f"RLAIF-{phase_dir_name}-{ts}-{i:02d}"
-                    case_data = {
-                        "case_id": case_id,
-                        "phase": phase_id,
-                        "error_type": "FN",
-                        "severity": vc.get("impact", "medium"),
-                        "title": vc.get("critique_issue", "")[:100],
-                        "root_cause": "SKILL_RULE",
-                        "fix_target": phase_def.get("skill", ""),
-                        "tags": ["rlaif-generated", f"project:{project_id}"],
-                        "created_at": datetime.now().strftime("%Y-%m-%d"),
-                        "status": "open",
-                        "source": {
-                            "project_id": project_id,
-                            "rlaif_generated": True,
-                            "preference": preference.get("preferred"),
-                            "confidence": preference.get("confidence"),
-                        },
-                        "expected": {"content": vc.get("critique_issue", "")},
-                        "actual": {"content": "原始输出未覆盖此问题"},
-                        "lesson": vc.get("critique_issue", ""),
-                    }
-
-                    if phase_dir_name:
-                        case_dir = cases_base / phase_dir_name / case_id
-                        case_dir.mkdir(parents=True, exist_ok=True)
-                        (case_dir / "case.json").write_text(
-                            json.dumps(case_data, ensure_ascii=False, indent=2), encoding="utf-8"
-                        )
-                        persisted_cases.append(case_id)
-
-        return {
-            "preferred": preference.get("preferred", ""),
-            "confidence": preference.get("confidence", ""),
-            "persisted_cases": persisted_cases,
-            "log_path": str(log_path),
-        }
-    except Exception:
-        return None
-
-# ---------------------------------------------------------------------------
-# Prompt 文件写入
-# ---------------------------------------------------------------------------
 
 def write_critique_prompt(
     output_dir: Path,

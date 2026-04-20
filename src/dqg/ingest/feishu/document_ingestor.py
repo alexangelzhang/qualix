@@ -170,9 +170,45 @@ def ingest_single_document(
             )
 
     text_segments = [seg for seg in segments if seg.get("text")]
-    ingest = {
+    ingest = _build_ingest_payload(
+        url=normalized_input_url, resolved=resolved, doc_meta=doc_meta, document_id=document_id,
+        meta_use_user_token=meta_use_user_token, content_use_user_token=content_use_user_token,
+        blocks=blocks, segments=segments, text_segments=text_segments,
+        asset_results=asset_results, mention_docs=mention_docs,
+        raw_content=raw_content, raw_content_use_user_token=raw_content_use_user_token,
+        raw_content_attempts=raw_content_attempts, raw_image_keys=raw_image_keys,
+    )
+
+    paths = _write_ingest_files(output_dir, ingest, plain_text, asset_results, content, save_raw_blocks)
+
+    return {
+        "status": "ok",
+        "url": normalized_input_url,
+        "title": doc_meta.get("title", ""),
+        "document_id": doc_meta.get("document_id", document_id),
+        "resolved": resolved,
+        "ingest_path": paths["ingest"],
+        "plain_text_path": paths["plain_text"],
+        "asset_manifest_path": paths["asset_manifest"],
+        "raw_blocks_path": paths.get("raw_blocks", ""),
+        "mention_docs": mention_docs,
+        "raw_image_keys": raw_image_keys,
+        "summary": ingest["summary"],
+    }
+
+
+def _build_ingest_payload(
+    *,
+    url: str, resolved: dict, doc_meta: dict, document_id: str,
+    meta_use_user_token: Any, content_use_user_token: Any,
+    blocks: list, segments: list, text_segments: list,
+    asset_results: list, mention_docs: list,
+    raw_content: str, raw_content_use_user_token: Any,
+    raw_content_attempts: list, raw_image_keys: list,
+) -> dict[str, Any]:
+    return {
         "source": {
-            "url": normalized_input_url,
+            "url": url,
             "resolved": resolved,
             "title": doc_meta.get("title", ""),
             "document_id": doc_meta.get("document_id", document_id),
@@ -202,6 +238,11 @@ def ingest_single_document(
         "assets": asset_results,
     }
 
+
+def _write_ingest_files(
+    output_dir: Path, ingest: dict, plain_text: str,
+    asset_results: list, content: dict, save_raw_blocks: bool,
+) -> dict[str, str]:
     ingest_subdir = output_dir / "ingest"
     ingest_subdir.mkdir(parents=True, exist_ok=True)
     ingest_path = ingest_subdir / "ingest.json"
@@ -211,22 +252,15 @@ def ingest_single_document(
     plain_text_path.write_text(plain_text, encoding="utf-8")
     asset_manifest_path.write_text(json.dumps(asset_results, ensure_ascii=False, indent=2), encoding="utf-8")
 
-    raw_blocks_path = None
+    paths = {
+        "ingest": str(ingest_path),
+        "plain_text": str(plain_text_path),
+        "asset_manifest": str(asset_manifest_path),
+    }
+
     if save_raw_blocks:
         raw_blocks_path = ingest_subdir / "blocks.raw.json"
         raw_blocks_path.write_text(json.dumps(content, ensure_ascii=False, indent=2), encoding="utf-8")
+        paths["raw_blocks"] = str(raw_blocks_path)
 
-    return {
-        "status": "ok",
-        "url": normalized_input_url,
-        "title": doc_meta.get("title", ""),
-        "document_id": doc_meta.get("document_id", document_id),
-        "resolved": resolved,
-        "ingest_path": str(ingest_path),
-        "plain_text_path": str(plain_text_path),
-        "asset_manifest_path": str(asset_manifest_path),
-        "raw_blocks_path": str(raw_blocks_path) if raw_blocks_path else "",
-        "mention_docs": mention_docs,
-        "raw_image_keys": raw_image_keys,
-        "summary": ingest["summary"],
-    }
+    return paths

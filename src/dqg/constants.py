@@ -10,55 +10,66 @@ from __future__ import annotations
 # Phase 元数据
 # ---------------------------------------------------------------------------
 
-# Phase ID → 目录后缀
+# Phase ID → 目录后缀（目录名保持不变，只改 key）
 PHASE_DIR_MAP: dict[str, str] = {
-    "A": "phaseA",
-    "A.3": "phaseA3",
-    "A.5": "phaseA5",
-    "A.6": "phaseA6",
-    "B": "phaseB",
-    "C": "phaseC",
-    "D": "phaseD",
+    "Q01": "phaseA",
+    "Q02": "phaseA3",
+    "Q03": "phaseA6",
+    "Q04": "phaseA5",
+    "Q05": "phaseB",
+    "Q06": "phaseC",
+    "Q07": "phaseD",
 }
 
-# Phase ID → 结构化 JSON 文件名
+# Phase ID → 结构化 JSON 文件名（文件名保持不变，只改 key）
 STRUCTURED_JSON_MAP: dict[str, str] = {
-    "A": "phase_a_structured.json",
-    "A.3": "phase_a3_structured.json",
-    "A.5": "phase_a5_structured.json",
-    "A.6": "phase_a6_structured.json",
-    "B": "phase_b_structured.json",
-    "C": "phase_c_structured.json",
-    "D": "phase_d_structured.json",
+    "Q01": "phase_a_structured.json",
+    "Q02": "phase_a3_structured.json",
+    "Q03": "phase_a6_structured.json",
+    "Q04": "phase_a5_structured.json",
+    "Q05": "phase_b_structured.json",
+    "Q06": "phase_c_structured.json",
+    "Q07": "phase_d_structured.json",
 }
 
 # Phase ID → 报告文件名
 REPORT_MAP: dict[str, str] = {
-    "A": "phase_a_report.md",
-    "A.3": "tech_design.md",
-    "A.5": "tech_design_coverage_review.md",
-    "A.6": "tech_design_quality_review.md",
-    "B": "eut_matrix.md",
-    "C": "ut_audit_report.md",
-    "D": "review_report.md",
+    "Q01": "phase_a_report.md",
+    "Q02": "tech_design.md",
+    "Q03": "tech_design_quality_review.md",
+    "Q04": "tech_design_coverage_review.md",
+    "Q05": "eut_matrix.md",
+    "Q06": "ut_audit_report.md",
+    "Q07": "review_report.md",
 }
 
 # Phase ID → Skill 文件路径
 SKILL_FILE_MAP: dict[str, str] = {
-    "A": "skills/requirement-structuring/SKILL.md",
-    "A.3": "skills/tech-design-generation/SKILL.md",
-    "A.5": "skills/tech-coverage-audit/SKILL.md",
-    "A.6": "skills/tech-quality-review/SKILL.md",
-    "C": "skills/unit-test-audit/SKILL.md",
+    "Q01": "skills/requirement-structuring/SKILL.md",
+    "Q02": "skills/tech-design-generation/SKILL.md",
+    "Q04": "skills/tech-coverage-audit/SKILL.md",
+    "Q03": "skills/tech-quality-review/SKILL.md",
+    "Q06": "skills/unit-test-audit/SKILL.md",
 }
 
 # Phase ID → 知识库参考文件路径
 KNOWLEDGE_FILE_MAP: dict[str, str] = {
-    "A": "references/risk-and-exception-catalog.md",
-    "A.3": "references/risk-and-exception-catalog.md",
-    "A.5": "profiles/java-ddd-tmf/baseline.md",
-    "A.6": "references/risk-and-exception-catalog.md",
-    "C": "references/risk-and-exception-catalog.md",
+    "Q01": "references/risk-catalog-risks.md",
+    "Q02": "references/risk-catalog-risks.md",
+    "Q04": "profiles/java-ddd-tmf/baseline.md",
+    "Q03": "references/risk-catalog-risks.md",
+    "Q06": "references/risk-catalog-exceptions.md",
+}
+
+# 旧 Phase ID → 新 Phase ID（向后兼容映射）
+LEGACY_PHASE_ID_MAP: dict[str, str] = {
+    "A": "Q01",
+    "A.3": "Q02",
+    "A.6": "Q03",
+    "A.5": "Q04",
+    "B": "Q05",
+    "C": "Q06",
+    "D": "Q07",
 }
 
 # ---------------------------------------------------------------------------
@@ -172,6 +183,17 @@ RATIONALIZATION_PATTERNS: list[str] = [
 DEFAULT_RATIONALIZATION_CONFIRM_MODEL = "claude-haiku-4-5-20251001"
 RATIONALIZATION_MAX_REJUDGE = 1
 
+# Overcorrection patterns: Judge 过严误报信号（与 RATIONALIZATION_PATTERNS 方向相反）
+OVERCORRECTION_PATTERNS: list[str] = [
+    r"虽然.{0,20}(逻辑正确|实现正确|功能正常).{0,20}但.{0,20}(不符合|未遵循|建议)",
+    r"(代码能工作|功能正常).{0,10}但.{0,10}(最佳实践|规范|标准)",
+    r"(严格来说|从标准角度).{0,10}(不合规|不达标|不满足)",
+    r"(缺少|没有).{0,10}(注释|文档|日志).{0,10}(FAIL|不通过|不合格)",
+    r"(风格|命名|格式).{0,10}(不一致|不规范).{0,10}(FAIL|BLOCKER|MAJOR)",
+    r"(理论上|原则上).{0,10}(应该|需要|必须).{0,10}(但|不过)",
+    r"(潜在|可能|理论上).{0,10}(风险|问题).{0,10}(FAIL|BLOCKER)",
+]
+
 # Holdout replay
 HOLDOUT_DIR = "regression/holdout"
 HOLDOUT_SUITE_BASELINE_FILE = "suite_baseline.json"
@@ -192,6 +214,25 @@ WIKI_LINT_FILE_EXCERPT_LIMIT = 4_000
 # ---------------------------------------------------------------------------
 
 DASHBOARD_PORT = 8501
+
+# ---------------------------------------------------------------------------
+# 结构化 ID 模式
+# ---------------------------------------------------------------------------
+
+# 完整 ID 前缀集合（behavioral_fingerprint / chunk_summarizer / evidence_renderer / rsm_mutations 共用）
+RSM_ID_PREFIXES: tuple[str, ...] = ("REQ-", "BR-", "SE-", "GAP-", "OPEN-")
+
+# 基础 ID 正则（chunk_summarizer 等用于从文本提取 ID）
+ID_PATTERN_BASE = r"(REQ|BR|SE|GAP|OPEN|EUT|CASE)-\d+"
+
+# 扩展 ID 正则（behavioral_fingerprint 用于行为指纹，含架构/API/数据等维度）
+ID_PATTERN_EXTENDED = r"(REQ|BR|SE|GAP|OPEN|EUT|CASE|ARCH|API|DATA|EXC|PERF)-\d+"
+
+# evidence_renderer / chunk_summarizer 共用的 ID 字段名
+ID_FIELD_KEYS: tuple[str, ...] = (
+    "req_id", "br_id", "se_id", "gap_id", "open_id",
+    "fact_id", "id", "case_id",
+)
 
 # ---------------------------------------------------------------------------
 # DAG 调度器

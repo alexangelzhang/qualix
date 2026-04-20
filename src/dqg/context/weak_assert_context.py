@@ -1,52 +1,49 @@
-"""Phase C 弱断言检测 sidecar：基于 diff 测试文件的轻量静态分析。"""
+"""Phase C 弱断言检测 sidecar：基于 diff 测试文件的静态分析.
+
+优先使用 tree-sitter Java AST 解析（精确），不可用时降级到正则匹配。
+"""
 
 from __future__ import annotations
 
-import re
 from pathlib import Path
 from typing import Any
 
 from dqg.json_utils import save_json
 from dqg.log import get_logger
 
+from dqg.context.weak_assert_analysis import (
+    WeakAssertSignal,  # noqa: F401 — re-export for backward compat
+    analyze_test_method,
+    analyze_with_ast,
+    extract_test_methods_regex,
+    is_ast_available,
+)
+
 log = get_logger(__name__)
 
-_TEST_ANNOTATION_PATTERN = re.compile(
-    r"^\s*@(?:Test|ParameterizedTest|RepeatedTest|TestFactory|TestTemplate)\b",
-    re.MULTILINE,
-)
-_METHOD_NAME_PATTERN = re.compile(
-    r"\b(?P<name>[A-Za-z_][A-Za-z0-9_]*)\s*\([^;{}]*\)\s*(?:throws[^{]+)?\{",
-    re.MULTILINE,
-)
-_ASSERT_NOT_NULL_PATTERN = re.compile(r"\bassertNotNull\s*\(")
-_CONSTANT_BOOL_ASSERT_PATTERN = re.compile(
-    r"\bassert(?:True|False)\s*\(\s*(?:Boolean\.)?(?:TRUE|FALSE|true|false)\s*\)"
-)
-_VERIFY_PATTERN = re.compile(r"\bverify\s*\(")
-_TIMES_PATTERN = re.compile(r"\btimes\s*\(")
-_ASSERT_THROWS_PATTERN = re.compile(r"\bassertThrows\s*\(")
-_EXCEPTION_ASSIGN_PATTERN = re.compile(
-    r"\b(?P<name>[A-Za-z_][A-Za-z0-9_]*)\s*=\s*assertThrows\s*\("
-)
-_ASSERT_THAT_PATTERN = re.compile(r"\bassertThat\s*\(")
-_NON_CONSTANT_BOOL_ASSERT_PATTERN = re.compile(
-    r"\bassert(?:True|False)\s*\(\s*(?!(?:Boolean\.)?(?:TRUE|FALSE|true|false)\s*\))"
-)
-_STRONG_ASSERT_PATTERN = re.compile(
-    r"\bassert(?:Equals|NotEquals|Same|NotSame|ArrayEquals|IterableEquals|LinesMatch|Null|DoesNotThrow|All)\s*\("
-)
+# 尝试导入语义映射（可选）
+try:
+    from dqg.context.assert_semantic_mapper import (
+        load_eut_from_phase_b,
+        load_se_from_phase_a,
+        map_asserts_to_semantics,
+    )
+except ImportError:
+    pass
 
 
-class WeakAssertSignal:
-    ASSERT_NOT_NULL_ONLY = "ASSERT_NOT_NULL_ONLY"
-    CONSTANT_BOOLEAN_ASSERT = "CONSTANT_BOOLEAN_ASSERT"
-    VERIFY_ONLY_NO_BUSINESS_ASSERT = "VERIFY_ONLY_NO_BUSINESS_ASSERT"
-    ASSERT_THROWS_NO_EFFECT_ASSERT = "ASSERT_THROWS_NO_EFFECT_ASSERT"
+def collect_weak_assert_context(
+    repo_path: str | Path,
+    diff_ctx: Any,
+    output_dir: str | Path | None = None,
+    project_id: str | None = None,
+) -> dict[str, Any]:
+    """扫描 diff 中的测试文件，提取弱断言候选.
 
-
-def collect_weak_assert_context(repo_path: str | Path, diff_ctx: Any) -> dict[str, Any]:
-    """扫描 diff 中的测试文件，提取弱断言候选。"""
+    Args:
+        output_dir: DQG 产物目录（用于加载 SE/EUT 做语义映射，可选）
+        project_id: 项目 ID（用于加载 SE/EUT，可选）
+    """
     repo = Path(repo_path).expanduser()
     requested_files = list(dict.fromkeys(getattr(diff_ctx, "test_files", lambda: [])()))
 
@@ -77,44 +74,90 @@ def collect_weak_assert_context(repo_path: str | Path, diff_ctx: Any) -> dict[st
         payload["notes"].append("code_repo 不是可读取的本地目录，弱断言扫描已跳过。")
         return payload
 
-    for rel_path in requested_files:
+    def _analyze_one_file(rel_path: str) -> tuple[str, dict[str, Any] | None, str | None]:
+        """分析单个测试文件，返回 (rel_path, file_result, note)."""
         file_path = repo / rel_path
         if not file_path.exists() or not file_path.is_file():
-            payload["notes"].append(f"测试文件不存在，已跳过: {rel_path}")
-            continue
+            return rel_path, None, f"测试文件不存在，已跳过: {rel_path}"
 
         try:
             content = file_path.read_text(encoding="utf-8")
         except OSError as exc:
             log.warning("Failed to read weak assert candidate file %s: %s", file_path, exc)
-            payload["notes"].append(f"测试文件读取失败，已跳过: {rel_path}")
-            continue
+            return rel_path, None, f"测试文件读取失败，已跳过: {rel_path}"
 
-        methods = _extract_test_methods(content)
-        analyzed_methods = [_analyze_test_method(method) for method in methods]
+        if is_ast_available():
+            analyzed_methods = analyze_with_ast(content)
+        else:
+            methods = extract_test_methods_regex(content)
+            analyzed_methods = [analyze_test_method(method) for method in methods]
+
         weak_methods = [method for method in analyzed_methods if method["signals"]]
 
-        payload["summary"]["scanned_test_file_count"] += 1
-        payload["summary"]["test_method_count"] += len(analyzed_methods)
-        payload["summary"]["weak_method_count"] += len(weak_methods)
-        payload["summary"]["high_risk_count"] += sum(
-            1 for method in weak_methods if method["risk_level"] == "high"
-        )
-        payload["summary"]["medium_risk_count"] += sum(
-            1 for method in weak_methods if method["risk_level"] == "medium"
-        )
+        file_result = {
+            "path": rel_path,
+            "test_method_count": len(analyzed_methods),
+            "weak_method_count": len(weak_methods),
+            "methods": weak_methods,
+            "all_method_count": len(analyzed_methods),
+            "high_risk_count": sum(1 for m in weak_methods if m["risk_level"] == "high"),
+            "medium_risk_count": sum(1 for m in weak_methods if m["risk_level"] == "medium"),
+        }
+        return rel_path, file_result, None
 
-        payload["files"].append(
-            {
-                "path": rel_path,
-                "test_method_count": len(analyzed_methods),
-                "weak_method_count": len(weak_methods),
-                "methods": weak_methods,
-            }
-        )
+    # 并行分析所有测试文件
+    from concurrent.futures import ThreadPoolExecutor
+
+    if not payload.get("analysis_mode"):
+        payload["analysis_mode"] = "tree-sitter-java" if is_ast_available() else "regex-fallback"
+
+    with ThreadPoolExecutor(max_workers=min(len(requested_files), 4)) as pool:
+        results = list(pool.map(_analyze_one_file, requested_files))
+
+    for _rel_path, file_result, note in results:
+        if note:
+            payload["notes"].append(note)
+        if file_result:
+            payload["summary"]["scanned_test_file_count"] += 1
+            payload["summary"]["test_method_count"] += file_result["all_method_count"]
+            payload["summary"]["weak_method_count"] += file_result["weak_method_count"]
+            payload["summary"]["high_risk_count"] += file_result["high_risk_count"]
+            payload["summary"]["medium_risk_count"] += file_result["medium_risk_count"]
+            payload["files"].append({
+                "path": file_result["path"],
+                "test_method_count": file_result["test_method_count"],
+                "weak_method_count": file_result["weak_method_count"],
+                "methods": file_result["methods"],
+            })
 
     if payload["summary"]["scanned_test_file_count"] == 0 and not payload["notes"]:
         payload["notes"].append("未扫描到可读取的 diff 测试文件。")
+
+    # 语义映射：将弱断言与 Phase A SE / Phase B EUT 关联
+    if output_dir and project_id and is_ast_available():
+        try:
+            se_list = load_se_from_phase_a(output_dir, project_id)
+            eut_list = load_eut_from_phase_b(output_dir, project_id)
+            if se_list or eut_list:
+                all_methods = []
+                for file_item in payload.get("files", []):
+                    all_methods.extend(file_item.get("methods", []))
+                if all_methods:
+                    map_asserts_to_semantics(all_methods, se_list, eut_list)
+                    mapped_count = sum(
+                        1 for m in all_methods
+                        if m.get("semantic_mapping", {}).get("matched_se")
+                    )
+                    gap_count = sum(
+                        1 for m in all_methods
+                        if m.get("semantic_mapping", {}).get("coverage_gap")
+                    )
+                    payload["summary"]["semantic_mapped_count"] = mapped_count
+                    payload["summary"]["semantic_gap_count"] = gap_count
+                    payload["summary"]["se_count"] = len(se_list)
+                    payload["summary"]["eut_count"] = len(eut_list)
+        except Exception as exc:
+            log.warning("语义映射失败，不影响弱断言检测: %s", exc)
 
     return payload
 
@@ -189,189 +232,3 @@ def write_weak_assert_context(
     save_json(json_path, payload)
     md_path.write_text(render_weak_assert_context_markdown(payload), encoding="utf-8")
     return json_path, md_path
-
-
-def _extract_test_methods(content: str) -> list[dict[str, Any]]:
-    lines = content.splitlines()
-    methods: list[dict[str, Any]] = []
-    index = 0
-
-    while index < len(lines):
-        if not _TEST_ANNOTATION_PATTERN.match(lines[index]):
-            index += 1
-            continue
-
-        annotation_start = index
-        search_index = index + 1
-        while search_index < len(lines):
-            stripped = lines[search_index].strip()
-            if not stripped or stripped.startswith("@"):
-                search_index += 1
-                continue
-            break
-
-        signature_lines: list[str] = []
-        while search_index < len(lines):
-            signature_lines.append(lines[search_index])
-            if "{" in lines[search_index]:
-                break
-            search_index += 1
-
-        if search_index >= len(lines):
-            break
-
-        signature_text = "\n".join(signature_lines)
-        match = _METHOD_NAME_PATTERN.search(signature_text)
-        if not match:
-            index = search_index + 1
-            continue
-
-        method_name = match.group("name")
-        brace_depth = lines[search_index].count("{") - lines[search_index].count("}")
-        body_end = search_index
-        while body_end + 1 < len(lines) and brace_depth > 0:
-            body_end += 1
-            brace_depth += lines[body_end].count("{") - lines[body_end].count("}")
-
-        methods.append(
-            {
-                "method_name": method_name,
-                "line_start": annotation_start + 1,
-                "line_end": body_end + 1,
-                "content": "\n".join(lines[annotation_start : body_end + 1]),
-            }
-        )
-        index = body_end + 1
-
-    return methods
-
-
-def _analyze_test_method(method: dict[str, Any]) -> dict[str, Any]:
-    content = method["content"]
-    method_lines = _normalized_lines(content)
-    not_null_lines = _matching_lines(method_lines, _ASSERT_NOT_NULL_PATTERN)
-    constant_bool_lines = _matching_lines(method_lines, _CONSTANT_BOOL_ASSERT_PATTERN)
-    verify_lines = _matching_lines(method_lines, _VERIFY_PATTERN)
-    if _TIMES_PATTERN.search(content) and not verify_lines:
-        verify_lines = _matching_lines(method_lines, _TIMES_PATTERN)
-    strong_assert_lines = _strong_assert_lines(method_lines)
-
-    signals: list[dict[str, str]] = []
-    evidence: list[str] = []
-    suggestion_parts: list[str] = []
-
-    if (
-        not_null_lines
-        and not strong_assert_lines
-        and not verify_lines
-        and not _ASSERT_THROWS_PATTERN.search(content)
-    ):
-        signals.append(
-            {
-                "code": WeakAssertSignal.ASSERT_NOT_NULL_ONLY,
-                "severity": "high",
-                "reason": "仅看到 assertNotNull，未验证业务字段、状态或副作用。",
-            }
-        )
-        evidence.extend(not_null_lines[:2])
-        suggestion_parts.append("补充关键业务字段、状态迁移或副作用断言")
-
-    if constant_bool_lines and not strong_assert_lines:
-        signals.append(
-            {
-                "code": WeakAssertSignal.CONSTANT_BOOLEAN_ASSERT,
-                "severity": "high",
-                "reason": "存在常量布尔断言，未实际验证业务结果。",
-            }
-        )
-        evidence.extend(constant_bool_lines[:2])
-        suggestion_parts.append("移除常量布尔断言，改为断言真实业务表达式")
-
-    if verify_lines and not strong_assert_lines:
-        signals.append(
-            {
-                "code": WeakAssertSignal.VERIFY_ONLY_NO_BUSINESS_ASSERT,
-                "severity": "high",
-                "reason": "仅做交互校验，未看到业务结果断言。",
-            }
-        )
-        evidence.extend(verify_lines[:2])
-        suggestion_parts.append("在 verify 之外补充业务结果或副作用断言")
-
-    if _ASSERT_THROWS_PATTERN.search(content) and _has_assert_throws_without_effect(
-        content, method_lines
-    ):
-        signals.append(
-            {
-                "code": WeakAssertSignal.ASSERT_THROWS_NO_EFFECT_ASSERT,
-                "severity": "medium",
-                "reason": "只校验抛异常或异常对象，缺少失败后的业务效果断言。",
-            }
-        )
-        evidence.extend(_matching_lines(method_lines, _ASSERT_THROWS_PATTERN)[:1])
-        suggestion_parts.append("补充失败后的状态、数据或副作用断言")
-
-    deduped_evidence = list(dict.fromkeys(evidence))
-    suggestion = "；".join(dict.fromkeys(suggestion_parts)) if suggestion_parts else ""
-
-    return {
-        "method_name": method["method_name"],
-        "line_start": method["line_start"],
-        "line_end": method["line_end"],
-        "risk_level": _risk_level_for_signals(signals),
-        "signals": signals,
-        "evidence": deduped_evidence[:4],
-        "suggestion": suggestion,
-    }
-
-
-def _has_assert_throws_without_effect(content: str, method_lines: list[str]) -> bool:
-    exception_vars = set(_EXCEPTION_ASSIGN_PATTERN.findall(content))
-    business_effect_lines = []
-    for line in _strong_assert_lines(method_lines):
-        if exception_vars and any(
-            re.search(rf"\\b{re.escape(name)}\\b", line) for name in exception_vars
-        ):
-            continue
-        business_effect_lines.append(line)
-    return not business_effect_lines
-
-
-def _strong_assert_lines(method_lines: list[str]) -> list[str]:
-    strong: list[str] = []
-    for line in method_lines:
-        if _ASSERT_NOT_NULL_PATTERN.search(line):
-            continue
-        if _CONSTANT_BOOL_ASSERT_PATTERN.search(line):
-            continue
-        if _ASSERT_THAT_PATTERN.search(line):
-            strong.append(line)
-            continue
-        if _NON_CONSTANT_BOOL_ASSERT_PATTERN.search(line):
-            strong.append(line)
-            continue
-        if _STRONG_ASSERT_PATTERN.search(line):
-            strong.append(line)
-    return strong
-
-
-def _matching_lines(lines: list[str], pattern: re.Pattern[str]) -> list[str]:
-    return [line for line in lines if pattern.search(line)]
-
-
-def _normalized_lines(content: str) -> list[str]:
-    normalized: list[str] = []
-    for raw_line in content.splitlines():
-        line = raw_line.strip()
-        if not line or line.startswith("//") or line.startswith("*"):
-            continue
-        normalized.append(line)
-    return normalized
-
-
-def _risk_level_for_signals(signals: list[dict[str, str]]) -> str:
-    if not signals:
-        return ""
-    if any(signal["severity"] == "high" for signal in signals):
-        return "high"
-    return "medium"
