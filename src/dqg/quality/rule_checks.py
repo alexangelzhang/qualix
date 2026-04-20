@@ -7,7 +7,8 @@ from __future__ import annotations
 
 import re
 from pathlib import Path
-from typing import Any
+from types import MappingProxyType
+from typing import Any, Final
 
 from dqg.text_utils import REPORT_MAP
 from dqg.quality.rule_definitions import (
@@ -343,7 +344,7 @@ def _check_impl_slice(pd: Path, report: str, phase_id: str) -> tuple[bool, str]:
 
 from dqg.quality.rule_checks_bc import BC_CHECK_FUNCS
 
-CHECK_FUNCS = {
+CHECK_FUNCS: Final = MappingProxyType({
     "_check_reasoning_log": _check_reasoning_log,
     "_check_judge_critique": _check_judge_critique,
     "_check_source_annotation": _check_source_annotation,
@@ -366,4 +367,4 @@ CHECK_FUNCS = {
     "_check_reuse_analysis": _check_reuse_analysis,
     "_check_impl_slice": _check_impl_slice,
     **BC_CHECK_FUNCS,
-}
+})

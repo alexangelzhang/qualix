@@ -6,12 +6,15 @@
 
 from __future__ import annotations
 
+from types import MappingProxyType
+from typing import Final
+
 # ---------------------------------------------------------------------------
 # Phase 元数据
 # ---------------------------------------------------------------------------
 
 # Phase ID → 目录后缀（目录名保持不变，只改 key）
-PHASE_DIR_MAP: dict[str, str] = {
+PHASE_DIR_MAP: Final = MappingProxyType({
     "Q01": "phaseA",
     "Q02": "phaseA3",
     "Q03": "phaseA6",
@@ -19,10 +22,10 @@ PHASE_DIR_MAP: dict[str, str] = {
     "Q05": "phaseB",
     "Q06": "phaseC",
     "Q07": "phaseD",
-}
+})
 
 # Phase ID → 结构化 JSON 文件名（文件名保持不变，只改 key）
-STRUCTURED_JSON_MAP: dict[str, str] = {
+STRUCTURED_JSON_MAP: Final = MappingProxyType({
     "Q01": "phase_a_structured.json",
     "Q02": "phase_a3_structured.json",
     "Q03": "phase_a6_structured.json",
@@ -30,10 +33,10 @@ STRUCTURED_JSON_MAP: dict[str, str] = {
     "Q05": "phase_b_structured.json",
     "Q06": "phase_c_structured.json",
     "Q07": "phase_d_structured.json",
-}
+})
 
 # Phase ID → 报告文件名
-REPORT_MAP: dict[str, str] = {
+REPORT_MAP: Final = MappingProxyType({
     "Q01": "phase_a_report.md",
     "Q02": "tech_design.md",
     "Q03": "tech_design_quality_review.md",
@@ -41,28 +44,28 @@ REPORT_MAP: dict[str, str] = {
     "Q05": "eut_matrix.md",
     "Q06": "ut_audit_report.md",
     "Q07": "review_report.md",
-}
+})
 
 # Phase ID → Skill 文件路径
-SKILL_FILE_MAP: dict[str, str] = {
+SKILL_FILE_MAP: Final = MappingProxyType({
     "Q01": "skills/requirement-structuring/SKILL.md",
     "Q02": "skills/tech-design-generation/SKILL.md",
     "Q04": "skills/tech-coverage-audit/SKILL.md",
     "Q03": "skills/tech-quality-review/SKILL.md",
     "Q06": "skills/unit-test-audit/SKILL.md",
-}
+})
 
 # Phase ID → 知识库参考文件路径
-KNOWLEDGE_FILE_MAP: dict[str, str] = {
+KNOWLEDGE_FILE_MAP: Final = MappingProxyType({
     "Q01": "references/risk-catalog-risks.md",
     "Q02": "references/risk-catalog-risks.md",
     "Q04": "profiles/java-ddd-tmf/baseline.md",
     "Q03": "references/risk-catalog-risks.md",
     "Q06": "references/risk-catalog-exceptions.md",
-}
+})
 
 # 旧 Phase ID → 新 Phase ID（向后兼容映射）
-LEGACY_PHASE_ID_MAP: dict[str, str] = {
+LEGACY_PHASE_ID_MAP: Final = MappingProxyType({
     "A": "Q01",
     "A.3": "Q02",
     "A.6": "Q03",
@@ -70,7 +73,7 @@ LEGACY_PHASE_ID_MAP: dict[str, str] = {
     "B": "Q05",
     "C": "Q06",
     "D": "Q07",
-}
+})
 
 # ---------------------------------------------------------------------------
 # 目录 / 文件路径常量
@@ -129,10 +132,10 @@ DEFAULT_ADAPTIVE_JUDGE_MODELS: tuple[str, ...] = (
 )
 
 # 模型等级映射：Phase 的 recommended_model 字段 → 实际模型名
-MODEL_TIER: dict[str, str] = {
+MODEL_TIER: Final = MappingProxyType({
     "strong": DEFAULT_PRIMARY_MODEL,     # 需要深度理解的 Phase（A/A.3/A.6/D）
     "standard": "claude-sonnet-4-6",     # 模式化执行的 Phase（B/C/A.5）
-}
+})
 DEFAULT_TEMPERATURE = 0.0
 DEFAULT_MAX_TOKENS = 8192
 DEFAULT_TIMEOUT = 120

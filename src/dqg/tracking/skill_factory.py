@@ -13,7 +13,8 @@ from __future__ import annotations
 
 from collections import Counter, defaultdict
 from pathlib import Path
-from typing import Any
+from types import MappingProxyType
+from typing import Any, Final
 
 from dqg.log import get_logger
 from dqg.tracking.bug_cases import load_cases, load_cases_by_phase
@@ -22,29 +23,29 @@ log = get_logger(__name__)
 
 
 # 失败模式 → 规则模板映射
-_FAILURE_PATTERN_TEMPLATES: dict[str, dict[str, str]] = {
+_FAILURE_PATTERN_TEMPLATES: Final = MappingProxyType({
     # error_type 级别的模板
-    "FN": {
+    "FN": MappingProxyType({
         "anti_rationalization": "{title} → 漏报是最危险的失败模式，宁可多报不可漏报",
         "red_line": "存在 FN 模式的场景必须在 skill 中显式列为检查项",
-    },
-    "FP": {
+    }),
+    "FP": MappingProxyType({
         "anti_rationalization": "{title} → 误报会侵蚀信任，标记前必须有充分证据",
         "red_line": "标记问题前必须排除合理的设计决策",
-    },
-    "WRONG": {
+    }),
+    "WRONG": MappingProxyType({
         "anti_rationalization": "{title} → 错判比漏判更隐蔽，因为它给出了错误的安全感",
         "red_line": "判定结论必须有原文/代码证据，不能基于推测",
-    },
-}
+    }),
+})
 
 # root_cause → 修复方向映射
-_ROOT_CAUSE_ACTIONS: dict[str, str] = {
+_ROOT_CAUSE_ACTIONS: Final = MappingProxyType({
     "SKILL_RULE": "更新 skill 文件的执行规则或检查清单",
     "KNOWLEDGE": "补充领域知识到 references/ 或 knowledge base",
     "CONTEXT": "改进上下文加载策略或输入解析",
     "SCHEMA": "更新 schemas/ 下的校验规则",
-}
+})
 
 
 def analyze_failure_patterns(

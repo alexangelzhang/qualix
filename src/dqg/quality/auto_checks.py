@@ -10,7 +10,8 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
+from types import MappingProxyType
+from typing import Any, Final
 
 from pydantic import ValidationError
 
@@ -23,7 +24,7 @@ from dqg.text_utils import STRUCTURED_JSON_MAP
 log = get_logger(__name__)
 
 # Phase → Pydantic 模型类（延迟导入避免循环）
-_SCHEMA_MAP: dict[str, str] = {
+_SCHEMA_MAP: Final = MappingProxyType({
     "Q01": "dqg.schemas.phase_a:PhaseAOutput",
     "Q02": "dqg.schemas.phase_a3:PhaseA3Output",
     "Q04": "dqg.schemas.phase_a5:PhaseA5Output",
@@ -31,7 +32,7 @@ _SCHEMA_MAP: dict[str, str] = {
     "Q05": "dqg.schemas.phase_b:PhaseBOutput",
     "Q06": "dqg.schemas.phase_c:PhaseCOutput",
     "Q07": "dqg.schemas.phase_d:PhaseDOutput",
-}
+})
 
 
 def _import_schema(phase_id: str):

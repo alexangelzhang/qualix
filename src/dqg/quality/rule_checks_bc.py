@@ -6,6 +6,8 @@
 from __future__ import annotations
 
 from pathlib import Path
+from types import MappingProxyType
+from typing import Final
 
 from dqg.quality.rule_definitions import RE_BR_ID, RE_REQ_ID, RE_SE_ID
 
@@ -258,7 +260,7 @@ def _check_c_defensive(pd: Path, report: str, phase_id: str) -> tuple[bool, str]
 # Phase B/C 检查函数映射表
 # ---------------------------------------------------------------------------
 
-BC_CHECK_FUNCS = {
+BC_CHECK_FUNCS: Final = MappingProxyType({
     "_check_design_matrix": _check_design_matrix,
     "_check_req_coverage": _check_req_coverage,
     "_check_br_coverage": _check_br_coverage,
@@ -275,4 +277,4 @@ BC_CHECK_FUNCS = {
     "_check_c_maintainability": _check_c_maintainability,
     "_check_c_boundary": _check_c_boundary,
     "_check_c_defensive": _check_c_defensive,
-}
+})

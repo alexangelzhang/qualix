@@ -14,7 +14,8 @@ from __future__ import annotations
 import hashlib
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from types import MappingProxyType
+from typing import Any, Final
 
 from dqg.constants import BUG_CASE_RELEVANCE_SEED_LIMIT
 from dqg.json_utils import load_json
@@ -25,13 +26,13 @@ from dqg.tracking.case_selector import render_relevant_cases_for_prompt
 
 
 # Phase → skill 文件映射
-_PHASE_SKILL_MAP: dict[str, str] = {
+_PHASE_SKILL_MAP: Final = MappingProxyType({
     "Q01": "skills/requirement-structuring.md",
     "Q04": "skills/tech-coverage-audit.md",
     "Q03": "skills/tech-quality-review.md",
     "Q06": "skills/unit-test-audit.md",
     "Q07": "skills/code-review.md",
-}
+})
 
 
 def _hash_content(content: str) -> str:

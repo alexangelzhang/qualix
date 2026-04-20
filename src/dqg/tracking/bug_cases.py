@@ -5,7 +5,8 @@ from __future__ import annotations
 from collections import defaultdict
 from functools import lru_cache
 from pathlib import Path
-from typing import Any
+from types import MappingProxyType
+from typing import Any, Final
 
 from dqg.constants import CASES_DIR, KNOWLEDGE_FILE_MAP, PHASE_DIR_MAP, SKILL_FILE_MAP
 from dqg.json_utils import dump_json_str, load_json
@@ -17,34 +18,34 @@ log = get_logger(__name__)
 # 从 PHASE_DEFS 动态生成，避免与 state_machine.py 重复维护
 PHASE_DIRS = [v["dir_suffix"] for v in PHASE_DEFS.values()]
 
-ROOT_CAUSE_FIX_MAP = {
-    "SKILL_RULE": {
+ROOT_CAUSE_FIX_MAP: Final = MappingProxyType({
+    "SKILL_RULE": MappingProxyType({
         "action": "修改 skill prompt 规则",
         "targets": SKILL_FILE_MAP,
-    },
-    "KNOWLEDGE": {
+    }),
+    "KNOWLEDGE": MappingProxyType({
         "action": "补充领域知识",
         "targets": KNOWLEDGE_FILE_MAP,
-    },
-    "CONTEXT": {
+    }),
+    "CONTEXT": MappingProxyType({
         "action": "改进输入解析",
-        "targets": {
+        "targets": MappingProxyType({
             "Q01": "src/dqg/ingest/feishu/",
             "Q04": "src/dqg/context_loader.py",
             "Q03": "src/dqg/context_loader.py",
             "Q06": "src/dqg/context_loader.py",
-        },
-    },
-    "SCHEMA": {
+        }),
+    }),
+    "SCHEMA": MappingProxyType({
         "action": "修改结构化输出 schema",
-        "targets": {
+        "targets": MappingProxyType({
             "Q01": "src/dqg/schemas/phase_a.py",
             "Q04": "src/dqg/schemas/phase_a5.py",
             "Q03": "src/dqg/schemas/phase_a6.py",
             "Q06": "src/dqg/schemas/phase_c.py",
-        },
-    },
-}
+        }),
+    }),
+})
 
 
 def load_cases(base_dir: Path | None = None, *, exclude_holdout: bool = False, holdout_only: bool = False) -> list[dict[str, Any]]:

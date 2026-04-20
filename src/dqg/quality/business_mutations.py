@@ -8,7 +8,8 @@ from __future__ import annotations
 
 import re
 from pathlib import Path
-from typing import Any
+from types import MappingProxyType
+from typing import Any, Final
 
 from dqg.json_utils import load_json, save_json
 from dqg.log import get_logger
@@ -17,7 +18,7 @@ log = get_logger(__name__)
 
 
 # SE 描述中的关键词 → 业务域变异规则
-_BUSINESS_MUTATION_RULES: dict[str, dict[str, Any]] = {
+_BUSINESS_MUTATION_RULES: Final[dict[str, dict[str, Any]]] = {
     "金额精度": {
         "keywords": ["金额", "BigDecimal", "精度", "分", "元", "费用", "价格", "总额", "单价"],
         "operator": "DECIMAL_PRECISION",

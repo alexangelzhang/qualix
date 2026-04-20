@@ -5,14 +5,15 @@ from __future__ import annotations
 from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from types import MappingProxyType
+from typing import Any, Final
 
 from dqg.constants import CASES_DIR, PHASE_DIR_MAP, SKILL_FILE_MAP
 from dqg.json_utils import save_json
 
 
 # Judge 维度 → error_type 映射
-_JUDGE_DIM_TO_ERROR_TYPE: dict[str, str] = {
+_JUDGE_DIM_TO_ERROR_TYPE: Final = MappingProxyType({
     "faithfulness": "FP",
     "completeness": "FN",
     "se_explicitness": "FN",
@@ -26,7 +27,7 @@ _JUDGE_DIM_TO_ERROR_TYPE: dict[str, str] = {
     "audit_accuracy": "WRONG",
     "wrong_target_detection": "FN",
     "exception_branch": "FN",
-}
+})
 
 
 def auto_generate_bug_case(

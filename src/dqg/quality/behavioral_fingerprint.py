@@ -19,7 +19,7 @@ import json
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any
+from typing import Any, Final
 
 from dqg.constants import ID_PATTERN_EXTENDED
 
@@ -149,7 +149,7 @@ def extract_fingerprints_from_file(trajectory_path: Path) -> list[BehavioralFing
 # ---------------------------------------------------------------------------
 
 # 行为不变量阈值
-_INVARIANTS: dict[str, dict[str, Any]] = {
+_INVARIANTS: Final[dict[str, dict[str, Any]]] = {
     "Q01": {
         "min_ids": {"REQ": 1},  # 至少 1 个 REQ
         "id_regression_tolerance": 0.5,  # ID 数量下降超过 50% 视为回归

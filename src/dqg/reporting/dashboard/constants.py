@@ -3,13 +3,15 @@
 from __future__ import annotations
 
 from pathlib import Path
+from types import MappingProxyType
+from typing import Final
 
 from dqg.constants import LEGACY_PHASE_ID_MAP as LEGACY_PHASE_MAP, PHASE_DIR_MAP as PHASE_DIR
 from dqg.json_utils import load_json
 
 OUTPUT_DIR = Path("output")
 
-PHASE_NAMES = {
+PHASE_NAMES: Final = MappingProxyType({
     "Q01": "需求结构化",
     "Q02": "技术方案生成",
     "Q03": "技术方案质量评审",
@@ -17,25 +19,25 @@ PHASE_NAMES = {
     "Q05": "单测生成",
     "Q06": "单测覆盖审计",
     "Q07": "代码评审",
-}
+})
 
-STATUS_LABEL = {
+STATUS_LABEL: Final = MappingProxyType({
     "approved": "已完成",
     "skipped": "已跳过",
     "pending_review": "待审核",
     "in_progress": "执行中",
     "not_started": "未开始",
-}
+})
 
-STATUS_COLOR = {
+STATUS_COLOR: Final = MappingProxyType({
     "approved": "#28a745",
     "skipped": "#6c757d",
     "pending_review": "#ffc107",
     "in_progress": "#17a2b8",
     "not_started": "#dee2e6",
-}
+})
 
-DAG_COMMENT_TRANSLATE = {
+DAG_COMMENT_TRANSLATE: Final = MappingProxyType({
     "FAIL": "未通过",
     "PASS": "通过",
     "WARN": "警告",
@@ -47,9 +49,9 @@ DAG_COMMENT_TRANSLATE = {
     "MISSING": "缺失",
     "PARTIAL": "部分覆盖",
     "with": "共",
-}
+})
 
-EVAL_METRIC_ZH = {
+EVAL_METRIC_ZH: Final = MappingProxyType({
     "req_count": "需求点数", "br_count": "业务规则数", "se_count": "SE 数",
     "gap_count": "缺口数", "open_count": "待确认数",
     "se_with_basis": "SE 有依据率", "gap_with_risk": "GAP 有风险率",
@@ -58,27 +60,27 @@ EVAL_METRIC_ZH = {
     "total_issues": "问题总数", "fm_count": "Failure Mode 数",
     "req_coverage_rate": "需求覆盖率", "se_coverage_rate": "SE 覆盖率",
     "gap_closure_rate": "GAP 闭环率", "missing_count": "未覆盖数",
-}
+})
 
-EVAL_STATUS_ZH = {
+EVAL_STATUS_ZH: Final = MappingProxyType({
     "NEW": "首次", "OK": "正常", "IMPROVED": "改善",
     "REGRESSION": "退化", "WARNING": "警告",
-}
+})
 
-EVAL_STATUS_COLOR = {
+EVAL_STATUS_COLOR: Final = MappingProxyType({
     "NEW": "#6c757d", "OK": "#28a745", "IMPROVED": "#17a2b8",
     "REGRESSION": "#dc3545", "WARNING": "#ffc107",
-}
+})
 
-DIM_NAMES = {
+DIM_NAMES: Final = MappingProxyType({
     "REQ": "需求覆盖",
     "BR": "业务规则",
     "SE": "场景覆盖",
     "GAP": "缺口项",
     "OPEN": "待确认项",
-}
+})
 
-SEV_ZH = {
+SEV_ZH: Final = MappingProxyType({
     "CRITICAL": "严重",
     "HIGH": "高",
     "MEDIUM": "中",
@@ -87,14 +89,14 @@ SEV_ZH = {
     "MAJOR": "主要",
     "MINOR": "次要",
     "INFO": "建议",
-}
+})
 
-UT_STATUS_ZH = {
+UT_STATUS_ZH: Final = MappingProxyType({
     "COVERED": "已覆盖",
     "MISSING": "未覆盖",
     "PARTIAL": "部分覆盖",
     "CONFLICT": "冲突",
-}
+})
 
 
 def _normalize_phase_id(pid: str) -> str:

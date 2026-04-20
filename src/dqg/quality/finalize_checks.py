@@ -8,7 +8,8 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
+from types import MappingProxyType
+from typing import Any, Final
 
 from dqg.json_utils import load_json, save_json
 from dqg.path_utils import resolve_internal_file
@@ -18,13 +19,13 @@ from dqg.core.state_machine import PHASE_DEFS, internal_dir as _internal_dir, ph
 
 
 # Phase → 需要检查数量的字段
-_COUNT_FIELDS: dict[str, list[str]] = {
+_COUNT_FIELDS: Final = MappingProxyType({
     "Q01": ["requirements", "semantic_expectations", "gaps", "open_items"],
     "Q04": ["req_coverage", "se_coverage", "gap_closure", "open_closure"],
     "Q03": ["issues", "failure_modes"],
     "Q06": ["audit_items"],
     "Q07": ["findings"],
-}
+})
 
 
 def check_reasoning_log(output_dir: Path, project_id: str, phase_id: str) -> list[str]:

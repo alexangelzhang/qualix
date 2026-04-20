@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Final
 
 # Phase → 评审维度定义（1-5 Likert 量表，每级有明确标准）
-JUDGE_RUBRICS: dict[str, dict[str, Any]] = {
+JUDGE_RUBRICS: Final[dict[str, dict[str, Any]]] = {
     "Q01": {
         "name": "需求结构化",
         "dimensions": [

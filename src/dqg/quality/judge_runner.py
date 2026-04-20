@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import time
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, Final
 
 from dqg.agents.llm_backends import (
     LLMConfig, StructuredChatResult, create_backend,
@@ -16,7 +16,7 @@ from dqg.log import get_logger
 
 log = get_logger(__name__)
 
-JUDGE_RESPONSE_SCHEMA = {
+JUDGE_RESPONSE_SCHEMA: Final[dict[str, Any]] = {
     "verdict": "PASS | FAIL | PASS_WITH_CONCERNS",
     "overall": "1-5 float",
     "scores": {"dimension_id": "score (int 1-5)"},

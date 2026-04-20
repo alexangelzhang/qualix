@@ -7,11 +7,11 @@ import difflib
 import json
 from datetime import date, datetime, timedelta
 from pathlib import Path
-from typing import Any
+from typing import Any, Final
 
 from dqg.json_utils import dump_json_str, dump_jsonl, load_json_strict, save_json
 
-VOLATILE_JSON_KEYS = {
+VOLATILE_JSON_KEYS: Final[frozenset[str]] = frozenset({
     "created_at",
     "updated_at",
     "generated_at",
@@ -21,7 +21,7 @@ VOLATILE_JSON_KEYS = {
     "duration_seconds",
     "collected_at",
     "timestamp",
-}
+})
 FAILURE_LIBRARY = "failure-library"
 DATE_FMT = "%Y-%m-%d"
 

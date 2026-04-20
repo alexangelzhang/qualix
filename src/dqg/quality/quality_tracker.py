@@ -5,7 +5,8 @@ from __future__ import annotations
 from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from types import MappingProxyType
+from typing import Any, Final
 
 from dqg.tracking.bug_cases import load_cases_by_phase
 from dqg.constants import STRUCTURED_JSON_MAP
@@ -14,21 +15,21 @@ from dqg.core.state_machine import PHASE_DEFS, phase_dir_by_id
 
 
 # 二级分类 → 检测信号映射
-_PHASE_C_SIGNALS: dict[str, list[str]] = {
+_PHASE_C_SIGNALS: Final = MappingProxyType({
     "函数未覆盖": ["MISSING"],
     "函数正常分支未覆盖": ["MISSING", "PARTIAL"],
     "函数异常分支未覆盖": ["MISSING"],
     "函数覆盖assert不对": ["WRONG_TARGET"],
     "有单测未运行": ["MISSING"],
-}
+})
 
-_PHASE_A_SIGNALS: dict[str, list[str]] = {
+_PHASE_A_SIGNALS: Final = MappingProxyType({
     "需求实现遗漏": ["GAP", "OPEN"],
     "需求遗漏": ["GAP", "OPEN"],
     "需求理解未对齐": ["GAP"],
     "安全问题": ["GAP"],
     "幂等": ["GAP", "SE"],
-}
+})
 
 
 def _load_structured_output(output_dir: Path, project_id: str, phase: str) -> dict[str, Any] | None:

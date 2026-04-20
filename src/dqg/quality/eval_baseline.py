@@ -12,7 +12,8 @@ from __future__ import annotations
 
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from types import MappingProxyType
+from typing import Any, Final
 
 from dqg.json_utils import load_json, save_json
 from dqg.log import get_logger
@@ -27,7 +28,7 @@ REGRESSION_THRESHOLD = 0.05  # 5% 退化
 # Phase 指标定义
 # ---------------------------------------------------------------------------
 
-PHASE_METRICS: dict[str, list[dict[str, Any]]] = {
+PHASE_METRICS: Final[dict[str, list[dict[str, Any]]]] = {
     "Q01": [
         {"id": "req_count", "name": "REQ 数量", "type": "count", "field": "requirements", "filter": lambda r: r.get("req_id", "").startswith("REQ-")},
         {"id": "br_count", "name": "BR 数量", "type": "count", "field": "requirements", "filter": lambda r: r.get("req_id", "").startswith("BR-")},
@@ -317,7 +318,7 @@ def _calc_path_ratio(data: dict[str, Any], path_type: str = "Happy") -> float:
 
 
 # 函数注册表
-_METRIC_FNS: dict[str, Any] = {
+_METRIC_FNS: Final = MappingProxyType({
     "_count_se_with_basis": _count_se_with_basis,
     "_count_gap_with_risk": _count_gap_with_risk,
     "_count_open_with_owner": _count_open_with_owner,
@@ -328,7 +329,7 @@ _METRIC_FNS: dict[str, Any] = {
     "_count_issues": _count_issues,
     "_count_severity": _count_severity,
     "_calc_path_ratio": _calc_path_ratio,
-}
+})
 
 
 # ---------------------------------------------------------------------------

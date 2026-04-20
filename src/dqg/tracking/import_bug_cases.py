@@ -9,13 +9,14 @@ from __future__ import annotations
 import re
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from types import MappingProxyType
+from typing import Any, Final
 
 from dqg.constants import PHASE_DIR_MAP
 from dqg.json_utils import dump_json_str, load_json_strict
 
 # 二级分类 → (phase, error_type, root_cause, fix_target)
-CATEGORY_MAPPING: dict[str, dict[str, str]] = {
+CATEGORY_MAPPING: Final = MappingProxyType({
     # 单测相关
     "函数未覆盖": {
         "phase": "Q06", "error_type": "FN", "root_cause": "SKILL_RULE",
@@ -80,10 +81,10 @@ CATEGORY_MAPPING: dict[str, dict[str, str]] = {
         "phase": "Q03", "error_type": "FN", "root_cause": "KNOWLEDGE",
         "fix_target": "references/risk-and-exception-catalog.md",
     },
-}
+})
 
 # 二级分类 → severity
-SEVERITY_MAP: dict[str, str] = {
+SEVERITY_MAP: Final = MappingProxyType({
     "函数未覆盖": "high",
     "函数正常分支未覆盖": "high",
     "函数异常分支未覆盖": "high",
@@ -97,7 +98,7 @@ SEVERITY_MAP: dict[str, str] = {
     "技术实现遗漏": "high",
     "需求理解未对齐": "medium",
     "产品需求不明确": "medium",
-}
+})
 
 
 def _sanitize_dirname(s: str) -> str:

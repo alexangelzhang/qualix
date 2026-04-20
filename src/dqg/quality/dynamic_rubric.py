@@ -8,7 +8,8 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
+from types import MappingProxyType
+from typing import Any, Final
 
 from dqg.json_utils import load_json
 from dqg.log import get_logger
@@ -16,17 +17,17 @@ from dqg.log import get_logger
 log = get_logger(__name__)
 
 # SE 描述关键词 → 业务域分类
-_SE_DOMAIN_PATTERNS: dict[str, list[str]] = {
+_SE_DOMAIN_PATTERNS: Final = MappingProxyType({
     "金额精度": ["金额", "BigDecimal", "精度", "分", "元", "费用", "价格", "总额"],
     "并发安全": ["并发", "幂等", "锁", "竞争", "冲突", "重复提交"],
     "状态机": ["状态机", "状态流转", "状态迁移", "驳回", "审批"],
     "权限隔离": ["权限", "隔离", "越权", "鉴权", "角色"],
     "超时补偿": ["超时", "重试", "降级", "熔断", "补偿"],
     "回调通知": ["回调", "通知", "消息", "推送", "事件"],
-}
+})
 
 # 每个业务域对应的动态评分维度模板
-_DYNAMIC_DIMENSION_TEMPLATES: dict[str, dict[str, Any]] = {
+_DYNAMIC_DIMENSION_TEMPLATES: Final[dict[str, dict[str, Any]]] = {
     "金额精度": {
         "id": "dyn_amount_precision",
         "name": "金额精度验证",
