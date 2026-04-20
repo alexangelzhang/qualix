@@ -250,6 +250,13 @@ class AdaptiveLoop:
 
         record.judge_result = multi_judge_vote(self.output_dir, report_path, judge_rubric, judge_models, fallback)
 
+        # HARD_BLOCK: multi_judge_vote returns None when guard exhausted
+        if record.judge_result is None:
+            from dqg.log import get_logger
+            get_logger(__name__).warning("Judge returned None (HARD_BLOCK), stopping adaptive loop")
+            record.duration = time.time() - iter_start
+            break
+
         judge_log = pd / f"_judge_iter{i + 1}.json"
         from dqg.json_utils import save_json
         save_json(judge_log, {

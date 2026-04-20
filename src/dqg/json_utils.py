@@ -11,6 +11,8 @@ from pathlib import Path
 from typing import Any
 
 # 模块级 JSON 解析缓存：按 (路径, mtime_ns, size) 缓存，文件变更自动失效
+_MISSING = object()
+_JSON_CACHE_MAX_SIZE = 128
 _json_cache: dict[tuple[str, int, int], Any] = {}
 
 
@@ -19,10 +21,13 @@ def load_json(path: Path) -> Any:
     try:
         stat = path.stat()
         key = (str(path.resolve()), stat.st_mtime_ns, stat.st_size)
-        cached = _json_cache.get(key)
-        if cached is not None:
+        cached = _json_cache.get(key, _MISSING)
+        if cached is not _MISSING:
             return cached
         data = json.loads(path.read_text(encoding="utf-8"))
+        if len(_json_cache) >= _JSON_CACHE_MAX_SIZE:
+            # Evict oldest entry (FIFO)
+            _json_cache.pop(next(iter(_json_cache)))
         _json_cache[key] = data
         return data
     except (json.JSONDecodeError, OSError):

@@ -175,7 +175,7 @@ PHASE_DEFS: dict[str, dict] = {
         "skill": "skills/unit-test-audit/SKILL.md",
         "recommended_model": "standard",
         "reasoning_profile": {"planning": "standard", "execution": "standard", "verification": "high"},
-        "depends_on": ["Q01"],
+        "depends_on": ["Q05"],
         "parallel_with": [],
         "required_inputs": [
             {"key": "code_repo", "label": "代码仓库", "prompt": "代码仓库路径（含单测代码）", "required": True},
@@ -202,7 +202,7 @@ PHASE_DEFS: dict[str, dict] = {
         "skill": "skills/code-review/SKILL.md",
         "recommended_model": "strong",
         "reasoning_profile": {"planning": "high", "execution": "standard", "verification": "high"},
-        "depends_on": ["Q01"],
+        "depends_on": ["Q04", "Q03"],
         "parallel_with": [],
         "required_inputs": [
             {"key": "code_repo", "label": "代码仓库", "prompt": "代码仓库路径", "required": True},
