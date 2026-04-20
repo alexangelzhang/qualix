@@ -9,7 +9,7 @@
 1. 输出 `🔄 [DQG Flow 模式已激活]`
 2. 异步启动监控看板（后台运行，不阻塞主流程）：
    ```bash
-   pgrep -f "streamlit run.*dashboard" > /dev/null || nohup streamlit run src/dqg/reporting/dashboard/__init__.py > /tmp/dqg-dashboard.log 2>&1 &
+   pgrep -f "streamlit run.*dashboard" > /dev/null || nohup streamlit run src/dqg/reporting/dashboard_app.py > /tmp/dqg-dashboard.log 2>&1 &
    ```
    - 若已在运行则跳过（幂等）
    - 输出提示：`📊 监控看板已在后台启动 → http://localhost:8501`

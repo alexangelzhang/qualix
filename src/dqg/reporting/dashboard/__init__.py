@@ -1,6 +1,6 @@
 """DQG 可视化看板 v2.
 
-启动: streamlit run src/dqg/reporting/dashboard/__init__.py
+启动: streamlit run src/dqg/reporting/dashboard_app.py
 
 页面: 总览 / 评分总览 / 流程 DAG / Token 消耗 / 执行瀑布图 / 质量评分
       / 事件追踪 / Bug 案例库 / 质量趋势 / Phase 评分趋势 / 数据管理
