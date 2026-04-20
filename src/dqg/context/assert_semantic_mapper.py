@@ -6,7 +6,8 @@
 from __future__ import annotations
 
 import re
-from typing import Any
+from typing import Any, Final
+from types import MappingProxyType
 
 from dqg.json_utils import load_json
 from dqg.log import get_logger
@@ -95,7 +96,7 @@ def load_eut_from_phase_b(
 # ---------------------------------------------------------------------------
 
 # 从方法名/断言内容中提取的关键词 → 业务概念映射
-_KEYWORD_CONCEPT_MAP: dict[str, list[str]] = {
+_KEYWORD_CONCEPT_MAP: Final = MappingProxyType({
     # 状态机
     "status": ["状态", "status", "迁移"],
     "state": ["状态", "state", "迁移"],
@@ -131,7 +132,7 @@ _KEYWORD_CONCEPT_MAP: dict[str, list[str]] = {
     "reject": ["驳回", "reject"],
     # PDF
     "pdf": ["PDF", "pdf", "定损单"],
-}
+})
 
 
 def _extract_match_signals(

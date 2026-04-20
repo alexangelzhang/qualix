@@ -8,6 +8,8 @@ from __future__ import annotations
 
 import json
 from pathlib import Path  # noqa: TC003 — used at runtime in validate_phase_output
+from types import MappingProxyType
+from typing import Final
 
 from dqg.constants import PHASE_DIR_MAP, STRUCTURED_JSON_MAP
 from dqg.json_utils import load_json_strict
@@ -31,7 +33,7 @@ __all__ = [
 ]
 
 # Phase schema class 映射
-_SCHEMA_CLASS_MAP: dict[str, type] = {
+_SCHEMA_CLASS_MAP: Final = MappingProxyType({
     "Q01": PhaseAOutput,
     "Q02": PhaseA3Output,
     "Q03": PhaseA6Output,
@@ -39,13 +41,13 @@ _SCHEMA_CLASS_MAP: dict[str, type] = {
     "Q05": PhaseBOutput,
     "Q06": PhaseCOutput,
     "Q07": PhaseDOutput,
-}
+})
 
 # Phase ID → (目录后缀, 校验文件名, schema class) — 从 constants 组装
-_PHASE_REGISTRY: dict[str, tuple[str, str, type]] = {
+_PHASE_REGISTRY: Final = MappingProxyType({
     pid: (PHASE_DIR_MAP[pid], STRUCTURED_JSON_MAP[pid], _SCHEMA_CLASS_MAP[pid])
     for pid in _SCHEMA_CLASS_MAP
-}
+})
 
 
 def validate_phase_output(

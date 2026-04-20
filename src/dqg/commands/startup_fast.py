@@ -12,17 +12,19 @@ from pathlib import Path
 from dqg.core.phase_registry import PHASE_DEFS, PHASE_ORDER
 from dqg.constants import LEGACY_PHASE_ID_MAP
 from dqg.json_utils import dump_json_str, load_json_strict
+from types import MappingProxyType
+from typing import Final
 
 
-STATUS_ICONS = {
+STATUS_ICONS: Final = MappingProxyType({
     "not_started": "⬜",
     "in_progress": "🔶",
     "pending_review": "🔍",
     "approved": "✅",
     "skipped": "⏭",
-}
+})
 
-_DONE_STATUSES = {"approved", "skipped"}
+_DONE_STATUSES: Final = frozenset({"approved", "skipped"})
 
 
 def _load_state_dict(output_dir: Path, project_id: str) -> dict:

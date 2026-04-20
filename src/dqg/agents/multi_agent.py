@@ -15,7 +15,8 @@ from __future__ import annotations
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any
+from typing import Any, Final
+from types import MappingProxyType
 
 from dqg.core.state_machine import PHASE_DEFS, phase_dir as _phase_dir
 
@@ -35,7 +36,7 @@ class AgentRole:
 
 
 # Phase A 的三个 Agent
-PHASE_A_AGENTS = {
+PHASE_A_AGENTS: Final = MappingProxyType({
     "worker": AgentRole(
         name="phase-a-worker",
         role="worker",
@@ -60,17 +61,17 @@ PHASE_A_AGENTS = {
         output_files=["_critique.json"],
         depends_on=["judge"],
     ),
-}
+})
 
 # Phase 间 DAG
-PHASE_DAG: dict[str, list[str]] = {
+PHASE_DAG: Final = MappingProxyType({
     "Q01": [],
     "Q04": ["Q01"],
     "Q03": ["Q01"],
     "Q05": ["Q01"],
     "Q06": ["Q05"],
     "Q07": ["Q04", "Q03"],
-}
+})
 
 
 # ---------------------------------------------------------------------------

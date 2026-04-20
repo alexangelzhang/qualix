@@ -7,7 +7,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, Final
+from types import MappingProxyType
 
 from dqg.log import get_logger
 
@@ -32,7 +33,7 @@ class HarnessComponent:
 
 
 # 所有已注册的 harness 组件
-HARNESS_COMPONENTS: dict[str, HarnessComponent] = {
+HARNESS_COMPONENTS: Final = MappingProxyType({
     # Execute handlers
     "phase_contract": HarnessComponent("phase_contract", "execute_handler", "生成执行合同", avg_cost_tokens=0, avg_duration_ms=50),
     "diff_context": HarnessComponent("diff_context", "execute_handler", "增量 diff 上下文", phases={"Q06", "Q07"}, avg_cost_tokens=500, avg_duration_ms=200),
@@ -64,14 +65,14 @@ HARNESS_COMPONENTS: dict[str, HarnessComponent] = {
     "compile_check": HarnessComponent("compile_check", "finalize_gate", "编译验证", phases={"Q05"}, avg_cost_tokens=0, avg_duration_ms=30000),
     "coverage_gate": HarnessComponent("coverage_gate", "finalize_gate", "覆盖率门禁", phases={"Q06"}, avg_cost_tokens=0, avg_duration_ms=1000),
     "auto_checks": HarnessComponent("auto_checks", "finalize_gate", "AutoHarness 自动校验", avg_cost_tokens=0, avg_duration_ms=200),
-}
+})
 
 
 # ---------------------------------------------------------------------------
 # Harness Profile
 # ---------------------------------------------------------------------------
 
-HARNESS_PROFILES: dict[str, dict[str, bool]] = {
+HARNESS_PROFILES: Final = MappingProxyType({
     "full": {name: True for name in HARNESS_COMPONENTS},
     "compact": {
         "phase_contract": True,
@@ -110,7 +111,7 @@ HARNESS_PROFILES: dict[str, dict[str, bool]] = {
         "golden_sample": True,
         "rule_compliance": True,
     },
-}
+})
 
 
 def get_active_components(profile: str = "full", phase_id: str = "") -> list[str]:

@@ -11,7 +11,8 @@ from __future__ import annotations
 
 import re
 from pathlib import Path
-from typing import Any
+from typing import Any, Final
+from types import MappingProxyType
 
 from dqg.json_utils import load_json
 from dqg.log import get_logger
@@ -24,7 +25,7 @@ log = get_logger(__name__)
 
 # 每个 Phase 的硬性约束，格式：
 # {"metric": str, "op": ">="|"<="|"=="|">"|"<", "threshold": float, "source": str, "block_if_fail": bool}
-PHASE_CONSTRAINTS: dict[str, list[dict]] = {
+PHASE_CONSTRAINTS: Final = MappingProxyType({
     "Q03": [
         {"metric": "critical_count", "op": "==", "threshold": 0,
          "source": "phase_a6_structured.json:issues[severity=CRITICAL]",
@@ -48,7 +49,7 @@ PHASE_CONSTRAINTS: dict[str, list[dict]] = {
          "source": "phase_d_structured.json:findings[severity=BLOCKER]",
          "block_if_fail": True, "label": "无 BLOCKER 问题"},
     ],
-}
+})
 
 
 def _resolve_metric(output_dir: Path, project_id: str, phase_id: str, metric: str) -> float | None:

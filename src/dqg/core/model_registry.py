@@ -11,6 +11,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from functools import lru_cache
+from types import MappingProxyType
+from typing import Final
 
 
 @dataclass(frozen=True)
@@ -30,7 +32,7 @@ class ModelProfile:
 
 
 # 常见模型配置
-_MODELS: dict[str, ModelProfile] = {
+_MODELS: Final = MappingProxyType({
     # Claude 系列
     "claude-opus-4": ModelProfile("claude-opus-4", 200_000, 32_000, 32_000, 15_000),
     "claude-sonnet-4": ModelProfile("claude-sonnet-4", 200_000, 16_000, 16_000, 15_000),
@@ -43,7 +45,7 @@ _MODELS: dict[str, ModelProfile] = {
     # Qwen 系列
     "qwen-max": ModelProfile("qwen-max", 128_000, 8_192, 10_000, 10_000),
     "qwen-plus": ModelProfile("qwen-plus", 128_000, 8_192, 10_000, 10_000),
-}
+})
 
 # 默认 fallback：保守估计
 _DEFAULT = ModelProfile("unknown", 128_000, 8_192, 10_000, 10_000)

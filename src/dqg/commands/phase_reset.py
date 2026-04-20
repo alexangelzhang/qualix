@@ -14,8 +14,10 @@ from dqg.core.state_machine import (
     save_state,
 )
 
+from typing import Final
+
 # 产出物目录中需要保留的子目录（输入上下文，不是产出物）
-_KEEP_DIRS = {"_internal", "ingest"}
+_KEEP_DIRS: Final = frozenset({"_internal", "ingest"})
 
 
 def _archive_artifacts(phase_path: Path) -> tuple[int, str | None]:

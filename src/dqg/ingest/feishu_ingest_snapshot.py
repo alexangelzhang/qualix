@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Final
 
 from dqg.json_utils import dump_json_str, load_json_strict, save_json
 
@@ -20,11 +20,11 @@ SNAPSHOT_FILES = (
     "plain_text.txt",
 )
 
-VOLATILE_KEYS = {
+VOLATILE_KEYS: Final = frozenset({
     "generated_at",
-}
+})
 
-NORMALIZED_PATH_KEYS = {
+NORMALIZED_PATH_KEYS: Final = frozenset({
     "path",
     "output_dir",
     "dependency_graph_path",
@@ -33,7 +33,7 @@ NORMALIZED_PATH_KEYS = {
     "plain_text_path",
     "asset_manifest_path",
     "raw_blocks_path",
-}
+})
 
 
 def build_snapshot_case_name(url: str, case_name: str | None) -> str:

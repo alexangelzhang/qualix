@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from datetime import date, datetime, timedelta
 from pathlib import Path
 from statistics import mean
-from typing import Any
+from typing import Any, Final
 
 from dqg.json_utils import dump_jsonl, save_json
 from dqg.reporting.collect_metrics import collect_all_metrics
@@ -17,7 +17,7 @@ from dqg.constants import PHASE_DIR_MAP, REPORT_MAP
 from dqg.tracking.regression import build_failure_trend
 from dqg.reporting.telemetry import PhaseRunRecord, load_records
 
-ALLOWED_PHASES = {"Q01", "Q04", "Q03", "Q05", "Q06", "Q07"}
+ALLOWED_PHASES: Final = frozenset({"Q01", "Q04", "Q03", "Q05", "Q06", "Q07"})
 DATE_FMT = "%Y-%m-%d"
 
 

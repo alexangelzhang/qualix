@@ -11,7 +11,8 @@ from __future__ import annotations
 import json
 import re
 from pathlib import Path
-from typing import Any
+from typing import Any, Final
+from types import MappingProxyType
 
 from dqg.json_utils import dump_json_str
 from dqg.log import get_logger
@@ -25,7 +26,7 @@ from dqg.text_utils import build_fts_query, text_query_has_signal, tokenize_chin
 # 1. 业务概念 → 代码关键词映射
 # ---------------------------------------------------------------------------
 
-CONCEPT_MAP: dict[str, list[str]] = {
+CONCEPT_MAP: Final = MappingProxyType({
     "幂等": ["idempotent", "unique_no", "distribute_unique", "dedup", "幂等", "@Idempotent", "idempotentKey"],
     "并发": ["synchronized", "@Lock", "RedissonLock", "tryLock", "ConcurrentHashMap", "AtomicInteger", "ReentrantLock", "分布式锁", "concurrent"],
     "事务": ["@Transactional", "TransactionTemplate", "rollback", "commit", "propagation", "REQUIRES_NEW", "事务"],
@@ -46,7 +47,7 @@ CONCEPT_MAP: dict[str, list[str]] = {
     "金额": ["BigDecimal", "amount", "price", "金额", "ROUND_HALF_UP", "分", "元"],
     "DDD领域": ["DomainService", "Repository", "Aggregate", "ValueObject", "Entity", "Gateway"],
     "TMF链路": ["Step", "Ability", "Extension", "TMF", "decideSteps", "execute"],
-}
+})
 
 
 def expand_query(query: str) -> list[str]:

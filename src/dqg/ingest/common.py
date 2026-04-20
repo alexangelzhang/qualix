@@ -2,8 +2,10 @@ from __future__ import annotations
 
 import re
 import sys
+from types import MappingProxyType
+from typing import Final
 
-BLOCK_TYPE_NAME: dict[int, str] = {
+BLOCK_TYPE_NAME: Final = MappingProxyType({
     1: "page",
     2: "text",
     3: "heading1",
@@ -36,7 +38,7 @@ BLOCK_TYPE_NAME: dict[int, str] = {
     34: "quote_container",
     43: "board_or_wiki_catalog",
     44: "undefined_or_board",
-}
+})
 
 RAW_IMAGE_KEY_PATTERN = re.compile(r"\bimg_v3_[A-Za-z0-9_]+\b")
 REQUEST_TIMEOUT_SECONDS = 60

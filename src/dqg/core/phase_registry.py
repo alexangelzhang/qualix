@@ -16,8 +16,11 @@
 
 from __future__ import annotations
 
+from types import MappingProxyType
+from typing import Final
+
 # Phase 定义：DQG 特有的业务元数据
-PHASE_DEFS: dict[str, dict] = {
+PHASE_DEFS: Final = MappingProxyType({
     "Q01": {
         "name": "需求结构化",
         "dir_suffix": "phaseA",
@@ -224,7 +227,7 @@ PHASE_DEFS: dict[str, dict] = {
             {"canonical": "需求代码对齐", "aliases": ["Req-Code Alignment", "对齐分析"]},
         ],
     },
-}
+})
 
 # Phase 执行顺序
-PHASE_ORDER: list[str] = ["Q01", "Q02", "Q03", "Q04", "Q05", "Q06", "Q07"]
+PHASE_ORDER: Final = ("Q01", "Q02", "Q03", "Q04", "Q05", "Q06", "Q07")

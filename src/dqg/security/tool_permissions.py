@@ -5,10 +5,11 @@
 
 from __future__ import annotations
 
-from typing import Callable
+from typing import Callable, Final
+from types import MappingProxyType
 
 # 角色 → 禁止使用的工具名
-ROLE_BLOCKED_TOOLS: dict[str, frozenset[str]] = {
+ROLE_BLOCKED_TOOLS: Final = MappingProxyType({
     "worker": frozenset(),  # Worker 保留全部工具
     "judge": frozenset({
         "append_persistent_memory",  # Judge 不应写入持久记忆
@@ -23,7 +24,7 @@ ROLE_BLOCKED_TOOLS: dict[str, frozenset[str]] = {
         "write_to_wiki",             # 子 agent 不应写 wiki
         "spawn_subagent",            # 禁止递归委派
     }),
-}
+})
 
 
 def filter_tools_by_role(tools: list[Callable], role: str) -> list[Callable]:

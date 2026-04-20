@@ -17,14 +17,16 @@ from dqg.core.state_machine import (
     phase_dir as _phase_dir,
     save_state,
 )
+from types import MappingProxyType
+from typing import Final
 
-STATUS_ICONS = {
+STATUS_ICONS: Final = MappingProxyType({
     PhaseStatus.NOT_STARTED: "⬜",
     PhaseStatus.IN_PROGRESS: "🔶",
     PhaseStatus.PENDING_REVIEW: "🔍",
     PhaseStatus.APPROVED: "✅",
     PhaseStatus.SKIPPED: "⏭",
-}
+})
 
 
 def print_status(state, output_dir: Path) -> None:

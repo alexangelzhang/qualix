@@ -14,18 +14,20 @@ from typing import Any
 
 from dqg.json_utils import load_json
 from dqg.log import get_logger
+from types import MappingProxyType
+from typing import Final
 
 log = get_logger(__name__)
 
 # 上一 Phase 的产出文件映射
-_PREV_PHASE_STRUCTURED: dict[str, tuple[str, str]] = {
+_PREV_PHASE_STRUCTURED: Final = MappingProxyType({
     "Q02": ("phaseA", "phase_a_structured.json"),
     "Q03": ("phaseA3", "phase_a3_structured.json"),
     "Q04": ("phaseA6", "phase_a6_structured.json"),
     "Q05": ("phaseA", "phase_a_structured.json"),
     "Q06": ("phaseB", "phase_b_structured.json"),
     "Q07": ("phaseA", "phase_a_structured.json"),
-}
+})
 
 
 def _detect_language_framework(code_repo: str | None) -> str:
