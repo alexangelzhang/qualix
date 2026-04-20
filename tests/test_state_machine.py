@@ -154,13 +154,17 @@ class TestGetAvailablePhases:
         state = ProjectState(project_id="TEST")
         state.phases["Q01"].status = PhaseStatus.APPROVED
         available = get_available_phases(state)
-        # A.3 unlocked after A; A.5/A.6 still locked (depend on A.3)
+        # Q01 approved unlocks Q02 (depends Q01) and Q05 (depends Q01)
+        # Q03 depends on Q02 — not yet available
+        # Q04 depends on Q03 — not yet available
+        # Q06 depends on Q05 — not yet available
+        # Q07 depends on Q04+Q03 — not yet available
         assert "Q02" in available
-        assert "Q04" not in available
         assert "Q03" not in available
         assert "Q05" in available
-        assert "Q06" in available
-        assert "Q07" in available
+        assert "Q04" not in available
+        assert "Q06" not in available
+        assert "Q07" not in available
 
     def test_after_a3_skipped(self):
         state = ProjectState(project_id="TEST")

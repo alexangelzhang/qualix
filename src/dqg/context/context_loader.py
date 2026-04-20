@@ -77,6 +77,8 @@ class LoadedContext:
                 total_char_limit=limits["total_quote_char_limit"],
             )
         except Exception:
+            from dqg.log import get_logger
+            get_logger(__name__).warning("动态 evidence limits 调整失败，使用默认值", exc_info=True)
             key_quotes = render_key_quotes(self.chunks)
         if key_quotes:
             lines.extend(["", "## 关键引用", *key_quotes])
@@ -96,7 +98,8 @@ class LoadedContext:
                 )
                 return compressed
         except Exception:
-            pass
+            from dqg.log import get_logger
+            get_logger(__name__).warning("Evidence Pack 压缩失败，使用原文", exc_info=True)
 
         return result
 

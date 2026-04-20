@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 from typing import Callable
 
@@ -262,7 +261,8 @@ class AgentOrchestrator:
     ) -> None:
         """Coverage Gap 自动补充."""
 
-        gap_data = json.loads(gap_tasks_path.read_text(encoding="utf-8"))
+        from dqg.json_utils import load_json_strict
+        gap_data = load_json_strict(gap_tasks_path)
         tasks = gap_data.get("tasks", [])
         if not tasks:
             return

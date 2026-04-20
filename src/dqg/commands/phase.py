@@ -42,7 +42,8 @@ def _emit_cmd(output_dir: Path, project_id: str, phase_id: str, event_type: str,
         from dqg.store.events import insert_event
         insert_event(output_dir, project_id, phase_id, event_type, message=message, **data)
     except Exception:
-        pass
+        from dqg.log import get_logger
+        get_logger(__name__).debug("事件埋点失败", exc_info=True)
 
 
 def _flush_events() -> None:
@@ -51,7 +52,8 @@ def _flush_events() -> None:
         from dqg.store.events import flush_events
         flush_events()
     except Exception:
-        pass
+        from dqg.log import get_logger
+        get_logger(__name__).debug("事件 flush 失败", exc_info=True)
 
 
 def profile_context_warnings(output_dir: Path, project_id: str, phase_id: str) -> list[str]:

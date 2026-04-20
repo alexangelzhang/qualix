@@ -9,12 +9,13 @@
 from __future__ import annotations
 
 import json
-import logging
 import re
 from pathlib import Path
 from typing import Any
 
-logger = logging.getLogger(__name__)
+from dqg.log import get_logger
+
+log = get_logger(__name__)
 
 from dqg.store import get_connection
 from dqg.text_utils import build_fts_query, text_query_has_signal, tokenize_chinese
@@ -87,7 +88,7 @@ def index_java_repo(output_dir: Path, repo_path: str | Path, max_files: int = 50
             _save_symbols(output_dir, repo_str, symbols)
             count += len(symbols)
         except Exception:
-            logger.debug("Failed to parse %s, skipping", java_file, exc_info=True)
+            log.debug("Failed to parse %s, skipping", java_file, exc_info=True)
             continue
 
     return count

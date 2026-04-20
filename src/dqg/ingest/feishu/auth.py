@@ -1,12 +1,13 @@
 from __future__ import annotations
 
-import logging
 import sys
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 from urllib.parse import urlparse, urlunparse
 
-logger = logging.getLogger(__name__)
+from dqg.log import get_logger
+
+log = get_logger(__name__)
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -33,7 +34,7 @@ def load_larkkit() -> tuple[Any, Callable[[int], str]]:
 
             return FeishuClient, get_code_language
         except Exception:
-            logger.debug("larkkit import failed from %s, trying next", path_str)
+            log.debug("larkkit import failed from %s, trying next", path_str)
             continue
 
     raise RuntimeError("无法导入 larkkit。请先安装并确保可用，例如执行 `larkkit version`。")

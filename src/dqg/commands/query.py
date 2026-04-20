@@ -248,6 +248,7 @@ def cmd_startup(args, output_dir: Path) -> int:
             import sys
             print(format_orientation(orientation), file=sys.stderr)
     except Exception:
-        pass  # orientation 失败不阻断 startup
+        from dqg.log import get_logger
+        get_logger(__name__).warning("Session orientation 失败，不阻断 startup", exc_info=True)
 
     return 0

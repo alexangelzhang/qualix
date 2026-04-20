@@ -183,4 +183,5 @@ def _inject_cross_project_insights(
             "\n".join(md_lines), encoding="utf-8"
         )
     except Exception:
-        pass  # 知识网络不可用时不阻断主流程
+        from dqg.log import get_logger
+        get_logger(__name__).warning("跨项目知识注入失败，不阻断主流程", exc_info=True)
