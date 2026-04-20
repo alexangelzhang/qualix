@@ -19,7 +19,8 @@ from pathlib import Path
 from dqg.constants import DEFAULT_ADAPTIVE_JUDGE_MODELS, DEFAULT_FALLBACK_MODEL, DEFAULT_JUDGE_MODEL, DEFAULT_PRIMARY_MODEL
 
 
-def main() -> int:
+def _build_parser() -> argparse.ArgumentParser:
+    """构建 CLI 参数解析器."""
     parser = argparse.ArgumentParser(description="研发质量门禁 Pipeline Runner")
     parser.add_argument("project_id", help="项目 ID")
     parser.add_argument("--base-dir", default=".", help="项目根目录")
@@ -146,55 +147,54 @@ def main() -> int:
     # version
     sub.add_parser("version", help="显示 DQG 版本号")
 
-    args = parser.parse_args()
-    base_dir = Path(args.base_dir).resolve()
-    output_dir = base_dir / "output"
+    return parser
 
-    # 真正的按需导入：只加载当前命令需要的模块
-    cmd = args.command
 
+def _dispatch(cmd: str) -> callable:
+    """按需导入并返回命令处理函数."""
     if cmd in ("execute", "finalize", "approve", "skip", "reset", "auto"):
         from dqg.commands.phase import cmd_execute, cmd_finalize, cmd_approve, cmd_skip, cmd_auto, cmd_reset
-        cmd_map = {
-            "execute": cmd_execute, "finalize": cmd_finalize, "approve": cmd_approve,
-            "skip": cmd_skip, "reset": cmd_reset, "auto": cmd_auto,
-        }
-    elif cmd in ("status", "next", "log", "detail"):
-        from dqg.commands.query import cmd_status, cmd_next, cmd_detail, cmd_log
-        cmd_map = {
-            "status": cmd_status, "next": cmd_next, "log": cmd_log, "detail": cmd_detail,
-        }
-    elif cmd == "startup":
-        from dqg.commands.startup_fast import cmd_startup
-        cmd_map = {"startup": cmd_startup}
-    elif cmd in ("judge", "critique", "preference", "golden"):
-        from dqg.commands.review import cmd_judge, cmd_critique, cmd_preference, cmd_golden
-        cmd_map = {
-            "judge": cmd_judge, "critique": cmd_critique,
-            "preference": cmd_preference, "golden": cmd_golden,
-        }
-    elif cmd in ("orchestrate", "agent-run", "adaptive", "dag"):
-        from dqg.commands.agents import cmd_orchestrate, cmd_agent_run, cmd_adaptive, cmd_dag
-        cmd_map = {
-            "orchestrate": cmd_orchestrate, "agent-run": cmd_agent_run,
-            "adaptive": cmd_adaptive, "dag": cmd_dag,
-        }
-    elif cmd in ("wiki-compile", "wiki-lint"):
-        from dqg.commands.wiki import cmd_wiki_compile, cmd_wiki_lint
-        cmd_map = {"wiki-compile": cmd_wiki_compile, "wiki-lint": cmd_wiki_lint}
-    elif cmd in ("init", "doctor", "update", "version"):
-        from dqg.commands.setup import cmd_init, cmd_doctor, cmd_update, cmd_version
-        cmd_map = {
-            "init": cmd_init, "doctor": cmd_doctor,
-            "update": cmd_update, "version": cmd_version,
-        }
-    else:
-        print(f"未知命令: {cmd}", file=sys.stderr)
-        return 1
+        return {"execute": cmd_execute, "finalize": cmd_finalize, "approve": cmd_approve,
+                "skip": cmd_skip, "reset": cmd_reset, "auto": cmd_auto}[cmd]
 
-    handler = cmd_map.get(cmd)
+    if cmd in ("status", "next", "log", "detail"):
+        from dqg.commands.query import cmd_status, cmd_next, cmd_detail, cmd_log
+        return {"status": cmd_status, "next": cmd_next, "log": cmd_log, "detail": cmd_detail}[cmd]
+
+    if cmd == "startup":
+        from dqg.commands.startup_fast import cmd_startup
+        return cmd_startup
+
+    if cmd in ("judge", "critique", "preference", "golden"):
+        from dqg.commands.review import cmd_judge, cmd_critique, cmd_preference, cmd_golden
+        return {"judge": cmd_judge, "critique": cmd_critique,
+                "preference": cmd_preference, "golden": cmd_golden}[cmd]
+
+    if cmd in ("orchestrate", "agent-run", "adaptive", "dag"):
+        from dqg.commands.agents import cmd_orchestrate, cmd_agent_run, cmd_adaptive, cmd_dag
+        return {"orchestrate": cmd_orchestrate, "agent-run": cmd_agent_run,
+                "adaptive": cmd_adaptive, "dag": cmd_dag}[cmd]
+
+    if cmd in ("wiki-compile", "wiki-lint"):
+        from dqg.commands.wiki import cmd_wiki_compile, cmd_wiki_lint
+        return {"wiki-compile": cmd_wiki_compile, "wiki-lint": cmd_wiki_lint}[cmd]
+
+    if cmd in ("init", "doctor", "update", "version"):
+        from dqg.commands.setup import cmd_init, cmd_doctor, cmd_update, cmd_version
+        return {"init": cmd_init, "doctor": cmd_doctor,
+                "update": cmd_update, "version": cmd_version}[cmd]
+
+    return None
+
+
+def main() -> int:
+    parser = _build_parser()
+    args = parser.parse_args()
+    output_dir = Path(args.base_dir).resolve() / "output"
+
+    handler = _dispatch(args.command)
     if not handler:
-        print(f"未知命令: {cmd}", file=sys.stderr)
+        print(f"未知命令: {args.command}", file=sys.stderr)
         return 1
 
     return handler(args, output_dir)

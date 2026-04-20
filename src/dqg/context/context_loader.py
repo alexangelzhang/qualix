@@ -17,7 +17,6 @@ from dqg.constants import (
     BUG_CASE_RELEVANCE_SEED_LIMIT,
     EVIDENCE_PACK_HEADER,
 )
-from dqg.context.chunk_processor import _auto_compact_chunks, _split_large_chunk
 from dqg.context.evidence_renderer import render_chunk_body, render_key_quotes, truncate_chars
 from dqg.core.model_registry import ModelProfile, estimate_tokens, get_model_profile
 from dqg.core.state_machine import PHASE_DEFS, load_state
@@ -171,6 +170,8 @@ def _assemble_context(
     all_chunks: list[ContextChunk],
 ) -> LoadedContext:
     """排序、分块、压缩、截断，组装最终 LoadedContext."""
+    from dqg.context.chunk_processor import _auto_compact_chunks, _split_large_chunk
+
     all_chunks.sort(key=lambda c: c.priority)
 
     max_chunk_tokens = budget // 3

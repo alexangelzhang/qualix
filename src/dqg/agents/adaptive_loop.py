@@ -20,7 +20,8 @@ import time
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
-from dqg.agent_framework import Agent, AgentResult, LLMConfig
+from dqg.agents.agent import Agent, AgentResult
+from dqg.agents.llm_backends import LLMConfig
 from dqg.constants import DEFAULT_ADAPTIVE_JUDGE_MODELS
 from dqg.log import get_logger
 from dqg.agents.judge_vote import (  # noqa: F401 — re-export for backward compat
@@ -252,10 +253,9 @@ class AdaptiveLoop:
 
         # HARD_BLOCK: multi_judge_vote returns None when guard exhausted
         if record.judge_result is None:
-            from dqg.log import get_logger
-            get_logger(__name__).warning("Judge returned None (HARD_BLOCK), stopping adaptive loop")
+            log.warning("Judge returned None (HARD_BLOCK), stopping adaptive loop")
             record.duration = time.time() - iter_start
-            break
+            return record, False
 
         judge_log = pd / f"_judge_iter{i + 1}.json"
         from dqg.json_utils import save_json

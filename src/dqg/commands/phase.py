@@ -25,9 +25,19 @@ from dqg.core.state_machine import phase_dir as _phase_dir
 from dqg.services.phase_service import profile_context_warnings as _profile_context_warnings
 from dqg.services.phase_service import write_phase_profile_manifest
 
-# Re-export sub-command implementations
-from dqg.commands.phase_reset import cmd_reset  # noqa: F401
-from dqg.commands.phase_auto import cmd_auto, collect_inputs, prompt_approve  # noqa: F401
+# Re-export sub-command implementations (lazy to break phase ↔ phase_auto/phase_reset cycle)
+def __getattr__(name: str):
+    _REEXPORTS = {
+        "cmd_reset": "dqg.commands.phase_reset",
+        "cmd_auto": "dqg.commands.phase_auto",
+        "collect_inputs": "dqg.commands.phase_auto",
+        "prompt_approve": "dqg.commands.phase_auto",
+    }
+    if name in _REEXPORTS:
+        import importlib
+        mod = importlib.import_module(_REEXPORTS[name])
+        return getattr(mod, name)
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
 def _telemetry():

@@ -106,6 +106,10 @@ def persist_preference(
             "log_path": str(log_path),
         }
     except Exception:
+        from dqg.log import get_logger
+        get_logger(__name__).warning(
+            "persist_preference failed for %s/%s", project_id, phase_id, exc_info=True,
+        )
         return None
 
 

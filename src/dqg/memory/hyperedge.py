@@ -15,8 +15,8 @@ from dqg.store import get_connection
 if TYPE_CHECKING:
     from pathlib import Path
 
-# 从 knowledge_network 复用 pattern 关键词
-from dqg.memory.knowledge_network import _PATTERN_KEYWORDS
+# 从共享模块复用 pattern 关键词
+from dqg.memory._pattern_keywords import PATTERN_KEYWORDS as _PATTERN_KEYWORDS
 
 
 def create_hyperedge(

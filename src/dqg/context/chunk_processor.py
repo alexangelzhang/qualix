@@ -383,6 +383,12 @@ def _auto_compact_chunks(
 
 # ---------------------------------------------------------------------------
 # Backward-compat re-export: summarize_upstream_chunk moved to chunk_summarizer
+# Lazy import to break context_loader ↔ chunk_processor ↔ chunk_summarizer cycle
 # ---------------------------------------------------------------------------
-from dqg.context.chunk_summarizer import summarize_upstream_chunk  # noqa: F401
+
+def __getattr__(name: str):
+    if name == "summarize_upstream_chunk":
+        from dqg.context.chunk_summarizer import summarize_upstream_chunk
+        return summarize_upstream_chunk
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 

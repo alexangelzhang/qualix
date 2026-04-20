@@ -362,9 +362,12 @@ def load_rsm(output_dir: Path, project_id: str) -> dict[str, RequirementLifecycl
 
 # ---------------------------------------------------------------------------
 # Backward-compat re-export: mutations moved to rsm_mutations.py
+# Lazy import to break rsm ↔ rsm_mutations circular dependency
 # ---------------------------------------------------------------------------
-from dqg.schemas.rsm_mutations import (  # noqa: F401
-    RSMMutation,
-    apply_mutations,
-    mutations_from_critique,
-)
+
+def __getattr__(name: str):
+    _REEXPORTS = {"RSMMutation", "apply_mutations", "mutations_from_critique"}
+    if name in _REEXPORTS:
+        from dqg.schemas import rsm_mutations
+        return getattr(rsm_mutations, name)
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

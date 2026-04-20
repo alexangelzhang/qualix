@@ -330,8 +330,14 @@ def analyze_assets(
 
 # ---------------------------------------------------------------------------
 # Backward-compat re-export: CLI + output writing moved to parse_images_cli.py
+# Lazy import to break parse_images ↔ parse_images_cli cycle
 # ---------------------------------------------------------------------------
-from dqg.media.parse_images_cli import main, write_outputs  # noqa: F401
+
+def __getattr__(name: str):
+    if name in ("main", "write_outputs"):
+        from dqg.media import parse_images_cli
+        return getattr(parse_images_cli, name)
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
 if __name__ == "__main__":
