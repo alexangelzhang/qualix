@@ -8,6 +8,8 @@ import streamlit as st
 from dqg.constants import PHASE_DIR_MAP as PHASE_DIR
 from dqg.json_utils import load_json
 
+from dqg.constants import LEGACY_PHASE_ID_MAP
+
 from .constants import (
     OUTPUT_DIR,
     EVAL_METRIC_ZH,
@@ -40,7 +42,12 @@ def _page_scoring_overview():
         return
 
     state = load_json(state_path)
-    phases = state.get("phases", {})
+    raw_phases = state.get("phases", {})
+    # 兼容旧格式 key（A/A.3/A.5/A.6/B/C/D → Q01-Q07）
+    phases = {
+        LEGACY_PHASE_ID_MAP.get(k, k): v
+        for k, v in raw_phases.items()
+    }
 
     st.subheader("各 Phase 评分总览")
     st.caption("Judge 评分 = Rubric 维度加权分（1-5）｜Contract = 硬检查通过率｜Eval = 指标对比基线状态｜质量 = 严重/高危问题数")

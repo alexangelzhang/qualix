@@ -5,6 +5,7 @@ from __future__ import annotations
 import pandas as pd
 import streamlit as st
 
+from dqg.constants import LEGACY_PHASE_ID_MAP
 from dqg.json_utils import load_json
 from dqg.store import get_connection, migrate_all
 
@@ -43,7 +44,8 @@ def _page_dag():
         return
 
     state = load_json(state_path)
-    phases = state.get("phases", {})
+    raw_phases = state.get("phases", {})
+    phases = {LEGACY_PHASE_ID_MAP.get(k, k): v for k, v in raw_phases.items()}
 
     # 流程进度卡片
     st.subheader("流程进度")
