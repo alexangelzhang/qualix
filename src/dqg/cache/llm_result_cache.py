@@ -215,43 +215,6 @@ def put_cached_result(
     log.info("LLM result cache PUT: %s/%s/%s (hash=%s)", project_id, phase_id, result_type, ctx_hash)
 
 
-def invalidate_cache(
-    output_dir: Path,
-    project_id: str,
-    phase_id: str,
-    result_type: str | None = None,
-) -> int:
-    """清除缓存.
-
-    Args:
-        result_type: 指定类型清除，None 清除该 Phase 全部缓存（保留统计）
-    """
-    cache_file = _cache_path(output_dir, project_id, phase_id)
-    cache = _load_cache(cache_file)
-    if not cache:
-        return 0
-
-    if result_type:
-        stale_keys = [k for k in cache if k.startswith(f"{result_type}:") and k != _STATS_KEY]
-    else:
-        stale_keys = [k for k in cache if k != _STATS_KEY]
-
-    for k in stale_keys:
-        del cache[k]
-
-    if cache and cache != {_STATS_KEY: cache.get(_STATS_KEY)}:
-        save_json(cache_file, cache)
-    elif _STATS_KEY in cache:
-        save_json(cache_file, {_STATS_KEY: cache[_STATS_KEY]})
-    elif cache_file.exists():
-        cache_file.unlink()
-
-    count = len(stale_keys)
-    if count:
-        log.info("LLM result cache INVALIDATED: %s/%s, removed %d entries", project_id, phase_id, count)
-    return count
-
-
 def cache_stats(
     output_dir: Path,
     project_id: str,

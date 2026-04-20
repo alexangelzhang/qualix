@@ -218,42 +218,6 @@ from dqg.memory.hyperedge import (  # noqa: F401
 # ---------------------------------------------------------------------------
 
 
-def get_related_knowledge(
-    output_dir: Path,
-    node_id: str,
-    max_depth: int = 2,
-) -> list[dict[str, Any]]:
-    """获取某个节点的关联知识（BFS 遍历链接）."""
-    visited = set()
-    result = []
-    queue = [(node_id, 0)]
-
-    with get_connection(output_dir) as conn:
-        while queue:
-            current, depth = queue.pop(0)
-            if current in visited or depth > max_depth:
-                continue
-            visited.add(current)
-
-            # 获取节点信息
-            node = conn.execute("SELECT * FROM knowledge_nodes WHERE node_id=?", (current,)).fetchone()
-            if node and depth > 0:
-                result.append({**dict(node), "depth": depth})
-
-            # 获取链接
-            links = conn.execute(
-                "SELECT target_id, link_type, strength, reason FROM knowledge_links WHERE source_id=? UNION SELECT source_id, link_type, strength, reason FROM knowledge_links WHERE target_id=?",
-                (current, current),
-            ).fetchall()
-
-            for link in links:
-                neighbor = link[0]
-                if neighbor not in visited:
-                    queue.append((neighbor, depth + 1))
-
-    return result
-
-
 def get_cross_project_insights(
     output_dir: Path,
     project_id: str,

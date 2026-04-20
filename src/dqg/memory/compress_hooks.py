@@ -91,29 +91,6 @@ def get_compress_state(
     return load_json(state_path)
 
 
-def render_compress_state_for_prompt(state: dict[str, Any]) -> str:
-    """渲染压缩状态为 prompt 片段，注入下一轮 Worker."""
-    lines = ["## PREVIOUS_ITERATION_STATE（上一轮已确认的状态，不要重复处理）", ""]
-
-    if state.get("fixed_issues"):
-        lines.append("### 已修复的问题（不要再次报告）")
-        for issue in state["fixed_issues"]:
-            lines.append(f"- {issue}")
-        lines.append("")
-
-    if state.get("confirmed_decisions"):
-        lines.append("### 已确认的决策（不要质疑）")
-        for decision in state["confirmed_decisions"]:
-            lines.append(f"- {decision}")
-        lines.append("")
-
-    if state.get("iteration_scores"):
-        lines.append(f"### 历史评分趋势: {' → '.join(f'{s:.1f}' for s in state['iteration_scores'])}")
-        lines.append("")
-
-    return "\n".join(lines)
-
-
 def _save_compress_state(
     output_dir: Path, project_id: str, phase_id: str, state: dict[str, Any],
 ) -> None:

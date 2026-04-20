@@ -15,61 +15,6 @@ from typing import Any
 from dqg.json_utils import load_json
 
 
-def compress_images(assets_dir: Path, max_width: int = 800) -> dict[str, Any]:
-    """压缩图片到指定宽度，返回压缩统计.
-
-    压缩后的图片存到 assets_dir/_compressed/ 目录。
-    """
-    compressed_dir = assets_dir / "_compressed"
-    compressed_dir.mkdir(exist_ok=True)
-
-    stats = {"total": 0, "compressed": 0, "skipped": 0, "saved_kb": 0}
-
-    try:
-        from PIL import Image
-    except ImportError:
-        # Pillow 不可用时跳过压缩
-        stats["skipped_reason"] = "Pillow not installed"
-        return stats
-
-    for img_path in sorted(assets_dir.glob("*.png")):
-        stats["total"] += 1
-        try:
-            with Image.open(img_path) as img:
-                w, h = img.size
-                if w <= max_width:
-                    stats["skipped"] += 1
-                    continue
-
-                ratio = max_width / w
-                new_size = (max_width, int(h * ratio))
-                resized = img.resize(new_size, Image.LANCZOS)
-
-                out_path = compressed_dir / img_path.name
-                resized.save(out_path, "PNG", optimize=True)
-
-                original_kb = img_path.stat().st_size / 1024
-                compressed_kb = out_path.stat().st_size / 1024
-                stats["saved_kb"] += original_kb - compressed_kb
-                stats["compressed"] += 1
-        except Exception:
-            stats["skipped"] += 1
-
-    return stats
-
-
-def classify_images(assets_dir: Path) -> dict[str, list[str]]:
-    """将图片分为 board（深度解析）和 image（浅度解析）."""
-    boards = []
-    images = []
-    for f in sorted(assets_dir.glob("*.png")):
-        if f.name.startswith("board_"):
-            boards.append(f.name)
-        elif f.name.startswith("image_"):
-            images.append(f.name)
-    return {"board": boards, "image": images}
-
-
 def build_shallow_descriptions(
     assets_dir: Path,
     ingest_json_path: Path,

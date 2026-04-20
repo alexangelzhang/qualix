@@ -213,64 +213,6 @@ def _list_java_files(repo: Path) -> list[str]:
     return [str(f.relative_to(repo)) for f in repo.rglob("*.java")]
 
 
-def find_callers(
-    output_dir: Path,
-    repo_path: str,
-    class_name: str,
-    method_name: str,
-) -> list[dict[str, str]]:
-    """查找调用了指定方法的所有 caller."""
-    from dqg.quality.blast_radius import build_call_graph_regex
-
-    repo = Path(repo_path)
-    java_files = _list_java_files(repo)
-    graph = build_call_graph_regex(repo, java_files[:300])
-
-    target = f"{class_name}.{method_name}"
-    callers: list[dict[str, str]] = []
-
-    node = graph.get(target)
-    if node:
-        for caller in node.get("called_by", []):
-            caller_node = graph.get(caller, {})
-            callers.append({
-                "caller": caller,
-                "file": caller_node.get("file", ""),
-                "line": str(caller_node.get("line", 0)),
-            })
-
-    return callers
-
-
-def find_callees(
-    output_dir: Path,
-    repo_path: str,
-    class_name: str,
-    method_name: str,
-) -> list[dict[str, str]]:
-    """查找指定方法调用的所有 callee."""
-    from dqg.quality.blast_radius import build_call_graph_regex
-
-    repo = Path(repo_path)
-    java_files = _list_java_files(repo)
-    graph = build_call_graph_regex(repo, java_files[:300])
-
-    target = f"{class_name}.{method_name}"
-    callees: list[dict[str, str]] = []
-
-    node = graph.get(target)
-    if node:
-        for callee in node.get("calls", []):
-            callee_node = graph.get(callee, {})
-            callees.append({
-                "callee": callee,
-                "file": callee_node.get("file", ""),
-                "line": str(callee_node.get("line", 0)),
-            })
-
-    return callees
-
-
 # ---------------------------------------------------------------------------
 # 渲染
 # ---------------------------------------------------------------------------
