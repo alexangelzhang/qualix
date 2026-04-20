@@ -8,6 +8,8 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Any
 
+from dqg.json_utils import dump_json_str
+
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -105,7 +107,7 @@ class LLMBackend(ABC):
         """Structured output with schema enforcement. Default: prompt-based fallback."""
         prompt_suffix = (
             "\n\nIMPORTANT: Output ONLY a valid JSON object matching this schema, nothing else:\n"
-            + json.dumps(response_schema, indent=2, ensure_ascii=False)
+            + dump_json_str(response_schema)
         )
         augmented = list(messages)
         if augmented:
@@ -303,7 +305,7 @@ class OpenAICompatibleBackend(LLMBackend):
         clean_msgs = [{"role": m["role"], "content": m["content"]} for m in messages]
         schema_hint = (
             "\n\nOutput ONLY a valid JSON object matching this schema:\n"
-            + json.dumps(response_schema, indent=2, ensure_ascii=False)
+            + dump_json_str(response_schema)
         )
         clean_msgs[-1]["content"] += schema_hint
 

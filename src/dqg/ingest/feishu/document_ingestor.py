@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-import json
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from dqg.ingest.feishu.asset_downloader import append_raw_image_key_assets, download_assets
+from dqg.json_utils import dump_json_str
 from dqg.ingest.feishu.auth import (
     call_with_token_fallback,
     normalize_url,
@@ -248,9 +248,9 @@ def _write_ingest_files(
     ingest_path = ingest_subdir / "ingest.json"
     plain_text_path = ingest_subdir / "plain_text.txt"
     asset_manifest_path = ingest_subdir / "asset_manifest.json"
-    ingest_path.write_text(json.dumps(ingest, ensure_ascii=False, indent=2), encoding="utf-8")
+    ingest_path.write_text(dump_json_str(ingest), encoding="utf-8")
     plain_text_path.write_text(plain_text, encoding="utf-8")
-    asset_manifest_path.write_text(json.dumps(asset_results, ensure_ascii=False, indent=2), encoding="utf-8")
+    asset_manifest_path.write_text(dump_json_str(asset_results), encoding="utf-8")
 
     paths = {
         "ingest": str(ingest_path),
@@ -260,7 +260,7 @@ def _write_ingest_files(
 
     if save_raw_blocks:
         raw_blocks_path = ingest_subdir / "blocks.raw.json"
-        raw_blocks_path.write_text(json.dumps(content, ensure_ascii=False, indent=2), encoding="utf-8")
+        raw_blocks_path.write_text(dump_json_str(content), encoding="utf-8")
         paths["raw_blocks"] = str(raw_blocks_path)
 
     return paths

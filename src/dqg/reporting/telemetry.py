@@ -10,6 +10,7 @@ import platform
 from datetime import datetime
 from pathlib import Path  # noqa: TC003
 
+from dqg.json_utils import dump_jsonl
 from pydantic import BaseModel, Field
 
 
@@ -43,7 +44,7 @@ def append_record(output_dir: Path, record: PhaseRunRecord) -> Path:
     output_dir.mkdir(parents=True, exist_ok=True)
     path = _telemetry_path(output_dir, record.project_id)
     with open(path, "a", encoding="utf-8") as f:
-        f.write(json.dumps(record.model_dump(), ensure_ascii=False) + "\n")
+        f.write(dump_jsonl(record.model_dump()))
 
     # 同步写入 SQLite
     try:

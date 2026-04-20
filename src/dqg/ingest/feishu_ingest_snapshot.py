@@ -2,10 +2,9 @@
 
 from __future__ import annotations
 
-import json
 from typing import TYPE_CHECKING, Any
 
-from dqg.json_utils import load_json_strict
+from dqg.json_utils import dump_json_str, load_json_strict, save_json
 
 from dqg.ingest.feishu.auth import load_larkkit, parse_feishu_url
 from dqg.ingest.feishu.crawler import crawl_documents
@@ -89,7 +88,7 @@ def save_snapshot(snapshot_dir: Path, case_name: str, bundle: dict[str, Any]) ->
     for name, payload in bundle.items():
         path = case_dir / name
         if name.endswith(".json"):
-            path.write_text(json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True), encoding="utf-8")
+            save_json(path, payload, sort_keys=True)
         else:
             path.write_text(str(payload), encoding="utf-8")
     return case_dir
@@ -127,8 +126,8 @@ def assert_snapshot_case(
     if expected_bundle != normalized_actual:
         raise AssertionError(
             f"Snapshot mismatch for case: {case_name}\n"
-            f"expected={json.dumps(expected_bundle, ensure_ascii=False, sort_keys=True, indent=2)}\n"
-            f"actual={json.dumps(normalized_actual, ensure_ascii=False, sort_keys=True, indent=2)}"
+            f"expected={dump_json_str(expected_bundle, sort_keys=True)}\n"
+            f"actual={dump_json_str(normalized_actual, sort_keys=True)}"
         )
 
 

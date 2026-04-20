@@ -13,6 +13,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+from dqg.json_utils import dump_json_str
+
 from dqg.ingest.common import info, warn
 
 
@@ -134,7 +136,7 @@ def _flatten_field_value(value: Any) -> str:
         # 超链接类型
         if "text" in value and "link" in value:
             return value["text"]
-        return json.dumps(value, ensure_ascii=False)
+        return dump_json_str(value, indent=None)
     return str(value)
 
 
@@ -246,7 +248,7 @@ def ingest_bitable(
     plain_text_path = output_dir / "plain_text.txt"
 
     ingest_path.write_text(
-        json.dumps(ingest, ensure_ascii=False, indent=2),
+        dump_json_str(ingest),
         encoding="utf-8",
     )
     plain_text_path.write_text(

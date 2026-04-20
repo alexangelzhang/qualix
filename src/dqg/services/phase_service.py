@@ -5,9 +5,9 @@
 
 from __future__ import annotations
 
-import json
 from typing import TYPE_CHECKING
 
+from dqg.json_utils import dump_json_str
 from dqg.constants import (
     BUG_CASE_RELEVANCE_EXCERPT_LIMIT,
     BUG_CASE_RELEVANCE_INTERNAL_FILES,
@@ -94,7 +94,7 @@ def write_phase_profile_manifest(
 
     profile = get_profile(profile_id)
     payload = profile_to_payload(profile)
-    (int_dir / "_profile.json").write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+    (int_dir / "_profile.json").write_text(dump_json_str(payload), encoding="utf-8")
     (int_dir / "_profile_context.md").write_text(render_profile_context_markdown(profile), encoding="utf-8")
 
     relevance_input = _build_bug_case_relevance_text(phase_root, relevance_text)

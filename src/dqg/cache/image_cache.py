@@ -6,9 +6,9 @@
 
 from __future__ import annotations
 
-import json
 from typing import TYPE_CHECKING, Any
 
+from dqg.json_utils import dump_json_str
 from dqg.store import get_connection
 from dqg.text_utils import build_fts_query, row_to_dict, text_query_has_signal, tokenize_chinese
 
@@ -24,7 +24,7 @@ def save_image_semantic(
 ) -> None:
     """保存一条图片语义记录（自动分词存入 FTS5）."""
     desc = record.get("description", "")
-    reqs_str = json.dumps(record.get("related_reqs", []), ensure_ascii=False)
+    reqs_str = dump_json_str(record.get("related_reqs", []), indent=None)
     mermaid = record.get("mermaid_code", "")
     section = record.get("section_context", "")
     filename = record.get("filename", "")

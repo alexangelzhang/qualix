@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-import json
 import time
 from pathlib import Path
 from typing import Any
 
+from dqg.json_utils import dump_json_str
 from dqg.store.core import get_connection
 
 
@@ -67,7 +67,7 @@ def save_coverage_snapshot(
                 coverage_report.total_ses,
                 coverage_report.total_gaps,
                 coverage_report.total_opens,
-                json.dumps(coverage_report.to_dict(), ensure_ascii=False),
+                dump_json_str(coverage_report.to_dict(), indent=None),
                 time.time(),
             ),
         )

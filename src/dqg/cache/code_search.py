@@ -13,6 +13,7 @@ import re
 from pathlib import Path
 from typing import Any
 
+from dqg.json_utils import dump_json_str
 from dqg.log import get_logger
 
 log = get_logger(__name__)
@@ -174,7 +175,7 @@ def _parse_java_file(content: str, file_path: str) -> list[dict[str, Any]]:
 def _save_symbols(output_dir: Path, repo_path: str, symbols: list[dict[str, Any]]) -> None:
     with get_connection(output_dir) as conn:
         for sym in symbols:
-            ann_str = json.dumps(sym.get("annotations", []))
+            ann_str = dump_json_str(sym.get("annotations", []), indent=None)
             conn.execute(
                 """INSERT INTO code_symbols
                 (repo_path, file_path, symbol_type, symbol_name, parent_symbol, annotations, line_number, signature)

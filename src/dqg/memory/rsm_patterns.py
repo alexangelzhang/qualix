@@ -10,7 +10,6 @@
 
 from __future__ import annotations
 
-import json
 from collections import Counter
 from pathlib import Path
 from typing import Any
@@ -150,7 +149,8 @@ def save_patterns_to_file(
     patterns: list[dict[str, Any]],
 ) -> Path:
     """保存模式到独立文件（供分析和审计）."""
+    from dqg.json_utils import save_json
     path = output_dir / ".dqg" / "rsm_patterns.json"
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(patterns, ensure_ascii=False, indent=2), encoding="utf-8")
+    save_json(path, patterns)
     return path

@@ -9,7 +9,7 @@ from datetime import date, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
-from dqg.json_utils import load_json_strict, save_json
+from dqg.json_utils import dump_json_str, dump_jsonl, load_json_strict, save_json
 
 VOLATILE_JSON_KEYS = {
     "created_at",
@@ -82,7 +82,7 @@ def _normalize_json_value(value: Any) -> Any:
 def _normalize_text(file_path: str, text: str) -> str:
     if file_path.endswith(".json"):
         data = json.loads(text)
-        return json.dumps(_normalize_json_value(data), ensure_ascii=False, indent=2, sort_keys=True)
+        return dump_json_str(_normalize_json_value(data), indent=2, sort_keys=True)
     return text
 
 
@@ -202,7 +202,7 @@ def append_failure_history(results: list[dict[str, Any]], history_path: Path, la
         )
     with open(history_path, "a", encoding="utf-8") as file:
         for row in rows:
-            file.write(json.dumps(row, ensure_ascii=False) + "\n")
+            file.write(dump_jsonl(row))
     return len(rows)
 
 

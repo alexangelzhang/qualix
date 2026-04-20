@@ -294,7 +294,7 @@ def save_rsm(
     lifecycle: dict[str, RequirementLifecycle],
 ) -> Path:
     """持久化 RSM 到 JSON 文件."""
-    import json as _json
+    from dqg.json_utils import save_json
     path = _rsm_path(output_dir, project_id)
     path.parent.mkdir(parents=True, exist_ok=True)
     data = {
@@ -309,7 +309,7 @@ def save_rsm(
         }
         for rid, item in lifecycle.items()
     }
-    path.write_text(_json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+    save_json(path, data)
     return path
 
 

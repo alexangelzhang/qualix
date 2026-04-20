@@ -8,6 +8,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+from dqg.json_utils import dump_json_str
 from dqg.store.core import get_connection, row_to_dict
 
 
@@ -24,8 +25,8 @@ def insert_preference(output_dir: Path, record: dict[str, Any]) -> None:
                 record.get("phase_id", ""),
                 record.get("preferred", ""),
                 record.get("confidence", ""),
-                json.dumps(record.get("dimensions", {}), ensure_ascii=False),
-                json.dumps(record.get("critique_effectiveness", []), ensure_ascii=False),
+                dump_json_str(record.get("dimensions", {}), indent=None),
+                dump_json_str(record.get("critique_effectiveness", []), indent=None),
                 record.get("summary", ""),
                 record.get("timestamp", datetime.now().isoformat()),
             ),

@@ -8,6 +8,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+from dqg.json_utils import dump_json_str
 from dqg.store.core import get_connection, row_to_dict
 
 
@@ -29,7 +30,7 @@ def insert_telemetry(output_dir: Path, record: dict[str, Any]) -> None:
                 record.get("started_at"),
                 record.get("finished_at"),
                 record.get("duration_seconds"),
-                json.dumps(record.get("validation_errors", []), ensure_ascii=False),
+                dump_json_str(record.get("validation_errors", []), indent=None),
                 record.get("comment", ""),
                 record.get("timestamp", datetime.now().isoformat()),
                 record.get("os_type", ""),

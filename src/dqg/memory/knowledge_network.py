@@ -18,9 +18,9 @@
 
 from __future__ import annotations
 
-import json
 from typing import TYPE_CHECKING, Any
 
+from dqg.json_utils import dump_json_str
 from dqg.store import get_connection
 
 if TYPE_CHECKING:
@@ -47,7 +47,7 @@ def upsert_node(
             VALUES (?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(node_id) DO UPDATE SET
                 title=excluded.title, content=excluded.content, tags=excluded.tags""",
-            (node_id, node_type, project_id, phase_id, title, content, json.dumps(tags or [], ensure_ascii=False)),
+            (node_id, node_type, project_id, phase_id, title, content, dump_json_str(tags or [], indent=None)),
         )
 
 

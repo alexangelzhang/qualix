@@ -11,10 +11,10 @@ token 节省：从读全文 ~16000 token 降到按需检索 ~2000 token
 
 from __future__ import annotations
 
-import json
 import re
 from typing import TYPE_CHECKING, Any
 
+from dqg.json_utils import dump_json_str
 from dqg.store import get_connection
 from dqg.text_utils import build_fts_query, row_to_dict, text_query_has_signal, tokenize_chinese
 
@@ -112,7 +112,7 @@ def cache_document(
                     seg["line_start"],
                     seg.get("line_end", 0),
                     seg.get("char_count", 0),
-                    json.dumps(keywords, ensure_ascii=False),
+                    dump_json_str(keywords, indent=None),
                 ),
             )
             row_id = conn.execute("SELECT last_insert_rowid()").fetchone()[0]

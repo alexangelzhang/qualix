@@ -12,6 +12,8 @@ import json
 import re
 from pathlib import Path  # noqa: TC003
 
+from dqg.json_utils import dump_json_str
+
 
 def fix_common_json_issues(raw: str) -> str:
     """修复常见的 LLM 输出 JSON 格式问题."""
@@ -112,7 +114,7 @@ def write_structured_output(
     for attempt in range(retry_limit):
         try:
             payload = data if attempt == 0 else simplify_payload(data)
-            content = json.dumps(payload, ensure_ascii=False, indent=2)
+            content = dump_json_str(payload)
             output_path.parent.mkdir(parents=True, exist_ok=True)
             output_path.write_text(content, encoding="utf-8")
             return True, []

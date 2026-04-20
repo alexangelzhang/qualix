@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-import json
 from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+from dqg.json_utils import dump_json_str
 from dqg.store.core import get_connection, row_to_dict
 
 
@@ -23,7 +23,7 @@ def insert_metric(output_dir: Path, record: dict[str, Any]) -> None:
                 record.get("phase_id"),
                 record.get("metric_name", ""),
                 record.get("metric_value"),
-                json.dumps(record.get("metric_data", {}), ensure_ascii=False),
+                dump_json_str(record.get("metric_data", {}), indent=None),
                 record.get("period", "daily"),
                 record.get("timestamp", datetime.now().isoformat()),
             ),

@@ -11,6 +11,7 @@ from pathlib import Path
 from statistics import mean
 from typing import Any
 
+from dqg.json_utils import dump_jsonl, save_json
 from dqg.reporting.collect_metrics import collect_all_metrics
 from dqg.constants import PHASE_DIR_MAP, REPORT_MAP
 from dqg.tracking.regression import build_failure_trend
@@ -225,7 +226,7 @@ def _append_history(output_dir: Path, period_name: str, report_payload: dict[str
             )
     with open(path, "a", encoding="utf-8") as file:
         for row in rows:
-            file.write(json.dumps(row, ensure_ascii=False) + "\n")
+            file.write(dump_jsonl(row))
     return len(rows)
 
 
@@ -292,7 +293,7 @@ def generate_report(
     }
     payload["failure_library"] = build_failure_trend(_failure_history_path(output_dir), period="weekly")
     json_path, md_path = _report_paths(output_dir, period_name, period.label)
-    json_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+    save_json(json_path, payload)
     _write_markdown_report(md_path, payload)
     return payload, json_path, md_path
 

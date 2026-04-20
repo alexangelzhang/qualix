@@ -48,9 +48,14 @@ def save_json(path: Path, data: Any, *, indent: int = 2, sort_keys: bool = False
     )
 
 
-def dump_json_str(data: Any, *, indent: int | None = 2) -> str:
+def dump_json_str(data: Any, *, indent: int | None = 2, sort_keys: bool = False) -> str:
     """序列化为 JSON 字符串（ensure_ascii=False）."""
-    return json.dumps(data, ensure_ascii=False, indent=indent)
+    return json.dumps(data, ensure_ascii=False, indent=indent, sort_keys=sort_keys)
+
+
+def dump_json_compact(data: Any) -> str:
+    """序列化为紧凑 JSON（无空格，sorted keys），适用于缓存 key / hash."""
+    return json.dumps(data, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
 
 
 def dump_jsonl(data: Any) -> str:

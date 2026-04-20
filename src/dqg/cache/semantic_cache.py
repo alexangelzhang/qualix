@@ -11,6 +11,7 @@ import json
 import time
 from typing import TYPE_CHECKING, Any
 
+from dqg.json_utils import dump_json_compact, dump_json_str
 from dqg.store import get_connection
 
 if TYPE_CHECKING:
@@ -36,7 +37,7 @@ def _build_query_text(
         "query": query,
         "result_type": result_type,
     }
-    return json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    return dump_json_compact(payload)
 
 
 def _hash_query(
@@ -108,7 +109,7 @@ def cache_put(
                 created_at=excluded.created_at,
                 hit_count=0,
                 last_hit_at=NULL""",
-            (qhash, query_text, result_type, json.dumps(results, ensure_ascii=False), now),
+            (qhash, query_text, result_type, dump_json_str(results, indent=None), now),
         )
 
 

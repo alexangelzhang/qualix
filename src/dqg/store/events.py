@@ -5,12 +5,12 @@
 
 from __future__ import annotations
 
-import json
 import threading
 from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+from dqg.json_utils import dump_json_str
 from dqg.store.core import get_connection
 
 # ---------------------------------------------------------------------------
@@ -36,7 +36,7 @@ def insert_event(
 ) -> None:
     """缓冲一条事件记录。达到阈值时自动 flush。"""
     ts = timestamp or datetime.now().isoformat()
-    data_json = json.dumps(data or {}, ensure_ascii=False)
+    data_json = dump_json_str(data or {}, indent=None)
     row = (project_id, phase_id, event_type, action, message, data_json, duration_ms, ts)
 
     with _buffer_lock:

@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-import json
 import threading
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from dqg.json_utils import save_json
 from dqg.runtime.events import EventType
 from dqg.runtime.lifecycle import register_handler
 
@@ -20,7 +20,7 @@ def _async_write_json(path: Path, data: object) -> None:
     def _write():
         try:
             path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+            save_json(path, data)
         except Exception:
             pass
     threading.Thread(target=_write, daemon=True).start()
@@ -47,9 +47,7 @@ def handle_perf_metrics(ctx: ExecutionContext, result: PhaseResult) -> None:
 
     persist_phase_metrics(ctx.output_dir, metrics)
     ctx.internal_dir.mkdir(parents=True, exist_ok=True)
-    (ctx.internal_dir / "_perf_metrics.json").write_text(
-        json.dumps(metrics, ensure_ascii=False, indent=2), encoding="utf-8",
-    )
+    save_json(ctx.internal_dir / "_perf_metrics.json", metrics)
     result.add_artifact("perf_metrics", str(ctx.internal_dir / "_perf_metrics.json"))
     ctx.shared["perf_metrics"] = metrics
     _emit_handler(ctx, EventType.PERF_COLLECTED, "Perf metrics collected",

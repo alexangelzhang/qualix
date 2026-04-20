@@ -12,6 +12,7 @@ from typing import Callable
 
 from dqg.agents.llm_backends import LLMBackend, LLMConfig, create_backend
 from dqg.constants import AGENT_EVIDENCE_EXCERPT_LIMIT, AGENT_EVIDENCE_TOTAL_LIMIT
+from dqg.json_utils import dump_json_compact, dump_json_str
 from dqg.store import get_connection
 
 
@@ -128,7 +129,7 @@ class Agent:
             "temperature": self.model.temperature,
             "max_tokens": self.model.max_tokens,
         }
-        return json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+        return dump_json_compact(payload)
 
     def _cache_lookup(
         self,
@@ -206,7 +207,7 @@ class Agent:
                     created_at=excluded.created_at,
                     hit_count=0,
                     last_hit_at=NULL""",
-                (query_hash, payload_json, "agent_result", json.dumps(cached_payload, ensure_ascii=False), time.time()),
+                (query_hash, payload_json, "agent_result", dump_json_str(cached_payload, indent=None), time.time()),
             )
 
     def _cache_key_components(self, backend_name: str, context_files: list[Path] | None, user_message: str) -> tuple[str, str, str]:

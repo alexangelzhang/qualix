@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-import json
 from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+from dqg.json_utils import dump_json_str
 from dqg.store.core import get_connection, row_to_dict
 
 
@@ -29,11 +29,11 @@ def upsert_bug_case(output_dir: Path, case: dict[str, Any]) -> None:
                 case.get("title", ""),
                 case.get("root_cause", ""),
                 case.get("fix_target", ""),
-                json.dumps(case.get("tags", []), ensure_ascii=False),
+                dump_json_str(case.get("tags", []), indent=None),
                 case.get("status", "open"),
-                json.dumps(case.get("source", {}), ensure_ascii=False),
-                json.dumps(case.get("expected", {}), ensure_ascii=False),
-                json.dumps(case.get("actual", {}), ensure_ascii=False),
+                dump_json_str(case.get("source", {}), indent=None),
+                dump_json_str(case.get("expected", {}), indent=None),
+                dump_json_str(case.get("actual", {}), indent=None),
                 case.get("lesson", ""),
                 case.get("created_at", datetime.now().strftime("%Y-%m-%d")),
             ),

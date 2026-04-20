@@ -16,12 +16,13 @@
 
 from __future__ import annotations
 
-import json
 import re
 import time
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
+
+from dqg.json_utils import dump_jsonl
 
 
 # ---------------------------------------------------------------------------
@@ -207,7 +208,7 @@ def save_trajectories(
 
     with open(path, "a", encoding="utf-8") as f:
         for t in trajectories:
-            f.write(json.dumps(t.to_dict(), ensure_ascii=False) + "\n")
+            f.write(dump_jsonl(t.to_dict()))
 
     return path
 

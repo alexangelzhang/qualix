@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Any
 from dqg.constants import STRUCTURED_JSON_MAP
 from dqg.core.state_machine import PHASE_DEFS
 from dqg.core.state_machine import phase_dir as _phase_dir
-from dqg.json_utils import load_json
+from dqg.json_utils import dump_json_str, load_json
 from dqg.store import get_connection
 from dqg.text_utils import build_fts_query, row_to_dict, text_query_has_signal, tokenize_chinese
 
@@ -51,19 +51,19 @@ def index_phase_facts(
         desc = se.get("description", "")
         target = se.get("mapping_target", "")
         confidence = "EXTRACTED" if target else "INFERRED"
-        related_str = json.dumps([target] if target else [], ensure_ascii=False)
+        related_str = dump_json_str([target] if target else [], indent=None)
         facts.append((project_id, phase_id, "SE", se_id, desc, related_str, confidence))
 
     for gap in data.get("gaps", []):
         gap_id = gap.get("gap_id", "")
         desc = gap.get("description", "")
-        related_str = json.dumps(gap.get("related_ids", []), ensure_ascii=False)
+        related_str = dump_json_str(gap.get("related_ids", []), indent=None)
         facts.append((project_id, phase_id, "GAP", gap_id, desc, related_str, "INFERRED"))
 
     for op in data.get("open_items", []):
         open_id = op.get("open_id", "")
         desc = op.get("question", "") or op.get("description", "")
-        related_str = json.dumps(op.get("related_ids", []), ensure_ascii=False)
+        related_str = dump_json_str(op.get("related_ids", []), indent=None)
         facts.append((project_id, phase_id, "OPEN", open_id, desc, related_str, "AMBIGUOUS"))
 
     for req in data.get("requirements", []):
@@ -71,7 +71,7 @@ def index_phase_facts(
         desc = req.get("description", "")
         parent = req.get("parent_id", "")
         fact_type = "REQ" if req_id.startswith("REQ") else "BR"
-        related_str = json.dumps([parent] if parent else [], ensure_ascii=False)
+        related_str = dump_json_str([parent] if parent else [], indent=None)
         facts.append((project_id, phase_id, fact_type, req_id, desc, related_str, "EXTRACTED"))
 
     if not facts:
@@ -113,7 +113,7 @@ def index_phase_facts(
 
 def _insert_fact(conn, project_id, phase_id, fact_type, fact_id, description, related_ids, confidence="EXTRACTED"):
     """插入一条事实并同步 FTS5."""
-    related_str = json.dumps(related_ids, ensure_ascii=False)
+    related_str = dump_json_str(related_ids, indent=None)
     conn.execute(
         """INSERT INTO structured_facts (project_id, phase_id, fact_type, fact_id, description, related_ids, confidence)
         VALUES (?, ?, ?, ?, ?, ?, ?)

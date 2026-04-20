@@ -6,14 +6,13 @@
 
 from __future__ import annotations
 
-import json
 import re
 from datetime import datetime
 from pathlib import Path
 from typing import Any
 
 from dqg.constants import PHASE_DIR_MAP
-from dqg.json_utils import load_json_strict
+from dqg.json_utils import dump_json_str, load_json_strict
 
 # 二级分类 → (phase, error_type, root_cause, fix_target)
 CATEGORY_MAPPING: dict[str, dict[str, str]] = {
@@ -115,7 +114,7 @@ def _flatten(value: Any) -> str:
     if isinstance(value, list):
         return ", ".join(_flatten(v) for v in value)
     if isinstance(value, dict):
-        return value.get("text", "") or value.get("name", "") or json.dumps(value, ensure_ascii=False)
+        return value.get("text", "") or value.get("name", "") or dump_json_str(value, indent=None)
     return str(value)
 
 
@@ -242,7 +241,7 @@ def import_from_bitable(
 
             case_dir.mkdir(parents=True, exist_ok=True)
             (case_dir / "case.json").write_text(
-                json.dumps(result["case_json"], ensure_ascii=False, indent=2),
+                dump_json_str(result["case_json"]),
                 encoding="utf-8",
             )
             (case_dir / "input.md").write_text(result["input_md"], encoding="utf-8")

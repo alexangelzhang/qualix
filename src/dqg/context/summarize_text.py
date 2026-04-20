@@ -15,7 +15,6 @@
 from __future__ import annotations
 
 import argparse
-import json
 import os
 import re
 import sys
@@ -297,10 +296,8 @@ def write_summary_outputs(
     output_md.write_text("\n".join(md_lines).strip() + "\n", encoding="utf-8")
 
     if output_json:
-        output_json.write_text(
-            json.dumps(result, ensure_ascii=False, indent=2),
-            encoding="utf-8",
-        )
+        from dqg.json_utils import save_json
+        save_json(output_json, result)
 
 
 def main() -> int:

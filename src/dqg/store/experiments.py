@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 from typing import Any
 
+from dqg.json_utils import dump_json_str
 from dqg.store.core import get_connection, row_to_dict
 
 
@@ -28,7 +28,7 @@ def insert_experiment(output_dir: Path, record: dict[str, Any]) -> None:
                 record.get("prompt_diff", ""),
                 record.get("prompt_hash", ""),
                 record.get("judge_score"),
-                json.dumps(record.get("judge_dimensions", {}), ensure_ascii=False),
+                dump_json_str(record.get("judge_dimensions", {}), indent=None),
                 record.get("baseline_score"),
                 record.get("delta"),
                 1 if record.get("accepted") else 0,
@@ -50,7 +50,7 @@ def update_experiment(output_dir: Path, experiment_id: str, updates: dict[str, A
         if k not in allowed:
             continue
         if k == "judge_dimensions":
-            v = json.dumps(v, ensure_ascii=False)
+            v = dump_json_str(v, indent=None)
         if k == "accepted":
             v = 1 if v else 0
         sets.append(f"{k} = ?")

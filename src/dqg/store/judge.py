@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-import json
 from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+from dqg.json_utils import dump_json_str
 from dqg.store.core import get_connection
 
 
@@ -25,9 +25,9 @@ def insert_judge_result(output_dir: Path, result: dict[str, Any]) -> None:
                 result.get("overall_score"),
                 result.get("precision_estimate"),
                 result.get("recall_estimate"),
-                json.dumps(result.get("dimensions", []), ensure_ascii=False),
-                json.dumps(result.get("gate_checklist", []), ensure_ascii=False),
-                json.dumps(result.get("top_issues", []), ensure_ascii=False),
+                dump_json_str(result.get("dimensions", []), indent=None),
+                dump_json_str(result.get("gate_checklist", []), indent=None),
+                dump_json_str(result.get("top_issues", []), indent=None),
                 result.get("summary", ""),
                 result.get("judged_at", datetime.now().isoformat()),
             ),

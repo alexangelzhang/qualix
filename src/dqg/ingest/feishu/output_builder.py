@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
-import json
 from collections import Counter
 from datetime import datetime
 from pathlib import Path
 from typing import Any
+
+from dqg.json_utils import dump_json_str
 
 
 def build_dependency_graph(
@@ -35,7 +36,7 @@ def build_dependency_graph(
         "edge_status_stats": edge_status_stats,
     }
     path = ingest_subdir / "dependency_graph.json"
-    path.write_text(json.dumps(dependency_graph, ensure_ascii=False, indent=2), encoding="utf-8")
+    path.write_text(dump_json_str(dependency_graph), encoding="utf-8")
     return path
 
 
@@ -119,6 +120,6 @@ def build_aggregate_output(
 
     aggregate_ingest_path = ingest_subdir / "aggregate_ingest.json"
     aggregate_ingest_path.write_text(
-        json.dumps(aggregate_ingest, ensure_ascii=False, indent=2), encoding="utf-8",
+        dump_json_str(aggregate_ingest), encoding="utf-8",
     )
     return aggregate_plain_text_path, aggregate_ingest_path

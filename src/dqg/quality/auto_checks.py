@@ -9,7 +9,6 @@
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 from typing import Any
 
@@ -266,7 +265,7 @@ def _save_gap_tasks(
     output_dir: Path, project_id: str, phase_id: str, tasks: list[dict[str, Any]],
 ) -> None:
     """保存覆盖率缺口补充任务."""
-    import json as _json
+    from dqg.json_utils import save_json
     from dqg.core.state_machine import PHASE_DEFS, phase_dir as _phase_dir
 
     phase_def = PHASE_DEFS.get(phase_id)
@@ -275,7 +274,4 @@ def _save_gap_tasks(
     pd = _phase_dir(output_dir, project_id, phase_def)
     pd.mkdir(parents=True, exist_ok=True)
     path = pd / "_coverage_gap_tasks.json"
-    path.write_text(
-        _json.dumps({"phase_id": phase_id, "tasks": tasks}, ensure_ascii=False, indent=2),
-        encoding="utf-8",
-    )
+    save_json(path, {"phase_id": phase_id, "tasks": tasks})

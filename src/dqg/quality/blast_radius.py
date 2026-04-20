@@ -49,7 +49,7 @@ def _save_call_graph_cache(repo_path: Path, cache: dict[str, Any]) -> None:
     cache_path = repo_path / _CALL_GRAPH_CACHE_FILE
     cache_path.parent.mkdir(parents=True, exist_ok=True)
     try:
-        cache_path.write_text(json.dumps(cache, ensure_ascii=False, indent=2), encoding="utf-8")
+        save_json(cache_path, cache)
     except Exception as e:
         log.debug("Failed to save call graph cache: %s", e)
 

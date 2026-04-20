@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 import sys
 from pathlib import Path
 
@@ -61,7 +60,9 @@ def collect_inputs(project_id: str, phase_id: str, output_dir: Path) -> dict[str
         phase_dir.mkdir(parents=True, exist_ok=True)
         int_dir = _internal_dir(output_dir, project_id, phase_def)
         int_dir.mkdir(parents=True, exist_ok=True)
-        (int_dir / "_inputs.json").write_text(json.dumps(inputs, ensure_ascii=False, indent=2), encoding="utf-8")
+        from dqg.json_utils import save_json
+        (int_dir / "_inputs.json").parent.mkdir(parents=True, exist_ok=True)
+        save_json(int_dir / "_inputs.json", inputs)
     return inputs
 
 
