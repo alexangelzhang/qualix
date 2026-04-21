@@ -172,9 +172,14 @@ def extract_judge_cases(
             continue
 
         for i, issue in enumerate(issues):
-            description = issue.get("description", "")
-            evidence = issue.get("evidence", "")
-            issue_type = issue.get("type", "FN")
+            if isinstance(issue, str):
+                description = issue
+                evidence = ""
+                issue_type = "FN"
+            else:
+                description = issue.get("description", "")
+                evidence = issue.get("evidence", "")
+                issue_type = issue.get("type", "FN")
 
             if not description:
                 continue
