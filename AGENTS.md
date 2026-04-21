@@ -41,8 +41,16 @@ Q02 可 skip（已有技术方案时）。Q03 先于 Q04。Q05/Q06 与 Q02/Q03/Q
 4. 自检: 对照 gate checklist 逐项检查
 5. Judge/Critique: 切换批评者视角审视输出
 6. 修正: 根据发现修正报告
-7. 校验: `dqg-run <project_id> finalize <phase>`
+7. 校验: `dqg-run <project_id> finalize <phase>`（PhaseGuardrail 统一门控）
 8. 确认: `dqg-run <project_id> approve <phase>`
+
+### Orchestrator 模式
+
+长任务（Q03/Q04/Q06 等）主 Agent 作为 Orchestrator，禁止自己执行 skill，必须通过 SubAgent 派发。主 Agent 只负责：读 state → 决定下一个 Phase → 构造 SubAgent prompt → 收集结果。详见 `dqg_starter.md` 步骤二。
+
+### 并行调度
+
+同一批 available phases 无互相依赖时可并行执行（如 Q02 + Q05）。Orchestrator 同时派发多个 SubAgent，各 Phase 写不同子目录不冲突。CLI 模式: `dqg-run <project_id> dag --max-parallel 2`。
 
 ## 必须交付物（每个 Phase）
 

@@ -110,6 +110,15 @@ description: "所有 Phase Agent 必须遵守的通用规则"
 3. 在 `_reasoning_log.md` 中记录 diff：新增了什么、修改了什么、为什么
 4. 禁止从零重写
 
+## Orchestrator 模式
+
+Phase Agent 可能由 Orchestrator（主 Agent）作为 SubAgent 派发执行。被派发时：
+1. 专注执行分配的 Phase 任务，不要尝试调度其他 Phase
+2. 产出写入指定的 Phase 子目录
+3. 完成后返回结果给 Orchestrator，不自动建议下一步
+
+多个无依赖 Phase 可能被 Orchestrator 并行派发，各 Phase 写不同子目录不冲突。
+
 ## 行动规则
 
 1. **脚本优先** — 状态管理通过 `dqg-run` 执行，禁止手动修改状态文件

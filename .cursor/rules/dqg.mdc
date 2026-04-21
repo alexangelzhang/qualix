@@ -19,6 +19,10 @@ globs: ["**/*"]
 - 所有 Phase skill 在 `skills/<name>/SKILL.md` + `references/` 目录
 - SKILL.md < 500 行，详细规则在 references/ 按需加载
 
+## Orchestrator 模式 & 并行调度
+
+长任务主 Agent 作为 Orchestrator 派发 SubAgent 执行，无依赖 Phase 可并行。详见 `AGENTS.md`。
+
 ## Cursor 特有提示
 
 - 代码补全时遵循 `AGENTS.md` 中的代码铁律（常量管理/JSON操作/异常处理/日志/模块组织）

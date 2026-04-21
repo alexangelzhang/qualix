@@ -14,6 +14,10 @@
 - SKILL.md < 500 行（执行骨架），详细规则在 references/ 按需加载
 - 支持跨平台：Claude Code / Codex / Cursor / Gemini CLI
 
+## Orchestrator 模式 & 并行调度
+
+长任务（Q03/Q04/Q06 等）主 Agent 作为 Orchestrator，禁止自己执行 skill，必须通过 SubAgent 派发。同一批无依赖的 Phase 可并行执行（如 Q02 + Q05）。CLI 模式: `dqg-run <project_id> dag --max-parallel 2`。详见 `AGENTS.md`。
+
 ## 执行引擎
 
 - execute 时自动生成 Phase Contract（`_phase_contract.json`）
