@@ -231,6 +231,7 @@ def cmd_finalize(args, output_dir: Path) -> int:
         print(f"  耗时: {duration:.0f}s")
 
     print(f"\n  确认通过: dqg-run {args.project_id} approve {args.phase}")
+    print(f"\n  Context 管理: 本 Phase 消耗了大量 context，建议运行 /compact")
     _flush_events()
     return 0
 
