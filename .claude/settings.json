@@ -4,5 +4,29 @@
     "basedpyright@claude-code-lsps": true,
     "context-engineering-fundamentals@context-engineering-marketplace": true,
     "skill-creator@claude-plugins-official": true
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/inject-journal.sh"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/stop-journal-reminder.sh"
+          }
+        ]
+      }
+    ]
   }
 }

@@ -32,5 +32,8 @@ observability/
 .vscode/
 *.swp
 
+# Session journals（个人短期接力，不提交）
+.claude/journals/
+
 # macOS
 .DS_Store
