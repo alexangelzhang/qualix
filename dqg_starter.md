@@ -138,6 +138,41 @@ SubAgent prompt 模板：
 | PRD < 500 行的简单 Q01 | 直接执行（可选） |
 | 调试或重跑单个 Phase | 直接执行（可选） |
 
+#### 并行调度（多 Phase 同时可执行时）
+
+当 `dqg-run status` 显示多个 Phase 可执行（如 Q02 + Q05 都 available），Orchestrator 应并行派发：
+
+**判断规则**：同一批 available phases 之间没有互相依赖（A 不在 B 的 depends_on 里，B 也不在 A 的 depends_on 里），即可并行。
+
+**并行 Phase DAG 示例**：
+```
+Q01 完成后 → Q02 + Q05 可并行
+Q02 完成后 → Q03（Q05 可能仍在执行，不阻塞）
+Q03 完成后 → Q04
+Q04 完成后 → Q07（需等 Q05/Q06 链路也完成）
+```
+
+**Orchestrator 并行派发方式**：
+
+```
+# 在同一条消息中发起多个 Agent tool 调用（Claude Code 原生支持并行 tool call）
+Agent(prompt="执行 Phase Q02...", subagent_type="general-purpose")
+Agent(prompt="执行 Phase Q05...", subagent_type="general-purpose")
+```
+
+每个 SubAgent 在独立上下文中执行，互不干扰。主 Agent 等待所有并行 SubAgent 完成后，逐个 finalize + approve，再检查下一批可执行 Phase。
+
+**CLI 并行（无人值守模式）**：
+```bash
+dqg-run --base-dir <project_root> <project_id> dag --max-parallel 2
+```
+DAG 调度器自动识别并行组，ThreadPoolExecutor 并发执行。
+
+**注意事项**：
+- 并行 Phase 共享同一个 output 目录，但各自写不同的 phase 子目录，不冲突
+- finalize 必须串行（state.json 是共享资源），并行执行完后逐个 finalize
+- 如果一个并行 Phase 失败，不影响其他并行 Phase 继续执行
+
 ### 步骤三：Finalize
 
 ```bash

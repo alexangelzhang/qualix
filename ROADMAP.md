@@ -462,3 +462,26 @@
 | AgentHooks 单 Phase 检查 | 迁移后 | 替代 sidecar handler，独立测试，层级区分 |
 | Guardrail 装饰器 | 迁移后 | `@input_guardrail` / `@output_guardrail` 直接挂在 Agent 上，`run_in_parallel=True` 不增加延迟 |
 | tripwire 即时终止 | 迁移后 | `tripwire_triggered=True` 立即抛异常终止 agent 执行，替代现有 BLOCKED 检查 |
+
+---
+
+## 9. 并行 Phase 调度
+
+> 独立 Phase 并行执行，缩短 pipeline 端到端耗时。
+
+### 已完成
+
+| 项目 | 状态 | 说明 |
+|------|------|------|
+| DAG 调度器 | **已完成** | `agents/dag_scheduler.py`，ThreadPoolExecutor 并行，`dqg-run dag` 命令 |
+| Orchestrator 并行派发指令 | **已完成** | `dqg_starter.md` 步骤二新增并行调度规则，Orchestrator 同时派发多个 SubAgent |
+| 并行安全保证 | **已完成** | 各 Phase 写不同子目录不冲突，finalize 串行保护 state.json |
+
+### 规划中
+
+| 项目 | 触发条件 | 说明 |
+|------|---------|------|
+| Git Worktree 隔离 | Q05/Q07 需要代码仓库时 | 每个并行 Phase 在独立 worktree 执行，避免代码文件冲突 |
+| Agent Teams 集成 | Claude Code Agent Teams GA 后 | 替代手动多 SubAgent 派发，用 Team Lead + Teammate 模型 |
+
+*最后更新：2026-04-21*
