@@ -247,6 +247,56 @@ def runtime_finalize(ctx: ExecutionContext) -> PhaseResult:
     # 执行所有注册的 finalize handler
     get_registry().run_handlers("finalize", ctx, result)
 
+    # 统一 Guardrail 门控（并发执行，结果持久化）
+    try:
+        from dqg.quality.guardrail import GuardrailContext, GuardrailLevel, run_guardrails
+        from dqg.quality.guardrail_impl import get_guardrails
+        from dqg.quality.rule_checks import read_report
+
+        report_content = read_report(ctx.phase_root, ctx.phase_id) if ctx.phase_root else ""
+        g_ctx = GuardrailContext(
+            output_dir=ctx.output_dir,
+            project_id=ctx.project_id,
+            phase_id=ctx.phase_id,
+            phase_dir=ctx.phase_root,
+            report_content=report_content,
+        )
+        guardrails = get_guardrails(ctx.phase_id)
+        g_results = run_guardrails(guardrails, g_ctx)
+
+        # 持久化结果
+        g_out = [
+            {
+                "guardrail": r.guardrail_name,
+                "passed": r.passed,
+                "level": r.level.value,
+                "message": r.message,
+                "details": r.details,
+            }
+            for r in g_results
+        ]
+        g_path = ctx.internal_dir / "_guardrail_results.json"
+        g_path.parent.mkdir(parents=True, exist_ok=True)
+        g_path.write_text(json.dumps(g_out, ensure_ascii=False, indent=2))
+
+        # 汇总到 result
+        g_blocked = [r for r in g_results if r.level == GuardrailLevel.BLOCKED and not r.passed]
+        g_warnings = [r for r in g_results if r.level == GuardrailLevel.WARNING and not r.passed]
+        if g_blocked or g_warnings:
+            summary_parts = []
+            if g_blocked:
+                summary_parts.append(f"{len(g_blocked)} blocked")
+            if g_warnings:
+                summary_parts.append(f"{len(g_warnings)} warnings")
+            result.add_event(
+                EventType.VALIDATION_COMPLETED,
+                f"Guardrail: {', '.join(summary_parts)}",
+                guardrail_blocked=len(g_blocked),
+                guardrail_warnings=len(g_warnings),
+            )
+    except Exception:
+        pass  # guardrail 不阻断主流程
+
     result.add_event(
         EventType.FINALIZE_COMPLETED,
         f"Phase {ctx.phase_id} finalized",

@@ -436,4 +436,29 @@
 3. 检索兜底：召回不足时允许回退到更宽松的摘要层，但不直接回全文
 4. 渐进落地：先覆盖最频繁的应用路径，每次落地配命中率/token 变化/调用次数三类指标
 
-*最后更新：2026-04-17*
+*最后更新：2026-04-21*
+
+---
+
+## 8. PhaseGuardrail 统一质量门控
+
+> 借鉴 Agent SDK Guardrail 模式，将 DQG 三层检查统一为 PhaseGuardrail 接口。
+
+### 短期（已完成）
+
+| 项目 | 状态 | 说明 |
+|------|------|------|
+| PhaseGuardrail 基类 + GuardrailResult | **已完成** | `quality/guardrail.py`，支持 BLOCKED/WARNING/INFO 三级 |
+| 三层检查包装 | **已完成** | `quality/guardrail_impl.py`：FinalizeChecksGuardrail / PhaseConstraintsGuardrail / RuleComplianceGuardrail |
+| 并发执行 + 结果持久化 | **已完成** | `run_guardrails()` 支持 ThreadPoolExecutor 并发，结果写入 `_guardrail_results.json` |
+| 接入 runtime_finalize | **已完成** | finalize handler 执行后统一跑 guardrail，不阻断主流程 |
+
+### 长期（规划中，依赖 Agent SDK 迁移）
+
+| 项目 | 触发条件 | 说明 |
+|------|---------|------|
+| Agent SDK 迁移 | DQG 需要多 agent 协作时 | 每个 Phase 变成一个 Agent，用 AgentHooks 做前后置检查 |
+| RunHooks 全局 tracing | 迁移后 | 替代现有 telemetry/observability 散装逻辑，统一 tracing/cost 统计 |
+| AgentHooks 单 Phase 检查 | 迁移后 | 替代 sidecar handler，独立测试，层级区分 |
+| Guardrail 装饰器 | 迁移后 | `@input_guardrail` / `@output_guardrail` 直接挂在 Agent 上，`run_in_parallel=True` 不增加延迟 |
+| tripwire 即时终止 | 迁移后 | `tripwire_triggered=True` 立即抛异常终止 agent 执行，替代现有 BLOCKED 检查 |
