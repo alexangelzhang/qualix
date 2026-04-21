@@ -25,7 +25,7 @@ RE_CONFIDENCE_D = re.compile(
     r'|`(High|Medium|Low)`|"confidence":\s*"(High|Medium|Low)"|BLOCKER|MAJOR|MINOR'
 )
 RE_UT_EUT = re.compile(r'\bUT-\d+|EUT-\d+|\bUT\b.*测试用例')
-RE_GAP_TABLE_LINE = re.compile(r'\s*\|.*GAP-\d+')
+RE_GAP_TABLE_LINE = re.compile(r'\s*\|\s*GAP-\d+')
 RE_GAP_DEF_LINE = re.compile(r'\s*GAP-\d+')
 RE_GAP_LEVEL = re.compile(r'P[012]|风险等级')
 RE_OPEN_TABLE_LINE = re.compile(r'\s*\|.*OPEN-\d+')
