@@ -173,26 +173,58 @@ def cmd_finalize(args, output_dir: Path) -> int:
         for fix in shared.get("prompt_fixes", []):
             print(f"    建议修改: {fix['file']} ({fix['case_count']} 条)")
 
+    # --- 成功静默：详细报告写文件，stdout 只输出失败/警告 + 摘要行 ---
+    verbose_lines: list[str] = []
+
     quality_report = shared.get("quality_report")
     if quality_report:
-        print(f"\n  {format_quality_report(quality_report)}")
+        verbose_lines.append(format_quality_report(quality_report))
 
     perf_metrics = shared.get("perf_metrics")
     if perf_metrics:
-        print(f"\n  {format_metrics_report(perf_metrics)}")
+        verbose_lines.append(format_metrics_report(perf_metrics))
 
     index_result = shared.get("index_result", {})
     version_diff = index_result.get("version_diff")
     if version_diff:
-        print(f"\n  {format_version_diff(version_diff)}")
+        verbose_lines.append(format_version_diff(version_diff))
 
     golden_diff = shared.get("golden_diff")
     if golden_diff:
-        print(f"\n  {format_golden_diff(golden_diff)}")
+        verbose_lines.append(format_golden_diff(golden_diff))
 
     compliance = shared.get("compliance")
+    compliance_text = ""
     if compliance:
-        print(f"\n  {format_compliance_report(compliance)}")
+        compliance_text = format_compliance_report(compliance)
+        verbose_lines.append(compliance_text)
+
+    # 写入详细报告文件（供人类查看）
+    if verbose_lines:
+        from dqg.core.state_machine import PHASE_DEFS, phase_dir as _pd
+        phase_def = PHASE_DEFS.get(args.phase)
+        if phase_def:
+            internal = _pd(output_dir, args.project_id, phase_def) / "_internal"
+            internal.mkdir(parents=True, exist_ok=True)
+            (internal / "_finalize_report.txt").write_text(
+                "\n\n".join(verbose_lines), encoding="utf-8",
+            )
+
+    # stdout 只输出：规则未达标项 + 耗时 + approve 命令
+    if compliance:
+        failed_rules = [r for r in compliance.get("rules", []) if r and not r.get("ok")]
+        if failed_rules:
+            total = len(compliance.get("rules", []))
+            passed = total - len(failed_rules)
+            print(f"\n    规则执行率 — Phase {args.phase}")
+            print(f"  达标: {passed}/{total} ({passed/total:.0%})" if total else "")
+            print(f"  未达标 ({len(failed_rules)} 项):")
+            for r in failed_rules:
+                print(f"    [{r.get('category', '?')}] {r.get('name', '?')}: {r.get('detail', '')}")
+        else:
+            total = len([r for r in compliance.get("rules", []) if r])
+            print(f"\n    规则执行率 — Phase {args.phase}")
+            print(f"  达标: {total}/{total} (100%)")
 
     duration = shared.get("duration_seconds")
     if duration:

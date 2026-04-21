@@ -85,13 +85,58 @@ python3 scripts/parse_image_assets.py \
 dqg-run --base-dir <project_root> <project_id> execute <phase_id>
 ```
 
-AI 必须：
+#### Orchestrator 模式（推荐，长任务必须）
+
+主 Agent 作为 Orchestrator，**禁止自己执行 Phase skill**。必须通过 Agent tool 派发 SubAgent：
+
+1. 读取 `dqg-run execute` 输出的上下文路径和 skill 路径
+2. 构造 SubAgent prompt（包含：目标、上下文路径、skill 路径、产出要求）
+3. 通过 Agent tool 派发 SubAgent 执行，自己等待结果
+4. SubAgent 完成后，主 Agent 只做结果验收（检查产出文件是否存在）
+
+SubAgent prompt 模板：
+```
+你是 DQG Phase {phase_id} 的执行 Agent。
+
+目标：按 skill 流程完成 Phase {phase_id}（{phase_name}）的全部产出。
+
+上下文：
+- 上游证据：output/{project_id}/{phase_dir}/_internal/_upstream_context.md
+- Phase Skill：{skill_path}（必须读取并严格按流程执行）
+- 产出目录：output/{project_id}/{phase_dir}/
+
+执行要求：
+1. 先读取 skill 文件，理解完整流程
+2. 读取上游证据
+3. 按 skill 流程逐步执行（证据采集→全量理解→结构化产出）
+4. 输出 _reasoning_log.md
+5. 自动质量闭环（自检→Judge/Critique→修正）
+6. 产出 markdown 报告 + JSON 结构化文件
+
+禁止：跳过 skill 中的任何 STOP 检查点、跳过 _reasoning_log.md、输出 UT/EUT（Q01-Q04）
+```
+
+**为什么用 Orchestrator 模式**：主 Agent 持有完整 pipeline 计划（state.json + Phase DAG），如果同时执行 Phase skill（读 3000 行技术方案 + 逐维度评审），上下文被撑满，后续 Phase 调度质量下降。SubAgent 有独立上下文，执行完只返回结果，不污染主 Agent。
+
+#### 直接执行模式（简单 Phase 或调试时）
+
+当 Phase 任务简单（如 Q01 只需结构化一份 PRD），或需要调试时，主 Agent 可直接执行：
+
 1. 读取上游产物：`output/<project_id>/<phase>/_internal/_upstream_context.md`
 2. 读取 Phase 对应 skill 文件（从 JSON 的 `skill` 字段获取路径）
 3. **假设暴露（不可跳过）**：列出范围假设、质量标准假设、排除项，等待用户确认
 4. 按 skill 流程执行（证据采集→全量理解→结构化产出）
 5. 输出 `_reasoning_log.md`（finalize 硬性校验）
 6. 自动质量闭环（自检→Judge/Critique→修正），仅评分 < 3.5 或 CRITICAL 时暂停
+
+#### 模式选择规则
+
+| 条件 | 模式 |
+|------|------|
+| 技术方案 > 1000 行，或 Phase 涉及逐条审计（Q03/Q04/Q06） | Orchestrator（必须） |
+| 需要读取代码仓库（Q05/Q07） | Orchestrator（推荐） |
+| PRD < 500 行的简单 Q01 | 直接执行（可选） |
+| 调试或重跑单个 Phase | 直接执行（可选） |
 
 ### 步骤三：Finalize
 

@@ -65,7 +65,7 @@
 读取 `dqg_starter.md` 中的执行流程（步骤二~五），然后按流程执行：
 
 1. **收集输入**（逐步交互，每次只问一个）
-2. **执行 Phase**（读取 skill → 假设暴露 → 执行 → 自动质量闭环）
+2. **执行 Phase**（Orchestrator 模式：构造 SubAgent prompt → 派发执行 → 收集结果；简单 Phase 可直接执行）
 3. **Finalize**（`dqg-run finalize` → 展示校验结果 → 等待确认）
 4. **Approve**（`dqg-run approve` → 刷新菜单 → 等待下一步选择）
 
