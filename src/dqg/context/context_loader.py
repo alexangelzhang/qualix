@@ -33,6 +33,7 @@ class ContextChunk:
     content: str
     token_estimate: int
     priority: int = 0  # 越小越优先
+    file_path: str = ""  # 源文件路径，用于 citation 定位
 
 
 @dataclass

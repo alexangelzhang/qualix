@@ -83,16 +83,22 @@ def _summarize_text_content(content: str) -> str:
 
 
 def render_chunk_body(chunk) -> str:
-    """渲染单个 chunk 的 body 摘要."""
+    """渲染单个 chunk 的 body 摘要，附 file_path citation."""
     content = chunk.content.strip()
     if not content:
         return "（空）"
 
     if "Bug cases" in chunk.source or "Diff context" in chunk.source:
-        return truncate_chars(content, 2_000)
-    if content.startswith("{") or content.startswith("["):
-        return _summarize_json_content(content)
-    return _summarize_text_content(content)
+        body = truncate_chars(content, 2_000)
+    elif content.startswith("{") or content.startswith("["):
+        body = _summarize_json_content(content)
+    else:
+        body = _summarize_text_content(content)
+
+    file_path = getattr(chunk, "file_path", "") or ""
+    if file_path:
+        body += f"\n> [来源: {file_path}]"
+    return body
 
 
 def _pick_quote_candidates(content: str) -> list[str]:
@@ -115,7 +121,7 @@ def _pick_quote_candidates(content: str) -> list[str]:
 
 
 def render_key_quotes(chunks, *, max_quotes: int = 0, total_char_limit: int = 0) -> list[str]:
-    """从 chunks 中提取关键引用行."""
+    """从 chunks 中提取关键引用行，附 file:line citation."""
     if not max_quotes:
         max_quotes = EVIDENCE_PACK_MAX_QUOTES
     if not total_char_limit:
@@ -128,6 +134,7 @@ def render_key_quotes(chunks, *, max_quotes: int = 0, total_char_limit: int = 0)
     for chunk in chunks:
         if quote_count >= max_quotes or used_chars >= total_char_limit:
             break
+        file_path = getattr(chunk, "file_path", "") or ""
         for para in _pick_quote_candidates(chunk.content):
             if quote_count >= max_quotes or used_chars >= total_char_limit:
                 break
@@ -139,7 +146,11 @@ def render_key_quotes(chunks, *, max_quotes: int = 0, total_char_limit: int = 0)
                 continue
             quote_count += 1
             used_chars += len(quote)
-            lines.append(f"### 引用 {quote_count}: {chunk.source}")
+            # citation 格式：source + file_path（如有）
+            citation = chunk.source
+            if file_path:
+                citation += f" [来源: {file_path}]"
+            lines.append(f"### 引用 {quote_count}: {citation}")
             lines.extend(f"> {line}" for line in quote.splitlines())
             lines.append("")
 

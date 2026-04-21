@@ -96,6 +96,7 @@ def _collect_phase_artifacts(output_dir: Path, project_id: str, phase_id: str) -
                 content=content,
                 token_estimate=estimate_tokens(content),
                 priority=0,  # 最高优先级
+                file_path=str(phase_dir / json_file),
             ))
 
     # 其次加载当前 phase 的 markdown 报告
@@ -110,6 +111,7 @@ def _collect_phase_artifacts(output_dir: Path, project_id: str, phase_id: str) -
                 content=content,
                 token_estimate=estimate_tokens(content),
                 priority=1,
+                file_path=str(path),
             ))
 
     # 加载图片语义缓存（如果存在），避免下游重新读图片
@@ -120,6 +122,7 @@ def _collect_phase_artifacts(output_dir: Path, project_id: str, phase_id: str) -
             content=image_semantics,
             token_estimate=estimate_tokens(image_semantics),
             priority=1,  # 与 markdown 报告同优先级
+            file_path=str(phase_dir / "image_semantics.md"),
         ))
 
     # 仅在没有结构化产物时才加载文本（避免重复消耗 token）
