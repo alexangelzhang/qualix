@@ -137,11 +137,28 @@ Q02 可 skip（已有技术方案时）。Q03 先于 Q04。Q05/Q06 与 Q02/Q03/Q
 
 ## 文档同步铁律
 
-代码变更后必须同步更新：`ROADMAP.md`、`AGENTS.md`、`CLAUDE.md`、`README.md`、`dqg_starter.md`、`GEMINI.md`、`.cursor/rules/dqg.mdc`、`skills/system-rules.md`。
+代码变更后必须同步更新相关文档。`completion_gate.py` 会根据变更范围自动检测需要更新哪些文件并阻断提醒。
+
+映射关系（由 `doc_sync_check.py` 维护）：
+
+| 变更范围 | 需要检查的文档 |
+|---------|--------------|
+| Phase 注册/流程 (`phase_registry`, `state_machine`) | AGENTS.md, README.md, ROADMAP.md, dqg_starter.md |
+| CLI 命令 (`cli.py`, `runner.py`, `commands/`) | README.md, AGENTS.md |
+| Dashboard (`reporting/dashboard/`) | README.md |
+| Observe (`reporting/observability*`) | README.md, ROADMAP.md |
+| Runtime/Quality 架构 | ROADMAP.md, AGENTS.md |
+| Skill 文件 (`skills/`) | AGENTS.md |
+| Profile (`profiles/`) | README.md |
+
+原则：
+- 文档中禁止硬编码易变数据（测试数量、模块列表等），用泛化描述替代
+- 可自动化的部分由脚本同步，不可自动化的部分由 hook 提醒
+- 不是每次变更都要更新所有文档，按映射关系精准同步
 
 代码文件在架构变更时也需检查：`phase_registry.py`、`constants.py`、`handlers_execute.py`、`handlers_finalize.py`、`harness_ablation.py`。
 
-> **违反此铁律 = 技术债。每次变更完成前必须自检。**
+> **违反此铁律 = 技术债。completion_gate 会自动拦截未同步的变更。**
 
 ## 多平台支持
 

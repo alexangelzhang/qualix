@@ -159,7 +159,7 @@ dev-quality-gate/
 │   ├── services/               # 业务服务（orchestrator, phase_service）
 │   ├── context/                # 上下文（context_loader, context_compressor, skill_loader）
 │   ├── cache/                  # FTS5 索引（code_search, fact_cache, llm_result_cache）
-│   ├── store/                  # 数据存储（core, judge, events, dashboard）
+│   ├── store/                  # 数据存储（SQLite 统一存储层）
 │   ├── tracking/               # Bug 案例 + Skill Evolution（skill_factory, bug_case_generator）
 │   ├── memory/                 # 记忆层（memory_layer, knowledge_network, compress_hooks）
 │   ├── security/               # 安全扫描（content_scanner, tool_permissions）
@@ -174,7 +174,7 @@ dev-quality-gate/
 │   ├── risk-and-exception-catalog.md  # 风险与异常分类目录（Java DDD+TMF）
 │   └── risk-catalog-risks.md          # 风险分类目录（R-* 类型）
 ├── scripts/                    # 工具脚本（飞书抓取等）
-├── tests/                      # 374 个 pytest 用例
+├── tests/                      # pytest 用例
 ├── pyproject.toml              # 工程配置（ruff + pytest + hatch）
 └── output/                     # 项目产出目录（output/<project_id>/<phase_dir>/）
 ```
@@ -190,7 +190,7 @@ dev-quality-gate/
 
 ```bash
 # 新项目接入时直接选 profile
-dqg-run PROJ --profile java-ddd-tmf execute A
+dqg-run PROJ --profile java-ddd-tmf execute Q01
 dqg-run PROJ --profile go-service auto
 ```
 
@@ -251,7 +251,7 @@ ruff check src/ tests/ && pytest tests/ -q
 
 ## 可观测与告警
 
-轻量看板（日报/周报）和可观测告警可通过 `dqg-observe` 生成：
+Streamlit 看板内置"可观测性"页面，实时展示告警历史、日报/周报摘要和指标趋势。`finalize` 成功后自动刷新指标，也可通过 CLI 手动生成：
 
 ```bash
 # 生成日报（JSON + Markdown）

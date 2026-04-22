@@ -92,6 +92,8 @@
 - Prometheus 快照导出  
 - 周报聚合失败样例趋势（误报/漏报/边界/弱文档）  
 - 新告警：`FAILURE_LIBRARY_REGRESSION`（失败样例回归退化）
+- Dashboard 打通：observe 告警入 SQLite，总览页合并展示，新增"可观测性"页面
+- finalize 后自动触发 observe 日报更新，保持 dashboard 数据实时
 
 仍需推进（P1）：
 
