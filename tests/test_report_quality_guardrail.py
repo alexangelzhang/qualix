@@ -11,6 +11,10 @@ from dqg.quality.report_quality_checks import (
     check_open_decision_owner,
     check_source_annotations,
 )
+from dqg.quality.fabrication_detector import (
+    FabricationDetectorGuardrail,
+    _extract_java_identifiers,
+)
 from dqg.quality.semantic_guardrail import ReportSemanticGuardrail
 from dqg.quality.guardrail import GuardrailContext
 
@@ -327,3 +331,66 @@ class TestIsolatedAnalysis:
         results = g.check(ctx)
         warnings = [r for r in results if not r.passed and "孤立分析" in r.message]
         assert len(warnings) == 0
+
+
+# ---------------------------------------------------------------------------
+# fabrication_detector
+# ---------------------------------------------------------------------------
+
+
+class TestExtractJavaIdentifiers:
+    def test_extracts_class_names(self):
+        text = "OrderService 调用 PaymentGateway 处理支付"
+        ids = _extract_java_identifiers(text)
+        assert "OrderService" in ids["class"]
+        assert "PaymentGateway" in ids["class"]
+
+    def test_extracts_method_calls(self):
+        text = "orderService.createOrder(param) 和 paymentGateway.processPayment()"
+        ids = _extract_java_identifiers(text)
+        assert "createOrder" in ids["method"]
+        assert "processPayment" in ids["method"]
+
+    def test_extracts_getters(self):
+        text = "调用 getOrderStatus 获取状态"
+        ids = _extract_java_identifiers(text)
+        assert "getOrderStatus" in ids["method"]
+
+    def test_ignores_short_names(self):
+        text = "a.b() 和 Xy 不应被提取"
+        ids = _extract_java_identifiers(text)
+        assert len(ids["class"]) == 0
+        assert len(ids["method"]) == 0
+
+
+class TestFabricationDetectorGuardrail:
+    def test_skips_non_code_phases(self):
+        g = FabricationDetectorGuardrail()
+        ctx = _make_ctx("Q01", report="OrderService 处理订单")
+        results = g.check(ctx)
+        assert len(results) == 0
+
+    def test_skips_empty_report(self):
+        g = FabricationDetectorGuardrail()
+        ctx = _make_ctx("Q07", report="")
+        results = g.check(ctx)
+        assert len(results) == 0
+
+    def test_skips_whitelisted_classes(self):
+        g = FabricationDetectorGuardrail()
+        # Only whitelisted Spring/Java classes
+        ctx = _make_ctx("Q07", report="RestController 和 BigDecimal 和 Optional 使用正确")
+        results = g.check(ctx)
+        # Should not flag whitelisted items
+        fabrication_warnings = [r for r in results if r.guardrail_name == "fabrication_detector"]
+        assert len(fabrication_warnings) == 0
+
+    def test_no_false_positive_without_index(self):
+        """无 code_symbols 索引时不应误报."""
+        g = FabricationDetectorGuardrail()
+        # 大量未知类名但无索引 → 应跳过（ratio > 0.8 且 found_in_db 为空）
+        report = "FooBarService 调用 BazQuxController 和 XyzRepository 处理 AbcHandler"
+        ctx = _make_ctx("Q07", report=report)
+        results = g.check(ctx)
+        fabrication_warnings = [r for r in results if r.guardrail_name == "fabrication_detector"]
+        assert len(fabrication_warnings) == 0

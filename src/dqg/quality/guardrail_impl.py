@@ -16,6 +16,7 @@ from dqg.quality.guardrail import (
     GuardrailResult,
     PhaseGuardrail,
 )
+from dqg.quality.fabrication_detector import FabricationDetectorGuardrail
 from dqg.quality.semantic_guardrail import ReportSemanticGuardrail
 
 
@@ -131,6 +132,7 @@ DEFAULT_OUTPUT_GUARDRAILS: list[PhaseGuardrail] = [
     PhaseConstraintsGuardrail(),
     RuleComplianceGuardrail(),
     ReportSemanticGuardrail(),
+    FabricationDetectorGuardrail(),
 ]
 
 
