@@ -13,15 +13,15 @@ from typing import Final
 # Phase 元数据
 # ---------------------------------------------------------------------------
 
-# Phase ID → 目录后缀（目录名保持不变，只改 key）
+# Phase ID → 目录名（Q 系列统一命名）
 PHASE_DIR_MAP: Final = MappingProxyType({
-    "Q01": "phaseA",
-    "Q02": "phaseA3",
-    "Q03": "phaseA6",
-    "Q04": "phaseA5",
-    "Q05": "phaseB",
-    "Q06": "phaseC",
-    "Q07": "phaseD",
+    "Q01": "Q01",
+    "Q02": "Q02",
+    "Q03": "Q03",
+    "Q04": "Q04",
+    "Q05": "Q05",
+    "Q06": "Q06",
+    "Q07": "Q07",
 })
 
 # Phase ID → 结构化 JSON 文件名（文件名保持不变，只改 key）

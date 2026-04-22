@@ -114,6 +114,7 @@ def _ingest_one_document(
     save_raw_blocks: bool,
     asset_retries: int,
     include_raw_image_keys: bool,
+    use_larkkit: bool = True,
 ) -> dict[str, Any]:
     """Ingest a single document and return its node dict."""
     node: dict[str, Any] = {
@@ -139,6 +140,7 @@ def _ingest_one_document(
             save_raw_blocks=save_raw_blocks,
             asset_retries=asset_retries,
             include_raw_image_keys=include_raw_image_keys,
+            use_larkkit=use_larkkit,
         )
         node.update({
             "status": "ok",
@@ -170,6 +172,7 @@ def _run_batch_ingestion(
     save_raw_blocks: bool,
     asset_retries: int,
     include_raw_image_keys: bool,
+    use_larkkit: bool = True,
 ) -> list[dict[str, Any]]:
     """Run parallel document ingestion for a batch."""
     workers = min(max_doc_workers, len(job_contexts))
@@ -183,7 +186,7 @@ def _run_batch_ingestion(
             pool.submit(
                 _ingest_one_document, ctx, client, get_code_language,
                 prefer_user_token, download_images, save_raw_blocks,
-                asset_retries, include_raw_image_keys,
+                asset_retries, include_raw_image_keys, use_larkkit,
             ): i
             for i, ctx in enumerate(job_contexts)
         }
@@ -209,6 +212,7 @@ def crawl_documents(
     max_depth: int,
     max_docs: int,
     max_doc_workers: int = _DEFAULT_DOC_WORKERS,
+    use_larkkit: bool = True,
 ) -> dict[str, Any]:
     """Crawl Feishu documents with recursive mention traversal."""
     root_url_norm, root_scheme, root_host, ingest_subdir, docs_dir = _setup_directories(
@@ -251,7 +255,7 @@ def crawl_documents(
         batch_results = _run_batch_ingestion(
             job_contexts, max_doc_workers, client, get_code_language,
             prefer_user_token, download_images, save_raw_blocks,
-            asset_retries, include_raw_image_keys,
+            asset_retries, include_raw_image_keys, use_larkkit,
         )
         current_batch = _process_batch_results(
             job_contexts, batch_results, nodes, edges,

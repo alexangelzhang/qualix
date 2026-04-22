@@ -21,6 +21,7 @@ def main() -> int:
     parser.add_argument("--prefer-tenant-token", action="store_true")
     parser.add_argument("--max-depth", type=int, default=1)
     parser.add_argument("--max-docs", type=int, default=50)
+    parser.add_argument("--no-larkkit", action="store_true", help="禁用 larkkit，走自建 API")
     args = parser.parse_args()
 
     prefer_user_token = not args.prefer_tenant_token
@@ -46,6 +47,7 @@ def main() -> int:
         canonicalize_mentions=True,
         max_depth=args.max_depth,
         max_docs=args.max_docs,
+        use_larkkit=not args.no_larkkit,
     )
 
     print(dump_json_str(result))

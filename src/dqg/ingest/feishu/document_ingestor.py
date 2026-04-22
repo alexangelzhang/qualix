@@ -18,6 +18,7 @@ from dqg.ingest.feishu.bitable_ingest import ingest_bitable
 from dqg.ingest.feishu.block_parser import collect_mention_docs
 from dqg.ingest.common import RAW_IMAGE_KEY_PATTERN, REQUEST_TIMEOUT_SECONDS, info, warn
 from dqg.ingest.error_strategy import classify_error
+from dqg.ingest.feishu.larkkit_ingest import ingest_via_larkkit
 from dqg.ingest.feishu.segment_builder import build_segments_and_assets
 
 if TYPE_CHECKING:
@@ -72,9 +73,24 @@ def ingest_single_document(
     save_raw_blocks: bool,
     asset_retries: int,
     include_raw_image_keys: bool,
+    use_larkkit: bool = True,
 ) -> dict[str, Any]:
     output_dir.mkdir(parents=True, exist_ok=True)
     normalized_input_url = normalize_url(input_url)
+
+    # larkkit 主路径：文本/评论/表格走 larkkit CLI，图片走现有方案
+    if use_larkkit:
+        try:
+            result = ingest_via_larkkit(
+                url=input_url,
+                output_dir=output_dir,
+                use_user_token=prefer_user_token,
+            )
+            info(f"[larkkit] 文档摄入成功: {result.get('title', '')}")
+            return result
+        except Exception as exc:
+            warn(f"[larkkit] 摄入失败，回退到自建 API: {exc}")
+            # fallback 到下面的自建路径
 
     resolved = resolve_input_doc(client, normalized_input_url, prefer_user_token)
     document_id = str(resolved["resolved_doc_id"])
