@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 import re
+from pathlib import Path
 from typing import Any, Final
 from types import MappingProxyType
 
@@ -63,11 +64,10 @@ def map_asserts_to_semantics(
 
 
 def load_se_from_phase_a(
-    output_dir: Any,
+    output_dir: str | Path,
     project_id: str,
 ) -> list[dict[str, Any]]:
     """从 Phase A 结构化产物加载 SE 列表."""
-    from pathlib import Path
     phase_a_json = Path(output_dir) / project_id / PHASE_DIR_MAP["Q01"] / STRUCTURED_JSON_MAP["Q01"]
     if not phase_a_json.exists():
         return []
@@ -78,11 +78,10 @@ def load_se_from_phase_a(
 
 
 def load_eut_from_phase_b(
-    output_dir: Any,
+    output_dir: str | Path,
     project_id: str,
 ) -> list[dict[str, Any]]:
     """从 Phase B 结构化产物加载 EUT 列表."""
-    from pathlib import Path
     phase_b_json = Path(output_dir) / project_id / PHASE_DIR_MAP["Q05"] / STRUCTURED_JSON_MAP["Q05"]
     if not phase_b_json.exists():
         return []

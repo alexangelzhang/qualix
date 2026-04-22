@@ -11,7 +11,10 @@ from __future__ import annotations
 
 from pathlib import Path
 from types import MappingProxyType
-from typing import Any, Final
+from typing import TYPE_CHECKING, Any, Final
+
+if TYPE_CHECKING:
+    from pydantic import BaseModel
 
 from pydantic import ValidationError
 
@@ -102,7 +105,7 @@ def auto_derive_checks(
     return errors
 
 
-def _check_cross_references(validated: Any, phase_id: str) -> list[str]:
+def _check_cross_references(validated: BaseModel, phase_id: str) -> list[str]:
     """检查 related_ids 是否指向存在的 ID."""
     errors: list[str] = []
 
@@ -133,7 +136,7 @@ def _check_cross_references(validated: Any, phase_id: str) -> list[str]:
     return errors
 
 
-def _check_severity_annotations(validated: Any, phase_id: str) -> list[str]:
+def _check_severity_annotations(validated: BaseModel, phase_id: str) -> list[str]:
     """检查有 severity 字段的条目是否都标注了严重等级."""
     errors: list[str] = []
 

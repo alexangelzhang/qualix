@@ -18,6 +18,10 @@
 
 from __future__ import annotations
 
+from dqg.log import get_logger
+
+log = get_logger(__name__)
+
 from typing import TYPE_CHECKING, Any
 
 from dqg.json_utils import dump_json_str
@@ -135,6 +139,7 @@ def index_project_facts(output_dir: Path, project_id: str, phase_id: str) -> int
                 (project_id, phase_id),
             ).fetchall()
         except Exception:
+            log.warning("index_project_facts failed for %s/%s", project_id, phase_id, exc_info=True)
             return 0
 
     count = 0
@@ -165,6 +170,7 @@ def index_bug_cases(output_dir: Path) -> int:
 
         cases = load_cases()
     except Exception:
+        log.warning("index_bug_cases: failed to load cases", exc_info=True)
         return 0
 
     count = 0

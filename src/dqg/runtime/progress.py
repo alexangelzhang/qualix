@@ -13,6 +13,7 @@ from typing import Any
 from dqg.core.state_machine import (
     PHASE_DEFS,
     PHASE_ORDER,
+    ProjectState,
     PhaseStatus,
     load_state,
 )
@@ -188,7 +189,7 @@ def _count_artifacts(data: dict[str, Any], phase_id: str) -> dict[str, int]:
     return counts
 
 
-def _suggest_next_steps(state: Any, phase_id: str) -> list[str]:
+def _suggest_next_steps(state: ProjectState, phase_id: str) -> list[str]:
     """根据当前 Phase 状态建议下一步."""
     ps = state.phases.get(phase_id)
     if not ps:
@@ -212,7 +213,7 @@ def _suggest_next_steps(state: Any, phase_id: str) -> list[str]:
     return steps
 
 
-def _suggest_project_next(state: Any) -> list[str]:
+def _suggest_project_next(state: ProjectState) -> list[str]:
     """项目级下一步建议."""
     from dqg.core.state_machine import get_available_phases
     available = get_available_phases(state)

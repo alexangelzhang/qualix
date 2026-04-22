@@ -4,10 +4,13 @@ from __future__ import annotations
 
 import time
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from dqg.json_utils import dump_json_str
 from dqg.store.core import get_connection
+
+if TYPE_CHECKING:
+    from dqg.schemas.rsm import CoverageReport
 
 
 def _ensure_table(output_dir: Path) -> None:
@@ -42,7 +45,7 @@ def save_coverage_snapshot(
     output_dir: Path,
     project_id: str,
     phase_id: str,
-    coverage_report: Any,
+    coverage_report: CoverageReport,
 ) -> None:
     """保存一次覆盖率快照."""
     _ensure_table(output_dir)

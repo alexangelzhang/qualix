@@ -13,6 +13,7 @@ from dqg.core.state_machine import (
     PHASE_DEFS,
     PHASE_ORDER,
     PhaseStatus,
+    ProjectState,
     load_state,
 )
 from dqg.core.state_machine import (
@@ -141,7 +142,7 @@ def format_orientation(orientation: dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
-def _build_basic_progress(state: Any) -> dict[str, Any]:
+def _build_basic_progress(state: ProjectState) -> dict[str, Any]:
     """从 state 构建基本进度信息（没有 _progress.json 时的 fallback）."""
     phases = []
     for pid in PHASE_ORDER:
@@ -168,7 +169,7 @@ def _build_basic_progress(state: Any) -> dict[str, Any]:
     }
 
 
-def _find_last_active_phase(state: Any) -> str | None:
+def _find_last_active_phase(state: ProjectState) -> str | None:
     """找到最近活跃的 Phase（按时间倒序）."""
     candidates: list[tuple[str, str]] = []
     for pid in PHASE_ORDER:
@@ -185,7 +186,7 @@ def _find_last_active_phase(state: Any) -> str | None:
     return candidates[0][1]
 
 
-def _compute_next_actions(state: Any) -> list[str]:
+def _compute_next_actions(state: ProjectState) -> list[str]:
     """计算下一步建议."""
     from dqg.core.state_machine import get_available_phases
 
