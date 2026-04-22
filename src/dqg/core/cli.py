@@ -18,7 +18,6 @@ import subprocess
 import sys
 from pathlib import Path
 
-
 from dqg.constants import DASHBOARD_PID_FILE as _DASHBOARD_PID_FILE
 from dqg.constants import DASHBOARD_PORT as _DASHBOARD_PORT
 
@@ -81,7 +80,7 @@ def _cmd_init(args: argparse.Namespace) -> int:
 
     # streamlit
     try:
-        import streamlit  # noqa: F401
+        import streamlit
         print(f"   streamlit: {streamlit.__version__}")
     except ImportError:
         print("   streamlit: 未安装，执行 `pip install streamlit`")
@@ -235,7 +234,8 @@ def _cmd_dashboard(args: argparse.Namespace) -> int:
 # ---------------------------------------------------------------------------
 
 def _cmd_version(_args: argparse.Namespace) -> int:
-    print("dev-quality-gate 0.1.0")
+    from dqg.commands.setup import DQG_VERSION
+    print(f"DQG (Dev Quality Gate) v{DQG_VERSION}")
     return 0
 
 
@@ -248,9 +248,7 @@ def _cmd_experiment(args: argparse.Namespace) -> int:
 def _cmd_cache(args) -> int:
     """dqg cache export <project_id> [--phase Q01] [--output path]"""
     from dqg.cache.fact_cache import export_facts_to_markdown
-    from dqg.constants import PHASE_DIR_MAP
     from dqg.core.phase_registry import PHASE_DEFS
-    from dqg.store import get_connection
 
     output_dir = _output_dir()
     project_id = args.project_id
@@ -280,9 +278,8 @@ def _cmd_cache(args) -> int:
     return 0
 
 
-def _export_semantic_cache(output_dir, project_id: str, output_path: str | None) -> "Path | None":
+def _export_semantic_cache(output_dir, project_id: str, output_path: str | None) -> Path | None:
     """导出 semantic_cache 为 Markdown 快照."""
-    import json
     from datetime import datetime
     from pathlib import Path
 
@@ -360,7 +357,7 @@ def main() -> int:
 
     # experiment
     p_exp = sub.add_parser("experiment", help="Skill 自动迭代实验")
-    p_exp.add_argument("phase", help="Phase ID (A, A.5, A.6, C, D)")
+    p_exp.add_argument("phase", help="Phase ID (Q01-Q07)")
     p_exp.add_argument("exp_action", nargs="?", default="start", choices=["start", "log", "persist"])
     p_exp.add_argument("--cycle", type=int, default=1, help="实验轮次")
     p_exp.add_argument("--benchmark", default="", help="Benchmark case ID")

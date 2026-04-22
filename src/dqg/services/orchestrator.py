@@ -315,7 +315,7 @@ def main():
     parser.add_argument("project_id", nargs="?", help="项目 ID（如 KMgHd）")
     parser.add_argument("--next", action="store_true", help="显示下一步操作")
     parser.add_argument("--status", action="store_true", help="仅显示状态看板")
-    parser.add_argument("--skip", nargs="*", default=[], help="跳过指定阶段（如 A.6）")
+    parser.add_argument("--skip", nargs="*", default=[], help="跳过指定阶段（如 Q03）")
     parser.add_argument("--list-projects", action="store_true", help="列出所有项目")
     parser.add_argument("--base-dir", default=".", help="项目根目录")
 

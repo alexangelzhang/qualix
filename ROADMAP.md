@@ -109,6 +109,7 @@
 - Worker 经验结晶（`context/skill_crystal.py`）— 从高分执行（score>=4.0）提取成功模式，结晶为可复用模板注入后续同 Phase 执行
 - DAG Preflight 增强（`runtime/preflight.py`）— 上游产物完整性检查（report + structured JSON 非空）+ 级联失败阻断（上游 tainted/parse_failed 时阻断下游），DAG 调度器每个 Phase 执行前自动运行
 - 静默失败修复（`runtime/handlers_finalize.py`）— `_async_write_json` 和 `_emit_handler` 的 `except: pass` 改为 `log.debug` 记录失败原因，消除调试盲区
+- CLI 命令整合 — 砍掉 4 个孤儿 entry point（dqg-orchestrate/dqg-metrics/dqg-observe/dqg-regression），收编为 `dqg-run` 子命令（metrics/observe/regression）；统一 Phase ID help 文本为 Q01-Q07；`dqg version` 去重委托 setup.py
 
 仍需推进（P1）：
 

@@ -9,6 +9,26 @@ dev-quality-gate（DQG）是研发质量门禁框架，由 7 个 AI Agent 驱动
 - `/dqg-starter` — 快速启动（command 文件自包含启动逻辑）
 - `dqg-run <project_id> startup` — CLI 启动
 
+### CLI 命令结构
+
+两个入口：`dqg`（全局命令，无需 project_id）和 `dqg-run`（项目命令）。
+
+```
+dqg                              # 全局命令
+├── init / dashboard / version / experiment / cache
+
+dqg-run <project_id>             # 项目命令
+├── phase:   execute / finalize / approve / skip / reset / auto / dag
+├── review:  judge / critique / preference / golden
+├── query:   status / next / detail / log / startup
+├── ops:     metrics / observe / regression
+├── tools:   wiki-compile / wiki-lint / orchestrate / cache
+├── agent:   agent-run / adaptive
+└── setup:   init / doctor / update / version
+```
+
+Phase ID 统一使用 Q01-Q07（旧 ID A/A.3/A.5/A.6/B/C/D 仍兼容）。
+
 ## Phase 流程
 
 | Phase | 名称 | Skill 文件 | 依赖 | 备注 |

@@ -127,7 +127,7 @@ dqg-run PROJ auto --skip Q03                  # 跳过某 Phase
 dqg-run PROJ log
 
 # 度量采集
-dqg-metrics PROJ
+dqg-run PROJ metrics
 ```
 
 ## 项目结构
@@ -255,13 +255,13 @@ Streamlit 看板内置"可观测性"页面，实时展示告警历史、日报/�
 
 ```bash
 # 生成日报（JSON + Markdown）
-dqg-observe report --period daily
+dqg-run PROJ observe report --period daily
 
 # 生成周报，并按项目/Phase 过滤
-dqg-observe report --period weekly --project rights-platform --phase Q03
+dqg-run PROJ observe report --period weekly --project rights-platform --phase Q03
 
 # 每日任务：生成日报 + 写入历史指标仓 + 告警输出（建议配合 cron）
-dqg-observe daily
+dqg-run PROJ observe daily
 ```
 
 输出目录：
@@ -269,7 +269,7 @@ dqg-observe daily
 - 报告：`observability/reports/<daily|weekly>/*.json|*.md`
 - 指标仓：`observability/metrics_history.jsonl`
 - 告警：`observability/alerts/*.json|*.md`
-- Prometheus：`observability/prometheus/*.prom`（`dqg-observe daily` 自动产出）
+- Prometheus：`observability/prometheus/*.prom`（`dqg-run PROJ observe daily` 自动产出）
 
 当前指标覆盖：
 
@@ -284,7 +284,7 @@ dqg-observe daily
 - `PHASE_FAILURE_RATE`
 - `FAILURE_LIBRARY_REGRESSION`（失败样例回归退化）
 
-周报会额外聚合失败样例库趋势（如果已执行过 `dqg-regression run`）：
+周报会额外聚合失败样例库趋势（如果已执行过 `dqg-run PROJ regression run`）：
 
 - `误报`
 - `漏报`
@@ -344,10 +344,10 @@ pytest tests/integration/test_feishu_ingest_snapshot.py -q
 
 ```bash
 # 跑全量基准回放集
-dqg-regression run
+dqg-run PROJ regression run
 
 # 只跑某个样本
-dqg-regression run --case rights-platform
+dqg-run PROJ regression run --case rights-platform
 ```
 
 当前内置样本：
@@ -364,13 +364,13 @@ dqg-regression run --case rights-platform
 - `回归`：基线中存在、当前输出缺失
 - `偏移`：文件仍存在，但内容发生变化
 
-若任一回放 case 不通过，`dqg-regression run` 会返回非 0，可直接用于规则改动后的回归门禁。
+若任一回放 case 不通过，`dqg-run PROJ regression run` 会返回非 0，可直接用于规则改动后的回归门禁。
 
 失败样例库趋势统计：
 
 ```bash
 # 周维度统计误报/漏报趋势
-dqg-regression trend --period weekly
+dqg-run PROJ regression trend --period weekly
 ```
 
 相关产物：

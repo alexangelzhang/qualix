@@ -19,10 +19,6 @@ dev = [
 [project.scripts]
 dqg = "dqg.core.cli:main"
 dqg-run = "dqg.core.runner:main"
-dqg-orchestrate = "dqg.services.orchestrator:main"
-dqg-metrics = "dqg.reporting.collect_metrics:main"
-dqg-observe = "dqg.reporting.observability:main"
-dqg-regression = "dqg.tracking.regression:main"
 
 [build-system]
 requires = ["hatchling"]

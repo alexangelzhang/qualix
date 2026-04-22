@@ -8,6 +8,8 @@
     dqg-run <project_id> status              # 查看状态看板
     dqg-run <project_id> next                # 显示下一步可执行的 Phase
     dqg-run <project_id> log                 # 查看执行记录
+
+Phase ID: Q01-Q07（旧 ID A/A.3/A.5/A.6/B/C/D 仍兼容）
 """
 
 from __future__ import annotations
@@ -16,7 +18,12 @@ import argparse
 import sys
 from pathlib import Path
 
-from dqg.constants import DEFAULT_ADAPTIVE_JUDGE_MODELS, DEFAULT_FALLBACK_MODEL, DEFAULT_JUDGE_MODEL, DEFAULT_PRIMARY_MODEL
+from dqg.constants import (
+    DEFAULT_ADAPTIVE_JUDGE_MODELS,
+    DEFAULT_FALLBACK_MODEL,
+    DEFAULT_JUDGE_MODEL,
+    DEFAULT_PRIMARY_MODEL,
+)
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -34,7 +41,7 @@ def _build_parser() -> argparse.ArgumentParser:
 
     # execute
     p_exec = sub.add_parser("execute", help="启动 Phase")
-    p_exec.add_argument("phase", help="Phase ID (A, A.5, A.6, B, C, D)")
+    p_exec.add_argument("phase", help="Phase ID (Q01-Q07)")
     p_exec.add_argument("--model", "-m", default=None, help="模型名称（自动计算 token budget）")
     p_exec.add_argument("--code-repo", default=None, help="代码仓库路径（Phase C/D 增量分析用）")
     p_exec.add_argument("--base-branch", default="master", help="基线分支（默认 master）")
@@ -80,7 +87,7 @@ def _build_parser() -> argparse.ArgumentParser:
     # auto
     p_auto = sub.add_parser("auto", help="全自动推进 pipeline（每个 Phase 暂停等 approve）")
     p_auto.add_argument("--model", "-m", default=None, help="模型名称")
-    p_auto.add_argument("--skip", nargs="*", default=[], help="跳过指定 Phase（如 A.6）")
+    p_auto.add_argument("--skip", nargs="*", default=[], help="跳过指定 Phase（如 Q03）")
 
     # judge
     p_judge = sub.add_parser("judge", help="查看/触发 Phase 质量评审")
@@ -122,7 +129,7 @@ def _build_parser() -> argparse.ArgumentParser:
 
     # dag
     p_dag = sub.add_parser("dag", help="DAG 并行调度: 全自动推进所有可执行 Phase")
-    p_dag.add_argument("--skip", nargs="*", default=[], help="跳过指定 Phase（如 A.6 B）")
+    p_dag.add_argument("--skip", nargs="*", default=[], help="跳过指定 Phase（如 Q03 Q05）")
     p_dag.add_argument("--max-parallel", type=int, default=3, help="最大并行数（默认 3）")
     p_dag.add_argument("--mode", choices=["agent-run", "adaptive"], default="adaptive", help="执行模式（默认 adaptive）")
     p_dag.add_argument("--primary", default=DEFAULT_PRIMARY_MODEL, help="Worker 模型")
@@ -147,18 +154,40 @@ def _build_parser() -> argparse.ArgumentParser:
     # version
     sub.add_parser("version", help="显示 DQG 版本号")
 
+    # --- ops: metrics / observe / regression ---
+
+    # metrics
+    sub.add_parser("metrics", help="度量自动采集（原 dqg-metrics）")
+
+    # observe
+    p_observe = sub.add_parser("observe", help="可观测性报告/告警（原 dqg-observe）")
+    p_observe.add_argument("observe_action", nargs="?", default="report", choices=["report", "daily"])
+    p_observe.add_argument("--period", choices=["daily", "weekly"], default="daily")
+    p_observe.add_argument("--date", default=None, help="锚点日期 YYYY-MM-DD")
+    p_observe.add_argument("--project", default=None, help="项目过滤")
+    p_observe.add_argument("--phase", default=None, help="Phase 过滤")
+    p_observe.add_argument("--block-spike-ratio", type=float, default=2.0, help="BLOCK 激增阈值倍数")
+    p_observe.add_argument("--phase-failure-threshold", type=float, default=0.5, help="Phase 失败率阈值")
+
+    # regression
+    p_regr = sub.add_parser("regression", help="回归测试（原 dqg-regression）")
+    p_regr.add_argument("regression_action", nargs="?", default="run", choices=["run", "trend"])
+    p_regr.add_argument("--case", dest="case_id", default=None, help="只运行指定 case")
+    p_regr.add_argument("--period", choices=["weekly"], default="weekly")
+    p_regr.add_argument("--output-dir", dest="regression_output_dir", default=None, help="输出目录")
+
     return parser
 
 
 def _dispatch(cmd: str) -> callable:
     """按需导入并返回命令处理函数."""
     if cmd in ("execute", "finalize", "approve", "skip", "reset", "auto"):
-        from dqg.commands.phase import cmd_execute, cmd_finalize, cmd_approve, cmd_skip, cmd_auto, cmd_reset
+        from dqg.commands.phase import cmd_approve, cmd_auto, cmd_execute, cmd_finalize, cmd_reset, cmd_skip
         return {"execute": cmd_execute, "finalize": cmd_finalize, "approve": cmd_approve,
                 "skip": cmd_skip, "reset": cmd_reset, "auto": cmd_auto}[cmd]
 
     if cmd in ("status", "next", "log", "detail"):
-        from dqg.commands.query import cmd_status, cmd_next, cmd_detail, cmd_log
+        from dqg.commands.query import cmd_detail, cmd_log, cmd_next, cmd_status
         return {"status": cmd_status, "next": cmd_next, "log": cmd_log, "detail": cmd_detail}[cmd]
 
     if cmd == "startup":
@@ -166,12 +195,12 @@ def _dispatch(cmd: str) -> callable:
         return cmd_startup
 
     if cmd in ("judge", "critique", "preference", "golden"):
-        from dqg.commands.review import cmd_judge, cmd_critique, cmd_preference, cmd_golden
+        from dqg.commands.review import cmd_critique, cmd_golden, cmd_judge, cmd_preference
         return {"judge": cmd_judge, "critique": cmd_critique,
                 "preference": cmd_preference, "golden": cmd_golden}[cmd]
 
     if cmd in ("orchestrate", "agent-run", "adaptive", "dag"):
-        from dqg.commands.agents import cmd_orchestrate, cmd_agent_run, cmd_adaptive, cmd_dag
+        from dqg.commands.agents import cmd_adaptive, cmd_agent_run, cmd_dag, cmd_orchestrate
         return {"orchestrate": cmd_orchestrate, "agent-run": cmd_agent_run,
                 "adaptive": cmd_adaptive, "dag": cmd_dag}[cmd]
 
@@ -180,9 +209,14 @@ def _dispatch(cmd: str) -> callable:
         return {"wiki-compile": cmd_wiki_compile, "wiki-lint": cmd_wiki_lint}[cmd]
 
     if cmd in ("init", "doctor", "update", "version"):
-        from dqg.commands.setup import cmd_init, cmd_doctor, cmd_update, cmd_version
+        from dqg.commands.setup import cmd_doctor, cmd_init, cmd_update, cmd_version
         return {"init": cmd_init, "doctor": cmd_doctor,
                 "update": cmd_update, "version": cmd_version}[cmd]
+
+    if cmd in ("metrics", "observe", "regression"):
+        from dqg.commands.ops import cmd_metrics, cmd_observe, cmd_regression
+        return {"metrics": cmd_metrics, "observe": cmd_observe,
+                "regression": cmd_regression}[cmd]
 
     return None
 
