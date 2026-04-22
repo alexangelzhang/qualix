@@ -9,13 +9,12 @@
 from __future__ import annotations
 
 import hashlib
-import json
 import re
 import subprocess
 from pathlib import Path
 from typing import Any
 
-from dqg.json_utils import save_json
+from dqg.json_utils import load_json, save_json
 from dqg.log import get_logger
 
 log = get_logger(__name__)
@@ -38,7 +37,7 @@ def _load_call_graph_cache(repo_path: Path) -> dict[str, Any]:
     if not cache_path.exists():
         return {}
     try:
-        return json.loads(cache_path.read_text(encoding="utf-8"))
+        return load_json(cache_path) or {}
     except Exception as e:
         log.debug("Failed to load call graph cache: %s", e)
         return {}
@@ -228,7 +227,13 @@ def compute_blast_radius(
 
     changed_files = get_changed_files(repo_path, base_branch, feature_branch)
     if not changed_files:
-        return {"changed_files": [], "changed_methods": [], "affected_callers": [], "affected_tests": [], "risk_summary": "No Java changes detected"}
+        return {
+            "changed_files": [],
+            "changed_methods": [],
+            "affected_callers": [],
+            "affected_tests": [],
+            "risk_summary": "No Java changes detected",
+        }
 
     # 并行：收集变更方法 + 列出所有 Java 文件
     def _collect_changed_methods():
@@ -331,6 +336,7 @@ def write_blast_radius(
         return None
 
     from dqg.constants import PHASE_DIR_MAP
+
     dir_suffix = PHASE_DIR_MAP.get("Q06", "phaseC")
     phase_c_dir = output_dir / project_id / dir_suffix
     phase_c_dir.mkdir(parents=True, exist_ok=True)

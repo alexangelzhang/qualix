@@ -3,6 +3,7 @@
 Triggered when adaptive loop exhausts all iterations with FAIL.
 Root cause taxonomy: SKILL_RULE / CONTEXT / SCHEMA / UNKNOWN.
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -12,8 +13,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from dqg.constants import CASES_DIR, PHASE_DIR_MAP, SKILL_FILE_MAP, SKILL_AUTO_MERGE_ENABLED
-from dqg.json_utils import save_json
+from dqg.constants import CASES_DIR, PHASE_DIR_MAP, SKILL_AUTO_MERGE_ENABLED, SKILL_FILE_MAP
+from dqg.json_utils import load_json, save_json
 from dqg.log import get_logger
 from dqg.tracking.skill_evolution import HIGH_CONFIDENCE_THRESHOLD
 
@@ -38,7 +39,10 @@ ROOT_CAUSE_CLASSIFY_PROMPT = """你是质量分析专家。以下是一个 AI Ag
 
 
 def compute_case_fingerprint(
-    phase: str, error_type: str, root_cause: str, lesson: str,
+    phase: str,
+    error_type: str,
+    root_cause: str,
+    lesson: str,
 ) -> str:
     """Compute dedupe fingerprint for a failure case."""
     normalized = f"{phase}|{error_type}|{root_cause}|{lesson.strip().lower()}"
@@ -135,7 +139,8 @@ class SkillReflector:
             )
             # Extract JSON from response
             import re
-            m = re.search(r'\{.*\}', content, re.DOTALL)
+
+            m = re.search(r"\{.*\}", content, re.DOTALL)
             if m:
                 data = json.loads(m.group())
                 return (
@@ -171,25 +176,33 @@ class SkillReflector:
             write_schema_hints,
             write_suggestion_file,
         )
+
         root_cause = reflect_result.root_cause
 
         def _suggestion() -> str:
             return write_suggestion_file(
-                self.project_id, self.phase, root_cause,
-                reflect_result.failure_patterns, reflect_result.suggested_changes,
+                self.project_id,
+                self.phase,
+                root_cause,
+                reflect_result.failure_patterns,
+                reflect_result.suggested_changes,
             )
 
         if root_cause == "CONTEXT":
             path = write_context_hints(
-                self.project_id, self.phase,
-                reflect_result.failure_patterns, reflect_result.suggested_changes,
+                self.project_id,
+                self.phase,
+                reflect_result.failure_patterns,
+                reflect_result.suggested_changes,
             )
             return WriteResult(mode="AUTO_APPLY", path=path, changes=reflect_result.suggested_changes)
 
         if root_cause == "SCHEMA":
             path = write_schema_hints(
-                self.project_id, self.phase,
-                reflect_result.failure_patterns, reflect_result.suggested_changes,
+                self.project_id,
+                self.phase,
+                reflect_result.failure_patterns,
+                reflect_result.suggested_changes,
             )
             return WriteResult(mode="AUTO_APPLY", path=path, changes=reflect_result.suggested_changes)
 
@@ -206,8 +219,10 @@ class SkillReflector:
             if not SKILL_AUTO_MERGE_ENABLED:
                 suggestion_path = _suggestion()
                 return WriteResult(
-                    mode="HUMAN_REVIEW", path=suggestion_path,
-                    changes=reflect_result.suggested_changes, target_files=[skill_path],
+                    mode="HUMAN_REVIEW",
+                    path=suggestion_path,
+                    changes=reflect_result.suggested_changes,
+                    target_files=[skill_path],
                 )
 
             # Auto-merge: snapshot → apply → holdout verify → revert if overfitting
@@ -224,14 +239,18 @@ class SkillReflector:
                 log.warning("Auto-merge reverted for %s: holdout overfitting detected", self.phase)
                 suggestion_path = _suggestion()
                 return WriteResult(
-                    mode="REVERTED", path=suggestion_path,
-                    changes=reflect_result.suggested_changes, target_files=[skill_path],
+                    mode="REVERTED",
+                    path=suggestion_path,
+                    changes=reflect_result.suggested_changes,
+                    target_files=[skill_path],
                 )
 
             log.info("Auto-merged skill rules for %s (support=%d)", self.phase, support_count)
             return WriteResult(
-                mode="AUTO_APPLY", path=skill_path,
-                changes=reflect_result.suggested_changes, target_files=[skill_path],
+                mode="AUTO_APPLY",
+                path=skill_path,
+                changes=reflect_result.suggested_changes,
+                target_files=[skill_path],
             )
 
         suggestion_path = _suggestion()
@@ -259,7 +278,9 @@ class SkillReflector:
         case_dir.mkdir(parents=True, exist_ok=True)
 
         fingerprint = compute_case_fingerprint(
-            self.phase, "FN", reflect_result.root_cause,
+            self.phase,
+            "FN",
+            reflect_result.root_cause,
             reflect_result.failure_patterns[0] if reflect_result.failure_patterns else "",
         )
 
@@ -283,7 +304,7 @@ class SkillReflector:
         if not case_path.exists():
             return 1
 
-        current = json.loads(case_path.read_text())
+        current = load_json(case_path)
         fingerprint = current.get("fingerprint", "")
         if not fingerprint:
             return 1
@@ -298,7 +319,7 @@ class SkillReflector:
             if not cf.exists():
                 continue
             try:
-                data = json.loads(cf.read_text())
+                data = load_json(cf)
                 if data.get("fingerprint") == fingerprint:
                     sig = data.get("source_signature", "")
                     if sig:
@@ -357,7 +378,7 @@ class SkillReflector:
             "",
             "### 触发条件",
             f"- 项目: {self.project_id}",
-            f"- Adaptive Loop 全部迭代 FAIL，Judge 健康（SEMANTIC_FAIL）",
+            "- Adaptive Loop 全部迭代 FAIL，Judge 健康（SEMANTIC_FAIL）",
             "",
             "### 根因分类（LLM 推理）",
             f"- **Root Cause**: `{reflect_result.root_cause}`",

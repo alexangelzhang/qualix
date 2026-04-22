@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from pathlib import Path
-
 import pandas as pd
 import streamlit as st
 
@@ -13,14 +11,15 @@ from .constants import OUTPUT_DIR
 
 def _load_observe_reports(period: str = "daily") -> list[dict]:
     """从文件系统加载 observe 报告列表."""
-    import json
+    from dqg.json_utils import load_json
+
     report_dir = OUTPUT_DIR.parent / "observability" / "reports" / period
     if not report_dir.exists():
         return []
     reports = []
     for f in sorted(report_dir.glob("*.json"), reverse=True)[:10]:
         try:
-            data = json.loads(f.read_text(encoding="utf-8"))
+            data = load_json(f)
             reports.append(data)
         except Exception:
             pass
@@ -39,7 +38,9 @@ def _page_observability():
             st.info("暂无 observe 告警。运行 `dqg observability daily` 生成。")
         else:
             df = pd.DataFrame(alerts)
-            display_cols = [c for c in ["label", "severity", "rule", "project_id", "phase", "message"] if c in df.columns]
+            display_cols = [
+                c for c in ["label", "severity", "rule", "project_id", "phase", "message"] if c in df.columns
+            ]
             if display_cols:
                 # 按 severity 着色
                 st.dataframe(
@@ -72,14 +73,16 @@ def _page_observability():
                     if projects:
                         rows = []
                         for p in projects:
-                            rows.append({
-                                "Project": p.get("project_id", ""),
-                                "Approval Rate": f"{p.get('phase_approval_rate', 0):.0%}",
-                                "Avg Duration(s)": f"{p.get('avg_duration_seconds', 0):.1f}",
-                                "GAP Closure": f"{p.get('gap_closure_rate', 0):.0%}",
-                                "BLOCK": p.get("block_count", 0),
-                                "Finalized": p.get("finalized", 0),
-                            })
+                            rows.append(
+                                {
+                                    "Project": p.get("project_id", ""),
+                                    "Approval Rate": f"{p.get('phase_approval_rate', 0):.0%}",
+                                    "Avg Duration(s)": f"{p.get('avg_duration_seconds', 0):.1f}",
+                                    "GAP Closure": f"{p.get('gap_closure_rate', 0):.0%}",
+                                    "BLOCK": p.get("block_count", 0),
+                                    "Finalized": p.get("finalized", 0),
+                                }
+                            )
                         st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
 
     # --- 指标趋势 ---
@@ -105,15 +108,15 @@ def _page_observability():
 
 def _load_metrics_history() -> list[dict]:
     """加载 observe 指标历史."""
+    import contextlib
     import json
+
     path = OUTPUT_DIR.parent / "observability" / "metrics_history.jsonl"
     if not path.exists():
         return []
     rows = []
     for line in path.read_text(encoding="utf-8").splitlines():
         if line.strip():
-            try:
+            with contextlib.suppress(Exception):
                 rows.append(json.loads(line))
-            except Exception:
-                pass
     return rows

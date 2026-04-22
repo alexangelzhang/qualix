@@ -2,9 +2,8 @@
 
 from __future__ import annotations
 
-import json
 import re
-from pathlib import Path
+from pathlib import Path  # noqa: TC003 — used at runtime in function signatures
 
 from dqg.log import get_logger
 
@@ -19,20 +18,23 @@ def _extract_json_block(content: str) -> str | None:
     start = content.find("{")
     end = content.rfind("}")
     if start >= 0 and end > start:
-        return content[start:end + 1]
+        return content[start : end + 1]
     return None
 
 
 def extract_and_save_json(
-    content: str, phase_dir: Path, phase_id: str, project_id: str,
+    content: str,
+    phase_dir: Path,
+    phase_id: str,
+    project_id: str,
 ) -> Path | None:
     """从 Worker 输出中提取结构化 JSON，校验后保存.
 
     Returns:
         保存的 JSON 文件路径，提取失败返回 None。
     """
-    from dqg.text_utils import STRUCTURED_JSON_MAP
     from dqg.agents.structured_retry import try_parse_structured_output
+    from dqg.text_utils import STRUCTURED_JSON_MAP
 
     json_file = STRUCTURED_JSON_MAP.get(phase_id)
     if not json_file:
@@ -54,14 +56,18 @@ def extract_and_save_json(
 
     json_path = phase_dir / json_file
     from dqg.json_utils import save_json
+
     save_json(json_path, parsed)
     return json_path
 
 
 def render_report_from_json(
-    json_path: Path, phase_dir: Path, phase_id: str,
+    json_path: Path,
+    phase_dir: Path,
+    phase_id: str,
 ) -> Path | None:
     """从结构化 JSON 渲染 md 报告（JSON 是 source of truth，md 是视图）."""
+    from dqg.json_utils import load_json
     from dqg.reporting.render import render_report
     from dqg.text_utils import REPORT_MAP
 
@@ -69,7 +75,7 @@ def render_report_from_json(
     if not report_file:
         return None
 
-    data = json.loads(json_path.read_text(encoding="utf-8"))
+    data = load_json(json_path)
     md_content = render_report(phase_id, data)
     if not md_content:
         return None
@@ -109,6 +115,7 @@ def process_critique_feedback(content: str, phase_dir: Path, phase_id: str) -> N
 
     try:
         from dqg.schemas.critique_feedback import CritiqueFeedback
+
         feedback = CritiqueFeedback.model_validate(parsed)
     except Exception:
         return
@@ -121,14 +128,17 @@ def process_critique_feedback(content: str, phase_dir: Path, phase_id: str) -> N
     # 保存结构化反馈（供 Adaptive Loop 消费）
     structured_path = phase_dir / "_critique_structured.json"
     from dqg.json_utils import save_json as _save_json
+
     _save_json(structured_path, parsed)
     log.info(
         "Critique feedback: %d actionable items (of %d total)",
-        len(feedback.actionable_items), len(feedback.items),
+        len(feedback.actionable_items),
+        len(feedback.items),
     )
 
     # 闭环1: Critique -> RSM 自动回流
     from dqg.schemas.rsm import apply_mutations, load_rsm, mutations_from_critique, save_rsm
+
     mutations = mutations_from_critique(parsed)
     if mutations:
         output_dir = phase_dir.parent.parent
