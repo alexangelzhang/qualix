@@ -10,7 +10,7 @@ import streamlit as st
 from dqg.tracking.bug_cases import load_cases, summarize_cases
 
 from .constants import OUTPUT_DIR, PHASE_NAMES, STATUS_LABEL
-from .cache import _cached_projects, _cached_summary
+from .cache import _cached_projects, _cached_summary, _cached_observe_alerts
 from .trend import _load_phase_score_history
 
 # ---------------------------------------------------------------------------
@@ -65,6 +65,20 @@ def _compute_alerts(projects: list[str]) -> list[dict]:
 
 def _show_alerts(projects: list[str]) -> None:
     alerts = _compute_alerts(projects)
+
+    # 合并 observe 告警（来自 dqg observability daily）
+    observe_alerts = _cached_observe_alerts()
+    for oa in observe_alerts:
+        level = "error" if oa.get("severity") == "HIGH" else "warning"
+        alerts.append({
+            "level": level,
+            "project": oa.get("project_id", ""),
+            "phase": oa.get("phase", ""),
+            "phase_name": "",
+            "score": None,
+            "msg": f"[{oa.get('rule', '')}] {oa.get('message', '')}",
+        })
+
     if not alerts:
         return
 

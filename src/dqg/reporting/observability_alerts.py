@@ -81,6 +81,12 @@ def write_alerts(output_dir: Path, label: str, alerts: list[dict[str, Any]]) -> 
     json_path = root / f"{label}.json"
     md_path = root / f"{label}.md"
     save_json(json_path, {"label": label, "alerts": alerts})
+    # 同步写入 SQLite，供 dashboard 实时查询
+    try:
+        from dqg.store.observability import insert_observe_alerts
+        insert_observe_alerts(output_dir, label, alerts)
+    except Exception:  # noqa: BLE001 — 文件写入是主路径，SQLite 是增强
+        pass
     lines = [f"# DQG 告警 — {label}", ""]
     if not alerts:
         lines.append("- 无异常告警")

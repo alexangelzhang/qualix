@@ -232,6 +232,20 @@ def cmd_finalize(args, output_dir: Path) -> int:
 
     print(f"\n  确认通过: dqg-run {args.project_id} approve {args.phase}")
     print(f"\n  Context 管理: 本 Phase 消耗了大量 context，建议运行 /compact")
+
+    # 触发 observe 指标更新，保持 dashboard 数据实时
+    try:
+        from datetime import date as _date
+        from dqg.reporting.observability import generate_report
+        generate_report(
+            output_dir,
+            period_name="daily",
+            anchor=_date.today(),
+            project_filter=args.project_id,
+        )
+    except Exception:
+        pass  # observe 是增强，不阻断主流程
+
     _flush_events()
     return 0
 

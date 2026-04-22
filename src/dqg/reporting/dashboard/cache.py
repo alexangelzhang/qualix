@@ -7,6 +7,7 @@ import streamlit as st
 from dqg.store import (
     get_all_projects,
     get_event_timeline,
+    get_latest_observe_alerts,
     get_phase_durations,
     get_project_summary,
     get_quality_trend,
@@ -44,6 +45,10 @@ def _cached_event_timeline(pid, phase_id):
 @st.cache_data(ttl=60)
 def _cached_trend(pid, days):
     return get_quality_trend(OUTPUT_DIR, project_id=pid, days=days)
+
+@st.cache_data(ttl=60)
+def _cached_observe_alerts():
+    return get_latest_observe_alerts(OUTPUT_DIR, limit=50)
 
 
 def _ensure_db():

@@ -313,6 +313,20 @@ CREATE VIRTUAL TABLE IF NOT EXISTS structured_facts_fts USING fts5(
     content='structured_facts', content_rowid='id'
 );
 
+CREATE TABLE IF NOT EXISTS observe_alerts (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    label TEXT NOT NULL,
+    severity TEXT NOT NULL,
+    rule TEXT NOT NULL,
+    project_id TEXT NOT NULL,
+    phase TEXT DEFAULT '',
+    message TEXT DEFAULT '',
+    created_at TEXT DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_obs_alert_label ON observe_alerts(label);
+CREATE INDEX IF NOT EXISTS idx_obs_alert_project ON observe_alerts(project_id);
+CREATE INDEX IF NOT EXISTS idx_obs_alert_severity ON observe_alerts(severity);
+
 CREATE TABLE IF NOT EXISTS requirement_versions (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     project_id TEXT NOT NULL,

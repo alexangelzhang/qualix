@@ -51,6 +51,11 @@ from dqg.store.events import get_phase_timeline  # noqa: F401
 from dqg.store.events import insert_event  # noqa: F401
 from dqg.store.events import query_events  # noqa: F401
 
+# --- observability ---
+from dqg.store.observability import get_latest_observe_alerts  # noqa: F401
+from dqg.store.observability import insert_observe_alerts  # noqa: F401
+from dqg.store.observability import query_observe_alerts  # noqa: F401
+
 # --- dashboard ---
 from dqg.store.dashboard import get_all_projects  # noqa: F401
 from dqg.store.dashboard import get_event_timeline  # noqa: F401
