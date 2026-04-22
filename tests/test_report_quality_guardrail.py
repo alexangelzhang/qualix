@@ -209,3 +209,121 @@ class TestReportSemanticGuardrail:
         results = g.check(ctx)
         warnings = [r for r in results if not r.passed and "P0" in r.message]
         assert len(warnings) == 0
+
+
+class TestFindingsCodeEvidence:
+    def test_detects_no_evidence(self):
+        g = ReportSemanticGuardrail()
+        ctx = _make_ctx("Q07", data={
+            "findings": [
+                {"description": "这个方法有问题"},
+                {"description": "逻辑不对"},
+            ],
+        })
+        results = g.check(ctx)
+        warnings = [r for r in results if not r.passed and "代码证据" in r.message]
+        assert len(warnings) >= 1
+
+    def test_passes_with_evidence(self):
+        g = ReportSemanticGuardrail()
+        ctx = _make_ctx("Q07", data={
+            "findings": [
+                {"description": "空指针风险", "location": "OrderService.java:42"},
+            ],
+        })
+        results = g.check(ctx)
+        warnings = [r for r in results if not r.passed and "代码证据" in r.message]
+        assert len(warnings) == 0
+
+    def test_skips_non_applicable_phases(self):
+        g = ReportSemanticGuardrail()
+        ctx = _make_ctx("Q01", data={
+            "findings": [{"description": "无证据"}],
+        })
+        results = g.check(ctx)
+        warnings = [r for r in results if not r.passed and "代码证据" in r.message]
+        assert len(warnings) == 0
+
+
+class TestCoverageDescriptionVague:
+    def test_detects_vague(self):
+        g = ReportSemanticGuardrail()
+        ctx = _make_ctx("Q04", report="REQ-001 基本覆盖，整体覆盖较好")
+        results = g.check(ctx)
+        warnings = [r for r in results if not r.passed and "概括性描述" in r.message]
+        assert len(warnings) >= 1
+
+    def test_passes_specific(self):
+        g = ReportSemanticGuardrail()
+        ctx = _make_ctx("Q04", report="REQ-001 COVERED [来源: HLD 3.2 节接口定义]")
+        results = g.check(ctx)
+        warnings = [r for r in results if not r.passed and "概括性描述" in r.message]
+        assert len(warnings) == 0
+
+
+class TestGapOpenClosureEmpty:
+    def test_detects_empty_closure(self):
+        g = ReportSemanticGuardrail()
+        ctx = _make_ctx("Q04", data={
+            "gap_closure": [
+                {"gap_id": "GAP-001", "closure_status": ""},
+                {"gap_id": "GAP-002", "closure_status": "closed"},
+            ],
+        })
+        results = g.check(ctx)
+        warnings = [r for r in results if not r.passed and "闭环状态为空" in r.message]
+        assert len(warnings) >= 1
+
+    def test_passes_all_filled(self):
+        g = ReportSemanticGuardrail()
+        ctx = _make_ctx("Q04", data={
+            "gap_closure": [
+                {"gap_id": "GAP-001", "closure_status": "closed"},
+            ],
+        })
+        results = g.check(ctx)
+        warnings = [r for r in results if not r.passed and "闭环状态为空" in r.message]
+        assert len(warnings) == 0
+
+
+class TestCodeOnlyDerivation:
+    def test_detects_no_req_refs(self):
+        g = ReportSemanticGuardrail()
+        ctx = _make_ctx("Q06", report="OrderServiceTest 覆盖了 createOrder 方法的主流程和异常分支")
+        results = g.check(ctx)
+        warnings = [r for r in results if not r.passed and "仅凭代码推导" in r.message]
+        assert len(warnings) >= 1
+
+    def test_passes_with_req_refs(self):
+        g = ReportSemanticGuardrail()
+        ctx = _make_ctx("Q06", report="REQ-001 的 SE-003 已被 OrderServiceTest 覆盖，BR-002 的边界值测试完整")
+        results = g.check(ctx)
+        warnings = [r for r in results if not r.passed and "仅凭代码推导" in r.message]
+        assert len(warnings) == 0
+
+
+class TestIsolatedAnalysis:
+    def test_detects_no_call_chain(self):
+        g = ReportSemanticGuardrail()
+        report = "OrderService.createOrder 方法存在空指针风险。\n" * 20  # >500 chars
+        ctx = _make_ctx("Q07", report=report)
+        results = g.check(ctx)
+        warnings = [r for r in results if not r.passed and "孤立分析" in r.message]
+        assert len(warnings) >= 1
+
+    def test_passes_with_call_chain(self):
+        g = ReportSemanticGuardrail()
+        report = ("OrderService.createOrder 方法存在空指针风险。\n"
+                  "调用链: Controller → OrderService → PaymentGateway\n"
+                  "上游 Controller 未做参数校验导致 null 传入\n" * 10)
+        ctx = _make_ctx("Q07", report=report)
+        results = g.check(ctx)
+        warnings = [r for r in results if not r.passed and "孤立分析" in r.message]
+        assert len(warnings) == 0
+
+    def test_skips_short_report(self):
+        g = ReportSemanticGuardrail()
+        ctx = _make_ctx("Q07", report="短报告")
+        results = g.check(ctx)
+        warnings = [r for r in results if not r.passed and "孤立分析" in r.message]
+        assert len(warnings) == 0

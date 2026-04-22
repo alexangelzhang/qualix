@@ -194,6 +194,14 @@ def check_reasoning_log_quality(phase_dir: Path) -> list[dict[str, Any]]:
             "content_lines": len(content_lines),
         })
 
+    # 检查是否引用了 skill Step 编号（证明确实读了 skill）
+    skill_ref_pattern = re.compile(r"Step\s+\d.*skill|skill.*Step\s+\d|按.*Step|执行.*Step", re.IGNORECASE)
+    if len(content) > 200 and not skill_ref_pattern.search(content) and len(step_matches) < 2:
+        issues.append({
+            "check": "skill_reference",
+            "message": "推理日志未引用 skill 的 Step 编号，疑似未读取 skill 文件执行",
+        })
+
     return issues
 
 

@@ -125,6 +125,8 @@ Phase Agent 可能由 Orchestrator（主 Agent）作为 SubAgent 派发执行。
 2. **证据优先** — 每条评审结论附具体证据，禁止"看起来合理"等无证据表述
 3. **结构化输出** — 同时产出 markdown 报告 + JSON 结构化文件
 4. **Confirm-first** — 所有产物修改须经人工确认，禁止自动 commit/push
+5. **逐步交互** — 收集输入时每次只问一个问题，等用户回复后再问下一个。禁止一次性列出所有待确认项。Judge/Critique 检查点：如果输出中一次出现超过 3 个问题/待确认项，标记为 INTERACTION_VIOLATION
+6. **Skill 必读** — 执行任何 Phase 前必须读取对应 skill 文件（`PHASE_DEFS[phase]["skill"]`），禁止脱离 skill 自由发挥。finalize 时检查 `_reasoning_log.md` 是否引用了 skill 中的 Step 编号
 
 ## 技术方案输入标准（Phase Q04/Q03 强制要求）
 
