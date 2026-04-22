@@ -21,12 +21,12 @@ log = get_logger(__name__)
 
 # 上一 Phase 的产出文件映射
 _PREV_PHASE_STRUCTURED: Final = MappingProxyType({
-    "Q02": ("phaseA", "phase_a_structured.json"),
-    "Q03": ("phaseA3", "phase_a3_structured.json"),
-    "Q04": ("phaseA6", "phase_a6_structured.json"),
-    "Q05": ("phaseA", "phase_a_structured.json"),
-    "Q06": ("phaseB", "phase_b_structured.json"),
-    "Q07": ("phaseA", "phase_a_structured.json"),
+    "Q02": ("Q01", "phase_a_structured.json"),
+    "Q03": ("Q02", "phase_a3_structured.json"),
+    "Q04": ("Q03", "phase_a6_structured.json"),
+    "Q05": ("Q01", "phase_a_structured.json"),
+    "Q06": ("Q05", "phase_b_structured.json"),
+    "Q07": ("Q01", "phase_a_structured.json"),
 })
 
 

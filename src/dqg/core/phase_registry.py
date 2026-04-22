@@ -23,7 +23,7 @@ from typing import Final
 PHASE_DEFS: Final = MappingProxyType({
     "Q01": {
         "name": "需求结构化",
-        "dir_suffix": "phaseA",
+        "dir_suffix": "Q01",
         "skill": "skills/requirement-structuring/SKILL.md",
         "recommended_model": "strong",
         "reasoning_profile": {"planning": "high", "execution": "standard", "verification": "high"},
@@ -53,7 +53,7 @@ PHASE_DEFS: Final = MappingProxyType({
     },
     "Q02": {
         "name": "技术方案生成",
-        "dir_suffix": "phaseA3",
+        "dir_suffix": "Q02",
         "skill": "skills/tech-design-generation/SKILL.md",
         "recommended_model": "strong",
         "reasoning_profile": {"planning": "high", "execution": "high", "verification": "high"},
@@ -87,7 +87,7 @@ PHASE_DEFS: Final = MappingProxyType({
     },
     "Q03": {
         "name": "技术方案质量评审",
-        "dir_suffix": "phaseA6",
+        "dir_suffix": "Q03",
         "skill": "skills/tech-quality-review/SKILL.md",
         "recommended_model": "strong",
         "reasoning_profile": {"planning": "high", "execution": "standard", "verification": "high"},
@@ -117,7 +117,7 @@ PHASE_DEFS: Final = MappingProxyType({
     },
     "Q04": {
         "name": "技术方案覆盖度审计",
-        "dir_suffix": "phaseA5",
+        "dir_suffix": "Q04",
         "skill": "skills/tech-coverage-audit/SKILL.md",
         "recommended_model": "standard",
         "reasoning_profile": {"planning": "standard", "execution": "standard", "verification": "high"},
@@ -146,7 +146,7 @@ PHASE_DEFS: Final = MappingProxyType({
     },
     "Q05": {
         "name": "单测生成",
-        "dir_suffix": "phaseB",
+        "dir_suffix": "Q05",
         "skill": "skills/unit-test-generation/SKILL.md",
         "recommended_model": "standard",
         "reasoning_profile": {"planning": "high", "execution": "standard", "verification": "standard"},
@@ -174,7 +174,7 @@ PHASE_DEFS: Final = MappingProxyType({
     },
     "Q06": {
         "name": "单测覆盖审计",
-        "dir_suffix": "phaseC",
+        "dir_suffix": "Q06",
         "skill": "skills/unit-test-audit/SKILL.md",
         "recommended_model": "standard",
         "reasoning_profile": {"planning": "standard", "execution": "standard", "verification": "high"},
@@ -201,7 +201,7 @@ PHASE_DEFS: Final = MappingProxyType({
     },
     "Q07": {
         "name": "代码评审",
-        "dir_suffix": "phaseD",
+        "dir_suffix": "Q07",
         "skill": "skills/code-review/SKILL.md",
         "recommended_model": "strong",
         "reasoning_profile": {"planning": "high", "execution": "standard", "verification": "high"},
