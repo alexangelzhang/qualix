@@ -1,0 +1,27 @@
+{
+  "case_id": "AUTO-Q03-20260422162317-71",
+  "phase": "Q03",
+  "error_type": "WRONG",
+  "severity": "medium",
+  "title": "Field required [type=missing, input_value={'id': 'DATA-007', 'dimen...束', 'source': 'DDL'}, input_ty",
+  "root_cause": "SCHEMA",
+  "fix_target": "src/dqg/schemas/phase_q03.py",
+  "tags": [
+    "auto-generated",
+    "project:kind-care"
+  ],
+  "created_at": "2026-04-22",
+  "status": "open",
+  "source": {
+    "project_id": "kind-care",
+    "auto_generated": true,
+    "validation_error": "Field required [type=missing, input_value={'id': 'DATA-007', 'dimen...束', 'source': 'DDL'}, input_type=dict]"
+  },
+  "expected": {
+    "content": "（需人工确认）"
+  },
+  "actual": {
+    "content": "Field required [type=missing, input_value={'id': 'DATA-007', 'dimen...束', 'source': 'DDL'}, input_type=dict]"
+  },
+  "lesson": ""
+}

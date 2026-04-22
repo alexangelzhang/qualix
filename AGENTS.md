@@ -52,6 +52,44 @@ Q02 可 skip（已有技术方案时）。Q03 先于 Q04。Q05/Q06 与 Q02/Q03/Q
 
 同一批 available phases 无互相依赖时可并行执行（如 Q02 + Q05）。Orchestrator 同时派发多个 SubAgent，各 Phase 写不同子目录不冲突。CLI 模式: `dqg-run <project_id> dag --max-parallel 2`。
 
+### RunStatus（执行结果分类）
+
+Phase 执行结果用 5 值枚举区分 infra failure 和 logic failure（`runtime/result.py: RunStatus`）：
+
+| 值 | 含义 | 计入质量评分 |
+|----|------|------------|
+| ok | 正常完成 | 是 |
+| timeout | 网络/LLM 超时 | 否（infra） |
+| adapter_crashed | Worker/Judge 适配器崩溃 | 否（infra） |
+| parse_failed | LLM 输出无法解析 | 是（logic） |
+| tainted | 结果被污染（rationalization/hallucination） | 是（logic） |
+
+infra failure 的 Phase 不计入 Judge 质量评分，避免基础设施故障污染质量指标。
+
+### DAG Preflight（执行前预检）
+
+DAG 调度器在执行每个 Phase 前自动运行 Preflight（`runtime/preflight.py`），任一 FAIL 项阻断执行：
+
+| 检查项 | 说明 | 失败级别 |
+|--------|------|---------|
+| checkpoint | 检查可恢复的 checkpoint | RESUMED/PASS |
+| artifacts | 当前 Phase 产物文件存在性 | WARNING |
+| dependencies | 上游依赖 Phase 已完成 | FAIL |
+| upstream_artifacts | 上游 Phase 核心产物（report + structured JSON）存在且非空 | FAIL |
+| cascade_failure | 上游 run_status 为 tainted/parse_failed 时级联阻断 | FAIL |
+| contract | Phase contract 存在性 | WARNING |
+
+### 上下文自动注入
+
+Phase 执行时自动注入以下增强上下文（`context/upstream_collector.py`）：
+
+| 来源 | 说明 |
+|------|------|
+| Critique Gene | 历史高置信度 Critique 结晶的评审基因，模式匹配后注入 |
+| Skill Crystal | 历史高分执行的成功模式结晶，同 Phase 复用 |
+| Profile L0 | baseline + risk catalog 的压缩版元规则（~50% 压缩比） |
+| Bug Cases | 相关性匹配的历史失败案例 |
+
 ## 必须交付物（每个 Phase）
 
 | 文件 | 说明 |
@@ -144,6 +182,8 @@ Q02 可 skip（已有技术方案时）。Q03 先于 Q04。Q05/Q06 与 Q02/Q03/Q
 | 变更范围 | 需要检查的文档 |
 |---------|--------------|
 | Phase 注册/流程 (`phase_registry`, `state_machine`) | AGENTS.md, README.md, ROADMAP.md, dqg_starter.md |
+| Runtime 结果/状态 (`result.py`, `dag_scheduler.py`) | AGENTS.md, ROADMAP.md |
+| Runtime Preflight (`preflight.py`) | AGENTS.md, ROADMAP.md |
 | CLI 命令 (`cli.py`, `runner.py`, `commands/`) | README.md, AGENTS.md |
 | Dashboard (`reporting/dashboard/`) | README.md |
 | Observe (`reporting/observability*`) | README.md, ROADMAP.md |

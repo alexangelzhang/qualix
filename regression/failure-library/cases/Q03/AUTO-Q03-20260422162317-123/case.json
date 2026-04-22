@@ -1,0 +1,27 @@
+{
+  "case_id": "AUTO-Q03-20260422162317-123",
+  "phase": "Q03",
+  "error_type": "FN",
+  "severity": "medium",
+  "title": "For further information visit https://errors.pydantic.dev/2.12/v/missing",
+  "root_cause": "SKILL_RULE",
+  "fix_target": "skills/tech-quality-review/SKILL.md",
+  "tags": [
+    "auto-generated",
+    "project:kind-care"
+  ],
+  "created_at": "2026-04-22",
+  "status": "open",
+  "source": {
+    "project_id": "kind-care",
+    "auto_generated": true,
+    "validation_error": "For further information visit https://errors.pydantic.dev/2.12/v/missing"
+  },
+  "expected": {
+    "content": "（需人工确认）"
+  },
+  "actual": {
+    "content": "For further information visit https://errors.pydantic.dev/2.12/v/missing"
+  },
+  "lesson": ""
+}

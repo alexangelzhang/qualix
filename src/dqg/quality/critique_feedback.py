@@ -55,12 +55,29 @@ def persist_preference(
             f.write(dump_jsonl(log_entry))
 
         persisted_cases: list[str] = []
+        persisted_genes: list[str] = []
+        capsule_id: str | None = None
+
         if preference.get("preferred") == "v2":
             effectiveness = preference.get("critique_effectiveness", [])
             valid_critiques = [
                 e for e in effectiveness
                 if e.get("was_valid") and e.get("should_persist") and e.get("impact") in ("high", "medium")
             ]
+
+            # Gene/Capsule 提取
+            critique_data = load_json(critique_path) if critique_path.exists() else None
+            if critique_data:
+                from dqg.quality.gene_store import extract_genes_from_preference, save_capsule, save_genes
+                effective_base = base_dir or Path(".")
+                genes = extract_genes_from_preference(
+                    preference, critique_data, phase_id, project_id,
+                )
+                if genes:
+                    persisted_genes = save_genes(effective_base, genes)
+                capsule_id = save_capsule(
+                    effective_base, phase_id, project_id, critique_data, preference,
+                )
 
             if valid_critiques and critique_path.exists():
                 load_json(critique_path) or {}
@@ -103,6 +120,8 @@ def persist_preference(
             "preferred": preference.get("preferred", ""),
             "confidence": preference.get("confidence", ""),
             "persisted_cases": persisted_cases,
+            "persisted_genes": persisted_genes,
+            "capsule_id": capsule_id,
             "log_path": str(log_path),
         }
     except Exception:

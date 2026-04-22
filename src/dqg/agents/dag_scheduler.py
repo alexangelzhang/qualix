@@ -10,7 +10,7 @@ from __future__ import annotations
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 from dqg.constants import (
     DAG_DEFAULT_MAX_PARALLEL,
@@ -22,17 +22,21 @@ from dqg.constants import (
 from dqg.core.state_machine import (
     PHASE_DEFS,
     PhaseStatus,
-    execute_phase,
-    finalize_phase,
     get_available_phases,
     get_parallel_groups,
     load_state,
-    phase_dir as _phase_dir,
     save_state,
+)
+from dqg.core.state_machine import (
+    phase_dir as _phase_dir,
 )
 from dqg.exceptions import PhaseError
 from dqg.log import get_logger
 from dqg.path_utils import resolve_effective_context_files
+from dqg.runtime.result import RunStatus
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 log = get_logger(__name__)
 
@@ -48,6 +52,7 @@ class PhaseResult:
 
     phase_id: str
     status: str  # success / failed / skipped
+    run_status: RunStatus = RunStatus.OK
     mode: str = ""  # agent-run / adaptive
     duration_seconds: float = 0
     error: str = ""
@@ -107,10 +112,17 @@ class DAGScheduler:
                 pid = futures[future]
                 try:
                     result = future.result()
+                except TimeoutError as exc:
+                    log.error("Phase %s 超时: %s", pid, exc)
+                    result = PhaseResult(
+                        phase_id=pid, status="failed",
+                        run_status=RunStatus.TIMEOUT, error=str(exc),
+                    )
                 except Exception as exc:
                     log.error("Phase %s 执行异常: %s", pid, exc)
                     result = PhaseResult(
-                        phase_id=pid, status="failed", error=str(exc)
+                        phase_id=pid, status="failed",
+                        run_status=RunStatus.ADAPTER_CRASHED, error=str(exc),
                     )
                 results.append(result)
 
@@ -135,7 +147,7 @@ class DAGScheduler:
         dag_start = time.time()
 
         # Task store: 创建 DAG task run
-        from dqg.runtime.task_store import add_task_event, complete_task_run, create_task_run, save_checkpoint
+        from dqg.runtime.task_store import complete_task_run, create_task_run
 
         task_id = create_task_run(
             self.output_dir,
@@ -228,7 +240,20 @@ class DAGScheduler:
             dag_result.phases_executed += 1
             if pr.status == "failed":
                 dag_result.phases_failed += 1
+                # 记录 run_status 到 state，即使失败也要记录失败原因
+                state = load_state(self.output_dir, project_id)
+                ps = state.phases.get(pr.phase_id)
+                if ps:
+                    ps.run_status = pr.run_status.value
+                save_state(self.output_dir, state)
                 continue
+
+            # 记录 run_status 到 state
+            state = load_state(self.output_dir, project_id)
+            ps = state.phases.get(pr.phase_id)
+            if ps:
+                ps.run_status = pr.run_status.value
+            save_state(self.output_dir, state)
 
             from dqg.runtime.execution_context import ExecutionContext
             from dqg.runtime.phase_runtime import runtime_finalize
@@ -271,6 +296,23 @@ class DAGScheduler:
         if not phase_def:
             raise PhaseError(phase_id, f"未知 Phase: {phase_id}")
 
+        # Preflight: 上游产物完整性 + 级联失败阻断
+        from dqg.runtime.preflight import run_preflight
+
+        preflight = run_preflight(self.output_dir, project_id, phase_id)
+        if not preflight.can_continue:
+            fail_details = [
+                c["detail"] for c in preflight.checks if c["status"] == "FAIL"
+            ]
+            return PhaseResult(
+                phase_id=phase_id,
+                status="failed",
+                run_status=RunStatus.ADAPTER_CRASHED,
+                mode=mode,
+                duration_seconds=round(time.time() - start, 1),
+                error=f"Preflight blocked: {'; '.join(fail_details)}",
+            )
+
         pd = _phase_dir(self.output_dir, project_id, phase_def)
         pd.mkdir(parents=True, exist_ok=True)
         context_files = resolve_effective_context_files(pd)
@@ -291,21 +333,23 @@ class DAGScheduler:
         )
 
         if mode == "adaptive":
-            result = self._run_adaptive(
+            run_status = self._run_adaptive(
                 project_id, phase_id, worker_prompt,
                 judge_rubric, critique_prompt, context_files,
                 primary_model, fallback_model,
             )
         else:
-            result = self._run_agent(
+            run_status = self._run_agent(
                 project_id, phase_id, worker_prompt,
                 judge_rubric, critique_prompt, context_files,
             )
 
         duration = time.time() - start
+        status = "failed" if run_status != RunStatus.OK else "success"
         return PhaseResult(
             phase_id=phase_id,
-            status=result,
+            status=status,
+            run_status=run_status,
             mode=mode,
             duration_seconds=round(duration, 1),
         )
@@ -318,7 +362,7 @@ class DAGScheduler:
         judge_rubric: str,
         critique_prompt: str,
         context_files: list[Path],
-    ) -> str:
+    ) -> RunStatus:
         """agent-run 模式：单次 Worker -> Judge -> Critique."""
         from dqg.agents.agent_orchestrator import AgentOrchestrator
 
@@ -331,7 +375,7 @@ class DAGScheduler:
             context_files=context_files,
         )
         failed = any(r.status == "failed" for r in results.values())
-        return "failed" if failed else "success"
+        return RunStatus.ADAPTER_CRASHED if failed else RunStatus.OK
 
     def _run_adaptive(
         self,
@@ -343,7 +387,7 @@ class DAGScheduler:
         context_files: list[Path],
         primary_model: str,
         fallback_model: str,
-    ) -> str:
+    ) -> RunStatus:
         """adaptive 模式：自适应循环 + 多 Judge 投票."""
         from dqg.agents.adaptive_loop import AdaptiveLoop
 
@@ -358,7 +402,7 @@ class DAGScheduler:
             judge_models=list(DEFAULT_ADAPTIVE_JUDGE_MODELS),
             fallback=fallback_model,
         )
-        return "failed" if result.final_verdict == "FAIL" else "success"
+        return RunStatus.OK if result.final_verdict != "FAIL" else RunStatus.TAINTED
 
     def _apply_skips(self, project_id: str, skip_set: set[str]) -> None:
         """将指定 Phase 标记为 skipped."""
@@ -388,6 +432,8 @@ class DAGScheduler:
             icon = {"success": "+", "failed": "x",
                     "skipped": "-"}.get(pr.status, "?")
             line = f"    [{icon}] Phase {pr.phase_id}: {pr.status}"
+            if pr.run_status != RunStatus.OK:
+                line += f" [{pr.run_status.value}]"
             if pr.mode:
                 line += f" ({pr.mode})"
             if pr.duration_seconds:

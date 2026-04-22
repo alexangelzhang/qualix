@@ -21,6 +21,11 @@ from pathlib import Path
 from typing import Any
 
 from dqg.json_utils import load_json, load_json_strict
+from dqg.constants import (
+    IMAGE_DEEP_READ_KEYWORDS,
+    IMAGE_SIZE_LIGHT_THRESHOLD,
+    IMAGE_SIZE_SKIP_THRESHOLD,
+)
 
 SUPPORTED_EXTS = {".png", ".jpg", ".jpeg", ".webp", ".gif", ".bmp"}
 
@@ -56,17 +61,51 @@ def load_prompt(prompt_path: Path | None) -> str:
     return text if text else default_prompt
 
 
-def discover_from_manifest(manifest_path: Path) -> list[dict[str, Any]]:
+def discover_from_manifest(
+    manifest_path: Path,
+    browser_manifest_path: Path | None = None,
+) -> list[dict[str, Any]]:
     data = load_json_strict(manifest_path)
     if not isinstance(data, list):
         raise ValueError(f"manifest 结构非法，期望 list: {manifest_path}")
 
+    # 加载 browser_asset_manifest 获取 size 信息
+    size_map: dict[str, int] = {}
+    if browser_manifest_path and browser_manifest_path.exists():
+        browser_data = load_json(browser_manifest_path)
+        if isinstance(browser_data, list):
+            for row in browser_data:
+                fname = row.get("filename", "")
+                sz = row.get("size", 0)
+                if fname and isinstance(sz, int):
+                    size_map[fname] = sz
+    elif browser_manifest_path is None:
+        # 自动探测：同目录下的 browser_asset_manifest.json
+        auto_path = manifest_path.parent / "browser_asset_manifest.json"
+        if auto_path.exists():
+            browser_data = load_json(auto_path)
+            if isinstance(browser_data, list):
+                for row in browser_data:
+                    fname = row.get("filename", "")
+                    sz = row.get("size", 0)
+                    if fname and isinstance(sz, int):
+                        size_map[fname] = sz
+
     assets: list[dict[str, Any]] = []
+    skipped_small = 0
     for row in data:
         path = str(row.get("path", "") or "")
         p = Path(path) if path else None
         if not p or not p.exists() or p.suffix.lower() not in SUPPORTED_EXTS:
             continue
+
+        # size 过滤：优先用 browser manifest 的 size，fallback 到文件系统
+        file_size = size_map.get(p.name, 0) or (p.stat().st_size if p.exists() else 0)
+
+        if file_size < IMAGE_SIZE_SKIP_THRESHOLD:
+            skipped_small += 1
+            continue
+
         assets.append(
             {
                 "kind": row.get("kind", "image"),
@@ -76,8 +115,13 @@ def discover_from_manifest(manifest_path: Path) -> list[dict[str, Any]]:
                 "path": str(p.resolve()),
                 "status": row.get("status", ""),
                 "source_block_ids": row.get("source_block_ids", []),
+                "file_size": file_size,
             }
         )
+
+    if skipped_small:
+        info(f"跳过 {skipped_small} 张小图（<{IMAGE_SIZE_SKIP_THRESHOLD // 1000}KB）")
+
     return assets
 
 
@@ -182,6 +226,40 @@ def _load_existing_cache(cache_path: Path) -> dict[str, dict[str, Any]]:
     return {item["token"]: item for item in items if item.get("token") and item.get("status") == "ok"}
 
 
+def _classify_image_tier(asset: dict[str, Any]) -> str:
+    """根据 size 和 kind 判断图片处理层级.
+
+    Returns:
+        "skip": 太小，不值得 VLM 解析
+        "light": 轻量描述（UI 截图等，语义已在 PRD 文本中）
+        "deep": 精读（流程图/状态机/架构图，需要提取 Mermaid）
+    """
+    file_size = asset.get("file_size", 0)
+    if file_size < IMAGE_SIZE_SKIP_THRESHOLD:
+        return "skip"
+
+    # kind 或 section_path 包含流程图/状态机关键词 → deep
+    kind = (asset.get("kind", "") or "").lower()
+    section = (asset.get("section_path", "") or "").lower()
+    name = (asset.get("name", "") or "").lower()
+    combined = f"{kind} {section} {name}"
+    for kw in IMAGE_DEEP_READ_KEYWORDS:
+        if kw.lower() in combined:
+            return "deep"
+
+    # 大图更可能是流程图/架构图
+    if file_size > IMAGE_SIZE_LIGHT_THRESHOLD:
+        return "deep"
+
+    return "light"
+
+
+LIGHT_PROMPT = (
+    "这是一张 UI 截图或页面原型。请用一句话描述其主要内容和用途，"
+    "不需要详细分析。输出中文。"
+)
+
+
 def _analyze_single(
     idx: int,
     asset: dict[str, Any],
@@ -190,9 +268,16 @@ def _analyze_single(
     model: str,
     timeout: int,
 ) -> dict[str, Any]:
-    """解析单张图片（线程安全，供并发调用）."""
+    """解析单张图片（线程安全，供并发调用）.
+
+    分层策略：
+    - light: 用简化 prompt，减少输出 token
+    - deep: 用完整 prompt，提取 Mermaid 等结构化信息
+    """
     image_path = Path(asset["path"])
     token = asset.get("token", "")
+    tier = _classify_image_tier(asset)
+
     row = {
         "index": idx,
         "kind": asset.get("kind", "image"),
@@ -206,14 +291,17 @@ def _analyze_single(
         "summary": "",
         "error": "",
         "cached": False,
+        "tier": tier,
+        "file_size": asset.get("file_size", 0),
     }
 
     if dashscope is not None:
+        effective_prompt = LIGHT_PROMPT if tier == "light" else prompt
         try:
             text = call_dashscope(
                 dashscope=dashscope,
                 image_path=image_path,
-                prompt=prompt,
+                prompt=effective_prompt,
                 model=model,
                 timeout=timeout,
             )
@@ -295,7 +383,15 @@ def analyze_assets(
         ds = dashscope if use_dashscope else None
         effective_workers = min(max_workers, len(pending))
         if effective_workers > 1 and ds:
-            info(f"并发解析 {len(pending)} 张图片（{effective_workers} workers）")
+            tier_counts = {"light": 0, "deep": 0}
+            for _, asset in pending:
+                t = _classify_image_tier(asset)
+                if t in tier_counts:
+                    tier_counts[t] += 1
+            info(
+                f"并发解析 {len(pending)} 张图片（{effective_workers} workers, "
+                f"deep={tier_counts['deep']}, light={tier_counts['light']}）"
+            )
 
         with ThreadPoolExecutor(max_workers=effective_workers) as executor:
             future_to_idx = {

@@ -102,6 +102,13 @@
   - 第二层：语义 guardrail（`semantic_guardrail.py`，`ReportSemanticGuardrail`）— BR 概括性描述/覆盖度虚高/跨 Phase 越权/P0 未闭环 4 项语义检测
   - 第三层：行为 hook（`git_safety_guard.py`，PreToolUse）— git push/force push/--no-verify 拦截
 - 文档同步自动化（`doc_sync_check.py` + `completion_gate.py` 集成）— 按变更范围精准映射需要更新的文档
+- RunStatus 5 值枚举（`runtime/result.py`）— ok/timeout/adapter_crashed/parse_failed/tainted，区分 infra failure 和 logic failure，infra failure 不计入 Judge 质量评分
+- 图片 token 优化（`media/parse_images.py`）— 三层分级策略：<10KB 跳过 / 10-50KB 轻量描述 / >50KB 或流程图关键词精读，自动关联 browser_asset_manifest.json 获取 size
+- Critique Gene/Capsule 反馈结晶（`quality/gene_store.py`）— 高置信度 Critique 提取为可复用评审基因（Gene），成功修正快照存为 Capsule，自动注入下游 Phase context
+- Profile L0 压缩（`core/profiles.py`）— baseline + risk catalog 压缩为结构化元规则（标题/表格/强约束句），压缩比 ~50%，减少 context token 消耗
+- Worker 经验结晶（`context/skill_crystal.py`）— 从高分执行（score>=4.0）提取成功模式，结晶为可复用模板注入后续同 Phase 执行
+- DAG Preflight 增强（`runtime/preflight.py`）— 上游产物完整性检查（report + structured JSON 非空）+ 级联失败阻断（上游 tainted/parse_failed 时阻断下游），DAG 调度器每个 Phase 执行前自动运行
+- 静默失败修复（`runtime/handlers_finalize.py`）— `_async_write_json` 和 `_emit_handler` 的 `except: pass` 改为 `log.debug` 记录失败原因，消除调试盲区
 
 仍需推进（P1）：
 

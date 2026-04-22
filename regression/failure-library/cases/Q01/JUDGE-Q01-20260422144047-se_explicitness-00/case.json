@@ -1,0 +1,30 @@
+{
+  "case_id": "JUDGE-Q01-20260422144047-se_explicitness-00",
+  "phase": "Q01",
+  "error_type": "FN",
+  "severity": "medium",
+  "title": "未提取并发/幂等SE：多人同时对同一VIN提交善意关怀时的并发控制未显式化为SE",
+  "root_cause": "SKILL_RULE",
+  "fix_target": "skills/requirement-structuring/SKILL.md",
+  "tags": [
+    "judge-extracted",
+    "dim:se_explicitness",
+    "project:kind-care"
+  ],
+  "created_at": "2026-04-22",
+  "status": "open",
+  "source": {
+    "project_id": "kind-care",
+    "judge_extracted": true,
+    "dimension": "se_explicitness",
+    "dim_score": 3,
+    "dim_max_score": 5
+  },
+  "expected": {
+    "content": "（需人工补充期望行为）"
+  },
+  "actual": {
+    "content": "未提取并发/幂等SE：多人同时对同一VIN提交善意关怀时的并发控制未显式化为SE"
+  },
+  "lesson": "未提取并发/幂等SE：多人同时对同一VIN提交善意关怀时的并发控制未显式化为SE"
+}

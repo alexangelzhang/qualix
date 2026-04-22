@@ -243,3 +243,14 @@ ID_FIELD_KEYS: tuple[str, ...] = (
 
 DAG_DEFAULT_MAX_PARALLEL = 3
 DAG_DEFAULT_MODE = "adaptive"  # adaptive / agent-run
+
+# ---------------------------------------------------------------------------
+# 图片 Token 优化
+# ---------------------------------------------------------------------------
+
+# 小于此字节数的图片直接跳过 VLM 解析（图标/分隔线/装饰图）
+IMAGE_SIZE_SKIP_THRESHOLD = 10_000  # 10KB
+# 小于此字节数的图片用轻量描述，不做精读
+IMAGE_SIZE_LIGHT_THRESHOLD = 50_000  # 50KB
+# 需要精读的图片类型关键词（流程图/状态机/架构图）
+IMAGE_DEEP_READ_KEYWORDS = ("流程", "状态", "架构", "时序", "ER", "拓扑", "flowchart", "state", "sequence")

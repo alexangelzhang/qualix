@@ -38,6 +38,7 @@ class PhaseState(BaseModel):
     """单个 Phase 的状态."""
 
     status: PhaseStatus = PhaseStatus.NOT_STARTED
+    run_status: str | None = None  # RunStatus value: ok/timeout/adapter_crashed/parse_failed/tainted
     started_at: str | None = None
     finished_at: str | None = None
     approved_at: str | None = None
@@ -274,9 +275,16 @@ def record_judge_score(
     pass_threshold: float = 3.5,
     judged_at: str | None = None,
 ) -> None:
-    """将 judge 评审结果写入 PhaseState."""
+    """将 judge 评审结果写入 PhaseState.
+
+    如果 run_status 为 infra failure（timeout/adapter_crashed），
+    跳过评分记录，避免 infra 故障污染质量指标。
+    """
     phase_state = state.phases.get(phase_id)
     if not phase_state:
+        return
+    # infra failure 不计入质量评分
+    if phase_state.run_status in ("timeout", "adapter_crashed"):
         return
     phase_state.judge_score = overall_score
     phase_state.judge_dimensions = dimension_scores

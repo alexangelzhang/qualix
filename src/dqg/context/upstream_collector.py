@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from dqg.core.model_registry import estimate_tokens
-from dqg.core.profiles import get_profile, load_profile_context
+from dqg.core.profiles import get_profile, load_profile_context, load_profile_context_l0
 from dqg.core.state_machine import PhaseStatus
 from dqg.path_utils import resolve_internal_file
 from dqg.skill_tracker import render_relevant_cases_for_prompt
@@ -102,11 +102,11 @@ def load_upstream_context(
                 return format_patterns_as_checklist(patterns)
             futures["gap"] = pool.submit(_load_gap)
 
-        # Profile context（Q03-Q07）
+        # Profile context（Q03-Q07）— 使用 L0 压缩版减少 token 消耗
         if target_phase in {"Q04", "Q03", "Q05", "Q06", "Q07"}:
             def _load_profile():
                 profile = get_profile(getattr(state, "profile_id", None))
-                return profile.profile_id, load_profile_context(profile)
+                return profile.profile_id, load_profile_context_l0(profile)
             futures["profile"] = pool.submit(_load_profile)
 
         # Fact count
@@ -193,3 +193,42 @@ def load_sidecar_context(
                     token_estimate=estimate_tokens(bug_cases_md),
                     priority=0,
                 ))
+
+    # Gene 匹配注入：从历史 Critique 结晶中匹配相关评审基因
+    try:
+        from dqg.quality.gene_store import load_genes_for_phase, match_genes, render_genes_for_prompt
+        # base_dir 为项目根目录（output_dir 的父目录）
+        base_dir = output_dir.parent if output_dir.name == "output" else output_dir
+        genes = load_genes_for_phase(base_dir, target_phase)
+        if genes:
+            from dqg.context.context_loader import _build_relevance_seed
+            seed = _build_relevance_seed(all_chunks)
+            matched = match_genes(genes, seed)
+            if matched:
+                gene_text = render_genes_for_prompt(matched)
+                all_chunks.append(ContextChunk(
+                    source=f"Critique Genes for Phase {target_phase} ({len(matched)} matched)",
+                    content=gene_text,
+                    token_estimate=estimate_tokens(gene_text),
+                    priority=-1,
+                ))
+    except Exception:
+        from dqg.log import get_logger
+        get_logger(__name__).debug("Gene matching skipped", exc_info=True)
+
+    # Crystal 注入：从历史高分执行中注入成功模式
+    try:
+        from dqg.context.skill_crystal import load_crystals_for_phase, render_crystals_for_prompt
+        base_dir = output_dir.parent if output_dir.name == "output" else output_dir
+        crystals = load_crystals_for_phase(base_dir, target_phase)
+        if crystals:
+            crystal_text = render_crystals_for_prompt(crystals)
+            all_chunks.append(ContextChunk(
+                source=f"Skill Crystals for Phase {target_phase} ({len(crystals)} patterns)",
+                content=crystal_text,
+                token_estimate=estimate_tokens(crystal_text),
+                priority=-1,
+            ))
+    except Exception:
+        from dqg.log import get_logger
+        get_logger(__name__).debug("Crystal loading skipped", exc_info=True)
