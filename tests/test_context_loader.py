@@ -70,7 +70,7 @@ def _setup_phase_a(output_dir: Path, project_id: str) -> None:
     save_state(output_dir, state)
 
     # Structured JSON
-    phase_dir = output_dir / project_id / "phaseA"
+    phase_dir = output_dir / project_id / "Q01"
     phase_dir.mkdir(parents=True, exist_ok=True)
     data = {
         "project_id": project_id,
@@ -146,7 +146,7 @@ class TestContextLoader:
         state = ProjectState(project_id="TEST")
         save_state(output_dir, state)
 
-        phase_dir = output_dir / "TEST" / "phaseA" / "ingest"
+        phase_dir = output_dir / "TEST" / "Q01" / "ingest"
         phase_dir.mkdir(parents=True, exist_ok=True)
         (phase_dir / "plain_text_summary.md").write_text(
             "# PRD 摘要\n\nREQ-001 用户登录成功后跳转首页\n",
@@ -222,7 +222,7 @@ class TestContextLoader:
         save_state(output_dir, state)
 
         # Create artifacts anyway
-        phase_dir = output_dir / "TEST" / "phaseA"
+        phase_dir = output_dir / "TEST" / "Q01"
         phase_dir.mkdir(parents=True)
         (phase_dir / "phase_a_structured.json").write_text('{"project_id": "TEST", "requirements": []}')
 

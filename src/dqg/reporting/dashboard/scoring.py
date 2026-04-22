@@ -5,10 +5,8 @@ from __future__ import annotations
 import pandas as pd
 import streamlit as st
 
-from dqg.constants import PHASE_DIR_MAP as PHASE_DIR
+from dqg.constants import PHASE_DIR_MAP as PHASE_DIR, STRUCTURED_JSON_MAP, LEGACY_PHASE_ID_MAP
 from dqg.json_utils import load_json
-
-from dqg.constants import LEGACY_PHASE_ID_MAP
 
 from .constants import (
     OUTPUT_DIR,
@@ -88,7 +86,7 @@ def _page_scoring_overview():
         # 质量问题（Q03/Q07）
         quality_str = "—"
         if qid == "Q03":
-            q03_path = OUTPUT_DIR / pid / "phaseA6" / "phase_a6_structured.json"
+            q03_path = OUTPUT_DIR / pid / PHASE_DIR["Q03"] / STRUCTURED_JSON_MAP["Q03"]
             if q03_path.exists():
                 q03 = load_json(q03_path)
                 issues = q03.get("issues", [])
@@ -96,7 +94,7 @@ def _page_scoring_overview():
                 high = sum(1 for i in issues if i.get("severity") == "HIGH")
                 quality_str = f"严重:{critical} 高:{high}" if issues else "无问题"
         elif qid == "Q07":
-            q07_path = OUTPUT_DIR / pid / "phaseD" / "phase_d_structured.json"
+            q07_path = OUTPUT_DIR / pid / PHASE_DIR["Q07"] / STRUCTURED_JSON_MAP["Q07"]
             if q07_path.exists():
                 q07 = load_json(q07_path)
                 findings = q07.get("findings", [])

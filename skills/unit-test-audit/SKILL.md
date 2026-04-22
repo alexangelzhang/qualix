@@ -132,7 +132,7 @@ Phase Q05 保证"按规则写了"，Phase Q06 检查"写得好不好"：
 - 验证目标偏移列表（测试验证的不是业务语义）
 - 变异逃逸风险列表（哪些变异无法被现有断言杀死）
 
-执行前先读取 `output/<project>/phaseC/_internal/_weak_assert_context.md`（如存在），把其中命中的测试方法作为 Step 2 / Step 5 / Step 7.5 的重点核验对象。
+执行前先读取 `output/<project>/Q06/_internal/_weak_assert_context.md`（如存在），把其中命中的测试方法作为 Step 2 / Step 5 / Step 7.5 的重点核验对象。
 
 详细审计规则（架构识别基线、断言正确性规则、异常场景覆盖、变异测试、DDD/TMF 分层基线）见 [references/audit-rules.md](references/audit-rules.md)。
 
@@ -274,7 +274,7 @@ Phase Q05 保证"按规则写了"，Phase Q06 检查"写得好不好"：
 
 ## 报告结构
 
-复用 `../../references/ut-audit-template.md`。报告头必须包含 `PROFILE_CONTEXT`（来自 `output/<project>/phaseC/_profile_context.md`）。
+复用 `../../references/ut-audit-template.md`。报告头必须包含 `PROFILE_CONTEXT`（来自 `output/<project>/Q06/_profile_context.md`）。
 
 报告输出模板见 [references/report-template.md](references/report-template.md)。
 

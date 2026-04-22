@@ -50,7 +50,8 @@ FORMAL_FILES = {
     "image_semantics.json",
 }
 
-PHASE_DIRS = {"phaseA", "phaseA5", "phaseA6", "phaseB", "phaseC", "phaseD"}
+PHASE_DIRS = {"phaseA", "phaseA3", "phaseA5", "phaseA6", "phaseB", "phaseC", "phaseD",
+              "Q01", "Q02", "Q03", "Q04", "Q05", "Q06", "Q07"}
 
 
 def is_phase_dir(path: Path) -> bool:

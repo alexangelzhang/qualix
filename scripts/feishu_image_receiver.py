@@ -5,7 +5,7 @@
 配合 Chrome MCP inject_script 使用。
 
 Usage:
-    python scripts/feishu_image_receiver.py -o output/kind-care/phaseA
+    python scripts/feishu_image_receiver.py -o output/kind-care/Q01
 """
 from __future__ import annotations
 

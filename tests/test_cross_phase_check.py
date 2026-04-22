@@ -20,14 +20,14 @@ class TestCrossPhaseRefs:
 
     def test_a5_refs_valid(self, tmp_path: Path):
         output_dir = tmp_path / "output"
-        _write_json(output_dir / "PROJ" / "phaseA" / "phase_a_structured.json", {
+        _write_json(output_dir / "PROJ" / "Q01" / "phase_a_structured.json", {
             "project_id": "PROJ",
             "requirements": [{"req_id": "REQ-001", "description": "x"}],
             "semantic_expectations": [{"se_id": "SE-001", "description": "y"}],
             "gaps": [{"gap_id": "GAP-001", "description": "z"}],
             "open_items": [],
         })
-        _write_json(output_dir / "PROJ" / "phaseA5" / "phase_a5_structured.json", {
+        _write_json(output_dir / "PROJ" / "Q04" / "phase_a5_structured.json", {
             "project_id": "PROJ",
             "req_coverage": [{"req_id": "REQ-001", "status": "COVERED"}],
             "se_coverage": [{"se_id": "SE-001", "status": "COVERED"}],
@@ -38,14 +38,14 @@ class TestCrossPhaseRefs:
 
     def test_a5_refs_missing_req(self, tmp_path: Path):
         output_dir = tmp_path / "output"
-        _write_json(output_dir / "PROJ" / "phaseA" / "phase_a_structured.json", {
+        _write_json(output_dir / "PROJ" / "Q01" / "phase_a_structured.json", {
             "project_id": "PROJ",
             "requirements": [{"req_id": "REQ-001", "description": "x"}],
             "semantic_expectations": [],
             "gaps": [],
             "open_items": [],
         })
-        _write_json(output_dir / "PROJ" / "phaseA5" / "phase_a5_structured.json", {
+        _write_json(output_dir / "PROJ" / "Q04" / "phase_a5_structured.json", {
             "project_id": "PROJ",
             "req_coverage": [{"req_id": "REQ-999", "status": "MISSING"}],
         })
@@ -55,14 +55,14 @@ class TestCrossPhaseRefs:
 
     def test_b_refs_valid_se(self, tmp_path: Path):
         output_dir = tmp_path / "output"
-        _write_json(output_dir / "PROJ" / "phaseA" / "phase_a_structured.json", {
+        _write_json(output_dir / "PROJ" / "Q01" / "phase_a_structured.json", {
             "project_id": "PROJ",
             "requirements": [{"req_id": "REQ-001", "description": "x"}],
             "semantic_expectations": [{"se_id": "SE-001", "description": "y"}],
             "gaps": [],
             "open_items": [],
         })
-        _write_json(output_dir / "PROJ" / "phaseB" / "phase_b_structured.json", {
+        _write_json(output_dir / "PROJ" / "Q05" / "phase_b_structured.json", {
             "project_id": "PROJ",
             "eut_items": [{"eut_id": "EUT-001", "bound_se": "SE-001", "route_type": "Happy Path", "given": "g", "when": "w", "then": "t"}],
         })
@@ -71,14 +71,14 @@ class TestCrossPhaseRefs:
 
     def test_b_refs_missing_se(self, tmp_path: Path):
         output_dir = tmp_path / "output"
-        _write_json(output_dir / "PROJ" / "phaseA" / "phase_a_structured.json", {
+        _write_json(output_dir / "PROJ" / "Q01" / "phase_a_structured.json", {
             "project_id": "PROJ",
             "requirements": [{"req_id": "REQ-001", "description": "x"}],
             "semantic_expectations": [],
             "gaps": [],
             "open_items": [],
         })
-        _write_json(output_dir / "PROJ" / "phaseB" / "phase_b_structured.json", {
+        _write_json(output_dir / "PROJ" / "Q05" / "phase_b_structured.json", {
             "project_id": "PROJ",
             "eut_items": [{"eut_id": "EUT-001", "bound_se": "SE-999", "route_type": "Happy Path", "given": "g", "when": "w", "then": "t"}],
         })
@@ -89,18 +89,18 @@ class TestCrossPhaseRefs:
 
     def test_c_refs_missing_eut(self, tmp_path: Path):
         output_dir = tmp_path / "output"
-        _write_json(output_dir / "PROJ" / "phaseA" / "phase_a_structured.json", {
+        _write_json(output_dir / "PROJ" / "Q01" / "phase_a_structured.json", {
             "project_id": "PROJ",
             "requirements": [{"req_id": "REQ-001", "description": "x"}],
             "semantic_expectations": [],
             "gaps": [],
             "open_items": [],
         })
-        _write_json(output_dir / "PROJ" / "phaseB" / "phase_b_structured.json", {
+        _write_json(output_dir / "PROJ" / "Q05" / "phase_b_structured.json", {
             "project_id": "PROJ",
             "eut_items": [{"eut_id": "EUT-001", "bound_se": "", "route_type": "Happy Path", "given": "g", "when": "w", "then": "t"}],
         })
-        _write_json(output_dir / "PROJ" / "phaseC" / "phase_c_structured.json", {
+        _write_json(output_dir / "PROJ" / "Q06" / "phase_c_structured.json", {
             "project_id": "PROJ",
             "audit_items": [{"eut_id": "EUT-999", "status": "MISSING"}],
         })

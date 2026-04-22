@@ -25,7 +25,7 @@ def main() -> None:
     # 按 phase 目录分组
     by_phase: dict[str, list[Path]] = defaultdict(list)
     for case_file in sorted(CASES_DIR.rglob("case.json")):
-        phase_dir = case_file.parent.parent.name  # e.g. phaseA
+        phase_dir = case_file.parent.parent.name  # e.g. Q01, Q07 (or legacy phaseA, phaseD)
         by_phase[phase_dir].append(case_file)
 
     total = 0

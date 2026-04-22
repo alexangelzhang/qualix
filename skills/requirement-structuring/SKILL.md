@@ -94,16 +94,16 @@ Step 6: 修正（根据 Judge/Critique 发现的问题修正报告）
 
 **飞书直读：**
 ```bash
-python3 scripts/feishu_direct_ingest.py "<feishu_url>" -o output/<id>/phaseA --save-raw-blocks
+python3 scripts/feishu_direct_ingest.py "<feishu_url>" -o output/<id>/Q01 --save-raw-blocks
 ```
 
 **图片语义解析（P0 必做）：**
 ```bash
 python3 scripts/parse_image_assets.py \
-  --manifest output/<id>/phaseA/asset_manifest.json \
-  --output-json output/<id>/phaseA/image_semantics.json \
-  --output-md output/<id>/phaseA/image_semantics.md \
-  --details-dir output/<id>/phaseA/image_details \
+  --manifest output/<id>/Q01/asset_manifest.json \
+  --output-json output/<id>/Q01/image_semantics.json \
+  --output-md output/<id>/Q01/image_semantics.md \
+  --details-dir output/<id>/Q01/image_details \
   --backend auto
 ```
 

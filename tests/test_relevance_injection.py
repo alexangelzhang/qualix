@@ -37,7 +37,7 @@ def test_relevance_matching_used_by_judge_critique_and_experiment(tmp_path: Path
     cases_root = tmp_path / "cases"
     _write_case(
         cases_root,
-        "phaseA",
+        "Q01",
         "CASE-001",
         phase="Q01",
         title="权限缺失",
@@ -47,7 +47,7 @@ def test_relevance_matching_used_by_judge_critique_and_experiment(tmp_path: Path
     )
     _write_case(
         cases_root,
-        "phaseA",
+        "Q01",
         "CASE-002",
         phase="Q01",
         title="库存无关",
@@ -60,7 +60,7 @@ def test_relevance_matching_used_by_judge_critique_and_experiment(tmp_path: Path
     original_load = case_selector.load_cases_by_phase
     monkeypatch.setattr(case_selector, "load_cases_by_phase", lambda phase, **kwargs: original_load(phase, cases_root, **kwargs))
 
-    phase_dir = tmp_path / "output" / "demo" / "phaseA"
+    phase_dir = tmp_path / "output" / "demo" / "Q01"
     phase_dir.mkdir(parents=True, exist_ok=True)
     long_tail = "尾部不应进入相关性输入" * 1200
     (phase_dir / "phase_a_report.md").write_text(f"权限校验失败\n{long_tail}", encoding="utf-8")

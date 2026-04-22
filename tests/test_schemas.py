@@ -135,14 +135,14 @@ class TestValidatePhaseOutput:
 
     def test_missing_json_returns_none(self, tmp_path: Path):
         output_dir = tmp_path / "output"
-        phase_dir = output_dir / "PROJ1" / "phaseA"
+        phase_dir = output_dir / "PROJ1" / "Q01"
         phase_dir.mkdir(parents=True)
         result = validate_phase_output(output_dir, "PROJ1", "Q01")
         assert result is None
 
     def test_valid_json_passes(self, tmp_path: Path):
         output_dir = tmp_path / "output"
-        phase_dir = output_dir / "PROJ1" / "phaseA"
+        phase_dir = output_dir / "PROJ1" / "Q01"
         phase_dir.mkdir(parents=True)
 
         data = {
@@ -160,7 +160,7 @@ class TestValidatePhaseOutput:
 
     def test_invalid_json_returns_errors(self, tmp_path: Path):
         output_dir = tmp_path / "output"
-        phase_dir = output_dir / "PROJ1" / "phaseA"
+        phase_dir = output_dir / "PROJ1" / "Q01"
         phase_dir.mkdir(parents=True)
 
         data = {
@@ -176,7 +176,7 @@ class TestValidatePhaseOutput:
 
     def test_malformed_json(self, tmp_path: Path):
         output_dir = tmp_path / "output"
-        phase_dir = output_dir / "PROJ1" / "phaseA"
+        phase_dir = output_dir / "PROJ1" / "Q01"
         phase_dir.mkdir(parents=True)
         (phase_dir / "phase_a_structured.json").write_text("{bad json", encoding="utf-8")
         result = validate_phase_output(output_dir, "PROJ1", "Q01")

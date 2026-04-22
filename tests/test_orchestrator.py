@@ -46,7 +46,7 @@ class TestDetectPhaseStatus:
     def test_in_progress_phase(self, tmp_path: Path):
         """Dir exists but key file missing."""
         output_dir = _make_output(tmp_path, "PROJ1", [])
-        phase_dir = output_dir / "PROJ1" / "phaseA"
+        phase_dir = output_dir / "PROJ1" / "Q01"
         phase_dir.mkdir(parents=True, exist_ok=True)
         (phase_dir / "ingest.json").write_text("{}", encoding="utf-8")
 
@@ -104,7 +104,7 @@ class TestBuildNextCommand:
                 phase_id="Q01",
                 name="需求结构化",
                 completed=True,
-                key_file_path="/output/PROJ1/phaseA/phase_a_report.md",
+                key_file_path="/output/PROJ1/Q01/phase_a_report.md",
             ),
         ]
         phase_b = PHASES[3]  # Phase B

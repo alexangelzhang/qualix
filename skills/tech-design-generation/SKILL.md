@@ -38,9 +38,9 @@ allowed-tools:
 
 ## 上下文加载原则
 
-1. 必读：`output/<project_id>/phaseA/_upstream_context.md`
-2. 必读：`output/<project_id>/phaseA/phase_a_structured.json`
-3. 如有图片语义：`output/<project_id>/phaseA/image_semantics.md`
+1. 必读：`output/<project_id>/Q01/_upstream_context.md`
+2. 必读：`output/<project_id>/Q01/phase_a_structured.json`
+3. 如有图片语义：`output/<project_id>/Q01/image_semantics.md`
 4. 如提供代码仓库：**必须先扫描现有代码**，识别可复用的接口/类/模块（通过 `_se_code_mapping.md`），禁止重新设计已有接口
 
 **禁止**回读原始 PRD 飞书文档，Phase Q01 产物是唯一需求基线。
@@ -122,9 +122,9 @@ Critique 发现问题 → 修正 → 重新自检。
 
 ### Step 7: 产物输出
 
-- `output/<project_id>/phaseA3/tech_design.md` — 技术方案文档（含实施切片建议）
-- `output/<project_id>/phaseA3/phase_a3_structured.json` — 结构化产物
-- `output/<project_id>/phaseA3/_reasoning_log.md` — 推理日志（每个关键设计决策的 Why）
+- `output/<project_id>/Q02/tech_design.md` — 技术方案文档（含实施切片建议）
+- `output/<project_id>/Q02/phase_a3_structured.json` — 结构化产物
+- `output/<project_id>/Q02/_reasoning_log.md` — 推理日志（每个关键设计决策的 Why）
 
 产物模板见 [references/design-templates.md](references/design-templates.md)。
 

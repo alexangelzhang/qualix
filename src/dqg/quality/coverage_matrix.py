@@ -11,6 +11,7 @@ import re
 from pathlib import Path
 from typing import Any
 
+from dqg.constants import PHASE_DIR_MAP, STRUCTURED_JSON_MAP, REPORT_MAP
 from dqg.json_utils import load_json, save_json
 from dqg.log import get_logger
 
@@ -101,7 +102,7 @@ def generate_coverage_matrix(
     Returns:
         矩阵数据结构，或 None（Phase A 产物不存在时）
     """
-    phase_a_path = output_dir / project_id / "phaseA" / "phase_a_structured.json"
+    phase_a_path = output_dir / project_id / PHASE_DIR_MAP["Q01"] / STRUCTURED_JSON_MAP["Q01"]
     if not phase_a_path.exists():
         log.warning("Phase A 结构化产物不存在: %s", phase_a_path)
         return None
@@ -113,7 +114,7 @@ def generate_coverage_matrix(
     req_ids = extract_requirement_ids(phase_a_data)
 
     # 尝试读取技术设计文档
-    tech_design_path = output_dir / project_id / "phaseA3" / "tech_design.md"
+    tech_design_path = output_dir / project_id / PHASE_DIR_MAP["Q02"] / REPORT_MAP["Q02"]
     tech_sections = extract_tech_design_sections(tech_design_path)
 
     # 构建矩阵：每个 REQ/BR/SE/GAP/OPEN 一行，初始状态 MISSING
@@ -162,7 +163,7 @@ def write_coverage_matrix(output_dir: Path, project_id: str) -> Path | None:
     if not matrix:
         return None
 
-    a5_dir = output_dir / project_id / "phaseA5"
+    a5_dir = output_dir / project_id / PHASE_DIR_MAP["Q04"]
     a5_dir.mkdir(parents=True, exist_ok=True)
     int_dir = a5_dir / "_internal"
     int_dir.mkdir(parents=True, exist_ok=True)

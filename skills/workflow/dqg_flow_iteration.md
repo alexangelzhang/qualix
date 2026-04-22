@@ -97,7 +97,7 @@ dqg-run PROJ reset --module 权益退款 D   # 重置某模块的某个 Phase
 
 如需保留历史版本，在重跑前手动备份：
 ```bash
-cp output/PROJ/phaseD/review_report.md output/PROJ/phaseD/review_report_v2.md
+cp output/PROJ/Q07/review_report.md output/PROJ/Q07/review_report_v2.md
 ```
 
 ## 迭代收敛判断

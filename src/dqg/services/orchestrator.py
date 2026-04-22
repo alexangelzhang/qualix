@@ -255,7 +255,7 @@ def discover_projects(output_dir: Path) -> list[dict]:
             continue
 
         # 新版命名：<project_id>/<phaseX> （项目是一级目录）
-        phase_dirs = [d for d in p.iterdir() if d.is_dir() and re.match(r"^phase[A-D]\d?$", d.name)]
+        phase_dirs = [d for d in p.iterdir() if d.is_dir() and re.match(r"^(phase[A-D]\d?|Q\d{2})$", d.name)]
         if phase_dirs:
             pid = name
             if pid not in projects:

@@ -11,7 +11,7 @@ from dqg.quality.auto_checks import auto_derive_checks
 
 def _setup_phase_a(tmpdir: Path, data: dict) -> Path:
     """创建 Phase A 的产物目录和 JSON."""
-    phase_dir = tmpdir / "test-proj" / "phaseA"
+    phase_dir = tmpdir / "test-proj" / "Q01"
     phase_dir.mkdir(parents=True)
     json_path = phase_dir / "phase_a_structured.json"
     json_path.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
@@ -20,7 +20,7 @@ def _setup_phase_a(tmpdir: Path, data: dict) -> Path:
 
 def _setup_phase_a6(tmpdir: Path, data: dict) -> Path:
     """创建 Phase A.6 的产物目录和 JSON."""
-    phase_dir = tmpdir / "test-proj" / "phaseA6"
+    phase_dir = tmpdir / "test-proj" / "Q03"
     phase_dir.mkdir(parents=True)
     json_path = phase_dir / "phase_a6_structured.json"
     json_path.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
@@ -56,7 +56,7 @@ class TestAutoChecksPhaseA:
     def test_missing_json_file(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             output_dir = Path(tmpdir)
-            (output_dir / "test-proj" / "phaseA").mkdir(parents=True)
+            (output_dir / "test-proj" / "Q01").mkdir(parents=True)
             errors = auto_derive_checks(output_dir, "test-proj", "Q01")
             assert any("MISSING" in e for e in errors)
 

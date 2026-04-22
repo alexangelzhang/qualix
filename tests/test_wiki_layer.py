@@ -8,7 +8,7 @@ from dqg.memory.wiki_layer import WikiManager
 
 def test_compile_wiki_prefers_plain_text_summary(tmp_path: Path) -> None:
     output_dir = tmp_path / "output"
-    phase_ingest = output_dir / "demo" / "phaseA" / "ingest"
+    phase_ingest = output_dir / "demo" / "Q01" / "ingest"
     phase_ingest.mkdir(parents=True, exist_ok=True)
     phase_ingest.joinpath("plain_text_summary.md").write_text("summary-first", encoding="utf-8")
     phase_ingest.joinpath("plain_text.txt").write_text("raw-fallback", encoding="utf-8")
@@ -20,7 +20,7 @@ def test_compile_wiki_prefers_plain_text_summary(tmp_path: Path) -> None:
 
 def test_compile_wiki_falls_back_to_plain_text(tmp_path: Path) -> None:
     output_dir = tmp_path / "output"
-    phase_ingest = output_dir / "demo" / "phaseA" / "ingest"
+    phase_ingest = output_dir / "demo" / "Q01" / "ingest"
     phase_ingest.mkdir(parents=True, exist_ok=True)
     phase_ingest.joinpath("plain_text.txt").write_text("raw-fallback", encoding="utf-8")
 
@@ -31,7 +31,7 @@ def test_compile_wiki_falls_back_to_plain_text(tmp_path: Path) -> None:
 
 def test_compile_wiki_truncates_long_summary(tmp_path: Path) -> None:
     output_dir = tmp_path / "output"
-    phase_ingest = output_dir / "demo" / "phaseA" / "ingest"
+    phase_ingest = output_dir / "demo" / "Q01" / "ingest"
     phase_ingest.mkdir(parents=True, exist_ok=True)
     phase_ingest.joinpath("plain_text_summary.md").write_text("a" * (WIKI_COMPILE_CONTEXT_LIMIT + 100), encoding="utf-8")
 

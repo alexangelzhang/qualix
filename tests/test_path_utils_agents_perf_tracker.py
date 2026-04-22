@@ -29,7 +29,7 @@ def _phase_root(output_dir: Path, project_id: str, phase_id: str) -> Path:
 
 
 def test_resolve_context_files_supports_legacy_layout(tmp_path: Path) -> None:
-    phase_root = tmp_path / "output" / "demo" / "phaseB"
+    phase_root = tmp_path / "output" / "demo" / "Q05"
     expected = [
         _write(phase_root / "_upstream_context.md", "upstream"),
         _write(phase_root / "_profile_context.md", "profile"),
@@ -46,7 +46,7 @@ def test_resolve_context_files_supports_legacy_layout(tmp_path: Path) -> None:
 
 
 def test_resolve_context_files_supports_new_layout(tmp_path: Path) -> None:
-    phase_root = tmp_path / "output" / "demo" / "phaseB"
+    phase_root = tmp_path / "output" / "demo" / "Q05"
     expected = [
         _write(phase_root / "_internal" / "_upstream_context.md", "upstream"),
         _write(phase_root / "_internal" / "_profile_context.md", "profile"),
@@ -63,7 +63,7 @@ def test_resolve_context_files_supports_new_layout(tmp_path: Path) -> None:
 
 
 def test_resolve_effective_context_files_keeps_legacy_layout_without_upstream(tmp_path: Path) -> None:
-    phase_root = tmp_path / "output" / "demo" / "phaseB"
+    phase_root = tmp_path / "output" / "demo" / "Q05"
     expected = [
         _write(phase_root / "_profile_context.md", "profile"),
         _write(phase_root / "_bug_cases.md", "bug"),
@@ -79,7 +79,7 @@ def test_resolve_effective_context_files_keeps_legacy_layout_without_upstream(tm
 
 
 def test_resolve_effective_context_files_deduplicates_new_layout_with_upstream(tmp_path: Path) -> None:
-    phase_root = tmp_path / "output" / "demo" / "phaseB"
+    phase_root = tmp_path / "output" / "demo" / "Q05"
     expected = [
         _write(phase_root / "_internal" / "_upstream_context.md", "upstream"),
         _write(phase_root / "image_semantics.md", "image"),

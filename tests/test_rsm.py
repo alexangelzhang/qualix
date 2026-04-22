@@ -26,7 +26,7 @@ def _setup_full_project(tmpdir: Path) -> Path:
     pid = "test-proj"
 
     # Phase A
-    _write_phase_json(tmpdir, pid, "phaseA", "phase_a_structured.json", {
+    _write_phase_json(tmpdir, pid, "Q01", "phase_a_structured.json", {
         "project_id": pid,
         "requirements": [
             {"req_id": "REQ-001", "description": "创建工单"},
@@ -46,7 +46,7 @@ def _setup_full_project(tmpdir: Path) -> Path:
     })
 
     # Phase A.5
-    _write_phase_json(tmpdir, pid, "phaseA5", "phase_a5_structured.json", {
+    _write_phase_json(tmpdir, pid, "Q04", "phase_a5_structured.json", {
         "project_id": pid,
         "req_coverage": [
             {"req_id": "REQ-001", "status": "COVERED"},
@@ -65,7 +65,7 @@ def _setup_full_project(tmpdir: Path) -> Path:
     })
 
     # Phase B
-    _write_phase_json(tmpdir, pid, "phaseB", "phase_b_structured.json", {
+    _write_phase_json(tmpdir, pid, "Q05", "phase_b_structured.json", {
         "project_id": pid,
         "eut_items": [
             {"eut_id": "EUT-001", "bound_se": "SE-001", "route_type": "Happy Path",
@@ -74,7 +74,7 @@ def _setup_full_project(tmpdir: Path) -> Path:
     })
 
     # Phase D
-    _write_phase_json(tmpdir, pid, "phaseD", "phase_d_structured.json", {
+    _write_phase_json(tmpdir, pid, "Q07", "phase_d_structured.json", {
         "project_id": pid,
         "findings": [
             {"finding_id": "F-001", "description": "缺少异常处理", "severity": "MAJOR", "related_req": "REQ-001"},
@@ -89,7 +89,7 @@ class TestBuildLifecycle:
     def test_builds_from_phase_a(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             output_dir = Path(tmpdir)
-            _write_phase_json(output_dir, "p", "phaseA", "phase_a_structured.json", {
+            _write_phase_json(output_dir, "p", "Q01", "phase_a_structured.json", {
                 "project_id": "p",
                 "requirements": [{"req_id": "REQ-001", "description": "test"}],
                 "semantic_expectations": [{"se_id": "SE-001", "description": "test"}],

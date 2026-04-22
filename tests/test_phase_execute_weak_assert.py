@@ -86,7 +86,7 @@ class OrderServiceTest {
 
     assert exit_code == 0
 
-    internal_dir = output_dir / "demo" / "phaseC" / "_internal"
+    internal_dir = output_dir / "demo" / "Q06" / "_internal"
     json_path = internal_dir / "_weak_assert_context.json"
     md_path = internal_dir / "_weak_assert_context.md"
     assert json_path.exists()
@@ -120,7 +120,7 @@ def test_phase_c_execute_writes_explanatory_notes_when_diff_has_no_test_files(mo
 
     assert exit_code == 0
 
-    internal_dir = output_dir / "demo" / "phaseC" / "_internal"
+    internal_dir = output_dir / "demo" / "Q06" / "_internal"
     payload = json.loads((internal_dir / "_weak_assert_context.json").read_text(encoding="utf-8"))
     md_text = (internal_dir / "_weak_assert_context.md").read_text(encoding="utf-8")
 

@@ -54,25 +54,25 @@ def _append_sample_records(output_dir: Path, project_id: str) -> None:
 
 
 def _write_metrics_reports(output_dir: Path, project_id: str) -> None:
-    phase_a = output_dir / project_id / "phaseA"
+    phase_a = output_dir / project_id / "Q01"
     phase_a.mkdir(parents=True, exist_ok=True)
     (phase_a / "phase_a_report.md").write_text(
         "| REQ-001 | desc |\n| BR-001 | desc |\n| SE-001 | desc |\n| GAP-001 | desc |\n评审结论：**有条件通过**\n",
         encoding="utf-8",
     )
-    phase_a5 = output_dir / project_id / "phaseA5"
+    phase_a5 = output_dir / project_id / "Q04"
     phase_a5.mkdir(parents=True, exist_ok=True)
     (phase_a5 / "tech_design_coverage_review.md").write_text(
         "| GAP-001 | 未闭环 |\n| GAP-002 | 已闭环 |\n",
         encoding="utf-8",
     )
-    phase_a6 = output_dir / project_id / "phaseA6"
+    phase_a6 = output_dir / project_id / "Q03"
     phase_a6.mkdir(parents=True, exist_ok=True)
     (phase_a6 / "tech_design_quality_review.md").write_text(
         "| ARCH-001 | x |\n| CRITICAL_GAP | y |\n| SAFE | z |\n",
         encoding="utf-8",
     )
-    phase_d = output_dir / project_id / "phaseD"
+    phase_d = output_dir / project_id / "Q07"
     phase_d.mkdir(parents=True, exist_ok=True)
     (phase_d / "review_report.md").write_text("存在 BLOCKER 问题\n", encoding="utf-8")
 

@@ -5,6 +5,7 @@ from __future__ import annotations
 import pandas as pd
 import streamlit as st
 
+from dqg.constants import PHASE_DIR_MAP, STRUCTURED_JSON_MAP
 from dqg.json_utils import load_json
 
 from .constants import (
@@ -33,7 +34,7 @@ def _page_scores():
     st.subheader("Phase 质量指标")
 
     # Q03 技术方案质量评审
-    q03_path = OUTPUT_DIR / pid / "phaseA6" / "phase_a6_structured.json"
+    q03_path = OUTPUT_DIR / pid / PHASE_DIR_MAP["Q03"] / STRUCTURED_JSON_MAP["Q03"]
     if q03_path.exists():
         q03 = load_json(q03_path)
         issues = q03.get("issues", [])
@@ -99,7 +100,7 @@ def _page_scores():
             st.dataframe(fm_df, hide_index=True, width="stretch")
 
     # Q04 覆盖度
-    q04_path = OUTPUT_DIR / pid / "phaseA5" / "phase_a5_structured.json"
+    q04_path = OUTPUT_DIR / pid / PHASE_DIR_MAP["Q04"] / STRUCTURED_JSON_MAP["Q04"]
     if q04_path.exists():
         q04 = load_json(q04_path)
         summary = q04.get("coverage_summary", [])
@@ -122,7 +123,7 @@ def _page_scores():
             st.dataframe(cov_df, hide_index=True, width="stretch")
 
     # Q06 单测审计
-    q06_path = OUTPUT_DIR / pid / "phaseC" / "phase_c_structured.json"
+    q06_path = OUTPUT_DIR / pid / PHASE_DIR_MAP["Q06"] / STRUCTURED_JSON_MAP["Q06"]
     if q06_path.exists():
         q06 = load_json(q06_path)
         items = q06.get("audit_items", [])
@@ -143,7 +144,7 @@ def _page_scores():
                     st.metric(UT_STATUS_ZH.get(s, s), c)
 
     # Q07 代码评审
-    q07_path = OUTPUT_DIR / pid / "phaseD" / "phase_d_structured.json"
+    q07_path = OUTPUT_DIR / pid / PHASE_DIR_MAP["Q07"] / STRUCTURED_JSON_MAP["Q07"]
     if q07_path.exists():
         q07 = load_json(q07_path)
         findings = q07.get("findings", [])

@@ -56,7 +56,7 @@ def test_load_cases_by_phase_preloads_input_excerpt_and_render_reuses_it(tmp_pat
     input_text = "权限校验失败\n" + ("x" * 600)
     _write_case(
         cases_root,
-        "phaseA",
+        "Q01",
         "CASE-001",
         phase="Q01",
         title="权限缺失",
@@ -79,7 +79,7 @@ def test_select_relevant_cases_uses_preloaded_case_content(tmp_path: Path) -> No
     cases_root = tmp_path / "cases"
     _write_case(
         cases_root,
-        "phaseA",
+        "Q01",
         "CASE-001",
         phase="Q01",
         title="权限缺失",
@@ -88,7 +88,7 @@ def test_select_relevant_cases_uses_preloaded_case_content(tmp_path: Path) -> No
     )
     _write_case(
         cases_root,
-        "phaseA",
+        "Q01",
         "CASE-002",
         phase="Q01",
         title="无关案例",

@@ -186,7 +186,7 @@
 
 若缺少需求依据、架构依据或覆盖率证据，必须输出 `NEEDS_CONTEXT` 并向用户索取。
 
-新增：若 `output/<project>/phaseC/_internal/_weak_assert_context.md` 存在，必须先读取，并将其中标记的方法作为弱断言审计候选；但最终结论仍以测试源码复核结果为准。
+新增：若 `output/<project>/Q06/_internal/_weak_assert_context.md` 存在，必须先读取，并将其中标记的方法作为弱断言审计候选；但最终结论仍以测试源码复核结果为准。
 
 ## 执行流程
 

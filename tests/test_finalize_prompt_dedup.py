@@ -17,7 +17,7 @@ def _prepare_phase_a(output_dir: Path, project_id: str) -> None:
     state.phases["Q01"].status = PhaseStatus.IN_PROGRESS
     save_state(output_dir, state)
 
-    phase_dir = output_dir / project_id / "phaseA"
+    phase_dir = output_dir / project_id / "Q01"
     phase_dir.mkdir(parents=True, exist_ok=True)
     (phase_dir / "phase_a_report.md").write_text("## PROFILE_CONTEXT\n\n# Report\n", encoding="utf-8")
     (phase_dir / "phase_a_structured.json").write_text('{"project_id": "demo", "requirements": []}', encoding="utf-8")
@@ -89,7 +89,7 @@ def test_finalize_reuses_review_chain_payload_and_does_not_regenerate_prompts(
     assert exit_code == 0
     assert review_counts == {"judge": 1, "critique": 1}
 
-    phase_dir = output_dir / "demo" / "phaseA"
+    phase_dir = output_dir / "demo" / "Q01"
     assert (phase_dir / "_review_chain.md").exists()
     assert (phase_dir / "_judge_prompt.md").read_text(encoding="utf-8") == "# Judge\n\nJUDGE_BODY"
     assert (phase_dir / "_critique_prompt.md").read_text(encoding="utf-8") == "# Critique\n\nCRITIQUE_BODY"

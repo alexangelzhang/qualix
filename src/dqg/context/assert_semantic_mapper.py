@@ -9,6 +9,7 @@ import re
 from typing import Any, Final
 from types import MappingProxyType
 
+from dqg.constants import PHASE_DIR_MAP, STRUCTURED_JSON_MAP
 from dqg.json_utils import load_json
 from dqg.log import get_logger
 
@@ -67,7 +68,7 @@ def load_se_from_phase_a(
 ) -> list[dict[str, Any]]:
     """从 Phase A 结构化产物加载 SE 列表."""
     from pathlib import Path
-    phase_a_json = Path(output_dir) / project_id / "phaseA" / "phase_a_structured.json"
+    phase_a_json = Path(output_dir) / project_id / PHASE_DIR_MAP["Q01"] / STRUCTURED_JSON_MAP["Q01"]
     if not phase_a_json.exists():
         return []
     data = load_json(phase_a_json)
@@ -82,7 +83,7 @@ def load_eut_from_phase_b(
 ) -> list[dict[str, Any]]:
     """从 Phase B 结构化产物加载 EUT 列表."""
     from pathlib import Path
-    phase_b_json = Path(output_dir) / project_id / "phaseB" / "phase_b_structured.json"
+    phase_b_json = Path(output_dir) / project_id / PHASE_DIR_MAP["Q05"] / STRUCTURED_JSON_MAP["Q05"]
     if not phase_b_json.exists():
         return []
     data = load_json(phase_b_json)

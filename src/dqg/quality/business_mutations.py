@@ -11,6 +11,7 @@ from pathlib import Path
 from types import MappingProxyType
 from typing import Any, Final
 
+from dqg.constants import PHASE_DIR_MAP, STRUCTURED_JSON_MAP
 from dqg.json_utils import load_json, save_json
 from dqg.log import get_logger
 
@@ -145,7 +146,7 @@ def write_business_mutations(
     Returns:
         写入的文件路径，或 None
     """
-    phase_a_path = output_dir / project_id / "phaseA" / "phase_a_structured.json"
+    phase_a_path = output_dir / project_id / PHASE_DIR_MAP["Q01"] / STRUCTURED_JSON_MAP["Q01"]
     if not phase_a_path.exists():
         return None
 
@@ -161,7 +162,7 @@ def write_business_mutations(
     if not mutations:
         return None
 
-    phase_c_dir = output_dir / project_id / "phaseC"
+    phase_c_dir = output_dir / project_id / PHASE_DIR_MAP["Q06"]
     phase_c_dir.mkdir(parents=True, exist_ok=True)
     int_dir = phase_c_dir / "_internal"
     int_dir.mkdir(parents=True, exist_ok=True)
