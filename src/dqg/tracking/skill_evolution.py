@@ -293,7 +293,11 @@ def _render_evolution_report(diff_result: dict[str, Any]) -> str:
     # 高置信度（建议自动合入）
     auto_diffs = [d for d in diff_result["diffs"] if d.get("auto_merge_suggested")]
     if auto_diffs:
-        lines.append("## 建议自动合入（高置信度，3+ case 支撑）")
+        auto_merged = diff_result.get("auto_merged", False)
+        if auto_merged:
+            lines.append("## 已自动合入（holdout 验证通过）")
+        else:
+            lines.append("## 建议自动合入（高置信度，3+ case 支撑）")
         lines.append("")
         for d in auto_diffs:
             lines.append(f"**[{d['type']}]** → `{d['section']}`")
@@ -301,6 +305,11 @@ def _render_evolution_report(diff_result: dict[str, Any]) -> str:
             lines.append(d["content"])
             lines.append(f"```")
             lines.append(f"来源: {', '.join(d['source_cases'])} | 支撑: {d['support_count']} cases")
+            lines.append("")
+        if auto_merged:
+            holdout_result = diff_result.get("holdout_result", {})
+            lines.append(f"- Holdout coverage_gap: {holdout_result.get('coverage_gap', 'N/A')}")
+            lines.append(f"- Overfitting signal: {holdout_result.get('overfitting_signal', False)}")
             lines.append("")
 
     # 中等置信度（需人工 review）

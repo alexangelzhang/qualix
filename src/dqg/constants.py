@@ -153,6 +153,26 @@ PRICING_CACHE_READ_PER_M = 1.5      # Cache read (0.1x input)
 # 质量阈值
 # ---------------------------------------------------------------------------
 
+WEAK_ASSERT_HIGH_RISK_WARN = 3       # 弱断言 gate: high-risk 方法数 ≥ 此值触发 WARNING
+WEAK_ASSERT_RATIO_WARN = 0.5         # 弱断言 gate: weak/total 比例 ≥ 此值触发 WARNING
+SKILL_AUTO_MERGE_ENABLED = True      # Skill Evolution: 高置信度规则自动合入 SKILL.md
+SKILL_AUTO_MERGE_OVERFITTING_THRESHOLD = 0.5  # holdout coverage_gap 超此值自动 revert
+MOCK_COINCIDENCE_KEYWORDS: list[str] = [  # Mock 巧合正确检测关键词
+    "固定返回", "硬编码", "写死", "return.*new.*\\(\\)",
+    "mock.*return.*null", "when.*thenReturn.*0",
+    "mock.*any", "Mockito\\.any", "答案固定",
+    "不随输入变化", "忽略参数", "无条件返回",
+]
+AI_ORIGIN_CO_AUTHOR_PATTERNS: list[str] = [  # AI 产出标记：Co-Authored-By 匹配
+    r"Co-Authored-By:.*Claude",
+    r"Co-Authored-By:.*Copilot",
+    r"Co-Authored-By:.*GPT",
+    r"Co-Authored-By:.*Cursor",
+    r"Co-Authored-By:.*Devin",
+    r"Co-Authored-By:.*noreply@anthropic\.com",
+    r"Co-Authored-By:.*noreply@github\.com",
+]
+
 JUDGE_PASS_THRESHOLD = 3.5          # adaptive_loop: 通过分数线
 JUDGE_PASS_WITH_CONCERNS_DELTA = 0.5  # PASS_WITH_CONCERNS 容差
 ADAPTIVE_MAX_ITERATIONS = 3         # adaptive_loop: 最大迭代次数

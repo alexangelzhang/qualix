@@ -1,15 +1,7 @@
 """Reflect→Write→Verify loop for automatic skill evolution.
 
 Triggered when adaptive loop exhausts all iterations with FAIL.
-
-Root cause taxonomy:
-- SKILL_RULE: Worker repeatedly violates a rule that should be in the skill file.
-  Write-back: append to anti-rationalization table or red-line rules in SKILL.md.
-- CONTEXT: Worker lacks necessary context (missing code, upstream data, domain knowledge).
-  Write-back: append to _context_hints.md in phase _internal/ dir.
-- SCHEMA: Worker produces structurally wrong output (missing fields, wrong format).
-  Write-back: append to _schema_hints.md in phase _internal/ dir.
-- UNKNOWN: Cannot classify. Write suggestion file for human review.
+Root cause taxonomy: SKILL_RULE / CONTEXT / SCHEMA / UNKNOWN.
 """
 from __future__ import annotations
 
@@ -20,7 +12,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from dqg.constants import CASES_DIR, PHASE_DIR_MAP, SKILL_FILE_MAP
+from dqg.constants import CASES_DIR, PHASE_DIR_MAP, SKILL_FILE_MAP, SKILL_AUTO_MERGE_ENABLED
 from dqg.json_utils import save_json
 from dqg.log import get_logger
 from dqg.tracking.skill_evolution import HIGH_CONFIDENCE_THRESHOLD
@@ -167,40 +159,80 @@ class SkillReflector:
     def write(self, reflect_result: ReflectResult, support_count: int) -> WriteResult:
         """Apply changes based on root_cause type and confidence level.
 
-        SKILL_RULE + high confidence → append to SKILL.md (auto-apply)
+        SKILL_RULE + high confidence + auto-merge enabled → apply to SKILL.md + holdout verify
         CONTEXT → append to _context_hints.md
         SCHEMA → append to _schema_hints.md
         Others → HUMAN_REVIEW suggestion file
         """
+        from dqg.tracking.skill_auto_merge import write_suggestion_file
         root_cause = reflect_result.root_cause
 
+        def _suggestion() -> str:
+            return write_suggestion_file(
+                self.project_id, self.phase, root_cause,
+                reflect_result.failure_patterns, reflect_result.suggested_changes,
+            )
+
         if root_cause == "CONTEXT":
-            path = self._write_context_hints(reflect_result)
+            from dqg.tracking.skill_auto_merge import write_context_hints
+            path = write_context_hints(
+                self.project_id, self.phase,
+                reflect_result.failure_patterns, reflect_result.suggested_changes,
+            )
             return WriteResult(mode="AUTO_APPLY", path=path, changes=reflect_result.suggested_changes)
 
         if root_cause == "SCHEMA":
-            path = self._write_schema_hints(reflect_result)
+            from dqg.tracking.skill_auto_merge import write_schema_hints
+            path = write_schema_hints(
+                self.project_id, self.phase,
+                reflect_result.failure_patterns, reflect_result.suggested_changes,
+            )
             return WriteResult(mode="AUTO_APPLY", path=path, changes=reflect_result.suggested_changes)
 
         if root_cause == "SKILL_RULE":
             if support_count < HIGH_CONFIDENCE_THRESHOLD:
-                suggestion_path = self._write_suggestion_file(reflect_result)
+                suggestion_path = _suggestion()
                 return WriteResult(mode="HUMAN_REVIEW", path=suggestion_path)
 
             skill_path = SKILL_FILE_MAP.get(self.phase, "")
             if not skill_path:
-                return WriteResult(mode="HUMAN_REVIEW", path="")
+                suggestion_path = _suggestion()
+                return WriteResult(mode="HUMAN_REVIEW", path=suggestion_path)
 
-            # v1: auto-apply deferred until holdout replay is ready
-            suggestion_path = self._write_suggestion_file(reflect_result)
+            if not SKILL_AUTO_MERGE_ENABLED:
+                suggestion_path = _suggestion()
+                return WriteResult(
+                    mode="HUMAN_REVIEW", path=suggestion_path,
+                    changes=reflect_result.suggested_changes, target_files=[skill_path],
+                )
+
+            # Auto-merge: snapshot → apply → holdout verify → revert if overfitting
+            from dqg.tracking.skill_auto_merge import apply_to_skill_file, verify_with_holdout
+
+            snapshot = self.snapshot_targets([skill_path])
+            applied = apply_to_skill_file(skill_path, reflect_result.suggested_changes)
+            if not applied:
+                self.rollback(snapshot)
+                suggestion_path = _suggestion()
+                return WriteResult(mode="HUMAN_REVIEW", path=suggestion_path)
+
+            holdout_ok = verify_with_holdout(self.phase)
+            if not holdout_ok:
+                self.rollback(snapshot)
+                log.warning("Auto-merge reverted for %s: holdout overfitting detected", self.phase)
+                suggestion_path = _suggestion()
+                return WriteResult(
+                    mode="REVERTED", path=suggestion_path,
+                    changes=reflect_result.suggested_changes, target_files=[skill_path],
+                )
+
+            log.info("Auto-merged skill rules for %s (support=%d)", self.phase, support_count)
             return WriteResult(
-                mode="HUMAN_REVIEW",
-                path=suggestion_path,
-                changes=reflect_result.suggested_changes,
-                target_files=[skill_path],
+                mode="AUTO_APPLY", path=skill_path,
+                changes=reflect_result.suggested_changes, target_files=[skill_path],
             )
 
-        suggestion_path = self._write_suggestion_file(reflect_result)
+        suggestion_path = _suggestion()
         return WriteResult(mode="HUMAN_REVIEW", path=suggestion_path)
 
     def snapshot_targets(self, target_files: list[str]) -> dict[str, str]:
@@ -285,7 +317,12 @@ class SkillReflector:
 
         write_result = self.write(reflect_result, support_count)
 
-        action = "AUTO_MERGED" if write_result.mode == "AUTO_APPLY" else "HUMAN_REVIEW"
+        if write_result.mode == "AUTO_APPLY":
+            action = "AUTO_MERGED"
+        elif write_result.mode == "REVERTED":
+            action = "REVERTED"
+        else:
+            action = "HUMAN_REVIEW"
         outcome = EvolutionOutcome(
             action=action,
             reason=f"root_cause={reflect_result.root_cause}, support={support_count}",
@@ -358,59 +395,3 @@ class SkillReflector:
         with trace_path.open("a", encoding="utf-8") as f:
             f.write("\n".join(lines) + "\n")
         log.info("Evolution trace written: %s", trace_path)
-
-    def _write_context_hints(self, reflect_result: ReflectResult) -> str:
-        """Append context hints to _context_hints.md in phase _internal/ dir."""
-        dir_suffix = PHASE_DIR_MAP.get(self.phase, self.phase)
-        hints_dir = Path("output") / self.project_id / dir_suffix / "_internal"
-        hints_dir.mkdir(parents=True, exist_ok=True)
-        path = hints_dir / "_context_hints.md"
-
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
-        entry = f"\n## [{timestamp}] Auto-detected context gap\n\n"
-        for p in reflect_result.failure_patterns[:3]:
-            entry += f"- {p}\n"
-        if reflect_result.suggested_changes:
-            entry += f"\n**建议**: {reflect_result.suggested_changes[0]}\n"
-
-        with path.open("a", encoding="utf-8") as f:
-            f.write(entry)
-        log.info("Context hints written: %s", path)
-        return str(path)
-
-    def _write_schema_hints(self, reflect_result: ReflectResult) -> str:
-        """Append schema hints to _schema_hints.md in phase _internal/ dir."""
-        dir_suffix = PHASE_DIR_MAP.get(self.phase, self.phase)
-        hints_dir = Path("output") / self.project_id / dir_suffix / "_internal"
-        hints_dir.mkdir(parents=True, exist_ok=True)
-        path = hints_dir / "_schema_hints.md"
-
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
-        entry = f"\n## [{timestamp}] Auto-detected schema issue\n\n"
-        for p in reflect_result.failure_patterns[:3]:
-            entry += f"- {p}\n"
-        if reflect_result.suggested_changes:
-            entry += f"\n**建议**: {reflect_result.suggested_changes[0]}\n"
-
-        with path.open("a", encoding="utf-8") as f:
-            f.write(entry)
-        log.info("Schema hints written: %s", path)
-        return str(path)
-
-    def _write_suggestion_file(self, reflect_result: ReflectResult) -> str:
-        """Write suggestion file for human review."""
-        suggestion_dir = Path("output") / self.project_id / PHASE_DIR_MAP.get(self.phase, self.phase)
-        suggestion_dir.mkdir(parents=True, exist_ok=True)
-        path = suggestion_dir / f"_skill_suggestions_{self.phase}.md"
-
-        content = f"# Skill Evolution Suggestions — Phase {self.phase}\n\n"
-        content += f"Root Cause: {reflect_result.root_cause}\n\n"
-        content += "## Failure Patterns\n\n"
-        for p in reflect_result.failure_patterns:
-            content += f"- {p}\n"
-        content += "\n## Suggested Changes\n\n"
-        for c in reflect_result.suggested_changes:
-            content += f"- {c}\n"
-
-        path.write_text(content, encoding="utf-8")
-        return str(path)

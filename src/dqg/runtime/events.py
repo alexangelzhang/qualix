@@ -32,6 +32,15 @@ class EventType(StrEnum):
     JUDGE_COMPLETED = "judge_completed"
     RULE_CHECK_COMPLETED = "rule_check_completed"
 
+    # 异构检测层
+    WEAK_ASSERT_GATE = "weak_assert_gate"
+    MOCK_COINCIDENCE_DETECTED = "mock_coincidence_detected"
+    AI_ORIGIN_DETECTED = "ai_origin_detected"
+
+    # Skill Evolution 自动闭环
+    SKILL_AUTO_MERGED = "skill_auto_merged"
+    SKILL_AUTO_REVERTED = "skill_auto_reverted"
+
     # 自动化 sidecar
     BUG_CASES_GENERATED = "bug_cases_generated"
     PERF_COLLECTED = "perf_collected"

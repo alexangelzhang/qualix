@@ -111,6 +111,8 @@
 - 静默失败修复（`runtime/handlers_finalize.py`）— `_async_write_json` 和 `_emit_handler` 的 `except: pass` 改为 `log.debug` 记录失败原因，消除调试盲区
 - CLI 命令整合 — 砍掉 4 个孤儿 entry point（dqg-orchestrate/dqg-metrics/dqg-observe/dqg-regression），收编为 `dqg-run` 子命令（metrics/observe/regression）；统一 Phase ID help 文本为 Q01-Q07；`dqg version` 去重委托 setup.py
 - 增量上下文检测（`context/file_snapshot.py`）— sha256 + mtime 快照比对，上游 Phase 产物未变更时跳过重读，减少 DAG 模式和重跑场景的 IO 开销
+- 异构检测层（`runtime/handlers_detection.py`）— 三个 finalize handler：弱断言 gate（high-risk 数量/比例超阈值 WARNING）、Mock 巧合正确检测（偏差模式匹配+真实数据验证缺失）、AI 产出标记（git blame + Co-Authored-By 推断代码来源）
+- Skill Evolution 全自动闭环（`tracking/skill_auto_merge.py`）— 高置信度规则（3+ case 支撑）自动合入 SKILL.md + holdout 验证 + overfitting 自动 revert；低置信度仍走 HUMAN_REVIEW；`SKILL_AUTO_MERGE_ENABLED` 全局开关
 
 仍需推进（P1）：
 
@@ -447,7 +449,7 @@
 | P0 | 应用层 LLM result cache | **已完成(100%)** | 降低重复 LLM 调用，缓存键含 skill/rubric 签名，全局统计，Judge/Critique/Preference 全覆盖 |
 | P0 | retrieval-first evidence pack | **已完成(95%)** | evidence pack schema（概览+摘要+关键引用），Phase Q01 当前输入证据与 bug case 去重 |
 | 高 | FTS5 中文分词完善 | **已完成(85%)** | jieba 词级分词+停用词+bigram 补充召回，降级兼容 n-gram。待完善：FTS5 自定义 tokenizer |
-| 高 | 弱断言检测 | **已完成(95%)** | tree-sitter Java AST 解析+跨方法 Helper 分析+业务语义映射(SE/EUT)。待完善：多语言支持 |
+| 高 | 弱断言检测 | **已完成(100%)** | tree-sitter Java AST 解析+跨方法 Helper 分析+业务语义映射(SE/EUT)+finalize gate 阻断(WARNING)。待完善：多语言支持 |
 | 高 | DAG 并行调度器 | **已完成(100%)** | `dqg-run dag` 端到端并行执行，ThreadPoolExecutor，支持 --skip/--max-parallel/--plan |
 | 中 | 证据与结果的可观测性闭环 | 进行中 | 缓存命中率/证据包大小/上下文 token/LLM 调用次数统一指标 |
 | 低 | Prompt 细节和文档治理 | 规划中 | 统一提示词风格、报告模板、引用格式 |
