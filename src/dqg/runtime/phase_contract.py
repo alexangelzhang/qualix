@@ -110,9 +110,9 @@ def render_contract_for_judge(contract: dict[str, Any]) -> str:
     lines.append("")
     lines.append("### Verification Targets（验证目标）")
     lines.append("")
-    lines.append("> **权重说明**：Profile Baseline ≥ Bug Case Library > Phase A SE")
+    lines.append("> **权重说明**：Profile Baseline ≥ Bug Case Library > Phase Q01 SE")
     lines.append("> - 🔴 HARD（不可篡改）：Profile Baseline + Bug Case Library，Judge 必须全部给出 PASS/FAIL")
-    lines.append("> - 🟡 SOFT（可质疑）：Phase A SE，Judge 应验证，证据不足时标注 INSUFFICIENT_EVIDENCE")
+    lines.append("> - 🟡 SOFT（可质疑）：Phase Q01 SE，Judge 应验证，证据不足时标注 INSUFFICIENT_EVIDENCE")
 
     se_targets = [vt for vt in contract.get("verification_targets", []) if vt.get("source") == "phase_a"]
     profile_targets = [vt for vt in contract.get("verification_targets", []) if vt.get("source") == "profile"]

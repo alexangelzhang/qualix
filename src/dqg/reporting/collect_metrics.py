@@ -268,7 +268,7 @@ def print_metrics_summary(metrics: dict):
 
     a = metrics["phases"]["Q01"]
     if a.get("status") == "COLLECTED":
-        print("\n  Phase A — 需求结构化")
+        print("\n  Phase Q01 — 需求结构化")
         print(f"    需求点: {a['req_count']} REQ + {a['br_count']} BR")
         print(f"    关键语义: {a['se_count']} SE")
         print(f"    缺口: {a['gap_count']} GAP / 待确认: {a['open_count']} OPEN")
@@ -276,7 +276,7 @@ def print_metrics_summary(metrics: dict):
 
     a5 = metrics["phases"]["Q04"]
     if a5.get("status") == "COLLECTED":
-        print("\n  Phase A.5 — 覆盖度审计")
+        print("\n  Phase Q04 — 覆盖度审计")
         gc = a5.get("gap_closure", {})
         print(f"    GAP 闭环: {gc.get('closed', 0)}/{gc.get('total', 0)} ({gc.get('closure_rate', 0):.0%})")
 
@@ -284,7 +284,7 @@ def print_metrics_summary(metrics: dict):
     if a6.get("status") == "COLLECTED":
         density = a6.get("issue_density", {})
         fm = a6.get("failure_mode", {})
-        print("\n  Phase A.6 — 质量评审")
+        print("\n  Phase Q03 — 质量评审")
         print(f"    问题总数: {density.get('total', 0)} (ARCH:{density.get('architecture', 0)} API:{density.get('api_design', 0)} DATA:{density.get('data_model', 0)} EXC:{density.get('exception_handling', 0)} PERF:{density.get('performance', 0)})")
         print(f"    Failure Mode: SAFE:{fm.get('safe', 0)} RISK:{fm.get('risk', 0)} CRITICAL_GAP:{fm.get('critical_gap', 0)}")
 
@@ -292,7 +292,7 @@ def print_metrics_summary(metrics: dict):
     if c.get("status") == "COLLECTED":
         cq = c.get("coverage_quality", {})
         cg = c.get("coverage_gate", {})
-        print("\n  Phase C — 单测审计")
+        print("\n  Phase Q06 — 单测审计")
         print(f"    覆盖质地: COVERED:{cq.get('covered', 0)} PARTIAL:{cq.get('partial', 0)} MISSING:{cq.get('missing', 0)} WRONG_TARGET:{cq.get('wrong_target', 0)}")
         if cg.get("line_coverage") is not None:
             print(f"    覆盖率门禁: line={cg['line_coverage']}% branch={cg.get('branch_coverage', '?')}%")

@@ -44,7 +44,7 @@ class CritiqueFeedbackItem(BaseModel):
     )
     evidence_source: str = Field(
         default="",
-        description="证据来源（如 'PRD 第3段' 或 'Phase A REQ-001'）",
+        description="证据来源（如 'PRD 第3段' 或 'Phase Q01 REQ-001'）",
     )
 
 

@@ -53,22 +53,22 @@ def check_cross_phase_refs(output_dir: Path, project_id: str) -> list[str]:
         for item in phase_a5.get("req_coverage", []):
             ref_id = item.get("req_id", "")
             if ref_id and ref_id not in req_ids:
-                errors.append(f"Phase A.5 引用了 {ref_id}，但 Phase A 中不存在")
+                errors.append(f"Phase Q04 引用了 {ref_id}，但 Phase Q01 中不存在")
 
         for item in phase_a5.get("se_coverage", []):
             ref_id = item.get("se_id", "")
             if ref_id and ref_id not in se_ids:
-                errors.append(f"Phase A.5 引用了 {ref_id}，但 Phase A 中不存在")
+                errors.append(f"Phase Q04 引用了 {ref_id}，但 Phase Q01 中不存在")
 
         for item in phase_a5.get("gap_closure", []):
             ref_id = item.get("gap_id", "")
             if ref_id and ref_id not in gap_ids:
-                errors.append(f"Phase A.5 引用了 {ref_id}，但 Phase A 中不存在")
+                errors.append(f"Phase Q04 引用了 {ref_id}，但 Phase Q01 中不存在")
 
         for item in phase_a5.get("open_closure", []):
             ref_id = item.get("open_id", "")
             if ref_id and ref_id not in open_ids:
-                errors.append(f"Phase A.5 引用了 {ref_id}，但 Phase A 中不存在")
+                errors.append(f"Phase Q04 引用了 {ref_id}，但 Phase Q01 中不存在")
 
     # 校验 Phase B：EUT 绑定的 SE 是否存在
     phase_b_path = output_dir / project_id / PHASE_DIR_MAP["Q05"] / STRUCTURED_JSON_MAP["Q05"]
@@ -78,7 +78,7 @@ def check_cross_phase_refs(output_dir: Path, project_id: str) -> list[str]:
         for item in phase_b.get("eut_items", []):
             bound_se = item.get("bound_se", "")
             if bound_se and bound_se not in se_ids and bound_se not in req_ids:
-                errors.append(f"Phase B EUT {item.get('eut_id', '?')} 绑定了 {bound_se}，但 Phase A 中不存在")
+                errors.append(f"Phase Q05 EUT {item.get('eut_id', '?')} 绑定了 {bound_se}，但 Phase Q01 中不存在")
 
     # 校验 Phase C：审计的 EUT ID 是否在 Phase B 中存在
     phase_c_path = output_dir / project_id / PHASE_DIR_MAP["Q06"] / STRUCTURED_JSON_MAP["Q06"]
@@ -89,6 +89,6 @@ def check_cross_phase_refs(output_dir: Path, project_id: str) -> list[str]:
         for item in phase_c.get("audit_items", []):
             ref_id = item.get("eut_id", "")
             if ref_id and ref_id not in eut_ids:
-                errors.append(f"Phase C 审计了 {ref_id}，但 Phase B 中不存在")
+                errors.append(f"Phase Q06 审计了 {ref_id}，但 Phase Q05 中不存在")
 
     return errors

@@ -122,7 +122,7 @@ def generate_judge_prompt(
     if phase_id != "Q01":
         upstream_dir = output_dir / project_id / PHASE_DIR_MAP["Q01"]
         upstream_path = upstream_dir / STRUCTURED_JSON_MAP["Q01"]
-        lines.append(f"{len(report_files) + 1}. Phase A 产物: `{upstream_path}`")
+        lines.append(f"{len(report_files) + 1}. Phase Q01 产物: `{upstream_path}`")
         excerpt = read_relevance_excerpt(upstream_path)
         if excerpt:
             relevance_parts.append(excerpt)

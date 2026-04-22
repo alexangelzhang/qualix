@@ -8,7 +8,7 @@ from pathlib import Path
 def cmd_wiki_compile(args, output_dir: Path) -> int:
     from dqg.memory.wiki_layer import WikiManager
     from dqg.memory.memory_layer import MemoryLayer
-    print(f"\n  [Wiki] 开始从 Phase A 中编译并构建项目 LLM-Wiki ...")
+    print(f"\n  [Wiki] 开始从 Phase Q01 中编译并构建项目 LLM-Wiki ...")
     wm = WikiManager(output_dir)
     print(wm.compile_wiki(args.project_id))
     count = MemoryLayer(output_dir).sync_wiki_to_sqlite(args.project_id)
