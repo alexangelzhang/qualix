@@ -186,7 +186,7 @@
 - 报告 `PROFILE_CONTEXT` 规范化产物
 - 目录结构重构（`output/<project>/<phase>/`）
 - 飞书抓取优化（图片/文档并发、bitable 支持）
-- Bug 案例库（87 条，按 Phase 分类，相关性匹配注入）
+- Bug 案例库（按 Phase 分类，相关性匹配注入，finalize 自动生成）
 - LLM-as-Judge 自动评审（1-5 Likert 量表，RAGAS rubric 标准）
 - Self-Critique + RLAIF 融合闭环
 - 规则级质量追踪 + 自动修复闭环
@@ -218,7 +218,7 @@
 - 需求粒度标准（Story + AC 分层模型）
 - BR 细节要求（禁止概括性描述，必须包含字段/枚举/校验/提示）
 - 图片解析 P0 必做（状态机/流程图必须转 Mermaid）
-- 所有 6 个 Phase skill 统一执行流程（证据采集→全量理解→产出→自检→Judge/Critique→修正→finalize）
+- 所有 7 个 Phase skill 统一执行流程（证据采集→全量理解→产出→自检→Judge/Critique→修正→finalize）
 - `.claude/commands/` + `.gemini/commands/` slash command 支持
 - Multi-Agent Phase 1（Orchestrator + Worker/Judge/Critique 独立 prompt + DAG 并行调度）
 - Multi-Agent Phase 2（模型无关 Agent Framework，Claude/DeepSeek/Qwen/Gemini/Kimi/Codex 自动 fallback，`dqg-run agent-run`）

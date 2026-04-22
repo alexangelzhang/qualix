@@ -5,7 +5,7 @@
 [![Agent索引](https://img.shields.io/badge/Agent%E7%B4%A2%E5%BC%95-AGENTS.md-orange)](AGENTS.md)
 [![Roadmap](https://img.shields.io/badge/Roadmap-ROADMAP.md-blue)](ROADMAP.md)
 
-由 6 个 AI Agent 驱动，覆盖需求结构化、技术方案审计、单测生成与审计、代码评审全生命周期。每个 Phase 有独立的 skill、结构化数据契约和质量门禁。
+由 7 个 AI Agent 驱动，覆盖需求结构化、技术方案生成与审计、单测生成与审计、代码评审全生命周期。每个 Phase 有独立的 skill、结构化数据契约和质量门禁。
 
 ---
 
@@ -48,7 +48,7 @@ Agent 会自动：
 ## Pipeline 总览
 
 ```
-Q01 ──→ Q04 ──→ Q03      (Q04 和 Q03 可并行)
+Q01 ──→ Q02(可选) ──→ Q03 ──→ Q04 ──→ Q07
 │
 ├──→ Q05 ──→ Q06
 │
@@ -58,8 +58,9 @@ Q01 ──→ Q04 ──→ Q03      (Q04 和 Q03 可并行)
 | Phase | 名称 | 你需要提供 | 交付物 |
 |-------|------|-----------|--------|
 | Q01 | 需求结构化 | PRD 或飞书需求文档 | REQ/BR/SE + GAP + OPEN 结构化清单 |
-| Q04 | 技术方案覆盖度审计 | 技术方案文档 + (可选)代码仓库 | 覆盖度矩阵 + GAP/OPEN 闭环状态 |
+| Q02 | 技术方案生成（可选） | Q01 产物 + 知识库 | 技术方案文档 |
 | Q03 | 技术方案质量评审 | 技术方案文档 | 架构/接口/数据/异常/性能评审报告 |
+| Q04 | 技术方案覆盖度审计 | 技术方案文档 + (可选)代码仓库 | 覆盖度矩阵 + GAP/OPEN 闭环状态 |
 | Q05 | 单测生成 | 代码仓库 + 目标模块路径 | EUT 矩阵 + 单测代码 |
 | Q06 | 单测覆盖审计 | 代码仓库(含单测) + (可选)覆盖率报告 | 审计报告 + 变异测试结果 |
 | Q07 | 代码评审 | 代码仓库 + 评审分支名 | 评审报告 + 覆盖缺口摘要 |
@@ -125,25 +126,9 @@ dqg-run PROJ auto --skip Q03                  # 跳过某 Phase
 # 查看执行记录
 dqg-run PROJ log
 
-# 独立校验
-dqg-validate PROJ --all
-dqg-validate PROJ --phase Q01
-
 # 度量采集
 dqg-metrics PROJ
-
-# Bug 案例库
-python -m dqg.bug_cases                       # 查看案例库报告
-python -m dqg.import_bug_cases <ingest.json>  # 从飞书 Bitable 批量导入
 ```
-
-### 方式三：Quick Start Demo
-
-```bash
-bash examples/mini-prd/run_demo.sh
-```
-
-一键体验 Phase Q01 的完整流程（execute → finalize → approve），使用脱敏的示例 PRD。
 
 ## 项目结构
 
@@ -165,34 +150,31 @@ dev-quality-gate/
 │   ├── system-rules.md              # 通用规则（含 TMF 链路追踪）
 │   ├── SKILL_TEMPLATE.md            # agentskills.io 标准模板
 │   └── workflow/                    # 工作流定义
-│       ├── dqg_flow_phases.md
-│       ├── dqg_flow_multi_module.md
-│       ├── dqg_flow_iteration.md
-│       └── error-recovery-protocol.md
 ├── src/dqg/                    # Python package
-│   ├── core/                   # 状态机 + Phase 注册表
-│   ├── runtime/                # 执行引擎（phase_contract, preflight, credential_pool, harness_ablation, task_store）
-│   ├── quality/                # 质量评审链（judge, critique, verification_bundle, eval_baseline, score_calibration）
-│   ├── agents/                 # Multi-Agent（adaptive_loop, two_phase_worker, agent_orchestrator）
+│   ├── core/                   # 状态机 + Phase 注册表 + CLI
+│   ├── runtime/                # 执行引擎（phase_contract, lifecycle, harness_ablation）
+│   ├── quality/                # 质量评审链（judge, critique, verification_bundle, eval_baseline）
+│   ├── agents/                 # Multi-Agent（adaptive_loop, agent_orchestrator, dag_scheduler）
+│   ├── commands/               # CLI 子命令（phase, review, query, startup）
+│   ├── services/               # 业务服务（orchestrator, phase_service）
 │   ├── context/                # 上下文（context_loader, context_compressor, skill_loader）
-│   ├── cache/                  # FTS5 索引（code_search, code_semantic_search, fact_cache）
-│   ├── tracking/               # Bug 案例 + Skill Evolution（skill_factory, lesson_inference, data_patterns）
+│   ├── cache/                  # FTS5 索引（code_search, fact_cache, llm_result_cache）
+│   ├── store/                  # 数据存储（core, judge, events, dashboard）
+│   ├── tracking/               # Bug 案例 + Skill Evolution（skill_factory, bug_case_generator）
 │   ├── memory/                 # 记忆层（memory_layer, knowledge_network, compress_hooks）
 │   ├── security/               # 安全扫描（content_scanner, tool_permissions）
-│   ├── schemas/                # Phase 数据契约 + RSM + Critique Feedback
-│   ├── reporting/              # 性能/指标/渲染
+│   ├── schemas/                # Phase 数据契约
+│   ├── reporting/              # 性能/指标/渲染/看板
 │   ├── ingest/                 # 文档抓取（飞书）
 │   └── media/                  # 图片处理
-├── modules/                    # Phase 详细规则（skill 引用）
 ├── profiles/                   # 可切换 profile（baseline + 阈值 + 风险词典）
 ├── regression/                 # 基准回放集 + 回放结果
-│   └── failure-library/cases/  # Bug 案例库（87 条，按 Phase 分类）
+│   └── failure-library/cases/  # Bug 案例库（按 Phase 分类）
 ├── references/                 # 参考文件 + 模板
 │   ├── risk-and-exception-catalog.md  # 风险与异常分类目录（Java DDD+TMF）
-│   └── java-ddd-tmf-baseline.md       # Java 技术栈基线
-├── templates/                  # 代码生成模板
-├── examples/mini-prd/          # Quick Start Demo
-├── tests/                      # 129 个 pytest 用例
+│   └── risk-catalog-risks.md          # 风险分类目录（R-* 类型）
+├── scripts/                    # 工具脚本（飞书抓取等）
+├── tests/                      # 374 个 pytest 用例
 ├── pyproject.toml              # 工程配置（ruff + pytest + hatch）
 └── output/                     # 项目产出目录（output/<project_id>/<phase_dir>/）
 ```
@@ -223,7 +205,7 @@ dqg-run PROJ --profile go-service auto
 - `_profile.json`：结构化 profile 元数据
 - `_profile_context.md`：可直接粘贴到报告头部的 `PROFILE_CONTEXT` 区块
 
-例如：`output/<project>/phaseB/_profile.json`、`output/<project>/phaseB/_profile_context.md`
+例如：`output/<project>/Q05/_profile.json`、`output/<project>/Q05/_profile_context.md`
 
 推荐报告模板（均包含 `PROFILE_CONTEXT` 区块）：
 
@@ -241,7 +223,7 @@ DQG 借鉴 OpenSpace 的自进化思路，实现了三层质量进化机制：
 
 **Self-Critique + RLAIF**: Phase 执行后自我批评生成 v2 修正版本，再通过偏好比较判定哪个更好。有效的 critique 自动沉淀为 bug case。
 
-**Bug 案例库**: 87 条真实 bug 案例（从飞书 Bitable 批量导入），按 Phase 分类，执行时基于相关性匹配自动注入为反例，token 节省 77%。
+**Bug 案例库**: 真实 bug 案例（从飞书 Bitable 批量导入 + finalize 自动生成），按 Phase 分类，执行时基于相关性匹配自动注入为反例。
 
 ```bash
 # 质量进化命令
@@ -315,10 +297,10 @@ dqg-observe daily
 
 ```bash
 # 抓取飞书文档（docx / wiki）
-python scripts/feishu_direct_ingest.py "<feishu_url>" -o output/<project_id>/phaseA
+python scripts/feishu_direct_ingest.py "<feishu_url>" -o output/<project_id>/Q01
 
 # 抓取飞书多维表格（bitable）— 自动识别，无需额外参数
-python scripts/feishu_direct_ingest.py "<bitable_wiki_url>" -o output/<project_id>/phaseA
+python scripts/feishu_direct_ingest.py "<bitable_wiki_url>" -o output/<project_id>/Q01
 ```
 
 性能优化：图片并发下载（8 workers）、引用文档并发抓取（4 workers）、单文档内 API 调用并发。
