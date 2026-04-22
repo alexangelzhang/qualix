@@ -76,6 +76,8 @@ def render_report_from_json(
         return None
 
     data = load_json(json_path)
+    if data is None:
+        return None
     md_content = render_report(phase_id, data)
     if not md_content:
         return None

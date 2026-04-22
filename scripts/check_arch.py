@@ -92,7 +92,8 @@ def check_func_lines(path: Path, rel: str) -> list[Violation]:
     """Rule 2: 单函数不超过 80 行."""
     try:
         tree = ast.parse(path.read_text(encoding="utf-8"))
-    except SyntaxError:
+    except SyntaxError as e:
+        print(f"  WARNING: {rel}: SyntaxError at line {e.lineno}, skipping function length check")
         return []
 
     violations = []

@@ -20,7 +20,8 @@ def _load_observe_reports(period: str = "daily") -> list[dict]:
     for f in sorted(report_dir.glob("*.json"), reverse=True)[:10]:
         try:
             data = load_json(f)
-            reports.append(data)
+            if data is not None:
+                reports.append(data)
         except Exception:
             pass
     return reports

@@ -305,6 +305,8 @@ class SkillReflector:
             return 1
 
         current = load_json(case_path)
+        if not current:
+            return 1
         fingerprint = current.get("fingerprint", "")
         if not fingerprint:
             return 1
@@ -318,14 +320,13 @@ class SkillReflector:
             cf = case_dir / "case.json"
             if not cf.exists():
                 continue
-            try:
-                data = load_json(cf)
-                if data.get("fingerprint") == fingerprint:
-                    sig = data.get("source_signature", "")
-                    if sig:
-                        signatures.add(sig)
-            except (json.JSONDecodeError, OSError):
+            data = load_json(cf)
+            if not data:
                 continue
+            if data.get("fingerprint") == fingerprint:
+                sig = data.get("source_signature", "")
+                if sig:
+                    signatures.add(sig)
 
         return len(signatures)
 
