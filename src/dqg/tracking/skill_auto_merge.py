@@ -88,17 +88,19 @@ def verify_with_holdout(phase: str) -> bool:
         return True  # Fail-open: if holdout infra broken, don't block evolution
 
 
-def write_context_hints(
-    project_id: str, phase: str, failure_patterns: list[str], suggested_changes: list[str],
+def _write_hints_file(
+    project_id: str, phase: str, hint_type: str,
+    failure_patterns: list[str], suggested_changes: list[str],
 ) -> str:
-    """Append context hints to _context_hints.md in phase _internal/ dir."""
+    """Append hints to _{hint_type}_hints.md in phase _internal/ dir."""
     dir_suffix = PHASE_DIR_MAP.get(phase, phase)
     hints_dir = Path("output") / project_id / dir_suffix / "_internal"
     hints_dir.mkdir(parents=True, exist_ok=True)
-    path = hints_dir / "_context_hints.md"
+    path = hints_dir / f"_{hint_type}_hints.md"
 
+    label = "context gap" if hint_type == "context" else "schema issue"
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
-    entry = f"\n## [{timestamp}] Auto-detected context gap\n\n"
+    entry = f"\n## [{timestamp}] Auto-detected {label}\n\n"
     for p in failure_patterns[:3]:
         entry += f"- {p}\n"
     if suggested_changes:
@@ -106,30 +108,20 @@ def write_context_hints(
 
     with path.open("a", encoding="utf-8") as f:
         f.write(entry)
-    log.info("Context hints written: %s", path)
+    log.info("%s hints written: %s", hint_type.capitalize(), path)
     return str(path)
+
+
+def write_context_hints(
+    project_id: str, phase: str, failure_patterns: list[str], suggested_changes: list[str],
+) -> str:
+    return _write_hints_file(project_id, phase, "context", failure_patterns, suggested_changes)
 
 
 def write_schema_hints(
     project_id: str, phase: str, failure_patterns: list[str], suggested_changes: list[str],
 ) -> str:
-    """Append schema hints to _schema_hints.md in phase _internal/ dir."""
-    dir_suffix = PHASE_DIR_MAP.get(phase, phase)
-    hints_dir = Path("output") / project_id / dir_suffix / "_internal"
-    hints_dir.mkdir(parents=True, exist_ok=True)
-    path = hints_dir / "_schema_hints.md"
-
-    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
-    entry = f"\n## [{timestamp}] Auto-detected schema issue\n\n"
-    for p in failure_patterns[:3]:
-        entry += f"- {p}\n"
-    if suggested_changes:
-        entry += f"\n**建议**: {suggested_changes[0]}\n"
-
-    with path.open("a", encoding="utf-8") as f:
-        f.write(entry)
-    log.info("Schema hints written: %s", path)
-    return str(path)
+    return _write_hints_file(project_id, phase, "schema", failure_patterns, suggested_changes)
 
 
 def write_suggestion_file(

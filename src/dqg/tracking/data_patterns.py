@@ -187,19 +187,6 @@ def analyze_data_patterns(phase: str | None = None) -> dict[str, Any]:
     }
 
 
-def generate_data_pattern_context(
-    phase: str | None = None,
-    max_patterns: int = 5,
-) -> str:
-    """生成数据模式上下文，供 Phase B EUT 和 Phase C 审计注入.
-
-    Returns:
-        Markdown 格式的数据模式建议
-    """
-    analysis = analyze_data_patterns(phase)
-    return _render_data_pattern_context(analysis, max_patterns)
-
-
 def _render_data_pattern_context(
     analysis: dict[str, Any],
     max_patterns: int = 5,

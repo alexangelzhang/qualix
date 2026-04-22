@@ -2,43 +2,15 @@
 
 from __future__ import annotations
 
-import threading
 from typing import TYPE_CHECKING
 
-from dqg.json_utils import save_json
 from dqg.runtime.events import EventType
+from dqg.runtime.handler_utils import async_write_json as _async_write_json
+from dqg.runtime.handler_utils import emit_handler_event as _emit_handler
 
 if TYPE_CHECKING:
-    from pathlib import Path
-
     from dqg.runtime.execution_context import ExecutionContext
     from dqg.runtime.result import PhaseResult
-
-
-def _async_write_json(path: Path, data: object) -> None:
-    from dqg.log import get_logger
-    _log = get_logger(__name__)
-
-    def _write():
-        try:
-            path.parent.mkdir(parents=True, exist_ok=True)
-            save_json(path, data)
-        except Exception:
-            _log.debug("_async_write_json failed: %s", path, exc_info=True)
-    threading.Thread(target=_write, daemon=True).start()
-
-
-def _emit_handler(ctx, event_type: EventType, message: str = "", **data) -> None:
-    try:
-        from dqg.store.events import insert_event
-        insert_event(ctx.output_dir, ctx.project_id, ctx.phase_id,
-                     event_type.value, action="finalize", message=message, data=data if data else None)
-    except Exception:
-        from dqg.log import get_logger
-        get_logger(__name__).debug(
-            "_emit_handler failed: %s/%s event=%s",
-            ctx.project_id, ctx.phase_id, event_type.value, exc_info=True,
-        )
 
 
 def handle_weak_assert_gate(ctx: ExecutionContext, result: PhaseResult) -> None:
@@ -88,7 +60,7 @@ def handle_mock_coincidence_check(ctx: ExecutionContext, result: PhaseResult) ->
     """Mock 巧合正确检测：检测 Mock 返回值与真实 API 行为的偏差模式."""
     import re
 
-    from dqg.constants import MOCK_COINCIDENCE_KEYWORDS
+    from dqg.constants import MOCK_COINCIDENCE_KEYWORDS, MOCK_REALITY_KEYWORDS
     from dqg.text_utils import REPORT_MAP
 
     report_file = REPORT_MAP.get(ctx.phase_id)
@@ -101,8 +73,7 @@ def handle_mock_coincidence_check(ctx: ExecutionContext, result: PhaseResult) ->
 
     report = report_path.read_text(encoding="utf-8")
 
-    reality_kw = ["Mock 真实", "mock.*真实", "BigDecimal", "email", "RpcContext", "Mock 数据", "贴近业务"]
-    reality_found = sum(1 for kw in reality_kw if kw.lower() in report.lower() or kw in report)
+    reality_found = sum(1 for kw in MOCK_REALITY_KEYWORDS if kw.lower() in report.lower() or kw in report)
 
     coincidence_hits: list[str] = []
     for pattern in MOCK_COINCIDENCE_KEYWORDS:
@@ -170,9 +141,9 @@ def handle_ai_origin_detection(ctx: ExecutionContext, result: PhaseResult) -> No
         ai_commits += len(re.findall(pattern, log_text, re.IGNORECASE))
 
     diff_ctx = ctx.shared.get("diff_context")
+    changed_files = getattr(diff_ctx, "changed_files", lambda: [])() if diff_ctx else []
     ai_files: list[str] = []
     if diff_ctx:
-        changed_files = getattr(diff_ctx, "changed_files", lambda: [])()
         for f in changed_files:
             file_path = repo_path / f
             if not file_path.exists():
@@ -200,7 +171,7 @@ def handle_ai_origin_detection(ctx: ExecutionContext, result: PhaseResult) -> No
     detection_result = {
         "ai_commits": ai_commits,
         "ai_files": ai_files,
-        "total_checked_files": len(getattr(diff_ctx, "changed_files", lambda: [])()) if diff_ctx else 0,
+        "total_checked_files": len(changed_files),
         "detected": ai_commits > 0 or bool(ai_files),
     }
     _async_write_json(ctx.internal_dir / "_ai_origin_detection.json", detection_result)

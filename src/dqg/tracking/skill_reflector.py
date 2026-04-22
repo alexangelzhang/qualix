@@ -164,7 +164,13 @@ class SkillReflector:
         SCHEMA → append to _schema_hints.md
         Others → HUMAN_REVIEW suggestion file
         """
-        from dqg.tracking.skill_auto_merge import write_suggestion_file
+        from dqg.tracking.skill_auto_merge import (
+            apply_to_skill_file,
+            verify_with_holdout,
+            write_context_hints,
+            write_schema_hints,
+            write_suggestion_file,
+        )
         root_cause = reflect_result.root_cause
 
         def _suggestion() -> str:
@@ -174,7 +180,6 @@ class SkillReflector:
             )
 
         if root_cause == "CONTEXT":
-            from dqg.tracking.skill_auto_merge import write_context_hints
             path = write_context_hints(
                 self.project_id, self.phase,
                 reflect_result.failure_patterns, reflect_result.suggested_changes,
@@ -182,7 +187,6 @@ class SkillReflector:
             return WriteResult(mode="AUTO_APPLY", path=path, changes=reflect_result.suggested_changes)
 
         if root_cause == "SCHEMA":
-            from dqg.tracking.skill_auto_merge import write_schema_hints
             path = write_schema_hints(
                 self.project_id, self.phase,
                 reflect_result.failure_patterns, reflect_result.suggested_changes,
@@ -207,8 +211,6 @@ class SkillReflector:
                 )
 
             # Auto-merge: snapshot → apply → holdout verify → revert if overfitting
-            from dqg.tracking.skill_auto_merge import apply_to_skill_file, verify_with_holdout
-
             snapshot = self.snapshot_targets([skill_path])
             applied = apply_to_skill_file(skill_path, reflect_result.suggested_changes)
             if not applied:

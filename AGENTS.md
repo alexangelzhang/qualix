@@ -218,7 +218,7 @@ Phase 执行时自动注入以下增强上下文（`context/upstream_collector.p
 - 可自动化的部分由脚本同步，不可自动化的部分由 hook 提醒
 - 不是每次变更都要更新所有文档，按映射关系精准同步
 
-代码文件在架构变更时也需检查：`phase_registry.py`、`constants.py`、`handlers_execute.py`、`handlers_finalize.py`、`handlers_detection.py`、`skill_reflector.py`、`skill_auto_merge.py`、`harness_ablation.py`。
+代码文件在架构变更时也需检查：`phase_registry.py`、`constants.py`、`handler_utils.py`、`handlers_execute.py`、`handlers_finalize.py`、`handlers_detection.py`、`skill_reflector.py`、`skill_auto_merge.py`、`harness_ablation.py`。
 
 > **违反此铁律 = 技术债。completion_gate 会自动拦截未同步的变更。**
 

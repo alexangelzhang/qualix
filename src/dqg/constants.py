@@ -163,6 +163,10 @@ MOCK_COINCIDENCE_KEYWORDS: list[str] = [  # Mock 巧合正确检测关键词
     "mock.*any", "Mockito\\.any", "答案固定",
     "不随输入变化", "忽略参数", "无条件返回",
 ]
+MOCK_REALITY_KEYWORDS: list[str] = [  # Mock 真实性评估关键词
+    "Mock 真实", "mock.*真实", "BigDecimal", "email",
+    "RpcContext", "Mock 数据", "贴近业务",
+]
 AI_ORIGIN_CO_AUTHOR_PATTERNS: list[str] = [  # AI 产出标记：Co-Authored-By 匹配
     r"Co-Authored-By:.*Claude",
     r"Co-Authored-By:.*Copilot",
