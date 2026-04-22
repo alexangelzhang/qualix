@@ -110,12 +110,17 @@
 - DAG Preflight 增强（`runtime/preflight.py`）— 上游产物完整性检查（report + structured JSON 非空）+ 级联失败阻断（上游 tainted/parse_failed 时阻断下游），DAG 调度器每个 Phase 执行前自动运行
 - 静默失败修复（`runtime/handlers_finalize.py`）— `_async_write_json` 和 `_emit_handler` 的 `except: pass` 改为 `log.debug` 记录失败原因，消除调试盲区
 - CLI 命令整合 — 砍掉 4 个孤儿 entry point（dqg-orchestrate/dqg-metrics/dqg-observe/dqg-regression），收编为 `dqg-run` 子命令（metrics/observe/regression）；统一 Phase ID help 文本为 Q01-Q07；`dqg version` 去重委托 setup.py
+- 增量上下文检测（`context/file_snapshot.py`）— sha256 + mtime 快照比对，上游 Phase 产物未变更时跳过重读，减少 DAG 模式和重跑场景的 IO 开销
 
 仍需推进（P1）：
 
 - 审计命中率、修复闭环时长口径  
 - 告警噪声治理（误报率、阈值自适配）  
 - 周报到治理动作的闭环（负责人、修复 SLA）
+
+仍需推进（P2）：
+
+- Hybrid search（BM25 + 语义融合）— memory/ 已有 FTS5，未来可参考 claude-context 的融合策略加语义搜索。DQG agent 在明确 Phase context 下工作，不像 IDE agent 需要全 codebase 检索，优先级低于 P1
 
 2026-04-08 进展补充：
 

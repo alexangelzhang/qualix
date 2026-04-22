@@ -4,17 +4,19 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from dqg.core.model_registry import estimate_tokens
-from dqg.core.profiles import get_profile, load_profile_context, load_profile_context_l0
-from dqg.core.state_machine import PhaseStatus
-from dqg.path_utils import resolve_internal_file
-from dqg.skill_tracker import render_relevant_cases_for_prompt
-
 from dqg.context.chunk_processor import (
     _collect_current_phase_inputs,
     _collect_phase_artifacts,
 )
 from dqg.context.chunk_summarizer import summarize_upstream_chunk
+from dqg.core.model_registry import estimate_tokens
+from dqg.core.profiles import get_profile, load_profile_context_l0
+from dqg.core.state_machine import PHASE_DEFS, PhaseStatus
+from dqg.log import get_logger
+from dqg.path_utils import resolve_internal_file
+from dqg.skill_tracker import render_relevant_cases_for_prompt
+
+log = get_logger(__name__)
 
 # Avoid circular import — ContextChunk is imported lazily or passed as type
 _FACT_SUMMARY_THRESHOLD = 5000
@@ -85,6 +87,7 @@ def load_upstream_context(
         (chunks, force_summary) — 收集到的 chunks 和是否需要强制摘要。
     """
     from concurrent.futures import ThreadPoolExecutor
+
     from dqg.memory.memory_layer import MemoryLayer
 
     chunks: list = []
@@ -124,19 +127,61 @@ def load_upstream_context(
                     return None
                 futures["rsm"] = pool.submit(_load_rsm)
 
-        # 上游 Phase 产物（每个 dep 并行）
+        # 上游 Phase 产物（每个 dep 并行，带增量检测）
         approved_deps = [
             dep_id for dep_id in upstream_phases
             if (dep_state := state.phases.get(dep_id))
             and dep_state.status in (PhaseStatus.APPROVED, PhaseStatus.PENDING_REVIEW)
         ]
+
+        # 增量检测：比对上游产物快照，跳过未变更的 Phase
+        from dqg.constants import REPORT_MAP, STRUCTURED_JSON_MAP
+        from dqg.context.file_snapshot import diff_snapshot, load_snapshot, save_snapshot, take_snapshot
+
+        snapshot_dir = phase_root / "_internal"
+        old_snapshot = load_snapshot(snapshot_dir)
+        deps_to_load: list[str] = []
+        all_upstream_files: list[Path] = []
+
+        for dep_id in approved_deps:
+            dep_def = PHASE_DEFS.get(dep_id)
+            if not dep_def:
+                continue
+            dep_dir = output_dir / project_id / dep_def["dir_suffix"]
+            dep_files = []
+            json_file = STRUCTURED_JSON_MAP.get(dep_id)
+            if json_file:
+                dep_files.append(dep_dir / json_file)
+            report_file = REPORT_MAP.get(dep_id)
+            if report_file:
+                dep_files.append(dep_dir / report_file)
+            img_sem = dep_dir / "image_semantics.md"
+            if img_sem.exists():
+                dep_files.append(img_sem)
+
+            all_upstream_files.extend(dep_files)
+            changed, _ = diff_snapshot(old_snapshot, dep_files)
+            if changed:
+                deps_to_load.append(dep_id)
+            else:
+                log.debug("Upstream %s unchanged, skipping reload", dep_id)
+
+        # 如果没有旧快照（首次运行），加载全部
+        if not old_snapshot:
+            deps_to_load = approved_deps
+
         futures["upstreams"] = {
             dep_id: pool.submit(_collect_phase_artifacts, output_dir, project_id, dep_id)
-            for dep_id in approved_deps
+            for dep_id in deps_to_load
         }
 
         # 收集所有 future 结果
         force_summary = _collect_upstream_results(futures, chunks)
+
+    # 更新快照
+    if all_upstream_files:
+        new_snapshot = take_snapshot(all_upstream_files)
+        save_snapshot(snapshot_dir, new_snapshot)
 
     return chunks, force_summary
 
