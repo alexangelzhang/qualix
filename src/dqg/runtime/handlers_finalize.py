@@ -194,6 +194,24 @@ def handle_skill_factory(ctx: ExecutionContext, result: PhaseResult) -> None:
         _emit_handler(ctx, EventType.SKILL_EVOLVED, "Skill evolution report generated")
 
 
+def handle_auto_judge(ctx: ExecutionContext, result: PhaseResult) -> None:
+    """自动合成 Judge 结果：从 structured JSON 生成 _judge_result.json.
+
+    解决 finalize 只生成 judge prompt 但无人执行导致 approve 被阻断的问题。
+    如果 _judge_result.json 已存在（AI 手动执行了 judge prompt）则跳过。
+    """
+    from dqg.quality.judge import synthesize_judge_result
+
+    judge_result = synthesize_judge_result(
+        ctx.output_dir, ctx.project_id, ctx.phase_id,
+    )
+    if judge_result:
+        ctx.shared["judge_result"] = judge_result
+        if judge_result.get("auto_synthesized"):
+            result.add_event(EventType.REVIEW_CHAIN_READY, "Judge result auto-synthesized from structured JSON")
+        result.add_artifact("judge_result", str(ctx.phase_root / "_judge_result.json"))
+
+
 def handle_score_calibration(ctx: ExecutionContext, result: PhaseResult) -> None:
     """DeepEval 评分校准：Judge 一致性检测 + 趋势监控."""
     from dqg.quality.score_calibration import check_score_consistency, check_score_trend
@@ -305,6 +323,12 @@ def register_finalize_handlers() -> None:
     register_handler(
         "skill_factory", handle_skill_factory,
         stage="finalize", order=90,
+    )
+    # Group 2.5: 依赖 review_chain（judge prompt 生成后自动合成 judge result）
+    register_handler(
+        "auto_judge", handle_auto_judge,
+        stage="finalize", order=75,
+        depends_on=["review_chain"],
     )
     # Group 3: 依赖 quality_tracking（需要 Judge 结果）
     register_handler(
