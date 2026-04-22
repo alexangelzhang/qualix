@@ -95,6 +95,14 @@
 - Dashboard 打通：observe 告警入 SQLite，总览页合并展示，新增"可观测性"页面
 - finalize 后自动触发 observe 日报更新，保持 dashboard 数据实时
 
+2026-04-22 新增：
+
+- 铁律三层强制执行机制：
+  - 第一层：确定性检测（`report_quality_checks.py`，finalize handler order=55）— 来源标注/ID 格式/GAP 风险等级/OPEN 决策方/置信度/推理日志质量 6 项正则检测
+  - 第二层：语义 guardrail（`semantic_guardrail.py`，`ReportSemanticGuardrail`）— BR 概括性描述/覆盖度虚高/跨 Phase 越权/P0 未闭环 4 项语义检测
+  - 第三层：行为 hook（`git_safety_guard.py`，PreToolUse）— git push/force push/--no-verify 拦截
+- 文档同步自动化（`doc_sync_check.py` + `completion_gate.py` 集成）— 按变更范围精准映射需要更新的文档
+
 仍需推进（P1）：
 
 - 审计命中率、修复闭环时长口径  
@@ -438,7 +446,7 @@
 3. 检索兜底：召回不足时允许回退到更宽松的摘要层，但不直接回全文
 4. 渐进落地：先覆盖最频繁的应用路径，每次落地配命中率/token 变化/调用次数三类指标
 
-*最后更新：2026-04-21*
+*最后更新：2026-04-22*
 
 ---
 
@@ -486,4 +494,4 @@
 | Git Worktree 隔离 | Q05/Q07 需要代码仓库时 | 每个并行 Phase 在独立 worktree 执行，避免代码文件冲突 |
 | Agent Teams 集成 | Claude Code Agent Teams GA 后 | 替代手动多 SubAgent 派发，用 Team Lead + Teammate 模型 |
 
-*最后更新：2026-04-21*
+*最后更新：2026-04-22*

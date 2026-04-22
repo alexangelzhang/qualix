@@ -270,6 +270,27 @@ def handle_requirement_graph(ctx: ExecutionContext, result: PhaseResult) -> None
         result.add_artifact("requirement_graph", str(path))
 
 
+def handle_report_quality_checks(ctx: ExecutionContext, result: PhaseResult) -> None:
+    """报告产物质量确定性检测（正则驱动，零 LLM）."""
+    from dqg.quality.report_quality_checks import run_report_quality_checks
+
+    checks = run_report_quality_checks(ctx.output_dir, ctx.project_id, ctx.phase_id)
+    if not checks or checks["total"] == 0:
+        return
+
+    ctx.internal_dir.mkdir(parents=True, exist_ok=True)
+    _async_write_json(ctx.internal_dir / "_report_quality_checks.json", checks)
+    ctx.shared["report_quality_checks"] = checks
+
+    # 按类型汇总 WARNING
+    for check_name, count in checks.get("by_check", {}).items():
+        result.add_warning(f"报告质量检测: {check_name} 发现 {count} 个问题")
+
+    _emit_handler(ctx, EventType.QUALITY_REPORT_READY,
+                  f"Report quality: {checks['total']} issues found",
+                  total=checks["total"], by_check=checks.get("by_check", {}))
+
+
 def register_finalize_handlers() -> None:
     """注册所有 finalize 阶段的 handler."""
     # Group 1: 无依赖，可并行
@@ -292,6 +313,10 @@ def register_finalize_handlers() -> None:
     register_handler(
         "rule_compliance", handle_rule_compliance,
         stage="finalize", order=50,
+    )
+    register_handler(
+        "report_quality_checks", handle_report_quality_checks,
+        stage="finalize", order=55,
     )
     register_handler(
         "profile_context_check", handle_profile_context_check,
