@@ -7,7 +7,7 @@ compatibility:
 metadata:
   phase: Q03
   depends_on: [Q01, Q04]
-  outputs: [phase_a6_structured.json, phase_a6_report.md, _reasoning_log.md]
+  outputs: [phase_a6_structured.json, tech_design_quality_review.md, _reasoning_log.md]
   forbidden_outputs: [UT, EUT]
 allowed-tools:
   - Bash

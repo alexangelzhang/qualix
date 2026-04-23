@@ -7,7 +7,7 @@ compatibility:
 metadata:
   phase: Q04
   depends_on: [Q01]
-  outputs: [phase_a5_structured.json, phase_a5_report.md, _reasoning_log.md]
+  outputs: [phase_a5_structured.json, tech_design_coverage_review.md, _reasoning_log.md]
   forbidden_outputs: [UT, EUT]
 allowed-tools:
   - Bash
@@ -73,7 +73,7 @@ Step 8: 修正（根据 Step 7 发现的问题修正报告，重新执行 Step 6
    - 仅有 HLD 缺 LLD：可继续执行，但在报告开头标注"技术方案缺少详细设计，覆盖度判定可信度受限"
    - HLD 也不完整：阻断执行，提示用户补充
 5. Scope Challenge：技术方案覆盖 PRD 哪个子集？是否有多份需拼合？是否显式排除了某些需求？
-6. **如果是重跑**，必须先读取旧版产物（`phase_a5_report.md`），新版必须是旧版的超集。
+6. **如果是重跑**，必须先读取旧版产物（`tech_design_coverage_review.md`），新版必须是旧版的超集。
 7. **已有实现扫描**（当提供代码仓库时）：扫描 master/main 分支的已有接口、表结构、TMF 链路，输出 `EXISTING_IMPL` 章节。
 
 ### Step 0.5: [可选] 技术方案生成
