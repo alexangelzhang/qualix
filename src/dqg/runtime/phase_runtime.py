@@ -6,33 +6,35 @@ commands 层变成薄壳：解析参数 → 调用 runtime → 格式化输出�
 
 from __future__ import annotations
 
-from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from dqg.core.state_machine import (
     PHASE_DEFS,
-    PhaseStatus,
     execute_phase,
     finalize_phase,
-    get_available_phases,
-    get_parallel_groups,
     load_state,
     save_state,
 )
 from dqg.core.state_machine import (
     internal_dir as _internal_dir,
+)
+from dqg.core.state_machine import (
     phase_dir as _phase_dir,
 )
+from dqg.json_utils import load_json
 from dqg.runtime.events import EventType
-from dqg.runtime.execution_context import ExecutionContext
 from dqg.runtime.lifecycle import get_registry
 from dqg.runtime.result import PhaseResult
+
+if TYPE_CHECKING:
+    from dqg.runtime.execution_context import ExecutionContext
 
 
 def _emit(ctx: ExecutionContext, event_type: EventType, message: str = "", **data: Any) -> None:
     """持久化事件到 SQLite（缓冲写入，静默失败不阻断主流程）."""
     try:
         from dqg.store.events import insert_event
+
         insert_event(
             ctx.output_dir,
             project_id=ctx.project_id,
@@ -51,6 +53,7 @@ def _flush() -> None:
     """Flush 事件缓冲区（静默失败）."""
     try:
         from dqg.store.events import flush_events
+
         flush_events()
     except Exception:
         pass
@@ -109,8 +112,14 @@ def runtime_execute(ctx: ExecutionContext) -> PhaseResult:
         skill=phase_def["skill"],
         profile=state.profile_id,
     )
-    _emit(ctx, EventType.PHASE_STARTED, f"Phase {ctx.phase_id} started",
-           action="execute", skill=phase_def["skill"], profile=state.profile_id)
+    _emit(
+        ctx,
+        EventType.PHASE_STARTED,
+        f"Phase {ctx.phase_id} started",
+        action="execute",
+        skill=phase_def["skill"],
+        profile=state.profile_id,
+    )
 
     # 上下文加载
     loaded_ctx = load_context(ctx.output_dir, ctx.project_id, ctx.phase_id, ctx.model_name)
@@ -125,9 +134,14 @@ def runtime_execute(ctx: ExecutionContext) -> PhaseResult:
             path=str(ctx_path),
             truncated=loaded_ctx.truncated,
         )
-        _emit(ctx, EventType.CONTEXT_LOADED, loaded_ctx.summary,
-               action="execute", token_count=loaded_ctx.total_tokens if hasattr(loaded_ctx, 'total_tokens') else 0,
-               truncated=loaded_ctx.truncated)
+        _emit(
+            ctx,
+            EventType.CONTEXT_LOADED,
+            loaded_ctx.summary,
+            action="execute",
+            token_count=loaded_ctx.total_tokens if hasattr(loaded_ctx, "total_tokens") else 0,
+            truncated=loaded_ctx.truncated,
+        )
         result.add_artifact("upstream_context", str(ctx_path))
 
     # 文档摘要
@@ -210,9 +224,14 @@ def runtime_finalize(ctx: ExecutionContext) -> PhaseResult:
         f"Validation: {len(validation_errors)} issues",
         validation_errors=validation_errors,
     )
-    _emit(ctx, EventType.VALIDATION_COMPLETED, f"Validation: {len(validation_errors)} issues",
-           action="finalize", error_count=len(validation_errors),
-           blocked_count=len(blocked) if 'blocked' in dir() else 0)
+    _emit(
+        ctx,
+        EventType.VALIDATION_COMPLETED,
+        f"Validation: {len(validation_errors)} issues",
+        action="finalize",
+        error_count=len(validation_errors),
+        blocked_count=len(blocked) if "blocked" in dir() else 0,
+    )
 
     # 状态流转
     errors = finalize_phase(state, ctx.phase_id, validation_errors)
@@ -223,6 +242,15 @@ def runtime_finalize(ctx: ExecutionContext) -> PhaseResult:
 
     save_state(ctx.output_dir, state)
     ps = state.phases[ctx.phase_id]
+
+    # Load LLM call telemetry from adaptive summary if available
+    llm_calls: list[dict] = []
+    if ctx.phase_root:
+        _summary_path = ctx.phase_root / "_adaptive_summary.json"
+        if _summary_path.exists():
+            _summary = load_json(_summary_path)
+            if _summary:
+                llm_calls = _summary.get("llm_calls", [])
 
     append_record(
         ctx.output_dir,
@@ -236,6 +264,7 @@ def runtime_finalize(ctx: ExecutionContext) -> PhaseResult:
             finished_at=ps.finished_at,
             duration_seconds=ps.duration_seconds,
             validation_errors=validation_errors,
+            llm_calls=llm_calls,
         ),
     )
 
@@ -302,7 +331,12 @@ def runtime_finalize(ctx: ExecutionContext) -> PhaseResult:
         f"Phase {ctx.phase_id} finalized",
         duration=ps.duration_seconds,
     )
-    _emit(ctx, EventType.FINALIZE_COMPLETED, f"Phase {ctx.phase_id} finalized",
-           action="finalize", duration_seconds=ps.duration_seconds)
+    _emit(
+        ctx,
+        EventType.FINALIZE_COMPLETED,
+        f"Phase {ctx.phase_id} finalized",
+        action="finalize",
+        duration_seconds=ps.duration_seconds,
+    )
     _flush()
     return result

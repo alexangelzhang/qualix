@@ -1,0 +1,6 @@
+{
+  "case_id": "Q06-basic",
+  "sample_type": "prompt-eval",
+  "phase": "Q06",
+  "description": "Q06 prompt regression baseline"
+}

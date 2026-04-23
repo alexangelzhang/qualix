@@ -185,6 +185,7 @@ dev-quality-gate/
 
 - `java-ddd-tmf`
 - `go-service`
+- `typescript-service`
 
 使用方式：
 
@@ -192,6 +193,7 @@ dev-quality-gate/
 # 新项目接入时直接选 profile
 dqg-run PROJ --profile java-ddd-tmf execute Q01
 dqg-run PROJ --profile go-service auto
+dqg-run PROJ --profile typescript-service execute Q06
 ```
 
 选中的 profile 会持久化到项目状态，并在 `Q04/Q03/Q05/Q06/Q07` 自动注入：

@@ -7,13 +7,16 @@ import json
 import re
 import time
 from dataclasses import dataclass, field
-from pathlib import Path
-from typing import Callable
+from typing import TYPE_CHECKING
 
 from dqg.agents.llm_backends import LLMBackend, LLMConfig, create_backend
 from dqg.constants import AGENT_EVIDENCE_EXCERPT_LIMIT, AGENT_EVIDENCE_TOTAL_LIMIT
 from dqg.json_utils import dump_json_compact, dump_json_str
 from dqg.store import get_connection
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+    from pathlib import Path
 
 
 @dataclass
@@ -36,6 +39,22 @@ class AgentResult:
     cache_hit: bool = False
     cached: bool = False
     trajectory: list[dict[str, str]] = field(default_factory=list)
+    prompt_hash: str = ""
+
+
+def extract_llm_call(result: AgentResult) -> dict[str, int | str | bool | float]:
+    """Extract LLM call telemetry from an AgentResult."""
+    return {
+        "agent_name": result.agent_name,
+        "agent_role": result.role,
+        "model_id": result.model_used,
+        "prompt_hash": result.prompt_hash,
+        "input_tokens": result.token_usage.get("input_tokens", 0),
+        "output_tokens": result.token_usage.get("output_tokens", 0),
+        "cache_hit": result.cache_hit,
+        "duration_seconds": round(result.duration_seconds, 2),
+        "status": result.status,
+    }
 
 
 _PRUNED_TOOL_PLACEHOLDER = "[旧工具输出已清理以节省 context]"
@@ -74,8 +93,10 @@ class Agent:
         system_content = self.system_prompt
         if self.tools:
             tool_docs = ["\n\n# 可用工具 (Available Tools)"]
-            tool_docs.append("你可以使用以下 XML 格式调用工具。系统会自动执行并用 <tool_result> 返回结果。每次回复最多调用一个工具。")
-            tool_docs.append("调用格式示例：\n<tool_call name=\"tool_name\">\n{\"param1\": \"value\"}\n</tool_call>")
+            tool_docs.append(
+                "你可以使用以下 XML 格式调用工具。系统会自动执行并用 <tool_result> 返回结果。每次回复最多调用一个工具。"
+            )
+            tool_docs.append('调用格式示例：\n<tool_call name="tool_name">\n{"param1": "value"}\n</tool_call>')
             for tool in self.tools:
                 doc = tool.__doc__ or "No description."
                 tool_docs.append(f"## 工具: {tool.__name__}\n{doc}")
@@ -120,7 +141,9 @@ class Agent:
             used += len(excerpt)
         return "\n\n---\n\n".join(blocks)
 
-    def _cache_key_payload(self, backend_name: str, system_content: str, context_payload: str, user_message: str) -> str:
+    def _cache_key_payload(
+        self, backend_name: str, system_content: str, context_payload: str, user_message: str
+    ) -> str:
         payload = {
             "backend": backend_name,
             "system_prompt": system_content,
@@ -210,7 +233,9 @@ class Agent:
                 (query_hash, payload_json, "agent_result", dump_json_str(cached_payload, indent=None), time.time()),
             )
 
-    def _cache_key_components(self, backend_name: str, context_files: list[Path] | None, user_message: str) -> tuple[str, str, str]:
+    def _cache_key_components(
+        self, backend_name: str, context_files: list[Path] | None, user_message: str
+    ) -> tuple[str, str, str]:
         system_content = self._build_system_content()
         context_payload = self._build_context_payload(context_files)
         payload_json = self._cache_key_payload(backend_name, system_content, context_payload, user_message)
@@ -220,14 +245,24 @@ class Agent:
         """执行 Agent 任务，失败自动切换备用模型."""
         self._init_backends()
         start = time.time()
-        system_content, context_payload, _ = self._cache_key_components(self._backend.name(), context_files, user_message)
+        system_content, context_payload, _ = self._cache_key_components(
+            self._backend.name(), context_files, user_message
+        )
+
+        # Compute prompt fingerprint for observability
+        payload_json = self._cache_key_payload(self._backend.name(), system_content, context_payload, user_message)
+        prompt_hash = hashlib.sha256(payload_json.encode("utf-8")).hexdigest()[:16]
 
         cached_result = self._cache_lookup(self._backend.name(), system_content, context_payload, user_message)
         if cached_result is not None:
+            cached_result.prompt_hash = prompt_hash
             return cached_result
         if self._fallback_backend:
-            cached_result = self._cache_lookup(self._fallback_backend.name(), system_content, context_payload, user_message)
+            cached_result = self._cache_lookup(
+                self._fallback_backend.name(), system_content, context_payload, user_message
+            )
             if cached_result is not None:
+                cached_result.prompt_hash = prompt_hash
                 return cached_result
 
         messages = []
@@ -245,8 +280,8 @@ class Agent:
         raw_trajectory: list[dict[str, str]] = [dict(m) for m in messages]  # 保存初始 messages 快照
 
         # Tool-Calling Loop
-        MAX_TURNS = 10
-        for turn in range(MAX_TURNS):
+        max_turns = 10
+        for turn in range(max_turns):
             # Prune old tool results to save context (keep only the latest)
             if turn > 0:
                 for i, msg in enumerate(messages):
@@ -259,26 +294,34 @@ class Agent:
 
             # 尝试主模型
             try:
-                content, usage = self._backend.chat(messages, max_tokens=self.model.max_tokens, temperature=self.model.temperature)
+                content, usage = self._backend.chat(
+                    messages, max_tokens=self.model.max_tokens, temperature=self.model.temperature
+                )
                 model_used = self._backend.name()
             except Exception as e:
                 primary_error = str(e)
                 # 尝试备用模型
                 if self._fallback_backend:
                     try:
-                        content, usage = self._fallback_backend.chat(messages, max_tokens=self.model.max_tokens, temperature=self.model.temperature)
+                        content, usage = self._fallback_backend.chat(
+                            messages, max_tokens=self.model.max_tokens, temperature=self.model.temperature
+                        )
                         model_used = self._fallback_backend.name()
                     except Exception as e2:
                         return AgentResult(
-                            agent_name=self.name, role=self.role, status="failed",
+                            agent_name=self.name,
+                            role=self.role,
+                            status="failed",
                             duration_seconds=time.time() - start,
-                            error=f"Primary: {primary_error}; Fallback: {e2}"
+                            error=f"Primary: {primary_error}; Fallback: {e2}",
                         )
                 else:
                     return AgentResult(
-                        agent_name=self.name, role=self.role, status="failed",
+                        agent_name=self.name,
+                        role=self.role,
+                        status="failed",
                         duration_seconds=time.time() - start,
-                        error=f"Primary failed: {primary_error}; No fallback configured"
+                        error=f"Primary failed: {primary_error}; No fallback configured",
                     )
 
             # 更新 Tokens
@@ -292,7 +335,7 @@ class Agent:
                 break
             match = re.search(r"<tool_call\s+name=\"(.*?)\">(.*?)</tool_call>", content, re.DOTALL)
             if not match:
-                #没有工具调用，结束任务
+                # 没有工具调用，结束任务
                 break
 
             saw_tool_call = True
@@ -311,10 +354,14 @@ class Agent:
                     tool_result = f"Error executing {tool_name}: {e}"
 
             messages.append({"role": "assistant", "content": content})
-            messages.append({"role": "user", "content": f"<tool_result name=\"{tool_name}\">\n{tool_result}\n</tool_result>"})
+            messages.append(
+                {"role": "user", "content": f'<tool_result name="{tool_name}">\n{tool_result}\n</tool_result>'}
+            )
             # 记录原始 trajectory（pruning 前）
             raw_trajectory.append({"role": "assistant", "content": content})
-            raw_trajectory.append({"role": "user", "content": f"<tool_result name=\"{tool_name}\">\n{tool_result}\n</tool_result>"})
+            raw_trajectory.append(
+                {"role": "user", "content": f'<tool_result name="{tool_name}">\n{tool_result}\n</tool_result>'}
+            )
 
         # 最终 assistant 回复加入 trajectory
         if final_content.strip():
@@ -331,6 +378,7 @@ class Agent:
             cache_hit=False,
             cached=False,
             trajectory=raw_trajectory,
+            prompt_hash=prompt_hash,
         )
 
         if not saw_tool_call:

@@ -5,11 +5,13 @@ from __future__ import annotations
 import json
 import sqlite3
 from datetime import datetime
-from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from dqg.json_utils import dump_json_str
 from dqg.store.core import get_connection, row_to_dict
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 def insert_telemetry(output_dir: Path, record: dict[str, Any]) -> None:
@@ -19,8 +21,9 @@ def insert_telemetry(output_dir: Path, record: dict[str, Any]) -> None:
             """INSERT INTO telemetry
             (project_id, phase_id, phase_name, action, status,
              started_at, finished_at, duration_seconds,
-             validation_errors, comment, timestamp, os_type, python_version)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+             validation_errors, comment, timestamp, os_type, python_version,
+             llm_calls)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             (
                 record.get("project_id", ""),
                 record.get("phase_id", ""),
@@ -35,6 +38,7 @@ def insert_telemetry(output_dir: Path, record: dict[str, Any]) -> None:
                 record.get("timestamp", datetime.now().isoformat()),
                 record.get("os_type", ""),
                 record.get("python_version", ""),
+                dump_json_str(record.get("llm_calls", []), indent=None),
             ),
         )
 

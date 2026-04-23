@@ -14,66 +14,78 @@ from typing import Final
 # ---------------------------------------------------------------------------
 
 # Phase ID → 目录名（Q 系列统一命名）
-PHASE_DIR_MAP: Final = MappingProxyType({
-    "Q01": "Q01",
-    "Q02": "Q02",
-    "Q03": "Q03",
-    "Q04": "Q04",
-    "Q05": "Q05",
-    "Q06": "Q06",
-    "Q07": "Q07",
-})
+PHASE_DIR_MAP: Final = MappingProxyType(
+    {
+        "Q01": "Q01",
+        "Q02": "Q02",
+        "Q03": "Q03",
+        "Q04": "Q04",
+        "Q05": "Q05",
+        "Q06": "Q06",
+        "Q07": "Q07",
+    }
+)
 
 # Phase ID → 结构化 JSON 文件名（文件名保持不变，只改 key）
-STRUCTURED_JSON_MAP: Final = MappingProxyType({
-    "Q01": "phase_a_structured.json",
-    "Q02": "phase_a3_structured.json",
-    "Q03": "phase_a6_structured.json",
-    "Q04": "phase_a5_structured.json",
-    "Q05": "phase_b_structured.json",
-    "Q06": "phase_c_structured.json",
-    "Q07": "phase_d_structured.json",
-})
+STRUCTURED_JSON_MAP: Final = MappingProxyType(
+    {
+        "Q01": "phase_a_structured.json",
+        "Q02": "phase_a3_structured.json",
+        "Q03": "phase_a6_structured.json",
+        "Q04": "phase_a5_structured.json",
+        "Q05": "phase_b_structured.json",
+        "Q06": "phase_c_structured.json",
+        "Q07": "phase_d_structured.json",
+    }
+)
 
 # Phase ID → 报告文件名
-REPORT_MAP: Final = MappingProxyType({
-    "Q01": "phase_a_report.md",
-    "Q02": "tech_design.md",
-    "Q03": "tech_design_quality_review.md",
-    "Q04": "tech_design_coverage_review.md",
-    "Q05": "eut_matrix.md",
-    "Q06": "ut_audit_report.md",
-    "Q07": "review_report.md",
-})
+REPORT_MAP: Final = MappingProxyType(
+    {
+        "Q01": "phase_a_report.md",
+        "Q02": "tech_design.md",
+        "Q03": "tech_design_quality_review.md",
+        "Q04": "tech_design_coverage_review.md",
+        "Q05": "eut_matrix.md",
+        "Q06": "ut_audit_report.md",
+        "Q07": "review_report.md",
+    }
+)
 
 # Phase ID → Skill 文件路径
-SKILL_FILE_MAP: Final = MappingProxyType({
-    "Q01": "skills/requirement-structuring/SKILL.md",
-    "Q02": "skills/tech-design-generation/SKILL.md",
-    "Q04": "skills/tech-coverage-audit/SKILL.md",
-    "Q03": "skills/tech-quality-review/SKILL.md",
-    "Q06": "skills/unit-test-audit/SKILL.md",
-})
+SKILL_FILE_MAP: Final = MappingProxyType(
+    {
+        "Q01": "skills/requirement-structuring/SKILL.md",
+        "Q02": "skills/tech-design-generation/SKILL.md",
+        "Q04": "skills/tech-coverage-audit/SKILL.md",
+        "Q03": "skills/tech-quality-review/SKILL.md",
+        "Q06": "skills/unit-test-audit/SKILL.md",
+    }
+)
 
 # Phase ID → 知识库参考文件路径
-KNOWLEDGE_FILE_MAP: Final = MappingProxyType({
-    "Q01": "references/risk-catalog-risks.md",
-    "Q02": "references/risk-catalog-risks.md",
-    "Q04": "profiles/java-ddd-tmf/baseline.md",
-    "Q03": "references/risk-catalog-risks.md",
-    "Q06": "references/risk-catalog-exceptions.md",
-})
+KNOWLEDGE_FILE_MAP: Final = MappingProxyType(
+    {
+        "Q01": "references/risk-catalog-risks.md",
+        "Q02": "references/risk-catalog-risks.md",
+        "Q04": "profiles/java-ddd-tmf/baseline.md",
+        "Q03": "references/risk-catalog-risks.md",
+        "Q06": "references/risk-catalog-exceptions.md",
+    }
+)
 
 # 旧 Phase ID → 新 Phase ID（向后兼容映射）
-LEGACY_PHASE_ID_MAP: Final = MappingProxyType({
-    "A": "Q01",
-    "A.3": "Q02",
-    "A.6": "Q03",
-    "A.5": "Q04",
-    "B": "Q05",
-    "C": "Q06",
-    "D": "Q07",
-})
+LEGACY_PHASE_ID_MAP: Final = MappingProxyType(
+    {
+        "A": "Q01",
+        "A.3": "Q02",
+        "A.6": "Q03",
+        "A.5": "Q04",
+        "B": "Q05",
+        "C": "Q06",
+        "D": "Q07",
+    }
+)
 
 # ---------------------------------------------------------------------------
 # 目录 / 文件路径常量
@@ -87,6 +99,7 @@ CASES_DIR = "regression/failure-library/cases"
 GOLDEN_DIR = "regression/golden"
 PREFERENCE_LOG = "regression/preference_history.jsonl"
 MEMORY_INDEX_STATE_FILE = "_memory_index_state.json"
+RULE_HASHES_FILENAME = "_rule_hashes.json"
 
 # Agent 上下文去重：_upstream_context / evidence pack 已内联这些高成本 side files
 UPSTREAM_EMBEDDED_CONTEXT_FILES: tuple[str, ...] = (
@@ -132,10 +145,12 @@ DEFAULT_ADAPTIVE_JUDGE_MODELS: tuple[str, ...] = (
 )
 
 # 模型等级映射：Phase 的 recommended_model 字段 → 实际模型名
-MODEL_TIER: Final = MappingProxyType({
-    "strong": DEFAULT_PRIMARY_MODEL,     # 需要深度理解的 Phase（A/A.3/A.6/D）
-    "standard": "claude-sonnet-4-6",     # 模式化执行的 Phase（B/C/A.5）
-})
+MODEL_TIER: Final = MappingProxyType(
+    {
+        "strong": DEFAULT_PRIMARY_MODEL,  # 需要深度理解的 Phase（A/A.3/A.6/D）
+        "standard": "claude-sonnet-4-6",  # 模式化执行的 Phase（B/C/A.5）
+    }
+)
 DEFAULT_TEMPERATURE = 0.0
 DEFAULT_MAX_TOKENS = 8192
 DEFAULT_TIMEOUT = 120
@@ -144,28 +159,41 @@ DEFAULT_TIMEOUT = 120
 # LLM 定价（USD per 1M tokens）
 # ---------------------------------------------------------------------------
 
-PRICING_INPUT_PER_M = 15.0          # Claude Opus 4 base input
-PRICING_OUTPUT_PER_M = 75.0         # Claude Opus 4 base output
-PRICING_CACHE_WRITE_PER_M = 18.75   # Cache write (1.25x input)
-PRICING_CACHE_READ_PER_M = 1.5      # Cache read (0.1x input)
+PRICING_INPUT_PER_M = 15.0  # Claude Opus 4 base input
+PRICING_OUTPUT_PER_M = 75.0  # Claude Opus 4 base output
+PRICING_CACHE_WRITE_PER_M = 18.75  # Cache write (1.25x input)
+PRICING_CACHE_READ_PER_M = 1.5  # Cache read (0.1x input)
 
 # ---------------------------------------------------------------------------
 # 质量阈值
 # ---------------------------------------------------------------------------
 
-WEAK_ASSERT_HIGH_RISK_WARN = 3       # 弱断言 gate: high-risk 方法数 ≥ 此值触发 WARNING
-WEAK_ASSERT_RATIO_WARN = 0.5         # 弱断言 gate: weak/total 比例 ≥ 此值触发 WARNING
-SKILL_AUTO_MERGE_ENABLED = True      # Skill Evolution: 高置信度规则自动合入 SKILL.md
+WEAK_ASSERT_HIGH_RISK_WARN = 3  # 弱断言 gate: high-risk 方法数 ≥ 此值触发 WARNING
+WEAK_ASSERT_RATIO_WARN = 0.5  # 弱断言 gate: weak/total 比例 ≥ 此值触发 WARNING
+SKILL_AUTO_MERGE_ENABLED = True  # Skill Evolution: 高置信度规则自动合入 SKILL.md
 SKILL_AUTO_MERGE_OVERFITTING_THRESHOLD = 0.5  # holdout coverage_gap 超此值自动 revert
 MOCK_COINCIDENCE_KEYWORDS: list[str] = [  # Mock 巧合正确检测关键词
-    "固定返回", "硬编码", "写死", "return.*new.*\\(\\)",
-    "mock.*return.*null", "when.*thenReturn.*0",
-    "mock.*any", "Mockito\\.any", "答案固定",
-    "不随输入变化", "忽略参数", "无条件返回",
+    "固定返回",
+    "硬编码",
+    "写死",
+    "return.*new.*\\(\\)",
+    "mock.*return.*null",
+    "when.*thenReturn.*0",
+    "mock.*any",
+    "Mockito\\.any",
+    "答案固定",
+    "不随输入变化",
+    "忽略参数",
+    "无条件返回",
 ]
 MOCK_REALITY_KEYWORDS: list[str] = [  # Mock 真实性评估关键词
-    "Mock 真实", "mock.*真实", "BigDecimal", "email",
-    "RpcContext", "Mock 数据", "贴近业务",
+    "Mock 真实",
+    "mock.*真实",
+    "BigDecimal",
+    "email",
+    "RpcContext",
+    "Mock 数据",
+    "贴近业务",
 ]
 AI_ORIGIN_CO_AUTHOR_PATTERNS: list[str] = [  # AI 产出标记：Co-Authored-By 匹配
     r"Co-Authored-By:.*Claude",
@@ -177,20 +205,20 @@ AI_ORIGIN_CO_AUTHOR_PATTERNS: list[str] = [  # AI 产出标记：Co-Authored-By 
     r"Co-Authored-By:.*noreply@github\.com",
 ]
 
-JUDGE_PASS_THRESHOLD = 3.5          # adaptive_loop: 通过分数线
+JUDGE_PASS_THRESHOLD = 3.5  # adaptive_loop: 通过分数线
 JUDGE_PASS_WITH_CONCERNS_DELTA = 0.5  # PASS_WITH_CONCERNS 容差
-ADAPTIVE_MAX_ITERATIONS = 3         # adaptive_loop: 最大迭代次数
-COMPACT_THRESHOLD = 0.8             # context_loader: 自动压缩触发比例
-CASE_MIN_RELEVANCE = 0.05           # skill_tracker: 案例最低相关性
-JUDGE_MIN_SCORE_TO_EXTRACT = 4.0    # skill_tracker: judge issue 提取阈值
+ADAPTIVE_MAX_ITERATIONS = 3  # adaptive_loop: 最大迭代次数
+COMPACT_THRESHOLD = 0.8  # context_loader: 自动压缩触发比例
+CASE_MIN_RELEVANCE = 0.05  # skill_tracker: 案例最低相关性
+JUDGE_MIN_SCORE_TO_EXTRACT = 4.0  # skill_tracker: judge issue 提取阈值
 
 # ---------------------------------------------------------------------------
 # 性能阈值
 # ---------------------------------------------------------------------------
 
-PERF_TOKEN_WARNING = 100_000        # perf_tracker: token 用量告警
-PERF_DURATION_WARNING = 600         # perf_tracker: 耗时告警（秒）
-PERF_OUTPUT_TOKEN_WARNING = 500     # perf_tracker: 输出 token 告警
+PERF_TOKEN_WARNING = 100_000  # perf_tracker: token 用量告警
+PERF_DURATION_WARNING = 600  # perf_tracker: 耗时告警（秒）
+PERF_OUTPUT_TOKEN_WARNING = 500  # perf_tracker: 输出 token 告警
 
 # ---------------------------------------------------------------------------
 # Anti-Rationalization Runtime Enforcement
@@ -257,8 +285,14 @@ ID_PATTERN_EXTENDED = r"(REQ|BR|SE|GAP|OPEN|EUT|CASE|ARCH|API|DATA|EXC|PERF)-\d+
 
 # evidence_renderer / chunk_summarizer 共用的 ID 字段名
 ID_FIELD_KEYS: tuple[str, ...] = (
-    "req_id", "br_id", "se_id", "gap_id", "open_id",
-    "fact_id", "id", "case_id",
+    "req_id",
+    "br_id",
+    "se_id",
+    "gap_id",
+    "open_id",
+    "fact_id",
+    "id",
+    "case_id",
 )
 
 # ---------------------------------------------------------------------------

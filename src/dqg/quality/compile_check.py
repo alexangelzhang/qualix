@@ -2,6 +2,7 @@
 
 在 finalize 前调用，编译失败则返回 BLOCKED 错误。
 支持 Java (Maven/Gradle) 和 Go 项目。
+通过 LanguageProvider 可扩展到 TypeScript/Python/Rust 等。
 """
 
 from __future__ import annotations
@@ -132,21 +133,23 @@ def _extract_compile_errors(output: str, build_tool: str) -> str:
         line_stripped = line.strip()
         if build_tool in ("maven", "gradle"):
             # Java 编译错误格式: [ERROR] /path/File.java:[line,col] error: ...
-            if "[ERROR]" in line_stripped and ".java:" in line_stripped:
+            if ("[ERROR]" in line_stripped and ".java:" in line_stripped) or (
+                "error:" in line_stripped.lower() and ".java" in line_stripped
+            ):
                 errors.append(line_stripped)
-            elif "error:" in line_stripped.lower() and ".java" in line_stripped:
-                errors.append(line_stripped)
-        elif build_tool == "go":
-            # Go 编译错误格式: ./file.go:line:col: error message
-            if ".go:" in line_stripped and ("undefined" in line_stripped or "cannot" in line_stripped or "error" in line_stripped.lower()):
-                errors.append(line_stripped)
+        elif (
+            build_tool == "go"
+            and ".go:" in line_stripped
+            and ("undefined" in line_stripped or "cannot" in line_stripped or "error" in line_stripped.lower())
+        ):
+            errors.append(line_stripped)
 
         if len(errors) >= 5:
             break
 
     if not errors:
         # fallback: 取最后几行非空内容
-        tail = [l.strip() for l in lines[-10:] if l.strip()]
+        tail = [line.strip() for line in lines[-10:] if line.strip()]
         errors = tail[-3:]
 
     return "\n".join(errors)
@@ -156,6 +159,7 @@ def check_phase_b_compilation(
     output_dir: Path,
     project_id: str,
     code_repo: str | None = None,
+    language_provider: Any = None,
 ) -> list[str]:
     """Phase B finalize 时的编译验证 gate.
 
@@ -163,6 +167,7 @@ def check_phase_b_compilation(
         output_dir: DQG 输出目录
         project_id: 项目 ID
         code_repo: 代码仓库路径（可选，从 state 或环境推断）
+        language_provider: LanguageProvider 实例（可选，优先使用）
 
     Returns:
         错误列表。BLOCKED 前缀的错误会阻断 finalize。
@@ -174,14 +179,30 @@ def check_phase_b_compilation(
     if not repo_path.is_dir():
         return [f"BLOCKED: 代码仓库路径不存在: {repo_path}"]
 
+    # 优先使用 Provider
+    if language_provider is not None:
+        cr = language_provider.compile_check(repo_path)
+        if cr.skipped:
+            log.info("编译检查跳过: %s (%s)", language_provider.language_id, cr.error_summary)
+            return []
+        if cr.passed:
+            log.info("编译检查通过: %s (%s)", language_provider.language_id, cr.build_tool)
+            return []
+        errors = [
+            f"BLOCKED: 生成的代码编译失败（{cr.build_tool}）。请修复编译错误后重新 finalize。",
+        ]
+        if cr.error_summary:
+            errors.append(f"编译错误摘要:\n{cr.error_summary}")
+        return errors
+
+    # Fallback: 原有逻辑
     result = run_compile_check(repo_path)
     if result["passed"]:
         log.info("编译检查通过: %s", result["build_tool"])
         return []
 
     errors = [
-        f"BLOCKED: 生成的代码编译失败（{result['build_tool']}）。"
-        f"请修复编译错误后重新 finalize。",
+        f"BLOCKED: 生成的代码编译失败（{result['build_tool']}）。请修复编译错误后重新 finalize。",
     ]
     if result["error_summary"]:
         errors.append(f"编译错误摘要:\n{result['error_summary']}")

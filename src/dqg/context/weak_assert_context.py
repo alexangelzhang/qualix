@@ -5,11 +5,9 @@
 
 from __future__ import annotations
 
+import contextlib
 from pathlib import Path
 from typing import Any
-
-from dqg.json_utils import save_json
-from dqg.log import get_logger
 
 from dqg.context.weak_assert_analysis import (
     WeakAssertSignal,  # noqa: F401 — re-export for backward compat
@@ -18,18 +16,18 @@ from dqg.context.weak_assert_analysis import (
     extract_test_methods_regex,
     is_ast_available,
 )
+from dqg.json_utils import save_json
+from dqg.log import get_logger
 
 log = get_logger(__name__)
 
 # 尝试导入语义映射（可选）
-try:
+with contextlib.suppress(ImportError):
     from dqg.context.assert_semantic_mapper import (
         load_eut_from_phase_b,
         load_se_from_phase_a,
         map_asserts_to_semantics,
     )
-except ImportError:
-    pass
 
 
 def collect_weak_assert_context(
@@ -37,12 +35,14 @@ def collect_weak_assert_context(
     diff_ctx: Any,
     output_dir: str | Path | None = None,
     project_id: str | None = None,
+    language_provider: Any = None,
 ) -> dict[str, Any]:
     """扫描 diff 中的测试文件，提取弱断言候选.
 
     Args:
         output_dir: DQG 产物目录（用于加载 SE/EUT 做语义映射，可选）
         project_id: 项目 ID（用于加载 SE/EUT，可选）
+        language_provider: LanguageProvider 实例（可选，优先使用）
     """
     repo = Path(repo_path).expanduser()
     requested_files = list(dict.fromkeys(getattr(diff_ctx, "test_files", lambda: [])()))
@@ -86,13 +86,30 @@ def collect_weak_assert_context(
             log.warning("Failed to read weak assert candidate file %s: %s", file_path, exc)
             return rel_path, None, f"测试文件读取失败，已跳过: {rel_path}"
 
-        if is_ast_available():
+        # Provider 优先路径
+        if language_provider is not None:
+            weak_results = language_provider.analyze_weak_asserts(content)
+            analyzed_methods = [
+                {
+                    "method_name": r.method_name,
+                    "line_start": r.line_start,
+                    "line_end": r.line_end,
+                    "risk_level": r.risk_level,
+                    "signals": [{"code": s.code, "severity": s.severity, "reason": s.reason} for s in r.signals],
+                    "evidence": r.evidence,
+                    "suggestion": r.suggestion,
+                }
+                for r in weak_results
+            ]
+            # weak_results 已经只包含有 signal 的方法
+            weak_methods = analyzed_methods
+        elif is_ast_available():
             analyzed_methods = analyze_with_ast(content)
+            weak_methods = [method for method in analyzed_methods if method["signals"]]
         else:
             methods = extract_test_methods_regex(content)
             analyzed_methods = [analyze_test_method(method) for method in methods]
-
-        weak_methods = [method for method in analyzed_methods if method["signals"]]
+            weak_methods = [method for method in analyzed_methods if method["signals"]]
 
         file_result = {
             "path": rel_path,
@@ -109,7 +126,12 @@ def collect_weak_assert_context(
     from concurrent.futures import ThreadPoolExecutor
 
     if not payload.get("analysis_mode"):
-        payload["analysis_mode"] = "tree-sitter-java" if is_ast_available() else "regex-fallback"
+        if language_provider is not None:
+            payload["analysis_mode"] = f"provider-{language_provider.language_id}"
+        elif is_ast_available():
+            payload["analysis_mode"] = "tree-sitter-java"
+        else:
+            payload["analysis_mode"] = "regex-fallback"
 
     with ThreadPoolExecutor(max_workers=min(len(requested_files), 4)) as pool:
         results = list(pool.map(_analyze_one_file, requested_files))
@@ -123,12 +145,14 @@ def collect_weak_assert_context(
             payload["summary"]["weak_method_count"] += file_result["weak_method_count"]
             payload["summary"]["high_risk_count"] += file_result["high_risk_count"]
             payload["summary"]["medium_risk_count"] += file_result["medium_risk_count"]
-            payload["files"].append({
-                "path": file_result["path"],
-                "test_method_count": file_result["test_method_count"],
-                "weak_method_count": file_result["weak_method_count"],
-                "methods": file_result["methods"],
-            })
+            payload["files"].append(
+                {
+                    "path": file_result["path"],
+                    "test_method_count": file_result["test_method_count"],
+                    "weak_method_count": file_result["weak_method_count"],
+                    "methods": file_result["methods"],
+                }
+            )
 
     if payload["summary"]["scanned_test_file_count"] == 0 and not payload["notes"]:
         payload["notes"].append("未扫描到可读取的 diff 测试文件。")
@@ -144,14 +168,8 @@ def collect_weak_assert_context(
                     all_methods.extend(file_item.get("methods", []))
                 if all_methods:
                     map_asserts_to_semantics(all_methods, se_list, eut_list)
-                    mapped_count = sum(
-                        1 for m in all_methods
-                        if m.get("semantic_mapping", {}).get("matched_se")
-                    )
-                    gap_count = sum(
-                        1 for m in all_methods
-                        if m.get("semantic_mapping", {}).get("coverage_gap")
-                    )
+                    mapped_count = sum(1 for m in all_methods if m.get("semantic_mapping", {}).get("matched_se"))
+                    gap_count = sum(1 for m in all_methods if m.get("semantic_mapping", {}).get("coverage_gap"))
                     payload["summary"]["semantic_mapped_count"] = mapped_count
                     payload["summary"]["semantic_gap_count"] = gap_count
                     payload["summary"]["se_count"] = len(se_list)
@@ -197,9 +215,7 @@ def render_weak_assert_context_markdown(payload: dict[str, Any]) -> str:
         file_has_findings = True
         lines.extend(["", f"### {file_item.get('path', '')}"])
         for method in methods:
-            signal_codes = ", ".join(
-                signal["code"] for signal in method.get("signals", [])
-            )
+            signal_codes = ", ".join(signal["code"] for signal in method.get("signals", []))
             lines.append(
                 f"- `{method.get('method_name', '?')}` [{method.get('risk_level', 'medium')}] "
                 f"lines {method.get('line_start', 0)}-{method.get('line_end', 0)}"

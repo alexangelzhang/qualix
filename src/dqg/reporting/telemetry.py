@@ -9,9 +9,11 @@ import json
 import platform
 from datetime import datetime
 from pathlib import Path  # noqa: TC003
+from typing import Any
+
+from pydantic import BaseModel, Field
 
 from dqg.json_utils import dump_jsonl
-from pydantic import BaseModel, Field
 
 
 class PhaseRunRecord(BaseModel):
@@ -30,6 +32,8 @@ class PhaseRunRecord(BaseModel):
     timestamp: str = Field(default_factory=lambda: datetime.now().isoformat())
     os_type: str = Field(default_factory=lambda: platform.system())
     python_version: str = Field(default_factory=platform.python_version)
+    # Prompt-level observability (Phase 1: Prompt Fingerprint)
+    llm_calls: list[dict[str, Any]] = Field(default_factory=list)
 
 
 def _telemetry_path(output_dir: Path, project_id: str) -> Path:
@@ -49,6 +53,7 @@ def append_record(output_dir: Path, record: PhaseRunRecord) -> Path:
     # 同步写入 SQLite
     try:
         from dqg.store import insert_telemetry
+
         insert_telemetry(output_dir, record.model_dump())
     except Exception:
         pass  # SQLite 写入失败不阻断主流程

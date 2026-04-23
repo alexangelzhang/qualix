@@ -20,10 +20,8 @@ import time
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
-from dqg.agents.agent import Agent, AgentResult
-from dqg.agents.llm_backends import LLMConfig
-from dqg.constants import DEFAULT_ADAPTIVE_JUDGE_MODELS
-from dqg.log import get_logger
+from dqg.agents.agent import Agent, extract_llm_call
+from dqg.agents.handoff_builder import build_handoff_document
 from dqg.agents.judge_vote import (  # noqa: F401 — re-export for backward compat
     IterationRecord,
     JudgeVote,
@@ -31,7 +29,10 @@ from dqg.agents.judge_vote import (  # noqa: F401 — re-export for backward com
     judge_health_check,
     multi_judge_vote,
 )
-from dqg.agents.handoff_builder import build_handoff_document
+from dqg.agents.llm_backends import LLMConfig
+from dqg.agents.loop_health import LoopHealthMonitor
+from dqg.constants import DEFAULT_ADAPTIVE_JUDGE_MODELS
+from dqg.log import get_logger
 
 log = get_logger(__name__)
 
@@ -44,15 +45,18 @@ class AdaptiveResult:
     project_id: str
     phase_id: str
     iterations: list[IterationRecord]
-    final_verdict: str  # PASS / FAIL / MAX_ITERATIONS
+    final_verdict: str  # PASS / FAIL / MAX_ITERATIONS / EARLY_STOP
     total_duration: float = 0
     models_used: list[str] = field(default_factory=list)
+    early_stop_reason: str = ""
+    health_summary: dict[str, Any] = field(default_factory=dict)
+    llm_calls: list[dict[str, Any]] = field(default_factory=list)
 
 
 class AdaptiveLoop:
     """自适应循环：Judge 不通过 → 自动修正 → 再 Judge → 直到通过或达上限."""
 
-    def __init__(self, output_dir: "Path"):
+    def __init__(self, output_dir: Path):
         self.output_dir = output_dir
 
     def run(
@@ -62,7 +66,7 @@ class AdaptiveLoop:
         worker_prompt: str,
         judge_rubric: str,
         critique_prompt: str,
-        context_files: list["Path"] | None = None,
+        context_files: list[Path] | None = None,
         max_iterations: int = 3,
         pass_threshold: float = 3.5,
         worker_model: str = "claude-opus-4-6",
@@ -82,6 +86,7 @@ class AdaptiveLoop:
 
         # Prepend bootstrap context if available
         from dqg.constants import PHASE_DIR_MAP
+
         _dir_suffix = PHASE_DIR_MAP.get(phase_id, phase_def.get("dir_suffix", ""))
         _bootstrap_path = self.output_dir / project_id / _dir_suffix / "_internal" / "_bootstrap_context.md"
         if _bootstrap_path.exists():
@@ -89,26 +94,34 @@ class AdaptiveLoop:
             log.info("Bootstrap context prepended: %s", _bootstrap_path)
 
         from dqg.constants import REPORT_MAP
+
         report_file = REPORT_MAP.get(phase_id, "phase_report.md")
         report_path = pd / report_file
 
         iterations: list[IterationRecord] = []
+        all_llm_calls: list[dict[str, Any]] = []
         start = time.time()
         final_verdict = "MAX_ITERATIONS"
+        monitor = LoopHealthMonitor()
+        early_stop_reason = ""
 
-        from dqg.runtime.task_store import add_task_event, complete_task_run, create_task_run, save_checkpoint
+        from dqg.runtime.task_store import complete_task_run, create_task_run
 
         task_id = create_task_run(
             self.output_dir,
             task_type="adaptive",
             project_id=project_id,
             phase_id=phase_id,
-            config={"max_iterations": max_iterations, "pass_threshold": pass_threshold,
-                    "worker_model": worker_model, "judge_models": judge_models},
+            config={
+                "max_iterations": max_iterations,
+                "pass_threshold": pass_threshold,
+                "worker_model": worker_model,
+                "judge_models": judge_models,
+            },
         )
 
         for i in range(max_iterations):
-            record, passed = self._execute_iteration(
+            record, passed, iter_llm_calls = self._execute_iteration(
                 i=i,
                 pd=pd,
                 report_path=report_path,
@@ -124,9 +137,30 @@ class AdaptiveLoop:
                 task_id=task_id,
             )
             iterations.append(record)
+            all_llm_calls.extend(iter_llm_calls)
+
+            # 健康监控：记录本轮结果并检查是否应早停
+            if record.judge_result is not None:
+                all_issues = []
+                for v in record.judge_result.votes:
+                    all_issues.extend(v.issues)
+                health = judge_health_check([record.judge_result])
+                monitor.record_iteration(
+                    avg_score=record.judge_result.avg_score,
+                    issues=all_issues,
+                    judge_health=health,
+                )
 
             if passed:
                 final_verdict = "PASS" if record.judge_result.consensus == "PASS" else "PASS_WITH_CONCERNS"
+                break
+
+            # 早停检查（passed 已 break，这里只检查未通过的情况）
+            health_result = monitor.check()
+            if health_result.should_stop:
+                final_verdict = "EARLY_STOP"
+                early_stop_reason = health_result.message
+                log.warning("Adaptive loop early stop: %s", health_result.status)
                 break
 
         total_duration = time.time() - start
@@ -142,9 +176,11 @@ class AdaptiveLoop:
         )
 
         complete_task_run(
-            self.output_dir, task_id,
+            self.output_dir,
+            task_id,
             status="completed" if final_verdict in ("PASS", "PASS_WITH_CONCERNS") else "failed",
-            result_summary=f"{final_verdict} after {len(iterations)} iterations",
+            result_summary=f"{final_verdict} after {len(iterations)} iterations"
+            + (f" ({early_stop_reason})" if early_stop_reason else ""),
         )
 
         result = AdaptiveResult(
@@ -154,56 +190,67 @@ class AdaptiveLoop:
             final_verdict=final_verdict,
             total_duration=total_duration,
             models_used=models_used,
+            early_stop_reason=early_stop_reason,
+            health_summary=monitor.get_summary(),
+            llm_calls=all_llm_calls,
         )
 
         self._write_summary(pd, result)
         return result
 
-    def _write_summary(self, pd: "Path", result: AdaptiveResult) -> None:
+    def _write_summary(self, pd: Path, result: AdaptiveResult) -> None:
         """Write adaptive loop summary JSON."""
         from dqg.json_utils import save_json
+
         summary_path = pd / "_adaptive_summary.json"
-        save_json(summary_path, {
-            "project_id": result.project_id,
-            "phase_id": result.phase_id,
-            "final_verdict": result.final_verdict,
-            "total_iterations": len(result.iterations),
-            "total_duration": round(result.total_duration, 1),
-            "models_used": result.models_used,
-            "iterations": [
-                {
-                    "iteration": r.iteration,
-                    "worker_status": r.worker_result.status if r.worker_result else "skipped",
-                    "judge_consensus": r.judge_result.consensus if r.judge_result else "skipped",
-                    "judge_avg_score": round(r.judge_result.avg_score, 2) if r.judge_result else 0,
-                    "fix_applied": r.fix_applied,
-                    "duration": round(r.duration, 1),
-                }
-                for r in result.iterations
-            ],
-        })
+        save_json(
+            summary_path,
+            {
+                "project_id": result.project_id,
+                "phase_id": result.phase_id,
+                "final_verdict": result.final_verdict,
+                "early_stop_reason": result.early_stop_reason,
+                "total_iterations": len(result.iterations),
+                "total_duration": round(result.total_duration, 1),
+                "models_used": result.models_used,
+                "health_summary": result.health_summary,
+                "llm_calls": result.llm_calls,
+                "iterations": [
+                    {
+                        "iteration": r.iteration,
+                        "worker_status": r.worker_result.status if r.worker_result else "skipped",
+                        "judge_consensus": r.judge_result.consensus if r.judge_result else "skipped",
+                        "judge_avg_score": round(r.judge_result.avg_score, 2) if r.judge_result else 0,
+                        "fix_applied": r.fix_applied,
+                        "duration": round(r.duration, 1),
+                    }
+                    for r in result.iterations
+                ],
+            },
+        )
 
     def _execute_iteration(
         self,
         i: int,
-        pd: "Path",
-        report_path: "Path",
+        pd: Path,
+        report_path: Path,
         worker_prompt: str,
         judge_rubric: str,
         critique_prompt: str,
-        context_files: list["Path"] | None,
+        context_files: list[Path] | None,
         worker_model: str,
         judge_models: list[str],
         fallback: str,
         pass_threshold: float,
         iterations: list[IterationRecord],
         task_id: str,
-    ) -> tuple[IterationRecord, bool]:
-        """执行单轮迭代：Worker → Judge → Critique，返回 (record, passed)."""
+    ) -> tuple[IterationRecord, bool, list[dict[str, Any]]]:
+        """执行单轮迭代：Worker → Judge → Critique，返回 (record, passed, llm_calls)."""
         from dqg.runtime.task_store import add_task_event, save_checkpoint
 
         iter_start = time.time()
         record = IterationRecord(iteration=i + 1)
+        iter_llm_calls: list[dict[str, Any]] = []
 
         no_tool_prefix = (
             "【重要约束】\n"
@@ -249,6 +296,10 @@ class AdaptiveLoop:
                 report_path.write_text(record.worker_result.content, encoding="utf-8")
                 record.fix_applied = True
 
+        # Collect worker LLM call telemetry
+        if record.worker_result:
+            iter_llm_calls.append(extract_llm_call(record.worker_result))
+
         record.judge_result = multi_judge_vote(self.output_dir, report_path, judge_rubric, judge_models, fallback)
 
         # HARD_BLOCK: multi_judge_vote returns None when guard exhausted
@@ -259,39 +310,52 @@ class AdaptiveLoop:
 
         judge_log = pd / f"_judge_iter{i + 1}.json"
         from dqg.json_utils import save_json
-        save_json(judge_log, {
-            "iteration": i + 1,
-            "consensus": record.judge_result.consensus,
-            "avg_score": record.judge_result.avg_score,
-            "votes": [
-                {"model": v.model, "verdict": v.verdict, "overall": v.overall}
-                for v in record.judge_result.votes
-            ],
-            "disagreements": record.judge_result.disagreements,
-        })
+
+        save_json(
+            judge_log,
+            {
+                "iteration": i + 1,
+                "consensus": record.judge_result.consensus,
+                "avg_score": record.judge_result.avg_score,
+                "votes": [
+                    {"model": v.model, "verdict": v.verdict, "overall": v.overall} for v in record.judge_result.votes
+                ],
+                "disagreements": record.judge_result.disagreements,
+            },
+        )
 
         record.duration = time.time() - iter_start
 
-        add_task_event(self.output_dir, task_id, "iteration_completed", {
-            "iteration": i + 1,
-            "consensus": record.judge_result.consensus if record.judge_result else "unknown",
-            "avg_score": record.judge_result.avg_score if record.judge_result else 0,
-        })
-        save_checkpoint(self.output_dir, task_id,
-                        checkpoint_id=f"iter-{i + 1}",
-                        phase_id="",
-                        iteration=i + 1,
-                        state_snapshot={
-                            "iterations_completed": i + 1,
-                            "report_file": str(report_path),
-                        })
+        add_task_event(
+            self.output_dir,
+            task_id,
+            "iteration_completed",
+            {
+                "iteration": i + 1,
+                "consensus": record.judge_result.consensus if record.judge_result else "unknown",
+                "avg_score": record.judge_result.avg_score if record.judge_result else 0,
+            },
+        )
+        save_checkpoint(
+            self.output_dir,
+            task_id,
+            checkpoint_id=f"iter-{i + 1}",
+            phase_id="",
+            iteration=i + 1,
+            state_snapshot={
+                "iterations_completed": i + 1,
+                "report_file": str(report_path),
+            },
+        )
 
         passed = False
-        if record.judge_result.consensus == "PASS" or record.judge_result.avg_score >= pass_threshold:
-            passed = True
-        elif (
-            record.judge_result.consensus == "PASS_WITH_CONCERNS"
-            and record.judge_result.avg_score >= pass_threshold - 0.5
+        if (
+            record.judge_result.consensus == "PASS"
+            or record.judge_result.avg_score >= pass_threshold
+            or (
+                record.judge_result.consensus == "PASS_WITH_CONCERNS"
+                and record.judge_result.avg_score >= pass_threshold - 0.5
+            )
         ):
             passed = True
 
@@ -307,7 +371,11 @@ class AdaptiveLoop:
             context_files=[report_path],
         )
 
-        return record, passed
+        # Collect critique LLM call telemetry
+        if record.critique_result:
+            iter_llm_calls.append(extract_llm_call(record.critique_result))
+
+        return record, passed, iter_llm_calls
 
     def _handle_post_loop(
         self,
@@ -326,15 +394,18 @@ class AdaptiveLoop:
             if health == "SEMANTIC_FAIL":
                 log.info("All iterations FAIL with healthy judges → triggering SkillReflector")
                 from dqg.tracking.skill_reflector import SkillReflector
+
                 reflector = SkillReflector(phase=phase_id, project_id=project_id)
                 judge_dicts = []
                 for vr in all_judge_results:
                     for v in vr.votes:
-                        judge_dicts.append({
-                            "verdict": v.verdict,
-                            "overall": v.overall,
-                            "issues": v.issues,
-                        })
+                        judge_dicts.append(
+                            {
+                                "verdict": v.verdict,
+                                "overall": v.overall,
+                                "issues": v.issues,
+                            }
+                        )
                 evolution_outcome = reflector.reflect_and_write(judge_dicts)
                 log.info("SkillReflector outcome: %s", evolution_outcome.action)
             elif health == "INFRA_FAILURE":
@@ -344,19 +415,15 @@ class AdaptiveLoop:
         """格式化自适应循环结果."""
         lines = [
             f"  自适应 Multi-Agent — Phase {result.phase_id}",
-            f"  最终判定: {result.final_verdict}",
-            f"  迭代次数: {len(result.iterations)}/{3}",
-            f"  总耗时: {result.total_duration:.1f}s",
+            f"  最终判定: {result.final_verdict}  迭代: {len(result.iterations)}/{3}  耗时: {result.total_duration:.1f}s",
             f"  使用模型: {', '.join(result.models_used)}",
         ]
-
         for r in result.iterations:
-            judge_info = ""
-            if r.judge_result:
-                judge_info = f"consensus={r.judge_result.consensus}, avg={r.judge_result.avg_score:.1f}"
-                if r.judge_result.disagreements:
-                    judge_info += f", 分歧={len(r.judge_result.disagreements)}"
-            fix_info = " [已修正]" if r.fix_applied else ""
-            lines.append(f"    Iter {r.iteration}: {judge_info}{fix_info} ({r.duration:.1f}s)")
-
+            j = r.judge_result
+            judge_info = f"consensus={j.consensus}, avg={j.avg_score:.1f}" if j else ""
+            if j and j.disagreements:
+                judge_info += f", 分歧={len(j.disagreements)}"
+            lines.append(
+                f"    Iter {r.iteration}: {judge_info}{' [已修正]' if r.fix_applied else ''} ({r.duration:.1f}s)"
+            )
         return "\n".join(lines)

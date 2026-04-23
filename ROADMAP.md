@@ -60,7 +60,7 @@
 
 已落地：
 
-- profile 注册：`java-ddd-tmf`、`go-service`
+- profile 注册：`java-ddd-tmf`、`go-service`、`typescript-service`
 - `dqg-run --profile ...` 切换基线  
 - Profile 自动注入上下文（baseline/risk/thresholds）  
 - 各 Phase 自动产物：`_profile.json`、`_profile_context.md`  
@@ -119,6 +119,13 @@
 - 审计命中率、修复闭环时长口径  
 - 告警噪声治理（误报率、阈值自适配）  
 - 周报到治理动作的闭环（负责人、修复 SLA）
+
+2026-04-23 新增（借鉴 LangChain Evaluating Skills 方法论）：
+
+- Prompt Fingerprint 基础设施 — `AgentResult.prompt_hash`（SHA256 前 16 位）+ `PhaseRunRecord.llm_calls` 聚合字段，自动捕获每次 LLM 调用的 model_id/prompt_hash/input_tokens/output_tokens/cache_hit，finalize 时从 `_adaptive_summary.json` 注入 telemetry；SQLite schema 同步扩展 + 存量 DB 自动迁移
+- Prompt Regression Test Set — `dqg-regression prompt-eval` 子命令，Q05/Q06 各有 curated test case（固定输入 + 已知正确输出），支持不同 prompt 版本的 A/B 指标对比；逻辑提取到 `tracking/prompt_eval.py`
+- Profile Rule Impact Measurement — `compute_rule_hash()` 按 Markdown 标题拆分规则块并计算 SHA256，`compare_with_baseline()` 扩展 `rule_changes` 归因字段，`dqg-regression rule-impact` 子命令输出规则变更→指标变化关联报告；逻辑提取到 `tracking/rule_impact.py`
+- Prompt-Level Observability — observe 报告新增"Prompt 效果"section：prompt 版本分布（top 10 hash）、token 成本分布（phase × model 汇总）、cache 命中率；旧数据 graceful 跳过
 
 仍需推进（P2）：
 
@@ -314,6 +321,17 @@
 - Skill Evolution 技能自进化闭环（`skill_evolution.py`，生成具体 diff 而非建议文本 + 进化谱系记录 + 高置信度规则标记自动合入，借鉴 OpenSpace FIX/CAPTURED 模式）
 - 代码语义检索增强（`code_semantic_search.py`，SE→Code 自动映射 + 概念映射动态扩展 + 调用链查询，零新依赖复用 FTS5+tree-sitter，Phase Q05/Q06/Q07 execute 时自动注入 `_se_code_mapping.md`）
 - Skill 目录结构改造为 agentskills.io 标准（7 个 Phase skill 从扁平 .md 改为 `skills/<name>/SKILL.md` + `references/` 目录结构，所有 SKILL.md < 500 行，详细规则拆到 references/，旧路径保留 facade 兼容）
+
+2026-04-23 新增：
+
+- LanguageProvider 抽象层（`languages/base.py` ABC + `languages/registry.py` 全局 Registry，支持多语言 Provider 插拔）
+- Java Provider 迁移（`languages/java/`，从 context/ 迁入 AST 分析器+断言映射，原位置 facade re-export 零破坏）
+- TypeScript Provider（`languages/typescript/`，tree-sitter-typescript AST 解析 expect().toXxx() 链式调用，Jest/Vitest 断言强度映射，5 种弱断言信号）
+- Pipeline Registry 驱动（handlers_execute 新增 language_detect handler，compile_check/weak_assert_context 支持 Provider 优先路径）
+- Profile 扩展（DqgProfile 新增 language 字段，新增 `typescript-service` profile）
+- 端到端验证（service-cli 接入：detect→Jest 识别→tsc 编译→断言解析→弱断言报告）
+- LoopHealthMonitor（`agents/loop_health.py`，adaptive loop 3 维死循环检测：score stagnation / issue repetition / infra failure streak，支持 EARLY_STOP 早停省 token）
+- OutputCompletenessGuardrail（`quality/output_completeness.py`，报告截断检测 + 按 Phase 最小长度门槛，注册为第 6 个 guardrail，零 LLM 成本前置拦截残缺报告）
 - Reasoning Sandwich（`phase_registry.py` 每个 Phase 增加 `reasoning_profile`，`context_loader.py` 按 execution level 动态调整 budget：high=100%/standard=60%，为推理留更多空间）
 - Worker 内部拆分（`two_phase_worker.py`，Collector Agent 只做证据收集输出 `_evidence_pack.json`，Writer Agent 只看 evidence pack 不看原始文档，context 更干净）
 
@@ -449,7 +467,7 @@
 | P0 | 应用层 LLM result cache | **已完成(100%)** | 降低重复 LLM 调用，缓存键含 skill/rubric 签名，全局统计，Judge/Critique/Preference 全覆盖 |
 | P0 | retrieval-first evidence pack | **已完成(95%)** | evidence pack schema（概览+摘要+关键引用），Phase Q01 当前输入证据与 bug case 去重 |
 | 高 | FTS5 中文分词完善 | **已完成(85%)** | jieba 词级分词+停用词+bigram 补充召回，降级兼容 n-gram。待完善：FTS5 自定义 tokenizer |
-| 高 | 弱断言检测 | **已完成(100%)** | tree-sitter Java AST 解析+跨方法 Helper 分析+业务语义映射(SE/EUT)+finalize gate 阻断(WARNING)。待完善：多语言支持 |
+| 高 | 弱断言检测 | **已完成(100%)** | tree-sitter Java AST 解析+跨方法 Helper 分析+业务语义映射(SE/EUT)+finalize gate 阻断(WARNING)。LanguageProvider 抽象层+TypeScript Provider 已完成 |
 | 高 | DAG 并行调度器 | **已完成(100%)** | `dqg-run dag` 端到端并行执行，ThreadPoolExecutor，支持 --skip/--max-parallel/--plan |
 | 中 | 证据与结果的可观测性闭环 | 进行中 | 缓存命中率/证据包大小/上下文 token/LLM 调用次数统一指标 |
 | 低 | Prompt 细节和文档治理 | 规划中 | 统一提示词风格、报告模板、引用格式 |

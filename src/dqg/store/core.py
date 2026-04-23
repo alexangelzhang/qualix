@@ -5,12 +5,15 @@ from __future__ import annotations
 import json
 import sqlite3
 import threading
-from contextlib import contextmanager
-from pathlib import Path
-from typing import Any, Generator
+from contextlib import contextmanager, suppress
+from typing import TYPE_CHECKING, Any
 
 from dqg.constants import DB_FILENAME as _DB_FILENAME
 from dqg.log import get_logger
+
+if TYPE_CHECKING:
+    from collections.abc import Generator
+    from pathlib import Path
 
 log = get_logger(__name__)
 
@@ -142,6 +145,7 @@ CREATE TABLE IF NOT EXISTS telemetry (
     timestamp TEXT NOT NULL,
     os_type TEXT DEFAULT '',
     python_version TEXT DEFAULT '',
+    llm_calls TEXT DEFAULT '[]',
     created_at TEXT DEFAULT (datetime('now'))
 );
 CREATE INDEX IF NOT EXISTS idx_telemetry_project ON telemetry(project_id);
@@ -382,6 +386,13 @@ def _get_cached_connection(db_str: str) -> sqlite3.Connection:
     conn.execute("PRAGMA journal_mode=WAL")
     if db_str not in _initialized_dbs:
         conn.executescript(_SCHEMA)
+        # Migrate: add llm_calls column to telemetry if missing (for existing DBs)
+        try:
+            cols = {row[1] for row in conn.execute("PRAGMA table_info(telemetry)").fetchall()}
+            if "llm_calls" not in cols:
+                conn.execute("ALTER TABLE telemetry ADD COLUMN llm_calls TEXT DEFAULT '[]'")
+        except Exception:
+            pass
         _initialized_dbs.add(db_str)
         log.debug("Schema initialized: %s", db_str)
     cache[db_str] = conn
@@ -406,12 +417,19 @@ def get_connection(output_dir: Path) -> Generator[sqlite3.Connection, None, None
 def row_to_dict(row: sqlite3.Row) -> dict[str, Any]:
     """将 sqlite3.Row 转为 dict，自动解析 JSON 字段."""
     d = dict(row)
-    for key in ("validation_errors", "dimensions", "critique_effectiveness",
-                "tags", "source", "expected", "actual", "metric_data",
-                "gate_checklist", "top_issues"):
+    for key in (
+        "validation_errors",
+        "dimensions",
+        "critique_effectiveness",
+        "tags",
+        "source",
+        "expected",
+        "actual",
+        "metric_data",
+        "gate_checklist",
+        "top_issues",
+    ):
         if key in d and isinstance(d[key], str):
-            try:
+            with suppress(json.JSONDecodeError, TypeError):
                 d[key] = json.loads(d[key])
-            except (json.JSONDecodeError, TypeError):
-                pass
     return d

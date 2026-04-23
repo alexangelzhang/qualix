@@ -7,16 +7,13 @@
 
 from __future__ import annotations
 
-from pathlib import Path
-from typing import Any
-
+from dqg.quality.fabrication_detector import FabricationDetectorGuardrail
 from dqg.quality.guardrail import (
     GuardrailContext,
     GuardrailLevel,
     GuardrailResult,
     PhaseGuardrail,
 )
-from dqg.quality.fabrication_detector import FabricationDetectorGuardrail
 from dqg.quality.semantic_guardrail import ReportSemanticGuardrail
 
 
@@ -31,22 +28,26 @@ class FinalizeChecksGuardrail(PhaseGuardrail):
 
         errors = run_finalize_checks(ctx.output_dir, ctx.project_id, ctx.phase_id)
         if not errors:
-            return [GuardrailResult(
-                guardrail_name=self.name,
-                passed=True,
-                level=GuardrailLevel.INFO,
-                message="硬性校验全部通过",
-            )]
+            return [
+                GuardrailResult(
+                    guardrail_name=self.name,
+                    passed=True,
+                    level=GuardrailLevel.INFO,
+                    message="硬性校验全部通过",
+                )
+            ]
 
         results: list[GuardrailResult] = []
         for err in errors:
             is_blocked = err.startswith("BLOCKED")
-            results.append(GuardrailResult(
-                guardrail_name=self.name,
-                passed=False,
-                level=GuardrailLevel.BLOCKED if is_blocked else GuardrailLevel.WARNING,
-                message=err,
-            ))
+            results.append(
+                GuardrailResult(
+                    guardrail_name=self.name,
+                    passed=False,
+                    level=GuardrailLevel.BLOCKED if is_blocked else GuardrailLevel.WARNING,
+                    message=err,
+                )
+            )
         return results
 
 
@@ -60,30 +61,32 @@ class PhaseConstraintsGuardrail(PhaseGuardrail):
         from dqg.runtime.phase_constraints import enforce_phase_constraints
 
         violations = enforce_phase_constraints(
-            ctx.output_dir, ctx.project_id, ctx.phase_id,
+            ctx.output_dir,
+            ctx.project_id,
+            ctx.phase_id,
         )
         if not violations:
-            return [GuardrailResult(
-                guardrail_name=self.name,
-                passed=True,
-                level=GuardrailLevel.INFO,
-                message="DSL 约束全部满足",
-            )]
+            return [
+                GuardrailResult(
+                    guardrail_name=self.name,
+                    passed=True,
+                    level=GuardrailLevel.INFO,
+                    message="DSL 约束全部满足",
+                )
+            ]
 
         results: list[GuardrailResult] = []
         for v in violations:
-            level = (
-                GuardrailLevel.BLOCKED
-                if v.get("block_if_fail")
-                else GuardrailLevel.WARNING
+            level = GuardrailLevel.BLOCKED if v.get("block_if_fail") else GuardrailLevel.WARNING
+            results.append(
+                GuardrailResult(
+                    guardrail_name=self.name,
+                    passed=False,
+                    level=level,
+                    message=f"{v['label']}: 实际值 {v['actual']} {v['op']} {v['threshold']}",
+                    details=[f"metric={v['metric']}"],
+                )
             )
-            results.append(GuardrailResult(
-                guardrail_name=self.name,
-                passed=False,
-                level=level,
-                message=f"{v['label']}: 实际值 {v['actual']} {v['op']} {v['threshold']}",
-                details=[f"metric={v['metric']}"],
-            ))
         return results
 
 
@@ -97,28 +100,34 @@ class RuleComplianceGuardrail(PhaseGuardrail):
         from dqg.quality.rule_compliance import compute_rule_compliance
 
         compliance = compute_rule_compliance(
-            ctx.output_dir, ctx.project_id, ctx.phase_id,
+            ctx.output_dir,
+            ctx.project_id,
+            ctx.phase_id,
         )
         if not compliance:
-            return [GuardrailResult(
-                guardrail_name=self.name,
-                passed=True,
-                level=GuardrailLevel.INFO,
-                message="无适用规则",
-            )]
+            return [
+                GuardrailResult(
+                    guardrail_name=self.name,
+                    passed=True,
+                    level=GuardrailLevel.INFO,
+                    message="无适用规则",
+                )
+            ]
 
         results: list[GuardrailResult] = []
         for rule in compliance.get("rules", []):
             if rule is None:
                 continue
             passed = rule.get("ok", True)
-            results.append(GuardrailResult(
-                guardrail_name=self.name,
-                passed=passed,
-                level=GuardrailLevel.INFO if passed else GuardrailLevel.WARNING,
-                message=f"[{rule.get('category', '?')}] {rule.get('name', '?')}: {rule.get('detail', '')}",
-                details=[f"id={rule.get('id', '?')}"],
-            ))
+            results.append(
+                GuardrailResult(
+                    guardrail_name=self.name,
+                    passed=passed,
+                    level=GuardrailLevel.INFO if passed else GuardrailLevel.WARNING,
+                    message=f"[{rule.get('category', '?')}] {rule.get('name', '?')}: {rule.get('detail', '')}",
+                    details=[f"id={rule.get('id', '?')}"],
+                )
+            )
         return results
 
 
@@ -127,12 +136,21 @@ class RuleComplianceGuardrail(PhaseGuardrail):
 # ---------------------------------------------------------------------------
 
 #: 所有 Phase 共用的 output guardrail 列表
+
+
+def _output_completeness_guardrail() -> PhaseGuardrail:
+    from dqg.quality.output_completeness import OutputCompletenessGuardrail
+
+    return OutputCompletenessGuardrail()
+
+
 DEFAULT_OUTPUT_GUARDRAILS: list[PhaseGuardrail] = [
     FinalizeChecksGuardrail(),
     PhaseConstraintsGuardrail(),
     RuleComplianceGuardrail(),
     ReportSemanticGuardrail(),
     FabricationDetectorGuardrail(),
+    _output_completeness_guardrail(),
 ]
 
 

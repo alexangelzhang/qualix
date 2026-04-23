@@ -1,0 +1,25 @@
+{
+  "scenarios": [
+    {
+      "scenario_id": "SC-001",
+      "title": "登录-Happy Path 覆盖检查",
+      "linked_eut": "EUT-001",
+      "status": "COVERED",
+      "evidence": "test_login_happy_path.py::test_login_success"
+    },
+    {
+      "scenario_id": "SC-002",
+      "title": "登录-验证码过期 覆盖检查",
+      "linked_eut": "EUT-002",
+      "status": "MISSING",
+      "evidence": null
+    },
+    {
+      "scenario_id": "SC-003",
+      "title": "创建工单-Happy Path 覆盖检查",
+      "linked_eut": "EUT-003",
+      "status": "WRONG_TARGET",
+      "evidence": "test_order.py::test_create — 断言目标偏移"
+    }
+  ]
+}

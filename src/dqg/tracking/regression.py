@@ -11,17 +11,19 @@ from typing import Any, Final
 
 from dqg.json_utils import dump_json_str, dump_jsonl, load_json_strict, save_json
 
-VOLATILE_JSON_KEYS: Final[frozenset[str]] = frozenset({
-    "created_at",
-    "updated_at",
-    "generated_at",
-    "started_at",
-    "finished_at",
-    "approved_at",
-    "duration_seconds",
-    "collected_at",
-    "timestamp",
-})
+VOLATILE_JSON_KEYS: Final[frozenset[str]] = frozenset(
+    {
+        "created_at",
+        "updated_at",
+        "generated_at",
+        "started_at",
+        "finished_at",
+        "approved_at",
+        "duration_seconds",
+        "collected_at",
+        "timestamp",
+    }
+)
 FAILURE_LIBRARY = "failure-library"
 DATE_FMT = "%Y-%m-%d"
 
@@ -157,7 +159,9 @@ def run_case(case_dir: Path) -> dict[str, Any]:
             "偏移": sum(1 for item in diffs if item["status"] == "偏移"),
         },
     }
-    summary["passed"] = summary["stats"]["新增"] == 0 and summary["stats"]["回归"] == 0 and summary["stats"]["偏移"] == 0
+    summary["passed"] = (
+        summary["stats"]["新增"] == 0 and summary["stats"]["回归"] == 0 and summary["stats"]["偏移"] == 0
+    )
     return summary
 
 
@@ -171,7 +175,9 @@ def summarize_failure_library(results: list[dict[str, Any]]) -> dict[str, Any]:
         if not item.get("passed", False):
             bucket["failed"] += 1
     for bucket in by_error_type.values():
-        bucket["pass_rate"] = round((bucket["total"] - bucket["failed"]) / bucket["total"], 4) if bucket["total"] else 0.0
+        bucket["pass_rate"] = (
+            round((bucket["total"] - bucket["failed"]) / bucket["total"], 4) if bucket["total"] else 0.0
+        )
     return {
         "totals": {
             "cases": len(library_results),
@@ -243,7 +249,9 @@ def build_failure_trend(history_path: Path, period: str = "weekly") -> dict[str,
             if not row.get("passed", False):
                 bucket["failed"] += 1
         for bucket in by_error_type.values():
-            bucket["pass_rate"] = round((bucket["total"] - bucket["failed"]) / bucket["total"], 4) if bucket["total"] else 0.0
+            bucket["pass_rate"] = (
+                round((bucket["total"] - bucket["failed"]) / bucket["total"], 4) if bucket["total"] else 0.0
+            )
         weeks.append(
             {
                 "label": label,
@@ -341,18 +349,32 @@ def main() -> int:
     p_trend.add_argument("--period", choices=["weekly"], default="weekly")
     p_trend.add_argument("--output-dir", default=None, help="输出目录，默认 regression/failure-library/trends/<period>")
 
+    p_prompt = sub.add_parser("prompt-eval", help="Compare prompt versions for Q05/Q06")
+    p_prompt.add_argument("--case", dest="case_id", default=None, help="指定 case_id")
+    p_prompt.add_argument("--phase", choices=["Q05", "Q06"], default=None, help="筛选 phase")
+
+    p_impact = sub.add_parser("rule-impact", help="Profile rule change → metric impact report")
+    p_impact.add_argument("--profile", required=True, help="Profile ID (e.g. java-ddd-tmf)")
+    p_impact.add_argument("--output-dir", default=None, help="输出目录，默认 regression/rule-impact/<profile>")
+
     args = parser.parse_args()
     if args.command == "trend":
         payload = build_failure_trend(_failure_history_path(), period=args.period)
-        output_dir = (
-            Path(args.output_dir)
-            if args.output_dir
-            else _failure_library_root() / "trends" / args.period
-        )
+        output_dir = Path(args.output_dir) if args.output_dir else _failure_library_root() / "trends" / args.period
         json_path, md_path = _write_failure_trend_output(payload, output_dir)
         print(f"趋势结果: {json_path}")
         print(f"趋势结果: {md_path}")
         return 0
+
+    if args.command == "prompt-eval":
+        from dqg.tracking.prompt_eval import run_prompt_comparison
+
+        return run_prompt_comparison(args.case_id, args.phase, _cases_root())
+
+    if args.command == "rule-impact":
+        from dqg.tracking.rule_impact import run_rule_impact
+
+        return run_rule_impact(args.profile, args.output_dir)
 
     cases = discover_cases()
     if args.case_id:

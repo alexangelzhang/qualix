@@ -5,17 +5,18 @@ from __future__ import annotations
 import argparse
 import json
 import re
+from collections import Counter, defaultdict
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta
 from pathlib import Path
 from statistics import mean
 from typing import Any, Final
 
+from dqg.constants import PHASE_DIR_MAP, REPORT_MAP
 from dqg.json_utils import dump_jsonl, save_json
 from dqg.reporting.collect_metrics import collect_all_metrics
-from dqg.constants import PHASE_DIR_MAP, REPORT_MAP
-from dqg.tracking.regression import build_failure_trend
 from dqg.reporting.telemetry import PhaseRunRecord, load_records
+from dqg.tracking.regression import build_failure_trend
 
 ALLOWED_PHASES: Final = frozenset({"Q01", "Q04", "Q03", "Q05", "Q06", "Q07"})
 DATE_FMT = "%Y-%m-%d"
@@ -55,11 +56,9 @@ def _record_in_period(record: PhaseRunRecord, period: Period) -> bool:
 
 def _discover_projects(output_dir: Path) -> list[str]:
     projects: set[str] = set()
-    # 新结构： output/{project_id}/{project_id}_telemetry.jsonl
     for path in output_dir.glob("*/*_telemetry.jsonl"):
         projects.add(path.name.removesuffix("_telemetry.jsonl"))
-    # 兼容旧结构： output/{project_id}_telemetry.jsonl
-    for path in output_dir.glob("*_telemetry.jsonl"):
+    for path in output_dir.glob("*_telemetry.jsonl"):  # 兼容旧结构
         projects.add(path.name.removesuffix("_telemetry.jsonl"))
     return sorted(projects)
 
@@ -92,7 +91,11 @@ def _extract_phase_d_blockers(output_dir: Path, project_id: str) -> int:
 def _project_metrics(output_dir: Path, project_id: str, records: list[PhaseRunRecord]) -> dict[str, Any]:
     finalize_records = [r for r in records if r.action == "finalize"]
     approve_records = [r for r in records if r.action == "approve"]
-    avg_duration = mean([r.duration_seconds for r in finalize_records if r.duration_seconds is not None]) if finalize_records else 0.0
+    avg_duration = (
+        mean([r.duration_seconds for r in finalize_records if r.duration_seconds is not None])
+        if finalize_records
+        else 0.0
+    )
     approval_rate = (len(approve_records) / len(finalize_records)) if finalize_records else 0.0
 
     phase_stats: dict[str, dict[str, Any]] = {}
@@ -101,7 +104,9 @@ def _project_metrics(output_dir: Path, project_id: str, records: list[PhaseRunRe
         phase_approve = [r for r in approve_records if r.phase_id == phase]
         phase_error = _phase_from_validation_errors(records, phase)
         phase_avg_duration = (
-            mean([r.duration_seconds for r in phase_finalize if r.duration_seconds is not None]) if phase_finalize else 0.0
+            mean([r.duration_seconds for r in phase_finalize if r.duration_seconds is not None])
+            if phase_finalize
+            else 0.0
         )
         phase_stats[phase] = {
             "finalized": len(phase_finalize),
@@ -147,6 +152,28 @@ def _failure_history_path(output_dir: Path) -> Path:
     return output_dir.parent / "regression" / "failure-library" / "history.jsonl"
 
 
+def _build_prompt_effectiveness(all_records: list[PhaseRunRecord]) -> dict[str, Any]:
+    """从 telemetry 记录中聚合 Prompt 效果指标."""
+    calls = [{**c, "phase_id": r.phase_id} for r in all_records for c in r.llm_calls]
+    if not calls:
+        return {}
+    hash_counter = Counter(c.get("prompt_hash", "unknown") for c in calls)
+    token_map: dict[tuple[str, str], dict[str, int]] = defaultdict(lambda: {"input": 0, "output": 0, "calls": 0})
+    for c in calls:
+        key = (c["phase_id"], c.get("model_id", "unknown"))
+        token_map[key]["input"] += c.get("input_tokens", 0)
+        token_map[key]["output"] += c.get("output_tokens", 0)
+        token_map[key]["calls"] += 1
+    total, hits = len(calls), sum(1 for c in calls if c.get("cache_hit"))
+    return {
+        "prompt_distribution": [{"prompt_hash": h, "count": n} for h, n in hash_counter.most_common(10)],
+        "token_distribution": [{"phase_id": k[0], "model_id": k[1], **v} for k, v in sorted(token_map.items())],
+        "cache_hit_rate": round(hits / total, 4) if total else 0.0,
+        "cache_hits": hits,
+        "cache_total": total,
+    }
+
+
 def _write_markdown_report(path: Path, payload: dict[str, Any]) -> None:
     lines: list[str] = []
     lines.append(f"# DQG {payload['period']} 报告")
@@ -190,6 +217,27 @@ def _write_markdown_report(path: Path, payload: dict[str, Any]) -> None:
                 lines.append(
                     f"| {week['label']} | {error_type} | {stat['total']} | {stat['failed']} | {stat['pass_rate']:.2%} |"
                 )
+    pe = payload.get("prompt_effectiveness", {})
+    if pe:
+        lines += ["", "## Prompt 效果", "", "### Prompt 版本分布", "", "| Prompt Hash | Count |", "| --- | ---: |"]
+        lines += [f"| `{i['prompt_hash'][:12]}` | {i['count']} |" for i in pe.get("prompt_distribution", [])]
+        lines += [
+            "",
+            "### Token 成本分布",
+            "",
+            "| Phase | Model | Calls | Input Tokens | Output Tokens |",
+            "| --- | --- | ---: | ---: | ---: |",
+        ]
+        lines += [
+            f"| {i['phase_id']} | {i['model_id']} | {i['calls']} | {i['input']:,} | {i['output']:,} |"
+            for i in pe.get("token_distribution", [])
+        ]
+        lines += [
+            "",
+            "### Cache 命中率",
+            "",
+            f"- 命中: {pe.get('cache_hits', 0)} / {pe.get('cache_total', 0)} ({pe.get('cache_hit_rate', 0.0):.2%})",
+        ]
     path.write_text("\n".join(lines).strip() + "\n", encoding="utf-8")
 
 
@@ -249,16 +297,19 @@ def _build_alerts(
     failure_library: dict[str, Any] | None = None,
 ) -> list[dict[str, Any]]:
     from dqg.reporting.observability_alerts import build_alerts
+
     return build_alerts(history, current_label, block_spike_ratio, phase_failure_threshold, failure_library)
 
 
 def _write_alerts(output_dir: Path, label: str, alerts: list[dict[str, Any]]) -> tuple[Path, Path]:
     from dqg.reporting.observability_alerts import write_alerts
+
     return write_alerts(output_dir, label, alerts)
 
 
 def _write_prometheus_snapshot(output_dir: Path, payload: dict[str, Any], alerts: list[dict[str, Any]]) -> Path:
     from dqg.reporting.observability_alerts import write_prometheus_snapshot
+
     return write_prometheus_snapshot(output_dir, payload, alerts)
 
 
@@ -273,10 +324,12 @@ def generate_report(
     period = _build_period(period_name, anchor)
     projects = [project_filter] if project_filter else _discover_projects(output_dir)
     rows = []
+    all_records: list[PhaseRunRecord] = []
     for project_id in projects:
         records = _load_period_records(output_dir, project_id, period, phase_filter)
         if not records:
             continue
+        all_records.extend(records)
         rows.append(_project_metrics(output_dir, project_id, records))
     payload = {
         "label": period.label,
@@ -292,6 +345,7 @@ def generate_report(
         "projects": rows,
     }
     payload["failure_library"] = build_failure_trend(_failure_history_path(output_dir), period="weekly")
+    payload["prompt_effectiveness"] = _build_prompt_effectiveness(all_records)
     json_path, md_path = _report_paths(output_dir, period_name, period.label)
     save_json(json_path, payload)
     _write_markdown_report(md_path, payload)

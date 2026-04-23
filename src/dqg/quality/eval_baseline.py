@@ -11,18 +11,19 @@
 from __future__ import annotations
 
 from datetime import datetime
-from pathlib import Path
 from types import MappingProxyType
-from typing import Any, Final
+from typing import TYPE_CHECKING, Any, Final
 
 from dqg.json_utils import load_json, save_json
 from dqg.log import get_logger
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 log = get_logger(__name__)
 
 # 指标退化阈值：超过此值触发 WARNING
 REGRESSION_THRESHOLD = 0.05  # 5% 退化
-
 
 # ---------------------------------------------------------------------------
 # Phase 指标定义
@@ -30,20 +31,74 @@ REGRESSION_THRESHOLD = 0.05  # 5% 退化
 
 PHASE_METRICS: Final[dict[str, list[dict[str, Any]]]] = {
     "Q01": [
-        {"id": "req_count", "name": "REQ 数量", "type": "count", "field": "requirements", "filter": lambda r: r.get("req_id", "").startswith("REQ-")},
-        {"id": "br_count", "name": "BR 数量", "type": "count", "field": "requirements", "filter": lambda r: r.get("req_id", "").startswith("BR-")},
+        {
+            "id": "req_count",
+            "name": "REQ 数量",
+            "type": "count",
+            "field": "requirements",
+            "filter": lambda r: r.get("req_id", "").startswith("REQ-"),
+        },
+        {
+            "id": "br_count",
+            "name": "BR 数量",
+            "type": "count",
+            "field": "requirements",
+            "filter": lambda r: r.get("req_id", "").startswith("BR-"),
+        },
         {"id": "se_count", "name": "SE 数量", "type": "count", "field": "semantic_expectations"},
         {"id": "gap_count", "name": "GAP 数量", "type": "count", "field": "gaps"},
         {"id": "open_count", "name": "OPEN 数量", "type": "count", "field": "open_items"},
-        {"id": "se_with_basis", "name": "SE 有判定依据率", "type": "ratio", "numerator_fn": "_count_se_with_basis", "denominator_field": "semantic_expectations"},
-        {"id": "gap_with_risk", "name": "GAP 有风险等级率", "type": "ratio", "numerator_fn": "_count_gap_with_risk", "denominator_field": "gaps"},
-        {"id": "open_with_owner", "name": "OPEN 有决策方率", "type": "ratio", "numerator_fn": "_count_open_with_owner", "denominator_field": "open_items"},
+        {
+            "id": "se_with_basis",
+            "name": "SE 有判定依据率",
+            "type": "ratio",
+            "numerator_fn": "_count_se_with_basis",
+            "denominator_field": "semantic_expectations",
+        },
+        {
+            "id": "gap_with_risk",
+            "name": "GAP 有风险等级率",
+            "type": "ratio",
+            "numerator_fn": "_count_gap_with_risk",
+            "denominator_field": "gaps",
+        },
+        {
+            "id": "open_with_owner",
+            "name": "OPEN 有决策方率",
+            "type": "ratio",
+            "numerator_fn": "_count_open_with_owner",
+            "denominator_field": "open_items",
+        },
     ],
     "Q04": [
-        {"id": "req_coverage_rate", "name": "REQ 覆盖率", "type": "custom", "fn": "_calc_coverage_rate", "args": {"dimension": "REQ"}},
-        {"id": "se_coverage_rate", "name": "SE 覆盖率", "type": "custom", "fn": "_calc_coverage_rate", "args": {"dimension": "SE"}},
-        {"id": "gap_closure_rate", "name": "GAP 闭环率", "type": "custom", "fn": "_calc_closure_rate", "args": {"field": "gap_closure"}},
-        {"id": "missing_count", "name": "MISSING 数量", "type": "custom", "fn": "_count_status", "args": {"status": "MISSING"}},
+        {
+            "id": "req_coverage_rate",
+            "name": "REQ 覆盖率",
+            "type": "custom",
+            "fn": "_calc_coverage_rate",
+            "args": {"dimension": "REQ"},
+        },
+        {
+            "id": "se_coverage_rate",
+            "name": "SE 覆盖率",
+            "type": "custom",
+            "fn": "_calc_coverage_rate",
+            "args": {"dimension": "SE"},
+        },
+        {
+            "id": "gap_closure_rate",
+            "name": "GAP 闭环率",
+            "type": "custom",
+            "fn": "_calc_closure_rate",
+            "args": {"field": "gap_closure"},
+        },
+        {
+            "id": "missing_count",
+            "name": "MISSING 数量",
+            "type": "custom",
+            "fn": "_count_status",
+            "args": {"status": "MISSING"},
+        },
     ],
     "Q03": [
         {"id": "critical_count", "name": "Critical 问题数", "type": "json_field", "field": "critical_count"},
@@ -53,21 +108,56 @@ PHASE_METRICS: Final[dict[str, list[dict[str, Any]]]] = {
     ],
     "Q05": [
         {"id": "eut_count", "name": "EUT 数量", "type": "count", "field": "eut_matrix"},
-        {"id": "happy_path_ratio", "name": "Happy Path 占比", "type": "custom", "fn": "_calc_path_ratio", "args": {"path_type": "Happy"}},
-        {"id": "exception_path_ratio", "name": "Exception Path 占比", "type": "custom", "fn": "_calc_path_ratio", "args": {"path_type": "Exception"}},
+        {
+            "id": "happy_path_ratio",
+            "name": "Happy Path 占比",
+            "type": "custom",
+            "fn": "_calc_path_ratio",
+            "args": {"path_type": "Happy"},
+        },
+        {
+            "id": "exception_path_ratio",
+            "name": "Exception Path 占比",
+            "type": "custom",
+            "fn": "_calc_path_ratio",
+            "args": {"path_type": "Exception"},
+        },
     ],
     "Q06": [
-        {"id": "covered_rate", "name": "COVERED 率", "type": "custom", "fn": "_count_status_rate", "args": {"status": "COVERED"}},
-        {"id": "wrong_target_count", "name": "WRONG_TARGET 数量", "type": "custom", "fn": "_count_status", "args": {"status": "WRONG_TARGET"}},
-        {"id": "missing_count", "name": "MISSING 数量", "type": "custom", "fn": "_count_status", "args": {"status": "MISSING"}},
+        {
+            "id": "covered_rate",
+            "name": "COVERED 率",
+            "type": "custom",
+            "fn": "_count_status_rate",
+            "args": {"status": "COVERED"},
+        },
+        {
+            "id": "wrong_target_count",
+            "name": "WRONG_TARGET 数量",
+            "type": "custom",
+            "fn": "_count_status",
+            "args": {"status": "WRONG_TARGET"},
+        },
+        {
+            "id": "missing_count",
+            "name": "MISSING 数量",
+            "type": "custom",
+            "fn": "_count_status",
+            "args": {"status": "MISSING"},
+        },
     ],
     "Q07": [
         {"id": "critical_count", "name": "Critical 问题数", "type": "json_field", "field": "critical_count"},
         {"id": "total_findings", "name": "总发现数", "type": "count", "field": "issues"},
-        {"id": "blocker_count", "name": "BLOCKER 数量", "type": "custom", "fn": "_count_severity", "args": {"severity": "CRITICAL"}},
+        {
+            "id": "blocker_count",
+            "name": "BLOCKER 数量",
+            "type": "custom",
+            "fn": "_count_severity",
+            "args": {"severity": "CRITICAL"},
+        },
     ],
 }
-
 
 # ---------------------------------------------------------------------------
 # 指标计算
@@ -115,8 +205,9 @@ def compare_with_baseline(
     project_id: str,
     phase_id: str,
     current_metrics: dict[str, Any],
+    profile_id: str | None = None,
 ) -> dict[str, Any]:
-    """对比当前指标与历史基线，输出 delta."""
+    """对比当前指标与历史基线，输出 delta + rule_changes."""
     baseline = _load_baseline(output_dir, project_id, phase_id)
 
     comparisons: list[dict[str, Any]] = []
@@ -127,44 +218,60 @@ def compare_with_baseline(
     for metric_id, current_value in current.items():
         baseline_value = baseline.get(metric_id)
         if baseline_value is None:
-            comparisons.append({
-                "metric": metric_id,
-                "current": current_value,
-                "baseline": None,
-                "delta": None,
-                "status": "NEW",
-            })
+            comparisons.append(
+                {
+                    "metric": metric_id,
+                    "current": current_value,
+                    "baseline": None,
+                    "delta": None,
+                    "status": "NEW",
+                }
+            )
             continue
 
-        if isinstance(current_value, (int, float)) and isinstance(baseline_value, (int, float)):
+        if isinstance(current_value, int | float) and isinstance(baseline_value, int | float):
             delta = current_value - baseline_value
             # 对于 rate 类指标，退化 = 下降；对于 count 类指标（如 MISSING），退化 = 上升
-            is_rate = "rate" in metric_id or "ratio" in metric_id or "basis" in metric_id or "owner" in metric_id or "risk" in metric_id
+            is_rate = (
+                "rate" in metric_id
+                or "ratio" in metric_id
+                or "basis" in metric_id
+                or "owner" in metric_id
+                or "risk" in metric_id
+            )
             is_regression = (delta < -REGRESSION_THRESHOLD) if is_rate else False
 
             status = "REGRESSION" if is_regression else "IMPROVED" if delta > REGRESSION_THRESHOLD else "STABLE"
-            comparisons.append({
-                "metric": metric_id,
-                "current": round(current_value, 4),
-                "baseline": round(baseline_value, 4),
-                "delta": round(delta, 4),
-                "status": status,
-            })
+            comparisons.append(
+                {
+                    "metric": metric_id,
+                    "current": round(current_value, 4),
+                    "baseline": round(baseline_value, 4),
+                    "delta": round(delta, 4),
+                    "status": status,
+                }
+            )
             if is_regression:
                 regressions.append(f"{metric_id}: {baseline_value:.2%} → {current_value:.2%} (delta={delta:+.2%})")
         else:
-            comparisons.append({
-                "metric": metric_id,
-                "current": current_value,
-                "baseline": baseline_value,
-                "delta": None,
-                "status": "UNCHANGED" if current_value == baseline_value else "CHANGED",
-            })
+            comparisons.append(
+                {
+                    "metric": metric_id,
+                    "current": current_value,
+                    "baseline": baseline_value,
+                    "delta": None,
+                    "status": "UNCHANGED" if current_value == baseline_value else "CHANGED",
+                }
+            )
+
+    # Rule-level 归因：对比 rule hash 变更
+    rule_changes = _compute_rule_changes(output_dir, project_id, profile_id)
 
     return {
         "comparisons": comparisons,
         "regressions": regressions,
         "has_regression": len(regressions) > 0,
+        "rule_changes": rule_changes,
     }
 
 
@@ -182,6 +289,7 @@ def write_eval_metrics(
 
     # 写入当前指标
     from dqg.constants import PHASE_DIR_MAP
+
     dir_suffix = PHASE_DIR_MAP.get(phase_id, f"phase{phase_id}")
     int_dir = output_dir / project_id / dir_suffix / "_internal"
     int_dir.mkdir(parents=True, exist_ok=True)
@@ -244,25 +352,21 @@ def _compute_single_metric(mdef: dict[str, Any], data: dict[str, Any]) -> float 
 
 
 def _count_se_with_basis(data: dict[str, Any]) -> int:
-    """统计有判定依据的 SE 数量."""
     se_list = data.get("semantic_expectations", [])
     return sum(1 for se in se_list if se.get("mapping_target") or se.get("judgment_basis"))
 
 
 def _count_gap_with_risk(data: dict[str, Any]) -> int:
-    """统计有风险等级的 GAP 数量."""
     gaps = data.get("gaps", [])
     return sum(1 for g in gaps if g.get("risk"))
 
 
 def _count_open_with_owner(data: dict[str, Any]) -> int:
-    """统计有决策方的 OPEN 数量."""
     opens = data.get("open_items", [])
     return sum(1 for o in opens if o.get("decision_owner"))
 
 
 def _calc_coverage_rate(data: dict[str, Any], dimension: str = "REQ") -> float:
-    """计算覆盖率."""
     summary = data.get("coverage_summary", [])
     for s in summary:
         if s.get("dimension") == dimension:
@@ -271,7 +375,6 @@ def _calc_coverage_rate(data: dict[str, Any], dimension: str = "REQ") -> float:
 
 
 def _calc_closure_rate(data: dict[str, Any], field: str = "gap_closure") -> float:
-    """计算闭环率."""
     items = data.get(field, [])
     if not items:
         return 0.0
@@ -280,7 +383,6 @@ def _calc_closure_rate(data: dict[str, Any], field: str = "gap_closure") -> floa
 
 
 def _count_status(data: dict[str, Any], status: str = "MISSING") -> int:
-    """统计特定覆盖状态的数量."""
     for field in ("se_coverage", "req_coverage", "scenarios"):
         items = data.get(field, [])
         if items:
@@ -289,7 +391,6 @@ def _count_status(data: dict[str, Any], status: str = "MISSING") -> int:
 
 
 def _count_status_rate(data: dict[str, Any], status: str = "COVERED") -> float:
-    """统计特定覆盖状态的比率."""
     for field in ("se_coverage", "req_coverage", "scenarios"):
         items = data.get(field, [])
         if items:
@@ -299,37 +400,38 @@ def _count_status_rate(data: dict[str, Any], status: str = "COVERED") -> float:
 
 
 def _count_issues(data: dict[str, Any]) -> int:
-    """统计总问题数."""
     return len(data.get("issues", []))
 
 
 def _count_severity(data: dict[str, Any], severity: str = "CRITICAL") -> int:
-    """统计特定严重级别的问题数."""
     return sum(1 for i in data.get("issues", []) if i.get("severity") == severity)
 
 
 def _calc_path_ratio(data: dict[str, Any], path_type: str = "Happy") -> float:
-    """计算 EUT 路径类型占比."""
     euts = data.get("eut_matrix", [])
     if not euts:
         return 0.0
-    count = sum(1 for e in euts if e.get("route_type", "").startswith(path_type) or e.get("path_type", "").startswith(path_type))
+    count = sum(
+        1 for e in euts if e.get("route_type", "").startswith(path_type) or e.get("path_type", "").startswith(path_type)
+    )
     return count / len(euts)
 
 
 # 函数注册表
-_METRIC_FNS: Final = MappingProxyType({
-    "_count_se_with_basis": _count_se_with_basis,
-    "_count_gap_with_risk": _count_gap_with_risk,
-    "_count_open_with_owner": _count_open_with_owner,
-    "_calc_coverage_rate": _calc_coverage_rate,
-    "_calc_closure_rate": _calc_closure_rate,
-    "_count_status": _count_status,
-    "_count_status_rate": _count_status_rate,
-    "_count_issues": _count_issues,
-    "_count_severity": _count_severity,
-    "_calc_path_ratio": _calc_path_ratio,
-})
+_METRIC_FNS: Final = MappingProxyType(
+    {
+        "_count_se_with_basis": _count_se_with_basis,
+        "_count_gap_with_risk": _count_gap_with_risk,
+        "_count_open_with_owner": _count_open_with_owner,
+        "_calc_coverage_rate": _calc_coverage_rate,
+        "_calc_closure_rate": _calc_closure_rate,
+        "_count_status": _count_status,
+        "_count_status_rate": _count_status_rate,
+        "_count_issues": _count_issues,
+        "_count_severity": _count_severity,
+        "_calc_path_ratio": _calc_path_ratio,
+    }
+)
 
 
 # ---------------------------------------------------------------------------
@@ -361,6 +463,50 @@ def _save_baseline(output_dir: Path, project_id: str, phase_id: str, metrics: di
 
 
 # ---------------------------------------------------------------------------
-# Backward-compat re-export: holdout validation moved to eval_holdout.py
+# Rule Hash 变更追踪
 # ---------------------------------------------------------------------------
-from dqg.quality.eval_holdout import validate_against_holdout  # noqa: F401
+
+
+def _compute_rule_changes(
+    output_dir: Path,
+    project_id: str,
+    profile_id: str | None,
+) -> list[dict[str, str]]:
+    """对比当前 rule hash 与上次保存的 hash，返回变更列表."""
+    if not profile_id:
+        return []
+
+    from dqg.constants import RULE_HASHES_FILENAME
+    from dqg.core.profiles import compute_rule_hash
+
+    current_hashes = compute_rule_hash(profile_id)
+    if not current_hashes:
+        return []
+
+    hash_path = output_dir / project_id / RULE_HASHES_FILENAME
+    saved_hashes: dict[str, str] = {}
+    if hash_path.exists():
+        data = load_json(hash_path)
+        if isinstance(data, dict):
+            saved_hashes = data
+
+    changes: list[dict[str, str]] = []
+    all_titles = set(current_hashes) | set(saved_hashes)
+    for title in sorted(all_titles):
+        cur = current_hashes.get(title)
+        prev = saved_hashes.get(title)
+        if cur and not prev:
+            changes.append({"rule": title, "change": "ADDED", "hash": cur})
+        elif prev and not cur:
+            changes.append({"rule": title, "change": "REMOVED", "hash": prev})
+        elif cur != prev:
+            changes.append({"rule": title, "change": "MODIFIED", "old_hash": prev or "", "new_hash": cur or ""})
+
+    # 保存当前 hash 供下次对比
+    save_json(hash_path, current_hashes)
+
+    return changes
+
+
+# Backward-compat re-export: holdout validation moved to eval_holdout.py
+from dqg.quality.eval_holdout import validate_against_holdout  # noqa: E402, F401

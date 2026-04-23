@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import re
-from functools import lru_cache
 from dataclasses import dataclass
+from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
@@ -20,6 +21,7 @@ class DqgProfile:
     baseline_path: Path
     risk_catalog_path: Path
     quality_thresholds: dict[str, Any]
+    language: str = "java"
 
 
 def _profiles_root() -> Path:
@@ -40,6 +42,7 @@ def _load_profile(path: Path) -> DqgProfile:
         baseline_path=root / data["baseline_path"],
         risk_catalog_path=root / data["risk_catalog_path"],
         quality_thresholds=data.get("quality_thresholds", {}),
+        language=data.get("language", "java"),
     )
 
 
@@ -117,6 +120,54 @@ def render_profile_context_markdown(profile: DqgProfile) -> str:
     lines.append("")
     lines.append("> 将本节放在报告开头，用于声明本次评审/审计所采用的基线与阈值。")
     return "\n".join(lines) + "\n"
+
+
+# ---------------------------------------------------------------------------
+# Rule Hash：按 Markdown 标题拆分规则块，计算 SHA256 指纹
+# ---------------------------------------------------------------------------
+
+
+def _split_md_rules(text: str) -> dict[str, str]:
+    """按 ## 或 ### 标题拆分 Markdown 为独立规则块."""
+    blocks: dict[str, str] = {}
+    current_title: str | None = None
+    current_lines: list[str] = []
+
+    for line in text.splitlines():
+        if re.match(r"^#{2,3}\s+", line):
+            if current_title is not None:
+                blocks[current_title] = "\n".join(current_lines).strip()
+            current_title = line.lstrip("#").strip()
+            current_lines = [line]
+        elif current_title is not None:
+            current_lines.append(line)
+
+    if current_title is not None:
+        blocks[current_title] = "\n".join(current_lines).strip()
+
+    return blocks
+
+
+def _hash_block(text: str) -> str:
+    """SHA256 前 12 位."""
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()[:12]
+
+
+def compute_rule_hash(profile_id: str) -> dict[str, str]:
+    """计算 profile 的 baseline + risk_catalog 每条规则的 SHA256 hash.
+
+    返回 {rule_title: hash_12} 映射。
+    """
+    profile = get_profile(profile_id)
+    hashes: dict[str, str] = {}
+
+    for path in (profile.baseline_path, profile.risk_catalog_path):
+        if path.exists():
+            text = path.read_text(encoding="utf-8")
+            for title, block in _split_md_rules(text).items():
+                hashes[title] = _hash_block(block)
+
+    return hashes
 
 
 # ---------------------------------------------------------------------------
