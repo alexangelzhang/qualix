@@ -277,6 +277,7 @@ def runtime_finalize(ctx: ExecutionContext) -> PhaseResult:
     get_registry().run_handlers("finalize", ctx, result)
 
     # 统一 Guardrail 门控（并发执行，结果持久化）
+    g_out: list[dict] = []
     try:
         from dqg.quality.guardrail import GuardrailContext, GuardrailLevel, run_guardrails
         from dqg.quality.guardrail_impl import get_guardrails
@@ -325,6 +326,23 @@ def runtime_finalize(ctx: ExecutionContext) -> PhaseResult:
             )
     except Exception:
         pass  # guardrail 不阻断主流程
+
+    # GateVerdict: 汇总所有检查结果
+    try:
+        from dqg.runtime.gate_verdict import build_verdict, save_verdict
+        from dqg.runtime.phase_contract import enforce_phase_constraints
+
+        constraint_violations = enforce_phase_constraints(ctx.output_dir, ctx.project_id, ctx.phase_id)
+        verdict = build_verdict(
+            phase_id=ctx.phase_id,
+            result=result,
+            guardrail_results=g_out,
+            constraint_violations=constraint_violations,
+        )
+        save_verdict(ctx.output_dir, ctx.project_id, ctx.phase_id, verdict)
+        ctx.shared["gate_verdict"] = verdict.to_dict()
+    except Exception:
+        pass  # verdict 构建失败不阻断 finalize
 
     result.add_event(
         EventType.FINALIZE_COMPLETED,

@@ -309,18 +309,39 @@ def cmd_approve(args, output_dir: Path) -> int:
         print(f"\n  使用 --force 强制通过: dqg-run {args.project_id} approve {args.phase} --force", file=sys.stderr)
         return 1
 
-    from dqg.runtime.phase_contract import enforce_phase_constraints
+    from dqg.runtime.gate_verdict import load_verdict
 
-    violations = enforce_phase_constraints(output_dir, args.project_id, args.phase)
-    blocking = [v for v in violations if v.get("block_if_fail")]
-    if blocking:
-        print("\n  🚫 Phase Contract 约束未满足，approve 被阻断：", file=sys.stderr)
-        for v in blocking:
-            actual_str = "N/A" if v.get("actual") is None else str(v["actual"])
-            reason = f" ({v['reason']})" if v.get("reason") else ""
-            print(f"    ✗ {v['label']}: 实际值 {actual_str} {v['op']} {v['threshold']} 不满足{reason}", file=sys.stderr)
-        print("\n  Phase Contract 是硬约束，--force 无法绕过。请修复问题后重新 finalize。", file=sys.stderr)
-        return 1
+    verdict = load_verdict(output_dir, args.project_id, args.phase)
+    if verdict:
+        # GateVerdict 路径：统一决策
+        if verdict.hard_blocked:
+            print("\n  HARD 约束未满足，approve 被阻断（--force 无法绕过）：", file=sys.stderr)
+            for c in verdict.hard_failures:
+                print(f"    [{c.source}] {c.name}: {c.message}", file=sys.stderr)
+            print("\n  请修复问题后重新 finalize。", file=sys.stderr)
+            return 1
+        if verdict.soft_blocked and not force:
+            print("\n  SOFT 约束未满足：", file=sys.stderr)
+            for c in verdict.soft_failures:
+                print(f"    [{c.source}] {c.name}: {c.message}", file=sys.stderr)
+            print(f"\n  使用 --force 强制通过: dqg-run {args.project_id} approve {args.phase} --force", file=sys.stderr)
+            return 1
+    else:
+        # Fallback: verdict 文件不存在，走旧逻辑
+        from dqg.runtime.phase_contract import enforce_phase_constraints
+
+        violations = enforce_phase_constraints(output_dir, args.project_id, args.phase)
+        blocking = [v for v in violations if v.get("block_if_fail")]
+        if blocking:
+            print("\n  Phase Contract 约束未满足，approve 被阻断：", file=sys.stderr)
+            for v in blocking:
+                actual_str = "N/A" if v.get("actual") is None else str(v["actual"])
+                reason = f" ({v['reason']})" if v.get("reason") else ""
+                print(
+                    f"    {v['label']}: 实际值 {actual_str} {v['op']} {v['threshold']} 不满足{reason}", file=sys.stderr
+                )
+            print("\n  Phase Contract 是硬约束，--force 无法绕过。请修复问题后重新 finalize。", file=sys.stderr)
+            return 1
 
     errors = approve_phase(state, args.phase, comment)
     if errors:

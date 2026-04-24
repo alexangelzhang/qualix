@@ -126,6 +126,15 @@
 - Critique 依赖链断裂检测（`handlers_finalize.py`）— critique prompt 写入失败时标记 BLOCKED；review_chain handler 标记为 required
 - flow_integrity handler 标记为 required — pre/post 两阶段检查失败均阻断 finalize
 
+2026-04-24 新增（卡控机制审计 Phase 2 — GateVerdict 统一卡控层）：
+
+- GateVerdict 统一卡控层（`runtime/gate_verdict.py`）— CheckItem + GateVerdict 数据类，HARD/SOFT 二级分类，所有检查汇入单一 verdict
+- `runtime_finalize()` 末尾汇总 handler errors + guardrail + phase_constraints → `_gate_verdict.json`
+- `cmd_approve()` 优先读 `_gate_verdict.json` 做决策，HARD 不可绕过，SOFT 可 `--force`，fallback 到旧逻辑
+- 修复断裂点 1: Guardrail 结果接入 verdict（BLOCKED→HARD, WARNING→SOFT）
+- 修复断裂点 2: finalize 时执行 Phase Constraints 并写入 verdict
+- 多语言无关设计：通过 `source` 字段区分检查来源，不绑定具体语言
+
 仍需推进（P1）：
 
 - 审计命中率、修复闭环时长口径  
