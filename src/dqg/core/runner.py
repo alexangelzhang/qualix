@@ -15,6 +15,7 @@ Phase ID: Q01-Q07（旧 ID A/A.3/A.5/A.6/B/C/D 仍兼容）
 from __future__ import annotations
 
 import argparse
+import subprocess
 import sys
 from pathlib import Path
 
@@ -123,7 +124,9 @@ def _build_parser() -> argparse.ArgumentParser:
     p_adapt.add_argument("phase", help="Phase ID")
     p_adapt.add_argument("--primary", default=DEFAULT_PRIMARY_MODEL, help="Worker 模型")
     p_adapt.add_argument("--fallback", default=DEFAULT_FALLBACK_MODEL, help="备用模型")
-    p_adapt.add_argument("--judge-models", default=",".join(DEFAULT_ADAPTIVE_JUDGE_MODELS), help="Judge 模型列表（逗号分隔）")
+    p_adapt.add_argument(
+        "--judge-models", default=",".join(DEFAULT_ADAPTIVE_JUDGE_MODELS), help="Judge 模型列表（逗号分隔）"
+    )
     p_adapt.add_argument("--max-iter", type=int, default=3, help="最大迭代次数")
     p_adapt.add_argument("--threshold", type=float, default=3.5, help="通过阈值（1-5）")
 
@@ -131,7 +134,9 @@ def _build_parser() -> argparse.ArgumentParser:
     p_dag = sub.add_parser("dag", help="DAG 并行调度: 全自动推进所有可执行 Phase")
     p_dag.add_argument("--skip", nargs="*", default=[], help="跳过指定 Phase（如 Q03 Q05）")
     p_dag.add_argument("--max-parallel", type=int, default=3, help="最大并行数（默认 3）")
-    p_dag.add_argument("--mode", choices=["agent-run", "adaptive"], default="adaptive", help="执行模式（默认 adaptive）")
+    p_dag.add_argument(
+        "--mode", choices=["agent-run", "adaptive"], default="adaptive", help="执行模式（默认 adaptive）"
+    )
     p_dag.add_argument("--primary", default=DEFAULT_PRIMARY_MODEL, help="Worker 模型")
     p_dag.add_argument("--fallback", default=DEFAULT_FALLBACK_MODEL, help="备用模型")
     p_dag.add_argument("--plan", action="store_true", help="只显示执行计划，不执行")
@@ -183,48 +188,102 @@ def _dispatch(cmd: str) -> callable:
     """按需导入并返回命令处理函数."""
     if cmd in ("execute", "finalize", "approve", "skip", "reset", "auto"):
         from dqg.commands.phase import cmd_approve, cmd_auto, cmd_execute, cmd_finalize, cmd_reset, cmd_skip
-        return {"execute": cmd_execute, "finalize": cmd_finalize, "approve": cmd_approve,
-                "skip": cmd_skip, "reset": cmd_reset, "auto": cmd_auto}[cmd]
+
+        return {
+            "execute": cmd_execute,
+            "finalize": cmd_finalize,
+            "approve": cmd_approve,
+            "skip": cmd_skip,
+            "reset": cmd_reset,
+            "auto": cmd_auto,
+        }[cmd]
 
     if cmd in ("status", "next", "log", "detail"):
         from dqg.commands.query import cmd_detail, cmd_log, cmd_next, cmd_status
+
         return {"status": cmd_status, "next": cmd_next, "log": cmd_log, "detail": cmd_detail}[cmd]
 
     if cmd == "startup":
         from dqg.commands.startup_fast import cmd_startup
+
         return cmd_startup
 
     if cmd in ("judge", "critique", "preference", "golden"):
         from dqg.commands.review import cmd_critique, cmd_golden, cmd_judge, cmd_preference
-        return {"judge": cmd_judge, "critique": cmd_critique,
-                "preference": cmd_preference, "golden": cmd_golden}[cmd]
+
+        return {"judge": cmd_judge, "critique": cmd_critique, "preference": cmd_preference, "golden": cmd_golden}[cmd]
 
     if cmd in ("orchestrate", "agent-run", "adaptive", "dag"):
         from dqg.commands.agents import cmd_adaptive, cmd_agent_run, cmd_dag, cmd_orchestrate
-        return {"orchestrate": cmd_orchestrate, "agent-run": cmd_agent_run,
-                "adaptive": cmd_adaptive, "dag": cmd_dag}[cmd]
+
+        return {"orchestrate": cmd_orchestrate, "agent-run": cmd_agent_run, "adaptive": cmd_adaptive, "dag": cmd_dag}[
+            cmd
+        ]
 
     if cmd in ("wiki-compile", "wiki-lint"):
         from dqg.commands.wiki import cmd_wiki_compile, cmd_wiki_lint
+
         return {"wiki-compile": cmd_wiki_compile, "wiki-lint": cmd_wiki_lint}[cmd]
 
     if cmd in ("init", "doctor", "update", "version"):
         from dqg.commands.setup import cmd_doctor, cmd_init, cmd_update, cmd_version
-        return {"init": cmd_init, "doctor": cmd_doctor,
-                "update": cmd_update, "version": cmd_version}[cmd]
+
+        return {"init": cmd_init, "doctor": cmd_doctor, "update": cmd_update, "version": cmd_version}[cmd]
 
     if cmd in ("metrics", "observe", "regression"):
         from dqg.commands.ops import cmd_metrics, cmd_observe, cmd_regression
-        return {"metrics": cmd_metrics, "observe": cmd_observe,
-                "regression": cmd_regression}[cmd]
+
+        return {"metrics": cmd_metrics, "observe": cmd_observe, "regression": cmd_regression}[cmd]
 
     return None
+
+
+def _resolve_output_dir(base_dir: str) -> Path:
+    """解析 output 目录，worktree 环境自动回退到主仓库."""
+    base = Path(base_dir).resolve()
+    try:
+        r_dir = subprocess.run(
+            ["git", "rev-parse", "--git-dir"],
+            capture_output=True,
+            text=True,
+            cwd=str(base),
+        )
+        r_common = subprocess.run(
+            ["git", "rev-parse", "--git-common-dir"],
+            capture_output=True,
+            text=True,
+            cwd=str(base),
+        )
+        if r_dir.returncode == 0 and r_common.returncode == 0:
+            git_dir = (base / r_dir.stdout.strip()).resolve()
+            git_common = (base / r_common.stdout.strip()).resolve()
+            if git_dir != git_common:
+                # worktree: git_dir 指向 worktree 的 .git，git_common 指向主仓库的 .git
+                main_repo_root = git_common.parent
+                # base_dir 相对于 worktree toplevel 的偏移量也要保留
+                r_toplevel = subprocess.run(
+                    ["git", "rev-parse", "--show-toplevel"],
+                    capture_output=True,
+                    text=True,
+                    cwd=str(base),
+                )
+                if r_toplevel.returncode == 0:
+                    wt_root = Path(r_toplevel.stdout.strip()).resolve()
+                    rel = base.relative_to(wt_root)
+                    target = main_repo_root / rel / "output"
+                else:
+                    target = main_repo_root / "output"
+                print(f"[worktree] output 重定向到主仓库: {target}", file=sys.stderr)
+                return target
+    except (FileNotFoundError, ValueError):
+        pass
+    return base / "output"
 
 
 def main() -> int:
     parser = _build_parser()
     args = parser.parse_args()
-    output_dir = Path(args.base_dir).resolve() / "output"
+    output_dir = _resolve_output_dir(args.base_dir)
 
     handler = _dispatch(args.command)
     if not handler:

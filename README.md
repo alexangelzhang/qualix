@@ -176,7 +176,7 @@ dev-quality-gate/
 ├── scripts/                    # 工具脚本（飞书抓取等）
 ├── tests/                      # pytest 用例
 ├── pyproject.toml              # 工程配置（ruff + pytest + hatch）
-└── output/                     # 项目产出目录（output/<project_id>/<phase_dir>/）
+└── output/                     # 项目产出目录（output/<project_id>/<phase_dir>/，worktree 环境自动重定向到主仓库）
 ```
 
 ## 技术栈适配

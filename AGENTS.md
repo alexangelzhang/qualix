@@ -57,7 +57,7 @@ Q02 可 skip（已有技术方案时）。Q03 先于 Q04。Q05/Q06 与 Q02/Q03/Q
 
 1. 启动: `dqg-run <project_id> execute <phase>`
 2. 读取对应 skill 文件，按 Step 0-6 顺序执行
-3. 产物 + 推理日志写入 `output/<project_id>/<phase_dir>/`
+3. 产物 + 推理日志写入 `output/<project_id>/<phase_dir>/`（worktree 环境自动重定向到主仓库，避免产物随 worktree 清理丢失）
 4. 自检: 对照 gate checklist 逐项检查
 5. Judge/Critique: 切换批评者视角审视输出
 6. 修正: 根据发现修正报告
