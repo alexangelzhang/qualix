@@ -155,7 +155,7 @@ def build_verdict(
     return verdict
 
 
-def save_verdict(output_dir: Path, project_id: str, phase_id: str, verdict: GateVerdict) -> Path:
+def save_verdict(output_dir: Path, project_id: str, phase_id: str, verdict: GateVerdict) -> Path | None:
     """写入 _gate_verdict.json."""
     from dqg.core.state_machine import PHASE_DEFS
     from dqg.core.state_machine import phase_dir as _phase_dir
@@ -163,7 +163,7 @@ def save_verdict(output_dir: Path, project_id: str, phase_id: str, verdict: Gate
     phase_def = PHASE_DEFS.get(phase_id)
     if not phase_def:
         log.warning("Unknown phase %s, cannot save verdict", phase_id)
-        return output_dir
+        return None
 
     pd = _phase_dir(output_dir, project_id, phase_def)
     pd.mkdir(parents=True, exist_ok=True)
@@ -193,7 +193,7 @@ def load_verdict(output_dir: Path, project_id: str, phase_id: str) -> GateVerdic
 
         data = load_json(path)
     except Exception:
-        log.warning("Failed to load verdict: %s", path)
+        log.warning("Failed to load verdict: %s", path, exc_info=True)
         return None
 
     if not data:

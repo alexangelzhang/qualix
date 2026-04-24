@@ -49,7 +49,7 @@ def _emit(ctx: ExecutionContext, event_type: EventType, message: str = "", **dat
             duration_ms=int(data.pop("duration_ms", 0)) if "duration_ms" in data else 0,
         )
     except Exception:
-        pass
+        log.debug("Event emit failed", exc_info=True)
 
 
 def _flush() -> None:
@@ -59,7 +59,7 @@ def _flush() -> None:
 
         flush_events()
     except Exception:
-        pass
+        log.debug("Event flush failed", exc_info=True)
 
 
 def runtime_execute(ctx: ExecutionContext) -> PhaseResult:
@@ -328,7 +328,7 @@ def runtime_finalize(ctx: ExecutionContext) -> PhaseResult:
                 guardrail_warnings=len(g_warnings),
             )
     except Exception:
-        pass  # guardrail 不阻断主流程
+        log.warning("Guardrail execution failed for %s, skipping", ctx.phase_id, exc_info=True)
 
     # GateVerdict: 汇总所有检查结果
     try:
