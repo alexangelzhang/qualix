@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Literal
 
 from dqg.log import get_logger
 
@@ -28,7 +28,7 @@ class CheckItem:
     source: str  # flow_integrity | schema | phase_constraints | handler | guardrail | language
     name: str
     passed: bool
-    level: str  # HARD | SOFT — HARD 不可绕过，SOFT 可 --force
+    level: Literal["HARD", "SOFT"]  # HARD 不可绕过，SOFT 可 --force
     message: str = ""
     details: dict[str, Any] = field(default_factory=dict)
 
@@ -205,7 +205,7 @@ def load_verdict(output_dir: Path, project_id: str, phase_id: str) -> GateVerdic
             CheckItem(
                 source=c.get("source", "unknown"),
                 name=c.get("name", "unknown"),
-                passed=c.get("passed", True),
+                passed=c.get("passed", False),
                 level=c.get("level", "SOFT"),
                 message=c.get("message", ""),
                 details=c.get("details", {}),

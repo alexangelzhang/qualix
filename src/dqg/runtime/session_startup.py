@@ -6,8 +6,7 @@
 
 from __future__ import annotations
 
-from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from dqg.core.state_machine import (
     PHASE_DEFS,
@@ -18,10 +17,15 @@ from dqg.core.state_machine import (
 )
 from dqg.core.state_machine import (
     internal_dir as _internal_dir,
+)
+from dqg.core.state_machine import (
     phase_dir as _phase_dir,
 )
 from dqg.json_utils import load_json
 from dqg.log import get_logger
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 log = get_logger(__name__)
 
@@ -98,8 +102,10 @@ def format_orientation(orientation: dict[str, Any]) -> str:
     if phases:
         for p in phases:
             status_icon = {
-                "approved": "+", "skipped": "~",
-                "in_progress": ">", "pending_review": "?",
+                "approved": "+",
+                "skipped": "~",
+                "in_progress": ">",
+                "pending_review": "?",
                 "not_started": " ",
             }.get(p["status"], " ")
             score_str = f" (Judge: {p['judge_score']:.1f})" if "judge_score" in p else ""
@@ -205,10 +211,7 @@ def _compute_next_actions(state: ProjectState) -> list[str]:
             actions.append(f"Execute Phase {pid}({PHASE_DEFS[pid]['name']})")
 
     if not actions:
-        all_done = all(
-            state.phases[pid].status in (PhaseStatus.APPROVED, PhaseStatus.SKIPPED)
-            for pid in PHASE_ORDER
-        )
+        all_done = all(state.phases[pid].status in (PhaseStatus.APPROVED, PhaseStatus.SKIPPED) for pid in PHASE_ORDER)
         if all_done:
             actions.append("All phases completed. Ready for final project review.")
 
@@ -219,6 +222,8 @@ def _find_resumable_tasks(output_dir: Path, project_id: str) -> list[dict[str, A
     """查找可恢复的 task."""
     try:
         from dqg.runtime.task_store import list_task_runs
+
         return list_task_runs(output_dir, project_id=project_id, status="running", limit=5)
     except Exception:
+        log.warning("Failed to find resumable tasks", exc_info=True)
         return []

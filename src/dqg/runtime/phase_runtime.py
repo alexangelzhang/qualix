@@ -280,12 +280,12 @@ def runtime_finalize(ctx: ExecutionContext) -> PhaseResult:
     get_registry().run_handlers("finalize", ctx, result)
 
     # 统一 Guardrail 门控（并发执行，结果持久化）
+    from dqg.quality.guardrail import GuardrailContext, GuardrailLevel, run_guardrails
+    from dqg.quality.guardrail_impl import get_guardrails
+    from dqg.quality.rule_checks import read_report
+
     g_out: list[dict] = []
     try:
-        from dqg.quality.guardrail import GuardrailContext, GuardrailLevel, run_guardrails
-        from dqg.quality.guardrail_impl import get_guardrails
-        from dqg.quality.rule_checks import read_report
-
         report_content = read_report(ctx.phase_root, ctx.phase_id) if ctx.phase_root else ""
         g_ctx = GuardrailContext(
             output_dir=ctx.output_dir,
@@ -297,7 +297,6 @@ def runtime_finalize(ctx: ExecutionContext) -> PhaseResult:
         guardrails = get_guardrails(ctx.phase_id)
         g_results = run_guardrails(guardrails, g_ctx)
 
-        # 持久化结果
         g_out = [
             {
                 "guardrail": r.guardrail_name,
@@ -308,9 +307,6 @@ def runtime_finalize(ctx: ExecutionContext) -> PhaseResult:
             }
             for r in g_results
         ]
-        g_path = ctx.internal_dir / "_guardrail_results.json"
-        g_path.parent.mkdir(parents=True, exist_ok=True)
-        g_path.write_text(json.dumps(g_out, ensure_ascii=False, indent=2))
 
         # 汇总到 result
         g_blocked = [r for r in g_results if r.level == GuardrailLevel.BLOCKED and not r.passed]
@@ -330,11 +326,19 @@ def runtime_finalize(ctx: ExecutionContext) -> PhaseResult:
     except Exception:
         log.warning("Guardrail execution failed for %s, skipping", ctx.phase_id, exc_info=True)
 
-    # GateVerdict: 汇总所有检查结果
-    try:
-        from dqg.runtime.gate_verdict import build_verdict, save_verdict
-        from dqg.runtime.phase_contract import enforce_phase_constraints
+    if g_out:
+        try:
+            g_path = ctx.internal_dir / "_guardrail_results.json"
+            g_path.parent.mkdir(parents=True, exist_ok=True)
+            g_path.write_text(json.dumps(g_out, ensure_ascii=False, indent=2))
+        except OSError:
+            log.warning("Failed to persist guardrail results for %s", ctx.phase_id, exc_info=True)
 
+    # GateVerdict: 汇总所有检查结果
+    from dqg.runtime.gate_verdict import build_verdict, save_verdict
+    from dqg.runtime.phase_contract import enforce_phase_constraints
+
+    try:
         constraint_violations = enforce_phase_constraints(ctx.output_dir, ctx.project_id, ctx.phase_id)
         verdict = build_verdict(
             phase_id=ctx.phase_id,
@@ -345,7 +349,8 @@ def runtime_finalize(ctx: ExecutionContext) -> PhaseResult:
         save_verdict(ctx.output_dir, ctx.project_id, ctx.phase_id, verdict)
         ctx.shared["gate_verdict"] = verdict.to_dict()
     except Exception:
-        log.warning("GateVerdict build failed for %s, skipping", ctx.phase_id, exc_info=True)
+        log.error("GateVerdict build failed for %s", ctx.phase_id, exc_info=True)
+        result.add_warning(f"GateVerdict build failed for {ctx.phase_id} — approve may require manual review")
 
     result.add_event(
         EventType.FINALIZE_COMPLETED,
