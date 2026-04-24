@@ -114,6 +114,18 @@
 - 异构检测层（`runtime/handlers_detection.py`）— 三个 finalize handler：弱断言 gate（high-risk 数量/比例超阈值 WARNING）、Mock 巧合正确检测（偏差模式匹配+真实数据验证缺失）、AI 产出标记（git blame + Co-Authored-By 推断代码来源）
 - Skill Evolution 全自动闭环（`tracking/skill_auto_merge.py`）— 高置信度规则（3+ case 支撑）自动合入 SKILL.md + holdout 验证 + overfitting 自动 revert；低置信度仍走 HUMAN_REVIEW；`SKILL_AUTO_MERGE_ENABLED` 全局开关
 
+2026-04-24 新增（卡控机制审计 Phase 1 — 堵漏洞）：
+
+- Handler required/optional 分级（`lifecycle.py`）— required handler 失败→BLOCKED 阻断 finalize，optional handler 失败→WARNING 继续执行；依赖死锁时报错而非静默降级为 order 排序
+- Phase Contract 不可绕过（`phase.py`）— `--force` 无法绕过 Phase Contract 硬约束，blocking violation 必须修复后重新 finalize
+- 指标解析失败视为约束失败（`phase_constraints.py`）— `_resolve_metric` 返回 None 时记录 WARNING 并生成 violation（reason=metric_resolve_failed），不再静默跳过
+- Q01/Q02/Q05 Phase Contract 补齐（`phase_constraints.py`）— Q01 至少 1 条 REQ、Q02 至少 1 条需求→技术映射、Q05 至少 1 条 EUT
+- Schema 校验 fail-closed（`schemas/__init__.py`）— 产物目录/文件不存在时返回错误列表而非 None，消除 fail-open 漏洞
+- Auto-Judge gate_checklist 动态判定（`judge.py`）— 含 CRITICAL/blocker/阻断关键词的 checklist 项在有 critical 问题时标记 failed；precision/recall 根据 critical_count 和 score 动态计算
+- 全 Phase core_arrays 补齐（`handlers_flow_integrity.py`）— Q02/Q04/Q05/Q06 加入空数组检查；critique closure 从 HIGH 升级为 CRITICAL
+- Critique 依赖链断裂检测（`handlers_finalize.py`）— critique prompt 写入失败时标记 BLOCKED；review_chain handler 标记为 required
+- flow_integrity handler 标记为 required — pre/post 两阶段检查失败均阻断 finalize
+
 仍需推进（P1）：
 
 - 审计命中率、修复闭环时长口径  
@@ -479,7 +491,7 @@
 3. 检索兜底：召回不足时允许回退到更宽松的摘要层，但不直接回全文
 4. 渐进落地：先覆盖最频繁的应用路径，每次落地配命中率/token 变化/调用次数三类指标
 
-*最后更新：2026-04-22*
+*最后更新：2026-04-24*
 
 ---
 
@@ -527,4 +539,4 @@
 | Git Worktree 隔离 | Q05/Q07 需要代码仓库时 | 每个并行 Phase 在独立 worktree 执行，避免代码文件冲突 |
 | Agent Teams 集成 | Claude Code Agent Teams GA 后 | 替代手动多 SubAgent 派发，用 Team Lead + Teammate 模型 |
 
-*最后更新：2026-04-22*
+*最后更新：2026-04-24*

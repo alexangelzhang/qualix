@@ -16,6 +16,7 @@ if TYPE_CHECKING:
 
 def handle_perf_metrics(ctx: ExecutionContext, result: PhaseResult) -> None:
     """收集并持久化性能指标."""
+    from dqg.json_utils import save_json
     from dqg.reporting.perf_tracker import collect_phase_metrics, persist_phase_metrics
 
     duration = ctx.shared.get("duration_seconds")
@@ -28,9 +29,13 @@ def handle_perf_metrics(ctx: ExecutionContext, result: PhaseResult) -> None:
     save_json(ctx.internal_dir / "_perf_metrics.json", metrics)
     result.add_artifact("perf_metrics", str(ctx.internal_dir / "_perf_metrics.json"))
     ctx.shared["perf_metrics"] = metrics
-    _emit_handler(ctx, EventType.PERF_COLLECTED, "Perf metrics collected",
-                  total_tokens=metrics.get("total_tokens", 0),
-                  cost_usd=metrics.get("cost_estimate_usd", 0))
+    _emit_handler(
+        ctx,
+        EventType.PERF_COLLECTED,
+        "Perf metrics collected",
+        total_tokens=metrics.get("total_tokens", 0),
+        cost_usd=metrics.get("cost_estimate_usd", 0),
+    )
 
 
 def handle_quality_tracking(ctx: ExecutionContext, result: PhaseResult) -> None:
@@ -55,8 +60,9 @@ def handle_quality_tracking(ctx: ExecutionContext, result: PhaseResult) -> None:
         _async_write_json(ctx.internal_dir / "_quality_report.json", quality_report)
 
     if auto_cases:
-        _emit_handler(ctx, EventType.BUG_CASES_GENERATED, f"{len(auto_cases)} bug cases generated",
-                      count=len(auto_cases))
+        _emit_handler(
+            ctx, EventType.BUG_CASES_GENERATED, f"{len(auto_cases)} bug cases generated", count=len(auto_cases)
+        )
 
 
 def handle_memory_index(ctx: ExecutionContext, result: PhaseResult) -> None:
@@ -94,10 +100,14 @@ def handle_rule_compliance(ctx: ExecutionContext, result: PhaseResult) -> None:
     if compliance:
         persist_compliance(ctx.output_dir, compliance)
         ctx.shared["compliance"] = compliance
-        _emit_handler(ctx, EventType.RULE_CHECK_COMPLETED, "Rule compliance checked",
-                      pass_rate=compliance.get("pass_rate", 0),
-                      passed=compliance.get("passed", 0),
-                      total=compliance.get("total", 0))
+        _emit_handler(
+            ctx,
+            EventType.RULE_CHECK_COMPLETED,
+            "Rule compliance checked",
+            pass_rate=compliance.get("pass_rate", 0),
+            passed=compliance.get("passed", 0),
+            total=compliance.get("total", 0),
+        )
 
 
 def handle_review_chain(ctx: ExecutionContext, result: PhaseResult) -> None:
@@ -108,21 +118,32 @@ def handle_review_chain(ctx: ExecutionContext, result: PhaseResult) -> None:
 
     review_payload = build_review_chain_payload(ctx.output_dir, ctx.project_id, ctx.phase_id)
     chain_path = write_review_chain_prompt(
-        ctx.output_dir, ctx.project_id, ctx.phase_id,
+        ctx.output_dir,
+        ctx.project_id,
+        ctx.phase_id,
         prompt=review_payload["review_chain_prompt"] if review_payload else None,
     )
     if chain_path:
         result.add_artifact("review_chain_prompt", str(chain_path))
         result.add_event(EventType.REVIEW_CHAIN_READY, "Review chain prompt generated")
 
-    write_judge_prompt(
-        ctx.output_dir, ctx.project_id, ctx.phase_id,
+    judge_path = write_judge_prompt(
+        ctx.output_dir,
+        ctx.project_id,
+        ctx.phase_id,
         prompt=review_payload["judge_prompt"] if review_payload else None,
     )
-    write_critique_prompt(
-        ctx.output_dir, ctx.project_id, ctx.phase_id,
+    critique_path = write_critique_prompt(
+        ctx.output_dir,
+        ctx.project_id,
+        ctx.phase_id,
         prompt=review_payload["critique_prompt"] if review_payload else None,
     )
+
+    # M2 fix: critique prompt 未生成时标记 BLOCKED，防止依赖链无声断裂
+    # 仅当 review_payload 包含 critique prompt（即该 Phase 支持 critique）时才检查
+    if not critique_path and judge_path and review_payload and review_payload.get("critique_prompt"):
+        result.add_error("BLOCKED: Judge prompt 已生成但 Critique prompt 写入失败 — RLAIF 反馈循环将断裂")
 
 
 def handle_profile_context_check(ctx: ExecutionContext, result: PhaseResult) -> None:
@@ -181,7 +202,9 @@ def handle_auto_judge(ctx: ExecutionContext, result: PhaseResult) -> None:
     from dqg.quality.judge import synthesize_judge_result
 
     judge_result = synthesize_judge_result(
-        ctx.output_dir, ctx.project_id, ctx.phase_id,
+        ctx.output_dir,
+        ctx.project_id,
+        ctx.phase_id,
     )
     if judge_result:
         ctx.shared["judge_result"] = judge_result
@@ -264,38 +287,28 @@ def handle_report_quality_checks(ctx: ExecutionContext, result: PhaseResult) -> 
     for check_name, count in checks.get("by_check", {}).items():
         result.add_warning(f"报告质量检测: {check_name} 发现 {count} 个问题")
 
-    _emit_handler(ctx, EventType.QUALITY_REPORT_READY,
-                  f"Report quality: {checks['total']} issues found",
-                  total=checks["total"], by_check=checks.get("by_check", {}))
+    _emit_handler(
+        ctx,
+        EventType.QUALITY_REPORT_READY,
+        f"Report quality: {checks['total']} issues found",
+        total=checks["total"],
+        by_check=checks.get("by_check", {}),
+    )
 
 
 def register_finalize_handlers() -> None:
     """注册所有 finalize 阶段的 handler."""
     # Group 1: 无依赖，可并行
-    register_handler(
-        "perf_metrics", handle_perf_metrics,
-        stage="finalize", order=10,
-    )
-    register_handler(
-        "quality_tracking", handle_quality_tracking,
-        stage="finalize", order=20,
-    )
-    register_handler(
-        "memory_index", handle_memory_index,
-        stage="finalize", order=30,
-    )
-    register_handler(
-        "golden_sample", handle_golden_sample,
-        stage="finalize", order=40,
-    )
-    register_handler(
-        "rule_compliance", handle_rule_compliance,
-        stage="finalize", order=50,
-    )
-    register_handler(
-        "report_quality_checks", handle_report_quality_checks,
-        stage="finalize", order=55,
-    )
+    for name, fn, order in [
+        ("perf_metrics", handle_perf_metrics, 10),
+        ("quality_tracking", handle_quality_tracking, 20),
+        ("memory_index", handle_memory_index, 30),
+        ("golden_sample", handle_golden_sample, 40),
+        ("rule_compliance", handle_rule_compliance, 50),
+        ("report_quality_checks", handle_report_quality_checks, 55),
+    ]:
+        register_handler(name, fn, stage="finalize", order=order)
+
     # 异构检测层（从 handlers_detection 导入）
     from dqg.runtime.handlers_detection import (
         handle_ai_origin_detection,
@@ -303,62 +316,32 @@ def register_finalize_handlers() -> None:
         handle_weak_assert_gate,
     )
 
+    register_handler("weak_assert_gate", handle_weak_assert_gate, stage="finalize", phases={"Q06"}, order=56)
     register_handler(
-        "weak_assert_gate", handle_weak_assert_gate,
-        stage="finalize", phases={"Q06"}, order=56,
+        "mock_coincidence_check", handle_mock_coincidence_check, stage="finalize", phases={"Q06"}, order=57
     )
+    register_handler("ai_origin_detection", handle_ai_origin_detection, stage="finalize", order=58)
+    register_handler("profile_context_check", handle_profile_context_check, stage="finalize", order=60)
     register_handler(
-        "mock_coincidence_check", handle_mock_coincidence_check,
-        stage="finalize", phases={"Q06"}, order=57,
-    )
-    register_handler(
-        "ai_origin_detection", handle_ai_origin_detection,
-        stage="finalize", order=58,
-    )
-    register_handler(
-        "profile_context_check", handle_profile_context_check,
-        stage="finalize", order=60,
-    )
-    register_handler(
-        "requirement_graph", handle_requirement_graph,
-        stage="finalize", phases={"Q01"}, order=63,
+        "requirement_graph",
+        handle_requirement_graph,
+        stage="finalize",
+        phases={"Q01"},
+        order=63,
         depends_on=["memory_index"],
     )
+    register_handler("verification_bundle", handle_verification_bundle, stage="finalize", order=65)
+    register_handler("facts_export", handle_facts_export, stage="finalize", order=66)
+    # Group 2: 依赖 memory_index
     register_handler(
-        "verification_bundle", handle_verification_bundle,
-        stage="finalize", order=65,
+        "review_chain", handle_review_chain, stage="finalize", order=70, depends_on=["memory_index"], required=True
     )
+    register_handler("progress_file", handle_progress_file, stage="finalize", order=80)
+    register_handler("skill_factory", handle_skill_factory, stage="finalize", order=90)
+    # Group 2.5: 依赖 review_chain
+    register_handler("auto_judge", handle_auto_judge, stage="finalize", order=75, depends_on=["review_chain"])
+    # Group 3: 依赖 quality_tracking
     register_handler(
-        "facts_export", handle_facts_export,
-        stage="finalize", order=66,
+        "score_calibration", handle_score_calibration, stage="finalize", order=95, depends_on=["quality_tracking"]
     )
-    # Group 2: 依赖 memory_index（需要索引完成后才能生成评审链）
-    register_handler(
-        "review_chain", handle_review_chain,
-        stage="finalize", order=70,
-        depends_on=["memory_index"],
-    )
-    register_handler(
-        "progress_file", handle_progress_file,
-        stage="finalize", order=80,
-    )
-    register_handler(
-        "skill_factory", handle_skill_factory,
-        stage="finalize", order=90,
-    )
-    # Group 2.5: 依赖 review_chain（judge prompt 生成后自动合成 judge result）
-    register_handler(
-        "auto_judge", handle_auto_judge,
-        stage="finalize", order=75,
-        depends_on=["review_chain"],
-    )
-    # Group 3: 依赖 quality_tracking（需要 Judge 结果）
-    register_handler(
-        "score_calibration", handle_score_calibration,
-        stage="finalize", order=95,
-        depends_on=["quality_tracking"],
-    )
-    register_handler(
-        "eval_baseline", handle_eval_baseline,
-        stage="finalize", order=98,
-    )
+    register_handler("eval_baseline", handle_eval_baseline, stage="finalize", order=98)

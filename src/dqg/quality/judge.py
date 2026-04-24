@@ -7,16 +7,21 @@ Judge 对照 PRD 原文、gate checklist、bug 案例库评判输出质量，
 
 from __future__ import annotations
 
-from pathlib import Path
-from typing import Any
+from datetime import UTC
+from typing import TYPE_CHECKING, Any
 
-from dqg.constants import PHASE_DIR_MAP, REPORT_MAP, STRUCTURED_JSON_MAP
-from dqg.json_utils import load_json
-from dqg.core.state_machine import PHASE_DEFS, phase_dir as _phase_dir
+if TYPE_CHECKING:
+    from pathlib import Path
+
 from dqg.cache.llm_result_cache import get_cached_result, put_cached_result
+from dqg.constants import PHASE_DIR_MAP, REPORT_MAP, STRUCTURED_JSON_MAP
+from dqg.core.state_machine import PHASE_DEFS
+from dqg.core.state_machine import phase_dir as _phase_dir
+from dqg.json_utils import load_json
+from dqg.quality.judge_rubrics import ANTI_RATIONALIZATION_SECTION as _ANTI_RATIONALIZATION_SECTION
+from dqg.quality.judge_rubrics import JUDGE_RUBRICS as _JUDGE_RUBRICS
 from dqg.services.phase_service import read_relevance_excerpt
 from dqg.tracking.case_selector import render_relevant_cases_for_prompt
-from dqg.quality.judge_rubrics import JUDGE_RUBRICS as _JUDGE_RUBRICS, ANTI_RATIONALIZATION_SECTION as _ANTI_RATIONALIZATION_SECTION
 
 
 def generate_judge_prompt(
@@ -76,11 +81,13 @@ def generate_judge_prompt(
     for item in checklist:
         lines.append(f"- [ ] {item}")
 
-    lines.extend([
-        "",
-        "## 评审维度（1-5 Likert 量表）",
-        "",
-    ])
+    lines.extend(
+        [
+            "",
+            "## 评审维度（1-5 Likert 量表）",
+            "",
+        ]
+    )
     for dim in rubric["dimensions"]:
         lines.append(f"### {dim['id']}: {dim['name']}（权重 {dim['weight']:.0%}）")
         lines.append(f"- 定义: {dim['description']}")
@@ -92,15 +99,17 @@ def generate_judge_prompt(
             lines.append(f"| {score} | {criteria} |")
         lines.append("")
 
-    lines.extend([
-        "",
-        "## 评审输入",
-        "",
-        f"Phase 输出目录: `{pd}`",
-        "",
-        "请读取以下文件进行评审：",
-        "",
-    ])
+    lines.extend(
+        [
+            "",
+            "## 评审输入",
+            "",
+            f"Phase 输出目录: `{pd}`",
+            "",
+            "请读取以下文件进行评审：",
+            "",
+        ]
+    )
 
     # 列出需要读取的文件
     report_files = []
@@ -133,43 +142,45 @@ def generate_judge_prompt(
 
     lines.extend(_ANTI_RATIONALIZATION_SECTION)
 
-    lines.extend([
-        "",
-        "## 输出格式",
-        "",
-        "请输出以下 JSON 格式的评审结果，保存到：",
-        f"`{pd / '_judge_result.json'}`",
-        "",
-        "```json",
-        "{",
-        '  "phase": "' + phase_id + '",',
-        '  "project_id": "' + project_id + '",',
-        '  "judged_at": "ISO8601 时间戳",',
-        '  "gate_checklist": [',
-        '    {"item": "checklist 项", "passed": true/false, "evidence": "判断依据"}',
-        "  ],",
-        '  "dimensions": [',
-        "    {",
-        '      "id": "维度 ID",',
-        '      "score": 4,',
-        '      "max_score": 5,',
-        '      "issues": [',
-        '        {"type": "FN/FP/WRONG", "description": "具体问题", "evidence": "原文引用"}',
-        "      ]",
-        "    }",
-        "  ],",
-        '  "overall_score": 3.8,',
-        '  "precision_estimate": 0.85,',
-        '  "recall_estimate": 0.75,',
-        '  "summary": "一句话总结",',
-        '  "top_issues": ["最重要的 3 个问题"]',
-        "}",
-        "```",
-        "",
-        "## 开始评审",
-        "",
-        "请逐个维度评审，先读取所有文件，再给出评分。",
-    ])
+    lines.extend(
+        [
+            "",
+            "## 输出格式",
+            "",
+            "请输出以下 JSON 格式的评审结果，保存到：",
+            f"`{pd / '_judge_result.json'}`",
+            "",
+            "```json",
+            "{",
+            '  "phase": "' + phase_id + '",',
+            '  "project_id": "' + project_id + '",',
+            '  "judged_at": "ISO8601 时间戳",',
+            '  "gate_checklist": [',
+            '    {"item": "checklist 项", "passed": true/false, "evidence": "判断依据"}',
+            "  ],",
+            '  "dimensions": [',
+            "    {",
+            '      "id": "维度 ID",',
+            '      "score": 4,',
+            '      "max_score": 5,',
+            '      "issues": [',
+            '        {"type": "FN/FP/WRONG", "description": "具体问题", "evidence": "原文引用"}',
+            "      ]",
+            "    }",
+            "  ],",
+            '  "overall_score": 3.8,',
+            '  "precision_estimate": 0.85,',
+            '  "recall_estimate": 0.75,',
+            '  "summary": "一句话总结",',
+            '  "top_issues": ["最重要的 3 个问题"]',
+            "}",
+            "```",
+            "",
+            "## 开始评审",
+            "",
+            "请逐个维度评审，先读取所有文件，再给出评分。",
+        ]
+    )
 
     return "\n".join(lines)
 
@@ -200,8 +211,9 @@ def write_judge_prompt(
     # 落盘 rubric 快照，用于趋势对比和可观测性
     rubric = _JUDGE_RUBRICS.get(phase_id)
     if rubric:
-        from dqg.quality.dynamic_rubric import enrich_rubric_with_dynamic_dimensions, generate_dynamic_dimensions
         from dqg.json_utils import save_json
+        from dqg.quality.dynamic_rubric import enrich_rubric_with_dynamic_dimensions, generate_dynamic_dimensions
+
         dynamic_dims = generate_dynamic_dimensions(output_dir, project_id, phase_id)
         if dynamic_dims:
             rubric = enrich_rubric_with_dynamic_dimensions(rubric, dynamic_dims)
@@ -245,8 +257,12 @@ def format_judge_summary(result: dict[str, Any]) -> str:
     lines = [
         f"Quality Judge — Phase {result.get('phase', '?')}",
         f"  总分: {result.get('overall_score', '?')}/5",
-        f"  Precision: {result.get('precision_estimate', '?'):.0%}" if isinstance(result.get('precision_estimate'), (int, float)) else "",
-        f"  Recall: {result.get('recall_estimate', '?'):.0%}" if isinstance(result.get('recall_estimate'), (int, float)) else "",
+        f"  Precision: {result.get('precision_estimate', '?'):.0%}"
+        if isinstance(result.get("precision_estimate"), int | float)
+        else "",
+        f"  Recall: {result.get('recall_estimate', '?'):.0%}"
+        if isinstance(result.get("recall_estimate"), int | float)
+        else "",
     ]
 
     dims = result.get("dimensions", [])
@@ -254,7 +270,9 @@ def format_judge_summary(result: dict[str, Any]) -> str:
         lines.append("  维度得分:")
         for d in dims:
             issues = d.get("issues", [])
-            lines.append(f"    {d.get('id', '?')}: {d.get('score', '?')}/{d.get('max_score', 5)} ({len(issues)} issues)")
+            lines.append(
+                f"    {d.get('id', '?')}: {d.get('score', '?')}/{d.get('max_score', 5)} ({len(issues)} issues)"
+            )
 
     top_issues = result.get("top_issues", [])
     if top_issues:
@@ -277,7 +295,7 @@ def synthesize_judge_result(
     合成一份基础 judge result 以解除 approve 的阻断。
     如果 _judge_result.json 已存在则跳过。
     """
-    from datetime import datetime, timezone
+    from datetime import datetime
 
     from dqg.json_utils import save_json
 
@@ -331,10 +349,26 @@ def synthesize_judge_result(
     else:
         score = 1.5
 
+    # 基于问题分布动态估算 precision/recall
+    if total_issues == 0:
+        precision_est = 0.5
+        recall_est = 0.5
+    else:
+        critical_ratio = (critical_count + high_count) / total_issues
+        precision_est = round(0.7 + 0.25 * critical_ratio, 2)
+        recall_est = round(min(0.95, 0.6 + 0.08 * total_issues - 0.05 * score), 2)
+        recall_est = max(0.4, min(0.95, recall_est))
+        score = 1.5
+
     gate_items = []
     checklist = phase_def.get("approve_checklist", [])
+    has_critical = critical_count > 0 or critical_gap_count > 0
     for item_text in checklist:
-        gate_items.append({"item": item_text, "passed": True, "evidence": "auto-synthesized"})
+        # 含 "CRITICAL"/"blocker"/"阻断" 关键词的 checklist 项在有 critical 问题时标记 failed
+        item_lower = item_text.lower()
+        is_blocking_item = any(kw in item_lower for kw in ("critical", "blocker", "阻断", "block"))
+        passed = not has_critical if is_blocking_item else (score >= 3.0)
+        gate_items.append({"item": item_text, "passed": passed, "evidence": "auto-synthesized"})
 
     top_issues = []
     for issue in issues:
@@ -347,7 +381,7 @@ def synthesize_judge_result(
     result = {
         "phase": phase_id,
         "project_id": project_id,
-        "judged_at": datetime.now(timezone.utc).isoformat(),
+        "judged_at": datetime.now(UTC).isoformat(),
         "auto_synthesized": True,
         "gate_checklist": gate_items,
         "dimensions": [
@@ -359,8 +393,8 @@ def synthesize_judge_result(
             },
         ],
         "overall_score": score,
-        "precision_estimate": 0.85,
-        "recall_estimate": 0.80,
+        "precision_estimate": precision_est,
+        "recall_estimate": recall_est,
         "summary": (
             f"Auto-synthesized: {total_issues} issues "
             f"({critical_count} CRITICAL, {high_count} HIGH), "

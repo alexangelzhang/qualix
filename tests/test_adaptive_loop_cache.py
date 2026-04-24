@@ -43,14 +43,18 @@ def test_multi_judge_vote_reuses_agent_query_cache(monkeypatch, tmp_path: Path) 
         "judge-a": _FakeBackend(
             "judge-a",
             (
-                json.dumps({"scores": {"quality": 5}, "overall": 4.5, "verdict": "PASS", "issues": []}, ensure_ascii=False),
+                json.dumps(
+                    {"scores": {"quality": 5}, "overall": 4.5, "verdict": "PASS", "issues": []}, ensure_ascii=False
+                ),
                 {"input_tokens": 11, "output_tokens": 5},
             ),
         ),
         "judge-b": _FakeBackend(
             "judge-b",
             (
-                json.dumps({"scores": {"quality": 4}, "overall": 4.0, "verdict": "PASS", "issues": []}, ensure_ascii=False),
+                json.dumps(
+                    {"scores": {"quality": 4}, "overall": 4.0, "verdict": "PASS", "issues": []}, ensure_ascii=False
+                ),
                 {"input_tokens": 10, "output_tokens": 4},
             ),
         ),
@@ -102,14 +106,19 @@ def test_multi_judge_vote_boundary_triggers_secondary(monkeypatch, tmp_path: Pat
         "judge-a": _FakeBackend(
             "judge-a",
             (
-                json.dumps({"scores": {"quality": 3}, "overall": 3.5, "verdict": "PASS_WITH_CONCERNS", "issues": []}, ensure_ascii=False),
+                json.dumps(
+                    {"scores": {"quality": 3}, "overall": 3.5, "verdict": "PASS_WITH_CONCERNS", "issues": []},
+                    ensure_ascii=False,
+                ),
                 {"input_tokens": 11, "output_tokens": 5},
             ),
         ),
         "judge-b": _FakeBackend(
             "judge-b",
             (
-                json.dumps({"scores": {"quality": 4}, "overall": 4.0, "verdict": "PASS", "issues": []}, ensure_ascii=False),
+                json.dumps(
+                    {"scores": {"quality": 4}, "overall": 4.0, "verdict": "PASS", "issues": []}, ensure_ascii=False
+                ),
                 {"input_tokens": 10, "output_tokens": 4},
             ),
         ),
@@ -155,19 +164,28 @@ def test_adaptive_loop_passes_output_dir_to_all_agents(monkeypatch, tmp_path: Pa
                 content=content,
                 model_used="fake-model",
                 duration_seconds=0.01,
+                agent_name=self.role,
+                role=self.role,
+                token_usage={"input_tokens": 10, "output_tokens": 5},
+                cache_hit=False,
+                prompt_hash="fake",
             )
 
     # Judge 直接调 LLM backend，mock 它
     class _FakeBackendInner:
         def chat(self, messages, **kwargs):
             return (
-                json.dumps({"scores": {"quality": 2}, "overall": 2.0, "verdict": "FAIL", "issues": []}, ensure_ascii=False),
+                json.dumps(
+                    {"scores": {"quality": 2}, "overall": 2.0, "verdict": "FAIL", "issues": []}, ensure_ascii=False
+                ),
                 {"input_tokens": 10, "output_tokens": 5},
             )
+
         def chat_structured(self, messages, response_schema, **kwargs):
             raw_text, usage = self.chat(messages, **kwargs)
             parsed = _extract_json(raw_text)
             return StructuredChatResult(parsed=parsed or {}, raw_text=raw_text, provider_meta={"usage": usage})
+
         def name(self):
             return "fake"
 

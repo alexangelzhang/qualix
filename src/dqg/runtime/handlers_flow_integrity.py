@@ -14,11 +14,14 @@
 
 from __future__ import annotations
 
-from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 from dqg.constants import REPORT_MAP, STRUCTURED_JSON_MAP
-from dqg.core.state_machine import PHASE_DEFS, phase_dir as _phase_dir
+from dqg.core.state_machine import PHASE_DEFS
+from dqg.core.state_machine import phase_dir as _phase_dir
 from dqg.json_utils import load_json
 from dqg.log import get_logger
 from dqg.quality.judge_rubrics import JUDGE_RUBRICS
@@ -38,7 +41,8 @@ log = get_logger(__name__)
 
 
 def _check_structured_json_nonempty(
-    pd: Path, phase_id: str,
+    pd: Path,
+    phase_id: str,
 ) -> list[tuple[str, str]]:
     """CRITICAL: 结构化 JSON 必须存在且非空."""
     issues: list[tuple[str, str]] = []
@@ -63,7 +67,8 @@ def _check_structured_json_nonempty(
 
 
 def _check_report_exists(
-    pd: Path, phase_id: str,
+    pd: Path,
+    phase_id: str,
 ) -> list[tuple[str, str]]:
     """CRITICAL: 报告文件必须存在且有实质内容."""
     issues: list[tuple[str, str]] = []
@@ -79,7 +84,8 @@ def _check_report_exists(
 
 
 def _check_judge_result(
-    pd: Path, phase_id: str,
+    pd: Path,
+    phase_id: str,
 ) -> list[tuple[str, str]]:
     """CRITICAL: judge_result 必须存在且可解析.
     HIGH: judge dimensions 必须匹配 rubric.
@@ -90,11 +96,12 @@ def _check_judge_result(
     # judge prompt 存在但 result 不存在 → CRITICAL
     prompt_path = pd / "_judge_prompt.md"
     if prompt_path.exists() and not result_path.exists():
-        issues.append((
-            "CRITICAL",
-            "_judge_prompt.md 已生成但 _judge_result.json 不存在 — "
-            "Judge 评审未执行或结果未写回",
-        ))
+        issues.append(
+            (
+                "CRITICAL",
+                "_judge_prompt.md 已生成但 _judge_result.json 不存在 — Judge 评审未执行或结果未写回",
+            )
+        )
         return issues
 
     if not result_path.exists():
@@ -123,18 +130,21 @@ def _check_judge_result(
             actual_dims = {d.get("id", "") for d in data.get("dimensions", [])}
             missing = expected_dims - actual_dims
             if missing:
-                issues.append((
-                    "HIGH",
-                    f"Judge dimensions 不匹配 rubric: 缺少 {', '.join(sorted(missing))}",
-                ))
+                issues.append(
+                    (
+                        "HIGH",
+                        f"Judge dimensions 不匹配 rubric: 缺少 {', '.join(sorted(missing))}",
+                    )
+                )
 
     return issues
 
 
 def _check_critique_closure(
-    pd: Path, phase_id: str,
+    pd: Path,
+    phase_id: str,
 ) -> list[tuple[str, str]]:
-    """HIGH: critique prompt 存在时，critique result 也应存在.
+    """CRITICAL: critique prompt 存在时，critique result 也应存在.
     MEDIUM: preference 存在时，critique 也应存在.
     """
     issues: list[tuple[str, str]] = []
@@ -144,18 +154,20 @@ def _check_critique_closure(
     preference_result = pd / "_preference.json"
 
     if critique_prompt.exists() and not critique_result.exists():
-        issues.append((
-            "HIGH",
-            "_critique_prompt.md 已生成但 _critique.json 不存在 — "
-            "Critique 未执行，RLAIF 反馈循环断裂",
-        ))
+        issues.append(
+            (
+                "CRITICAL",
+                "_critique_prompt.md 已生成但 _critique.json 不存在 — Critique 未执行，RLAIF 反馈循环断裂",
+            )
+        )
 
     if preference_result.exists() and not critique_result.exists():
-        issues.append((
-            "MEDIUM",
-            "_preference.json 存在但 _critique.json 不存在 — "
-            "Gene/Capsule 提取将被跳过",
-        ))
+        issues.append(
+            (
+                "MEDIUM",
+                "_preference.json 存在但 _critique.json 不存在 — Gene/Capsule 提取将被跳过",
+            )
+        )
 
     # 检查 preference 说 v2 更好但 v2 文件不存在
     if preference_result.exists():
@@ -165,16 +177,19 @@ def _check_critique_closure(
             if report_file:
                 v2_report = pd / report_file.replace(".md", "_v2.md")
                 if not v2_report.exists():
-                    issues.append((
-                        "MEDIUM",
-                        f"Preference 判定 v2 更好但 {v2_report.name} 不存在",
-                    ))
+                    issues.append(
+                        (
+                            "MEDIUM",
+                            f"Preference 判定 v2 更好但 {v2_report.name} 不存在",
+                        )
+                    )
 
     return issues
 
 
 def _check_schema_semantic_completeness(
-    pd: Path, phase_id: str,
+    pd: Path,
+    phase_id: str,
 ) -> list[tuple[str, str]]:
     """HIGH: 结构化 JSON 的关键数组不能为空（可能是 Worker 未产出有效内容）."""
     issues: list[tuple[str, str]] = []
@@ -193,7 +208,11 @@ def _check_schema_semantic_completeness(
     # Phase 特定的核心数组字段（空数组 = 可能是 Worker 未产出）
     core_arrays: dict[str, list[str]] = {
         "Q01": ["requirements"],
+        "Q02": ["req_mapping", "interfaces"],
         "Q03": ["issues"],
+        "Q04": ["coverage_summary"],
+        "Q05": ["eut_items"],
+        "Q06": ["audit_items"],
         "Q07": ["findings"],
     }
 
@@ -201,11 +220,12 @@ def _check_schema_semantic_completeness(
     for field_name in fields:
         val = data.get(field_name)
         if isinstance(val, list) and len(val) == 0:
-            issues.append((
-                "HIGH",
-                f"结构化产物 {json_file} 的 {field_name} 为空数组 — "
-                f"可能是 Worker 未产出有效内容",
-            ))
+            issues.append(
+                (
+                    "HIGH",
+                    f"结构化产物 {json_file} 的 {field_name} 为空数组 — 可能是 Worker 未产出有效内容",
+                )
+            )
 
     return issues
 
@@ -235,12 +255,16 @@ def _apply_issues(
     if critical_count:
         log.error(
             "FlowIntegrity[%s] BLOCKED: Phase %s 有 %d 个 CRITICAL 问题",
-            tag, ctx.phase_id, critical_count,
+            tag,
+            ctx.phase_id,
+            critical_count,
         )
     elif issues:
         log.warning(
             "FlowIntegrity[%s]: Phase %s 有 %d 个问题（%d HIGH, %d MEDIUM）",
-            tag, ctx.phase_id, len(issues),
+            tag,
+            ctx.phase_id,
+            len(issues),
             sum(1 for s, _ in issues if s == "HIGH"),
             sum(1 for s, _ in issues if s == "MEDIUM"),
         )
@@ -294,6 +318,7 @@ def register_flow_integrity_handler() -> None:
         handle_flow_integrity_pre,
         stage="finalize",
         order=5,
+        required=True,
     )
     # POST: order=76，在 auto_judge(75) 之后，检查 judge/critique 闭环
     register_handler(
@@ -302,4 +327,5 @@ def register_flow_integrity_handler() -> None:
         stage="finalize",
         order=76,
         depends_on=["auto_judge"],
+        required=True,
     )

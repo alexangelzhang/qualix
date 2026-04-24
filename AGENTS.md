@@ -230,6 +230,9 @@ Phase 执行时自动注入以下增强上下文（`context/upstream_collector.p
 |------|------|---------|---------|
 | 第一层 | `report_quality_checks.py` (finalize handler) | 来源标注/ID 格式/GAP 风险等级/OPEN 决策方/置信度/推理日志质量 | finalize 时自动运行 |
 | 第一层 | `finalize_checks.py` (硬性 gate) | 推理日志存在性/重跑防回退/Schema 合规/编译验证/覆盖率门禁 | finalize 时自动运行，BLOCKED 级阻断 |
+| 第一层 | `phase_constraints.py` (Phase Contract) | 每个 Phase 的硬性指标约束（Q01 REQ 数/Q03 CRITICAL 数/Q04 覆盖率等），指标解析失败视为约束失败 | approve 时自动运行，`--force` 无法绕过 |
+| 第一层 | `lifecycle.py` (required handler) | required handler 失败→BLOCKED 阻断 finalize，依赖死锁报错而非降级 | finalize handler 执行时 |
+| 第一层 | `handlers_flow_integrity.py` (流程完整性) | 产物存在性/core_arrays 非空/judge-critique 闭环，critique 缺失为 CRITICAL | finalize pre(order=5) + post(order=76) |
 | 第二层 | `semantic_guardrail.py` (PhaseGuardrail) | BR 概括性描述/覆盖度虚高/跨 Phase 越权/P0 未闭环 | finalize 后 guardrail 并发执行 |
 | 第二层 | `rationalization_guard.py` | Judge 放水检测/过严误报检测 | adaptive loop judge 阶段 |
 | 第三层 | `git_safety_guard.py` (PreToolUse hook) | git push/force push/--no-verify 拦截 | 每次 Bash 调用前 |
@@ -277,4 +280,4 @@ Phase 执行时自动注入以下增强上下文（`context/upstream_collector.p
 - `Claude-Reflect Learnings` 由 `claude-reflect` 生成，禁止手工把本轮改动直接写进该区块
 - 需要补充 learnings 时，先更新 `.claude/memory/` 源文件，再走生成流程刷新
 
-*最后更新：2026-04-22*
+*最后更新：2026-04-24*

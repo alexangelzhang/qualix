@@ -3,39 +3,36 @@
 from __future__ import annotations
 
 import sys
-from pathlib import Path
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 from dqg.core.state_machine import (
     PHASE_DEFS,
-    PHASE_ORDER,
-    PhaseStatus,
     approve_phase,
-    execute_phase,
-    finalize_phase,
     get_available_phases,
     get_parallel_groups,
     load_state,
     record_judge_score,
-    reset_phase,
     save_state,
     skip_phase,
 )
-from dqg.core.state_machine import internal_dir as _internal_dir
-from dqg.core.state_machine import phase_dir as _phase_dir
 from dqg.services.phase_service import profile_context_warnings as _profile_context_warnings
-from dqg.services.phase_service import write_phase_profile_manifest
+
 
 # Re-export sub-command implementations (lazy to break phase ↔ phase_auto/phase_reset cycle)
 def __getattr__(name: str):
-    _REEXPORTS = {
+    _reexports = {
         "cmd_reset": "dqg.commands.phase_reset",
         "cmd_auto": "dqg.commands.phase_auto",
         "collect_inputs": "dqg.commands.phase_auto",
         "prompt_approve": "dqg.commands.phase_auto",
     }
-    if name in _REEXPORTS:
+    if name in _reexports:
         import importlib
-        mod = importlib.import_module(_REEXPORTS[name])
+
+        mod = importlib.import_module(_reexports[name])
         return getattr(mod, name)
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
@@ -43,6 +40,7 @@ def __getattr__(name: str):
 def _telemetry():
     """延迟导入 telemetry，避免模块级拉入 pydantic 链."""
     from dqg.reporting.telemetry import PhaseRunRecord, append_record, print_run_summary
+
     return PhaseRunRecord, append_record, print_run_summary
 
 
@@ -50,9 +48,11 @@ def _emit_cmd(output_dir: Path, project_id: str, phase_id: str, event_type: str,
     """命令层事件埋点（静默失败）."""
     try:
         from dqg.store.events import insert_event
+
         insert_event(output_dir, project_id, phase_id, event_type, message=message, **data)
     except Exception:
         from dqg.log import get_logger
+
         get_logger(__name__).debug("事件埋点失败", exc_info=True)
 
 
@@ -60,9 +60,11 @@ def _flush_events() -> None:
     """Flush 事件缓冲区（静默失败）."""
     try:
         from dqg.store.events import flush_events
+
         flush_events()
     except Exception:
         from dqg.log import get_logger
+
         get_logger(__name__).debug("事件 flush 失败", exc_info=True)
 
 
@@ -101,6 +103,7 @@ def cmd_execute(args, output_dir: Path) -> int:
             print(f"  Profile: {event.data.get('profile', '')}")
             from dqg.constants import MODEL_TIER
             from dqg.core.phase_registry import PHASE_DEFS
+
             phase_def = PHASE_DEFS.get(args.phase, {})
             tier = phase_def.get("recommended_model", "strong")
             model = MODEL_TIER.get(tier, "claude-opus-4-6")
@@ -158,7 +161,7 @@ def cmd_finalize(args, output_dir: Path) -> int:
         elif event.event_type.value == "memory_indexed":
             print(f"\n  结构化事实索引: {event.data.get('facts', 0)} 条已存入 FTS5")
         elif event.event_type.value == "review_chain_ready":
-            print(f"\n  评审链 prompt 已生成")
+            print("\n  评审链 prompt 已生成")
             print("  请用 AI IDE 读取该文件，一次性完成 Judge + Critique + Preference")
 
     if not result.success:
@@ -201,13 +204,16 @@ def cmd_finalize(args, output_dir: Path) -> int:
 
     # 写入详细报告文件（供人类查看）
     if verbose_lines:
-        from dqg.core.state_machine import PHASE_DEFS, phase_dir as _pd
+        from dqg.core.state_machine import PHASE_DEFS
+        from dqg.core.state_machine import phase_dir as _pd
+
         phase_def = PHASE_DEFS.get(args.phase)
         if phase_def:
             internal = _pd(output_dir, args.project_id, phase_def) / "_internal"
             internal.mkdir(parents=True, exist_ok=True)
             (internal / "_finalize_report.txt").write_text(
-                "\n\n".join(verbose_lines), encoding="utf-8",
+                "\n\n".join(verbose_lines),
+                encoding="utf-8",
             )
 
     # stdout 只输出：规则未达标项 + 耗时 + approve 命令
@@ -217,7 +223,7 @@ def cmd_finalize(args, output_dir: Path) -> int:
             total = len(compliance.get("rules", []))
             passed = total - len(failed_rules)
             print(f"\n    规则执行率 — Phase {args.phase}")
-            print(f"  达标: {passed}/{total} ({passed/total:.0%})" if total else "")
+            print(f"  达标: {passed}/{total} ({passed / total:.0%})" if total else "")
             print(f"  未达标 ({len(failed_rules)} 项):")
             for r in failed_rules:
                 print(f"    [{r.get('category', '?')}] {r.get('name', '?')}: {r.get('detail', '')}")
@@ -231,12 +237,14 @@ def cmd_finalize(args, output_dir: Path) -> int:
         print(f"  耗时: {duration:.0f}s")
 
     print(f"\n  确认通过: dqg-run {args.project_id} approve {args.phase}")
-    print(f"\n  Context 管理: 本 Phase 消耗了大量 context，建议运行 /compact")
+    print("\n  Context 管理: 本 Phase 消耗了大量 context，建议运行 /compact")
 
     # 触发 observe 指标更新，保持 dashboard 数据实时
     try:
         from datetime import date as _date
+
         from dqg.reporting.observability import generate_report
+
         generate_report(
             output_dir,
             period_name="daily",
@@ -273,7 +281,7 @@ def cmd_approve(args, output_dir: Path) -> int:
             f"  原因: {judge_result.get('block_reason', '放水行为确认')}\n"
             f"  检测到的放水内容:\n"
             + "\n".join(f"    - {r}" for r in judge_result.get("confirmed_rationalizations", []))
-            + f"\n\n  请重新执行 finalize 触发 Judge 重新评审。",
+            + "\n\n  请重新执行 finalize 触发 Judge 重新评审。",
             file=sys.stderr,
         )
         return 1
@@ -302,13 +310,16 @@ def cmd_approve(args, output_dir: Path) -> int:
         return 1
 
     from dqg.runtime.phase_contract import enforce_phase_constraints
+
     violations = enforce_phase_constraints(output_dir, args.project_id, args.phase)
     blocking = [v for v in violations if v.get("block_if_fail")]
-    if blocking and not force:
-        print(f"\n  🚫 Phase Contract 约束未满足，approve 被阻断：", file=sys.stderr)
+    if blocking:
+        print("\n  🚫 Phase Contract 约束未满足，approve 被阻断：", file=sys.stderr)
         for v in blocking:
-            print(f"    ✗ {v['label']}: 实际值 {v['actual']} {v['op']} {v['threshold']} 不满足", file=sys.stderr)
-        print(f"\n  使用 --force 强制通过: dqg-run {args.project_id} approve {args.phase} --force", file=sys.stderr)
+            actual_str = "N/A" if v.get("actual") is None else str(v["actual"])
+            reason = f" ({v['reason']})" if v.get("reason") else ""
+            print(f"    ✗ {v['label']}: 实际值 {actual_str} {v['op']} {v['threshold']} 不满足{reason}", file=sys.stderr)
+        print("\n  Phase Contract 是硬约束，--force 无法绕过。请修复问题后重新 finalize。", file=sys.stderr)
         return 1
 
     errors = approve_phase(state, args.phase, comment)
@@ -318,7 +329,9 @@ def cmd_approve(args, output_dir: Path) -> int:
         return 1
 
     save_state(output_dir, state)
-    PhaseRunRecord, append_record, _ = _telemetry()
+    _, append_record, _ = _telemetry()
+    from dqg.reporting.telemetry import PhaseRunRecord
+
     append_record(
         output_dir,
         PhaseRunRecord(
@@ -332,8 +345,15 @@ def cmd_approve(args, output_dir: Path) -> int:
     )
 
     print(f"\n  Phase {args.phase} 已 approved")
-    _emit_cmd(output_dir, args.project_id, args.phase, "phase_approved",
-              f"Phase {args.phase} approved", action="approve", comment=comment)
+    _emit_cmd(
+        output_dir,
+        args.project_id,
+        args.phase,
+        "phase_approved",
+        f"Phase {args.phase} approved",
+        action="approve",
+        comment=comment,
+    )
     if judge_result:
         ps = state.phases[args.phase]
         passed_str = "✅ PASS" if ps.judge_passed else "⚠️  FAIL (--force)"
@@ -365,7 +385,9 @@ def cmd_skip(args, output_dir: Path) -> int:
             print(f"  ERROR: {e}", file=sys.stderr)
         return 1
     save_state(output_dir, state)
-    PhaseRunRecord, append_record, _ = _telemetry()
+    _, append_record, _ = _telemetry()
+    from dqg.reporting.telemetry import PhaseRunRecord
+
     append_record(
         output_dir,
         PhaseRunRecord(
@@ -378,6 +400,13 @@ def cmd_skip(args, output_dir: Path) -> int:
         ),
     )
     print(f"\n  Phase {args.phase} 已跳过")
-    _emit_cmd(output_dir, args.project_id, args.phase, "phase_skipped",
-              f"Phase {args.phase} skipped", action="skip", comment=comment)
+    _emit_cmd(
+        output_dir,
+        args.project_id,
+        args.phase,
+        "phase_skipped",
+        f"Phase {args.phase} skipped",
+        action="skip",
+        comment=comment,
+    )
     return 0

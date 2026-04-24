@@ -15,8 +15,8 @@ from dqg.constants import PHASE_DIR_MAP, STRUCTURED_JSON_MAP
 from dqg.json_utils import load_json_strict
 from dqg.schemas.phase_q01 import PhaseAOutput
 from dqg.schemas.phase_q02 import PhaseA3Output
-from dqg.schemas.phase_q04 import PhaseA5Output
 from dqg.schemas.phase_q03 import PhaseA6Output
+from dqg.schemas.phase_q04 import PhaseA5Output
 from dqg.schemas.phase_q05 import PhaseBOutput
 from dqg.schemas.phase_q06 import PhaseCOutput
 from dqg.schemas.phase_q07 import PhaseDOutput
@@ -33,21 +33,22 @@ __all__ = [
 ]
 
 # Phase schema class 映射
-_SCHEMA_CLASS_MAP: Final = MappingProxyType({
-    "Q01": PhaseAOutput,
-    "Q02": PhaseA3Output,
-    "Q03": PhaseA6Output,
-    "Q04": PhaseA5Output,
-    "Q05": PhaseBOutput,
-    "Q06": PhaseCOutput,
-    "Q07": PhaseDOutput,
-})
+_SCHEMA_CLASS_MAP: Final = MappingProxyType(
+    {
+        "Q01": PhaseAOutput,
+        "Q02": PhaseA3Output,
+        "Q03": PhaseA6Output,
+        "Q04": PhaseA5Output,
+        "Q05": PhaseBOutput,
+        "Q06": PhaseCOutput,
+        "Q07": PhaseDOutput,
+    }
+)
 
 # Phase ID → (目录后缀, 校验文件名, schema class) — 从 constants 组装
-_PHASE_REGISTRY: Final = MappingProxyType({
-    pid: (PHASE_DIR_MAP[pid], STRUCTURED_JSON_MAP[pid], _SCHEMA_CLASS_MAP[pid])
-    for pid in _SCHEMA_CLASS_MAP
-})
+_PHASE_REGISTRY: Final = MappingProxyType(
+    {pid: (PHASE_DIR_MAP[pid], STRUCTURED_JSON_MAP[pid], _SCHEMA_CLASS_MAP[pid]) for pid in _SCHEMA_CLASS_MAP}
+)
 
 
 def validate_phase_output(
@@ -58,7 +59,7 @@ def validate_phase_output(
     """校验指定 Phase 的结构化产物.
 
     Returns:
-        None: 产物文件不存在（跳过）
+        None: Phase ID 未注册（不支持校验）
         []: 校验通过
         ["error1", ...]: 校验失败，返回错误列表
     """
@@ -76,11 +77,11 @@ def validate_phase_output(
         phase_dir = output_dir / project_id / PHASE_DIR_MAP["Q01"]
 
     if not phase_dir.is_dir():
-        return None
+        return [f"产物目录不存在: {dir_suffix}"]
 
     json_path = phase_dir / json_file
     if not json_path.exists():
-        return None
+        return [f"结构化产物文件不存在: {json_file}"]
 
     errors: list[str] = []
     try:

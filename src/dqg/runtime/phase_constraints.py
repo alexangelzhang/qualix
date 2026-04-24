@@ -10,9 +10,11 @@
 from __future__ import annotations
 
 import re
-from pathlib import Path
-from typing import Any, Final
 from types import MappingProxyType
+from typing import TYPE_CHECKING, Any, Final
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 from dqg.json_utils import load_json
 from dqg.log import get_logger
@@ -25,31 +27,88 @@ log = get_logger(__name__)
 
 # 每个 Phase 的硬性约束，格式：
 # {"metric": str, "op": ">="|"<="|"=="|">"|"<", "threshold": float, "source": str, "block_if_fail": bool}
-PHASE_CONSTRAINTS: Final = MappingProxyType({
-    "Q03": [
-        {"metric": "critical_count", "op": "==", "threshold": 0,
-         "source": "phase_a6_structured.json:issues[severity=CRITICAL]",
-         "block_if_fail": True, "label": "无 CRITICAL 问题"},
-    ],
-    "Q04": [
-        {"metric": "req_coverage_rate", "op": ">=", "threshold": 0.8,
-         "source": "phase_a5_structured.json:coverage_summary[dimension=REQ]",
-         "block_if_fail": True, "label": "需求覆盖率 ≥ 80%"},
-        {"metric": "se_coverage_rate", "op": ">=", "threshold": 0.8,
-         "source": "phase_a5_structured.json:coverage_summary[dimension=SE]",
-         "block_if_fail": True, "label": "SE 覆盖率 ≥ 80%"},
-    ],
-    "Q06": [
-        {"metric": "se_coverage_rate", "op": ">=", "threshold": 0.8,
-         "source": "phase_c_structured.json:audit_items[status=COVERED]",
-         "block_if_fail": True, "label": "SE 覆盖率 ≥ 80%"},
-    ],
-    "Q07": [
-        {"metric": "blocker_count", "op": "==", "threshold": 0,
-         "source": "phase_d_structured.json:findings[severity=BLOCKER]",
-         "block_if_fail": True, "label": "无 BLOCKER 问题"},
-    ],
-})
+PHASE_CONSTRAINTS: Final = MappingProxyType(
+    {
+        "Q01": [
+            {
+                "metric": "requirement_count",
+                "op": ">=",
+                "threshold": 1,
+                "source": "phase_a_structured.json:requirements[]",
+                "block_if_fail": True,
+                "label": "至少 1 条 REQ 需求",
+            },
+        ],
+        "Q02": [
+            {
+                "metric": "req_mapping_count",
+                "op": ">=",
+                "threshold": 1,
+                "source": "phase_a3_structured.json:req_mapping[]",
+                "block_if_fail": True,
+                "label": "至少 1 条需求→技术映射",
+            },
+        ],
+        "Q03": [
+            {
+                "metric": "critical_count",
+                "op": "==",
+                "threshold": 0,
+                "source": "phase_a6_structured.json:issues[severity=CRITICAL]",
+                "block_if_fail": True,
+                "label": "无 CRITICAL 问题",
+            },
+        ],
+        "Q04": [
+            {
+                "metric": "req_coverage_rate",
+                "op": ">=",
+                "threshold": 0.8,
+                "source": "phase_a5_structured.json:coverage_summary[dimension=REQ]",
+                "block_if_fail": True,
+                "label": "需求覆盖率 ≥ 80%",
+            },
+            {
+                "metric": "se_coverage_rate",
+                "op": ">=",
+                "threshold": 0.8,
+                "source": "phase_a5_structured.json:coverage_summary[dimension=SE]",
+                "block_if_fail": True,
+                "label": "SE 覆盖率 ≥ 80%",
+            },
+        ],
+        "Q05": [
+            {
+                "metric": "eut_count",
+                "op": ">=",
+                "threshold": 1,
+                "source": "phase_b_structured.json:eut_items[]",
+                "block_if_fail": True,
+                "label": "至少 1 条 EUT 测试用例",
+            },
+        ],
+        "Q06": [
+            {
+                "metric": "se_coverage_rate",
+                "op": ">=",
+                "threshold": 0.8,
+                "source": "phase_c_structured.json:audit_items[status=COVERED]",
+                "block_if_fail": True,
+                "label": "SE 覆盖率 ≥ 80%",
+            },
+        ],
+        "Q07": [
+            {
+                "metric": "blocker_count",
+                "op": "==",
+                "threshold": 0,
+                "source": "phase_d_structured.json:findings[severity=BLOCKER]",
+                "block_if_fail": True,
+                "label": "无 BLOCKER 问题",
+            },
+        ],
+    }
+)
 
 
 def _resolve_metric(output_dir: Path, project_id: str, phase_id: str, metric: str) -> float | None:
@@ -66,6 +125,15 @@ def _resolve_metric(output_dir: Path, project_id: str, phase_id: str, metric: st
     if not data:
         return None
 
+    if metric == "requirement_count":
+        requirements = data.get("requirements", [])
+        return float(len(requirements))
+    if metric == "req_mapping_count":
+        req_mapping = data.get("req_mapping", [])
+        return float(len(req_mapping))
+    if metric == "eut_count":
+        eut_items = data.get("eut_items", [])
+        return float(len(eut_items))
     if metric == "critical_count":
         issues = data.get("issues", [])
         return float(sum(1 for i in issues if i.get("severity") in ("CRITICAL", "BLOCKER")))
@@ -92,13 +160,20 @@ def _resolve_metric(output_dir: Path, project_id: str, phase_id: str, metric: st
 
 
 def _eval_constraint(value: float, op: str, threshold: float) -> bool:
-    ops = {">=": value >= threshold, "<=": value <= threshold,
-           "==": value == threshold, ">": value > threshold, "<": value < threshold}
+    ops = {
+        ">=": value >= threshold,
+        "<=": value <= threshold,
+        "==": value == threshold,
+        ">": value > threshold,
+        "<": value < threshold,
+    }
     return ops.get(op, False)
 
 
 def enforce_phase_constraints(
-    output_dir: Path, project_id: str, phase_id: str,
+    output_dir: Path,
+    project_id: str,
+    phase_id: str,
 ) -> list[dict]:
     """执行 Phase DSL 约束断言，返回违反的约束列表。
 
@@ -109,16 +184,35 @@ def enforce_phase_constraints(
     for c in constraints:
         value = _resolve_metric(output_dir, project_id, phase_id, c["metric"])
         if value is None:
+            log.warning(
+                "Phase %s 约束 %s: 指标 %s 解析失败（产物不存在或字段缺失），视为约束失败",
+                phase_id,
+                c["label"],
+                c["metric"],
+            )
+            violations.append(
+                {
+                    "label": c["label"],
+                    "metric": c["metric"],
+                    "op": c["op"],
+                    "threshold": c["threshold"],
+                    "actual": None,
+                    "block_if_fail": c.get("block_if_fail", False),
+                    "reason": "metric_resolve_failed",
+                }
+            )
             continue
         if not _eval_constraint(value, c["op"], c["threshold"]):
-            violations.append({
-                "label": c["label"],
-                "metric": c["metric"],
-                "op": c["op"],
-                "threshold": c["threshold"],
-                "actual": value,
-                "block_if_fail": c.get("block_if_fail", False),
-            })
+            violations.append(
+                {
+                    "label": c["label"],
+                    "metric": c["metric"],
+                    "op": c["op"],
+                    "threshold": c["threshold"],
+                    "actual": value,
+                    "block_if_fail": c.get("block_if_fail", False),
+                }
+            )
     return violations
 
 
@@ -145,7 +239,7 @@ def check_report_structure(report_content: str, phase: str) -> dict[str, Any]:
     for section in required:
         canonical = section["canonical"]
         aliases = section.get("aliases", [])
-        all_names = [canonical] + aliases
+        all_names = [canonical, *aliases]
 
         matched = False
         for name in all_names:

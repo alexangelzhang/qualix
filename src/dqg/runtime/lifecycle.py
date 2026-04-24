@@ -9,7 +9,7 @@ from __future__ import annotations
 import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any, Callable, Protocol
+from typing import TYPE_CHECKING, Protocol
 
 if TYPE_CHECKING:
     from dqg.runtime.execution_context import ExecutionContext
@@ -32,6 +32,7 @@ class HandlerRegistration:
     stage: str = "execute"  # "execute" | "finalize"
     order: int = 100  # 越小越先执行
     depends_on: list[str] = field(default_factory=list)  # 依赖的 handler 名称
+    required: bool = False  # True = 失败时 BLOCKED，False = 失败时 WARNING
 
 
 class LifecycleRegistry:
@@ -48,15 +49,19 @@ class LifecycleRegistry:
         phases: set[str] | None = None,
         order: int = 100,
         depends_on: list[str] | None = None,
+        required: bool = False,
     ) -> None:
-        self._handlers.append(HandlerRegistration(
-            name=name,
-            handler=handler,
-            phases=phases,
-            stage=stage,
-            order=order,
-            depends_on=depends_on or [],
-        ))
+        self._handlers.append(
+            HandlerRegistration(
+                name=name,
+                handler=handler,
+                phases=phases,
+                stage=stage,
+                order=order,
+                depends_on=depends_on or [],
+                required=required,
+            )
+        )
 
     def get_handlers(self, stage: str, phase_id: str) -> list[HandlerRegistration]:
         """获取指定阶段和 Phase 的 handler 列表（按 order 排序）."""
@@ -99,7 +104,10 @@ class LifecycleRegistry:
                         handler=reg.name,
                     )
                 except Exception as exc:
-                    result.add_warning(f"Handler {reg.name} failed: {exc}")
+                    if reg.required:
+                        result.add_error(f"BLOCKED: required handler {reg.name} failed: {exc}")
+                    else:
+                        result.add_warning(f"Handler {reg.name} failed: {exc}")
             return
 
         # 有依赖声明：构建依赖图，分层并行执行
@@ -125,7 +133,10 @@ class LifecycleRegistry:
                 return reg.name, None
             except Exception as exc:
                 with result_lock:
-                    result.add_warning(f"Handler {reg.name} failed: {exc}")
+                    if reg.required:
+                        result.add_error(f"BLOCKED: required handler {reg.name} failed: {exc}")
+                    else:
+                        result.add_warning(f"Handler {reg.name} failed: {exc}")
                 return reg.name, exc
 
         remaining = set(active_names)
@@ -135,7 +146,20 @@ class LifecycleRegistry:
                 key=lambda n: by_name[n].order,
             )
             if not ready:
-                ready = sorted(remaining, key=lambda n: by_name[n].order)
+                # 依赖死锁：剩余 handler 的依赖无法满足
+                unresolved = {n: deps[n] - completed_names for n in remaining}
+                for name, missing in unresolved.items():
+                    reg = by_name[name]
+                    with result_lock:
+                        if reg.required:
+                            result.add_error(
+                                f"BLOCKED: required handler {name} 依赖未满足: {', '.join(sorted(missing))}",
+                            )
+                        else:
+                            result.add_warning(
+                                f"Handler {name} 依赖未满足: {', '.join(sorted(missing))}，已跳过",
+                            )
+                break
 
             if len(ready) == 1:
                 name, _exc = _run_one(by_name[ready[0]])
@@ -144,10 +168,7 @@ class LifecycleRegistry:
                 continue
 
             with ThreadPoolExecutor(max_workers=min(len(ready), 6)) as pool:
-                futures = {
-                    pool.submit(_run_one, by_name[name]): name
-                    for name in ready
-                }
+                futures = {pool.submit(_run_one, by_name[name]): name for name in ready}
                 for future in as_completed(futures):
                     name, _exc = future.result()
                     completed_names.add(name)
@@ -169,6 +190,7 @@ def register_handler(
     phases: set[str] | None = None,
     order: int = 100,
     depends_on: list[str] | None = None,
+    required: bool = False,
 ) -> None:
     """便捷注册函数."""
-    _registry.register(name, handler, stage, phases, order, depends_on)
+    _registry.register(name, handler, stage, phases, order, depends_on, required)

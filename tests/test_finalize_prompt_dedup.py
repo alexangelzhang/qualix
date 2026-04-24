@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from types import SimpleNamespace
 from typing import TYPE_CHECKING
 
@@ -20,7 +21,16 @@ def _prepare_phase_a(output_dir: Path, project_id: str) -> None:
     phase_dir = output_dir / project_id / "Q01"
     phase_dir.mkdir(parents=True, exist_ok=True)
     (phase_dir / "phase_a_report.md").write_text("## PROFILE_CONTEXT\n\n# Report\n", encoding="utf-8")
-    (phase_dir / "phase_a_structured.json").write_text('{"project_id": "demo", "requirements": []}', encoding="utf-8")
+    (phase_dir / "phase_a_structured.json").write_text(
+        json.dumps({"project_id": "demo", "requirements": [{"req_id": "REQ-001", "description": "test"}]}),
+        encoding="utf-8",
+    )
+    # flow_integrity_post 要求 critique prompt 存在时 critique result 也存在
+    # 预写空 critique result 防止 CRITICAL 阻断（本测试关注 prompt 复用，不测 flow_integrity）
+    (phase_dir / "_critique.json").write_text(
+        json.dumps({"verdict": "PASS", "issues": []}),
+        encoding="utf-8",
+    )
 
 
 def test_finalize_reuses_review_chain_payload_and_does_not_regenerate_prompts(
@@ -37,7 +47,7 @@ def test_finalize_reuses_review_chain_payload_and_does_not_regenerate_prompts(
     monkeypatch.setattr("dqg.commands.phase.load_state", lambda *_: state)
     monkeypatch.setattr("dqg.commands.phase.save_state", lambda *args, **kwargs: None)
     monkeypatch.setattr("dqg.reporting.telemetry.append_record", lambda *args, **kwargs: None)
-    monkeypatch.setattr("dqg.commands.phase.finalize_phase", lambda *args, **kwargs: [])
+    monkeypatch.setattr("dqg.runtime.phase_runtime.finalize_phase", lambda *args, **kwargs: [])
     monkeypatch.setattr("dqg.commands.phase.record_judge_score", lambda *args, **kwargs: None)
 
     monkeypatch.setattr("dqg.quality.finalize_checks.run_finalize_checks", lambda *args, **kwargs: [])
