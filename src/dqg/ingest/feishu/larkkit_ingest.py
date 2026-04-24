@@ -159,7 +159,7 @@ def ingest_via_larkkit(
         tmp_dir = Path(tmp)
         info(f"[larkkit] 下载文档: {url}")
 
-        ok, stdout, stderr = _run_larkkit_download(
+        ok, _stdout, stderr = _run_larkkit_download(
             url,
             tmp_dir,
             no_images=True,
