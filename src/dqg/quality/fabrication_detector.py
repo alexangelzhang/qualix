@@ -16,21 +16,24 @@ from __future__ import annotations
 
 import re
 from pathlib import Path
-from typing import Any
 
+from dqg.log import get_logger
 from dqg.quality.guardrail import (
     GuardrailContext,
     GuardrailLevel,
     GuardrailResult,
     PhaseGuardrail,
 )
-from dqg.log import get_logger
 
 log = get_logger(__name__)
 
 # Java 标识符模式：大驼峰类名、小驼峰方法名
-_JAVA_CLASS_PATTERN = re.compile(r"\b([A-Z][a-zA-Z0-9]{2,}(?:Service|Controller|Repository|Gateway|Manager|Handler|Impl|DTO|VO|DO|Entity|Enum|Factory|Builder|Adapter|Proxy|Listener|Config|Util|Helper|Provider|Extension|Ability|Step))\b")
-_JAVA_METHOD_PATTERN = re.compile(r"\b([a-z][a-zA-Z0-9]{2,}(?:Order|Payment|User|Account|Item|Record|Status|Type|Info|Data|Result|Response|Request|Param|Query|Command|Event))\b")
+_JAVA_CLASS_PATTERN = re.compile(
+    r"\b([A-Z][a-zA-Z0-9]{2,}(?:Service|Controller|Repository|Gateway|Manager|Handler|Impl|DTO|VO|DO|Entity|Enum|Factory|Builder|Adapter|Proxy|Listener|Config|Util|Helper|Provider|Extension|Ability|Step))\b"
+)
+_JAVA_METHOD_PATTERN = re.compile(
+    r"\b([a-z][a-zA-Z0-9]{2,}(?:Order|Payment|User|Account|Item|Record|Status|Type|Info|Data|Result|Response|Request|Param|Query|Command|Event))\b"
+)
 # 更通用的方法调用模式: xxx.methodName(
 _METHOD_CALL_PATTERN = re.compile(r"(\w+)\.([a-z]\w{2,})\s*\(")
 # 字段引用: xxx.fieldName 或 getFieldName/setFieldName
@@ -64,6 +67,7 @@ def _check_symbols_in_db(output_dir: Path, identifiers: dict[str, set[str]]) -> 
     found: set[str] = set()
     try:
         from dqg.store.core import get_connection
+
         with get_connection(output_dir) as conn:
             # 检查是否有索引数据
             count = conn.execute("SELECT COUNT(*) FROM code_symbols").fetchone()[0]
@@ -98,8 +102,6 @@ def _grep_fallback(code_repo: Path, names: set[str]) -> set[str]:
         return found
 
     java_files = list(code_repo.rglob("*.java"))[:200]
-    # 构建一次性搜索集合
-    search_set = {n.lower() for n in names}
 
     for f in java_files:
         try:
@@ -117,22 +119,52 @@ def _grep_fallback(code_repo: Path, names: set[str]) -> set[str]:
 
 
 # 常见框架类/方法白名单（不应被标记为编造）
-_WHITELIST = frozenset({
-    # Spring
-    "RestController", "RequestMapping", "GetMapping", "PostMapping",
-    "Autowired", "Service", "Component", "Repository", "Configuration",
-    "Transactional", "Cacheable", "Async", "Scheduled",
-    # Java 标准库
-    "BigDecimal", "ArrayList", "HashMap", "Optional", "CompletableFuture",
-    "StringBuilder", "IOException", "RuntimeException", "IllegalArgumentException",
-    # Lombok
-    "Builder", "Data", "Getter", "Setter", "AllArgsConstructor",
-    # 测试
-    "MockBean", "InjectMocks", "BeforeEach", "AfterEach",
-    # 通用后缀类（太常见，误报率高）
-    "BaseService", "BaseController", "BaseEntity", "BaseDTO",
-    "AbstractService", "AbstractHandler",
-})
+_WHITELIST = frozenset(
+    {
+        # Spring
+        "RestController",
+        "RequestMapping",
+        "GetMapping",
+        "PostMapping",
+        "Autowired",
+        "Service",
+        "Component",
+        "Repository",
+        "Configuration",
+        "Transactional",
+        "Cacheable",
+        "Async",
+        "Scheduled",
+        # Java 标准库
+        "BigDecimal",
+        "ArrayList",
+        "HashMap",
+        "Optional",
+        "CompletableFuture",
+        "StringBuilder",
+        "IOException",
+        "RuntimeException",
+        "IllegalArgumentException",
+        # Lombok
+        "Builder",
+        "Data",
+        "Getter",
+        "Setter",
+        "AllArgsConstructor",
+        # 测试
+        "MockBean",
+        "InjectMocks",
+        "BeforeEach",
+        "AfterEach",
+        # 通用后缀类（太常见，误报率高）
+        "BaseService",
+        "BaseController",
+        "BaseEntity",
+        "BaseDTO",
+        "AbstractService",
+        "AbstractHandler",
+    }
+)
 
 
 class FabricationDetectorGuardrail(PhaseGuardrail):
@@ -187,22 +219,24 @@ class FabricationDetectorGuardrail(PhaseGuardrail):
             return []
 
         samples = sorted(not_found)[:10]
-        return [GuardrailResult(
-            guardrail_name=self.name,
-            passed=False,
-            level=GuardrailLevel.WARNING,
-            message=(
-                f"疑似编造: 报告中 {len(not_found)}/{total} 个 Java 标识符在代码库中未找到 "
-                f"({not_found_ratio:.0%}): {', '.join(samples)}"
-            ),
-            details=[f"not_found={samples}", f"ratio={not_found_ratio:.2f}"],
-        )]
+        return [
+            GuardrailResult(
+                guardrail_name=self.name,
+                passed=False,
+                level=GuardrailLevel.WARNING,
+                message=(
+                    f"疑似编造: 报告中 {len(not_found)}/{total} 个 Java 标识符在代码库中未找到 "
+                    f"({not_found_ratio:.0%}): {', '.join(samples)}"
+                ),
+                details=[f"not_found={samples}", f"ratio={not_found_ratio:.2f}"],
+            )
+        ]
 
     def _get_code_repo(self, ctx: GuardrailContext) -> Path | None:
         """从 _inputs.json 获取 code_repo 路径."""
         try:
-            from dqg.json_utils import load_json
             from dqg.core.state_machine import PHASE_DEFS, internal_dir
+            from dqg.json_utils import load_json
 
             phase_def = PHASE_DEFS.get(ctx.phase_id)
             if not phase_def:
@@ -216,5 +250,5 @@ class FabricationDetectorGuardrail(PhaseGuardrail):
                     if repo.exists():
                         return repo
         except Exception:
-            pass
+            log.debug("inputs.json 读取失败", exc_info=True)
         return None

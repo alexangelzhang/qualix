@@ -2,20 +2,27 @@
 
 from __future__ import annotations
 
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pandas as pd
+
+if TYPE_CHECKING:
+    from pathlib import Path
 import streamlit as st
 
 from dqg.json_utils import load_json
+from dqg.log import get_logger
 
-from .constants import OUTPUT_DIR
 from .cache import _cached_projects, _cached_trend
+from .constants import OUTPUT_DIR
+
+log = get_logger(__name__)
 
 
 # ---------------------------------------------------------------------------
 # Phase 评分历史加载
 # ---------------------------------------------------------------------------
+
 
 def _load_phase_score_history(output_dir: Path, project_id: str) -> list[dict]:
     """扫描所有 Phase 的 _judge_result.json 和 _archive/vN/ 历史版本，构建评分时间线."""
@@ -34,14 +41,16 @@ def _load_phase_score_history(output_dir: Path, project_id: str) -> list[dict]:
         if judge_path.exists():
             try:
                 data = load_json(judge_path)
-                records.append({
-                    "phase": phase_id,
-                    "phase_name": phase_def.get("name", phase_id),
-                    "score": data.get("overall_score"),
-                    "verdict": data.get("verdict", ""),
-                    "judged_at": data.get("judged_at", ""),
-                    "version": "current",
-                })
+                records.append(
+                    {
+                        "phase": phase_id,
+                        "phase_name": phase_def.get("name", phase_id),
+                        "score": data.get("overall_score"),
+                        "verdict": data.get("verdict", ""),
+                        "judged_at": data.get("judged_at", ""),
+                        "version": "current",
+                    }
+                )
             except Exception:
                 pass
 
@@ -55,14 +64,16 @@ def _load_phase_score_history(output_dir: Path, project_id: str) -> list[dict]:
                 if archived_judge.exists():
                     try:
                         data = load_json(archived_judge)
-                        records.append({
-                            "phase": phase_id,
-                            "phase_name": phase_def.get("name", phase_id),
-                            "score": data.get("overall_score"),
-                            "verdict": data.get("verdict", ""),
-                            "judged_at": data.get("judged_at", ""),
-                            "version": ver_dir.name,
-                        })
+                        records.append(
+                            {
+                                "phase": phase_id,
+                                "phase_name": phase_def.get("name", phase_id),
+                                "score": data.get("overall_score"),
+                                "verdict": data.get("verdict", ""),
+                                "judged_at": data.get("judged_at", ""),
+                                "version": ver_dir.name,
+                            }
+                        )
                     except Exception:
                         pass
 
@@ -73,9 +84,10 @@ def _load_phase_score_history(output_dir: Path, project_id: str) -> list[dict]:
 # 质量趋势页
 # ---------------------------------------------------------------------------
 
+
 def _page_quality_trend():
     projects = _cached_projects()
-    pid = st.selectbox("项目", ["全部"] + projects) if projects else None
+    pid = st.selectbox("项目", ["全部", *projects]) if projects else None
     days = st.slider("时间范围（天）", 7, 90, 30)
 
     project_filter = pid if pid and pid != "全部" else None
@@ -103,9 +115,12 @@ def _page_quality_trend():
         st.metric("通过次数", total_approve)
         st.caption("Judge 评分通过并 approve 的次数，代表真实交付质量")
     with col3:
-        st.metric("通过率", f"{approve_rate:.0%}",
-                  delta="良好" if approve_rate >= 0.8 else "偏低",
-                  delta_color="normal" if approve_rate >= 0.8 else "inverse")
+        st.metric(
+            "通过率",
+            f"{approve_rate:.0%}",
+            delta="良好" if approve_rate >= 0.8 else "偏低",
+            delta_color="normal" if approve_rate >= 0.8 else "inverse",
+        )
         st.caption("通过率 ≥ 80% 为良好；< 60% 建议排查输入材料或 Phase 标准")
 
     # 趋势图
@@ -121,9 +136,12 @@ def _page_quality_trend():
             avg_dur = duration_df["avg_duration"].mean()
             recent = duration_df.tail(3)["avg_duration"].mean()
             trend_delta = recent - avg_dur
-            st.metric("近3日平均耗时", f"{recent:.0f}s",
-                      delta=f"{trend_delta:+.0f}s vs 整体均值",
-                      delta_color="inverse" if trend_delta > 0 else "normal")
+            st.metric(
+                "近3日平均耗时",
+                f"{recent:.0f}s",
+                delta=f"{trend_delta:+.0f}s vs 整体均值",
+                delta_color="inverse" if trend_delta > 0 else "normal",
+            )
             st.caption("耗时上升可能意味着输入材料复杂度增加或 Phase 标准趋严；下降通常表示流程熟练度提升")
             st.line_chart(duration_df.set_index("day"))
 
@@ -147,6 +165,7 @@ def _page_quality_trend():
 # ---------------------------------------------------------------------------
 # Phase 评分趋势页
 # ---------------------------------------------------------------------------
+
 
 def _page_phase_score_trend():
     st.subheader("Phase 评分趋势")
@@ -185,8 +204,7 @@ def _page_phase_score_trend():
         st.metric("通过次数", f"{pass_count}/{len(df)}")
         st.caption("评分 ≥ 3.5 视为通过")
     with col3:
-        st.metric("通过率", f"{pass_rate:.0%}",
-                  delta_color="normal" if pass_rate >= 0.8 else "inverse")
+        st.metric("通过率", f"{pass_rate:.0%}", delta_color="normal" if pass_rate >= 0.8 else "inverse")
         st.caption("通过率 ≥ 80% 为健康水位")
 
     # 各 Phase 最新评分对比
@@ -201,11 +219,16 @@ def _page_phase_score_trend():
         display_cols = ["phase", "phase_name", "score", "verdict", "judged_at", "version"]
         display_cols = [c for c in display_cols if c in latest.columns]
         st.dataframe(
-            latest[display_cols].rename(columns={
-                "phase": "Phase ID", "phase_name": "Phase 名称",
-                "score": "评分", "verdict": "判定",
-                "judged_at": "评审时间", "version": "版本",
-            }),
+            latest[display_cols].rename(
+                columns={
+                    "phase": "Phase ID",
+                    "phase_name": "Phase 名称",
+                    "score": "评分",
+                    "verdict": "判定",
+                    "judged_at": "评审时间",
+                    "version": "版本",
+                }
+            ),
             hide_index=True,
         )
 

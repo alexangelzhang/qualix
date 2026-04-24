@@ -14,6 +14,9 @@ from typing import Any
 from pydantic import BaseModel, Field
 
 from dqg.json_utils import dump_jsonl
+from dqg.log import get_logger
+
+log = get_logger(__name__)
 
 
 class PhaseRunRecord(BaseModel):
@@ -56,7 +59,7 @@ def append_record(output_dir: Path, record: PhaseRunRecord) -> Path:
 
         insert_telemetry(output_dir, record.model_dump())
     except Exception:
-        pass  # SQLite 写入失败不阻断主流程
+        log.debug("Telemetry SQLite write failed", exc_info=True)
 
     return path
 

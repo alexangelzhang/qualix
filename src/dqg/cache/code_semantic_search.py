@@ -11,7 +11,7 @@ import re
 from pathlib import Path
 from typing import Any
 
-from dqg.cache.code_search import CONCEPT_MAP, expand_query, index_java_repo, search_code
+from dqg.cache.code_search import CONCEPT_MAP, index_java_repo, search_code
 from dqg.json_utils import load_json, save_json
 from dqg.log import get_logger
 
@@ -45,6 +45,7 @@ def map_se_to_code(
     """
     # 加载 Phase A 产物
     from dqg.constants import PHASE_DIR_MAP, STRUCTURED_JSON_MAP
+
     phase_a_path = output_dir / project_id / PHASE_DIR_MAP["Q01"] / STRUCTURED_JSON_MAP["Q01"]
     if not phase_a_path.exists():
         return []
@@ -83,23 +84,27 @@ def map_se_to_code(
                 key = (h.get("file_path", ""), h.get("line_number", 0))
                 if key not in seen_keys:
                     seen_keys.add(key)
-                    all_matches.append({
-                        "file": h.get("file_path", ""),
-                        "class": h.get("parent_symbol", ""),
-                        "method": h.get("symbol_name", ""),
-                        "line": h.get("line_number", 0),
-                        "type": h.get("symbol_type", ""),
-                        "signature": h.get("signature", "")[:100],
-                        "matched_keyword": h.get("matched_keyword", term),
-                    })
+                    all_matches.append(
+                        {
+                            "file": h.get("file_path", ""),
+                            "class": h.get("parent_symbol", ""),
+                            "method": h.get("symbol_name", ""),
+                            "line": h.get("line_number", 0),
+                            "type": h.get("symbol_type", ""),
+                            "signature": h.get("signature", "")[:100],
+                            "matched_keyword": h.get("matched_keyword", term),
+                        }
+                    )
 
-        results.append({
-            "se_id": se_id,
-            "se_description": desc[:100],
-            "search_terms": search_terms[:5],
-            "code_matches": all_matches[:limit_per_se],
-            "coverage": "FOUND" if all_matches else "NOT_FOUND",
-        })
+        results.append(
+            {
+                "se_id": se_id,
+                "se_description": desc[:100],
+                "search_terms": search_terms[:5],
+                "code_matches": all_matches[:limit_per_se],
+                "coverage": "FOUND" if all_matches else "NOT_FOUND",
+            }
+        )
 
     return results
 
@@ -121,6 +126,7 @@ def write_se_code_mapping(
 
     # 写入目标 Phase 目录
     from dqg.constants import PHASE_DIR_MAP
+
     dir_suffix = PHASE_DIR_MAP.get(phase_id, f"phase{phase_id}")
     phase_dir = output_dir / project_id / dir_suffix
     int_dir = phase_dir / "_internal"
@@ -128,12 +134,15 @@ def write_se_code_mapping(
 
     # JSON
     json_path = int_dir / "_se_code_mapping.json"
-    save_json(json_path, {
-        "mappings": mapping,
-        "total_se": len(mapping),
-        "found": sum(1 for m in mapping if m["coverage"] == "FOUND"),
-        "not_found": sum(1 for m in mapping if m["coverage"] == "NOT_FOUND"),
-    })
+    save_json(
+        json_path,
+        {
+            "mappings": mapping,
+            "total_se": len(mapping),
+            "found": sum(1 for m in mapping if m["coverage"] == "FOUND"),
+            "not_found": sum(1 for m in mapping if m["coverage"] == "NOT_FOUND"),
+        },
+    )
 
     # Markdown
     md_path = int_dir / "_se_code_mapping.md"
@@ -201,15 +210,19 @@ def _extract_search_terms(desc: str, dynamic_map: dict[str, list[str]]) -> list[
 def _list_java_files(repo: Path) -> list[str]:
     """列出仓库中的 Java 文件（git ls-files 优先，fallback rglob）."""
     import subprocess
+
     try:
         result = subprocess.run(
             ["git", "ls-files", "*.java"],
-            cwd=str(repo), capture_output=True, text=True, timeout=30,
+            cwd=str(repo),
+            capture_output=True,
+            text=True,
+            timeout=30,
         )
         if result.returncode == 0:
             return [f.strip() for f in result.stdout.splitlines() if f.strip()]
     except Exception:
-        pass
+        log.debug("git ls-files 失败，回退到 rglob", exc_info=True)
     return [str(f.relative_to(repo)) for f in repo.rglob("*.java")]
 
 

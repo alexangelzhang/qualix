@@ -7,22 +7,29 @@ startup 只需要读取状态 + 构建菜单 JSON，不需要 pydantic 模型验
 from __future__ import annotations
 
 import sys
-from pathlib import Path
-
-from dqg.core.phase_registry import PHASE_DEFS, PHASE_ORDER
-from dqg.constants import LEGACY_PHASE_ID_MAP
-from dqg.json_utils import dump_json_str, load_json_strict
 from types import MappingProxyType
-from typing import Final
+from typing import TYPE_CHECKING, Final
+
+if TYPE_CHECKING:
+    from pathlib import Path
+
+from dqg.constants import LEGACY_PHASE_ID_MAP
+from dqg.core.phase_registry import PHASE_DEFS, PHASE_ORDER
+from dqg.json_utils import dump_json_str, load_json_strict
+from dqg.log import get_logger
+
+log = get_logger(__name__)
 
 
-STATUS_ICONS: Final = MappingProxyType({
-    "not_started": "⬜",
-    "in_progress": "🔶",
-    "pending_review": "🔍",
-    "approved": "✅",
-    "skipped": "⏭",
-})
+STATUS_ICONS: Final = MappingProxyType(
+    {
+        "not_started": "⬜",
+        "in_progress": "🔶",
+        "pending_review": "🔍",
+        "approved": "✅",
+        "skipped": "⏭",
+    }
+)
 
 _DONE_STATUSES: Final = frozenset({"approved", "skipped"})
 
@@ -59,9 +66,7 @@ def _check_gate(phases: dict, phase_id: str) -> bool:
         dep = phases.get(dep_id, {})
         if dep.get("status") not in _DONE_STATUSES:
             return False
-    if phases.get(phase_id, {}).get("status") == "approved":
-        return False
-    return True
+    return phases.get(phase_id, {}).get("status") != "approved"
 
 
 def _get_available(phases: dict) -> list[str]:
@@ -109,52 +114,56 @@ def cmd_startup(args, output_dir: Path) -> int:
         phase_def = PHASE_DEFS[phase_id]
         status = ps.get("status", "not_started")
         duration = ps.get("duration_seconds")
-        menu_items.append({
-            "phase_id": phase_id,
-            "name": phase_def["name"],
-            "status": status,
-            "icon": STATUS_ICONS.get(status, "?"),
-            "available": phase_id in available,
-            "skippable": phase_def.get("skippable", False),
-            "skip_condition": phase_def.get("skip_condition", None),
-            "skill": phase_def["skill"],
-            "required_inputs": phase_def.get("required_inputs", []),
-            "optional_inputs": phase_def.get("optional_inputs", []),
-            "deliverables": phase_def.get("deliverables", []),
-            "approve_checklist": phase_def.get("approve_checklist", []),
-            "duration": f"{duration:.0f}s" if duration else None,
-            "comment": ps.get("comment") or None,
-        })
+        menu_items.append(
+            {
+                "phase_id": phase_id,
+                "name": phase_def["name"],
+                "status": status,
+                "icon": STATUS_ICONS.get(status, "?"),
+                "available": phase_id in available,
+                "skippable": phase_def.get("skippable", False),
+                "skip_condition": phase_def.get("skip_condition", None),
+                "skill": phase_def["skill"],
+                "required_inputs": phase_def.get("required_inputs", []),
+                "optional_inputs": phase_def.get("optional_inputs", []),
+                "deliverables": phase_def.get("deliverables", []),
+                "approve_checklist": phase_def.get("approve_checklist", []),
+                "duration": f"{duration:.0f}s" if duration else None,
+                "comment": ps.get("comment") or None,
+            }
+        )
 
     done = sum(1 for pid in PHASE_ORDER if phases.get(pid, {}).get("status") in _DONE_STATUSES)
     total = len(PHASE_ORDER)
     total_duration = sum(phases.get(pid, {}).get("duration_seconds") or 0.0 for pid in PHASE_ORDER)
     judge_scores = [
-        phases[pid]["judge_score"]
-        for pid in PHASE_ORDER
-        if phases.get(pid, {}).get("judge_score") is not None
+        phases[pid]["judge_score"] for pid in PHASE_ORDER if phases.get(pid, {}).get("judge_score") is not None
     ]
     avg_judge = sum(judge_scores) / len(judge_scores) if judge_scores else None
 
-    print(dump_json_str({
-        "project_id": args.project_id,
-        "profile_id": data.get("profile_id", "java-ddd-tmf"),
-        "all_done": done == total,
-        "progress": {
-            "done": done,
-            "total": total,
-            "percent": int(done / total * 100) if total else 0,
-            "total_duration_seconds": round(total_duration, 1),
-            "avg_judge_score": round(avg_judge, 2) if avg_judge else None,
-        },
-        "menu": menu_items,
-        "next_groups": [{"phases": g, "parallel": len(g) > 1} for g in groups],
-        "shortcuts": {
-            "v": "详情模式（展示每个 Phase 的交付物和校验结果）",
-            "g": "全局进度（展示进度/耗时/质量分汇总）",
-            "数字": "选择要执行的阶段编号",
-        },
-    }))
+    print(
+        dump_json_str(
+            {
+                "project_id": args.project_id,
+                "profile_id": data.get("profile_id", "java-ddd-tmf"),
+                "all_done": done == total,
+                "progress": {
+                    "done": done,
+                    "total": total,
+                    "percent": int(done / total * 100) if total else 0,
+                    "total_duration_seconds": round(total_duration, 1),
+                    "avg_judge_score": round(avg_judge, 2) if avg_judge else None,
+                },
+                "menu": menu_items,
+                "next_groups": [{"phases": g, "parallel": len(g) > 1} for g in groups],
+                "shortcuts": {
+                    "v": "详情模式（展示每个 Phase 的交付物和校验结果）",
+                    "g": "全局进度（展示进度/耗时/质量分汇总）",
+                    "数字": "选择要执行的阶段编号",
+                },
+            }
+        )
+    )
 
     # Session orientation：轻量版，不走 pydantic
     _print_orientation(output_dir, args.project_id, data, phases)
@@ -177,8 +186,11 @@ def _print_orientation(output_dir: Path, project_id: str, data: dict, phases: di
             ps = phases.get(pid, {})
             status = ps.get("status", "not_started")
             icon = {
-                "approved": "+", "skipped": "~", "in_progress": ">",
-                "pending_review": "?", "not_started": " ",
+                "approved": "+",
+                "skipped": "~",
+                "in_progress": ">",
+                "pending_review": "?",
+                "not_started": " ",
             }.get(status, " ")
             name = PHASE_DEFS[pid]["name"]
             score = ps.get("judge_score")
@@ -230,7 +242,7 @@ def _print_orientation(output_dir: Path, project_id: str, data: dict, phases: di
 
         print("\n".join(lines), file=sys.stderr)
     except Exception:
-        pass
+        log.debug("Startup orientation print failed", exc_info=True)
 
 
 def _find_last_active(phases: dict) -> str | None:

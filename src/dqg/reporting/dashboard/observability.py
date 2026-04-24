@@ -5,8 +5,12 @@ from __future__ import annotations
 import pandas as pd
 import streamlit as st
 
+from dqg.log import get_logger
+
 from .cache import _cached_observe_alerts
 from .constants import OUTPUT_DIR
+
+log = get_logger(__name__)
 
 
 def _load_observe_reports(period: str = "daily") -> list[dict]:
@@ -23,7 +27,7 @@ def _load_observe_reports(period: str = "daily") -> list[dict]:
             if data is not None:
                 reports.append(data)
         except Exception:
-            pass
+            log.debug("Failed to load observe report %s", f, exc_info=True)
     return reports
 
 

@@ -9,9 +9,11 @@
 
 from __future__ import annotations
 
-from pathlib import Path
 from types import MappingProxyType
 from typing import TYPE_CHECKING, Any, Final
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 if TYPE_CHECKING:
     from pydantic import BaseModel
@@ -27,15 +29,17 @@ from dqg.text_utils import STRUCTURED_JSON_MAP
 log = get_logger(__name__)
 
 # Phase → Pydantic 模型类（延迟导入避免循环）
-_SCHEMA_MAP: Final = MappingProxyType({
-    "Q01": "dqg.schemas.phase_a:PhaseAOutput",
-    "Q02": "dqg.schemas.phase_a3:PhaseA3Output",
-    "Q04": "dqg.schemas.phase_a5:PhaseA5Output",
-    "Q03": "dqg.schemas.phase_a6:PhaseA6Output",
-    "Q05": "dqg.schemas.phase_b:PhaseBOutput",
-    "Q06": "dqg.schemas.phase_c:PhaseCOutput",
-    "Q07": "dqg.schemas.phase_d:PhaseDOutput",
-})
+_SCHEMA_MAP: Final = MappingProxyType(
+    {
+        "Q01": "dqg.schemas.phase_a:PhaseAOutput",
+        "Q02": "dqg.schemas.phase_a3:PhaseA3Output",
+        "Q04": "dqg.schemas.phase_a5:PhaseA5Output",
+        "Q03": "dqg.schemas.phase_a6:PhaseA6Output",
+        "Q05": "dqg.schemas.phase_b:PhaseBOutput",
+        "Q06": "dqg.schemas.phase_c:PhaseCOutput",
+        "Q07": "dqg.schemas.phase_d:PhaseDOutput",
+    }
+)
 
 
 def _import_schema(phase_id: str):
@@ -45,6 +49,7 @@ def _import_schema(phase_id: str):
         return None
     module_name, class_name = module_path.rsplit(":", 1)
     import importlib
+
     mod = importlib.import_module(module_name)
     return getattr(mod, class_name, None)
 
@@ -121,17 +126,13 @@ def _check_cross_references(validated: BaseModel, phase_id: str) -> list[str]:
         for gap in getattr(validated, "gaps", []):
             for ref_id in gap.related_ids:
                 if ref_id and ref_id not in all_ids:
-                    errors.append(
-                        f"XREF: {gap.gap_id} 引用了不存在的 ID '{ref_id}'"
-                    )
+                    errors.append(f"XREF: {gap.gap_id} 引用了不存在的 ID '{ref_id}'")
 
         # 检查 OPEN 的 related_ids
         for item in getattr(validated, "open_items", []):
             for ref_id in item.related_ids:
                 if ref_id and ref_id not in all_ids:
-                    errors.append(
-                        f"XREF: {item.open_id} 引用了不存在的 ID '{ref_id}'"
-                    )
+                    errors.append(f"XREF: {item.open_id} 引用了不存在的 ID '{ref_id}'")
 
     return errors
 
@@ -143,23 +144,17 @@ def _check_severity_annotations(validated: BaseModel, phase_id: str) -> list[str
     if phase_id == "Q03":
         for issue in getattr(validated, "issues", []):
             if not issue.severity:
-                errors.append(
-                    f"SEVERITY: {issue.issue_id} 未标注严重等级"
-                )
+                errors.append(f"SEVERITY: {issue.issue_id} 未标注严重等级")
         # Failure Mode 必须有 status
         for fm in getattr(validated, "failure_modes", []):
             if not fm.failure_scenario:
-                errors.append(
-                    f"SEVERITY: failure_mode '{fm.business_path}' 缺少 failure_scenario"
-                )
+                errors.append(f"SEVERITY: failure_mode '{fm.business_path}' 缺少 failure_scenario")
 
     if phase_id == "Q01":
         # GAP 应该有 required_clarification
         for gap in getattr(validated, "gaps", []):
             if not gap.required_clarification:
-                errors.append(
-                    f"INCOMPLETE: {gap.gap_id} 缺少 required_clarification（需要说明需要澄清什么）"
-                )
+                errors.append(f"INCOMPLETE: {gap.gap_id} 缺少 required_clarification（需要说明需要澄清什么）")
 
     return errors
 
@@ -174,6 +169,7 @@ def _check_rsm_coverage(output_dir: Path, project_id: str, phase_id: str) -> lis
 
     try:
         from dqg.schemas.rsm import compute_coverage, load_rsm
+
         lifecycle = load_rsm(output_dir, project_id)
         if not lifecycle:
             return errors  # Phase A 还没跑，无法计算
@@ -185,9 +181,10 @@ def _check_rsm_coverage(output_dir: Path, project_id: str, phase_id: str) -> lis
     # 保存覆盖率快照（趋势追踪）
     try:
         from dqg.store.store_coverage import save_coverage_snapshot
+
         save_coverage_snapshot(output_dir, project_id, phase_id, coverage)
     except Exception:
-        pass  # 快照保存失败不阻断
+        log.debug("coverage snapshot 保存失败", exc_info=True)
 
     gap_tasks: list[dict[str, Any]] = []
 
@@ -201,13 +198,15 @@ def _check_rsm_coverage(output_dir: Path, project_id: str, phase_id: str) -> lis
             # 收集未覆盖的 REQ，生成补充任务
             for item in lifecycle.values():
                 if item.id_type == "REQ" and item.coverage_status not in ("COVERED", "IMPLICIT"):
-                    gap_tasks.append({
-                        "target_id": item.req_id,
-                        "target_phase": "Q04",
-                        "action": "补充技术方案覆盖",
-                        "description": f"{item.req_id}: {item.description}",
-                        "current_status": item.coverage_status or "UNKNOWN",
-                    })
+                    gap_tasks.append(
+                        {
+                            "target_id": item.req_id,
+                            "target_phase": "Q04",
+                            "action": "补充技术方案覆盖",
+                            "description": f"{item.req_id}: {item.description}",
+                            "current_status": item.coverage_status or "UNKNOWN",
+                        }
+                    )
         # GAP 闭环率
         if coverage.total_gaps > 0 and coverage.gap_closure_rate < 0.5:
             errors.append(
@@ -216,47 +215,51 @@ def _check_rsm_coverage(output_dir: Path, project_id: str, phase_id: str) -> lis
             )
             for item in lifecycle.values():
                 if item.id_type == "GAP" and item.closure_status != "已闭环":
-                    gap_tasks.append({
-                        "target_id": item.req_id,
-                        "target_phase": "Q04",
-                        "action": "闭环 GAP",
-                        "description": f"{item.req_id}: {item.description}",
-                        "current_status": item.closure_status or "未闭环",
-                    })
+                    gap_tasks.append(
+                        {
+                            "target_id": item.req_id,
+                            "target_phase": "Q04",
+                            "action": "闭环 GAP",
+                            "description": f"{item.req_id}: {item.description}",
+                            "current_status": item.closure_status or "未闭环",
+                        }
+                    )
 
-    if phase_id in ("Q05", "Q06"):
+    if phase_id in ("Q05", "Q06") and coverage.total_ses > 0 and coverage.test_coverage_rate < 0.6:
         # B/C finalize 时：SE 应该有对应 EUT
-        if coverage.total_ses > 0 and coverage.test_coverage_rate < 0.6:
-            errors.append(
-                f"RSM_COVERAGE: SE→EUT 测试覆盖率 {coverage.test_coverage_rate:.0%} "
-                f"低于阈值 60%（{coverage.ses_with_eut}/{coverage.total_ses}）"
-            )
-            for item in lifecycle.values():
-                if item.id_type == "SE" and not item.eut_ids:
-                    gap_tasks.append({
+        errors.append(
+            f"RSM_COVERAGE: SE→EUT 测试覆盖率 {coverage.test_coverage_rate:.0%} "
+            f"低于阈值 60%（{coverage.ses_with_eut}/{coverage.total_ses}）"
+        )
+        for item in lifecycle.values():
+            if item.id_type == "SE" and not item.eut_ids:
+                gap_tasks.append(
+                    {
                         "target_id": item.req_id,
                         "target_phase": "Q05",
                         "action": "补充 EUT",
                         "description": f"{item.req_id}: {item.description}",
                         "current_status": "NO_EUT",
-                    })
+                    }
+                )
 
-    if phase_id == "Q07":
+    if phase_id == "Q07" and coverage.total_reqs > 0 and coverage.review_coverage_rate < 0.5:
         # D finalize 时：REQ 应该有对应 finding
-        if coverage.total_reqs > 0 and coverage.review_coverage_rate < 0.5:
-            errors.append(
-                f"RSM_COVERAGE: REQ→Finding 评审覆盖率 {coverage.review_coverage_rate:.0%} "
-                f"低于阈值 50%（{coverage.reqs_with_finding}/{coverage.total_reqs}）"
-            )
-            for item in lifecycle.values():
-                if item.id_type == "REQ" and not item.finding_ids:
-                    gap_tasks.append({
+        errors.append(
+            f"RSM_COVERAGE: REQ→Finding 评审覆盖率 {coverage.review_coverage_rate:.0%} "
+            f"低于阈值 50%（{coverage.reqs_with_finding}/{coverage.total_reqs}）"
+        )
+        for item in lifecycle.values():
+            if item.id_type == "REQ" and not item.finding_ids:
+                gap_tasks.append(
+                    {
                         "target_id": item.req_id,
                         "target_phase": "Q07",
                         "action": "补充代码评审",
                         "description": f"{item.req_id}: {item.description}",
                         "current_status": "NOT_REVIEWED",
-                    })
+                    }
+                )
 
     # 保存补充任务文件（供下游 Phase 或 Adaptive Loop 消费）
     if gap_tasks:
@@ -266,11 +269,15 @@ def _check_rsm_coverage(output_dir: Path, project_id: str, phase_id: str) -> lis
 
 
 def _save_gap_tasks(
-    output_dir: Path, project_id: str, phase_id: str, tasks: list[dict[str, Any]],
+    output_dir: Path,
+    project_id: str,
+    phase_id: str,
+    tasks: list[dict[str, Any]],
 ) -> None:
     """保存覆盖率缺口补充任务."""
+    from dqg.core.state_machine import PHASE_DEFS
+    from dqg.core.state_machine import phase_dir as _phase_dir
     from dqg.json_utils import save_json
-    from dqg.core.state_machine import PHASE_DEFS, phase_dir as _phase_dir
 
     phase_def = PHASE_DEFS.get(phase_id)
     if not phase_def:
