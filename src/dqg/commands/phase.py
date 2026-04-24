@@ -18,7 +18,10 @@ from dqg.core.state_machine import (
     save_state,
     skip_phase,
 )
+from dqg.log import get_logger
 from dqg.services.phase_service import profile_context_warnings as _profile_context_warnings
+
+log = get_logger(__name__)
 
 
 # Re-export sub-command implementations (lazy to break phase ↔ phase_auto/phase_reset cycle)
@@ -252,7 +255,7 @@ def cmd_finalize(args, output_dir: Path) -> int:
             project_filter=args.project_id,
         )
     except Exception:
-        pass  # observe 是增强，不阻断主流程
+        log.warning("Observability report generation failed", exc_info=True)
 
     _flush_events()
     return 0

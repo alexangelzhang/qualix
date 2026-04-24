@@ -392,7 +392,7 @@ def _get_cached_connection(db_str: str) -> sqlite3.Connection:
             if "llm_calls" not in cols:
                 conn.execute("ALTER TABLE telemetry ADD COLUMN llm_calls TEXT DEFAULT '[]'")
         except Exception:
-            pass
+            log.debug("Schema migration check failed for %s", db_str, exc_info=True)
         _initialized_dbs.add(db_str)
         log.debug("Schema initialized: %s", db_str)
     cache[db_str] = conn

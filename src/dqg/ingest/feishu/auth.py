@@ -20,7 +20,7 @@ def load_larkkit() -> tuple[Any, Callable[[int], str]]:
 
         return FeishuClient, get_code_language
     except Exception:
-        pass
+        log.warning("Failed to load larkkit FeishuClient", exc_info=True)
 
     uv_site_root = Path.home() / ".local/share/uv/tools/larkkit/lib"
     candidates = sorted(uv_site_root.glob("python*/site-packages"), reverse=True)
@@ -146,8 +146,7 @@ def resolve_input_doc(
                 ) from exc
             if "401" in err_str or "expired" in err_str:
                 raise RuntimeError(
-                    f"Wiki 节点访问 token 已过期 (token={token})。\n"
-                    "  执行 `uvx larkkit auth refresh` 刷新后重试。"
+                    f"Wiki 节点访问 token 已过期 (token={token})。\n  执行 `uvx larkkit auth refresh` 刷新后重试。"
                 ) from exc
             raise
 
@@ -172,10 +171,7 @@ def resolve_input_doc(
             resolved["wiki_node"] = node_info
             resolved["wiki_resolve_use_user_token"] = node_use_user_token
         elif not obj_token:
-            raise RuntimeError(
-                f"Wiki 节点 obj_token 为空: obj_type={obj_type}。\n"
-                "  可能无权限或链接失效。"
-            )
+            raise RuntimeError(f"Wiki 节点 obj_token 为空: obj_type={obj_type}。\n  可能无权限或链接失效。")
         else:
             raise RuntimeError(
                 f"Wiki 节点类型不支持: obj_type={obj_type}, obj_token={obj_token}。\n"

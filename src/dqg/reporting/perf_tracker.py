@@ -10,22 +10,25 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from dqg.json_utils import load_json
 from dqg.constants import (
+    PERF_DURATION_WARNING,
+    PERF_OUTPUT_TOKEN_WARNING,
+    PERF_TOKEN_WARNING,
     PRICING_CACHE_READ_PER_M,
     PRICING_CACHE_WRITE_PER_M,
     PRICING_INPUT_PER_M,
     PRICING_OUTPUT_PER_M,
     REPORT_MAP,
     STRUCTURED_JSON_MAP,
-    PERF_DURATION_WARNING,
-    PERF_OUTPUT_TOKEN_WARNING,
-    PERF_TOKEN_WARNING,
 )
 from dqg.core.model_registry import estimate_tokens
-from dqg.core.state_machine import PHASE_DEFS, phase_dir as _phase_dir
+from dqg.core.state_machine import PHASE_DEFS
+from dqg.core.state_machine import phase_dir as _phase_dir
+from dqg.json_utils import load_json
+from dqg.log import get_logger
 from dqg.path_utils import resolve_effective_context_files, resolve_internal_file
-from dqg.store import insert_metric
+
+log = get_logger(__name__)
 
 _FILE_TOKEN_CACHE: dict[tuple[str, int, int], int] = {}
 
@@ -170,11 +173,12 @@ def collect_phase_metrics(
     # 重跑率（同一 Phase 被执行的次数）
     try:
         from dqg.store import query_telemetry
+
         runs = query_telemetry(output_dir, project_id=project_id, phase_id=phase_id, action="execute", limit=100)
         metrics["run_count"] = len(runs)
         metrics["first_pass"] = len(runs) <= 1
     except Exception:
-        pass
+        log.warning("Failed to query telemetry for run_count", exc_info=True)
 
     return metrics
 
@@ -233,7 +237,9 @@ def _compute_quality_density(structured: dict[str, Any], input_tokens: int) -> d
     return density
 
 
-def _estimate_cost(input_tokens: int, output_tokens: int, cache_creation_tokens: int = 0, cache_read_tokens: int = 0) -> float:
+def _estimate_cost(
+    input_tokens: int, output_tokens: int, cache_creation_tokens: int = 0, cache_read_tokens: int = 0
+) -> float:
     """粗略估算 API 成本（基于 Claude Opus 4 及其缓存定价体系估算）."""
     base_input = max(0, input_tokens - cache_creation_tokens - cache_read_tokens)
 
@@ -255,10 +261,17 @@ def persist_phase_metrics(output_dir: Path, metrics: dict[str, Any]) -> None:
     pid = metrics.get("project_id", "")
     phase = metrics.get("phase_id", "")
 
-    for key in ("input_tokens", "output_tokens", "total_tokens",
-                "tokens_per_second", "cost_estimate_usd",
-                "output_dir_size_kb", "output_file_count",
-                "cache_read_input_tokens", "cache_creation_input_tokens"):
+    for key in (
+        "input_tokens",
+        "output_tokens",
+        "total_tokens",
+        "tokens_per_second",
+        "cost_estimate_usd",
+        "output_dir_size_kb",
+        "output_file_count",
+        "cache_read_input_tokens",
+        "cache_creation_input_tokens",
+    ):
         value = metrics.get(key)
         if value is not None:
             rows.append((pid, phase, key, value, "{}", "phase_run", ts))
@@ -293,15 +306,13 @@ def generate_improvement_suggestions(metrics: dict[str, Any]) -> list[str]:
         upstream = input_files.get("upstream_context", 0)
         if upstream > input_tokens * 0.6:
             suggestions.append(
-                f"上游产物占输入 token 的 {upstream/input_tokens:.0%}，"
-                "建议使用摘要模式或增量加载减少 token"
+                f"上游产物占输入 token 的 {upstream / input_tokens:.0%}，建议使用摘要模式或增量加载减少 token"
             )
 
         bug_cases = input_files.get("bug_cases", 0)
         if bug_cases > input_tokens * 0.3:
             suggestions.append(
-                f"Bug 案例注入占输入 token 的 {bug_cases/input_tokens:.0%}，"
-                "建议提高相关性匹配阈值减少注入数量"
+                f"Bug 案例注入占输入 token 的 {bug_cases / input_tokens:.0%}，建议提高相关性匹配阈值减少注入数量"
             )
 
     # 执行时间分析
@@ -341,10 +352,7 @@ def format_metrics_report(metrics: dict[str, Any]) -> str:
     cache_creation = metrics.get("cache_creation_input_tokens", 0)
     if cache_read or cache_creation:
         cache_hit_rate = cache_read / max(input_t, 1)
-        lines.append(
-            f"  Prompt Cache: read={cache_read:,} creation={cache_creation:,} "
-            f"hit_rate={cache_hit_rate:.0%}"
-        )
+        lines.append(f"  Prompt Cache: read={cache_read:,} creation={cache_creation:,} hit_rate={cache_hit_rate:.0%}")
 
     # 输入明细
     input_files = metrics.get("input_files", {})

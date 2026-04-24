@@ -11,7 +11,10 @@ from pathlib import Path
 from typing import Any
 
 from dqg.json_utils import dump_json_str
+from dqg.log import get_logger
 from dqg.store.core import get_connection
+
+log = get_logger(__name__)
 
 # ---------------------------------------------------------------------------
 # 内存缓冲：事件先写入 buffer，批量 flush 到 SQLite
@@ -75,7 +78,7 @@ def _flush_buffer_locked() -> int:
                 )
                 written += len(rows)
         except Exception:
-            pass  # 静默失败不阻断主流程
+            log.debug("Event flush failed", exc_info=True)
 
     _buffer = []
     return written
@@ -111,7 +114,7 @@ def query_events(
 
     with get_connection(output_dir) as conn:
         rows = conn.execute(
-            f"SELECT * FROM events {where} ORDER BY id DESC LIMIT ?",  # noqa: S608
+            f"SELECT * FROM events {where} ORDER BY id DESC LIMIT ?",
             params,
         ).fetchall()
         return [dict(r) for r in rows]
@@ -132,7 +135,7 @@ def get_phase_timeline(
     where = f"WHERE {' AND '.join(clauses)}"
     with get_connection(output_dir) as conn:
         rows = conn.execute(
-            f"SELECT * FROM events {where} ORDER BY id ASC",  # noqa: S608
+            f"SELECT * FROM events {where} ORDER BY id ASC",
             params,
         ).fetchall()
         return [dict(r) for r in rows]

@@ -17,8 +17,11 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from dqg.ingest.common import info, warn
+from dqg.ingest.common import info
 from dqg.json_utils import dump_json_str
+from dqg.log import get_logger
+
+log = get_logger(__name__)
 
 
 def _find_larkkit_bin() -> str:
@@ -31,9 +34,7 @@ def _find_larkkit_bin() -> str:
     home_bin = Path.home() / ".local/bin/larkkit"
     if home_bin.exists():
         return str(home_bin)
-    raise RuntimeError(
-        "找不到 larkkit CLI。请先安装: pip install larkkit 或 uv tool install larkkit"
-    )
+    raise RuntimeError("找不到 larkkit CLI。请先安装: pip install larkkit 或 uv tool install larkkit")
 
 
 def _run_larkkit_download(
@@ -102,7 +103,7 @@ def _extract_title_from_md(md_path: Path) -> str:
         if first_line.startswith("# "):
             return first_line[2:].strip()
     except Exception:
-        pass
+        log.debug("Failed to extract title from %s", md_path, exc_info=True)
     return md_path.stem
 
 
@@ -123,7 +124,7 @@ def _parse_report_stats(report_path: Path | None) -> dict[str, int]:
         if m:
             stats["char_count"] = int(m.group(1).replace(",", ""))
     except Exception:
-        pass
+        log.debug("Failed to parse report stats", exc_info=True)
     return stats
 
 
@@ -159,7 +160,8 @@ def ingest_via_larkkit(
         info(f"[larkkit] 下载文档: {url}")
 
         ok, stdout, stderr = _run_larkkit_download(
-            url, tmp_dir,
+            url,
+            tmp_dir,
             no_images=True,
             use_user_token=use_user_token,
             timeout=timeout,
@@ -171,8 +173,7 @@ def ingest_via_larkkit(
         files = _find_output_files(tmp_dir)
         if not files["doc_md"]:
             raise RuntimeError(
-                f"larkkit 输出中未找到文档 Markdown 文件。目录内容: "
-                f"{[f.name for f in tmp_dir.iterdir()]}"
+                f"larkkit 输出中未找到文档 Markdown 文件。目录内容: {[f.name for f in tmp_dir.iterdir()]}"
             )
 
         # 提取元数据
@@ -236,11 +237,13 @@ def _get_larkkit_version() -> str:
         bin_path = _find_larkkit_bin()
         result = subprocess.run(
             [bin_path, "version"],
-            capture_output=True, text=True, timeout=10,
+            capture_output=True,
+            text=True,
+            timeout=10,
         )
         m = re.search(r"版本号:\s*([\d.]+)", result.stdout)
         if m:
             return m.group(1)
     except Exception:
-        pass
+        log.debug("Failed to get larkkit version", exc_info=True)
     return "unknown"
