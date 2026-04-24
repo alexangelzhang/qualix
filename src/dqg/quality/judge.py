@@ -358,7 +358,6 @@ def synthesize_judge_result(
         precision_est = round(0.7 + 0.25 * critical_ratio, 2)
         recall_est = round(min(0.95, 0.6 + 0.08 * total_issues - 0.05 * score), 2)
         recall_est = max(0.4, min(0.95, recall_est))
-        score = 1.5
 
     gate_items = []
     checklist = phase_def.get("approve_checklist", [])

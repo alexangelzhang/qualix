@@ -66,18 +66,20 @@ class GateVerdict:
         return [c for c in self.checks if not c.passed and c.level == "SOFT"]
 
     def to_dict(self) -> dict[str, Any]:
+        hf = self.hard_failures
+        sf = self.soft_failures
         return {
             "phase_id": self.phase_id,
             "timestamp": self.timestamp,
             "passed": self.passed,
-            "hard_blocked": self.hard_blocked,
-            "soft_blocked": self.soft_blocked,
+            "hard_blocked": len(hf) > 0,
+            "soft_blocked": len(sf) > 0,
             "checks": [asdict(c) for c in self.checks],
             "summary": {
                 "total": len(self.checks),
                 "passed": sum(1 for c in self.checks if c.passed),
-                "hard_failures": len(self.hard_failures),
-                "soft_failures": len(self.soft_failures),
+                "hard_failures": len(hf),
+                "soft_failures": len(sf),
             },
         }
 

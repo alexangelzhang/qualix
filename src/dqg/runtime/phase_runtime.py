@@ -22,12 +22,15 @@ from dqg.core.state_machine import (
     phase_dir as _phase_dir,
 )
 from dqg.json_utils import load_json
+from dqg.log import get_logger
 from dqg.runtime.events import EventType
 from dqg.runtime.lifecycle import get_registry
 from dqg.runtime.result import PhaseResult
 
 if TYPE_CHECKING:
     from dqg.runtime.execution_context import ExecutionContext
+
+log = get_logger(__name__)
 
 
 def _emit(ctx: ExecutionContext, event_type: EventType, message: str = "", **data: Any) -> None:
@@ -342,7 +345,7 @@ def runtime_finalize(ctx: ExecutionContext) -> PhaseResult:
         save_verdict(ctx.output_dir, ctx.project_id, ctx.phase_id, verdict)
         ctx.shared["gate_verdict"] = verdict.to_dict()
     except Exception:
-        pass  # verdict 构建失败不阻断 finalize
+        log.warning("GateVerdict build failed for %s, skipping", ctx.phase_id, exc_info=True)
 
     result.add_event(
         EventType.FINALIZE_COMPLETED,
