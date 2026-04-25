@@ -39,6 +39,8 @@ log = get_logger(__name__)
 if TYPE_CHECKING:
     from pathlib import Path
 
+    from dqg.quality.evaluation_protocols import PhaseProtocol
+
 
 @dataclass
 class AdaptiveResult:
@@ -137,10 +139,31 @@ class AdaptiveLoop:
                 "P3 composed rubric: phase=%s, dynamic=%d dims", phase_id, len(_dynamic_dims) if _dynamic_dims else 0
             )
 
+        # Protocol: inject Phase-specific checklist + red_lines into judge rubric
+        from dqg.quality.evaluation_protocols import get_protocol, render_protocol_for_prompt
+
+        _protocol = get_protocol(phase_id)
+        if _protocol:
+            _judge_protocol_text = render_protocol_for_prompt(_protocol.judge)
+            judge_rubric = _judge_protocol_text + "\n\n" + judge_rubric
+            log.info("Protocol injected: phase=%s, judge checklist=%d items", phase_id, len(_protocol.judge.checklist))
+
         from dqg.constants import REPORT_MAP
 
         report_file = REPORT_MAP.get(phase_id, "phase_report.md")
         report_path = pd / report_file
+
+        # Inject dynamic experience (genes filtered by phase+role) — needs report_path
+        if _protocol:
+            from dqg.quality.gene_store import load_genes_for_phase, match_genes, render_genes_for_prompt
+
+            _phase_genes = load_genes_for_phase(self.output_dir.parent, phase_id, agent_role="judge")
+            if _phase_genes and report_path.exists():
+                _report_text = report_path.read_text(encoding="utf-8", errors="replace")
+                _matched = match_genes(_phase_genes, _report_text)
+                if _matched:
+                    judge_rubric = judge_rubric + "\n\n" + render_genes_for_prompt(_matched)
+                    log.info("Dynamic genes injected: %d matched for judge", len(_matched))
 
         iterations: list[IterationRecord] = []
         all_llm_calls: list[dict[str, Any]] = []
@@ -182,6 +205,7 @@ class AdaptiveLoop:
                 force_secondary=_force_secondary,
                 skip_critique=_skip_critique,
                 upstream_path=_upstream_path if _anchor_available else None,
+                protocol=_protocol,
             )
             iterations.append(record)
             all_llm_calls.extend(iter_llm_calls)
@@ -294,6 +318,7 @@ class AdaptiveLoop:
         force_secondary: bool = False,
         skip_critique: bool = False,
         upstream_path: Path | None = None,
+        protocol: PhaseProtocol | None = None,
     ) -> tuple[IterationRecord, bool, list[dict[str, Any]]]:
         """执行单轮迭代：Worker → Judge → Critique，返回 (record, passed, llm_calls)."""
         from dqg.runtime.task_store import add_task_event, save_checkpoint
@@ -429,10 +454,16 @@ class AdaptiveLoop:
             passed = True
 
         if not skip_critique:
+            _critique_system = critique_prompt
+            if protocol:
+                from dqg.quality.evaluation_protocols import render_protocol_for_prompt as _render_proto
+
+                _critique_system = _render_proto(protocol.critique) + "\n\n" + critique_prompt
+
             critique = Agent(
                 name=f"critique-iter{i + 1}",
                 role="critique",
-                system_prompt=critique_prompt,
+                system_prompt=_critique_system,
                 model=LLMConfig(primary=fallback, fallback=fallback),
                 output_dir=self.output_dir,
             )
