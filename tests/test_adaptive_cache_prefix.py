@@ -116,3 +116,92 @@ def test_fixer_uses_dynamic_context_files(monkeypatch, tmp_path: Path) -> None:
     assert any("handoff" in n for n in dynamic_names), (
         f"Expected handoff file in dynamic_context_files: {dynamic_names}"
     )
+    assert any("report" in n for n in dynamic_names), f"Expected report file in dynamic_context_files: {dynamic_names}"
+
+
+def test_cache_tokens_in_extract_llm_call():
+    """extract_llm_call should include cache token metrics."""
+    from dqg.agents.agent import AgentResult, extract_llm_call
+
+    result = AgentResult(
+        agent_name="test",
+        role="worker",
+        status="success",
+        content="done",
+        model_used="claude-opus-4-6",
+        token_usage={
+            "input_tokens": 1000,
+            "output_tokens": 200,
+            "cache_creation_input_tokens": 800,
+            "cache_read_input_tokens": 0,
+        },
+        prompt_hash="abc123",
+    )
+
+    telemetry = extract_llm_call(result)
+    assert telemetry["cache_creation_input_tokens"] == 800
+    assert telemetry["cache_read_input_tokens"] == 0
+    assert telemetry["input_tokens"] == 1000
+
+
+def test_message_bytes_prefix_stable(monkeypatch, tmp_path):
+    """Directly verify that the first N messages sent to the backend are byte-identical across iterations."""
+    all_message_lists: list[list[dict]] = []
+
+    class SpyBackend:
+        def chat(self, messages, **kwargs):
+            all_message_lists.append(
+                [
+                    {"role": m["role"], "content": m["content"], "cache_control": m.get("cache_control")}
+                    for m in messages
+                ]
+            )
+            return "## 报告\n内容", {"input_tokens": 100, "output_tokens": 50}
+
+        def name(self):
+            return "spy-backend"
+
+    monkeypatch.setattr("dqg.agents.agent.create_backend", lambda *a, **kw: SpyBackend())
+
+    from dqg.agents.agent import Agent
+    from dqg.agents.llm_backends import LLMConfig
+
+    evidence = tmp_path / "evidence.md"
+    evidence.write_text("REQ-001 需求\nBR-001 规则\nSE-001 语义期望", encoding="utf-8")
+
+    handoff = tmp_path / "handoff.md"
+    handoff.write_text("Judge 反馈：缺少边界条件分析", encoding="utf-8")
+
+    # Iteration 1: worker (static only)
+    agent1 = Agent(
+        name="worker-iter1",
+        role="worker",
+        system_prompt="审查代码",
+        model=LLMConfig(primary="fake", fallback=None),
+    )
+    agent1.run("执行审查", context_files=[evidence])
+
+    # Iteration 2: fixer (static + dynamic)
+    agent2 = Agent(
+        name="fixer-iter2",
+        role="worker",
+        system_prompt="审查代码",
+        model=LLMConfig(primary="fake", fallback=None),
+    )
+    agent2.run("修正报告", context_files=[evidence], dynamic_context_files=[handoff])
+
+    assert len(all_message_lists) == 2
+
+    iter1_msgs = all_message_lists[0]
+    iter2_msgs = all_message_lists[1]
+
+    # The cached prefix (system + static context) must be identical
+    # iter1: [system, static_context, user_message]
+    # iter2: [system, static_context, dynamic_context, user_message]
+    assert iter1_msgs[0] == iter2_msgs[0], "System message differs"
+    assert iter1_msgs[1] == iter2_msgs[1], "Static context message differs"
+
+    # iter2 has an extra dynamic message before user_message
+    assert len(iter2_msgs) == len(iter1_msgs) + 1
+    assert iter2_msgs[2]["cache_control"] is None, "Dynamic message should not be cached"
+    assert "Judge 反馈" in iter2_msgs[2]["content"]

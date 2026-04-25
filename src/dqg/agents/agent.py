@@ -51,6 +51,8 @@ def extract_llm_call(result: AgentResult) -> dict[str, int | str | bool | float]
         "prompt_hash": result.prompt_hash,
         "input_tokens": result.token_usage.get("input_tokens", 0),
         "output_tokens": result.token_usage.get("output_tokens", 0),
+        "cache_creation_input_tokens": result.token_usage.get("cache_creation_input_tokens", 0),
+        "cache_read_input_tokens": result.token_usage.get("cache_read_input_tokens", 0),
         "cache_hit": result.cache_hit,
         "duration_seconds": round(result.duration_seconds, 2),
         "status": result.status,
@@ -293,6 +295,8 @@ class Agent:
 
         total_input_tokens = 0
         total_output_tokens = 0
+        total_cache_creation = 0
+        total_cache_read = 0
         final_content = ""
         model_used = None
         saw_tool_call = False
@@ -346,6 +350,8 @@ class Agent:
             # 更新 Tokens
             total_input_tokens += usage.get("input_tokens", 0)
             total_output_tokens += usage.get("output_tokens", 0)
+            total_cache_creation += usage.get("cache_creation_input_tokens", 0)
+            total_cache_read += usage.get("cache_read_input_tokens", 0)
             final_content += content + "\n\n"
 
             # 解析 tool_call（仅当 Agent 有注册工具时才处理）
@@ -393,7 +399,12 @@ class Agent:
             content=final_content.strip(),
             model_used=model_used or self.model.primary,
             duration_seconds=time.time() - start,
-            token_usage={"input_tokens": total_input_tokens, "output_tokens": total_output_tokens},
+            token_usage={
+                "input_tokens": total_input_tokens,
+                "output_tokens": total_output_tokens,
+                "cache_creation_input_tokens": total_cache_creation,
+                "cache_read_input_tokens": total_cache_read,
+            },
             cache_hit=False,
             cached=False,
             trajectory=raw_trajectory,

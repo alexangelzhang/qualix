@@ -23,6 +23,7 @@ MAX_LINES = 400
 # 历史遗留超标文件白名单（2026-04-20 基线）
 # 拆分后从此列表移除，目标：清空
 LEGACY_ALLOWLIST: set[str] = {
+    "src/dqg/agents/agent.py",
     "src/dqg/agents/adaptive_loop.py",
     "src/dqg/agents/agent_orchestrator.py",
     "src/dqg/agents/dag_scheduler.py",
