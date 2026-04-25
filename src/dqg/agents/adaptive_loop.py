@@ -287,10 +287,10 @@ class AdaptiveLoop:
                 model=LLMConfig(primary=worker_model, fallback=fallback),
                 output_dir=self.output_dir,
             )
-            fixer_context = [handoff_path, report_path] + (context_files or [])
             record.worker_result = fixer.run(
                 f"基于交接文档中的评审反馈修正报告（第 {i + 1} 轮），保持原有格式和结构。",
-                context_files=fixer_context,
+                context_files=context_files,
+                dynamic_context_files=[handoff_path, report_path],
             )
             if record.worker_result.status != "failed":
                 report_path.write_text(record.worker_result.content, encoding="utf-8")

@@ -156,8 +156,8 @@ def test_adaptive_loop_passes_output_dir_to_all_agents(monkeypatch, tmp_path: Pa
             created.append((name, str(output_dir) if output_dir is not None else None))
             self.role = role
 
-        def run(self, user_message: str, context_files=None):
-            del user_message, context_files
+        def run(self, user_message: str, context_files=None, dynamic_context_files=None):
+            del user_message, context_files, dynamic_context_files
             content = "report body"
             return SimpleNamespace(
                 status="success",
