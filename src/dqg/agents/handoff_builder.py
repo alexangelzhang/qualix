@@ -9,7 +9,11 @@ if TYPE_CHECKING:
     from dqg.agents.judge_vote import IterationRecord
 
 
-def build_handoff_document(prev: IterationRecord, next_iteration: int) -> str:
+def build_handoff_document(
+    prev: IterationRecord,
+    next_iteration: int,
+    anchor_facts: str | None = None,
+) -> str:
     """生成结构化交接文档（Anthropic Context Reset 模式）.
 
     交接文档是新 agent 实例的唯一上下文来源（除了原始 context_files），
@@ -22,6 +26,10 @@ def build_handoff_document(prev: IterationRecord, next_iteration: int) -> str:
         "修正上一轮报告中 Judge 和 Critique 指出的问题，输出改进后的完整报告。",
         "",
     ]
+
+    if anchor_facts:
+        parts.append(anchor_facts)
+        parts.append("")
 
     parts.append("## Progress（上一轮进展）")
     parts.append(f"- 迭代轮次: 第 {prev.iteration} 轮")

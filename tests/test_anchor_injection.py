@@ -67,3 +67,40 @@ def test_extract_anchor_summary_truncates_to_max_tokens():
     result = extract_anchor_summary(big_input, max_tokens=200)
     assert len(result) < len(big_input)
     assert "REQ-000" in result
+
+
+def test_handoff_includes_anchor_section():
+    """When anchor_facts is provided, handoff includes Anchor section between Goal and Progress."""
+    from dqg.agents.judge_vote import IterationRecord, JudgeVote, VoteResult
+
+    vote = JudgeVote(model="m", scores={}, overall=2.5, verdict="FAIL", issues=[], duration=1.0)
+    vr = VoteResult(votes=[vote], consensus="FAIL", avg_score=2.5, disagreements=[])
+    prev = IterationRecord(iteration=1, judge_result=vr)
+
+    from dqg.agents.handoff_builder import build_handoff_document
+
+    anchor = "## Anchor（原始需求锚点 — 修正时不可偏离）\n\n### 核心需求 (REQ)\n- REQ-001: 测试需求"
+    result = build_handoff_document(prev, 2, anchor_facts=anchor)
+
+    assert "Anchor" in result
+    assert "REQ-001" in result
+    # Anchor should appear before Progress
+    anchor_pos = result.index("Anchor")
+    progress_pos = result.index("Progress")
+    assert anchor_pos < progress_pos
+
+
+def test_handoff_without_anchor_unchanged():
+    """When anchor_facts is None, handoff is unchanged from current behavior."""
+    from dqg.agents.judge_vote import IterationRecord, JudgeVote, VoteResult
+
+    vote = JudgeVote(model="m", scores={}, overall=2.5, verdict="FAIL", issues=[], duration=1.0)
+    vr = VoteResult(votes=[vote], consensus="FAIL", avg_score=2.5, disagreements=[])
+    prev = IterationRecord(iteration=1, judge_result=vr)
+
+    from dqg.agents.handoff_builder import build_handoff_document
+
+    result = build_handoff_document(prev, 2, anchor_facts=None)
+    assert "Anchor" not in result
+    assert "Goal" in result
+    assert "Progress" in result

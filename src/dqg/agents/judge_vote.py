@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from dataclasses import dataclass, field
+from dataclasses import dataclass
+from datetime import UTC
 from typing import TYPE_CHECKING, Any
 
 from dqg.log import get_logger
@@ -44,9 +45,10 @@ class IterationRecord:
     duration: float = 0
 
 
-def _write_hard_block_result(output_dir: "Path", vote: JudgeVote, guard_result: Any) -> None:
+def _write_hard_block_result(output_dir: Path, vote: JudgeVote, guard_result: Any) -> None:
     """HARD_BLOCK 时写入 _judge_result.json，让 cmd_approve 能读到并拦截。"""
-    from datetime import datetime, timezone
+    from datetime import datetime
+
     from dqg.json_utils import save_json
 
     result = {
@@ -56,9 +58,10 @@ def _write_hard_block_result(output_dir: "Path", vote: JudgeVote, guard_result: 
         "hard_blocked": True,
         "block_reason": "Anti-Rationalization Guard: 二次确认仍检测到放水行为，Judge 结果无效",
         "confirmed_rationalizations": guard_result.confirmed_rationalizations,
-        "judged_at": datetime.now(timezone.utc).isoformat(),
+        "judged_at": datetime.now(UTC).isoformat(),
     }
     from pathlib import Path
+
     block_path = Path(output_dir) / "_hard_block_result.json"
     try:
         save_json(block_path, result)
@@ -68,8 +71,8 @@ def _write_hard_block_result(output_dir: "Path", vote: JudgeVote, guard_result: 
 
 
 def _run_single_judge(
-    output_dir: "Path",
-    report_path: "Path",
+    output_dir: Path,
+    report_path: Path,
     rubric: str,
     model: str,
     fallback: str,
@@ -106,8 +109,8 @@ def _run_single_judge(
 
 
 def _run_secondary_fallback(
-    output_dir: "Path",
-    report_path: "Path",
+    output_dir: Path,
+    report_path: Path,
     rubric: str,
     secondary_models: list[str],
     fallback: str,
@@ -129,7 +132,10 @@ def _run_secondary_fallback(
 
 
 def _compute_consensus(
-    verdicts: list[str], avg_score: float, pass_threshold: float, concerns_delta: float,
+    verdicts: list[str],
+    avg_score: float,
+    pass_threshold: float,
+    concerns_delta: float,
 ) -> str:
     """从投票结果计算共识."""
     if all(v == "PASS" for v in verdicts):
@@ -144,11 +150,12 @@ def _compute_consensus(
 
 
 def multi_judge_vote(
-    output_dir: "Path",
-    report_path: "Path",
+    output_dir: Path,
+    report_path: Path,
     rubric: str,
     models: list[str],
     fallback: str = "deepseek-chat",
+    force_secondary: bool = False,
 ) -> VoteResult:
     """Primary Judge + Secondary Validation 策略.
 
@@ -169,8 +176,13 @@ def multi_judge_vote(
     if primary_vote is None:
         log.warning("Primary judge %s failed, falling back to secondary models", primary_model)
         return _run_secondary_fallback(
-            output_dir, report_path, rubric, secondary_models, fallback,
-            JUDGE_PASS_THRESHOLD, JUDGE_PASS_WITH_CONCERNS_DELTA,
+            output_dir,
+            report_path,
+            rubric,
+            secondary_models,
+            fallback,
+            JUDGE_PASS_THRESHOLD,
+            JUDGE_PASS_WITH_CONCERNS_DELTA,
         )
 
     # Guard: Anti-Rationalization check on primary vote
@@ -184,7 +196,11 @@ def multi_judge_vote(
             log.warning("Guard detected rationalization in primary judge, re-judging")
             warning_text = format_rejudge_warning(guard_result)
             rejudged = _run_single_judge(
-                output_dir, report_path, rubric, primary_model, fallback,
+                output_dir,
+                report_path,
+                rubric,
+                primary_model,
+                fallback,
                 warning_override=warning_text,
             )
             if rejudged is not None:
@@ -212,7 +228,11 @@ def multi_judge_vote(
             )
             warning_text = format_overcorrection_warning(oc_result)
             rejudged = _run_single_judge(
-                output_dir, report_path, rubric, primary_model, fallback,
+                output_dir,
+                report_path,
+                rubric,
+                primary_model,
+                fallback,
                 warning_override=warning_text,
             )
             if rejudged is not None:
@@ -221,8 +241,13 @@ def multi_judge_vote(
     if primary_vote is None:
         log.warning("Primary judge excluded, falling back to secondary models")
         return _run_secondary_fallback(
-            output_dir, report_path, rubric, secondary_models, fallback,
-            JUDGE_PASS_THRESHOLD, JUDGE_PASS_WITH_CONCERNS_DELTA,
+            output_dir,
+            report_path,
+            rubric,
+            secondary_models,
+            fallback,
+            JUDGE_PASS_THRESHOLD,
+            JUDGE_PASS_WITH_CONCERNS_DELTA,
         )
 
     votes: list[JudgeVote] = [primary_vote]
@@ -231,10 +256,13 @@ def multi_judge_vote(
     boundary_high = JUDGE_PASS_THRESHOLD + JUDGE_PASS_WITH_CONCERNS_DELTA
     is_boundary = boundary_low <= primary_vote.overall <= boundary_high
 
-    if is_boundary and secondary_models:
+    if (force_secondary or is_boundary) and secondary_models:
         log.info(
             "Primary judge %s score=%.1f in boundary [%.1f, %.1f], invoking secondary validation",
-            primary_model, primary_vote.overall, boundary_low, boundary_high,
+            primary_model,
+            primary_vote.overall,
+            boundary_low,
+            boundary_high,
         )
         max_workers = max(1, len(secondary_models))
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
@@ -246,10 +274,11 @@ def multi_judge_vote(
                 vote = future.result()
                 if vote is not None:
                     votes.append(vote)
-    elif not is_boundary:
+    elif not is_boundary and not force_secondary:
         log.info(
             "Primary judge %s score=%.1f clear %s, skipping secondary validation",
-            primary_model, primary_vote.overall,
+            primary_model,
+            primary_vote.overall,
             "PASS" if primary_vote.overall >= JUDGE_PASS_THRESHOLD else "FAIL",
         )
 
