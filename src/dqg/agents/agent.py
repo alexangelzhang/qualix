@@ -117,20 +117,18 @@ class Agent:
             return text[:limit] + "\n...(截断)"
         return text
 
-    def _build_context_payload(self, context_files: list[Path] | None) -> str:
-        """将上下文文件整理为稳定 evidence bundle，供 cache key 和 prompt 使用。"""
-        if not context_files:
+    def _build_file_bundle(self, files: list[Path] | None) -> str:
+        """Build file excerpt bundle with dedup and budget limits."""
+        if not files:
             return ""
-
         blocks: list[str] = []
         seen: set[str] = set()
         used = 0
-        for f in context_files:
+        for f in files:
             key = str(f)
             if key in seen or not f.exists():
                 continue
             seen.add(key)
-
             remaining = AGENT_EVIDENCE_TOTAL_LIMIT - used
             if remaining <= 0:
                 break
@@ -140,6 +138,10 @@ class Agent:
             blocks.append(f"## 文件: {f.name}\n\n{excerpt}")
             used += len(excerpt)
         return "\n\n---\n\n".join(blocks)
+
+    def _build_context_payload(self, context_files: list[Path] | None) -> str:
+        """将上下文文件整理为稳定 evidence bundle，供 cache key 和 prompt 使用。"""
+        return self._build_file_bundle(context_files)
 
     def _cache_key_payload(
         self, backend_name: str, system_content: str, context_payload: str, user_message: str
@@ -235,27 +237,7 @@ class Agent:
 
     def _build_dynamic_payload(self, dynamic_context_files: list[Path] | None) -> str:
         """将动态上下文文件整理为 evidence bundle（不缓存，每次迭代可变）。"""
-        if not dynamic_context_files:
-            return ""
-
-        blocks: list[str] = []
-        seen: set[str] = set()
-        used = 0
-        for f in dynamic_context_files:
-            key = str(f)
-            if key in seen or not f.exists():
-                continue
-            seen.add(key)
-
-            remaining = AGENT_EVIDENCE_TOTAL_LIMIT - used
-            if remaining <= 0:
-                break
-            excerpt = self._read_excerpt(f, min(AGENT_EVIDENCE_EXCERPT_LIMIT, remaining))
-            if not excerpt:
-                continue
-            blocks.append(f"## 文件: {f.name}\n\n{excerpt}")
-            used += len(excerpt)
-        return "\n\n---\n\n".join(blocks)
+        return self._build_file_bundle(dynamic_context_files)
 
     def _cache_key_components(
         self,
@@ -263,14 +245,14 @@ class Agent:
         context_files: list[Path] | None,
         user_message: str,
         dynamic_context_files: list[Path] | None = None,
-    ) -> tuple[str, str, str, str]:
+    ) -> tuple[str, str, str, str, str]:
         system_content = self._build_system_content()
         context_payload = self._build_context_payload(context_files)
         dynamic_payload = self._build_dynamic_payload(dynamic_context_files)
         # Cache key includes dynamic content so different dynamic inputs don't collide
         combined_context = context_payload + dynamic_payload
         payload_json = self._cache_key_payload(backend_name, system_content, combined_context, user_message)
-        return system_content, context_payload, dynamic_payload, payload_json
+        return system_content, context_payload, dynamic_payload, combined_context, payload_json
 
     def run(
         self,
@@ -281,14 +263,13 @@ class Agent:
         """执行 Agent 任务，失败自动切换备用模型."""
         self._init_backends()
         start = time.time()
-        system_content, context_payload, dynamic_payload, payload_json = self._cache_key_components(
+        system_content, context_payload, dynamic_payload, combined_context, payload_json = self._cache_key_components(
             self._backend.name(), context_files, user_message, dynamic_context_files
         )
 
         # Compute prompt fingerprint for observability
         prompt_hash = hashlib.sha256(payload_json.encode("utf-8")).hexdigest()[:16]
 
-        combined_context = context_payload + dynamic_payload
         cached_result = self._cache_lookup(self._backend.name(), system_content, combined_context, user_message)
         if cached_result is not None:
             cached_result.prompt_hash = prompt_hash
