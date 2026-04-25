@@ -233,33 +233,69 @@ class Agent:
                 (query_hash, payload_json, "agent_result", dump_json_str(cached_payload, indent=None), time.time()),
             )
 
+    def _build_dynamic_payload(self, dynamic_context_files: list[Path] | None) -> str:
+        """将动态上下文文件整理为 evidence bundle（不缓存，每次迭代可变）。"""
+        if not dynamic_context_files:
+            return ""
+
+        blocks: list[str] = []
+        seen: set[str] = set()
+        used = 0
+        for f in dynamic_context_files:
+            key = str(f)
+            if key in seen or not f.exists():
+                continue
+            seen.add(key)
+
+            remaining = AGENT_EVIDENCE_TOTAL_LIMIT - used
+            if remaining <= 0:
+                break
+            excerpt = self._read_excerpt(f, min(AGENT_EVIDENCE_EXCERPT_LIMIT, remaining))
+            if not excerpt:
+                continue
+            blocks.append(f"## 文件: {f.name}\n\n{excerpt}")
+            used += len(excerpt)
+        return "\n\n---\n\n".join(blocks)
+
     def _cache_key_components(
-        self, backend_name: str, context_files: list[Path] | None, user_message: str
-    ) -> tuple[str, str, str]:
+        self,
+        backend_name: str,
+        context_files: list[Path] | None,
+        user_message: str,
+        dynamic_context_files: list[Path] | None = None,
+    ) -> tuple[str, str, str, str]:
         system_content = self._build_system_content()
         context_payload = self._build_context_payload(context_files)
-        payload_json = self._cache_key_payload(backend_name, system_content, context_payload, user_message)
-        return system_content, context_payload, payload_json
+        dynamic_payload = self._build_dynamic_payload(dynamic_context_files)
+        # Cache key includes dynamic content so different dynamic inputs don't collide
+        combined_context = context_payload + dynamic_payload
+        payload_json = self._cache_key_payload(backend_name, system_content, combined_context, user_message)
+        return system_content, context_payload, dynamic_payload, payload_json
 
-    def run(self, user_message: str, context_files: list[Path] | None = None) -> AgentResult:
+    def run(
+        self,
+        user_message: str,
+        context_files: list[Path] | None = None,
+        dynamic_context_files: list[Path] | None = None,
+    ) -> AgentResult:
         """执行 Agent 任务，失败自动切换备用模型."""
         self._init_backends()
         start = time.time()
-        system_content, context_payload, _ = self._cache_key_components(
-            self._backend.name(), context_files, user_message
+        system_content, context_payload, dynamic_payload, payload_json = self._cache_key_components(
+            self._backend.name(), context_files, user_message, dynamic_context_files
         )
 
         # Compute prompt fingerprint for observability
-        payload_json = self._cache_key_payload(self._backend.name(), system_content, context_payload, user_message)
         prompt_hash = hashlib.sha256(payload_json.encode("utf-8")).hexdigest()[:16]
 
-        cached_result = self._cache_lookup(self._backend.name(), system_content, context_payload, user_message)
+        combined_context = context_payload + dynamic_payload
+        cached_result = self._cache_lookup(self._backend.name(), system_content, combined_context, user_message)
         if cached_result is not None:
             cached_result.prompt_hash = prompt_hash
             return cached_result
         if self._fallback_backend:
             cached_result = self._cache_lookup(
-                self._fallback_backend.name(), system_content, context_payload, user_message
+                self._fallback_backend.name(), system_content, combined_context, user_message
             )
             if cached_result is not None:
                 cached_result.prompt_hash = prompt_hash
@@ -270,6 +306,8 @@ class Agent:
             messages.append({"role": "system", "content": system_content, "cache_control": True})
         if context_payload:
             messages.append({"role": "user", "content": context_payload, "cache_control": True})
+        if dynamic_payload:
+            messages.append({"role": "user", "content": dynamic_payload})
         messages.append({"role": "user", "content": user_message})
 
         total_input_tokens = 0
@@ -382,6 +420,6 @@ class Agent:
         )
 
         if not saw_tool_call:
-            self._cache_store(result.model_used, system_content, context_payload, user_message, result)
+            self._cache_store(result.model_used, system_content, combined_context, user_message, result)
 
         return result
