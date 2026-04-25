@@ -22,8 +22,8 @@ from dqg.text_utils import REPORT_MAP, STRUCTURED_JSON_MAP
 
 log = get_logger(__name__)
 
-# 模块级文件读取缓存：同一进程内避免重复读同一文件（上限 128 条防止内存泄漏）
-_file_cache: dict[str, str | None] = {}
+# 模块级文件读取缓存：mtime 感知，避免返回过期内容（上限 128 条防止内存泄漏）
+_file_cache: dict[str, tuple[int, str | None]] = {}  # key → (mtime_ns, content)
 _FILE_CACHE_MAX_SIZE = 128
 
 # 避免循环导入：运行时从 context_loader 导入 ContextChunk
@@ -34,22 +34,32 @@ if TYPE_CHECKING:
 
 
 def _read_file_safe(path: Path) -> str | None:
-    """安全读取文件（带模块级缓存）."""
+    """安全读取文件（带 mtime 感知缓存）."""
     key = str(path)
-    if key in _file_cache:
-        return _file_cache[key]
     if not path.exists():
-        _file_cache[key] = None
+        _file_cache[key] = (0, None)
         return None
+
+    try:
+        current_mtime = path.stat().st_mtime_ns
+    except OSError:
+        return None
+
+    cached = _file_cache.get(key)
+    if cached is not None:
+        cached_mtime, cached_content = cached
+        if cached_mtime == current_mtime:
+            return cached_content
+
     try:
         content = path.read_text(encoding="utf-8")
         if len(_file_cache) >= _FILE_CACHE_MAX_SIZE:
             _file_cache.clear()
-        _file_cache[key] = content
+        _file_cache[key] = (current_mtime, content)
         return content
     except OSError:
         log.warning("Failed to read file: %s", path)
-        _file_cache[key] = None
+        _file_cache[key] = (current_mtime, None)
         return None
 
 
@@ -91,13 +101,15 @@ def _collect_phase_artifacts(output_dir: Path, project_id: str, phase_id: str) -
         content = _read_file_safe(phase_dir / json_file)
         if content:
             has_structured = True
-            chunks.append(ContextChunk(
-                source=f"Phase {phase_id} 结构化产物 ({json_file})",
-                content=content,
-                token_estimate=estimate_tokens(content),
-                priority=0,  # 最高优先级
-                file_path=str(phase_dir / json_file),
-            ))
+            chunks.append(
+                ContextChunk(
+                    source=f"Phase {phase_id} 结构化产物 ({json_file})",
+                    content=content,
+                    token_estimate=estimate_tokens(content),
+                    priority=0,  # 最高优先级
+                    file_path=str(phase_dir / json_file),
+                )
+            )
 
     # 其次加载当前 phase 的 markdown 报告
     report_file = REPORT_MAP.get(phase_id)
@@ -106,45 +118,53 @@ def _collect_phase_artifacts(output_dir: Path, project_id: str, phase_id: str) -
         content = _read_file_safe(path)
         if content:
             has_structured = True
-            chunks.append(ContextChunk(
-                source=f"Phase {phase_id} 报告 ({report_file})",
-                content=content,
-                token_estimate=estimate_tokens(content),
-                priority=1,
-                file_path=str(path),
-            ))
+            chunks.append(
+                ContextChunk(
+                    source=f"Phase {phase_id} 报告 ({report_file})",
+                    content=content,
+                    token_estimate=estimate_tokens(content),
+                    priority=1,
+                    file_path=str(path),
+                )
+            )
 
     # 加载图片语义缓存（如果存在），避免下游重新读图片
     image_semantics = _read_file_safe(phase_dir / "image_semantics.md")
     if image_semantics:
-        chunks.append(ContextChunk(
-            source=f"Phase {phase_id} 图片语义缓存 (image_semantics.md)",
-            content=image_semantics,
-            token_estimate=estimate_tokens(image_semantics),
-            priority=1,  # 与 markdown 报告同优先级
-            file_path=str(phase_dir / "image_semantics.md"),
-        ))
+        chunks.append(
+            ContextChunk(
+                source=f"Phase {phase_id} 图片语义缓存 (image_semantics.md)",
+                content=image_semantics,
+                token_estimate=estimate_tokens(image_semantics),
+                priority=1,  # 与 markdown 报告同优先级
+                file_path=str(phase_dir / "image_semantics.md"),
+            )
+        )
 
     # 仅在没有结构化产物时才加载文本（避免重复消耗 token）
     # 优先加载摘要版本，其次原文
     if not has_structured:
         summary_text = _read_file_safe(resolve_ingest_file(phase_dir, "plain_text_summary.md"))
         if summary_text:
-            chunks.append(ContextChunk(
-                source=f"Phase {phase_id} 文档摘要 (plain_text_summary.md)",
-                content=summary_text,
-                token_estimate=estimate_tokens(summary_text),
-                priority=2,
-            ))
+            chunks.append(
+                ContextChunk(
+                    source=f"Phase {phase_id} 文档摘要 (plain_text_summary.md)",
+                    content=summary_text,
+                    token_estimate=estimate_tokens(summary_text),
+                    priority=2,
+                )
+            )
         else:
             plain_text = _read_file_safe(resolve_ingest_file(phase_dir, "plain_text.txt"))
             if plain_text:
-                chunks.append(ContextChunk(
-                    source=f"Phase {phase_id} 原始文本 (plain_text.txt)",
-                    content=plain_text,
-                    token_estimate=estimate_tokens(plain_text),
-                    priority=2,  # 最低优先级
-                ))
+                chunks.append(
+                    ContextChunk(
+                        source=f"Phase {phase_id} 原始文本 (plain_text.txt)",
+                        content=plain_text,
+                        token_estimate=estimate_tokens(plain_text),
+                        priority=2,  # 最低优先级
+                    )
+                )
 
     return chunks
 
@@ -238,12 +258,14 @@ def _split_large_chunk(chunk: ContextChunk, max_tokens: int) -> list[ContextChun
     for para in paragraphs:
         para_tokens = _estimate_tokens_cached(para, token_cache)
         if current_tokens + para_tokens > max_tokens and current_parts:
-            sub_chunks.append(ContextChunk(
-                source=f"{chunk.source} (part {len(sub_chunks) + 1})",
-                content="\n\n".join(current_parts),
-                token_estimate=current_tokens,
-                priority=chunk.priority,
-            ))
+            sub_chunks.append(
+                ContextChunk(
+                    source=f"{chunk.source} (part {len(sub_chunks) + 1})",
+                    content="\n\n".join(current_parts),
+                    token_estimate=current_tokens,
+                    priority=chunk.priority,
+                )
+            )
             current_parts = []
             current_tokens = 0
 
@@ -251,12 +273,14 @@ def _split_large_chunk(chunk: ContextChunk, max_tokens: int) -> list[ContextChun
         current_tokens += para_tokens
 
     if current_parts:
-        sub_chunks.append(ContextChunk(
-            source=f"{chunk.source} (part {len(sub_chunks) + 1})",
-            content="\n\n".join(current_parts),
-            token_estimate=current_tokens,
-            priority=chunk.priority,
-        ))
+        sub_chunks.append(
+            ContextChunk(
+                source=f"{chunk.source} (part {len(sub_chunks) + 1})",
+                content="\n\n".join(current_parts),
+                token_estimate=current_tokens,
+                priority=chunk.priority,
+            )
+        )
 
     return sub_chunks
 
@@ -389,9 +413,10 @@ def _auto_compact_chunks(
 # Lazy import to break context_loader ↔ chunk_processor ↔ chunk_summarizer cycle
 # ---------------------------------------------------------------------------
 
+
 def __getattr__(name: str):
     if name == "summarize_upstream_chunk":
         from dqg.context.chunk_summarizer import summarize_upstream_chunk
+
         return summarize_upstream_chunk
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
-

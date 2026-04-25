@@ -50,9 +50,20 @@ class LoadedContext:
     total_tokens: int = 0
     budget_tokens: int = 0
     verification_targets: list[dict] | None = None
+    _source_files: list = field(default_factory=list)  # list[Path] for cache key
+    _output_dir: object = None  # Path | None
 
     def render_evidence_pack(self) -> str:
-        """渲染 retrieval-first evidence pack."""
+        """渲染 retrieval-first evidence pack（带结构缓存）."""
+        # Check cache first
+        if self._source_files and self._output_dir:
+            from dqg.cache.evidence_cache import EvidencePackCache
+
+            cache = EvidencePackCache(self._output_dir)
+            cached = cache.get(self.phase_id, self._source_files)
+            if cached is not None:
+                return cached["rendered"]
+
         lines = [
             EVIDENCE_PACK_HEADER,
             "",
@@ -113,11 +124,18 @@ class LoadedContext:
                     len(result),
                     len(compressed),
                 )
-                return compressed
+                result = compressed
         except Exception:
             from dqg.log import get_logger
 
             get_logger(__name__).warning("Evidence Pack 压缩失败，使用原文", exc_info=True)
+
+        # Store in cache for future hits
+        if self._source_files and self._output_dir:
+            from dqg.cache.evidence_cache import EvidencePackCache
+
+            cache = EvidencePackCache(self._output_dir)
+            cache.put(self.phase_id, self._source_files, result, token_count=self.total_tokens)
 
         return result
 
@@ -188,6 +206,8 @@ def _assemble_context(
     budget: int,
     all_chunks: list[ContextChunk],
     verification_targets: list[dict] | None = None,
+    source_files: list | None = None,
+    output_dir: object = None,
 ) -> LoadedContext:
     """排序、分块、压缩、截断，组装最终 LoadedContext."""
     from dqg.context.chunk_processor import _auto_compact_chunks, _split_large_chunk
@@ -238,6 +258,8 @@ def _assemble_context(
         total_tokens=used_tokens,
         budget_tokens=budget,
         verification_targets=verification_targets,
+        _source_files=source_files or [],
+        _output_dir=output_dir,
     )
 
 
@@ -301,4 +323,22 @@ def load_context(
             verification_targets = contract.get("verification_targets")
 
     # Phase 3: 组装最终 context
-    return _assemble_context(target_phase, model, budget, all_chunks, verification_targets)
+    # Collect source file paths for cache key
+    from pathlib import Path as _Path
+
+    source_files = []
+    for chunk in all_chunks:
+        if chunk.file_path:
+            fp = _Path(chunk.file_path)
+            if fp.exists():
+                source_files.append(fp)
+
+    return _assemble_context(
+        target_phase,
+        model,
+        budget,
+        all_chunks,
+        verification_targets,
+        source_files=source_files,
+        output_dir=output_dir,
+    )
