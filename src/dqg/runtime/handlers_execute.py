@@ -205,24 +205,23 @@ def handle_demand_trace(ctx: ExecutionContext, result: PhaseResult) -> None:
 
 
 def handle_code_skeleton(ctx: ExecutionContext, result: PhaseResult) -> None:
-    """Phase Q07: TREEFRAG 代码骨架压缩 + Oracle 标注."""
+    """Phase Q07: TREEFRAG 代码骨架压缩 + Oracle 标注（provider dispatch）."""
     if not ctx.code_repo:
         return
 
     from pathlib import Path as _Path
 
     from dqg.constants import PHASE_DIR_MAP
-    from dqg.context.code_skeleton import extract_skeleton_for_files
     from dqg.json_utils import load_json, save_json
+    from dqg.languages.registry import get_registry
 
-    # 从 demand_trace 或 blast_radius 获取需审查文件
+    lang_id = ctx.shared.get("language_id", "java")
     dir_suffix = PHASE_DIR_MAP.get("Q07", "phaseD")
     int_dir = ctx.output_dir / ctx.project_id / dir_suffix / "_internal"
 
     target_files: list[_Path] = []
     se_code_mapping: dict[str, list[str]] = {}
 
-    # 优先用 demand_trace 的文件列表
     trace_path = int_dir / "_demand_trace.json"
     if trace_path.exists():
         trace_data = load_json(trace_path)
@@ -232,7 +231,6 @@ def handle_code_skeleton(ctx: ExecutionContext, result: PhaseResult) -> None:
                 fp = repo / f
                 if fp.exists():
                     target_files.append(fp)
-            # 从 traced_methods 构建 Oracle 映射
             for t in trace_data.get("traced_methods", []):
                 method = t.get("method", "")
                 file_path = t.get("file", "")
@@ -243,17 +241,31 @@ def handle_code_skeleton(ctx: ExecutionContext, result: PhaseResult) -> None:
 
     if not target_files:
         return
-
-    # 限制文件数量避免过大
     target_files = target_files[:30]
 
-    results = extract_skeleton_for_files(target_files, se_code_mapping)
+    provider = get_registry().get(lang_id)
+    if provider is not None and hasattr(provider, "extract_skeleton"):
+        from dqg.context.code_skeleton import SkeletonResult
+
+        results: dict[str, SkeletonResult] = {}
+        for fp in target_files:
+            try:
+                source = fp.read_text(encoding="utf-8", errors="replace")
+            except OSError:
+                continue
+            expand = set(se_code_mapping.get(str(fp), []))
+            skel = provider.extract_skeleton(source, expand)
+            if skel is not None:
+                results[str(fp)] = skel
+    else:
+        from dqg.context.code_skeleton import extract_skeleton_for_files
+
+        results = extract_skeleton_for_files(target_files, se_code_mapping)
+
     if not results:
         return
 
     int_dir.mkdir(parents=True, exist_ok=True)
-
-    # 写入骨架摘要
     skeleton_data = {
         "file_count": len(results),
         "total_lines": sum(r.total_lines for r in results.values()),
@@ -269,21 +281,17 @@ def handle_code_skeleton(ctx: ExecutionContext, result: PhaseResult) -> None:
             for fp, r in results.items()
         },
     }
-    json_path = int_dir / "_code_skeleton.json"
-    save_json(json_path, skeleton_data)
+    save_json(int_dir / "_code_skeleton.json", skeleton_data)
 
-    # 写入合并骨架文本供 context_loader 消费
     md_parts = ["## CODE_SKELETON — TREEFRAG 代码骨架（自动生成）\n"]
-    lang_id = ctx.shared.get("language_id", "java")
     for fp, r in results.items():
         filename = _Path(fp).name
         md_parts.append(f"### {filename} ({r.skeleton_lines}/{r.total_lines} lines, {r.compression_ratio}x)")
         md_parts.append(f"```{lang_id}\n{r.skeleton_text}\n```\n")
-
     md_path = int_dir / "_code_skeleton.md"
     md_path.write_text("\n".join(md_parts), encoding="utf-8")
 
-    result.add_artifact("code_skeleton_json", str(json_path))
+    result.add_artifact("code_skeleton_json", str(int_dir / "_code_skeleton.json"))
     result.add_artifact("code_skeleton_md", str(md_path))
 
 
