@@ -13,8 +13,10 @@ from __future__ import annotations
 
 import re
 from datetime import datetime
-from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 from dqg.json_utils import load_json, save_json
 from dqg.log import get_logger
@@ -47,6 +49,7 @@ def extract_genes_from_preference(
     critique: dict[str, Any],
     phase_id: str,
     project_id: str,
+    agent_role: str = "judge",
 ) -> list[dict[str, Any]]:
     """从 preference + critique 结果中提取 Gene.
 
@@ -88,6 +91,7 @@ def extract_genes_from_preference(
         gene = {
             "gene_id": _make_gene_id(phase_id, detail.get("type", "FN"), idx),
             "phase_id": phase_id,
+            "agent_role": agent_role,
             "error_type": detail.get("type", "FN"),
             "severity": detail.get("severity", impact),
             "target_pattern": _extract_pattern(critique_issue, detail),
@@ -188,7 +192,7 @@ def save_capsule(
 # ---------------------------------------------------------------------------
 
 
-def load_genes_for_phase(base_dir: Path, phase_id: str) -> list[dict[str, Any]]:
+def load_genes_for_phase(base_dir: Path, phase_id: str, agent_role: str | None = None) -> list[dict[str, Any]]:
     """加载指定 Phase 的所有 Gene."""
     gene_dir = base_dir / GENE_DIR / phase_id
     if not gene_dir.exists():
@@ -199,6 +203,9 @@ def load_genes_for_phase(base_dir: Path, phase_id: str) -> list[dict[str, Any]]:
         gene = load_json(p)
         if gene:
             genes.append(gene)
+
+    if agent_role:
+        genes = [g for g in genes if g.get("agent_role", "judge") == agent_role]
     return genes
 
 
