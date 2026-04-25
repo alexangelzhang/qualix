@@ -139,6 +139,16 @@ def generate_judge_prompt(
     if bug_cases_md:
         lines.extend(["", bug_cases_md, ""])
 
+    # Gene phase+role 过滤注入：只注入该 Phase Judge 的历史经验
+    from dqg.quality.gene_store import load_genes_for_phase, match_genes, render_genes_for_prompt
+
+    _phase_genes = load_genes_for_phase(output_dir.parent, phase_id, agent_role="judge")
+    if _phase_genes:
+        _gene_context = "\n".join(relevance_parts) if relevance_parts else ""
+        _matched = match_genes(_phase_genes, _gene_context)
+        if _matched:
+            lines.extend(["", render_genes_for_prompt(_matched), ""])
+
     lines.extend(_ANTI_RATIONALIZATION_SECTION)
 
     lines.extend(

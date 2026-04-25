@@ -28,6 +28,23 @@ def handle_language_detect(ctx: ExecutionContext, result: PhaseResult) -> None:
         ctx.shared["language_id"] = provider.language_id
 
 
+def handle_upstream_quality(ctx: ExecutionContext, result: PhaseResult) -> None:
+    """所有 Phase: 检查上游产物内容质量（不只是文件存在性）."""
+    from dqg.core.phase_registry import PHASE_DEFS
+
+    phase_def = PHASE_DEFS.get(ctx.phase_id, {})
+    deps = phase_def.get("depends_on", [])
+    if not deps:
+        return
+
+    from dqg.runtime.preflight import _check_upstream_quality
+
+    quality_check = _check_upstream_quality(ctx.output_dir, ctx.project_id, ctx.phase_id)
+    if quality_check["status"] == "FAIL":
+        result.warnings.append(f"Upstream quality: {quality_check['detail']}")
+        ctx.shared["upstream_quality_warning"] = quality_check["detail"]
+
+
 def handle_diff_context(ctx: ExecutionContext, result: PhaseResult) -> None:
     """Phase C/D: 收集增量 diff 上下文."""
     if ctx.phase_id not in ("Q06", "Q07") or not ctx.code_repo:
@@ -302,6 +319,12 @@ def register_execute_handlers() -> None:
         handle_language_detect,
         stage="execute",
         order=0,
+    )
+    register_handler(
+        "upstream_quality",
+        handle_upstream_quality,
+        stage="execute",
+        order=2,
     )
     register_handler(
         "bootstrap_context",
