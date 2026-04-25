@@ -84,6 +84,34 @@ class AdaptiveLoop:
         pd = _pd(self.output_dir, project_id, phase_def)
         pd.mkdir(parents=True, exist_ok=True)
 
+        # P1: ACT depth — resolve review depth from blast_radius risk_tier
+        from dqg.constants import REVIEW_DEPTH_CONFIG, REVIEW_DEPTH_DEFAULT
+        from dqg.json_utils import load_json as _load_json
+
+        _blast_path = pd / "_internal" / "_blast_radius.json"
+        _risk_tier = REVIEW_DEPTH_DEFAULT
+        if _blast_path.exists():
+            _blast_data = _load_json(_blast_path)
+            if _blast_data and "risk_tier" in _blast_data:
+                _risk_tier = _blast_data["risk_tier"]
+                log.info("P1 ACT depth: risk_tier=%s from blast_radius", _risk_tier)
+
+        _depth_cfg = REVIEW_DEPTH_CONFIG.get(_risk_tier, REVIEW_DEPTH_CONFIG[REVIEW_DEPTH_DEFAULT])
+        # Override max_iterations from depth config (caller can still override via param)
+        if max_iterations == 3:  # only override if caller used default
+            max_iterations = _depth_cfg["max_iterations"]
+            log.info("P1 ACT depth: max_iterations=%d (risk_tier=%s)", max_iterations, _risk_tier)
+        _force_secondary = _depth_cfg["force_secondary"]
+        _skip_critique = _depth_cfg["skip_critique"]
+
+        # P2: Anchor injection — locate upstream context for anchor extraction
+        _upstream_path = pd / "_upstream_context.md"
+        if not _upstream_path.exists():
+            _upstream_path = pd / "_internal" / "_upstream_context.md"
+        _anchor_available = _upstream_path.exists()
+        if _anchor_available:
+            log.info("P2 anchor: upstream context found at %s", _upstream_path)
+
         # Prepend bootstrap context if available
         from dqg.constants import PHASE_DIR_MAP
 
@@ -135,6 +163,9 @@ class AdaptiveLoop:
                 pass_threshold=pass_threshold,
                 iterations=iterations,
                 task_id=task_id,
+                force_secondary=_force_secondary,
+                skip_critique=_skip_critique,
+                upstream_path=_upstream_path if _anchor_available else None,
             )
             iterations.append(record)
             all_llm_calls.extend(iter_llm_calls)
@@ -244,6 +275,9 @@ class AdaptiveLoop:
         pass_threshold: float,
         iterations: list[IterationRecord],
         task_id: str,
+        force_secondary: bool = False,
+        skip_critique: bool = False,
+        upstream_path: Path | None = None,
     ) -> tuple[IterationRecord, bool, list[dict[str, Any]]]:
         """执行单轮迭代：Worker → Judge → Critique，返回 (record, passed, llm_calls)."""
         from dqg.runtime.task_store import add_task_event, save_checkpoint
@@ -276,8 +310,17 @@ class AdaptiveLoop:
         else:
             prev = iterations[-1]
             handoff_path = pd / f"_handoff_iter{i + 1}.md"
+            # P2: Extract anchor summary for handoff
+            anchor_facts = None
+            if upstream_path and upstream_path.exists():
+                from dqg.agents.handoff_builder import extract_anchor_summary
+
+                try:
+                    anchor_facts = extract_anchor_summary(upstream_path.read_text(encoding="utf-8", errors="replace"))
+                except Exception as e:
+                    log.debug("P2 anchor extraction failed: %s", e)
             handoff_path.write_text(
-                build_handoff_document(prev, i + 1),
+                build_handoff_document(prev, i + 1, anchor_facts=anchor_facts),
                 encoding="utf-8",
             )
             fixer = Agent(
@@ -287,10 +330,13 @@ class AdaptiveLoop:
                 model=LLMConfig(primary=worker_model, fallback=fallback),
                 output_dir=self.output_dir,
             )
+            _fixer_dynamic = [handoff_path, report_path]
+            if upstream_path and upstream_path.exists():
+                _fixer_dynamic.append(upstream_path)
             record.worker_result = fixer.run(
                 f"基于交接文档中的评审反馈修正报告（第 {i + 1} 轮），保持原有格式和结构。",
                 context_files=context_files,
-                dynamic_context_files=[handoff_path, report_path],
+                dynamic_context_files=_fixer_dynamic,
             )
             if record.worker_result.status != "failed":
                 report_path.write_text(record.worker_result.content, encoding="utf-8")
@@ -300,7 +346,14 @@ class AdaptiveLoop:
         if record.worker_result:
             iter_llm_calls.append(extract_llm_call(record.worker_result))
 
-        record.judge_result = multi_judge_vote(self.output_dir, report_path, judge_rubric, judge_models, fallback)
+        record.judge_result = multi_judge_vote(
+            self.output_dir,
+            report_path,
+            judge_rubric,
+            judge_models,
+            fallback,
+            force_secondary=force_secondary,
+        )
 
         # HARD_BLOCK: multi_judge_vote returns None when guard exhausted
         if record.judge_result is None:
@@ -359,21 +412,22 @@ class AdaptiveLoop:
         ):
             passed = True
 
-        critique = Agent(
-            name=f"critique-iter{i + 1}",
-            role="critique",
-            system_prompt=critique_prompt,
-            model=LLMConfig(primary=fallback, fallback=fallback),
-            output_dir=self.output_dir,
-        )
-        record.critique_result = critique.run(
-            "找出报告中的遗漏和错误，给出修正建议。",
-            context_files=[report_path],
-        )
+        if not skip_critique:
+            critique = Agent(
+                name=f"critique-iter{i + 1}",
+                role="critique",
+                system_prompt=critique_prompt,
+                model=LLMConfig(primary=fallback, fallback=fallback),
+                output_dir=self.output_dir,
+            )
+            record.critique_result = critique.run(
+                "找出报告中的遗漏和错误，给出修正建议。",
+                context_files=[report_path],
+            )
 
-        # Collect critique LLM call telemetry
-        if record.critique_result:
-            iter_llm_calls.append(extract_llm_call(record.critique_result))
+            # Collect critique LLM call telemetry
+            if record.critique_result:
+                iter_llm_calls.append(extract_llm_call(record.critique_result))
 
         return record, passed, iter_llm_calls
 
