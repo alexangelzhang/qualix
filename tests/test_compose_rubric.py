@@ -59,7 +59,7 @@ def test_compose_rubric_all_phases_have_routed():
 
 
 def test_compose_rubric_with_dynamic_dimensions():
-    """Dynamic dimensions are appended and weights are normalized."""
+    """Dynamic dimensions are appended without affecting other layers."""
     from dqg.quality.judge_rubrics import compose_rubric
 
     dynamic = [
@@ -76,15 +76,27 @@ def test_compose_rubric_with_dynamic_dimensions():
     assert "finding_validity" in result
 
 
-def test_compose_rubric_weights_normalized():
-    """Weights in rendered rubric are normalized to sum to 100%."""
+def test_compose_rubric_layer_independent_weights():
+    """Each layer keeps its own weights — no cross-layer normalization."""
     from dqg.quality.judge_rubrics import compose_rubric_structured
 
     dims = compose_rubric_structured("Q07")
-    total = sum(d["weight"] for d in dims)
-    assert abs(total - 1.0) < 0.01
+    shared = [
+        d
+        for d in dims
+        if d["id"] in {"source_citation", "confidence_tagging", "structural_completeness", "reasoning_quality"}
+    ]
+    routed = [d for d in dims if d not in shared]
 
-    # With dynamic
+    # Shared: each 0.25, layer sums to 1.0
+    for d in shared:
+        assert d["weight"] == 0.25
+    assert abs(sum(d["weight"] for d in shared) - 1.0) < 0.01
+
+    # Routed: original JUDGE_RUBRICS weights, layer sums to 1.0
+    assert abs(sum(d["weight"] for d in routed) - 1.0) < 0.01
+
+    # With dynamic: shared and routed unchanged, dynamic appended
     dynamic = [
         {
             "id": "dyn_test",
@@ -94,6 +106,7 @@ def test_compose_rubric_weights_normalized():
         }
     ]
     dims2 = compose_rubric_structured("Q07", dynamic_dimensions=dynamic)
-    total2 = sum(d["weight"] for d in dims2)
-    assert abs(total2 - 1.0) < 0.01
     assert len(dims2) == len(dims) + 1
+    # Shared weights unchanged
+    shared2 = next(d for d in dims2 if d["id"] == "source_citation")
+    assert shared2["weight"] == 0.25
