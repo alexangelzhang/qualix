@@ -141,6 +141,12 @@
 - 告警噪声治理（误报率、阈值自适配）  
 - 周报到治理动作的闭环（负责人、修复 SLA）
 
+2026-04-25 新增（RDT-Inspired Review Optimization）：
+
+- P1 ACT 审查深度自适应（`constants.py` REVIEW_DEPTH_CONFIG + `adaptive_loop.py` risk_tier 查表）— blast_radius risk_tier 驱动 max_iterations/force_secondary/skip_critique，LOW tier 省 ~60-70% token
+- P2 锚点注入防漂移（`handoff_builder.py` extract_anchor_summary + `adaptive_loop.py` 上游 context 注入）— 每轮修正重注入 REQ/BR/SE 摘要 + 完整上游产物，防止 Worker 偏离原始需求
+- P3 共享+路由 Judge rubric（`judge_rubrics.py` compose_rubric + `constants.py` SHARED_RUBRIC_DIMENSIONS）— shared(40%) 通用质量底线 + routed(60%) Phase 专属维度 + dynamic 追加，权重归一化
+
 2026-04-23 新增（借鉴 LangChain Evaluating Skills 方法论）：
 
 - Prompt Fingerprint 基础设施 — `AgentResult.prompt_hash`（SHA256 前 16 位）+ `PhaseRunRecord.llm_calls` 聚合字段，自动捕获每次 LLM 调用的 model_id/prompt_hash/input_tokens/output_tokens/cache_hit，finalize 时从 `_adaptive_summary.json` 注入 telemetry；SQLite schema 同步扩展 + 存量 DB 自动迁移
@@ -500,7 +506,7 @@
 3. 检索兜底：召回不足时允许回退到更宽松的摘要层，但不直接回全文
 4. 渐进落地：先覆盖最频繁的应用路径，每次落地配命中率/token 变化/调用次数三类指标
 
-*最后更新：2026-04-24*
+*最后更新：2026-04-25*
 
 ---
 

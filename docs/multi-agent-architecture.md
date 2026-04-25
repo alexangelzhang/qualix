@@ -78,6 +78,20 @@ Iter 3: Worker 再次修正 → 多 Judge 投票 → Guard 放水检测 → 通�
 全部 FAIL + Judge 健康 → SkillReflector 自动进化 skill 规则
 ```
 
+审查深度自适应（P1 ACT）：
+- blast_radius risk_tier → REVIEW_DEPTH_CONFIG 查表
+- LOW: 1 轮, primary only, 跳过 critique
+- MEDIUM: 2 轮, boundary secondary
+- HIGH/CRITICAL: 3 轮, 强制 secondary
+
+锚点注入防漂移（P2）：
+- 每轮修正时 handoff 文档新增 Anchor section（REQ/BR/SE 摘要）
+- Fixer context_files 保留完整 _upstream_context.md
+
+共享+路由 Judge rubric（P3）：
+- compose_rubric(phase_id) 组合 shared(40%) + routed(60%) + dynamic
+- 权重归一化：所有维度等比缩放使总和 = 100%
+
 Anti-Rationalization Guard（运行时放水拦截）：
 - Layer 1: 关键词正则扫描（8 种放水模式，零成本）
 - Layer 2: LLM 确认（仅 Layer 1 命中时触发，haiku 级模型）
