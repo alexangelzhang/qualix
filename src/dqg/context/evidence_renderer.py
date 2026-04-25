@@ -120,39 +120,63 @@ def _pick_quote_candidates(content: str) -> list[str]:
     return deduped
 
 
-def render_key_quotes(chunks, *, max_quotes: int = 0, total_char_limit: int = 0) -> list[str]:
-    """从 chunks 中提取关键引用行，附 file:line citation."""
+def render_key_quotes(
+    chunks,
+    *,
+    max_quotes: int = 0,
+    total_char_limit: int = 0,
+    priority_ids: set[str] | None = None,
+) -> list[str]:
+    """从 chunks 中提取关键引用行，附 file:line citation.
+
+    Args:
+        priority_ids: 若提供，包含这些 ID 的段落优先选取；其余按原有 regex 顺序填充。
+    """
     if not max_quotes:
         max_quotes = EVIDENCE_PACK_MAX_QUOTES
     if not total_char_limit:
         total_char_limit = EVIDENCE_PACK_TOTAL_QUOTE_CHAR_LIMIT
 
+    # Collect all candidates with their chunk metadata
+    all_candidates: list[tuple[str, str, str]] = []  # (para, source, file_path)
+    for chunk in chunks:
+        file_path = getattr(chunk, "file_path", "") or ""
+        for para in _pick_quote_candidates(chunk.content):
+            all_candidates.append((para, chunk.source, file_path))
+
+    # Sort: priority matches first, preserving relative order within each group
+    if priority_ids:
+        priority: list[tuple[str, str, str]] = []
+        rest: list[tuple[str, str, str]] = []
+        for item in all_candidates:
+            para = item[0]
+            if any(pid in para for pid in priority_ids):
+                priority.append(item)
+            else:
+                rest.append(item)
+        all_candidates = priority + rest
+
     lines: list[str] = []
     quote_count = 0
     used_chars = 0
 
-    for chunk in chunks:
+    for para, source, file_path in all_candidates:
         if quote_count >= max_quotes or used_chars >= total_char_limit:
             break
-        file_path = getattr(chunk, "file_path", "") or ""
-        for para in _pick_quote_candidates(chunk.content):
-            if quote_count >= max_quotes or used_chars >= total_char_limit:
-                break
-            remaining = total_char_limit - used_chars
-            if remaining <= 0:
-                break
-            quote = truncate_chars(para, min(EVIDENCE_PACK_QUOTE_CHAR_LIMIT, remaining))
-            if not quote:
-                continue
-            quote_count += 1
-            used_chars += len(quote)
-            # citation 格式：source + file_path（如有）
-            citation = chunk.source
-            if file_path:
-                citation += f" [来源: {file_path}]"
-            lines.append(f"### 引用 {quote_count}: {citation}")
-            lines.extend(f"> {line}" for line in quote.splitlines())
-            lines.append("")
+        remaining = total_char_limit - used_chars
+        if remaining <= 0:
+            break
+        quote = truncate_chars(para, min(EVIDENCE_PACK_QUOTE_CHAR_LIMIT, remaining))
+        if not quote:
+            continue
+        quote_count += 1
+        used_chars += len(quote)
+        citation = source
+        if file_path:
+            citation += f" [来源: {file_path}]"
+        lines.append(f"### 引用 {quote_count}: {citation}")
+        lines.extend(f"> {line}" for line in quote.splitlines())
+        lines.append("")
 
     if not lines:
         return ["（无可用关键引用）"]
