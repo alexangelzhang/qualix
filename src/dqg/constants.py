@@ -223,6 +223,65 @@ REVIEW_DEPTH_CONFIG: Final = MappingProxyType(
 )
 REVIEW_DEPTH_DEFAULT = "MEDIUM"
 
+# ---------------------------------------------------------------------------
+# P3: Shared Rubric — universal quality dimensions (40% base weight)
+# ---------------------------------------------------------------------------
+
+SHARED_RUBRIC_DIMENSIONS: Final = (
+    {
+        "id": "source_citation",
+        "name": "来源标注完整性",
+        "description": "每条结论是否标注了来源（[来源: 文件名:行号]）",
+        "weight": 0.10,
+        "rubric": {
+            5: "所有结论都有精确的来源标注（文件名:行号）",
+            4: "90%+ 结论有来源标注，个别缺失",
+            3: "70-90% 有来源标注",
+            2: "来源标注不足 70%",
+            1: "几乎无来源标注",
+        },
+    },
+    {
+        "id": "confidence_tagging",
+        "name": "置信度标注",
+        "description": "每条结论是否标注了置信度（High/Medium/Low）",
+        "weight": 0.10,
+        "rubric": {
+            5: "所有结论都有置信度标注，且标注合理",
+            4: "90%+ 有置信度标注",
+            3: "70-90% 有标注，部分标注不合理",
+            2: "标注不足 70%",
+            1: "几乎无置信度标注",
+        },
+    },
+    {
+        "id": "structural_completeness",
+        "name": "结构完整性",
+        "description": "报告是否包含所有必要章节，格式是否规范",
+        "weight": 0.10,
+        "rubric": {
+            5: "所有必要章节齐全，格式规范，无截断",
+            4: "主要章节齐全，个别格式瑕疵",
+            3: "缺少 1-2 个非核心章节",
+            2: "缺少核心章节或格式混乱",
+            1: "结构严重不完整",
+        },
+    },
+    {
+        "id": "reasoning_quality",
+        "name": "推理日志质量",
+        "description": "推理日志是否记录了关键决策过程，可追溯",
+        "weight": 0.10,
+        "rubric": {
+            5: "每个关键决策都有推理过程记录，可完整追溯",
+            4: "主要决策有记录，个别步骤缺失",
+            3: "部分决策有记录，但关键判断缺少推理过程",
+            2: "推理日志流于形式，缺少实质内容",
+            1: "几乎无推理记录",
+        },
+    },
+)
+
 COMPACT_THRESHOLD = 0.8  # context_loader: 自动压缩触发比例
 CASE_MIN_RELEVANCE = 0.05  # skill_tracker: 案例最低相关性
 JUDGE_MIN_SCORE_TO_EXTRACT = 4.0  # skill_tracker: judge issue 提取阈值
