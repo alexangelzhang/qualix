@@ -208,6 +208,21 @@ AI_ORIGIN_CO_AUTHOR_PATTERNS: list[str] = [  # AI 产出标记：Co-Authored-By 
 JUDGE_PASS_THRESHOLD = 3.5  # adaptive_loop: 通过分数线
 JUDGE_PASS_WITH_CONCERNS_DELTA = 0.5  # PASS_WITH_CONCERNS 容差
 ADAPTIVE_MAX_ITERATIONS = 3  # adaptive_loop: 最大迭代次数
+
+# ---------------------------------------------------------------------------
+# P1: ACT Review Depth — risk_tier → adaptive loop depth config
+# ---------------------------------------------------------------------------
+
+REVIEW_DEPTH_CONFIG: Final = MappingProxyType(
+    {
+        "LOW": MappingProxyType({"max_iterations": 1, "force_secondary": False, "skip_critique": True}),
+        "MEDIUM": MappingProxyType({"max_iterations": 2, "force_secondary": False, "skip_critique": False}),
+        "HIGH": MappingProxyType({"max_iterations": 3, "force_secondary": True, "skip_critique": False}),
+        "CRITICAL": MappingProxyType({"max_iterations": 3, "force_secondary": True, "skip_critique": False}),
+    }
+)
+REVIEW_DEPTH_DEFAULT = "MEDIUM"
+
 COMPACT_THRESHOLD = 0.8  # context_loader: 自动压缩触发比例
 CASE_MIN_RELEVANCE = 0.05  # skill_tracker: 案例最低相关性
 JUDGE_MIN_SCORE_TO_EXTRACT = 4.0  # skill_tracker: judge issue 提取阈值
