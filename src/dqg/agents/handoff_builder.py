@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
+import re
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from dqg.agents.judge_vote import IterationRecord
 
 
-def build_handoff_document(prev: "IterationRecord", next_iteration: int) -> str:
+def build_handoff_document(prev: IterationRecord, next_iteration: int) -> str:
     """生成结构化交接文档（Anthropic Context Reset 模式）.
 
     交接文档是新 agent 实例的唯一上下文来源（除了原始 context_files），
@@ -73,3 +74,57 @@ def build_handoff_document(prev: "IterationRecord", next_iteration: int) -> str:
     parts.append("4. 确保修正不引入新问题")
 
     return "\n".join(parts)
+
+
+_ANCHOR_ID_RE = re.compile(r"(REQ|BR|SE)-\d+")
+
+
+def _estimate_tokens(text: str) -> int:
+    """Rough token estimate: ~1.5 chars per token for mixed zh/en."""
+    return len(text) * 2 // 3
+
+
+def extract_anchor_summary(upstream_text: str, max_tokens: int = 800) -> str:
+    """Extract REQ/BR/SE lines from upstream context as anchor summary.
+
+    Groups by type (REQ, BR, SE), preserves order within each group,
+    truncates to max_tokens.
+    """
+    if not upstream_text.strip():
+        return ""
+
+    groups: dict[str, list[str]] = {"REQ": [], "BR": [], "SE": []}
+    for line in upstream_text.splitlines():
+        stripped = line.strip()
+        m = _ANCHOR_ID_RE.search(stripped)
+        if m:
+            prefix = m.group(1)
+            if prefix in groups:
+                groups[prefix].append(stripped)
+
+    if not any(groups.values()):
+        return ""
+
+    parts: list[str] = [
+        "## Anchor（原始需求锚点 — 修正时不可偏离）",
+        "",
+        "以下是本 Phase 的原始需求事实，每轮修正必须对齐：",
+        "",
+    ]
+
+    section_names = {"REQ": "核心需求 (REQ)", "BR": "关键业务规则 (BR)", "SE": "语义元素 (SE)"}
+    for prefix, title in section_names.items():
+        items = groups[prefix]
+        if items:
+            parts.append(f"### {title}")
+            parts.extend(items)
+            parts.append("")
+
+    result = "\n".join(parts)
+
+    # Truncate to max_tokens
+    if _estimate_tokens(result) > max_tokens:
+        budget_chars = max_tokens * 3 // 2  # inverse of estimate
+        result = result[:budget_chars].rsplit("\n", 1)[0]
+
+    return result
