@@ -12,18 +12,20 @@ Phase 1 实现：用 Claude Code 的 Agent tool 模拟独立 agent，
 
 from __future__ import annotations
 
-import time
 from dataclasses import dataclass, field
-from pathlib import Path
-from typing import Any, Final
 from types import MappingProxyType
+from typing import TYPE_CHECKING, Final
 
-from dqg.core.state_machine import PHASE_DEFS, phase_dir as _phase_dir
+if TYPE_CHECKING:
+    from pathlib import Path
 
+from dqg.core.state_machine import PHASE_DEFS
+from dqg.core.state_machine import phase_dir as _phase_dir
 
 # ---------------------------------------------------------------------------
 # Agent 角色定义
 # ---------------------------------------------------------------------------
+
 
 @dataclass
 class AgentRole:
@@ -36,47 +38,52 @@ class AgentRole:
 
 
 # Phase A 的三个 Agent
-PHASE_A_AGENTS: Final = MappingProxyType({
-    "worker": AgentRole(
-        name="phase-a-worker",
-        role="worker",
-        prompt_template="worker_prompt.md",
-        input_files=["_upstream_context.md", "image_semantics.md"],
-        output_files=["phase_a_report.md", "phase_a_structured.json", "_reasoning_log.md"],
-        depends_on=[],
-    ),
-    "judge": AgentRole(
-        name="phase-a-judge",
-        role="judge",
-        prompt_template="judge_prompt.md",
-        input_files=["phase_a_report.md", "phase_a_structured.json"],
-        output_files=["_judge_result.json"],
-        depends_on=["worker"],
-    ),
-    "critique": AgentRole(
-        name="phase-a-critique",
-        role="critique",
-        prompt_template="critique_prompt.md",
-        input_files=["phase_a_report.md", "_judge_result.json"],
-        output_files=["_critique.json"],
-        depends_on=["judge"],
-    ),
-})
+PHASE_A_AGENTS: Final = MappingProxyType(
+    {
+        "worker": AgentRole(
+            name="phase-a-worker",
+            role="worker",
+            prompt_template="worker_prompt.md",
+            input_files=["_upstream_context.md", "image_semantics.md"],
+            output_files=["phase_a_report.md", "phase_a_structured.json", "_reasoning_log.md"],
+            depends_on=[],
+        ),
+        "judge": AgentRole(
+            name="phase-a-judge",
+            role="judge",
+            prompt_template="judge_prompt.md",
+            input_files=["phase_a_report.md", "phase_a_structured.json"],
+            output_files=["_judge_result.json"],
+            depends_on=["worker"],
+        ),
+        "critique": AgentRole(
+            name="phase-a-critique",
+            role="critique",
+            prompt_template="critique_prompt.md",
+            input_files=["phase_a_report.md", "_judge_result.json"],
+            output_files=["_critique.json"],
+            depends_on=["judge"],
+        ),
+    }
+)
 
 # Phase 间 DAG
-PHASE_DAG: Final = MappingProxyType({
-    "Q01": [],
-    "Q04": ["Q01"],
-    "Q03": ["Q01"],
-    "Q05": ["Q01"],
-    "Q06": ["Q05"],
-    "Q07": ["Q04", "Q03"],
-})
+PHASE_DAG: Final = MappingProxyType(
+    {
+        "Q01": [],
+        "Q04": ["Q01"],
+        "Q03": ["Q01"],
+        "Q05": ["Q01"],
+        "Q06": ["Q05"],
+        "Q07": ["Q04", "Q03"],
+    }
+)
 
 
 # ---------------------------------------------------------------------------
 # Prompt 生成
 # ---------------------------------------------------------------------------
+
 
 def generate_worker_prompt(
     output_dir: Path,
@@ -148,11 +155,7 @@ def generate_judge_prompt(
     # fallback: 如果 quality/judge.py 不支持该 Phase（不应发生），返回最小 prompt
     phase_def = PHASE_DEFS.get(phase_id, {})
     pd = _phase_dir(output_dir, project_id, phase_def)
-    return (
-        f"# Judge Agent — Phase {phase_id}\n"
-        f"项目: {project_id}\n\n"
-        f"请评审 {pd} 下的产物质量，按 1-5 分打分。\n"
-    )
+    return f"# Judge Agent — Phase {phase_id}\n项目: {project_id}\n\n请评审 {pd} 下的产物质量，按 1-5 分打分。\n"
 
 
 def generate_critique_prompt(
@@ -168,31 +171,49 @@ def generate_critique_prompt(
         f"# Critique Agent — Phase {phase_id}",
         f"项目: {project_id}",
         "",
-        "## 你的角色",
-        "你是 Critique Agent。假设 Worker 的产物有遗漏和错误，主动找问题。",
-        "你已经看到了 Judge 的评审结果，你的任务是找到 Judge 也没发现的问题。",
-        "",
-        "## 输入",
-        f"报告: {pd / 'phase_a_report.md'}",
-        f"Judge 结果: {pd / '_judge_result.json'}",
-        "",
-        "## 重点检查方向",
-        "1. 并发/幂等/事务 — 是否遗漏了并发场景的 GAP？",
-        "2. 异常流 — 每个外部调用（保司接口/MQ/定时任务）的失败处理是否有 SE 或 GAP？",
-        "3. 状态迁移边界 — 每条状态迁移边是否都有数据流定义？",
-        "4. 权限/安全 — 数据隔离、脱敏、越权访问是否有 SE？",
-        "5. 业务常识 — 是否有把正常业务流程当缺口的 GAP？",
-        "",
-        "## 输出格式",
-        f"写入 JSON 到: {pd / '_critique.json'}",
-        "```json",
-        '{',
-        '  "issues_found": [{"type": "FN/FP", "severity": "...", "description": "...", "suggestion": "..."}],',
-        '  "revision_needed": true/false,',
-        '  "summary": "..."',
-        '}',
-        "```",
     ]
+
+    # Inject Phase evaluation protocol for Critique
+    from dqg.quality.evaluation_protocols import get_protocol, render_protocol_for_prompt
+
+    _protocol = get_protocol(phase_id)
+    if _protocol:
+        parts.append(render_protocol_for_prompt(_protocol.critique))
+        parts.append("")
+    else:
+        parts.extend(
+            [
+                "## 你的角色",
+                "你是 Critique Agent。假设 Worker 的产物有遗漏和错误，主动找问题。",
+                "你已经看到了 Judge 的评审结果，你的任务是找到 Judge 也没发现的问题。",
+                "",
+                "## 重点检查方向",
+                "1. 并发/幂等/事务 — 是否遗漏了并发场景的 GAP？",
+                "2. 异常流 — 每个外部调用（保司接口/MQ/定时任务）的失败处理是否有 SE 或 GAP？",
+                "3. 状态迁移边界 — 每条状态迁移边是否都有数据流定义？",
+                "4. 权限/安全 — 数据隔离、脱敏、越权访问是否有 SE？",
+                "5. 业务常识 — 是否有把正常业务流程当缺口的 GAP？",
+                "",
+            ]
+        )
+
+    parts.extend(
+        [
+            "## 输入",
+            f"报告: {pd / 'phase_a_report.md'}",
+            f"Judge 结果: {pd / '_judge_result.json'}",
+            "",
+            "## 输出格式",
+            f"写入 JSON 到: {pd / '_critique.json'}",
+            "```json",
+            "{",
+            '  "issues_found": [{"type": "FN/FP", "severity": "...", "description": "...", "suggestion": "..."}],',
+            '  "revision_needed": true/false,',
+            '  "summary": "..."',
+            "}",
+            "```",
+        ]
+    )
 
     return "\n".join(parts)
 
@@ -200,6 +221,7 @@ def generate_critique_prompt(
 # ---------------------------------------------------------------------------
 # Orchestrator
 # ---------------------------------------------------------------------------
+
 
 @dataclass
 class AgentResult:
@@ -220,6 +242,7 @@ class MultiAgentOrchestrator:
     def get_ready_phases(self, project_id: str) -> list[str]:
         """获取当前可执行的 Phase（依赖已满足）."""
         from dqg.core.state_machine import load_state
+
         state = load_state(self.output_dir, project_id)
 
         ready = []
@@ -233,7 +256,7 @@ class MultiAgentOrchestrator:
             # 检查依赖
             all_deps_met = all(
                 state.phases.get(d, {}).status in ("approved", "skipped")
-                if hasattr(state.phases.get(d, {}), 'status')
+                if hasattr(state.phases.get(d, {}), "status")
                 else False
                 for d in deps
             )
@@ -257,9 +280,7 @@ class MultiAgentOrchestrator:
         prompts = {}
 
         # Worker prompt
-        worker_prompt = generate_worker_prompt(
-            self.output_dir, project_id, phase_id, skill_path, inputs
-        )
+        worker_prompt = generate_worker_prompt(self.output_dir, project_id, phase_id, skill_path, inputs)
         wp = pd / "_worker_prompt.md"
         wp.write_text(worker_prompt, encoding="utf-8")
         prompts["worker"] = str(wp)
@@ -311,8 +332,8 @@ class MultiAgentOrchestrator:
         lines = ["  Multi-Agent 执行计划:"]
         for i, group in enumerate(groups):
             parallel = " + ".join(group)
-            lines.append(f"    Step {i+1}: {parallel}{'（并行）' if len(group) > 1 else ''}")
-            for phase_id in group:
-                lines.append(f"      └── Worker → Judge → Critique")
+            lines.append(f"    Step {i + 1}: {parallel}{'（并行）' if len(group) > 1 else ''}")
+            for _phase_id in group:
+                lines.append("      └── Worker → Judge → Critique")
 
         return "\n".join(lines)

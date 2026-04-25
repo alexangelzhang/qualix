@@ -20,6 +20,7 @@ from dqg.core.state_machine import phase_dir as _phase_dir
 from dqg.json_utils import load_json
 from dqg.quality.judge_rubrics import ANTI_RATIONALIZATION_SECTION as _ANTI_RATIONALIZATION_SECTION
 from dqg.quality.judge_rubrics import JUDGE_RUBRICS as _JUDGE_RUBRICS
+from dqg.quality.judge_rubrics import compose_rubric as _compose_rubric
 from dqg.services.phase_service import read_relevance_excerpt
 from dqg.tracking.case_selector import render_relevant_cases_for_prompt
 
@@ -43,11 +44,9 @@ def generate_judge_prompt(
         return None
 
     # 动态维度：根据 Phase A SE 分布追加针对性评分维度
-    from dqg.quality.dynamic_rubric import enrich_rubric_with_dynamic_dimensions, generate_dynamic_dimensions
+    from dqg.quality.dynamic_rubric import generate_dynamic_dimensions
 
     dynamic_dims = generate_dynamic_dimensions(output_dir, project_id, phase_id)
-    if dynamic_dims:
-        rubric = enrich_rubric_with_dynamic_dimensions(rubric, dynamic_dims)
 
     pd = _phase_dir(output_dir, project_id, phase_def)
     checklist = phase_def.get("approve_checklist", [])
@@ -84,20 +83,20 @@ def generate_judge_prompt(
     lines.extend(
         [
             "",
-            "## 评审维度（1-5 Likert 量表）",
+            "## 评审维度 + 检查清单（compose_rubric 生成）",
             "",
         ]
     )
-    for dim in rubric["dimensions"]:
-        lines.append(f"### {dim['id']}: {dim['name']}（权重 {dim['weight']:.0%}）")
-        lines.append(f"- 定义: {dim['description']}")
-        lines.append("")
-        lines.append("| 分数 | 标准 |")
-        lines.append("|------|------|")
-        for score in (5, 4, 3, 2, 1):
-            criteria = dim.get("rubric", {}).get(score, "")
-            lines.append(f"| {score} | {criteria} |")
-        lines.append("")
+    # Use compose_rubric for shared + routed + dynamic dimensions
+    composed = _compose_rubric(phase_id, dynamic_dimensions=dynamic_dims or None)
+    lines.append(composed)
+
+    # Inject Phase evaluation protocol (checklist + red_lines)
+    from dqg.quality.evaluation_protocols import get_protocol, render_protocol_for_prompt
+
+    _protocol = get_protocol(phase_id)
+    if _protocol:
+        lines.extend(["", render_protocol_for_prompt(_protocol.judge)])
 
     lines.extend(
         [
