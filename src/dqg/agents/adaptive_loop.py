@@ -121,6 +121,22 @@ class AdaptiveLoop:
             context_files = [_bootstrap_path] + (context_files or [])
             log.info("Bootstrap context prepended: %s", _bootstrap_path)
 
+        # P3: Compose shared + routed rubric (replaces raw rubric string if phase_id known)
+        from dqg.quality.judge_rubrics import compose_rubric as _compose_rubric
+
+        if phase_id in ("Q01", "Q03", "Q04", "Q05", "Q06", "Q07"):
+            _dynamic_dims = None
+            try:
+                from dqg.quality.dynamic_rubric import generate_dynamic_dimensions
+
+                _dynamic_dims = generate_dynamic_dimensions(self.output_dir, project_id, phase_id)
+            except Exception as e:
+                log.debug("Dynamic rubric generation failed: %s", e)
+            judge_rubric = _compose_rubric(phase_id, dynamic_dimensions=_dynamic_dims)
+            log.info(
+                "P3 composed rubric: phase=%s, dynamic=%d dims", phase_id, len(_dynamic_dims) if _dynamic_dims else 0
+            )
+
         from dqg.constants import REPORT_MAP
 
         report_file = REPORT_MAP.get(phase_id, "phase_report.md")

@@ -1,0 +1,360 @@
+"""Judge rubric data: per-phase scoring dimensions (data only, no logic)."""
+
+from __future__ import annotations
+
+from typing import Any, Final
+
+# Phase → 评审维度定义（1-5 Likert 量表，每级有明确标准）
+JUDGE_RUBRICS: Final[dict[str, dict[str, Any]]] = {
+    "Q01": {
+        "name": "需求结构化",
+        "dimensions": [
+            {
+                "id": "faithfulness",
+                "name": "忠实度",
+                "description": "输出的 REQ/SE/GAP 是否忠实于 PRD 原文，不编造",
+                "weight": 0.25,
+                "rubric": {
+                    5: "所有 REQ/SE/GAP 都能在 PRD 原文中找到明确依据",
+                    4: "90%+ 有依据，少量合理推断已标注置信度",
+                    3: "70-90% 有依据，部分推断未标注",
+                    2: "50-70% 有依据，存在明显编造内容",
+                    1: "大量内容无法在 PRD 中找到依据",
+                },
+            },
+            {
+                "id": "completeness",
+                "name": "完备性",
+                "description": "PRD 中的所有需求点是否都被提取为 REQ/BR",
+                "weight": 0.3,
+                "rubric": {
+                    5: "PRD 所有功能点、业务规则、约束条件均已提取，无遗漏",
+                    4: "核心功能点全部覆盖，仅遗漏 1-2 个边缘场景",
+                    3: "主要功能点已覆盖，遗漏 3-5 个需求点",
+                    2: "明显遗漏多个功能点或整个业务模块",
+                    1: "大面积遗漏，仅提取了部分表面需求",
+                },
+            },
+            {
+                "id": "se_explicitness",
+                "name": "SE 显式率",
+                "description": "关键业务语义是否都被显式化为可验证的 SE",
+                "weight": 0.25,
+                "rubric": {
+                    5: "每个 REQ/BR 都有对应的可验证 SE，隐式语义全部显式化",
+                    4: "90%+ REQ 有对应 SE，少量隐式语义未提取",
+                    3: "70-90% 有 SE，并发/幂等/边界等隐式语义部分遗漏",
+                    2: "SE 覆盖不足 70%，大量业务语义隐含在 REQ 描述中",
+                    1: "几乎没有 SE，或 SE 与 REQ 重复无新增信息",
+                },
+            },
+            {
+                "id": "gap_detection",
+                "name": "GAP 发现率",
+                "description": "PRD 中的模糊点、缺失定义是否被识别为 GAP",
+                "weight": 0.2,
+                "rubric": {
+                    5: "所有模糊描述、缺失定义、歧义点均已识别为 GAP/OPEN",
+                    4: "主要模糊点已识别，仅遗漏 1-2 个非关键 GAP",
+                    3: "识别了部分 GAP，但遗漏了并发/幂等/安全等关键缺口",
+                    2: "GAP 识别明显不足，多个关键缺口未发现",
+                    1: "几乎未识别 GAP，或 GAP 为 0 但 PRD 明显有模糊点",
+                },
+            },
+        ],
+    },
+    "Q04": {
+        "name": "技术方案覆盖度审计",
+        "dimensions": [
+            {
+                "id": "coverage_accuracy",
+                "name": "覆盖判定准确率",
+                "description": "COVERED/PARTIAL/MISSING/IMPLICIT 的判定是否正确",
+                "weight": 0.4,
+                "rubric": {
+                    5: "所有覆盖状态判定正确，COVERED 确实有完整设计，MISSING 确实缺失",
+                    4: "90%+ 判定正确，个别 PARTIAL/COVERED 边界有争议",
+                    3: "70-90% 正确，存在将仅提到接口名就判为 COVERED 的情况",
+                    2: "多个判定错误，正向流程有但异常分支缺失仍判为 COVERED",
+                    1: "大面积判定错误，覆盖率虚高",
+                },
+            },
+            {
+                "id": "missing_detection",
+                "name": "遗漏检出率",
+                "description": "技术方案中真正缺失的需求点是否被标记为 MISSING",
+                "weight": 0.3,
+                "rubric": {
+                    5: "所有缺失的需求点都被准确标记为 MISSING",
+                    4: "核心缺失全部检出，仅遗漏 1-2 个边缘 MISSING",
+                    3: "检出了部分 MISSING，但遗漏了关键异常处理/并发场景的缺失",
+                    2: "MISSING 检出不足，多个关键缺失未发现",
+                    1: "几乎未检出 MISSING，或全部标为 COVERED",
+                },
+            },
+            {
+                "id": "reverse_audit",
+                "name": "反向审计完整性",
+                "description": "技术方案中的新增设计是否被标记为 NEW_DESIGN/NOT_IN_SCOPE",
+                "weight": 0.3,
+                "rubric": {
+                    5: "技术方案中所有超出 PRD 范围的设计都被识别并标记",
+                    4: "主要新增设计已识别，仅遗漏 1-2 个",
+                    3: "部分新增设计被识别，但遗漏了重要的范围外设计",
+                    2: "反向审计明显不足",
+                    1: "未做反向审计",
+                },
+            },
+        ],
+    },
+    "Q03": {
+        "name": "技术方案质量评审",
+        "dimensions": [
+            {
+                "id": "issue_validity",
+                "name": "问题有效率",
+                "description": "发现的质量问题是否是真问题（非噪音）",
+                "weight": 0.25,
+                "rubric": {
+                    5: "所有 issue 都是真问题，有具体代码/设计证据支撑",
+                    4: "90%+ 是真问题，个别 issue 证据稍弱",
+                    3: "70-90% 是真问题，存在噪音 issue",
+                    2: "噪音 issue 占比超 30%",
+                    1: "大量噪音，issue 缺乏证据",
+                },
+            },
+            {
+                "id": "failure_mode_coverage",
+                "name": "Failure Mode 覆盖率",
+                "description": "关键业务路径是否都做了故障场景分析",
+                "weight": 0.25,
+                "rubric": {
+                    5: "所有写操作/RPC 调用/状态迁移都有 Failure Mode 分析",
+                    4: "核心路径全覆盖，仅遗漏 1-2 个非关键路径",
+                    3: "主要路径已覆盖，但跨服务调用的部分失败场景遗漏",
+                    2: "Failure Mode 分析不完整，多个关键路径缺失",
+                    1: "几乎未做 Failure Mode 分析",
+                },
+            },
+            {
+                "id": "exception_coverage",
+                "name": "异常矩阵覆盖率",
+                "description": "异常分类目录中的类型是否都被检查",
+                "weight": 0.3,
+                "rubric": {
+                    5: "9 类异常分支全部检查，每类有具体的技术方案对应分析",
+                    4: "7-8 类已检查，仅遗漏 1-2 个低频异常类型",
+                    3: "5-6 类已检查，遗漏了 E-CONFLICT/E-TIMEOUT 等关键类型",
+                    2: "检查不足 5 类",
+                    1: "几乎未对照异常矩阵检查",
+                },
+            },
+            {
+                "id": "se_verifiability",
+                "name": "SE 可验证性",
+                "description": "上游 Phase A 生成的 SE 是否有明确的验证标准，而非模糊描述",
+                "weight": 0.2,
+                "rubric": {
+                    5: "所有 SE 都有可执行的验证条件（输入→预期输出），可直接转化为测试用例",
+                    4: "90%+ SE 可验证，少量需要补充边界条件",
+                    3: "70-90% 可验证，部分 SE 过于抽象（如'性能要好'）",
+                    2: "50-70% 可验证，多个 SE 是模糊描述无法转化为测试",
+                    1: "大量 SE 无法转化为具体测试用例，缺少输入输出定义",
+                },
+            },
+        ],
+    },
+    "Q06": {
+        "name": "单测覆盖审计",
+        "dimensions": [
+            {
+                "id": "audit_accuracy",
+                "name": "审计判定准确率",
+                "description": "COVERED/MISSING/WRONG_TARGET 的判定是否正确",
+                "weight": 0.35,
+                "rubric": {
+                    5: "所有审计状态判定正确，COVERED 确实有强断言，WRONG_TARGET 确实是弱断言",
+                    4: "90%+ 判定正确，个别边界 case 有争议",
+                    3: "70-90% 正确，存在将 assertNotNull 判为 COVERED 的情况",
+                    2: "多个判定错误，弱断言未被识别",
+                    1: "大面积判定错误",
+                },
+            },
+            {
+                "id": "wrong_target_detection",
+                "name": "WRONG_TARGET 检出率",
+                "description": "弱断言的测试是否被正确标记为 WRONG_TARGET",
+                "weight": 0.3,
+                "rubric": {
+                    5: "所有弱断言（assertNotNull/assertTrue(true)等）都被标记为 WRONG_TARGET",
+                    4: "90%+ 弱断言被检出",
+                    3: "主要弱断言被检出，但遗漏了只验证返回值不验证业务语义的情况",
+                    2: "WRONG_TARGET 检出不足，多个弱断言被判为 COVERED",
+                    1: "几乎未检出 WRONG_TARGET",
+                },
+            },
+            {
+                "id": "exception_branch",
+                "name": "异常分支覆盖",
+                "description": "T1 核心异常分支是否都有对应测试",
+                "weight": 0.25,
+                "rubric": {
+                    5: "所有 T1 异常分支都有测试，断言包含异常类型+状态不变+无脏数据",
+                    4: "90%+ T1 异常有测试，个别断言不够完整",
+                    3: "主要异常有测试，但缺少并发冲突/事务回滚等场景",
+                    2: "异常分支测试明显不足",
+                    1: "几乎无异常分支测试",
+                },
+            },
+            {
+                "id": "scenario_quality",
+                "name": "场景覆盖质量",
+                "description": "测试数据是否覆盖真实故障组合（多记录/边界值/特定枚举组合/多条件AND）",
+                "weight": 0.1,
+                "rubric": {
+                    5: "测试数据覆盖了多记录场景、边界值组合、特定枚举组合，mock 数据贴近真实业务",
+                    4: "主要故障组合已覆盖，个别边界组合缺失",
+                    3: "测试数据偏简单（单记录、默认值），未覆盖多条件组合触发的分支",
+                    2: "测试数据明显不足，多个关键组合未覆盖",
+                    1: "测试数据几乎全是 happy path 默认值，无法触发真实故障路径",
+                },
+            },
+        ],
+    },
+    "Q05": {
+        "name": "单测生成",
+        "dimensions": [
+            {
+                "id": "eut_coverage",
+                "name": "EUT 覆盖完备性",
+                "description": "EUT 矩阵是否覆盖了所有 REQ/BR/SE，包括 Happy Path、Exception、Boundary",
+                "weight": 0.3,
+                "rubric": {
+                    5: "每条 REQ/BR/SE 都有对应 EUT，三种路径类型均覆盖",
+                    4: "90%+ REQ/SE 有 EUT，仅遗漏 1-2 个边界场景",
+                    3: "主要 REQ 有 EUT，但 Exception/Boundary 路径覆盖不足",
+                    2: "EUT 覆盖不足 70%，大量 SE 无对应测试",
+                    1: "EUT 矩阵严重不完整",
+                },
+            },
+            {
+                "id": "assert_strength",
+                "name": "断言强度",
+                "description": "生成的单测是否使用强断言验证业务语义，而非仅 assertNotNull/assertTrue(true)",
+                "weight": 0.35,
+                "rubric": {
+                    5: "所有测试都有 assertEquals 验证业务字段、verify 验证交互、assertThrows 验证异常码",
+                    4: "90%+ 测试有强断言，个别测试断言稍弱",
+                    3: "主要测试有强断言，但存在 assertNotNull 冒充覆盖的情况",
+                    2: "多个测试仅有弱断言，未验证业务语义",
+                    1: "大量测试无实质断言或仅 assertNotNull",
+                },
+            },
+            {
+                "id": "code_compilability",
+                "name": "代码可编译性",
+                "description": "生成的单测代码是否能通过编译，import/mock/setup 是否正确",
+                "weight": 0.2,
+                "rubric": {
+                    5: "所有测试代码编译通过，import 正确，mock 配置完整",
+                    4: "90%+ 编译通过，个别 import 缺失但易修复",
+                    3: "主要测试可编译，但 mock 配置有遗漏导致部分编译失败",
+                    2: "多个测试编译失败，缺少关键依赖或 mock",
+                    1: "大面积编译失败",
+                },
+            },
+            {
+                "id": "se_traceability",
+                "name": "SE 追溯性",
+                "description": "每个测试方法是否能追溯到对应的 SE/EUT ID",
+                "weight": 0.15,
+                "rubric": {
+                    5: "每个 @Test 方法都有 @Tag 或注释标注对应的 EUT/SE ID",
+                    4: "90%+ 测试有追溯标注",
+                    3: "部分测试有标注，但缺少系统性的追溯",
+                    2: "追溯标注不足 50%",
+                    1: "几乎无追溯标注",
+                },
+            },
+        ],
+    },
+    "Q07": {
+        "name": "代码评审",
+        "dimensions": [
+            {
+                "id": "finding_validity",
+                "name": "发现有效率",
+                "description": "评审发现的问题是否是真问题，有具体代码证据支撑",
+                "weight": 0.3,
+                "rubric": {
+                    5: "所有 finding 都是真问题，引用了具体文件:行号和代码片段",
+                    4: "90%+ 是真问题，个别 finding 证据稍弱",
+                    3: "70-90% 是真问题，存在基于猜测的 finding",
+                    2: "噪音 finding 占比超 30%",
+                    1: "大量 finding 缺乏证据或是误报",
+                },
+            },
+            {
+                "id": "req_code_alignment",
+                "name": "需求-代码对齐度",
+                "description": "是否逐条检查了 REQ/BR/SE 在代码中的实现完整性",
+                "weight": 0.3,
+                "rubric": {
+                    5: "每条 REQ/SE 都有对应的代码实现检查，缺失的明确标记为 GAP",
+                    4: "90%+ REQ/SE 已检查，仅遗漏 1-2 条",
+                    3: "主要 REQ 已检查，但 SE 级别的隐式语义未逐条验证",
+                    2: "需求-代码对齐检查不足",
+                    1: "几乎未做需求-代码对齐",
+                },
+            },
+            {
+                "id": "severity_accuracy",
+                "name": "严重级别准确性",
+                "description": "BLOCKER/CRITICAL/MAJOR/MINOR 的分级是否合理",
+                "weight": 0.2,
+                "rubric": {
+                    5: "所有 finding 的严重级别准确，BLOCKER 确实会导致线上故障",
+                    4: "90%+ 分级准确，个别 MAJOR/MINOR 边界有争议",
+                    3: "主要分级合理，但存在将 MINOR 标为 BLOCKER 或反之的情况",
+                    2: "分级明显不准确，影响修复优先级判断",
+                    1: "分级混乱",
+                },
+            },
+            {
+                "id": "call_chain_tracing",
+                "name": "调用链路追踪",
+                "description": "是否追踪了改动功能点的完整调用链路（DDD+TMF 场景）",
+                "weight": 0.2,
+                "rubric": {
+                    5: "所有改动点都追踪了完整调用链（Controller→Service→Domain→Gateway），跨服务调用已标注",
+                    4: "核心改动点链路完整，仅遗漏 1-2 个非关键路径",
+                    3: "主要链路已追踪，但跨服务/异步调用的链路不完整",
+                    2: "链路追踪不足，多个改动点未追踪到 Gateway 层",
+                    1: "几乎未做链路追踪",
+                },
+            },
+        ],
+    },
+}
+
+# Anti-rationalization table：防止 Judge 给虚高分数的常见借口和反驳
+ANTI_RATIONALIZATION_SECTION: list[str] = [
+    "",
+    "## Anti-Rationalization（禁止放水）",
+    "",
+    "以下是 Judge 常见的放水借口。如果你发现自己在用这些理由，立即停下来重新评估。",
+    "",
+    "| 常见放水借口 | 为什么不能接受 | 正确做法 |",
+    "|---|---|---|",
+    '| "虽然缺少边界测试，但主流程覆盖了" | 边界是 bug 高发区，缺失即扣分 | 按 SE 逐条检查边界覆盖，缺失的列入 issues |',
+    '| "文档描述基本清晰" | "基本"="有歧义"，必须指出哪里不清晰 | 找到具体的模糊描述，标注为 GAP |',
+    '| "整体质量可接受" | 禁止整体评价，必须逐维度打分 | 每个维度独立打分，列出具体扣分证据 |',
+    '| "虽然没有并发测试，但业务场景简单" | 只要 SE 涉及并发，就必须有对应验证 | 检查 SE 列表，有并发关键词的必须有测试 |',
+    '| "覆盖率数字达标了" | 覆盖率不等于断言质量，assertNotNull 不算有效覆盖 | 检查断言是否验证了业务语义，不只是执行路径 |',
+    '| "异常处理已经有 try-catch" | try-catch 存在不等于异常被正确处理 | 检查 catch 块是否有正确的回滚/补偿/通知 |',
+    '| "这个问题影响不大" | Judge 不做影响评估，只做事实判定 | 如实报告问题，影响评估留给 approve 阶段 |',
+    '| "上一轮已经改进了" | 每轮独立评审，不考虑历史改进 | 只看当前版本的产物质量 |',
+    "",
+    "**核心原则**：宁可多报不可漏报（FN 比 FP 更严重）。如果犹豫是否扣分，扣。",
+    "",
+]
