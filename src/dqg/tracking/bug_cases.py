@@ -9,46 +9,62 @@ from types import MappingProxyType
 from typing import Any, Final
 
 from dqg.constants import CASES_DIR, KNOWLEDGE_FILE_MAP, PHASE_DIR_MAP, SKILL_FILE_MAP
+from dqg.core.state_machine import PHASE_DEFS
 from dqg.json_utils import dump_json_str, load_json
 from dqg.log import get_logger
-from dqg.core.state_machine import PHASE_DEFS
 
 log = get_logger(__name__)
 
 # 从 PHASE_DEFS 动态生成，避免与 state_machine.py 重复维护
 PHASE_DIRS = [v["dir_suffix"] for v in PHASE_DEFS.values()]
 
-ROOT_CAUSE_FIX_MAP: Final = MappingProxyType({
-    "SKILL_RULE": MappingProxyType({
-        "action": "修改 skill prompt 规则",
-        "targets": SKILL_FILE_MAP,
-    }),
-    "KNOWLEDGE": MappingProxyType({
-        "action": "补充领域知识",
-        "targets": KNOWLEDGE_FILE_MAP,
-    }),
-    "CONTEXT": MappingProxyType({
-        "action": "改进输入解析",
-        "targets": MappingProxyType({
-            "Q01": "src/dqg/ingest/feishu/",
-            "Q04": "src/dqg/context_loader.py",
-            "Q03": "src/dqg/context_loader.py",
-            "Q06": "src/dqg/context_loader.py",
-        }),
-    }),
-    "SCHEMA": MappingProxyType({
-        "action": "修改结构化输出 schema",
-        "targets": MappingProxyType({
-            "Q01": "src/dqg/schemas/phase_a.py",
-            "Q04": "src/dqg/schemas/phase_a5.py",
-            "Q03": "src/dqg/schemas/phase_a6.py",
-            "Q06": "src/dqg/schemas/phase_c.py",
-        }),
-    }),
-})
+ROOT_CAUSE_FIX_MAP: Final = MappingProxyType(
+    {
+        "SKILL_RULE": MappingProxyType(
+            {
+                "action": "修改 skill prompt 规则",
+                "targets": SKILL_FILE_MAP,
+            }
+        ),
+        "KNOWLEDGE": MappingProxyType(
+            {
+                "action": "补充领域知识",
+                "targets": KNOWLEDGE_FILE_MAP,
+            }
+        ),
+        "CONTEXT": MappingProxyType(
+            {
+                "action": "改进输入解析",
+                "targets": MappingProxyType(
+                    {
+                        "Q01": "src/dqg/ingest/feishu/",
+                        "Q04": "src/dqg/context_loader.py",
+                        "Q03": "src/dqg/context_loader.py",
+                        "Q06": "src/dqg/context_loader.py",
+                    }
+                ),
+            }
+        ),
+        "SCHEMA": MappingProxyType(
+            {
+                "action": "修改结构化输出 schema",
+                "targets": MappingProxyType(
+                    {
+                        "Q01": "src/dqg/schemas/phase_a.py",
+                        "Q04": "src/dqg/schemas/phase_a5.py",
+                        "Q03": "src/dqg/schemas/phase_a6.py",
+                        "Q06": "src/dqg/schemas/phase_c.py",
+                    }
+                ),
+            }
+        ),
+    }
+)
 
 
-def load_cases(base_dir: Path | None = None, *, exclude_holdout: bool = False, holdout_only: bool = False) -> list[dict[str, Any]]:
+def load_cases(
+    base_dir: Path | None = None, *, exclude_holdout: bool = False, holdout_only: bool = False
+) -> list[dict[str, Any]]:
     """加载所有 bug 案例.
 
     Args:
@@ -73,7 +89,9 @@ def load_cases(base_dir: Path | None = None, *, exclude_holdout: bool = False, h
 
 
 @lru_cache(maxsize=16)
-def _load_cases_by_phase_cached(phase: str, base_dir_str: str, exclude_holdout: bool, holdout_only: bool) -> tuple[dict[str, Any], ...]:
+def _load_cases_by_phase_cached(
+    phase: str, base_dir_str: str, exclude_holdout: bool, holdout_only: bool
+) -> tuple[dict[str, Any], ...]:
     """缓存版本：返回 tuple 以支持 lru_cache hashable 要求."""
     root = Path(base_dir_str)
     dir_suffix = PHASE_DIR_MAP.get(phase)
@@ -96,7 +114,9 @@ def _load_cases_by_phase_cached(phase: str, base_dir_str: str, exclude_holdout: 
     return tuple(cases)
 
 
-def load_cases_by_phase(phase: str, base_dir: Path | None = None, *, exclude_holdout: bool = False, holdout_only: bool = False) -> list[dict[str, Any]]:
+def load_cases_by_phase(
+    phase: str, base_dir: Path | None = None, *, exclude_holdout: bool = False, holdout_only: bool = False
+) -> list[dict[str, Any]]:
     """加载指定 Phase 的 bug 案例（带缓存）.
 
     Args:
@@ -143,6 +163,61 @@ def _load_input_excerpt(input_path: Path, limit: int = 500) -> str:
     return input_text
 
 
+def _render_single_case(case: dict[str, Any], index: int) -> str:
+    """Render a single bug case in Signs format (Trigger→Do→Why) or legacy lesson format."""
+    error_label = {"FN": "漏报", "FP": "误报", "WRONG": "错判"}.get(
+        case.get("error_type", ""), case.get("error_type", "")
+    )
+    lines = [f"### 反例 {index}: {case.get('title', '')} [{error_label}]", ""]
+
+    input_text = case.get("_input_excerpt", "")
+    if input_text:
+        lines.append(input_text)
+        lines.append("")
+
+    trigger = case.get("trigger_pattern", "").strip()
+    wrong_action = case.get("wrong_action", "").strip()
+    why = case.get("why_failed", "").strip()
+
+    if trigger and wrong_action and why:
+        lines.append(f"**Trigger:** {trigger}")
+        lines.append(f"**Do:** {wrong_action}")
+        lines.append(f"**Why:** {why}")
+        lines.append("")
+    else:
+        lesson = case.get("lesson", "").strip()
+        if lesson:
+            lines.append(f"**教训:** {lesson}")
+            lines.append("")
+
+    return "\n".join(lines)
+
+
+_SIGNS_FIELDS = ("trigger_pattern", "wrong_action", "why_failed")
+
+
+def validate_case_schema(case: dict[str, Any]) -> list[str]:
+    """Validate bug case schema, including Signs fields consistency.
+
+    Returns list of warning messages (empty = valid).
+    """
+    errors: list[str] = []
+
+    # Check Signs fields consistency: all-or-none
+    signs_present = [f for f in _SIGNS_FIELDS if case.get(f, "").strip()]
+    if 0 < len(signs_present) < len(_SIGNS_FIELDS):
+        missing = [f for f in _SIGNS_FIELDS if f not in signs_present]
+        errors.append(f"Signs pattern incomplete: has {', '.join(signs_present)} but missing {', '.join(missing)}")
+
+    # Must have either Signs or lesson (only check when no partial Signs)
+    has_signs = len(signs_present) == len(_SIGNS_FIELDS)
+    has_lesson = bool(case.get("lesson", "").strip())
+    if not signs_present and not has_signs and not has_lesson:
+        errors.append("Case has neither lesson nor Signs fields (trigger_pattern/wrong_action/why_failed)")
+
+    return errors
+
+
 def render_cases_for_prompt(phase: str, base_dir: Path | None = None, max_cases: int = 10) -> str:
     """将指定 Phase 的 open bug 案例渲染为 markdown，用于注入 skill prompt.
 
@@ -164,19 +239,7 @@ def render_cases_for_prompt(phase: str, base_dir: Path | None = None, max_cases:
     ]
 
     for i, c in enumerate(cases, 1):
-        error_label = {"FN": "漏报", "FP": "误报", "WRONG": "错判"}.get(c.get("error_type", ""), c.get("error_type", ""))
-        lines.append(f"### 反例 {i}: {c.get('title', '')} [{error_label}]")
-        lines.append("")
-
-        input_text = c.get("_input_excerpt", "")
-        if input_text:
-            lines.append(input_text)
-            lines.append("")
-
-        lesson = c.get("lesson", "")
-        if lesson:
-            lines.append(f"**教训**: {lesson}")
-            lines.append("")
+        lines.append(_render_single_case(c, i))
 
     return "\n".join(lines)
 
@@ -232,22 +295,28 @@ def suggest_fixes(cases: list[dict[str, Any]]) -> list[dict[str, Any]]:
     suggestions: list[dict[str, Any]] = []
     for target, target_cases in sorted(by_target.items(), key=lambda x: -len(x[1])):
         root_causes = list({c.get("root_cause", "") for c in target_cases})
-        action = ROOT_CAUSE_FIX_MAP.get(root_causes[0], {}).get("action", "排查修复") if len(root_causes) == 1 else "综合排查"
-        suggestions.append({
-            "fix_target": target,
-            "action": action,
-            "case_count": len(target_cases),
-            "cases": [
-                {
-                    "case_id": c.get("case_id"),
-                    "title": c.get("title"),
-                    "error_type": c.get("error_type"),
-                    "severity": c.get("severity"),
-                    "lesson": c.get("lesson", ""),
-                }
-                for c in target_cases
-            ],
-        })
+        action = (
+            ROOT_CAUSE_FIX_MAP.get(root_causes[0], {}).get("action", "排查修复")
+            if len(root_causes) == 1
+            else "综合排查"
+        )
+        suggestions.append(
+            {
+                "fix_target": target,
+                "action": action,
+                "case_count": len(target_cases),
+                "cases": [
+                    {
+                        "case_id": c.get("case_id"),
+                        "title": c.get("title"),
+                        "error_type": c.get("error_type"),
+                        "severity": c.get("severity"),
+                        "lesson": c.get("lesson", ""),
+                    }
+                    for c in target_cases
+                ],
+            }
+        )
     return suggestions
 
 
@@ -278,7 +347,7 @@ def format_report(cases: list[dict[str, Any]]) -> str:
     if fixes:
         lines.extend(["", "## 修复建议（按优先级）"])
         for i, fix in enumerate(fixes, 1):
-            lines.append(f"")
+            lines.append("")
             lines.append(f"### {i}. {fix['fix_target']} ({fix['case_count']} 个案例)")
             lines.append(f"   动作: {fix['action']}")
             for c in fix["cases"]:

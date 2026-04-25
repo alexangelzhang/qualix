@@ -16,6 +16,7 @@ from typing import Any
 
 from dqg.json_utils import load_json, save_json
 from dqg.log import get_logger
+from dqg.quality.risk_score import compute_risk_score as compute_risk_score
 
 log = get_logger(__name__)
 
@@ -310,13 +311,21 @@ def compute_blast_radius(
         f"{len(affected_callers)} callers, {len(affected_tests)} tests potentially affected"
     )
 
-    return {
+    result = {
         "changed_files": changed_files,
         "changed_methods": changed_methods[:50],
         "affected_callers": affected_callers[:30],
         "affected_tests": affected_tests[:30],
         "risk_summary": risk_summary,
     }
+
+    # Attach risk scoring
+    risk = compute_risk_score(result)
+    result["risk_score"] = risk["score"]
+    result["risk_tier"] = risk["tier"]
+    result["risk_factors"] = risk["factors"]
+
+    return result
 
 
 def write_blast_radius(
@@ -359,6 +368,7 @@ def _render_blast_radius_md(radius: dict[str, Any]) -> str:
         "## BLAST_RADIUS — 代码改动影响范围（自动分析）",
         "",
         f"**摘要**: {radius['risk_summary']}",
+        f"**风险等级**: {radius.get('risk_tier', 'N/A')} (score: {radius.get('risk_score', 'N/A')})",
         "",
     ]
 

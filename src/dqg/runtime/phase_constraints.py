@@ -110,6 +110,46 @@ PHASE_CONSTRAINTS: Final = MappingProxyType(
     }
 )
 
+# Risk-tier threshold multipliers: how much to relax/tighten coverage thresholds
+# Only coverage-type metrics are adjusted; count-based constraints stay fixed
+_COVERAGE_METRICS = {"req_coverage_rate", "se_coverage_rate"}
+_TIER_MULTIPLIERS: Final = MappingProxyType(
+    {
+        "LOW": 0.75,  # 80% → 60%
+        "MEDIUM": 1.0,  # unchanged
+        "HIGH": 1.0,  # unchanged
+        "CRITICAL": 1.1,  # 80% → 88% (capped at 1.0 for rate metrics)
+    }
+)
+
+
+def get_adjusted_thresholds(
+    phase_id: str,
+    risk_tier: str | None,
+) -> list[dict]:
+    """Return phase constraints with thresholds adjusted by risk tier.
+
+    Coverage metrics (req_coverage_rate, se_coverage_rate) are relaxed for LOW
+    risk and tightened for CRITICAL. Count-based constraints are unchanged.
+    """
+    constraints = PHASE_CONSTRAINTS.get(phase_id, [])
+    if not constraints:
+        return []
+
+    multiplier = _TIER_MULTIPLIERS.get(risk_tier, 1.0) if risk_tier else 1.0
+
+    adjusted = []
+    for c in constraints:
+        c_copy = dict(c)
+        if c["metric"] in _COVERAGE_METRICS and multiplier != 1.0:
+            new_threshold = round(c["threshold"] * multiplier, 2)
+            # Cap rate metrics at 1.0
+            c_copy["threshold"] = min(new_threshold, 1.0)
+            c_copy["_original_threshold"] = c["threshold"]
+            c_copy["_risk_adjusted"] = True
+        adjusted.append(c_copy)
+    return adjusted
+
 
 def _resolve_metric(output_dir: Path, project_id: str, phase_id: str, metric: str) -> float | None:
     """从结构化产物中解析指标值。"""
@@ -174,12 +214,13 @@ def enforce_phase_constraints(
     output_dir: Path,
     project_id: str,
     phase_id: str,
+    risk_tier: str | None = None,
 ) -> list[dict]:
     """执行 Phase DSL 约束断言，返回违反的约束列表。
 
     每条违反项格式：{"label", "metric", "op", "threshold", "actual", "block_if_fail"}
     """
-    constraints = PHASE_CONSTRAINTS.get(phase_id, [])
+    constraints = get_adjusted_thresholds(phase_id, risk_tier)
     violations = []
     for c in constraints:
         value = _resolve_metric(output_dir, project_id, phase_id, c["metric"])
