@@ -92,6 +92,12 @@ Iter 3: Worker 再次修正 → 多 Judge 投票 → Guard 放水检测 → 通�
 - compose_rubric(phase_id) 组合 shared(40%) + routed(60%) + dynamic
 - 权重归一化：所有维度等比缩放使总和 = 100%
 
+Phase 评估协议（Evaluation Protocol）：
+- 每个 Phase 的 Judge/Critique 有专属检查清单 + 行为红线 + 领域词汇
+- 静态层：人工维护的基础协议（低频更新）
+- 动态层：Gene Store 按 phase_id + agent_role 过滤注入历史经验
+- 门控：protocol_compliance handler (required, HARD gate)
+
 Anti-Rationalization Guard（运行时放水拦截）：
 - Layer 1: 关键词正则扫描（8 种放水模式，零成本）
 - Layer 2: LLM 确认（仅 Layer 1 命中时触发，haiku 级模型）

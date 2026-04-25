@@ -40,6 +40,7 @@ LEGACY_ALLOWLIST: set[str] = {
     "src/dqg/memory/knowledge_network.py",
     "src/dqg/quality/critique.py",
     "src/dqg/quality/eval_baseline.py",
+    "src/dqg/quality/evaluation_protocols.py",
     "src/dqg/quality/judge.py",
     "src/dqg/reporting/observability.py",
     "src/dqg/runtime/phase_contract.py",

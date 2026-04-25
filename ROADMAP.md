@@ -147,6 +147,13 @@
 - P2 锚点注入防漂移（`handoff_builder.py` extract_anchor_summary + `adaptive_loop.py` 上游 context 注入）— 每轮修正重注入 REQ/BR/SE 摘要 + 完整上游产物，防止 Worker 偏离原始需求
 - P3 共享+路由 Judge rubric（`judge_rubrics.py` compose_rubric + `constants.py` SHARED_RUBRIC_DIMENSIONS）— shared(40%) 通用质量底线 + routed(60%) Phase 专属维度 + dynamic 追加，权重归一化
 
+2026-04-25 新增（Phase Evaluation Protocol）：
+
+- Phase-level 评估协议（`quality/evaluation_protocols.py`）— 7 Phase × 2 角色（Judge+Critique）专属检查清单 + 行为红线 + 领域词汇，替代通用人设标签
+- Gene Store phase+role 过滤（`quality/gene_store.py`）— Gene 新增 agent_role 字段，注入时按 phase_id + agent_role 过滤，Q03 Judge 只看 Q03 Judge 的历史经验
+- Protocol Compliance HARD gate（`runtime/handlers_protocol.py`）— finalize handler 检查 Judge 输出是否覆盖 checklist，未覆盖 → BLOCKED；dynamic 经验为空 → WARNING
+- 研究驱动设计：基于 PRISM/EMNLP/Wharton 三篇独立研究结论，具体检查清单 >> 身份标签
+
 2026-04-23 新增（借鉴 LangChain Evaluating Skills 方法论）：
 
 - Prompt Fingerprint 基础设施 — `AgentResult.prompt_hash`（SHA256 前 16 位）+ `PhaseRunRecord.llm_calls` 聚合字段，自动捕获每次 LLM 调用的 model_id/prompt_hash/input_tokens/output_tokens/cache_hit，finalize 时从 `_adaptive_summary.json` 注入 telemetry；SQLite schema 同步扩展 + 存量 DB 自动迁移
