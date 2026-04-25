@@ -98,6 +98,11 @@ Phase 评估协议（Evaluation Protocol）：
 - 动态层：Gene Store 按 phase_id + agent_role 过滤注入历史经验
 - 门控：protocol_compliance handler (required, HARD gate)
 
+Runtime Eval Checkpoint：
+- Two-Phase Worker 断点：Collector → validate_checkpoint → Writer（evidence_pack 质量不达标不启动 Writer）
+- DAG Preflight 内容质量：上游产物 ID 覆盖率 + 报告长度 + 章节完整性检查
+- 两层验证：规则层（零 LLM）+ LLM 层（haiku，覆盖率 60-80% 时触发，10 秒超时 = PASS）
+
 Anti-Rationalization Guard（运行时放水拦截）：
 - Layer 1: 关键词正则扫描（8 种放水模式，零成本）
 - Layer 2: LLM 确认（仅 Layer 1 命中时触发，haiku 级模型）

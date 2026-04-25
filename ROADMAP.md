@@ -147,6 +147,12 @@
 - P2 锚点注入防漂移（`handoff_builder.py` extract_anchor_summary + `adaptive_loop.py` 上游 context 注入）— 每轮修正重注入 REQ/BR/SE 摘要 + 完整上游产物，防止 Worker 偏离原始需求
 - P3 共享+路由 Judge rubric（`judge_rubrics.py` compose_rubric + `constants.py` SHARED_RUBRIC_DIMENSIONS）— shared(40%) 通用质量底线 + routed(60%) Phase 专属维度 + dynamic 追加，权重归一化
 
+2026-04-25 新增（Runtime Eval Checkpoint）：
+
+- Checkpoint Validator（`quality/checkpoint_validator.py`）— 规则 + LLM 两层验证，规则层零 LLM 成本检查非空/ID 覆盖率/来源标注，LLM 层 haiku 级确认（覆盖率 60-80% 时触发，10 秒超时 fallback PASS）
+- Two-Phase Worker 断点（`agents/two_phase_worker.py`）— Collector 输出 evidence_pack 后验证质量，不合格不启动 Writer，省掉无效 Writer 调用
+- DAG Preflight 内容质量检查（`runtime/preflight.py`）— 上游 Phase 产物不仅检查文件存在性，还检查内容质量（ID 覆盖率、报告长度、章节完整性），不达标阻断下游 Phase
+
 2026-04-25 新增（Phase Evaluation Protocol）：
 
 - Phase-level 评估协议（`quality/evaluation_protocols.py`）— 7 Phase × 2 角色（Judge+Critique）专属检查清单 + 行为红线 + 领域词汇，替代通用人设标签
@@ -561,4 +567,4 @@
 | Git Worktree 隔离 | Q05/Q07 需要代码仓库时 | 每个并行 Phase 在独立 worktree 执行，避免代码文件冲突 |
 | Agent Teams 集成 | Claude Code Agent Teams GA 后 | 替代手动多 SubAgent 派发，用 Team Lead + Teammate 模型 |
 
-*最后更新：2026-04-24*
+*最后更新：2026-04-25*
