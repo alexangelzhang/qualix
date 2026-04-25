@@ -11,14 +11,17 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from pathlib import Path
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 from dqg.constants import (
     BUG_CASE_RELEVANCE_SEED_LIMIT,
     EVIDENCE_PACK_HEADER,
 )
-from dqg.context.evidence_renderer import render_chunk_body, render_key_quotes, truncate_chars
-from dqg.core.model_registry import ModelProfile, estimate_tokens, get_model_profile
+from dqg.context.evidence_renderer import render_chunk_body, render_key_quotes
+from dqg.core.model_registry import ModelProfile, get_model_profile
 from dqg.core.state_machine import PHASE_DEFS, load_state
 
 # Re-export for backward compatibility (chunk_processor imports ContextChunk from here)
@@ -46,6 +49,7 @@ class LoadedContext:
     truncated: bool = False
     total_tokens: int = 0
     budget_tokens: int = 0
+    verification_targets: list[dict] | None = None
 
     def render_evidence_pack(self) -> str:
         """渲染 retrieval-first evidence pack."""
@@ -68,18 +72,27 @@ class LoadedContext:
             lines.extend(["", f"### {chunk.source}", render_chunk_body(chunk)])
 
         # 根据 root cause 趋势动态调整 Evidence Pack 参数
+        priority_ids = None
+        if self.verification_targets:
+            from dqg.runtime.phase_contract import extract_priority_ids
+
+            priority_ids = extract_priority_ids(self.verification_targets)
+
         try:
             from dqg.quality.root_cause_tuner import get_adjusted_evidence_limits
+
             limits = get_adjusted_evidence_limits(self.phase_id)
             key_quotes = render_key_quotes(
                 self.chunks,
                 max_quotes=limits["max_quotes"],
                 total_char_limit=limits["total_quote_char_limit"],
+                priority_ids=priority_ids,
             )
         except Exception:
             from dqg.log import get_logger
+
             get_logger(__name__).warning("动态 evidence limits 调整失败，使用默认值", exc_info=True)
-            key_quotes = render_key_quotes(self.chunks)
+            key_quotes = render_key_quotes(self.chunks, priority_ids=priority_ids)
         if key_quotes:
             lines.extend(["", "## 关键引用", *key_quotes])
 
@@ -88,17 +101,22 @@ class LoadedContext:
         # Lossless compression: reduce Evidence Pack token footprint
         try:
             from dqg.context.prompt_compressor import compress, compression_ratio
+
             compressed = compress(result)
             ratio = compression_ratio(result, compressed)
             if ratio >= 0.08:
                 from dqg.log import get_logger
+
                 get_logger(__name__).info(
                     "Evidence Pack compressed: %.0f%% reduction (%d → %d chars)",
-                    ratio * 100, len(result), len(compressed),
+                    ratio * 100,
+                    len(result),
+                    len(compressed),
                 )
                 return compressed
         except Exception:
             from dqg.log import get_logger
+
             get_logger(__name__).warning("Evidence Pack 压缩失败，使用原文", exc_info=True)
 
         return result
@@ -169,6 +187,7 @@ def _assemble_context(
     model: ModelProfile,
     budget: int,
     all_chunks: list[ContextChunk],
+    verification_targets: list[dict] | None = None,
 ) -> LoadedContext:
     """排序、分块、压缩、截断，组装最终 LoadedContext."""
     from dqg.context.chunk_processor import _auto_compact_chunks, _split_large_chunk
@@ -200,12 +219,14 @@ def _assemble_context(
             cut_pos = chunk.content.rfind("\n\n", 0, cut_pos)
             if cut_pos > 0:
                 truncated_content = chunk.content[:cut_pos] + "\n\n<!-- ... 已截断 -->"
-                selected.append(ContextChunk(
-                    source=f"{chunk.source} (截断)",
-                    content=truncated_content,
-                    token_estimate=remaining,
-                    priority=chunk.priority,
-                ))
+                selected.append(
+                    ContextChunk(
+                        source=f"{chunk.source} (截断)",
+                        content=truncated_content,
+                        token_estimate=remaining,
+                        priority=chunk.priority,
+                    )
+                )
                 used_tokens += remaining
         break
 
@@ -216,6 +237,7 @@ def _assemble_context(
         truncated=truncated,
         total_tokens=used_tokens,
         budget_tokens=budget,
+        verification_targets=verification_targets,
     )
 
 
@@ -257,11 +279,26 @@ def load_context(
 
     # Phase 1: 并行加载上游产物 + 当前 Phase 输入
     all_chunks, _ = load_upstream_context(
-        output_dir, project_id, target_phase, phase_root, state, upstream_phases,
+        output_dir,
+        project_id,
+        target_phase,
+        phase_root,
+        state,
+        upstream_phases,
     )
 
     # Phase 2: 加载 sidecar（diff, memory, bug cases）
     load_sidecar_context(output_dir, project_id, target_phase, phase_root, all_chunks)
 
+    # Phase 2.5: 加载 verification_targets（用于 Oracle-guided evidence selection）
+    verification_targets = None
+    contract_path = phase_root / "_internal" / "_phase_contract.json"
+    if contract_path.exists():
+        from dqg.json_utils import load_json
+
+        contract = load_json(contract_path)
+        if contract:
+            verification_targets = contract.get("verification_targets")
+
     # Phase 3: 组装最终 context
-    return _assemble_context(target_phase, model, budget, all_chunks)
+    return _assemble_context(target_phase, model, budget, all_chunks, verification_targets)

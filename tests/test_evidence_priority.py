@@ -85,3 +85,51 @@ def test_extract_priority_ids_empty():
 
     assert extract_priority_ids([]) == set()
     assert extract_priority_ids(None) == set()
+
+
+def test_loaded_context_passes_priority_ids(monkeypatch):
+    """LoadedContext.render_evidence_pack() should pass priority_ids to render_key_quotes."""
+    from types import SimpleNamespace
+
+    from dqg.context.context_loader import ContextChunk, LoadedContext
+
+    # Track render_key_quotes calls
+    render_calls = []
+
+    import dqg.context.context_loader as cl
+
+    original_render = cl.render_key_quotes
+
+    def spy_render(chunks, **kwargs):
+        render_calls.append(kwargs)
+        return original_render(chunks, **kwargs)
+
+    monkeypatch.setattr(cl, "render_key_quotes", spy_render)
+
+    chunk = ContextChunk(
+        source="Phase A",
+        content="REQ-001 需求\n\nREQ-002 需求",
+        token_estimate=100,
+        priority=1,
+        file_path="phase_a.json",
+    )
+
+    ctx = LoadedContext(
+        phase_id="Q07",
+        chunks=[chunk],
+        total_tokens=100,
+        budget_tokens=10000,
+        truncated=False,
+        model=SimpleNamespace(available_for_context=10000),
+        verification_targets=[
+            {"se_id": "SE-001", "mapping_target": "REQ-001", "source": "phase_a"},
+        ],
+    )
+
+    ctx.render_evidence_pack()
+
+    assert len(render_calls) >= 1
+    last_call = render_calls[-1]
+    assert "priority_ids" in last_call
+    assert "REQ-001" in last_call["priority_ids"]
+    assert "SE-001" in last_call["priority_ids"]
