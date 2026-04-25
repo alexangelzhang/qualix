@@ -11,8 +11,10 @@ Judge 评审时读取 contract 逐条打分，而非自由文本评审。
 
 from __future__ import annotations
 
-from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 from dqg.json_utils import load_json, save_json
 from dqg.log import get_logger
@@ -30,7 +32,7 @@ def generate_phase_contract(
     Returns:
         contract 文件路径
     """
-    from dqg.constants import PHASE_DIR_MAP, STRUCTURED_JSON_MAP
+    from dqg.constants import PHASE_DIR_MAP
     from dqg.core.phase_registry import PHASE_DEFS
 
     phase_def = PHASE_DEFS.get(phase_id)
@@ -68,7 +70,10 @@ def generate_phase_contract(
 
     log.info(
         "Phase contract: %s — %d done criteria, %d verification targets, %d hard checks",
-        phase_id, len(done_definition), len(verification_targets), len(hard_checks),
+        phase_id,
+        len(done_definition),
+        len(verification_targets),
+        len(hard_checks),
     )
     return contract_path
 
@@ -161,7 +166,9 @@ def render_contract_for_judge(contract: dict[str, Any]) -> str:
 
 
 def _extract_verification_targets(
-    output_dir: Path, project_id: str, phase_id: str,
+    output_dir: Path,
+    project_id: str,
+    phase_id: str,
 ) -> list[dict[str, str]]:
     """从多个来源提取验证目标，防止 Worker 自设标准.
 
@@ -182,12 +189,14 @@ def _extract_verification_targets(
     data = load_json(phase_a_path)
     if data:
         for se in data.get("semantic_expectations", []):
-            targets.append({
-                "se_id": se.get("se_id", se.get("id", "")),
-                "description": se.get("description", ""),
-                "mapping_target": se.get("mapping_target", ""),
-                "source": "phase_a",
-            })
+            targets.append(
+                {
+                    "se_id": se.get("se_id", se.get("id", "")),
+                    "description": se.get("description", ""),
+                    "mapping_target": se.get("mapping_target", ""),
+                    "source": "phase_a",
+                }
+            )
 
     # 来源 2：Profile baseline 硬性约束（人类定义，Worker 无法影响）
     targets.extend(_extract_profile_constraints(output_dir, project_id, phase_id))
@@ -199,7 +208,9 @@ def _extract_verification_targets(
 
 
 def _extract_profile_constraints(
-    output_dir: Path, project_id: str, phase_id: str,
+    output_dir: Path,
+    project_id: str,
+    phase_id: str,
 ) -> list[dict[str, str]]:
     """从 profile baseline 提取硬性约束作为验证目标."""
     from dqg.constants import PHASE_DIR_MAP
@@ -231,12 +242,14 @@ def _extract_profile_constraints(
         if in_risk_section and stripped.startswith("- "):
             risk_item = stripped[2:].strip()
             if risk_item and len(risk_item) > 5:
-                constraints.append({
-                    "se_id": f"PROFILE-RISK-{len(constraints) + 1:03d}",
-                    "description": risk_item,
-                    "mapping_target": "profile_baseline",
-                    "source": "profile",
-                })
+                constraints.append(
+                    {
+                        "se_id": f"PROFILE-RISK-{len(constraints) + 1:03d}",
+                        "description": risk_item,
+                        "mapping_target": "profile_baseline",
+                        "source": "profile",
+                    }
+                )
 
     return constraints
 
@@ -260,18 +273,22 @@ def _extract_regression_checkpoints(phase_id: str) -> list[dict[str, str]]:
         lesson = c.get("lesson", "").strip()
         if not lesson:
             continue
-        checkpoints.append({
-            "se_id": f"REGRESSION-{c.get('case_id', 'unknown')}",
-            "description": f"[回归检查] {lesson[:120]}",
-            "mapping_target": c.get("case_id", ""),
-            "source": "regression",
-        })
+        checkpoints.append(
+            {
+                "se_id": f"REGRESSION-{c.get('case_id', 'unknown')}",
+                "description": f"[回归检查] {lesson[:120]}",
+                "mapping_target": c.get("case_id", ""),
+                "source": "regression",
+            }
+        )
 
     return checkpoints
 
 
 def _collect_evidence_refs(
-    output_dir: Path, project_id: str, phase_id: str,
+    output_dir: Path,
+    project_id: str,
+    phase_id: str,
 ) -> list[dict[str, str]]:
     """收集输入证据清单."""
     from dqg.constants import PHASE_DIR_MAP
@@ -326,6 +343,25 @@ def _get_hard_checks(phase_id: str) -> list[dict[str, str]]:
     return common + phase_specific.get(phase_id, [])
 
 
+def extract_priority_ids(targets: list[dict[str, str]] | None) -> set[str]:
+    """Extract flat set of requirement IDs from verification_targets.
+
+    Collects se_id and mapping_target from each target.
+    Used by evidence renderer to prioritize relevant quotes.
+    """
+    if not targets:
+        return set()
+    ids: set[str] = set()
+    for t in targets:
+        se_id = t.get("se_id", "")
+        if se_id:
+            ids.add(se_id)
+        mapping = t.get("mapping_target", "")
+        if mapping and mapping != "profile_baseline":
+            ids.add(mapping)
+    return ids
+
+
 def check_report_structure(report_content: str, phase: str) -> dict[str, Any]:
     """Check report against required_report_sections from phase_registry.
 
@@ -335,6 +371,7 @@ def check_report_structure(report_content: str, phase: str) -> dict[str, Any]:
         {"passed": bool, "missing": [str], "found": [str]}
     """
     from dqg.runtime.phase_constraints import check_report_structure as _check
+
     return _check(report_content, phase)
 
 

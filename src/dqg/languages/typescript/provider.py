@@ -8,6 +8,10 @@ from __future__ import annotations
 
 import subprocess
 from pathlib import Path
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from dqg.context.code_skeleton import SkeletonResult
 
 from dqg.json_utils import load_json
 from dqg.languages.base import (
@@ -274,6 +278,18 @@ class TypeScriptProvider(LanguageProvider):
                 "total": total,
             },
         )
+
+    # ── 骨架提取 ──
+
+    def extract_skeleton(
+        self,
+        source: str,
+        expand_methods: set[str] | None = None,
+    ) -> SkeletonResult | None:
+        """Extract TypeScript code skeleton using tree-sitter."""
+        from dqg.languages.typescript.skeleton import extract_skeleton_ts
+
+        return extract_skeleton_ts(source, expand_methods)
 
     # ── 测试文件定位 ──
 

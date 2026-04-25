@@ -57,3 +57,31 @@ def test_priority_ids_with_no_matches_falls_back():
     result = render_key_quotes(chunks, priority_ids={"REQ-999", "BR-999"})
     assert len(result) > 0
     assert "REQ-001" in "\n".join(result)
+
+
+def test_extract_priority_ids_from_targets():
+    """extract_priority_ids should return flat set of SE/BR/REQ IDs."""
+    from dqg.runtime.phase_contract import extract_priority_ids
+
+    targets = [
+        {"se_id": "SE-001", "mapping_target": "REQ-001", "source": "phase_a"},
+        {"se_id": "SE-002", "mapping_target": "BR-003", "source": "phase_a"},
+        {"se_id": "PROFILE-RISK-001", "mapping_target": "profile_baseline", "source": "profile"},
+    ]
+
+    ids = extract_priority_ids(targets)
+    assert "SE-001" in ids
+    assert "SE-002" in ids
+    assert "REQ-001" in ids
+    assert "BR-003" in ids
+    # Profile targets: se_id included, but profile_baseline mapping excluded
+    assert "PROFILE-RISK-001" in ids
+    assert "profile_baseline" not in ids
+
+
+def test_extract_priority_ids_empty():
+    """Empty targets should return empty set."""
+    from dqg.runtime.phase_contract import extract_priority_ids
+
+    assert extract_priority_ids([]) == set()
+    assert extract_priority_ids(None) == set()

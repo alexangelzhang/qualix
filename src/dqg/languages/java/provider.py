@@ -7,6 +7,10 @@ from __future__ import annotations
 
 import subprocess
 from pathlib import Path
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from dqg.context.code_skeleton import SkeletonResult
 
 from dqg.languages.base import (
     CompileResult,
@@ -253,6 +257,18 @@ class JavaProvider(LanguageProvider):
                     )
                 )
         return results
+
+    # ── 骨架提取 ──
+
+    def extract_skeleton(
+        self,
+        source: str,
+        expand_methods: set[str] | None = None,
+    ) -> SkeletonResult | None:
+        """Extract Java code skeleton using tree-sitter (regex fallback)."""
+        from dqg.context.code_skeleton import extract_skeleton
+
+        return extract_skeleton(source, expand_methods)
 
     # ── 测试文件定位 ──
 
