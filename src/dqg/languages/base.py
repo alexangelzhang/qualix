@@ -13,6 +13,8 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from pathlib import Path
 
+    from dqg.context.code_skeleton import SkeletonResult
+
 # ---------------------------------------------------------------------------
 # 数据类型
 # ---------------------------------------------------------------------------
@@ -201,6 +203,18 @@ class LanguageProvider(ABC):
         默认返回空 SourceInfo，子类按需覆盖。
         """
         return SourceInfo()
+
+    def extract_skeleton(
+        self,
+        source: str,
+        expand_methods: set[str] | None = None,
+    ) -> SkeletonResult | None:
+        """提取代码骨架：保留签名+字段，省略方法体.
+
+        expand_methods 中的方法展开完整实现（Oracle 标注）。
+        不支持的语言返回 None。默认返回 None，子类按需覆盖。
+        """
+        return None
 
     @abstractmethod
     def parse_test_methods(self, test_content: str) -> list[TestMethodInfo]:
