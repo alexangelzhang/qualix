@@ -9,8 +9,10 @@ Writer 的 context 更干净（不含原始文档），产出质量更高。
 
 from __future__ import annotations
 
-from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 from dqg.json_utils import load_json, save_json
 from dqg.log import get_logger
@@ -62,6 +64,23 @@ def run_two_phase_worker(
     evidence_pack = _parse_evidence_pack(collector_result.content)
     evidence_path = int_dir / "_evidence_pack.json"
     save_json(evidence_path, evidence_pack)
+
+    # Runtime Eval: validate evidence pack before starting Writer
+    import json as _json
+
+    from dqg.quality.checkpoint_validator import validate_checkpoint
+
+    _contract = _load_contract(int_dir)
+    _checkpoint = validate_checkpoint(
+        content=_json.dumps(evidence_pack, ensure_ascii=False) if evidence_pack else "",
+        contract=_contract,
+        phase_id=phase_id,
+        checkpoint_name="evidence_pack",
+    )
+    if not _checkpoint.passed:
+        log.warning("Evidence pack checkpoint FAILED: %s", _checkpoint.block_reason)
+        return {"status": "failed", "error": f"Evidence pack checkpoint: {_checkpoint.block_reason}"}
+    log.info("Evidence pack checkpoint PASSED: %d rule checks", len(_checkpoint.rule_checks))
 
     # Phase 2: Writer — 只看 evidence pack + skill，不看原始文档
     writer_prompt = _build_writer_prompt(skill_content, phase_id)
@@ -149,6 +168,14 @@ def _extract_focus_from_skill(skill_content: str) -> str:
     return "\n".join(focus_lines[:30]) if focus_lines else "按 skill 要求收集所有相关证据。"
 
 
+def _load_contract(int_dir: Path) -> dict[str, Any]:
+    """Load Phase Contract from _internal dir."""
+    contract_path = int_dir / "_phase_contract.json"
+    if not contract_path.exists():
+        return {}
+    return load_json(contract_path) or {}
+
+
 def _parse_evidence_pack(content: str) -> dict[str, Any]:
     """从 Collector 输出中解析证据包."""
     import json
@@ -167,17 +194,19 @@ def _parse_evidence_pack(content: str) -> dict[str, Any]:
     end = content.rfind("}")
     if start >= 0 and end > start:
         try:
-            return json.loads(content[start:end + 1])
+            return json.loads(content[start : end + 1])
         except json.JSONDecodeError:
             pass
 
     # fallback：把整个内容作为单条证据
     return {
-        "evidences": [{
-            "id": "E-RAW",
-            "source": "collector_output",
-            "type": "raw",
-            "content": content[:5000],
-            "relevance": "全文",
-        }],
+        "evidences": [
+            {
+                "id": "E-RAW",
+                "source": "collector_output",
+                "type": "raw",
+                "content": content[:5000],
+                "relevance": "全文",
+            }
+        ],
     }

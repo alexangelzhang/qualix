@@ -22,6 +22,7 @@ _CASCADE_BLOCK_STATUSES = frozenset({"tainted", "parse_failed"})
 @dataclass
 class PreflightResult:
     """预检结果."""
+
     can_continue: bool = True
     checks: list[dict[str, str]] = field(default_factory=list)
     resumed_from: str | None = None
@@ -70,6 +71,12 @@ def run_preflight(
     cascade_check = _check_cascade_failure(output_dir, project_id, phase_id)
     result.checks.append(cascade_check)
     if cascade_check["status"] == "FAIL":
+        result.can_continue = False
+
+    # 5.5. 上游内容质量检查
+    quality_check = _check_upstream_quality(output_dir, project_id, phase_id)
+    result.checks.append(quality_check)
+    if quality_check["status"] == "FAIL":
         result.can_continue = False
 
     # 6. 检查 Phase contract 存在
@@ -237,3 +244,93 @@ def _check_cascade_failure(output_dir: Path, project_id: str, phase_id: str) -> 
             "detail": f"Upstream tainted/failed: {', '.join(tainted)} — cascade blocked",
         }
     return {"name": "cascade_failure", "status": "PASS", "detail": "No upstream failures"}
+
+
+def _check_upstream_quality(output_dir: Path, project_id: str, phase_id: str) -> dict[str, str]:
+    """Check upstream Phase output content quality (not just file existence).
+
+    Uses checkpoint_validator to verify ID coverage and content adequacy.
+    """
+    from dqg.constants import PHASE_DIR_MAP, REPORT_MAP, STRUCTURED_JSON_MAP
+    from dqg.core.phase_registry import PHASE_DEFS
+    from dqg.core.state_machine import PhaseStatus, load_state
+
+    phase_def = PHASE_DEFS.get(phase_id, {})
+    deps = phase_def.get("depends_on", [])
+    if not deps:
+        return {"name": "upstream_quality", "status": "PASS", "detail": "No upstream dependencies"}
+
+    state = load_state(output_dir, project_id)
+    issues: list[str] = []
+
+    for dep_id in deps:
+        ps = state.phases.get(dep_id)
+        if not ps or ps.status in (PhaseStatus.SKIPPED,):
+            continue
+        if ps.status not in (PhaseStatus.APPROVED, PhaseStatus.PENDING_REVIEW):
+            continue
+
+        dep_dir = output_dir / project_id / PHASE_DIR_MAP.get(dep_id, "")
+        int_dir = dep_dir / "_internal"
+
+        # Load upstream contract for verification targets
+        contract_path = int_dir / "_phase_contract.json"
+        contract = {}
+        if contract_path.exists():
+            from dqg.json_utils import load_json
+
+            contract = load_json(contract_path) or {}
+
+        if not contract.get("verification_targets"):
+            continue  # No contract → skip quality check for this dep
+
+        # Check structured JSON content
+        json_file = STRUCTURED_JSON_MAP.get(dep_id)
+        if json_file:
+            json_path = dep_dir / json_file
+            if json_path.exists():
+                import json
+
+                from dqg.json_utils import load_json as _lj
+
+                data = _lj(json_path)
+                if data:
+                    from dqg.quality.checkpoint_validator import validate_checkpoint
+
+                    result = validate_checkpoint(
+                        content=json.dumps(data, ensure_ascii=False),
+                        contract=contract,
+                        phase_id=dep_id,
+                        checkpoint_name=f"upstream_{dep_id}_json",
+                    )
+                    if not result.passed:
+                        issues.append(f"{dep_id}: {result.block_reason}")
+
+        # Check report content
+        report_file = REPORT_MAP.get(dep_id)
+        if report_file:
+            report_path = dep_dir / report_file
+            if report_path.exists():
+                try:
+                    report_text = report_path.read_text(encoding="utf-8", errors="replace")
+                except OSError:
+                    report_text = ""
+                if report_text:
+                    from dqg.quality.checkpoint_validator import validate_checkpoint as _vc
+
+                    result = _vc(
+                        content=report_text,
+                        contract=contract,
+                        phase_id=dep_id,
+                        checkpoint_name=f"upstream_{dep_id}_report",
+                    )
+                    if not result.passed:
+                        issues.append(f"{dep_id} report: {result.block_reason}")
+
+    if issues:
+        return {
+            "name": "upstream_quality",
+            "status": "FAIL",
+            "detail": f"Upstream quality issues: {'; '.join(issues)}",
+        }
+    return {"name": "upstream_quality", "status": "PASS", "detail": "All upstream content quality checks passed"}
