@@ -134,6 +134,26 @@ def generate_worker_prompt(
             parts.append(f"- {k}: {v}")
         parts.append("")
 
+    # P2 锚点注入：重跑时自动追加原始需求摘要，防止 Worker 只看 Judge 反馈漂移
+    from dqg.constants import REPORT_MAP
+
+    report_file = REPORT_MAP.get(phase_id)
+    is_rerun = report_file and (pd / report_file).exists()
+    if is_rerun:
+        upstream_path = pd / "_upstream_context.md"
+        if not upstream_path.exists():
+            upstream_path = pd / "_internal" / "_upstream_context.md"
+        if upstream_path.exists():
+            from dqg.agents.handoff_builder import extract_anchor_summary
+
+            try:
+                anchor = extract_anchor_summary(upstream_path.read_text(encoding="utf-8", errors="replace"))
+                if anchor:
+                    parts.append(anchor)
+                    parts.append("")
+            except Exception:
+                pass  # 锚点提取失败不阻断 Worker
+
     return "\n".join(parts)
 
 
