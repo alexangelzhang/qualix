@@ -159,7 +159,7 @@
 
 - Phase-level 评估协议（`quality/evaluation_protocols.py`）— 7 Phase × 2 角色（Judge+Critique）专属检查清单 + 行为红线 + 领域词汇，替代通用人设标签
 - Gene Store phase+role 过滤（`quality/gene_store.py`）— Gene 新增 agent_role 字段，注入时按 phase_id + agent_role 过滤，Q03 Judge 只看 Q03 Judge 的历史经验
-- Protocol Compliance HARD gate（`runtime/handlers_protocol.py`）— finalize handler 检查 Judge 输出是否覆盖 checklist，未覆盖 → BLOCKED；dynamic 经验为空 → WARNING
+- Protocol Compliance（`runtime/handlers_protocol.py`）— 已从 finalize 主流程移除。evaluation_protocols 的 prompt 注入功能保留（Judge/Critique checklist 注入），事后 keyword matching 验证因误报率高不再卡主流程。handler 文件保留供 regression 评测体系使用
 - 研究驱动设计：基于 PRISM/EMNLP/Wharton 三篇独立研究结论，具体检查清单 >> 身份标签
 
 2026-04-25 新增（Prompt Harness P0）：

@@ -78,11 +78,11 @@ def handle_protocol_compliance(ctx: ExecutionContext, result: PhaseResult) -> No
 
     if uncovered:
         msg = (
-            f"BLOCKED: required handler protocol_compliance failed — "
+            f"WARNING: protocol_compliance — "
             f"{len(uncovered)}/{len(protocol.judge.checklist)} checklist items uncovered: " + "; ".join(uncovered[:3])
         )
-        result.errors.append(msg)
-        log.warning("Protocol compliance BLOCKED: %d uncovered items", len(uncovered))
+        result.warnings.append(msg)
+        log.warning("Protocol compliance WARNING: %d uncovered items (keyword fuzzy match)", len(uncovered))
     else:
         log.info("Protocol compliance PASS: all %d checklist items covered", len(protocol.judge.checklist))
 

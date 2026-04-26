@@ -50,10 +50,11 @@ def test_protocol_compliance_passes_when_all_covered(tmp_path):
 
     handle_protocol_compliance(ctx, result)
     assert not any("BLOCKED" in str(e) for e in result.errors)
+    assert not any("WARNING" in str(w) for w in result.warnings if "protocol_compliance" in str(w))
 
 
-def test_protocol_compliance_blocks_when_checklist_uncovered(tmp_path):
-    """Missing checklist items → BLOCKED error."""
+def test_protocol_compliance_warns_when_checklist_uncovered(tmp_path):
+    """Missing checklist items → WARNING (not BLOCKED, keyword fuzzy match too imprecise)."""
     from dqg.runtime.handlers_protocol import handle_protocol_compliance
 
     ctx = _make_ctx(tmp_path, "Q07")
@@ -69,8 +70,9 @@ def test_protocol_compliance_blocks_when_checklist_uncovered(tmp_path):
     (phase_dir / "_judge_result.json").write_text(json.dumps(judge_result))
 
     handle_protocol_compliance(ctx, result)
-    blocked = [e for e in result.errors if "BLOCKED" in str(e)]
-    assert len(blocked) > 0
+    assert len(result.errors) == 0  # no BLOCKED
+    warnings = [w for w in result.warnings if "protocol_compliance" in str(w)]
+    assert len(warnings) > 0
 
 
 def test_protocol_compliance_skips_unknown_phase(tmp_path):

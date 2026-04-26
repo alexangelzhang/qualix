@@ -349,15 +349,6 @@ def register_finalize_handlers() -> None:
         required=True,
     )
     register_handler("auto_judge", handle_auto_judge, stage="finalize", order=75, depends_on=["review_chain"])
-    from dqg.runtime.handlers_protocol import handle_protocol_compliance
-
-    register_handler(
-        "protocol_compliance",
-        handle_protocol_compliance,
-        stage="finalize",
-        order=77,
-        required=True,
-    )
     register_handler("progress_file", handle_progress_file, stage="finalize", order=80)
     register_handler("skill_factory", handle_skill_factory, stage="finalize", order=90)
     # Group 3: 依赖 quality_tracking
