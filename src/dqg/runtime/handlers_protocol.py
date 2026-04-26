@@ -7,6 +7,7 @@ Zero dynamic genes → WARNING (SOFT).
 
 from __future__ import annotations
 
+import contextlib
 import re
 from typing import TYPE_CHECKING
 
@@ -40,10 +41,26 @@ def handle_protocol_compliance(ctx: ExecutionContext, result: PhaseResult) -> No
     if not judge_data:
         return
 
-    # Collect all text from judge issues for matching
+    # Collect all text from judge issues, checklist, and summary for matching
     judge_text = ""
     for issue in judge_data.get("issues", []):
         judge_text += " " + issue.get("description", "")
+    for issue in judge_data.get("top_issues", []):
+        if isinstance(issue, dict):
+            judge_text += " " + issue.get("description", "")
+        elif isinstance(issue, str):
+            judge_text += " " + issue
+    for item in judge_data.get("gate_checklist", []):
+        judge_text += " " + item.get("item", "") + " " + item.get("evidence", "")
+    judge_text += " " + judge_data.get("summary", "")
+    # Also check the report for protocol coverage (fallback for auto-synthesized judge)
+    from dqg.constants import PHASE_DIR_MAP, REPORT_MAP
+
+    report_file = REPORT_MAP.get(ctx.phase_id, "phase_report.md")
+    report_path = phase_dir / report_file
+    if report_path.exists():
+        with contextlib.suppress(Exception):
+            judge_text += " " + report_path.read_text(encoding="utf-8", errors="replace")
     judge_text = judge_text.lower()
 
     # Check each checklist item — extract keywords for fuzzy match
