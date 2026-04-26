@@ -120,6 +120,8 @@ Phase 执行时自动注入以下增强上下文（`context/upstream_collector.p
 | `phase_*_structured.json` | 机器可读 JSON |
 | `_reasoning_log.md` | 推理日志（每步决策过程） |
 | `_critique.json` | Judge/Critique 结果 |
+| `_internal/_prompt_manifests/*.json` | Prompt Harness 追踪信息（prompt hash、section hash、section sources、资产 hash、组装顺序、角色、schema） |
+| `_internal/_prompt_policy.json` | Prompt Policy Gate 结果（manifest/hash/schema/evidence contract） |
 | `_perf_metrics.json` | 性能指标 |
 
 ## 工作规范
@@ -210,8 +212,9 @@ Phase 执行时自动注入以下增强上下文（`context/upstream_collector.p
 | Dashboard (`reporting/dashboard/`) | README.md |
 | Observe (`reporting/observability*`) | README.md, ROADMAP.md |
 | Runtime/Quality 架构 | ROADMAP.md, AGENTS.md |
+| Prompt Harness (`prompting/`, prompt writer) | README.md, ROADMAP.md, docs/architecture.md, AGENTS.md |
 | Skill 文件 (`skills/`) | AGENTS.md |
-| Profile (`profiles/`) | README.md |
+| Profile (`profiles/`, `core/profiles.py`) | README.md, ROADMAP.md, docs/architecture.md |
 
 原则：
 - 文档中禁止硬编码易变数据（测试数量、模块列表等），用泛化描述替代

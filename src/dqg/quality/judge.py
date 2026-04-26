@@ -18,6 +18,8 @@ from dqg.constants import PHASE_DIR_MAP, REPORT_MAP, STRUCTURED_JSON_MAP
 from dqg.core.state_machine import PHASE_DEFS
 from dqg.core.state_machine import phase_dir as _phase_dir
 from dqg.json_utils import load_json
+from dqg.prompting import PromptAssembler, PromptAsset, PromptBuild, PromptSpec, write_prompt_manifest
+from dqg.prompting.record import record_prompt_manifest
 from dqg.quality.judge_rubrics import ANTI_RATIONALIZATION_SECTION as _ANTI_RATIONALIZATION_SECTION
 from dqg.quality.judge_rubrics import JUDGE_RUBRICS as _JUDGE_RUBRICS
 from dqg.quality.judge_rubrics import compose_rubric as _compose_rubric
@@ -25,15 +27,15 @@ from dqg.services.phase_service import read_relevance_excerpt
 from dqg.tracking.case_selector import render_relevant_cases_for_prompt
 
 
-def generate_judge_prompt(
+def build_judge_prompt(
     output_dir: Path,
     project_id: str,
     phase_id: str,
-) -> str | None:
-    """生成 LLM-as-Judge 评审 prompt.
+) -> PromptBuild | None:
+    """Build LLM-as-Judge prompt through the central PromptAssembler.
 
     Returns:
-        judge prompt 文本，如果 phase 不支持评审则返回 None
+        Prompt build with section-level manifest; unsupported phases return None.
     """
     rubric = _JUDGE_RUBRICS.get(phase_id)
     if not rubric:
@@ -51,66 +53,65 @@ def generate_judge_prompt(
     pd = _phase_dir(output_dir, project_id, phase_def)
     checklist = phase_def.get("approve_checklist", [])
 
-    # 构建 prompt
-    lines = [
-        f"# Quality Judge — Phase {phase_id}: {rubric['name']}",
-        "",
-        "## 你的身份",
-        "",
-        "你是一位有 10 年经验的质量负责人。你见过太多'测试通过但线上出事'、'评审通过但需求遗漏'的案例。",
-        "你不相信'看起来没问题'，只相信证据。你的口头禅是：'证据在哪？'",
-        "",
-        "你的行为准则：",
-        "- 你对每个结论都要求看到原文引用，没有引用的结论你不认可",
-        "- 你对'基本覆盖''整体还行'这类模糊表述零容忍",
-        "- 你知道 LLM 倾向于给高分和正面评价，所以你会刻意寻找问题",
-        "- 你宁可被认为苛刻，也不愿放过一个真问题",
-        "",
-        "## 评审规则",
-        "",
-        "1. 你是独立评审员，不是执行者。你的任务是找出问题，不是修复问题。",
-        "2. 每个评分维度按 1-5 分 Likert 量表打分，严格对照每级标准。",
-        "3. 漏报（FN）比误报（FP）更严重 — 宁可多报不可漏报。",
-        "4. 必须对照原始输入（PRD/技术方案/代码）逐条验证，不能只看输出的自洽性。",
-        "5. 每个维度必须列出具体的扣分证据（引用原文位置）。",
-        "",
+    goal = "\n\n".join(
+        [
+            f"# Quality Judge — Phase {phase_id}: {rubric['name']}",
+            "## 评估目标",
+            "基于原始输入、Phase 产物、Gate Checklist、评估协议和已知失败案例，判断本 Phase 输出是否满足质量门禁。\n"
+            "结论必须由证据支撑；没有原文引用或文件依据的判断一律视为不成立。",
+        ]
+    )
+    behavior_constraints = "\n".join(
+        [
+            "## 行为约束",
+            "",
+            "- 每个结论都必须引用具体证据；没有引用的结论不能计入评分依据",
+            "- 不接受'基本覆盖''整体还行'这类无法验证的模糊表述",
+            "- 主动寻找漏报（FN）、错判、虚构和证据不足，不为已有产物辩护",
+            "- 不修复产物，只输出评审结论和结构化问题",
+            "",
+            "## 评审规则",
+            "",
+            "1. 你是独立评审员，不是执行者。你的任务是找出问题，不是修复问题。",
+            "2. 每个评分维度按 1-5 分 Likert 量表打分，严格对照每级标准。",
+            "3. 漏报（FN）比误报（FP）更严重 — 宁可多报不可漏报。",
+            "4. 必须对照原始输入（PRD/技术方案/代码）逐条验证，不能只看输出的自洽性。",
+            "5. 每个维度必须列出具体的扣分证据（引用原文位置）。",
+        ]
+    )
+    gate_checklist_lines = [
         "## Gate Checklist（通过标准）",
         "",
     ]
     for item in checklist:
-        lines.append(f"- [ ] {item}")
+        gate_checklist_lines.append(f"- [ ] {item}")
+    gate_checklist = "\n".join(gate_checklist_lines)
 
-    lines.extend(
-        [
-            "",
-            "## 评审维度 + 检查清单（compose_rubric 生成）",
-            "",
-        ]
-    )
-    # Use compose_rubric for shared + routed + dynamic dimensions
-    composed = _compose_rubric(phase_id, dynamic_dimensions=dynamic_dims or None)
-    lines.append(composed)
-
-    # Inject Phase evaluation protocol (checklist + red_lines)
     from dqg.quality.evaluation_protocols import get_protocol, render_protocol_for_prompt
 
-    _protocol = get_protocol(phase_id)
-    if _protocol:
-        lines.extend(["", render_protocol_for_prompt(_protocol.judge)])
+    protocol = get_protocol(phase_id)
+    evaluation_protocol = (
+        render_protocol_for_prompt(protocol.judge)
+        if protocol
+        else "## 检查清单（必须逐条检查）\n\n## 行为红线（绝对不能做）"
+    )
 
-    lines.extend(
+    rubric_text = "\n\n".join(
         [
-            "",
-            "## 评审输入",
-            "",
-            f"Phase 输出目录: `{pd}`",
-            "",
-            "请读取以下文件进行评审：",
-            "",
+            "## 评审维度 + 检查清单（compose_rubric 生成）",
+            _compose_rubric(phase_id, dynamic_dimensions=dynamic_dims or None),
         ]
     )
 
-    # 列出需要读取的文件
+    input_lines = [
+        "## 评审输入",
+        "",
+        f"Phase 输出目录: `{pd}`",
+        "",
+        "请读取以下文件进行评审：",
+        "",
+    ]
+
     report_files = []
     report_file = REPORT_MAP.get(phase_id)
     json_file = STRUCTURED_JSON_MAP.get(phase_id)
@@ -121,39 +122,33 @@ def generate_judge_prompt(
     relevance_parts: list[str] = []
     for i, f in enumerate(report_files, 1):
         path = pd / f
-        lines.append(f"{i}. `{path}`")
+        input_lines.append(f"{i}. `{path}`")
         excerpt = read_relevance_excerpt(path)
         if excerpt:
             relevance_parts.append(excerpt)
 
-    # 上游产物
     if phase_id != "Q01":
         upstream_dir = output_dir / project_id / PHASE_DIR_MAP["Q01"]
         upstream_path = upstream_dir / STRUCTURED_JSON_MAP["Q01"]
-        lines.append(f"{len(report_files) + 1}. Phase Q01 产物: `{upstream_path}`")
+        input_lines.append(f"{len(report_files) + 1}. Phase Q01 产物: `{upstream_path}`")
         excerpt = read_relevance_excerpt(upstream_path)
         if excerpt:
             relevance_parts.append(excerpt)
 
     bug_cases_md = render_relevant_cases_for_prompt(phase_id, "\n".join(relevance_parts), max_cases=10)
-    if bug_cases_md:
-        lines.extend(["", bug_cases_md, ""])
 
-    # Gene phase+role 过滤注入：只注入该 Phase Judge 的历史经验
     from dqg.quality.gene_store import load_genes_for_phase, match_genes, render_genes_for_prompt
 
-    _phase_genes = load_genes_for_phase(output_dir.parent, phase_id, agent_role="judge")
-    if _phase_genes:
-        _gene_context = "\n".join(relevance_parts) if relevance_parts else ""
-        _matched = match_genes(_phase_genes, _gene_context)
-        if _matched:
-            lines.extend(["", render_genes_for_prompt(_matched), ""])
+    genes_text = ""
+    phase_genes = load_genes_for_phase(output_dir.parent, phase_id, agent_role="judge")
+    if phase_genes:
+        gene_context = "\n".join(relevance_parts) if relevance_parts else ""
+        matched = match_genes(phase_genes, gene_context)
+        if matched:
+            genes_text = render_genes_for_prompt(matched)
 
-    lines.extend(_ANTI_RATIONALIZATION_SECTION)
-
-    lines.extend(
+    output_schema = "\n".join(
         [
-            "",
             "## 输出格式",
             "",
             "请输出以下 JSON 格式的评审结果，保存到：",
@@ -191,7 +186,52 @@ def generate_judge_prompt(
         ]
     )
 
-    return "\n".join(lines)
+    spec = PromptSpec(
+        prompt_id=f"judge.{phase_id}",
+        prompt_type="judge",
+        phase_id=phase_id,
+        role="judge",
+        output_schema="judge_result",
+    )
+    return PromptAssembler.for_role("judge").assemble(
+        spec,
+        {
+            "goal": goal,
+            "behavior_constraints": behavior_constraints,
+            "gate_checklist": gate_checklist,
+            "evaluation_protocol": evaluation_protocol,
+            "rubric": rubric_text,
+            "inputs": "\n".join(input_lines),
+            "bug_cases": bug_cases_md,
+            "genes": genes_text,
+            "anti_rationalization": "\n".join(_ANTI_RATIONALIZATION_SECTION),
+            "output_schema": output_schema,
+        },
+        assets=_judge_prompt_assets(phase_id),
+        section_sources={
+            "gate_checklist": ("dqg.core.state_machine.PHASE_DEFS",),
+            "evaluation_protocol": ("dqg.quality.evaluation_protocols",),
+            "rubric": ("dqg.quality.judge_rubrics", "dqg.quality.dynamic_rubric"),
+            "bug_cases": ("dqg.tracking.case_selector",),
+            "genes": ("dqg.quality.gene_store",),
+            "anti_rationalization": ("dqg.quality.judge_rubrics.ANTI_RATIONALIZATION_SECTION",),
+        },
+        project_id=project_id,
+    )
+
+
+def generate_judge_prompt(
+    output_dir: Path,
+    project_id: str,
+    phase_id: str,
+) -> str | None:
+    """生成 LLM-as-Judge 评审 prompt.
+
+    Returns:
+        judge prompt 文本，如果 phase 不支持评审则返回 None
+    """
+    build = build_judge_prompt(output_dir, project_id, phase_id)
+    return build.prompt if build else None
 
 
 def write_judge_prompt(
@@ -205,8 +245,14 @@ def write_judge_prompt(
     Returns:
         写入的文件路径，不支持的 phase 返回 None
     """
+    build: PromptBuild | None = None
     if prompt is None:
-        prompt = generate_judge_prompt(output_dir, project_id, phase_id)
+        build = build_judge_prompt(output_dir, project_id, phase_id)
+        prompt = build.prompt if build else None
+    else:
+        candidate = build_judge_prompt(output_dir, project_id, phase_id)
+        if candidate and candidate.prompt == prompt:
+            build = candidate
     if not prompt:
         return None
 
@@ -216,6 +262,18 @@ def write_judge_prompt(
 
     path = pd / "_judge_prompt.md"
     path.write_text(prompt, encoding="utf-8")
+    if build is not None:
+        write_prompt_manifest(path, build.manifest)
+    else:
+        record_prompt_manifest(
+            path,
+            prompt=prompt,
+            prompt_type="judge",
+            phase_id=phase_id,
+            project_id=project_id,
+            output_schema="judge_result",
+            assets=_judge_prompt_assets(phase_id),
+        )
 
     # 落盘 rubric 快照，用于趋势对比和可观测性
     rubric = _JUDGE_RUBRICS.get(phase_id)
@@ -231,6 +289,19 @@ def write_judge_prompt(
         save_json(rubric_path, rubric)
 
     return path
+
+
+def _judge_prompt_assets(phase_id: str) -> tuple[PromptAsset, ...]:
+    rubric = _JUDGE_RUBRICS.get(phase_id)
+    if not rubric:
+        return ()
+    return (
+        PromptAsset(
+            kind="rubric",
+            path=f"dqg.quality.judge_rubrics:{phase_id}",
+            content=str(rubric),
+        ),
+    )
 
 
 def load_judge_result(

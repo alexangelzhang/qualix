@@ -17,6 +17,8 @@
 | `quality/` | 质量评审链 | judge.py, critique.py, review_chain.py, golden_sample.py, coverage_gate.py, eval_baseline.py, requirement_smell.py, requirement_graph.py, demand_trace.py |
 | `tracking/` | Bug 案例 + 回归 + 实验 | bug_cases.py, case_selector.py, skill_factory.py, skill_evolution.py |
 | `context/` | 上下文加载 + 分块压缩 | context_loader.py, chunk_processor.py, diff_context.py, skill_loader.py, code_skeleton.py |
+| `prompting/` | Prompt Harness：prompt spec、assembler、模板片段、hash、manifest、policy gate | assembler.py, spec.py, compiler.py, manifest.py, policy.py, record.py |
+| `languages/` | 多语言 Provider 抽象层 | base.py, registry.py, java/provider.py, typescript/provider.py |
 | `reporting/` | 性能/指标/可观测 | perf_tracker.py, telemetry.py, collect_metrics.py |
 | `ingest/` | 文档抓取（可扩展） | feishu/ |
 | `media/` | 图片处理 | parse_images.py, validate_mermaid.py |
@@ -48,6 +50,7 @@
 - **Harness/Domain 分层**：`phase_registry.py`（Domain）与 `state_machine.py`（Harness）分离
 - **状态机**：Phase 流转（not_started → in_progress → pending_review → approved）
 - **Plugin 式 Skill**：每个 Phase 对应一个 .md skill 文件，执行时动态加载
+- **Prompt Harness**：Prompt 内容仍由 domain 模块生成，harness 统一 assembler 顺序、section hash、section source mapping、prompt hash、资产 hash 和 `_internal/_prompt_manifests/*.json`，finalize 时通过 `prompt_policy` 校验 schema 绑定、证据契约、检查清单、行为红线，并阻断专家 persona 标签
 - **SQLite 统一存储**：所有缓存/索引/遥测/状态共用一个 DB，FTS5 中文 n-gram 分词
 - **Facade 模式**：大模块拆分后保留 facade re-export
 - **Multi-Agent**：三阶段（prompt 隔离 → 独立 API → 自适应循环），详见 `docs/multi-agent-architecture.md`
@@ -65,6 +68,8 @@
 | 加新 CLI 命令 | `commands/` 新建 .py → `core/runner.py` 注册 |
 | 改 LLM 调用逻辑 | `agents/llm_backends.py` → `agents/agent.py` |
 | 改质量评审链 | `quality/judge.py` / `critique.py` |
+| 加新语言支持 | `languages/base.py` → `languages/registry.py` → `profiles/<profile-id>/profile.json` |
+| 改 Prompt 治理/追踪 | `prompting/` → `quality/judge.py` / `critique.py` / `review_chain.py` |
 | 改 Bug 案例匹配 | `tracking/case_selector.py` → `tracking/bug_cases.py` |
 | 改上下文加载/压缩 | `context/context_loader.py` → `context/chunk_processor.py` |
 | 改存储 schema | `store/core.py` → `store.py`（facade） |

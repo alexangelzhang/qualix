@@ -158,16 +158,18 @@ dev-quality-gate/
 │   ├── commands/               # CLI 子命令（phase, review, query, startup）
 │   ├── services/               # 业务服务（orchestrator, phase_service）
 │   ├── context/                # 上下文（context_loader, context_compressor, skill_loader）
+│   ├── prompting/              # Prompt Harness（spec/compiler/manifest，prompt 版本追踪）
 │   ├── cache/                  # FTS5 索引（code_search, fact_cache, llm_result_cache）
 │   ├── store/                  # 数据存储（SQLite 统一存储层）
 │   ├── tracking/               # Bug 案例 + Skill Evolution（skill_factory, bug_case_generator）
 │   ├── memory/                 # 记忆层（memory_layer, knowledge_network, compress_hooks）
 │   ├── security/               # 安全扫描（content_scanner, tool_permissions）
+│   ├── languages/              # 多语言 Provider（Java/TypeScript AST、断言、编译、覆盖率）
 │   ├── schemas/                # Phase 数据契约
 │   ├── reporting/              # 性能/指标/渲染/看板
 │   ├── ingest/                 # 文档抓取（飞书）
 │   └── media/                  # 图片处理
-├── profiles/                   # 可切换 profile（baseline + 阈值 + 风险词典）
+├── profiles/                   # 可切换 profile（version + language + baseline + 阈值 + 风险词典）
 ├── regression/                 # 基准回放集 + 回放结果
 │   └── failure-library/cases/  # Bug 案例库（按 Phase 分类）
 ├── references/                 # 参考文件 + 模板
@@ -178,6 +180,14 @@ dev-quality-gate/
 ├── pyproject.toml              # 工程配置（ruff + pytest + hatch）
 └── output/                     # 项目产出目录（output/<project_id>/<phase_dir>/，worktree 环境自动重定向到主仓库）
 ```
+
+Prompt 产物治理：
+- `quality/judge.py`、`quality/critique.py`、`quality/review_chain.py` 仍负责业务语义和评审内容生成
+- `prompting/` 负责 prompt spec、assembler、section/template、hash、资产 hash、manifest 写入和 policy gate，不绑定 Java/Go/TypeScript 等具体语言
+- 每次写出 `_judge_prompt.md`、`_critique_prompt.md`、`_preference_prompt.md`、`_review_chain.md` 时，同步生成 `_internal/_prompt_manifests/*.json`
+- Judge/Critique/Preference/Review Chain prompt 通过 `PromptAssembler` 固定片段顺序；manifest 记录 `assembly_order`、`section_hashes`、`section_sources`，用于定位 prompt hash 变化来自哪个片段或来源资产
+- `dqg-run PROJ regression prompt-eval` 会读取 prompt version manifest 和 `prompt_outputs/<version>.json`，输出 prompt hash、section 顺序、执行来源和 Q05/Q06 指标；如接入真实 LLM，可通过 `PromptEvalExecutor` 注入执行器
+- finalize 阶段的 `prompt_policy` handler 会校验 manifest 完整性、prompt hash、结构化输出 schema、证据契约、评估协议（检查清单 + 行为红线），并阻断专家 persona 标签，结果写入 `_internal/_prompt_policy.json`
 
 ## 技术栈适配
 
@@ -202,12 +212,12 @@ dqg-run PROJ --profile typescript-service execute Q06
 - 风险词典
 - 质量阈值
 
-同时在各 Phase 目录写入：
+同时在各 Phase 的 `_internal/` 目录写入：
 
 - `_profile.json`：结构化 profile 元数据
 - `_profile_context.md`：可直接粘贴到报告头部的 `PROFILE_CONTEXT` 区块
 
-例如：`output/<project>/Q05/_profile.json`、`output/<project>/Q05/_profile_context.md`
+例如：`output/<project>/Q05/_internal/_profile.json`、`output/<project>/Q05/_internal/_profile_context.md`
 
 推荐报告模板（均包含 `PROFILE_CONTEXT` 区块）：
 
@@ -216,6 +226,13 @@ dqg-run PROJ --profile typescript-service execute Q06
 - Phase Q07：`references/code-review-template.md`
 
 如需扩展新技术栈，只需新增 `profiles/<profile-id>/profile.json` 和对应 baseline 文档，无需改 Python 代码。
+
+Profile 约定：
+
+- `profile.json` 必须包含 `profile_id`、`version`、`name`、`description`、`language`、`baseline_path`、`risk_catalog_path`、`quality_thresholds`
+- `version` 使用 SemVer 格式，例如 `1.0.0`
+- `language` 使用小写 Provider ID（如 `java`、`go`、`typescript`、`python`、`rust`、`kotlin`）；schema 校验只检查 ID 格式，不阻断未来语言扩展
+- `dqg-run PROJ doctor` 会校验所有 profile 的 schema、路径和阈值，防止跨团队扩展时出现基线漂移
 
 ## 质量进化闭环
 
@@ -234,9 +251,14 @@ dqg-run PROJ critique Q01        # 自我批评 → v2
 dqg-run PROJ preference Q01      # v1 vs v2 偏好比较
 
 # Bug 案例库
-python -m dqg.bug_cases         # 查看报告
-python -m dqg.import_bug_cases <ingest.json>  # 从飞书导入
+dqg-run PROJ regression run      # 回放基准 + 失败样例库
+dqg-run PROJ regression trend    # 查看失败样例趋势
+dqg-run PROJ regression prompt-eval  # 对 prompt_versions 做离线 A/B 指标对比（可读取 prompt_outputs/*.json）
+python -m dqg.tracking.bug_cases         # 查看 failure-library 报告
+python -m dqg.tracking.import_bug_cases <ingest.json>  # 从飞书导入
 ```
+
+`regression/cases/prompt-eval/Q05-basic` 和 `Q06-basic` 内置了 `prompt_outputs/v1_baseline.json`、`prompt_outputs/v2_enhanced.json`。`prompt-eval` 优先级为：注入执行器结果 > 离线 `prompt_outputs` > 固定输入 fallback，因此默认命令即可看到增强 prompt 的离线 A/B 指标差异。
 
 ## 质量保障
 

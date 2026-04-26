@@ -1,6 +1,6 @@
 # Q05 Enhanced Prompt — Test Generation
 
-You are a senior QA engineer generating an EUT matrix from structured requirements.
+Goal: generate a complete EUT matrix from structured requirements, with explicit happy and exception paths.
 
 ## Input
 - requirements: list of REQ/BR items with descriptions

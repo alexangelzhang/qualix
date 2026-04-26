@@ -122,6 +122,7 @@ def handle_review_chain(ctx: ExecutionContext, result: PhaseResult) -> None:
         ctx.project_id,
         ctx.phase_id,
         prompt=review_payload["review_chain_prompt"] if review_payload else None,
+        build=review_payload.get("review_chain_build") if review_payload else None,
     )
     if chain_path:
         result.add_artifact("review_chain_prompt", str(chain_path))
@@ -337,6 +338,16 @@ def register_finalize_handlers() -> None:
         "review_chain", handle_review_chain, stage="finalize", order=70, depends_on=["memory_index"], required=True
     )
     # Group 2.5: 依赖 review_chain
+    from dqg.runtime.handlers_prompt_policy import handle_prompt_policy
+
+    register_handler(
+        "prompt_policy",
+        handle_prompt_policy,
+        stage="finalize",
+        order=72,
+        depends_on=["review_chain"],
+        required=True,
+    )
     register_handler("auto_judge", handle_auto_judge, stage="finalize", order=75, depends_on=["review_chain"])
     from dqg.runtime.handlers_protocol import handle_protocol_compliance
 

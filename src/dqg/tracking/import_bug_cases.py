@@ -1,7 +1,7 @@
 """从飞书 Bitable bug 表批量导入案例到 failure-library.
 
 用法:
-    python -m dqg.import_bug_cases /tmp/dqg_bitable_test/ingest.json
+    python -m dqg.tracking.import_bug_cases /tmp/dqg_bitable_test/ingest.json
 """
 
 from __future__ import annotations
@@ -16,89 +16,123 @@ from dqg.constants import PHASE_DIR_MAP
 from dqg.json_utils import dump_json_str, load_json_strict
 
 # 二级分类 → (phase, error_type, root_cause, fix_target)
-CATEGORY_MAPPING: Final = MappingProxyType({
-    # 单测相关
-    "函数未覆盖": {
-        "phase": "Q06", "error_type": "FN", "root_cause": "SKILL_RULE",
-        "fix_target": "skills/unit-test-audit.md",
-    },
-    "函数正常分支未覆盖": {
-        "phase": "Q06", "error_type": "FN", "root_cause": "SKILL_RULE",
-        "fix_target": "skills/unit-test-audit.md",
-    },
-    "函数异常分支未覆盖": {
-        "phase": "Q06", "error_type": "FN", "root_cause": "SKILL_RULE",
-        "fix_target": "skills/unit-test-audit.md",
-    },
-    "函数覆盖assert不对": {
-        "phase": "Q06", "error_type": "WRONG", "root_cause": "SKILL_RULE",
-        "fix_target": "skills/unit-test-audit.md",
-    },
-    "有单测未运行": {
-        "phase": "Q06", "error_type": "FN", "root_cause": "CONTEXT",
-        "fix_target": "skills/unit-test-audit.md",
-    },
-    "提测前无单测": {
-        "phase": "Q06", "error_type": "FN", "root_cause": "CONTEXT",
-        "fix_target": "skills/unit-test-audit.md",
-    },
-    # 需求分析相关
-    "需求实现遗漏": {
-        "phase": "Q01", "error_type": "FN", "root_cause": "SKILL_RULE",
-        "fix_target": "skills/requirement-structuring.md",
-    },
-    "需求遗漏": {
-        "phase": "Q01", "error_type": "FN", "root_cause": "SKILL_RULE",
-        "fix_target": "skills/requirement-structuring.md",
-    },
-    "需求理解未对齐": {
-        "phase": "Q01", "error_type": "FN", "root_cause": "SKILL_RULE",
-        "fix_target": "skills/requirement-structuring.md",
-    },
-    "产品需求不明确": {
-        "phase": "Q01", "error_type": "FN", "root_cause": "CONTEXT",
-        "fix_target": "skills/requirement-structuring.md",
-    },
-    # 技术方案相关
-    "技术方案不清晰": {
-        "phase": "Q03", "error_type": "FN", "root_cause": "SKILL_RULE",
-        "fix_target": "skills/tech-quality-review.md",
-    },
-    "技术实现遗漏": {
-        "phase": "Q03", "error_type": "FN", "root_cause": "SKILL_RULE",
-        "fix_target": "skills/tech-quality-review.md",
-    },
-    # 安全/性能/幂等
-    "安全问题": {
-        "phase": "Q01", "error_type": "FN", "root_cause": "KNOWLEDGE",
-        "fix_target": "references/risk-and-exception-catalog.md",
-    },
-    "性能问题": {
-        "phase": "Q03", "error_type": "FN", "root_cause": "KNOWLEDGE",
-        "fix_target": "references/risk-and-exception-catalog.md",
-    },
-    "幂等": {
-        "phase": "Q03", "error_type": "FN", "root_cause": "KNOWLEDGE",
-        "fix_target": "references/risk-and-exception-catalog.md",
-    },
-})
+CATEGORY_MAPPING: Final = MappingProxyType(
+    {
+        # 单测相关
+        "函数未覆盖": {
+            "phase": "Q06",
+            "error_type": "FN",
+            "root_cause": "SKILL_RULE",
+            "fix_target": "skills/unit-test-audit.md",
+        },
+        "函数正常分支未覆盖": {
+            "phase": "Q06",
+            "error_type": "FN",
+            "root_cause": "SKILL_RULE",
+            "fix_target": "skills/unit-test-audit.md",
+        },
+        "函数异常分支未覆盖": {
+            "phase": "Q06",
+            "error_type": "FN",
+            "root_cause": "SKILL_RULE",
+            "fix_target": "skills/unit-test-audit.md",
+        },
+        "函数覆盖assert不对": {
+            "phase": "Q06",
+            "error_type": "WRONG",
+            "root_cause": "SKILL_RULE",
+            "fix_target": "skills/unit-test-audit.md",
+        },
+        "有单测未运行": {
+            "phase": "Q06",
+            "error_type": "FN",
+            "root_cause": "CONTEXT",
+            "fix_target": "skills/unit-test-audit.md",
+        },
+        "提测前无单测": {
+            "phase": "Q06",
+            "error_type": "FN",
+            "root_cause": "CONTEXT",
+            "fix_target": "skills/unit-test-audit.md",
+        },
+        # 需求分析相关
+        "需求实现遗漏": {
+            "phase": "Q01",
+            "error_type": "FN",
+            "root_cause": "SKILL_RULE",
+            "fix_target": "skills/requirement-structuring.md",
+        },
+        "需求遗漏": {
+            "phase": "Q01",
+            "error_type": "FN",
+            "root_cause": "SKILL_RULE",
+            "fix_target": "skills/requirement-structuring.md",
+        },
+        "需求理解未对齐": {
+            "phase": "Q01",
+            "error_type": "FN",
+            "root_cause": "SKILL_RULE",
+            "fix_target": "skills/requirement-structuring.md",
+        },
+        "产品需求不明确": {
+            "phase": "Q01",
+            "error_type": "FN",
+            "root_cause": "CONTEXT",
+            "fix_target": "skills/requirement-structuring.md",
+        },
+        # 技术方案相关
+        "技术方案不清晰": {
+            "phase": "Q03",
+            "error_type": "FN",
+            "root_cause": "SKILL_RULE",
+            "fix_target": "skills/tech-quality-review.md",
+        },
+        "技术实现遗漏": {
+            "phase": "Q03",
+            "error_type": "FN",
+            "root_cause": "SKILL_RULE",
+            "fix_target": "skills/tech-quality-review.md",
+        },
+        # 安全/性能/幂等
+        "安全问题": {
+            "phase": "Q01",
+            "error_type": "FN",
+            "root_cause": "KNOWLEDGE",
+            "fix_target": "references/risk-and-exception-catalog.md",
+        },
+        "性能问题": {
+            "phase": "Q03",
+            "error_type": "FN",
+            "root_cause": "KNOWLEDGE",
+            "fix_target": "references/risk-and-exception-catalog.md",
+        },
+        "幂等": {
+            "phase": "Q03",
+            "error_type": "FN",
+            "root_cause": "KNOWLEDGE",
+            "fix_target": "references/risk-and-exception-catalog.md",
+        },
+    }
+)
 
 # 二级分类 → severity
-SEVERITY_MAP: Final = MappingProxyType({
-    "函数未覆盖": "high",
-    "函数正常分支未覆盖": "high",
-    "函数异常分支未覆盖": "high",
-    "函数覆盖assert不对": "high",
-    "需求实现遗漏": "high",
-    "需求遗漏": "critical",
-    "安全问题": "critical",
-    "幂等": "critical",
-    "性能问题": "medium",
-    "技术方案不清晰": "medium",
-    "技术实现遗漏": "high",
-    "需求理解未对齐": "medium",
-    "产品需求不明确": "medium",
-})
+SEVERITY_MAP: Final = MappingProxyType(
+    {
+        "函数未覆盖": "high",
+        "函数正常分支未覆盖": "high",
+        "函数异常分支未覆盖": "high",
+        "函数覆盖assert不对": "high",
+        "需求实现遗漏": "high",
+        "需求遗漏": "critical",
+        "安全问题": "critical",
+        "幂等": "critical",
+        "性能问题": "medium",
+        "技术方案不清晰": "medium",
+        "技术实现遗漏": "high",
+        "需求理解未对齐": "medium",
+        "产品需求不明确": "medium",
+    }
+)
 
 
 def _sanitize_dirname(s: str) -> str:
@@ -110,7 +144,7 @@ def _flatten(value: Any) -> str:
         return ""
     if isinstance(value, str):
         return value
-    if isinstance(value, (int, float)):
+    if isinstance(value, int | float):
         return str(value)
     if isinstance(value, list):
         return ", ".join(_flatten(v) for v in value)

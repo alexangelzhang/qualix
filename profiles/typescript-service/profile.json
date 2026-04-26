@@ -1,5 +1,6 @@
 {
   "profile_id": "typescript-service",
+  "version": "1.0.0",
   "name": "TypeScript Service",
   "description": "Profile for TypeScript/Node.js services with Jest/Vitest testing.",
   "language": "typescript",

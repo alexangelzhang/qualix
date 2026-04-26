@@ -65,6 +65,8 @@
 - Profile 自动注入上下文（baseline/risk/thresholds）  
 - 各 Phase 自动产物：`_profile.json`、`_profile_context.md`  
 - 报告模板统一包含 `PROFILE_CONTEXT`
+- profile schema 校验：`dqg-run doctor` 校验必填字段、SemVer、语言、路径和阈值范围
+- profile 版本字段：内置 profile 显式声明 `version: 1.0.0`，新增 profile 默认兼容 `1.0.0`
 
 验收结论（当前）：
 
@@ -73,8 +75,8 @@
 
 后续增强（P1）：
 
-- 增加 profile schema 校验（发布前校验）  
-- profile 版本化与兼容策略（如 `go-service@v2`）
+- profile 版本化选择器与兼容策略（如 `go-service@v2`）
+- profile 变更影响分析接入 CI/PR 门禁
 
 ---
 
@@ -159,6 +161,22 @@
 - Gene Store phase+role 过滤（`quality/gene_store.py`）— Gene 新增 agent_role 字段，注入时按 phase_id + agent_role 过滤，Q03 Judge 只看 Q03 Judge 的历史经验
 - Protocol Compliance HARD gate（`runtime/handlers_protocol.py`）— finalize handler 检查 Judge 输出是否覆盖 checklist，未覆盖 → BLOCKED；dynamic 经验为空 → WARNING
 - 研究驱动设计：基于 PRISM/EMNLP/Wharton 三篇独立研究结论，具体检查清单 >> 身份标签
+
+2026-04-25 新增（Prompt Harness P0）：
+
+- Prompt Harness 基础设施（`prompting/spec.py`, `prompting/compiler.py`, `prompting/manifest.py`, `prompting/record.py`）— 用 `PromptSpec`/`PromptAsset` 描述 prompt 身份与来源，用 SHA256 追踪 prompt 文本和依赖资产
+- Prompt manifest 落盘 — `write_judge_prompt` / `write_critique_prompt` / `write_preference_prompt` / `write_review_chain_prompt` 写出 prompt 时，同步生成 `_internal/_prompt_manifests/*.json`
+- 多语言无关设计 — manifest 支持可选 `language` / `profile_id` 字段，但 harness 不绑定固定语言枚举，避免新增语言 Provider 时改 prompt 治理代码
+
+2026-04-25 新增（Prompt Policy Gate P1）：
+
+- Prompt policy 模块（`prompting/policy.py`）— 校验 manifest 完整性、prompt hash、结构化输出 schema、evidence contract、检查清单和行为红线，并阻断专家 persona 标签
+- finalize handler（`runtime/handlers_prompt_policy.py`）— `review_chain` 之后运行，发现 BLOCKED 级 policy issue 时阻断 finalize，并写入 `_internal/_prompt_policy.json`
+- policy 仍保持多语言无关：只治理 prompt 元数据和评审契约，不绑定具体语言 Provider
+- Judge/Critique 生成器去 persona 化 — `quality/judge.py` / `quality/critique.py` 从“你的身份/专家经验”改为“评估目标/行为约束/Phase Protocol”
+- PromptAssembler（`prompting/assembler.py`）— 统一 Judge/Critique/Preference/Review Chain 的片段顺序、必选/可选片段和轻量模板渲染，`quality/judge.py`、`quality/critique.py`、`quality/review_chain.py` 与 `agents/adaptive_loop.py` 共用同一入口
+- 片段级追踪 — prompt manifest 新增 `assembly_order`、`section_hashes`、`section_sources`，可定位 prompt_hash 变化来自哪个片段、顺序变化或来源资产
+- Prompt eval runner（P2）— `tracking/prompt_eval.py` 支持可注入 executor 与离线 `prompt_outputs/<version>.json`，逐版本执行后计算 PHASE_METRICS，并输出 prompt hash、assembly order、execution source 与指标表
 
 2026-04-23 新增（借鉴 LangChain Evaluating Skills 方法论）：
 

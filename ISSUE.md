@@ -6,9 +6,9 @@
 
 - **LLM-as-Judge 自动评审** — `finalize` 后自动生成 `_judge_prompt.md`，支持 Phase Q01/Q04/Q03/Q06 四个阶段的独立评审，输出 precision/recall 估计和问题列表。CLI: `dqg-run <project> judge <phase>`
 - **Self-Critique + RLAIF 融合闭环** — Phase 执行后自我批评生成 v2，偏好比较判定哪个更好，有效 critique 自动沉淀为 bug case。CLI: `dqg-run <project> critique <phase>` / `dqg-run <project> preference <phase>`
-- **Bug 案例库** — 按 Phase 分类的结构化案例库（case.json + input.md），支持归因（SKILL_RULE/KNOWLEDGE/CONTEXT/SCHEMA）和修复路径建议。CLI: `python -m dqg.bug_cases`
+- **Bug 案例库** — 按 Phase 分类的结构化案例库（case.json + input.md），支持归因（SKILL_RULE/KNOWLEDGE/CONTEXT/SCHEMA）和修复路径建议。CLI: `dqg-run PROJ regression run` / `python -m dqg.tracking.bug_cases`
 - **案例自动注入** — skill 执行时基于上游产物内容做相关性匹配，只注入相关案例为反例，token 节省 77%
-- **案例批量导入** — 从飞书 Bitable 批量导入 bug 案例。CLI: `python -m dqg.import_bug_cases <ingest.json>`
+- **案例批量导入** — 从飞书 Bitable 批量导入 bug 案例。CLI: `python -m dqg.tracking.import_bug_cases <ingest.json>`
 - **飞书多维表格（Bitable）解析** — Wiki 节点 obj_type=bitable 时自动走 bitable 路径，遍历所有 sheet 读取全量记录
 - **多平台支持** — 新增 `AGENTS.md`（Codex/opencode/IntelliJ）、`GEMINI.md`（Gemini CLI）、`.cursor/rules/dqg.mdc`（Cursor）
 - **规则级质量追踪** — `finalize` 时比对结构化输出与 bug 案例库，输出健康度分数和命中的已知问题模式

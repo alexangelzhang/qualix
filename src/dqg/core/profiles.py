@@ -12,6 +12,19 @@ from typing import Any
 
 from dqg.json_utils import dump_json_str, load_json_strict
 
+_LANGUAGE_ID_RE = re.compile(r"^[a-z][a-z0-9_-]*$")
+_SEMVER_RE = re.compile(r"^\d+\.\d+\.\d+$")
+_REQUIRED_PROFILE_FIELDS = {
+    "profile_id",
+    "version",
+    "name",
+    "description",
+    "language",
+    "baseline_path",
+    "risk_catalog_path",
+    "quality_thresholds",
+}
+
 
 @dataclass(frozen=True)
 class DqgProfile:
@@ -22,6 +35,7 @@ class DqgProfile:
     risk_catalog_path: Path
     quality_thresholds: dict[str, Any]
     language: str = "java"
+    version: str = "1.0.0"
 
 
 def _profiles_root() -> Path:
@@ -43,6 +57,7 @@ def _load_profile(path: Path) -> DqgProfile:
         risk_catalog_path=root / data["risk_catalog_path"],
         quality_thresholds=data.get("quality_thresholds", {}),
         language=data.get("language", "java"),
+        version=data.get("version", "1.0.0"),
     )
 
 
@@ -60,6 +75,64 @@ def get_profile(profile_id: str | None = None) -> DqgProfile:
         if profile.profile_id == target:
             return profile
     raise ValueError(f"Unknown profile: {target}")
+
+
+def validate_profile_file(path: Path, repo_root: Path | None = None) -> list[str]:
+    """Validate one profile.json and return human-readable schema issues."""
+    root = repo_root or _repo_root()
+    issues: list[str] = []
+
+    try:
+        data = load_json_strict(path)
+    except Exception as exc:
+        return [f"{path}: invalid JSON: {exc}"]
+
+    for field in sorted(_REQUIRED_PROFILE_FIELDS):
+        if field not in data:
+            issues.append(f"{path}: missing required field: {field}")
+
+    for field in ("profile_id", "name", "description", "baseline_path", "risk_catalog_path"):
+        value = data.get(field)
+        if field in data and (not isinstance(value, str) or not value.strip()):
+            issues.append(f"{path}: field {field} must be a non-empty string")
+
+    version = data.get("version", "1.0.0")
+    if not isinstance(version, str) or not _SEMVER_RE.match(version):
+        issues.append(f"{path}: version must use semantic format MAJOR.MINOR.PATCH")
+
+    language = data.get("language")
+    if "language" in data and (not isinstance(language, str) or not _LANGUAGE_ID_RE.match(language)):
+        issues.append(f"{path}: language must be a lowercase provider id, e.g. java, go, typescript")
+
+    thresholds = data.get("quality_thresholds")
+    if "quality_thresholds" in data:
+        if not isinstance(thresholds, dict) or not thresholds:
+            issues.append(f"{path}: quality_thresholds must be a non-empty object")
+        else:
+            for key, value in thresholds.items():
+                if not isinstance(value, int | float) or not 0 <= float(value) <= 1:
+                    issues.append(f"{path}: quality_thresholds.{key} must be a number between 0 and 1")
+
+    for field in ("baseline_path", "risk_catalog_path"):
+        value = data.get(field)
+        if isinstance(value, str) and value.strip() and not (root / value).exists():
+            issues.append(f"{path}: {field} does not exist: {value}")
+
+    return issues
+
+
+def validate_all_profiles(profiles_root: Path | None = None, repo_root: Path | None = None) -> dict[str, list[str]]:
+    """Validate all profile.json files and return only profiles with issues."""
+    root = repo_root or _repo_root()
+    profile_root = profiles_root or _profiles_root()
+    issues_by_profile: dict[str, list[str]] = {}
+
+    for path in sorted(profile_root.glob("*/profile.json")):
+        issues = validate_profile_file(path, repo_root=root)
+        if issues:
+            issues_by_profile[path.parent.name] = issues
+
+    return issues_by_profile
 
 
 @lru_cache(maxsize=32)
@@ -96,8 +169,10 @@ def load_profile_context(profile: DqgProfile) -> str:
 def profile_to_payload(profile: DqgProfile) -> dict[str, Any]:
     return {
         "profile_id": profile.profile_id,
+        "version": profile.version,
         "name": profile.name,
         "description": profile.description,
+        "language": profile.language,
         "baseline_path": str(profile.baseline_path),
         "risk_catalog_path": str(profile.risk_catalog_path),
         "coverage_thresholds": profile.quality_thresholds,
@@ -109,8 +184,10 @@ def render_profile_context_markdown(profile: DqgProfile) -> str:
         "## PROFILE_CONTEXT",
         "",
         f"- Profile: `{profile.profile_id}`",
+        f"- Version: `{profile.version}`",
         f"- Name: {profile.name}",
         f"- Description: {profile.description}",
+        f"- Language: `{profile.language}`",
         f"- Baseline: `{profile.baseline_path}`",
         f"- Risk Catalog: `{profile.risk_catalog_path}`",
         "- Quality Thresholds:",

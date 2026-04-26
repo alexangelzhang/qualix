@@ -1,6 +1,6 @@
 # Q06 Enhanced Prompt — Test Audit
 
-You are a senior QA auditor performing coverage analysis. Given the EUT matrix and test codebase, produce a detailed coverage assessment.
+Goal: assess EUT coverage against the test codebase with direct evidence, mismatch detection, and confidence labels.
 
 ## Input
 - eut_matrix: list of EUT entries from Q05 with steps and expected results

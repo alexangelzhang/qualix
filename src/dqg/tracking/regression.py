@@ -349,7 +349,7 @@ def main() -> int:
     p_trend.add_argument("--period", choices=["weekly"], default="weekly")
     p_trend.add_argument("--output-dir", default=None, help="输出目录，默认 regression/failure-library/trends/<period>")
 
-    p_prompt = sub.add_parser("prompt-eval", help="Compare prompt versions for Q05/Q06")
+    p_prompt = sub.add_parser("prompt-eval", help="Run offline prompt A/B eval for Q05/Q06")
     p_prompt.add_argument("--case", dest="case_id", default=None, help="指定 case_id")
     p_prompt.add_argument("--phase", choices=["Q05", "Q06"], default=None, help="筛选 phase")
 

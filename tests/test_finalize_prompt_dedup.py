@@ -76,11 +76,21 @@ def test_finalize_reuses_review_chain_payload_and_does_not_regenerate_prompts(
 
     def _judge_prompt(*args, **kwargs):
         review_counts["judge"] += 1
-        return "# Judge\n\nJUDGE_BODY"
+        return (
+            "# Judge\n\nJUDGE_BODY\n\n"
+            "## 检查清单（必须逐条检查）\n- 覆盖需求\n\n"
+            "## 行为红线（绝对不能做）\n- 不编造\n\n"
+            "必须引用证据。"
+        )
 
     def _critique_prompt(*args, **kwargs):
         review_counts["critique"] += 1
-        return "# Critique\n\nCRITIQUE_BODY"
+        return (
+            "# Critique\n\nCRITIQUE_BODY\n\n"
+            "## 检查清单（必须逐条检查）\n- 覆盖需求\n\n"
+            "## 行为红线（绝对不能做）\n- 不编造\n\n"
+            "必须引用证据。"
+        )
 
     monkeypatch.setattr("dqg.quality.review_chain.generate_judge_prompt", _judge_prompt)
     monkeypatch.setattr("dqg.quality.review_chain.generate_critique_prompt", _critique_prompt)
@@ -101,5 +111,5 @@ def test_finalize_reuses_review_chain_payload_and_does_not_regenerate_prompts(
 
     phase_dir = output_dir / "demo" / "Q01"
     assert (phase_dir / "_review_chain.md").exists()
-    assert (phase_dir / "_judge_prompt.md").read_text(encoding="utf-8") == "# Judge\n\nJUDGE_BODY"
-    assert (phase_dir / "_critique_prompt.md").read_text(encoding="utf-8") == "# Critique\n\nCRITIQUE_BODY"
+    assert "JUDGE_BODY" in (phase_dir / "_judge_prompt.md").read_text(encoding="utf-8")
+    assert "CRITIQUE_BODY" in (phase_dir / "_critique_prompt.md").read_text(encoding="utf-8")

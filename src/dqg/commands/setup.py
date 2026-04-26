@@ -5,11 +5,14 @@ from __future__ import annotations
 import subprocess
 import sys
 from datetime import datetime
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 from dqg.core.phase_registry import PHASE_DEFS, PHASE_ORDER
-from dqg.core.state_machine import ProjectState, save_state, load_state
-from dqg.json_utils import save_json, load_json_strict
+from dqg.core.state_machine import ProjectState, load_state, save_state
+from dqg.json_utils import load_json_strict, save_json
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 # ---------------------------------------------------------------------------
 # version
@@ -32,7 +35,7 @@ def cmd_version(args, output_dir: Path) -> int:
 def cmd_init(args, output_dir: Path) -> int:
     """一键初始化项目：创建目录结构、state.json、version.json."""
     project_id = args.project_id
-    profile_id = getattr(args, "profile", None) or "java-ddd-tmf"
+    requested_profile_id = getattr(args, "profile", None) or "java-ddd-tmf"
 
     project_dir = output_dir / project_id
     project_dir.mkdir(parents=True, exist_ok=True)
@@ -51,17 +54,26 @@ def cmd_init(args, output_dir: Path) -> int:
         print(f"  state.json 已存在，跳过（使用 dqg-run {project_id} status 查看状态）")
         state = load_state(output_dir, project_id)
     else:
+        from dqg.core.profiles import get_profile
+
+        profile = get_profile(requested_profile_id)
+        profile_id = profile.profile_id
         state = ProjectState(project_id=project_id, profile_id=profile_id)
         save_state(output_dir, state)
-        print(f"  ✓ state.json 已创建")
+        print("  ✓ state.json 已创建")
+
+    profile_id = state.profile_id
 
     # 写入 version.json
     version_path = project_dir / "version.json"
-    save_json(version_path, {
-        "dqg_version": DQG_VERSION,
-        "initialized_at": datetime.now().isoformat(),
-        "profile_id": profile_id,
-    })
+    save_json(
+        version_path,
+        {
+            "dqg_version": DQG_VERSION,
+            "initialized_at": datetime.now().isoformat(),
+            "profile_id": profile_id,
+        },
+    )
     print(f"  ✓ version.json 已创建 (v{DQG_VERSION})")
 
     # 汇总
@@ -133,14 +145,24 @@ def cmd_doctor(args, output_dir: Path) -> int:
             warnings.append(f"脚本不存在: {script}")
             print(f"  ⚠ {script} 不存在")
 
-    # 5. profiles 目录
+    # 5. profiles 目录 + schema 校验
     profiles_dir = base_dir / "profiles"
     if profiles_dir.exists():
         profiles = [d.name for d in profiles_dir.iterdir() if d.is_dir()]
         print(f"  ✓ profiles/ ({', '.join(profiles)})")
+        from dqg.core.profiles import validate_all_profiles
+
+        profile_issues = validate_all_profiles(profiles_root=profiles_dir, repo_root=base_dir)
+        if profile_issues:
+            for profile_id, profile_errors in profile_issues.items():
+                for err in profile_errors:
+                    issues.append(f"profile {profile_id}: {err}")
+            print(f"  ✗ profile schema ({sum(len(v) for v in profile_issues.values())} issues)")
+        else:
+            print("  ✓ profile schema")
     else:
         issues.append("profiles/ 目录不存在")
-        print(f"  ✗ profiles/ 目录不存在")
+        print("  ✗ profiles/ 目录不存在")
 
     # 6. skills 目录
     skills_dir = base_dir / "skills"
@@ -149,37 +171,42 @@ def cmd_doctor(args, output_dir: Path) -> int:
         print(f"  ✓ skills/ ({skill_count} SKILL.md)")
     else:
         issues.append("skills/ 目录不存在")
-        print(f"  ✗ skills/ 目录不存在")
+        print("  ✗ skills/ 目录不存在")
 
     # 7. 飞书 token
     try:
         result = subprocess.run(
             ["uvx", "larkkit", "auth", "status"],
-            capture_output=True, text=True, timeout=5,
+            capture_output=True,
+            text=True,
+            timeout=5,
         )
         if result.returncode == 0:
-            print(f"  ✓ 飞书 token 有效")
+            print("  ✓ 飞书 token 有效")
         else:
             warnings.append("飞书 token 无效或未配置")
-            print(f"  ⚠ 飞书 token 无效 (uvx larkkit auth login)")
+            print("  ⚠ 飞书 token 无效 (uvx larkkit auth login)")
     except (FileNotFoundError, subprocess.TimeoutExpired):
         warnings.append("larkkit 未安装或超时")
-        print(f"  ⚠ larkkit 未安装 (pip install larkkit)")
+        print("  ⚠ larkkit 未安装 (pip install larkkit)")
 
     # 8. git
     try:
         result = subprocess.run(
             ["git", "rev-parse", "--is-inside-work-tree"],
-            capture_output=True, text=True, timeout=5, cwd=base_dir,
+            capture_output=True,
+            text=True,
+            timeout=5,
+            cwd=base_dir,
         )
         if result.returncode == 0:
-            print(f"  ✓ git 仓库")
+            print("  ✓ git 仓库")
         else:
             warnings.append("当前目录不是 git 仓库")
-            print(f"  ⚠ 当前目录不是 git 仓库")
+            print("  ⚠ 当前目录不是 git 仓库")
     except FileNotFoundError:
         issues.append("git 未安装")
-        print(f"  ✗ git 未安装")
+        print("  ✗ git 未安装")
 
     # 汇总
     print()
@@ -212,7 +239,10 @@ def cmd_update(args, output_dir: Path) -> int:
     print("  拉取最新代码...")
     result = subprocess.run(
         ["git", "pull", "--rebase"],
-        capture_output=True, text=True, timeout=30, cwd=base_dir,
+        capture_output=True,
+        text=True,
+        timeout=30,
+        cwd=base_dir,
     )
     if result.returncode != 0:
         print(f"  ✗ git pull 失败: {result.stderr.strip()}", file=sys.stderr)
@@ -230,7 +260,7 @@ def cmd_update(args, output_dir: Path) -> int:
             ver_data["dqg_version"] = DQG_VERSION
             ver_data["updated_at"] = datetime.now().isoformat()
             save_json(version_path, ver_data)
-            print(f"  ✓ version.json 已更新")
+            print("  ✓ version.json 已更新")
         else:
             print(f"  ✓ 已是最新版本 (v{DQG_VERSION})")
     else:

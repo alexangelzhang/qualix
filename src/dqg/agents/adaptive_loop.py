@@ -123,47 +123,24 @@ class AdaptiveLoop:
             context_files = [_bootstrap_path] + (context_files or [])
             log.info("Bootstrap context prepended: %s", _bootstrap_path)
 
-        # P3: Compose shared + routed rubric (replaces raw rubric string if phase_id known)
-        from dqg.quality.judge_rubrics import compose_rubric as _compose_rubric
-
-        if phase_id in ("Q01", "Q03", "Q04", "Q05", "Q06", "Q07"):
-            _dynamic_dims = None
-            try:
-                from dqg.quality.dynamic_rubric import generate_dynamic_dimensions
-
-                _dynamic_dims = generate_dynamic_dimensions(self.output_dir, project_id, phase_id)
-            except Exception as e:
-                log.debug("Dynamic rubric generation failed: %s", e)
-            judge_rubric = _compose_rubric(phase_id, dynamic_dimensions=_dynamic_dims)
-            log.info(
-                "P3 composed rubric: phase=%s, dynamic=%d dims", phase_id, len(_dynamic_dims) if _dynamic_dims else 0
-            )
-
-        # Protocol: inject Phase-specific checklist + red_lines into judge rubric
-        from dqg.quality.evaluation_protocols import get_protocol, render_protocol_for_prompt
+        # Judge prompt uses the same assembler path as finalize/manual review.
+        from dqg.quality.evaluation_protocols import get_protocol
+        from dqg.quality.judge import build_judge_prompt
 
         _protocol = get_protocol(phase_id)
-        if _protocol:
-            _judge_protocol_text = render_protocol_for_prompt(_protocol.judge)
-            judge_rubric = _judge_protocol_text + "\n\n" + judge_rubric
-            log.info("Protocol injected: phase=%s, judge checklist=%d items", phase_id, len(_protocol.judge.checklist))
+        judge_build = build_judge_prompt(self.output_dir, project_id, phase_id)
+        if judge_build:
+            judge_rubric = judge_build.prompt
+            log.info(
+                "Judge prompt assembled: phase=%s, sections=%s",
+                phase_id,
+                ",".join(judge_build.manifest.assembly_order),
+            )
 
         from dqg.constants import REPORT_MAP
 
         report_file = REPORT_MAP.get(phase_id, "phase_report.md")
         report_path = pd / report_file
-
-        # Inject dynamic experience (genes filtered by phase+role) — needs report_path
-        if _protocol:
-            from dqg.quality.gene_store import load_genes_for_phase, match_genes, render_genes_for_prompt
-
-            _phase_genes = load_genes_for_phase(self.output_dir.parent, phase_id, agent_role="judge")
-            if _phase_genes and report_path.exists():
-                _report_text = report_path.read_text(encoding="utf-8", errors="replace")
-                _matched = match_genes(_phase_genes, _report_text)
-                if _matched:
-                    judge_rubric = judge_rubric + "\n\n" + render_genes_for_prompt(_matched)
-                    log.info("Dynamic genes injected: %d matched for judge", len(_matched))
 
         iterations: list[IterationRecord] = []
         all_llm_calls: list[dict[str, Any]] = []
@@ -454,16 +431,10 @@ class AdaptiveLoop:
             passed = True
 
         if not skip_critique:
-            _critique_system = critique_prompt
-            if protocol:
-                from dqg.quality.evaluation_protocols import render_protocol_for_prompt as _render_proto
-
-                _critique_system = _render_proto(protocol.critique) + "\n\n" + critique_prompt
-
             critique = Agent(
                 name=f"critique-iter{i + 1}",
                 role="critique",
-                system_prompt=_critique_system,
+                system_prompt=critique_prompt,
                 model=LLMConfig(primary=fallback, fallback=fallback),
                 output_dir=self.output_dir,
             )

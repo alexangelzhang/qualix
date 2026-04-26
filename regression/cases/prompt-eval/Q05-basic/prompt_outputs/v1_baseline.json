@@ -1,0 +1,20 @@
+{
+  "eut_matrix": [
+    {
+      "eut_id": "EUT-001",
+      "title": "登录-Happy Path",
+      "route_type": "Happy Path",
+      "linked_req": "REQ-001",
+      "steps": ["输入手机号", "获取验证码", "输入验证码", "点击登录"],
+      "expected_result": "跳转首页"
+    },
+    {
+      "eut_id": "EUT-002",
+      "title": "创建工单-Happy Path",
+      "route_type": "Happy Path",
+      "linked_req": "REQ-002",
+      "steps": ["选择服务类型", "填写车辆信息", "提交工单"],
+      "expected_result": "工单创建成功，跳转详情页"
+    }
+  ]
+}
