@@ -1,0 +1,30 @@
+{
+  "case_id": "JUDGE-Q03-20260423190349-dyn_concurrency-00",
+  "phase": "Q03",
+  "error_type": "FN",
+  "severity": "medium",
+  "title": "识别了并发提交的竞态窗口（EXC-001），但未分析 BPM 回调的并发场景：同一流程的多个回调消息同时到达时的处理顺序",
+  "root_cause": "SKILL_RULE",
+  "fix_target": "skills/tech-quality-review/SKILL.md",
+  "tags": [
+    "judge-extracted",
+    "dim:dyn_concurrency",
+    "project:shuangzhou-v4"
+  ],
+  "created_at": "2026-04-23",
+  "status": "open",
+  "source": {
+    "project_id": "shuangzhou-v4",
+    "judge_extracted": true,
+    "dimension": "dyn_concurrency",
+    "dim_score": 3,
+    "dim_max_score": 5
+  },
+  "expected": {
+    "content": "（需人工补充期望行为）"
+  },
+  "actual": {
+    "content": "识别了并发提交的竞态窗口（EXC-001），但未分析 BPM 回调的并发场景：同一流程的多个回调消息同时到达时的处理顺序"
+  },
+  "lesson": "识别了并发提交的竞态窗口（EXC-001），但未分析 BPM 回调的并发场景：同一流程的多个回调消息同时到达时的处理顺序"
+}

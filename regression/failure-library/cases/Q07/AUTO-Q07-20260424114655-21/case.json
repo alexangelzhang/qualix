@@ -1,0 +1,27 @@
+{
+  "case_id": "AUTO-Q07-20260424114655-21",
+  "phase": "Q07",
+  "error_type": "FN",
+  "severity": "medium",
+  "title": "For further information visit https://errors.pydantic.dev/2.12/v/missing",
+  "root_cause": "SKILL_RULE",
+  "fix_target": "",
+  "tags": [
+    "auto-generated",
+    "project:shuangzhou-v4"
+  ],
+  "created_at": "2026-04-24",
+  "status": "open",
+  "source": {
+    "project_id": "shuangzhou-v4",
+    "auto_generated": true,
+    "validation_error": "For further information visit https://errors.pydantic.dev/2.12/v/missing"
+  },
+  "expected": {
+    "content": "（需人工确认）"
+  },
+  "actual": {
+    "content": "For further information visit https://errors.pydantic.dev/2.12/v/missing"
+  },
+  "lesson": ""
+}

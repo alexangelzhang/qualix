@@ -1,0 +1,30 @@
+{
+  "case_id": "JUDGE-Q03-20260423190349-exception_coverage-00",
+  "phase": "Q03",
+  "error_type": "FN",
+  "severity": "medium",
+  "title": "异常矩阵仅 6 行，缺少 3 类标准异常：(1) 数据库唯一键冲突；(2) 乐观锁冲突（无 version 字段，应分析是否需要）；(3) BPM 流程 key 配置错误时的处理",
+  "root_cause": "SKILL_RULE",
+  "fix_target": "skills/tech-quality-review/SKILL.md",
+  "tags": [
+    "judge-extracted",
+    "dim:exception_coverage",
+    "project:shuangzhou-v4"
+  ],
+  "created_at": "2026-04-23",
+  "status": "open",
+  "source": {
+    "project_id": "shuangzhou-v4",
+    "judge_extracted": true,
+    "dimension": "exception_coverage",
+    "dim_score": 3,
+    "dim_max_score": 5
+  },
+  "expected": {
+    "content": "（需人工补充期望行为）"
+  },
+  "actual": {
+    "content": "异常矩阵仅 6 行，缺少 3 类标准异常：(1) 数据库唯一键冲突；(2) 乐观锁冲突（无 version 字段，应分析是否需要）；(3) BPM 流程 key 配置错误时的处理"
+  },
+  "lesson": "异常矩阵仅 6 行，缺少 3 类标准异常：(1) 数据库唯一键冲突；(2) 乐观锁冲突（无 version 字段，应分析是否需要）；(3) BPM 流程 key 配置错误时的处理"
+}

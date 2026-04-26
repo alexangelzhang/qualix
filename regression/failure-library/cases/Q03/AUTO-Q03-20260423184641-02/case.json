@@ -1,0 +1,27 @@
+{
+  "case_id": "AUTO-Q03-20260423184641-02",
+  "phase": "Q03",
+  "error_type": "FN",
+  "severity": "medium",
+  "title": "String should match pattern '^(ARCH|API|DATA|EXC|PERF)-\\d+$' [type=string_pattern_mismatch, input_va",
+  "root_cause": "SKILL_RULE",
+  "fix_target": "skills/tech-quality-review/SKILL.md",
+  "tags": [
+    "auto-generated",
+    "project:shuangzhou-v4"
+  ],
+  "created_at": "2026-04-23",
+  "status": "open",
+  "source": {
+    "project_id": "shuangzhou-v4",
+    "auto_generated": true,
+    "validation_error": "String should match pattern '^(ARCH|API|DATA|EXC|PERF)-\\d+$' [type=string_pattern_mismatch, input_value='SE-07-GAP', input_type=str]"
+  },
+  "expected": {
+    "content": "（需人工确认）"
+  },
+  "actual": {
+    "content": "String should match pattern '^(ARCH|API|DATA|EXC|PERF)-\\d+$' [type=string_pattern_mismatch, input_value='SE-07-GAP', input_type=str]"
+  },
+  "lesson": ""
+}

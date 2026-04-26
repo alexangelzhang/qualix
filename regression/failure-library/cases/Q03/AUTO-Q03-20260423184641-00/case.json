@@ -1,0 +1,27 @@
+{
+  "case_id": "AUTO-Q03-20260423184641-00",
+  "phase": "Q03",
+  "error_type": "WRONG",
+  "severity": "medium",
+  "title": "1 validation error for PhaseA6Output",
+  "root_cause": "SCHEMA",
+  "fix_target": "src/dqg/schemas/phase_q03.py",
+  "tags": [
+    "auto-generated",
+    "project:shuangzhou-v4"
+  ],
+  "created_at": "2026-04-23",
+  "status": "open",
+  "source": {
+    "project_id": "shuangzhou-v4",
+    "auto_generated": true,
+    "validation_error": "1 validation error for PhaseA6Output"
+  },
+  "expected": {
+    "content": "（需人工确认）"
+  },
+  "actual": {
+    "content": "1 validation error for PhaseA6Output"
+  },
+  "lesson": ""
+}

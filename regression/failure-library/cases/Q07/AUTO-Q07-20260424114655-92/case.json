@@ -1,0 +1,27 @@
+{
+  "case_id": "AUTO-Q07-20260424114655-92",
+  "phase": "Q07",
+  "error_type": "WRONG",
+  "severity": "medium",
+  "title": "Field required [type=missing, input_value={'finding_id': 'SCH-I04',...', 'chain': '测试层'}, input_type",
+  "root_cause": "SCHEMA",
+  "fix_target": "src/dqg/schemas/phase_q07.py",
+  "tags": [
+    "auto-generated",
+    "project:shuangzhou-v4"
+  ],
+  "created_at": "2026-04-24",
+  "status": "open",
+  "source": {
+    "project_id": "shuangzhou-v4",
+    "auto_generated": true,
+    "validation_error": "Field required [type=missing, input_value={'finding_id': 'SCH-I04',...', 'chain': '测试层'}, input_type=dict]"
+  },
+  "expected": {
+    "content": "（需人工确认）"
+  },
+  "actual": {
+    "content": "Field required [type=missing, input_value={'finding_id': 'SCH-I04',...', 'chain': '测试层'}, input_type=dict]"
+  },
+  "lesson": ""
+}

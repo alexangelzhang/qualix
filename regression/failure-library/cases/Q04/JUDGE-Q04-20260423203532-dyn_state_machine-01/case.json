@@ -1,0 +1,30 @@
+{
+  "case_id": "JUDGE-Q04-20260423203532-dyn_state_machine-01",
+  "phase": "Q04",
+  "error_type": "FN",
+  "severity": "medium",
+  "title": "GAP-03（代驾单取消后状态回退）标「未闭环」但未分析该场景对状态机的影响：代驾单取消后提前交车标识是否回退、工单状态如何处理",
+  "root_cause": "SKILL_RULE",
+  "fix_target": "skills/tech-coverage-audit/SKILL.md",
+  "tags": [
+    "judge-extracted",
+    "dim:dyn_state_machine",
+    "project:shuangzhou-v4"
+  ],
+  "created_at": "2026-04-23",
+  "status": "open",
+  "source": {
+    "project_id": "shuangzhou-v4",
+    "judge_extracted": true,
+    "dimension": "dyn_state_machine",
+    "dim_score": 3,
+    "dim_max_score": 5
+  },
+  "expected": {
+    "content": "（需人工补充期望行为）"
+  },
+  "actual": {
+    "content": "GAP-03（代驾单取消后状态回退）标「未闭环」但未分析该场景对状态机的影响：代驾单取消后提前交车标识是否回退、工单状态如何处理"
+  },
+  "lesson": "GAP-03（代驾单取消后状态回退）标「未闭环」但未分析该场景对状态机的影响：代驾单取消后提前交车标识是否回退、工单状态如何处理"
+}
