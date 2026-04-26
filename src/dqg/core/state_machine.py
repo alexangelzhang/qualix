@@ -19,11 +19,11 @@ from pathlib import Path  # noqa: TC003
 
 from pydantic import BaseModel, Field
 
-from dqg.json_utils import load_json_strict, save_json
+from dqg.constants import LEGACY_PHASE_ID_MAP
 
 # Domain 层 Phase 定义（re-export 保持向后兼容）
-from dqg.core.phase_registry import PHASE_DEFS, PHASE_ORDER  # noqa: F401
-from dqg.constants import LEGACY_PHASE_ID_MAP
+from dqg.core.phase_registry import PHASE_DEFS, PHASE_ORDER
+from dqg.json_utils import load_json_strict, save_json
 
 
 class PhaseStatus(StrEnum):
@@ -177,13 +177,23 @@ def finalize_phase(
 ) -> list[str]:
     """完成 Phase 执行，校验产物：in_progress → pending_review.
 
+    Also allows re-finalize from pending_review (e.g. after fixing missing
+    artifacts like _critique.json).  Re-finalize resets the phase back to
+    in_progress first so that gate_verdict is regenerated.
+
     Returns:
         []: 成功
         ["error1", ...]: 失败原因
     """
     phase_state = state.phases.get(phase_id)
-    if not phase_state or phase_state.status != PhaseStatus.IN_PROGRESS:
-        return [f"Phase {phase_id} 当前状态为 {phase_state.status if phase_state else 'missing'}，只能从 in_progress finalize"]
+    if not phase_state or phase_state.status not in (PhaseStatus.IN_PROGRESS, PhaseStatus.PENDING_REVIEW):
+        return [
+            f"Phase {phase_id} 当前状态为 {phase_state.status if phase_state else 'missing'}，只能从 in_progress 或 pending_review finalize"
+        ]
+
+    # Re-finalize: 从 pending_review 回退到 in_progress 再走正常流程
+    if phase_state.status == PhaseStatus.PENDING_REVIEW:
+        phase_state.status = PhaseStatus.IN_PROGRESS
 
     phase_state.finished_at = datetime.now().isoformat()
 
@@ -208,7 +218,9 @@ def approve_phase(state: ProjectState, phase_id: str, comment: str = "") -> list
     """
     phase_state = state.phases.get(phase_id)
     if not phase_state or phase_state.status != PhaseStatus.PENDING_REVIEW:
-        return [f"Phase {phase_id} 当前状态为 {phase_state.status if phase_state else 'missing'}，只能从 pending_review approve"]
+        return [
+            f"Phase {phase_id} 当前状态为 {phase_state.status if phase_state else 'missing'}，只能从 pending_review approve"
+        ]
 
     phase_state.status = PhaseStatus.APPROVED
     phase_state.approved_at = datetime.now().isoformat()
