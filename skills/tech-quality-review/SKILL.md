@@ -130,11 +130,11 @@ allowed-tools:
 1. **PROFILE_CONTEXT** — 技术栈基线
 2. **评审范围** — 技术方案来源 + Phase Q01 产物
 3. **五维度评审** — 架构/接口/数据/异常/性能，每个维度有 ✅/⚠️/❌ 标记
-4. **评审发现** — 按 Critical/Important/Suggestion/Nit 分级，每条有 issue_id + 来源 + 置信度
+4. **评审发现** — 按 CRITICAL/HIGH/MEDIUM/LOW 分级，每条有 issue_id + 来源 + 置信度
 5. **Failure Mode 分析** — 故障场景表格
 6. **评审结论** — PASS / PASS_WITH_RISKS / FAIL + 问题数量汇总
 7. **自我评审记录** — Judge + Critique
-8. **统计** — Critical/Important/Suggestion/Nit/FM 数量
+8. **统计** — CRITICAL/HIGH/MEDIUM/LOW/FM 数量
 
 ## 通过标准
 
