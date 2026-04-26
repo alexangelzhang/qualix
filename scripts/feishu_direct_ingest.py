@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
 """Feishu 文档 ingest 入口 — 调用 dqg.ingest.feishu.crawler.crawl_documents."""
+
 import argparse
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
-from dqg.ingest.feishu.auth import load_larkkit  # noqa: E402
-from dqg.ingest.feishu.crawler import crawl_documents  # noqa: E402
-from dqg.json_utils import dump_json_str  # noqa: E402
+from dqg.ingest.feishu.auth import load_larkkit
+from dqg.ingest.feishu.crawler import crawl_documents
+from dqg.json_utils import dump_json_str
 
 
 def main() -> int:
@@ -27,8 +28,8 @@ def main() -> int:
     prefer_user_token = not args.prefer_tenant_token
 
     try:
-        FeishuClient, get_code_language = load_larkkit()
-        client = FeishuClient()
+        feishu_client_cls, get_code_language = load_larkkit()
+        client = feishu_client_cls()
     except RuntimeError as e:
         print(f"[ERROR] {e}", file=sys.stderr)
         return 1
@@ -43,7 +44,7 @@ def main() -> int:
         save_raw_blocks=args.save_raw_blocks,
         asset_retries=3,
         include_raw_image_keys=False,
-        recursive_mentions=False,
+        recursive_mentions=args.max_depth > 0,
         canonicalize_mentions=True,
         max_depth=args.max_depth,
         max_docs=args.max_docs,
