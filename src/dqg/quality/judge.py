@@ -22,7 +22,7 @@ from dqg.prompting import PromptAssembler, PromptAsset, PromptBuild, PromptSpec,
 from dqg.prompting.record import record_prompt_manifest
 from dqg.quality.judge_rubrics import ANTI_RATIONALIZATION_SECTION as _ANTI_RATIONALIZATION_SECTION
 from dqg.quality.judge_rubrics import JUDGE_RUBRICS as _JUDGE_RUBRICS
-from dqg.quality.judge_rubrics import compose_rubric as _compose_rubric
+from dqg.quality.judge_rubrics import compose_rubric_layered as _compose_rubric
 from dqg.services.phase_service import read_relevance_excerpt
 from dqg.tracking.case_selector import render_relevant_cases_for_prompt
 
