@@ -1,0 +1,11 @@
+{
+  "case_id": "AUTO-Q03-20260427130114",
+  "phase": "Q03",
+  "error_type": "FN",
+  "root_cause": "CONTEXT",
+  "lesson": "技术方案输入缺失：未提供HLD、LLD及代码仓库，无法执行评审。",
+  "fingerprint": "d97cab45f96a8da7",
+  "source_signature": "finance-model",
+  "auto_generated": true,
+  "timestamp": "2026-04-27T13:01:14.797232"
+}
