@@ -148,6 +148,28 @@ class LoadedContext:
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(self.render_evidence_pack(), encoding="utf-8")
 
+    def token_breakdown(self) -> dict:
+        """Return per-chunk token breakdown for compaction experiment baseline."""
+        return {
+            "phase_id": self.phase_id,
+            "total_tokens": self.total_tokens,
+            "budget_tokens": self.budget_tokens,
+            "truncated": self.truncated,
+            "chunk_count": len(self.chunks),
+            "chunks": [
+                {
+                    "source": c.source,
+                    "token_estimate": c.token_estimate,
+                    "char_count": len(c.content),
+                    "priority": c.priority,
+                    "pct_of_total": round(c.token_estimate / self.total_tokens * 100, 1)
+                    if self.total_tokens > 0
+                    else 0,
+                }
+                for c in self.chunks
+            ],
+        }
+
     @property
     def relevance_seed(self) -> str:
         """为 bug case relevance matching 提供轻量种子文本."""

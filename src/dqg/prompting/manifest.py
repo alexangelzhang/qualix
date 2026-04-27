@@ -24,6 +24,7 @@ class PromptManifest:
     asset_hashes: dict[str, str] = field(default_factory=dict)
     section_hashes: dict[str, str] = field(default_factory=dict)
     section_sources: dict[str, tuple[str, ...]] = field(default_factory=dict)
+    section_tokens: dict[str, int] = field(default_factory=dict)
     assembly_order: tuple[str, ...] = ()
     project_id: str | None = None
     language: str | None = None

@@ -130,6 +130,10 @@ def runtime_execute(ctx: ExecutionContext) -> PhaseResult:
         ctx.internal_dir.mkdir(parents=True, exist_ok=True)
         ctx_path = ctx.internal_dir / "_upstream_context.md"
         loaded_ctx.write_full_text(ctx_path)
+        # Write token breakdown for compaction experiment baseline
+        from dqg.json_utils import save_json
+
+        save_json(ctx.internal_dir / "_evidence_token_breakdown.json", loaded_ctx.token_breakdown())
         ctx.relevance_text = loaded_ctx.relevance_seed
         result.add_event(
             EventType.CONTEXT_LOADED,

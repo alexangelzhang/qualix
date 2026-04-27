@@ -59,6 +59,8 @@ class PromptCompiler:
         project_id: str | None = None,
     ) -> PromptBuild:
         """Compile named sections and retain section-level trace metadata."""
+        from dqg.core.model_registry import estimate_tokens
+
         normalized = [(name, content.strip()) for name, content in sections if content.strip()]
         prompt = "\n\n".join(content for _, content in normalized)
         manifest = PromptManifest(
@@ -71,6 +73,7 @@ class PromptCompiler:
             asset_hashes=_hash_assets(assets),
             section_hashes={name: _sha256_text(content) for name, content in normalized},
             section_sources=section_sources or {},
+            section_tokens={name: estimate_tokens(content) for name, content in normalized},
             assembly_order=tuple(name for name, _ in normalized),
             project_id=project_id,
             language=spec.language,

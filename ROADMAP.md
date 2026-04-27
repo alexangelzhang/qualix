@@ -137,6 +137,12 @@
 - 修复断裂点 2: finalize 时执行 Phase Constraints 并写入 verdict
 - 多语言无关设计：通过 `source` 字段区分检查来源，不绑定具体语言
 
+2026-04-27 新增（Evidence Pack Compaction 基线遥测）：
+
+- Judge token usage 链路打通（`judge_runner.py` → `judge_vote.py` → `adaptive_loop.py`）— JudgeResult/JudgeVote 新增 `token_usage` 字段，adaptive loop 每轮 judge 投票后提取 token 数据到 `iter_llm_calls`，修复 telemetry `llm_calls` 始终为空的问题
+- Evidence Pack token breakdown（`context_loader.py` + `phase_runtime.py`）— `LoadedContext.token_breakdown()` 输出每个 chunk 的 source/token_estimate/char_count/priority/占比，execute 时写入 `_internal/_evidence_token_breakdown.json`
+- Prompt manifest section tokens（`prompting/manifest.py` + `prompting/compiler.py`）— `PromptManifest` 新增 `section_tokens` 字段，`compile_named_sections()` 用 `estimate_tokens()` 计算各 section token 数，为 prompt 级 ablation 实验提供基线
+
 仍需推进（P1）：
 
 - 审计命中率、修复闭环时长口径  

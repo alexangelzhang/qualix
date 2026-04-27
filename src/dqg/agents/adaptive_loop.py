@@ -409,6 +409,25 @@ class AdaptiveLoop:
             record.duration = time.time() - iter_start
             return record, False
 
+        # Collect judge LLM call telemetry
+        for vote in record.judge_result.votes:
+            if vote.token_usage:
+                iter_llm_calls.append(
+                    {
+                        "agent_name": f"judge-{vote.model}",
+                        "agent_role": "judge",
+                        "model_id": vote.model,
+                        "prompt_hash": "",
+                        "input_tokens": vote.token_usage.get("input_tokens", 0),
+                        "output_tokens": vote.token_usage.get("output_tokens", 0),
+                        "cache_creation_input_tokens": vote.token_usage.get("cache_creation_input_tokens", 0),
+                        "cache_read_input_tokens": vote.token_usage.get("cache_read_input_tokens", 0),
+                        "cache_hit": False,
+                        "duration_seconds": round(vote.duration, 2),
+                        "status": "success" if vote.health == "HEALTHY" else vote.health,
+                    }
+                )
+
         judge_log = pd / f"_judge_iter{i + 1}.json"
         from dqg.json_utils import save_json
 

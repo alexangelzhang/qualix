@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import UTC
 from typing import TYPE_CHECKING, Any
 
@@ -25,6 +25,7 @@ class JudgeVote:
     duration: float = 0
     raw_output: str = ""
     health: str = "HEALTHY"  # HEALTHY | INFRA_FAILURE | GUARD_EXHAUSTED
+    token_usage: dict[str, int] = field(default_factory=dict)
 
 
 @dataclass
@@ -105,6 +106,7 @@ def _run_single_judge(
         duration=result.duration,
         raw_output=result.raw_output,
         health=result.health,
+        token_usage=result.token_usage,
     )
 
 

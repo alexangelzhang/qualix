@@ -3,6 +3,7 @@
 Serves manual, adaptive, and holdout execution modes.
 All modes produce the same canonical schema for downstream consumers.
 """
+
 from __future__ import annotations
 
 import time
@@ -10,7 +11,8 @@ from dataclasses import dataclass, field
 from typing import Any, Final
 
 from dqg.agents.llm_backends import (
-    LLMConfig, StructuredChatResult, create_backend,
+    LLMConfig,
+    create_backend,
 )
 from dqg.log import get_logger
 
@@ -27,6 +29,7 @@ JUDGE_RESPONSE_SCHEMA: Final[dict[str, Any]] = {
 @dataclass
 class JudgeResult:
     """Canonical Judge output — wire-compatible with existing _judge_result.json."""
+
     overall_score: float
     verdict: str
     dimensions: list[dict[str, Any]]  # [{id, name, score, weight, rationale, issues}]
@@ -35,6 +38,7 @@ class JudgeResult:
     health: str = "HEALTHY"  # HEALTHY | INFRA_FAILURE | GUARD_EXHAUSTED
     model: str = ""
     duration: float = 0
+    token_usage: dict[str, int] = field(default_factory=dict)
     _schema_version: int = 1
 
 
@@ -53,8 +57,12 @@ class JudgeRunner:
         """
         if not raw or (not raw.get("overall") and not raw.get("overall_score")):
             return JudgeResult(
-                overall_score=0, verdict="FAIL", dimensions=[], issues=[],
-                raw_output=raw_output, health="INFRA_FAILURE",
+                overall_score=0,
+                verdict="FAIL",
+                dimensions=[],
+                issues=[],
+                raw_output=raw_output,
+                health="INFRA_FAILURE",
             )
 
         overall = raw.get("overall_score") or raw.get("overall", 0)
@@ -62,10 +70,7 @@ class JudgeRunner:
         # Normalize dimensions: if scores dict, convert to list
         dimensions = raw.get("dimensions", [])
         if not dimensions and isinstance(raw.get("scores"), dict):
-            dimensions = [
-                {"id": k, "name": k, "score": v, "weight": 0, "issues": []}
-                for k, v in raw["scores"].items()
-            ]
+            dimensions = [{"id": k, "name": k, "score": v, "weight": 0, "issues": []} for k, v in raw["scores"].items()]
 
         all_issues = list(raw.get("issues", []))
 
@@ -131,15 +136,23 @@ class JudgeRunner:
             api_key = LLMConfig(primary=model)._resolve_api_key(model)
             backend = create_backend(model, api_key)
             structured = backend.chat_structured(
-                messages, JUDGE_RESPONSE_SCHEMA, max_tokens=2000,
+                messages,
+                JUDGE_RESPONSE_SCHEMA,
+                max_tokens=2000,
             )
             result = self.normalize(structured.parsed, raw_output=structured.raw_text)
             result.model = model
+            result.token_usage = structured.provider_meta.get("usage", {})
             log.info("JudgeRunner %s: verdict=%s, overall=%.1f", model, result.verdict, result.overall_score)
             return result
         except Exception as e:
             log.error("JudgeRunner %s failed: %s", model, e)
             return JudgeResult(
-                overall_score=0, verdict="FAIL", dimensions=[], issues=[],
-                raw_output=str(e), health="INFRA_FAILURE", model=model,
+                overall_score=0,
+                verdict="FAIL",
+                dimensions=[],
+                issues=[],
+                raw_output=str(e),
+                health="INFRA_FAILURE",
+                model=model,
             )
