@@ -17,4 +17,10 @@
 - 收尾四步：产出检测 → finalize → approve → 刷新菜单
 - 代码变更后必须同步指令文件 — `completion_gate.py` 会自动检测并阻断，映射规则见 `AGENTS.md > 文档同步铁律`
 
-*最后更新：2026-04-22*
+## Code Index
+
+- 查看代码文件时优先用 code_index_lookup 获取 AST 摘要，再用 code_index_read_lines 读具体行
+- 搜索符号（函数/类/常量）时优先用 code_index_search，而非 Grep
+- 分析跨文件引用时用 code_index_refs，重构前用 code_index_blast_radius
+
+*最后更新：2026-04-27*
