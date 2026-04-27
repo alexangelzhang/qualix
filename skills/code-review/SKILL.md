@@ -290,7 +290,7 @@ Step 7: 检查是否所有入口都经过了这些保护点
 |--------|---------|---------|
 | 推理日志存在 | finalize_checks: `_reasoning_log.md` 存在且 > 100 字符 | BLOCKED |
 | 产物数量不回退 | finalize_checks: 对比 `_prev_counts.json` | REGRESSION |
-| Schema 校验 | schemas/phase_d.py 验证 `phase_d_structured.json` | WARNING |
+| Schema 校验 | schemas/phase_d.py 验证 `phase_d_structured.json` | BLOCKED |
 | 无 BLOCKER 未修复 | 结构化 JSON 中无 severity=BLOCKER 的 open finding | 人工确认 |
 | 影响范围已分析 | `_blast_radius.md` 存在（有 code_repo 时） | 人工确认 |
 

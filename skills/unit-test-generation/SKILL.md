@@ -336,7 +336,7 @@ Step 1.1 + 1.2 的结果必须输出为结构化 JSON：
 | 推理日志存在 | finalize_checks: `_reasoning_log.md` 存在且 > 100 字符 | BLOCKED |
 | 编译通过 | compile_check: `mvn compile` / `gradle compileJava` / `go build` | BLOCKED |
 | 产物数量不回退 | finalize_checks: 对比 `_prev_counts.json` | REGRESSION |
-| Schema 校验 | schemas/phase_b.py 验证 `phase_b_structured.json` | WARNING |
+| Schema 校验 | schemas/phase_b.py 验证 `phase_b_structured.json` | BLOCKED |
 | EUT 覆盖 SE | 每条 SE 至少有一个 bound_se 匹配的 EUT | 人工确认 |
 | 路径类型均衡 | Happy/Exception/Boundary 三种类型都有 | 人工确认 |
 

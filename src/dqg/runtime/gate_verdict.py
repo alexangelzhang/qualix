@@ -89,6 +89,7 @@ def build_verdict(
     result: PhaseResult,
     guardrail_results: list[dict[str, Any]] | None = None,
     constraint_violations: list[dict[str, Any]] | None = None,
+    schema_errors: list[str] | None = None,
 ) -> GateVerdict:
     """从各检查源构建 GateVerdict.
 
@@ -97,8 +98,23 @@ def build_verdict(
         result: PhaseResult（含 errors/warnings from handlers + flow_integrity）
         guardrail_results: _guardrail_results.json 内容
         constraint_violations: enforce_phase_constraints() 返回值
+        schema_errors: Schema validation errors（HARD 级别，不可 --force 绕过）
     """
     verdict = GateVerdict(phase_id=phase_id)
+
+    # 0. Schema validation errors → HARD (不可 --force 绕过)
+    for err in schema_errors or []:
+        if "不存在" in err:
+            continue
+        verdict.checks.append(
+            CheckItem(
+                source="schema",
+                name="schema_validation",
+                passed=False,
+                level="HARD",
+                message=err,
+            )
+        )
 
     # 1. Handler errors → HARD (required handler) 或 SOFT (optional)
     for error in result.errors:

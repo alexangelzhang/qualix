@@ -349,6 +349,7 @@ def runtime_finalize(ctx: ExecutionContext) -> PhaseResult:
             result=result,
             guardrail_results=g_out,
             constraint_violations=constraint_violations,
+            schema_errors=ctx.shared.get("validation_errors"),
         )
         save_verdict(ctx.output_dir, ctx.project_id, ctx.phase_id, verdict)
         ctx.shared["gate_verdict"] = verdict.to_dict()

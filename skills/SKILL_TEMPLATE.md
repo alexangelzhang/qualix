@@ -62,7 +62,7 @@ allowed-tools:
 |--------|---------|---------|
 | 推理日志存在 | finalize_checks: _reasoning_log.md 存在且 > 100 字符 | BLOCKED |
 | 产物数量不回退 | finalize_checks: 对比 _prev_counts.json | REGRESSION |
-| Schema 校验通过 | schemas/phase_x.py 验证 structured JSON | WARNING |
+| Schema 校验通过 | schemas/phase_x.py 验证 structured JSON | BLOCKED |
 | ... | ... | ... |
 
 ## 输出模板

@@ -175,7 +175,7 @@ Step 8: 修正（根据 Step 7 发现的问题修正报告，重新执行 Step 6
 |--------|---------|---------|
 | 推理日志存在 | finalize_checks: `_reasoning_log.md` 存在且 > 100 字符 | BLOCKED |
 | 产物数量不回退 | finalize_checks: 对比 `_prev_counts.json` | REGRESSION |
-| Schema 校验 | schemas/phase_a5.py 验证 `phase_a5_structured.json` | WARNING |
+| Schema 校验 | schemas/phase_a5.py 验证 `phase_a5_structured.json` | BLOCKED |
 | 覆盖度矩阵已生成 | `_coverage_matrix.json` 存在 | 人工确认 |
 | REQ 覆盖率 100% | phase_a5_structured.json 中 req_coverage 无 MISSING | 人工确认 |
 | SE 覆盖率 >= 90% | phase_a5_structured.json 中 se_coverage COVERED+PARTIAL >= 90% | 人工确认 |

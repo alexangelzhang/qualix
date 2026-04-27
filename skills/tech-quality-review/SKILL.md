@@ -125,6 +125,41 @@ allowed-tools:
 
 复用 `../../references/tech-design-quality-template.md`。
 
+### `phase_a6_structured.json` 格式（必须严格遵守）
+
+```json
+{
+  "project_id": "项目ID",
+  "issues": [
+    {
+      "issue_id": "ARCH-001",
+      "description": "问题描述",
+      "severity": "CRITICAL|HIGH|MEDIUM|LOW",
+      "suggestion": "修复建议",
+      "dimension": "architecture|api|data|exception|performance",
+      "evidence": "DOC-007 第3章"
+    }
+  ],
+  "failure_modes": [
+    {
+      "business_path": "业务路径（如：提交审批）",
+      "failure_scenario": "故障场景（如：BPM 创建超时）",
+      "has_exception_handling": true,
+      "user_impact": "用户影响",
+      "status": "SAFE|RISK|CRITICAL_GAP"
+    }
+  ],
+  "conclusion": "PASS|PASS_WITH_RISKS|FAIL"
+}
+```
+
+**字段约束：**
+- `issue_id`: 必填，格式 `(ARCH|API|DATA|EXC|PERF)-\d+`
+- `severity`: 必填，枚举 CRITICAL/HIGH/MEDIUM/LOW
+- `business_path`: 必填，不能用缩写 `path`
+- `failure_scenario`: 必填，不能用缩写 `scenario`
+- `status`: 必填，枚举 SAFE/RISK/CRITICAL_GAP，不能用 `assessment`
+
 报告必须包含以下标准章节（缺一不可）：
 
 1. **PROFILE_CONTEXT** — 技术栈基线
@@ -164,7 +199,7 @@ allowed-tools:
 |--------|---------|---------|
 | 推理日志存在 | finalize_checks: `_reasoning_log.md` 存在且 > 100 字符 | BLOCKED |
 | 产物数量不回退 | finalize_checks: 对比 `_prev_counts.json`（issues/failure_modes） | REGRESSION |
-| Schema 校验 | schemas/phase_a6.py 验证 `phase_a6_structured.json` | WARNING |
+| Schema 校验 | schemas/phase_a6.py 验证 `phase_a6_structured.json` | BLOCKED |
 | 无 CRITICAL_GAP | 结构化 JSON 中无 severity=CRITICAL 的未解决 issue | BLOCKED |
 | 异常矩阵覆盖 | 12 类异常每类有检查结论（覆盖/不适用+原因） | 人工确认 |
 

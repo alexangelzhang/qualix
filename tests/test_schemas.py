@@ -10,7 +10,7 @@ from dqg.schemas import PhaseAOutput, validate_phase_output
 from dqg.schemas.phase_a5 import CoverageStatus, PhaseA5Output, ReqCoverageItem
 from dqg.schemas.phase_a6 import FailureModeItem, FailureModeStatus, PhaseA6Output, QualityIssue, Severity
 from dqg.schemas.phase_b import EutItem, PhaseBOutput, RiskTier, RouteType, TCItem
-from dqg.schemas.phase_c import AuditStatus, CoverageGate, EutAuditItem, PhaseCOutput
+from dqg.schemas.phase_c import AuditStatus, CoverageGate, EutAuditItem, FindingItem, PhaseCOutput
 from dqg.schemas.phase_q01 import Gap, OpenItem, Requirement, SemanticExpectation
 
 
@@ -90,6 +90,21 @@ class TestPhaseA6Schema:
         with pytest.raises(ValidationError):
             QualityIssue(issue_id="WRONG-001", description="bad", severity=Severity.LOW)
 
+    def test_normalize_failure_mode_field_names(self):
+        """LLM 输出 path/scenario/impact/assessment 时自动映射."""
+        data = {
+            "path": "提交审批",
+            "scenario": "BPM 创建超时",
+            "impact": "表单状态卡在待提交",
+            "assessment": "CRITICAL_GAP",
+        }
+        fm = FailureModeItem.model_validate(data)
+        assert fm.business_path == "提交审批"
+        assert fm.failure_scenario == "BPM 创建超时"
+        assert fm.user_impact == "表单状态卡在待提交"
+        assert fm.status == FailureModeStatus.CRITICAL_GAP
+        assert fm.has_exception_handling is False
+
 
 class TestPhaseBSchema:
     def test_valid_eut(self):
@@ -159,6 +174,30 @@ class TestPhaseCSchema:
             conclusion="PASS",
         )
         assert output.coverage_gate.line_coverage == 85.0
+
+    def test_valid_finding_mode(self):
+        output = PhaseCOutput(
+            project_id="PROJ1",
+            findings=[
+                FindingItem(id="FINDING-01", severity="CRITICAL", title="download 方法零测试"),
+            ],
+            verdict="FAIL",
+        )
+        assert len(output.findings) == 1
+        assert output.findings[0].severity == "CRITICAL"
+
+    def test_normalize_finding_in_audit_items(self):
+        """finding 模式的数据放在 audit_items 字段时自动转移到 findings."""
+        data = {
+            "project_id": "PROJ1",
+            "audit_items": [
+                {"id": "FINDING-01", "severity": "HIGH", "description": "test"},
+            ],
+        }
+        output = PhaseCOutput.model_validate(data)
+        assert output.audit_items == []
+        assert len(output.findings) == 1
+        assert output.findings[0].id == "FINDING-01"
 
 
 class TestValidatePhaseOutput:

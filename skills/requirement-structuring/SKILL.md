@@ -256,7 +256,7 @@ python3 scripts/parse_image_assets.py \
 |--------|---------|---------|
 | 推理日志存在 | finalize_checks: `_reasoning_log.md` 存在且 > 100 字符 | BLOCKED |
 | 产物数量不回退 | finalize_checks: 对比 `_prev_counts.json`（REQ/BR/SE/GAP/OPEN 数量） | REGRESSION |
-| Schema 校验 | schemas/phase_a.py 验证 `phase_a_structured.json` | WARNING |
+| Schema 校验 | schemas/phase_a.py 验证 `phase_a_structured.json` | BLOCKED |
 | 跨 Phase ID 引用 | cross_phase_check: REQ/BR/SE ID 格式和唯一性 | WARNING |
 | 图片已解析 | image_semantics.json 存在且 ok 数量 > 0（有图片时） | 人工确认 |
 

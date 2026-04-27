@@ -184,7 +184,7 @@ Critique 发现问题 → 修正 → 重新自检。
 |--------|---------|---------|
 | 推理日志存在 | finalize_checks: `_reasoning_log.md` 存在且 > 100 字符 | BLOCKED |
 | 产物数量不回退 | finalize_checks: 对比 `_prev_counts.json` | REGRESSION |
-| Schema 校验 | schemas/phase_a3.py 验证 `phase_a3_structured.json` | WARNING |
+| Schema 校验 | schemas/phase_a3.py 验证 `phase_a3_structured.json` | BLOCKED |
 | REQ/BR 映射完整 | 每条 REQ/BR 有对应设计章节 | 人工确认 |
 | 接口设计完整 | 含入参/出参/异常码/幂等性 | 人工确认 |
 

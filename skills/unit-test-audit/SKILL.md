@@ -358,7 +358,7 @@ Phase Q05 保证"按规则写了"，Phase Q06 检查"写得好不好"：
 |--------|---------|---------|
 | 推理日志存在 | finalize_checks: `_reasoning_log.md` 存在且 > 100 字符 | BLOCKED |
 | 产物数量不回退 | finalize_checks: 对比 `_prev_counts.json` | REGRESSION |
-| Schema 校验 | schemas/phase_c.py 验证 `phase_c_structured.json` | WARNING |
+| Schema 校验 | schemas/phase_c.py 验证 `phase_c_structured.json` | BLOCKED |
 | 覆盖率门禁 | coverage_gate: JaCoCo XML line >= 80%, branch >= 80% | BLOCKED |
 | T1 异常分支 | T1 核心异常无 MISSING/WRONG_TARGET | 人工确认 |
 | 弱断言检测 | `_weak_assert_context.md` 中标记的方法已复核 | 人工确认 |
