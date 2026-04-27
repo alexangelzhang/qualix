@@ -1,0 +1,27 @@
+{
+  "case_id": "AUTO-Q03-20260426213513-161",
+  "phase": "Q03",
+  "error_type": "WRONG",
+  "severity": "medium",
+  "title": "Field required [type=missing, input_value={'path': '暂存', 'scena...', 'assessment': 'RISK'}, input_ty",
+  "root_cause": "SCHEMA",
+  "fix_target": "src/dqg/schemas/phase_q03.py",
+  "tags": [
+    "auto-generated",
+    "project:finance-model"
+  ],
+  "created_at": "2026-04-26",
+  "status": "open",
+  "source": {
+    "project_id": "finance-model",
+    "auto_generated": true,
+    "validation_error": "Field required [type=missing, input_value={'path': '暂存', 'scena...', 'assessment': 'RISK'}, input_type=dict]"
+  },
+  "expected": {
+    "content": "（需人工确认）"
+  },
+  "actual": {
+    "content": "Field required [type=missing, input_value={'path': '暂存', 'scena...', 'assessment': 'RISK'}, input_type=dict]"
+  },
+  "lesson": ""
+}

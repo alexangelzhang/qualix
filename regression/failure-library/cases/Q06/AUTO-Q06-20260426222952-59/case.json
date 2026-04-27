@@ -1,0 +1,27 @@
+{
+  "case_id": "AUTO-Q06-20260426222952-59",
+  "phase": "Q06",
+  "error_type": "WRONG",
+  "severity": "medium",
+  "title": "Field required [type=missing, input_value={'id': 'FINDING-10', 'sev...证幂等保护机制'}, input_type=dict]",
+  "root_cause": "SCHEMA",
+  "fix_target": "src/dqg/schemas/phase_q06.py",
+  "tags": [
+    "auto-generated",
+    "project:finance-model"
+  ],
+  "created_at": "2026-04-26",
+  "status": "open",
+  "source": {
+    "project_id": "finance-model",
+    "auto_generated": true,
+    "validation_error": "Field required [type=missing, input_value={'id': 'FINDING-10', 'sev...证幂等保护机制'}, input_type=dict]"
+  },
+  "expected": {
+    "content": "（需人工确认）"
+  },
+  "actual": {
+    "content": "Field required [type=missing, input_value={'id': 'FINDING-10', 'sev...证幂等保护机制'}, input_type=dict]"
+  },
+  "lesson": ""
+}
