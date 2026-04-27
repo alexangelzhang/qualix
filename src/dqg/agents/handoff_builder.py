@@ -57,7 +57,8 @@ def build_handoff_document(
                 if severity in ("info", "suggestion"):
                     continue
                 issue_idx += 1
-                parts.append(f"{issue_idx}. [{severity}] {issue.get('description', '')}")
+                issue_id = f"J-{prev.iteration:02d}-{issue_idx:03d}"
+                parts.append(f"{issue_idx}. [{issue_id}][{severity}] {issue.get('description', '')}")
                 if issue.get("suggestion"):
                     parts.append(f"   建议: {issue['suggestion']}")
     if prev.judge_result and prev.judge_result.disagreements:

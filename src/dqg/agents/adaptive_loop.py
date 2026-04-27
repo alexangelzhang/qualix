@@ -22,6 +22,7 @@ from typing import TYPE_CHECKING, Any
 
 from dqg.agents.agent import Agent, extract_llm_call
 from dqg.agents.handoff_builder import build_handoff_document
+from dqg.agents.issue_tracker import IssueTracker
 from dqg.agents.judge_vote import (  # noqa: F401 — re-export for backward compat
     IterationRecord,
     JudgeVote,
@@ -144,6 +145,7 @@ class AdaptiveLoop:
 
         iterations: list[IterationRecord] = []
         all_llm_calls: list[dict[str, Any]] = []
+        issue_tracker = IssueTracker()
         start = time.time()
         final_verdict = "MAX_ITERATIONS"
         monitor = LoopHealthMonitor()
@@ -186,6 +188,26 @@ class AdaptiveLoop:
             )
             iterations.append(record)
             all_llm_calls.extend(iter_llm_calls)
+
+            # Issue lifecycle tracking
+            if record.judge_result is not None:
+                judge_issues = []
+                for v in record.judge_result.votes:
+                    judge_issues.extend(v.issues)
+                critique_issues = None
+                if record.critique_result and record.critique_result.status != "failed":
+                    import json as _json
+
+                    try:
+                        _cdata = _json.loads(record.critique_result.content)
+                        critique_issues = _cdata.get("findings", [])
+                    except (ValueError, AttributeError):
+                        pass
+                issue_tracker.record_iteration(
+                    iteration=record.iteration,
+                    judge_issues=judge_issues,
+                    critique_issues=critique_issues,
+                )
 
             # 健康监控：记录本轮结果并检查是否应早停
             if record.judge_result is not None:
@@ -243,10 +265,10 @@ class AdaptiveLoop:
             llm_calls=all_llm_calls,
         )
 
-        self._write_summary(pd, result)
+        self._write_summary(pd, result, issue_tracker)
         return result
 
-    def _write_summary(self, pd: Path, result: AdaptiveResult) -> None:
+    def _write_summary(self, pd: Path, result: AdaptiveResult, issue_tracker: IssueTracker | None = None) -> None:
         """Write adaptive loop summary JSON."""
         from dqg.json_utils import save_json
 
@@ -263,6 +285,14 @@ class AdaptiveLoop:
                 "models_used": result.models_used,
                 "health_summary": result.health_summary,
                 "llm_calls": result.llm_calls,
+                "issue_tracker": {
+                    "total": issue_tracker.total,
+                    "resolved": issue_tracker.resolved_count,
+                    "open": issue_tracker.open_count,
+                    "issues": issue_tracker.get_summary(),
+                }
+                if issue_tracker
+                else None,
                 "iterations": [
                     {
                         "iteration": r.iteration,
