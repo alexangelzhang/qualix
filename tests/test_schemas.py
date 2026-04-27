@@ -9,7 +9,7 @@ from pydantic import ValidationError
 from dqg.schemas import PhaseAOutput, validate_phase_output
 from dqg.schemas.phase_a5 import CoverageStatus, PhaseA5Output, ReqCoverageItem
 from dqg.schemas.phase_a6 import FailureModeItem, FailureModeStatus, PhaseA6Output, QualityIssue, Severity
-from dqg.schemas.phase_b import EutItem, PhaseBOutput, RiskTier, RouteType
+from dqg.schemas.phase_b import EutItem, PhaseBOutput, RiskTier, RouteType, TCItem
 from dqg.schemas.phase_c import AuditStatus, CoverageGate, EutAuditItem, PhaseCOutput
 from dqg.schemas.phase_q01 import Gap, OpenItem, Requirement, SemanticExpectation
 
@@ -98,6 +98,7 @@ class TestPhaseBSchema:
             eut_items=[
                 EutItem(
                     eut_id="EUT-001",
+                    bound_se="SE-001",
                     route_type=RouteType.HAPPY,
                     given="正常 DTO",
                     when="提交订单",
@@ -107,10 +108,44 @@ class TestPhaseBSchema:
             ],
         )
         assert output.eut_items[0].risk_tier == RiskTier.T1
+        assert output.eut_items[0].bound_se == "SE-001"
 
-    def test_empty_eut_rejected(self):
+    def test_eut_requires_bound_se(self):
         with pytest.raises(ValidationError):
-            PhaseBOutput(project_id="PROJ1", eut_items=[])
+            EutItem(
+                eut_id="EUT-001",
+                bound_se="",
+                route_type=RouteType.HAPPY,
+                given="正常 DTO",
+                when="提交订单",
+                then="状态变为 PROCESSING",
+            )
+
+    def test_valid_test_case_item(self):
+        output = PhaseBOutput(
+            project_id="PROJ1",
+            test_cases=[
+                TCItem(
+                    id="TC-001",
+                    repo="car-mrs",
+                    status="COVERED",
+                    covered_by="SomeTest#testMethod",
+                    scenario="正常场景",
+                    se_refs=["SE-001", "SE-002"],
+                ),
+            ],
+        )
+        assert len(output.test_cases) == 1
+        assert output.test_cases[0].se_refs == ["SE-001", "SE-002"]
+
+    def test_test_case_requires_repo(self):
+        with pytest.raises(ValidationError):
+            TCItem(id="TC-001", repo="")
+
+    def test_empty_eut_and_test_cases_accepted(self):
+        output = PhaseBOutput(project_id="PROJ1")
+        assert output.eut_items == []
+        assert output.test_cases == []
 
 
 class TestPhaseCSchema:

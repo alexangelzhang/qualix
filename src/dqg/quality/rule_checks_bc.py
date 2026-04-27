@@ -5,20 +5,23 @@
 
 from __future__ import annotations
 
-from pathlib import Path
 from types import MappingProxyType
-from typing import Final
+from typing import TYPE_CHECKING, Final
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 from dqg.quality.rule_definitions import RE_BR_ID, RE_REQ_ID, RE_SE_ID
-
 
 # ---------------------------------------------------------------------------
 # Phase Q05 检查
 # ---------------------------------------------------------------------------
 
+
 def _check_design_matrix(pd: Path, report: str, phase_id: str) -> tuple[bool, str]:
     """检查单测设计矩阵是否存在."""
     from dqg.json_utils import load_json
+
     matrix_path = pd.parent / "_test_design_matrix.json"
     if not matrix_path.exists():
         matrix_path = pd / "_test_design_matrix.json"
@@ -36,6 +39,7 @@ def _check_design_matrix(pd: Path, report: str, phase_id: str) -> tuple[bool, st
 def _check_req_coverage(pd: Path, report: str, phase_id: str) -> tuple[bool, str]:
     """检查 REQ 覆盖率."""
     from dqg.json_utils import load_json
+
     for candidate in [pd.parent / "_test_design_matrix.json", pd / "_test_design_matrix.json"]:
         data = load_json(candidate)
         if data and data.get("summary"):
@@ -45,7 +49,7 @@ def _check_req_coverage(pd: Path, report: str, phase_id: str) -> tuple[bool, str
                 rate = covered / total
                 if rate >= 1.0:
                     return True, f"REQ 覆盖率 {covered}/{total} (100%)"
-                return False, f"REQ 覆盖率 {covered}/{total} ({rate*100:.0f}%，要求 100%)"
+                return False, f"REQ 覆盖率 {covered}/{total} ({rate * 100:.0f}%，要求 100%)"
     req_refs = len(RE_REQ_ID.findall(report))
     if req_refs >= 5:
         return True, f"{req_refs} 处 REQ 引用"
@@ -55,6 +59,7 @@ def _check_req_coverage(pd: Path, report: str, phase_id: str) -> tuple[bool, str
 def _check_br_coverage(pd: Path, report: str, phase_id: str) -> tuple[bool, str]:
     """检查 BR 覆盖率."""
     from dqg.json_utils import load_json
+
     for candidate in [pd.parent / "_test_design_matrix.json", pd / "_test_design_matrix.json"]:
         data = load_json(candidate)
         if data and data.get("summary"):
@@ -66,8 +71,8 @@ def _check_br_coverage(pd: Path, report: str, phase_id: str) -> tuple[bool, str]
             if total > 0:
                 rate = covered / total
                 if rate >= 0.8:
-                    return True, f"BR 覆盖率 {covered}/{total} ({rate*100:.0f}%)"
-                return False, f"BR 覆盖率 {covered}/{total} ({rate*100:.0f}%，要求 ≥80%)"
+                    return True, f"BR 覆盖率 {covered}/{total} ({rate * 100:.0f}%)"
+                return False, f"BR 覆盖率 {covered}/{total} ({rate * 100:.0f}%，要求 ≥80%)"
     br_refs = len(RE_BR_ID.findall(report))
     if br_refs >= 10:
         return True, f"{br_refs} 处 BR 引用"
@@ -77,6 +82,7 @@ def _check_br_coverage(pd: Path, report: str, phase_id: str) -> tuple[bool, str]
 def _check_code_branch_coverage(pd: Path, report: str, phase_id: str) -> tuple[bool, str]:
     """检查代码分支覆盖."""
     from dqg.json_utils import load_json
+
     for candidate in [pd.parent / "_test_design_matrix.json", pd / "_test_design_matrix.json"]:
         data = load_json(candidate)
         if data and data.get("summary"):
@@ -85,8 +91,8 @@ def _check_code_branch_coverage(pd: Path, report: str, phase_id: str) -> tuple[b
             if total > 0:
                 rate = covered / total
                 if rate >= 0.7:
-                    return True, f"分支覆盖率 {covered}/{total} ({rate*100:.0f}%)"
-                return False, f"分支覆盖率 {covered}/{total} ({rate*100:.0f}%，要求 ≥70%)"
+                    return True, f"分支覆盖率 {covered}/{total} ({rate * 100:.0f}%)"
+                return False, f"分支覆盖率 {covered}/{total} ({rate * 100:.0f}%，要求 ≥70%)"
     keywords = ["分支", "branch", "if.*null", "try.*catch", "switch", "default", "降级", "防御"]
     found = sum(1 for kw in keywords if kw.lower() in report.lower())
     if found >= 3:
@@ -96,12 +102,13 @@ def _check_code_branch_coverage(pd: Path, report: str, phase_id: str) -> tuple[b
 
 def _check_eut_count(pd: Path, report: str, phase_id: str) -> tuple[bool, str]:
     """检查 EUT 数量."""
-    from dqg.json_utils import load_json
     from dqg.constants import STRUCTURED_JSON_MAP
+    from dqg.json_utils import load_json
+
     json_path = pd / STRUCTURED_JSON_MAP.get("Q05", "phase_b_structured.json")
     data = load_json(json_path)
     if data:
-        euts = data.get("eut_matrix", data.get("eut_items", []))
+        euts = data.get("eut_matrix", data.get("eut_items", data.get("test_cases", [])))
         count = len(euts)
         if count >= 10:
             return True, f"{count} 个 EUT"
@@ -115,6 +122,7 @@ def _check_eut_count(pd: Path, report: str, phase_id: str) -> tuple[bool, str]:
 def _check_path_balance(pd: Path, report: str, phase_id: str) -> tuple[bool, str]:
     """检查 Happy/Exception 路径均衡."""
     from dqg.json_utils import load_json
+
     json_path = pd.parent / "phase_b_structured.json"
     data = load_json(json_path)
     if data:
@@ -134,6 +142,7 @@ def _check_path_balance(pd: Path, report: str, phase_id: str) -> tuple[bool, str
 def _check_se_bound(pd: Path, report: str, phase_id: str) -> tuple[bool, str]:
     """检查 SE 绑定覆盖."""
     from dqg.json_utils import load_json
+
     json_path = pd.parent / "phase_b_structured.json"
     data = load_json(json_path)
     if data:
@@ -151,6 +160,7 @@ def _check_se_bound(pd: Path, report: str, phase_id: str) -> tuple[bool, str]:
 def _check_strong_assert(pd: Path, report: str, phase_id: str) -> tuple[bool, str]:
     """检查是否使用强断言."""
     from dqg.json_utils import load_json
+
     json_path = pd.parent / "phase_b_structured.json"
     data = load_json(json_path)
     if data:
@@ -167,6 +177,7 @@ def _check_strong_assert(pd: Path, report: str, phase_id: str) -> tuple[bool, st
 # ---------------------------------------------------------------------------
 # Phase Q06 检查（7 维度审计标准）
 # ---------------------------------------------------------------------------
+
 
 def _check_c_se_coverage(pd: Path, report: str, phase_id: str) -> tuple[bool, str]:
     """SE 覆盖率：审计报告是否评估了 SE 覆盖情况."""
@@ -185,16 +196,28 @@ def _check_c_path_balance(pd: Path, report: str, phase_id: str) -> tuple[bool, s
     covered = sum([has_happy, has_exception, has_boundary])
     if covered >= 2:
         types = []
-        if has_happy: types.append("Happy")
-        if has_exception: types.append("Exception")
-        if has_boundary: types.append("Boundary")
+        if has_happy:
+            types.append("Happy")
+        if has_exception:
+            types.append("Exception")
+        if has_boundary:
+            types.append("Boundary")
         return True, f"覆盖 {'/'.join(types)}"
     return False, f"仅覆盖 {covered}/3 种路径类型"
 
 
 def _check_c_assert_strength(pd: Path, report: str, phase_id: str) -> tuple[bool, str]:
     """断言强度：是否评估了断言质量."""
-    keywords = ["断言强度", "assertEquals", "assertThrows", "assertNotNull", "弱断言", "强断言", "ArgumentCaptor", "verify"]
+    keywords = [
+        "断言强度",
+        "assertEquals",
+        "assertThrows",
+        "assertNotNull",
+        "弱断言",
+        "强断言",
+        "ArgumentCaptor",
+        "verify",
+    ]
     found = sum(1 for kw in keywords if kw in report)
     if found >= 3:
         return True, f"断言分析充分（{found} 个关键词）"
@@ -260,21 +283,23 @@ def _check_c_defensive(pd: Path, report: str, phase_id: str) -> tuple[bool, str]
 # Phase B/C 检查函数映射表
 # ---------------------------------------------------------------------------
 
-BC_CHECK_FUNCS: Final = MappingProxyType({
-    "_check_design_matrix": _check_design_matrix,
-    "_check_req_coverage": _check_req_coverage,
-    "_check_br_coverage": _check_br_coverage,
-    "_check_code_branch_coverage": _check_code_branch_coverage,
-    "_check_eut_count": _check_eut_count,
-    "_check_path_balance": _check_path_balance,
-    "_check_se_bound": _check_se_bound,
-    "_check_strong_assert": _check_strong_assert,
-    "_check_c_se_coverage": _check_c_se_coverage,
-    "_check_c_path_balance": _check_c_path_balance,
-    "_check_c_assert_strength": _check_c_assert_strength,
-    "_check_c_mock_reality": _check_c_mock_reality,
-    "_check_c_state_machine": _check_c_state_machine,
-    "_check_c_maintainability": _check_c_maintainability,
-    "_check_c_boundary": _check_c_boundary,
-    "_check_c_defensive": _check_c_defensive,
-})
+BC_CHECK_FUNCS: Final = MappingProxyType(
+    {
+        "_check_design_matrix": _check_design_matrix,
+        "_check_req_coverage": _check_req_coverage,
+        "_check_br_coverage": _check_br_coverage,
+        "_check_code_branch_coverage": _check_code_branch_coverage,
+        "_check_eut_count": _check_eut_count,
+        "_check_path_balance": _check_path_balance,
+        "_check_se_bound": _check_se_bound,
+        "_check_strong_assert": _check_strong_assert,
+        "_check_c_se_coverage": _check_c_se_coverage,
+        "_check_c_path_balance": _check_c_path_balance,
+        "_check_c_assert_strength": _check_c_assert_strength,
+        "_check_c_mock_reality": _check_c_mock_reality,
+        "_check_c_state_machine": _check_c_state_machine,
+        "_check_c_maintainability": _check_c_maintainability,
+        "_check_c_boundary": _check_c_boundary,
+        "_check_c_defensive": _check_c_defensive,
+    }
+)

@@ -105,15 +105,16 @@ IRON LAW: 不写 assertTrue(true) 占位符。写不了的测试标记 TODO 并�
 
 逐条 REQ/BR 设计测试用例：
 
-| REQ/BR | 用例 ID | 用例描述 | 路径类型 | 绑定 SE | 被测类.方法 |
-|--------|---------|---------|---------|---------|-----------|
+| REQ/BR | 用例 ID | 用例描述 | 路径类型 | 绑定 SE | 被测类.方法 | 仓库 |
+|--------|---------|---------|---------|---------|-----------|------|
 
 规则：
 - 每条 REQ 至少 1 个 Happy Path 用例
 - 每条 BR 中包含"校验/限制/必须/不能"关键词的，必须有 Exception 用例
-- 每条 SE 至少 1 个用例（Happy 或 Exception）
+- 每条 SE 至少 1 个用例（Happy 或 Exception），**绑定 SE 列必填，不允许留空**
 - 涉及金额/状态/枚举的 BR，必须有 Boundary 用例
 - 未覆盖的 REQ/BR 必须标注原因（前端逻辑/BPM 配置/不在代码范围）
+- **每条用例必须标注归属仓库名**
 
 **1.2 代码→用例补充（有分支代码时）**
 
@@ -147,7 +148,7 @@ Step 1.1 + 1.2 的结果必须输出为结构化 JSON：
       "req_id": "REQ-001",
       "br_list": ["BR-001", "BR-002", ...],
       "test_cases": [
-        {"case_id": "TC-001", "br_id": "BR-001", "description": "...", "path_type": "Happy", "se_id": "", "target_class": "...", "target_method": "..."}
+        {"case_id": "TC-001", "br_id": "BR-001", "description": "...", "path_type": "Happy", "se_id": "SE-001", "target_class": "...", "target_method": "...", "repo": "car-mrs"}
       ],
       "uncovered_brs": ["BR-005"],
       "uncovered_reasons": ["前端逻辑"]
@@ -200,12 +201,29 @@ Step 1.1 + 1.2 的结果必须输出为结构化 JSON：
 
 **3.4 追溯性标注**：每个 `@Test` 方法必须在注释或 `@DisplayName` 中标注关联的 SE/EUT ID。格式：`// 对应: SE-014 当越权访问时拦截` 或 `@Tag("EUT-003")`。
 
+### Step 3.5: 多仓库完整性自检（BLOCKED gate）
+
+**在进入 Step 4 之前，必须通过此检查。**
+
+对照 Step 0.5d 的合并目标模块列表，逐仓库核对：
+
+| 仓库 | 设计 TC 数 | 生成 patch 数 | 缺失 |
+|------|-----------|-------------|------|
+
+规则：
+- 每个有 MISSING TC 的仓库，必须有对应的 `supplemental_tests/` patch 文件
+- 如果某仓库的 TC 全部 COVERED（已有测试），可以没有 patch，但必须在表格中标注"全部已覆盖"
+- **任何仓库有 MISSING TC 但无 patch → BLOCKED，不能进入 Step 4**
+- 禁止默默跳过某个仓库的测试生成
+
 ### Step 4: 自检（提交前强制检查）
 
 - [ ] EUT 矩阵覆盖了所有 REQ/BR/SE
 - [ ] 单测代码使用强断言（非仅执行流程）
 - [ ] 异常路径有对应测试
 - [ ] 每个测试用例标注了关联的 REQ/BR/SE ID
+- [ ] **每条 TC 的 se_refs 非空（至少绑定一个 SE）**
+- [ ] **每个有 MISSING TC 的仓库都有对应的 supplemental_tests patch**
 - [ ] 如果是重跑：新版是旧版超集
 - [ ] 推理日志 `_reasoning_log.md` 已同步输出
 
@@ -222,8 +240,38 @@ Step 1.1 + 1.2 的结果必须输出为结构化 JSON：
 ## 产物
 
 - EUT 矩阵（`eut_matrix.md`）
+- 结构化产物（`phase_b_structured.json`）— 格式见下方
 - 单测代码（基于 `templates/DomainStepTest.java.tmpl` 和 `templates/DomainAbilityTest.java.tmpl`）
 - 建议以 `../../references/eut-matrix-template.md` 作为 EUT 报告骨架，并在报告头保留 `PROFILE_CONTEXT`
+
+### `phase_b_structured.json` 格式（必须严格遵守）
+
+```json
+{
+  "project_id": "项目ID",
+  "test_cases": [
+    {
+      "id": "TC-001",
+      "repo": "car-mrs",
+      "status": "COVERED",
+      "covered_by": "SomeTest#testMethod",
+      "scenario": "测试场景描述",
+      "se_refs": ["SE-001"],
+      "method": "applyEarlyDelivery",
+      "class_under_test": "MrOrderMainService",
+      "requirement": "BR-001",
+      "priority": "P0"
+    }
+  ]
+}
+```
+
+**字段约束：**
+- `id`: 必填，格式 `TC-xxx`
+- `repo`: 必填，归属仓库名
+- `se_refs`: 必填，至少包含一个 SE ID
+- `status`: COVERED / MISSING / PARTIAL
+- `covered_by`: COVERED 时必填，格式 `TestClass#testMethod`
 
 产物必须包含以下标准章节（缺一不可）：
 
