@@ -310,6 +310,8 @@ Phase Q05 保证"按规则写了"，Phase Q06 检查"写得好不好"：
 | "Mock 数据能跑通就行" | Mock 数据可能恰好掩盖 bug（如 key 不一致） | 构造 distributionId ≠ rightsBatchId 等不等场景 |
 | "private 方法测不了" | 反射或间接调用都可以测 | ReflectionTestUtils.invokeMethod 或通过 public 方法触发 |
 | "并发场景单测覆盖不了" | CountDownLatch + 多线程可以验证竞态窗口 | 至少验证 check-then-act 的竞态存在性 |
+| "Mock 的方法名看着对" | LLM 常见幻觉：猜测方法名（如 isSuccess vs isOk），编译会失败 | 审计时验证 Mock 的方法签名在被测类中实际存在 |
+| "测试文件在项目里就行" | 放错模块导致编译失败，找不到被测类依赖 | 检查单测 package 与被测类是否在同一 Maven 模块 |
 
 ## Question-Style 审计指令（用问题代替模糊指令）
 

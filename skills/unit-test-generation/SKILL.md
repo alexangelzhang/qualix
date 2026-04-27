@@ -268,6 +268,8 @@ Step 1.1 + 1.2 的结果必须输出为结构化 JSON：
 | "assertNotNull 够了" | Phase Q06 会标 WRONG_TARGET，不算有效覆盖 | assertEquals 验证业务字段 |
 | "Mock 返回 null/空对象就行" | 掩盖真实调用时的字段缺失，测试通过但实际 NPE | Mock 返回值必须符合接口契约 |
 | "编译问题后面修" | compile_check gate 会 BLOCKED，不修过不了 finalize | 生成后立即自检 import 和类型 |
+| "这个方法应该有 isSuccess" | LLM 常见幻觉：猜测方法名而非读取实际 API | Mock 前必须确认方法存在（grep/AST），禁止基于常见模式猜测 |
+| "测试文件放这个模块就行" | 目录放错导致编译失败，找不到被测类依赖 | 单测文件必须放在被测类同一 Maven 模块的 src/test/java 下 |
 | "EUT 覆盖主要的就行" | 必须逐条对照 SE 列表，遗漏即扣分 | 每条 SE 至少一个 EUT |
 | "A.6 说 handler 缺失所以不测" | A.6 结论可能过时，必须搜索代码验证实际存在的类 | 先 grep 代码，找到就测 |
 | "这个 SE 的被测类不在目标模块里" | 目标模块由 SE 驱动，不由人指定 | 扩展目标模块覆盖所有 SE 映射到的类 |
