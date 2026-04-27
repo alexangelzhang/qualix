@@ -227,6 +227,69 @@ python3 scripts/parse_image_assets.py \
 
 详见 [references/output-templates.md](references/output-templates.md)。
 
+### `phase_a_structured.json` 格式（必须严格遵守）
+
+```json
+{
+  "project_id": "项目ID",
+  "requirements": [
+    {
+      "req_id": "REQ-001",
+      "description": "需求描述",
+      "priority": "P0",
+      "trigger": "进入工单详情页",
+      "behavior_change": "展示申请提前交车按钮",
+      "acceptance_criteria": "四个状态下按钮可见，其他状态不可见",
+      "source": "plain_text.txt:79"
+    },
+    {
+      "req_id": "BR-001",
+      "parent_id": "REQ-001",
+      "description": "按钮展示-工单状态条件",
+      "trigger": "进入工单详情页",
+      "behavior_change": "仅在待申请结算等四个状态展示按钮",
+      "acceptance_criteria": "四个状态下按钮可见，其他状态不可见",
+      "source": "plain_text.txt:79"
+    }
+  ],
+  "semantic_expectations": [
+    {
+      "se_id": "SE-001",
+      "description": "提前交车申请幂等控制",
+      "category": "幂等/并发",
+      "bound_reqs": ["REQ-001", "BR-006"],
+      "confidence": "高",
+      "source": "plain_text.txt:79; comments.md:#10"
+    }
+  ],
+  "gaps": [
+    {
+      "gap_id": "GAP-001",
+      "related_ids": ["REQ-001", "BR-009"],
+      "description": "审批拒绝后是否可重新申请",
+      "risk_level": "中",
+      "required_clarification": "需明确：拒绝后是否允许重新申请？"
+    }
+  ],
+  "open_items": [
+    {
+      "open_id": "OPEN-001",
+      "related_ids": ["REQ-001", "SE-005"],
+      "question": "待交车→已交车的流转条件确认",
+      "options": "A: 自费已支付+代驾单服务完成 B: 仅自费已支付",
+      "decision_owner": "产品+开发"
+    }
+  ],
+  "conclusion": "有条件通过"
+}
+```
+
+**字段约束：**
+- `requirements`: REQ 必须有 `priority`；BR 必须有 `parent_id`；所有条目必须填写 `trigger`、`behavior_change`、`acceptance_criteria`、`source`
+- `semantic_expectations`: `bound_reqs` 必填（至少绑定一个 REQ/BR）；`category` 和 `confidence` 必填；`source` 必填
+- `gaps`: `risk_level` 必填（高/中/低）；`required_clarification` 必填
+- 报告中有的结构化信息必须同步到 JSON，JSON 不能是报告的降级版
+
 ## 通过标准
 
 1. REQ/BR 结构化率 = 100%
