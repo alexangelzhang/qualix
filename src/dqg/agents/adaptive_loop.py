@@ -480,6 +480,31 @@ class AdaptiveLoop:
             passed = True
 
         if not skip_critique:
+            # Build Judge issues summary for Critique context
+            judge_issues_text = ""
+            if record.judge_result and record.judge_result.votes:
+                issue_lines = [
+                    "## Judge 已发现的问题（不要重复，聚焦新发现）",
+                    f"Judge verdict: {record.judge_result.consensus}, avg_score: {record.judge_result.avg_score}",
+                    "",
+                ]
+                for vote in record.judge_result.votes:
+                    for issue in vote.issues:
+                        sev = issue.get("severity", "?")
+                        desc = issue.get("description", "")
+                        issue_lines.append(f"- [{sev}] {desc}")
+                if len(issue_lines) > 3:  # has actual issues
+                    judge_issues_text = "\n".join(issue_lines)
+
+            # Collect context files for Critique: report + upstream evidence
+            critique_context: list[Path] = [report_path]
+            if upstream_path and upstream_path.exists():
+                critique_context.append(upstream_path)
+
+            critique_user_msg = "找出报告中的遗漏和错误，给出修正建议。"
+            if judge_issues_text:
+                critique_user_msg = judge_issues_text + "\n\n" + critique_user_msg
+
             critique = Agent(
                 name=f"critique-iter{i + 1}",
                 role="critique",
@@ -488,8 +513,8 @@ class AdaptiveLoop:
                 output_dir=self.output_dir,
             )
             record.critique_result = critique.run(
-                "找出报告中的遗漏和错误，给出修正建议。",
-                context_files=[report_path],
+                critique_user_msg,
+                context_files=critique_context,
             )
 
             # Collect critique LLM call telemetry
