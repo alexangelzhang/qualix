@@ -12,7 +12,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash .claude/hooks/inject-journal.sh"
+            "command": "bash \"$(git rev-parse --show-toplevel)/.claude/hooks/inject-journal.sh\""
           }
         ]
       }
@@ -23,7 +23,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash .claude/hooks/stop-journal-reminder.sh"
+            "command": "bash \"$(git rev-parse --show-toplevel)/.claude/hooks/stop-journal-reminder.sh\""
           }
         ]
       }
