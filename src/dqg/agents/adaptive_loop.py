@@ -115,6 +115,19 @@ class AdaptiveLoop:
         if _anchor_available:
             log.info("P2 anchor: upstream context found at %s", _upstream_path)
 
+        # Resolve SKILL.md path for Critique context injection
+        _skill_path: Path | None = None
+        _skill_rel = phase_def.get("skill", "")
+        if _skill_rel:
+            from pathlib import Path as _Path
+
+            _candidate = _Path(_skill_rel)
+            if not _candidate.is_absolute():
+                _candidate = self.output_dir.parent / _skill_rel
+            if _candidate.exists():
+                _skill_path = _candidate
+                log.info("SKILL resolved for Critique: %s", _skill_path)
+
         # Prepend bootstrap context if available
         from dqg.constants import PHASE_DIR_MAP
 
@@ -184,6 +197,7 @@ class AdaptiveLoop:
                 force_secondary=_force_secondary,
                 skip_critique=_skip_critique,
                 upstream_path=_upstream_path if _anchor_available else None,
+                skill_path=_skill_path,
                 protocol=_protocol,
             )
             iterations.append(record)
@@ -325,6 +339,7 @@ class AdaptiveLoop:
         force_secondary: bool = False,
         skip_critique: bool = False,
         upstream_path: Path | None = None,
+        skill_path: Path | None = None,
         protocol: PhaseProtocol | None = None,
     ) -> tuple[IterationRecord, bool, list[dict[str, Any]]]:
         """执行单轮迭代：Worker → Judge → Critique，返回 (record, passed, llm_calls)."""
@@ -496,12 +511,19 @@ class AdaptiveLoop:
                 if len(issue_lines) > 3:  # has actual issues
                     judge_issues_text = "\n".join(issue_lines)
 
-            # Collect context files for Critique: report + upstream evidence
+            # Collect context files for Critique: report + upstream evidence + SKILL
             critique_context: list[Path] = [report_path]
             if upstream_path and upstream_path.exists():
                 critique_context.append(upstream_path)
+            if skill_path and skill_path.exists():
+                critique_context.append(skill_path)
 
             critique_user_msg = "找出报告中的遗漏和错误，给出修正建议。"
+            if skill_path:
+                critique_user_msg = (
+                    "严格按照 SKILL.md 中定义的所有审计维度逐条检查（包括但不限于：SE 覆盖率、路径覆盖、"
+                    "断言强度、Mock 真实性、状态机覆盖、可维护性、边界场景、变异测试分析）。\n\n"
+                ) + critique_user_msg
             if judge_issues_text:
                 critique_user_msg = judge_issues_text + "\n\n" + critique_user_msg
 
