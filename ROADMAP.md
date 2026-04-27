@@ -142,6 +142,11 @@
 - Judge token usage 链路打通（`judge_runner.py` → `judge_vote.py` → `adaptive_loop.py`）— JudgeResult/JudgeVote 新增 `token_usage` 字段，adaptive loop 每轮 judge 投票后提取 token 数据到 `iter_llm_calls`，修复 telemetry `llm_calls` 始终为空的问题
 - Evidence Pack token breakdown（`context_loader.py` + `phase_runtime.py`）— `LoadedContext.token_breakdown()` 输出每个 chunk 的 source/token_estimate/char_count/priority/占比，execute 时写入 `_internal/_evidence_token_breakdown.json`
 - Prompt manifest section tokens（`prompting/manifest.py` + `prompting/compiler.py`）— `PromptManifest` 新增 `section_tokens` 字段，`compile_named_sections()` 用 `estimate_tokens()` 计算各 section token 数，为 prompt 级 ablation 实验提供基线
+- Evidence Pack compaction ablation 实验 — 4 组配置（baseline / rubric-compact / profile-l1 / both-compact）× 2 Phase（Q03/Q04）× 2 runs，结论：
+  - Profile L1 压缩安全上线（评分偏移 0~-0.25，token 节省 41-57%），已切入生产路径（`upstream_collector.py`）
+  - Rubric compact（5 级→3 级）有评分漂移（-0.3~-1.0），保留为可选严格模式（`compose_rubric_compact()`），不替换默认
+- Profile L1 Phase 感知压缩（`core/profiles.py`）— `compress_to_l1()` 按 Phase 过滤 baseline sections（`_PHASE_RELEVANT_SECTIONS` 映射表），`load_profile_context_l1()` 输出纯文本替代 JSON 包裹，Q03 节省 57% / Q04 节省 41% / Q07 节省 51%
+- Judge rubric compact 模式（`quality/judge_rubrics.py`）— `compose_rubric_compact()` 将 5 级 rubric 压缩为 3 级（5/3/1）+ 精简 anti-rationalization，token 节省 43-45%，保留为可选模式
 
 仍需推进（P1）：
 

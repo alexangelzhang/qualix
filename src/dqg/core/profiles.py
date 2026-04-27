@@ -350,3 +350,49 @@ def load_profile_context_l0(profile: DqgProfile) -> str:
     payload["risk_catalog_excerpt"] = "[L0 compressed — see rules below]"
     payload["l0_rules"] = l0
     return dump_json_str(payload)
+
+
+# Phase → relevant baseline section keywords for L1 filtering
+_PHASE_RELEVANT_SECTIONS: dict[str, set[str]] = {
+    "Q01": {"需求", "需求歧义", "验收", "语义", "风险分级"},
+    "Q03": {"架构", "DDD", "TMF", "编排", "异常场景", "Checklist", "评审", "风险"},
+    "Q04": {"覆盖", "断言", "单测", "异常场景", "风险"},
+    "Q05": {"单测", "断言", "Mock", "DDD", "TMF", "变异", "覆盖率"},
+    "Q06": {"单测", "断言", "Mock", "覆盖率", "变异", "异常"},
+    "Q07": {"架构", "DDD", "TMF", "Checklist", "评审", "异常场景", "覆盖率", "风险"},
+}
+
+
+def compress_to_l1(profile: DqgProfile, phase_id: str | None = None) -> str:
+    """L1 压缩：在 L0 基础上按 Phase 过滤相关 sections + 去掉空标题."""
+    l0 = compress_to_l0(profile)
+    relevant_kw = _PHASE_RELEVANT_SECTIONS.get(phase_id or "")
+    if not relevant_kw:
+        return l0
+    filtered: list[str] = []
+    in_relevant = True  # top-level content before first ## is always relevant
+    for line in l0.split("\n"):
+        if line.startswith("# L0 ") or (line.startswith("# ") and not line.startswith("## ")):
+            filtered.append(line)
+            in_relevant = True
+        elif line.startswith("## "):
+            in_relevant = any(kw in line for kw in relevant_kw)
+            if in_relevant:
+                filtered.append(line)
+        elif line.startswith("### "):
+            # Sub-sections inherit parent relevance
+            if in_relevant:
+                filtered.append(line)
+        elif in_relevant and line.strip():
+            filtered.append(line)
+    return "\n".join(filtered)
+
+
+def load_profile_context_l1(profile: DqgProfile, phase_id: str | None = None) -> str:
+    """加载 L1 压缩版 profile context（Phase 感知过滤）."""
+    l1 = compress_to_l1(profile, phase_id)
+    parts = [f"# Profile: {profile.profile_id} ({profile.name})", l1]
+    if profile.quality_thresholds:
+        parts.append("# Quality Thresholds")
+        parts.extend(f"- {k}: {v}" for k, v in profile.quality_thresholds.items())
+    return "\n".join(parts)
