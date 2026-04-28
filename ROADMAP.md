@@ -113,7 +113,7 @@
 - 静默失败修复（`runtime/handlers_finalize.py`）— `_async_write_json` 和 `_emit_handler` 的 `except: pass` 改为 `log.debug` 记录失败原因，消除调试盲区
 - CLI 命令整合 — 砍掉 4 个孤儿 entry point（dqg-orchestrate/dqg-metrics/dqg-observe/dqg-regression），收编为 `dqg-run` 子命令（metrics/observe/regression）；统一 Phase ID help 文本为 Q01-Q07；`dqg version` 去重委托 setup.py
 - 增量上下文检测（`context/file_snapshot.py`）— sha256 + mtime 快照比对，上游 Phase 产物未变更时跳过重读，减少 DAG 模式和重跑场景的 IO 开销
-- 异构检测层（`runtime/handlers_detection.py`）— 三个 finalize handler：弱断言 gate（high-risk 数量/比例超阈值 WARNING）、Mock 巧合正确检测（偏差模式匹配+真实数据验证缺失）、AI 产出标记（git blame + Co-Authored-By 推断代码来源）
+- 异构检测层（`runtime/handlers_detection.py`）— 四个 finalize handler：弱断言 gate（Q05 high-risk≥1 BLOCKED 左移卡控 / Q06 WARNING）、Q05 弱断言扫描（从 structured JSON 提取测试文件并生成 _weak_assert_context.json）、Mock 巧合正确检测（Q05 coincidence_hits BLOCKED / Q06 WARNING）、AI 产出标记（git blame + Co-Authored-By 推断代码来源）；EUT then 字段模糊检测（schema validator 拒绝"验证成功"等模糊描述，要求包含具体断言或值）
 - Skill Evolution 全自动闭环（`tracking/skill_auto_merge.py`）— 高置信度规则（3+ case 支撑）自动合入 SKILL.md + holdout 验证 + overfitting 自动 revert；低置信度仍走 HUMAN_REVIEW；`SKILL_AUTO_MERGE_ENABLED` 全局开关
 
 2026-04-24 新增（卡控机制审计 Phase 1 — 堵漏洞）：

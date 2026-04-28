@@ -344,11 +344,26 @@ def register_finalize_handlers() -> None:
         handle_ai_origin_detection,
         handle_mock_coincidence_check,
         handle_weak_assert_gate,
+        handle_weak_assert_scan_q05,
     )
 
-    register_handler("weak_assert_gate", handle_weak_assert_gate, stage="finalize", phases={"Q06"}, order=56)
     register_handler(
-        "mock_coincidence_check", handle_mock_coincidence_check, stage="finalize", phases={"Q06"}, order=57
+        "weak_assert_scan_q05",
+        handle_weak_assert_scan_q05,
+        stage="finalize",
+        phases={"Q05"},
+        order=55,
+    )
+    register_handler(
+        "weak_assert_gate",
+        handle_weak_assert_gate,
+        stage="finalize",
+        phases={"Q05", "Q06"},
+        order=56,
+        depends_on=["weak_assert_scan_q05"],
+    )
+    register_handler(
+        "mock_coincidence_check", handle_mock_coincidence_check, stage="finalize", phases={"Q05", "Q06"}, order=57
     )
     register_handler("ai_origin_detection", handle_ai_origin_detection, stage="finalize", order=58)
     register_handler("profile_context_check", handle_profile_context_check, stage="finalize", order=60)

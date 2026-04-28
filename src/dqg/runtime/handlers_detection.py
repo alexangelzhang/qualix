@@ -14,8 +14,12 @@ if TYPE_CHECKING:
 
 
 def handle_weak_assert_gate(ctx: ExecutionContext, result: PhaseResult) -> None:
-    """弱断言 gate 阻断：读取 execute 阶段的 _weak_assert_context.json，超阈值时 WARNING."""
-    from dqg.constants import WEAK_ASSERT_HIGH_RISK_WARN, WEAK_ASSERT_RATIO_WARN
+    """弱断言 gate 阻断：读取 _weak_assert_context.json，Q05 high-risk 触发 BLOCKED，Q06 触发 WARNING."""
+    from dqg.constants import (
+        WEAK_ASSERT_HIGH_RISK_BLOCK,
+        WEAK_ASSERT_HIGH_RISK_WARN,
+        WEAK_ASSERT_RATIO_WARN,
+    )
     from dqg.json_utils import load_json
 
     json_path = ctx.internal_dir / "_weak_assert_context.json"
@@ -32,18 +36,37 @@ def handle_weak_assert_gate(ctx: ExecutionContext, result: PhaseResult) -> None:
     weak_methods = summary.get("weak_method_count", 0)
     weak_ratio = weak_methods / total_methods if total_methods > 0 else 0.0
 
+    is_q05 = ctx.phase_id == "Q05"
     issues: list[str] = []
+    blocked = False
+
+    # Q05: high-risk 弱断言直接 BLOCKED（左移卡控）
+    if is_q05 and high_risk >= WEAK_ASSERT_HIGH_RISK_BLOCK:
+        issues.append(f"high-risk 弱断言 {high_risk} 个（BLOCKED 阈值 {WEAK_ASSERT_HIGH_RISK_BLOCK}）")
+        blocked = True
+
+    # Q06 / 通用: WARNING 级别
     if high_risk >= WEAK_ASSERT_HIGH_RISK_WARN:
-        issues.append(f"high-risk 弱断言 {high_risk} 个（阈值 {WEAK_ASSERT_HIGH_RISK_WARN}）")
+        issues.append(f"high-risk 弱断言 {high_risk} 个（WARNING 阈值 {WEAK_ASSERT_HIGH_RISK_WARN}）")
     if weak_ratio >= WEAK_ASSERT_RATIO_WARN:
-        issues.append(f"弱断言比例 {weak_ratio:.0%}（阈值 {WEAK_ASSERT_RATIO_WARN:.0%}）")
+        issues.append(f"弱断言比例 {weak_ratio:.0%}（WARNING 阈值 {WEAK_ASSERT_RATIO_WARN:.0%}）")
 
     if issues:
         msg = f"弱断言检测: {'; '.join(issues)}"
-        result.add_warning(msg)
-        _emit_handler(ctx, EventType.WEAK_ASSERT_GATE, msg,
-                      high_risk=high_risk, weak_ratio=round(weak_ratio, 2),
-                      total_methods=total_methods, weak_methods=weak_methods)
+        if blocked:
+            result.add_error(f"BLOCKED: {msg}")
+        else:
+            result.add_warning(msg)
+        _emit_handler(
+            ctx,
+            EventType.WEAK_ASSERT_GATE,
+            msg,
+            high_risk=high_risk,
+            weak_ratio=round(weak_ratio, 2),
+            total_methods=total_methods,
+            weak_methods=weak_methods,
+            blocked=blocked,
+        )
 
     gate_result = {
         "high_risk": high_risk,
@@ -51,6 +74,7 @@ def handle_weak_assert_gate(ctx: ExecutionContext, result: PhaseResult) -> None:
         "total_methods": total_methods,
         "weak_methods": weak_methods,
         "triggered": bool(issues),
+        "blocked": blocked,
         "issues": issues,
     }
     _async_write_json(ctx.internal_dir / "_weak_assert_gate.json", gate_result)
@@ -85,8 +109,15 @@ def handle_mock_coincidence_check(ctx: ExecutionContext, result: PhaseResult) ->
     mock_without_real = has_mock and not has_real_data
 
     issues: list[str] = []
+    blocked = False
+    is_q05 = ctx.phase_id == "Q05"
+
     if coincidence_hits:
-        issues.append(f"Mock 巧合正确风险: 检测到 {len(coincidence_hits)} 个偏差模式 ({', '.join(coincidence_hits[:3])})")
+        issues.append(
+            f"Mock 巧合正确风险: 检测到 {len(coincidence_hits)} 个偏差模式 ({', '.join(coincidence_hits[:3])})"
+        )
+        if is_q05:
+            blocked = True
     if mock_without_real:
         issues.append("Mock 覆盖但未提及真实数据验证")
     if reality_found == 0 and has_mock:
@@ -94,21 +125,107 @@ def handle_mock_coincidence_check(ctx: ExecutionContext, result: PhaseResult) ->
 
     if issues:
         for issue in issues:
-            result.add_warning(f"Mock 检测: {issue}")
-        _emit_handler(ctx, EventType.MOCK_COINCIDENCE_DETECTED,
-                      f"Mock coincidence: {len(issues)} issues",
-                      coincidence_hits=coincidence_hits[:5],
-                      mock_without_real=mock_without_real,
-                      reality_score=reality_found)
+            if blocked:
+                result.add_error(f"BLOCKED: Mock 检测: {issue}")
+            else:
+                result.add_warning(f"Mock 检测: {issue}")
+        _emit_handler(
+            ctx,
+            EventType.MOCK_COINCIDENCE_DETECTED,
+            f"Mock coincidence: {len(issues)} issues",
+            coincidence_hits=coincidence_hits[:5],
+            mock_without_real=mock_without_real,
+            reality_score=reality_found,
+            blocked=blocked,
+        )
 
     check_result = {
         "reality_keywords_found": reality_found,
         "coincidence_hits": coincidence_hits,
         "mock_without_real_data": mock_without_real,
         "triggered": bool(issues),
+        "blocked": blocked,
         "issues": issues,
     }
     _async_write_json(ctx.internal_dir / "_mock_coincidence_check.json", check_result)
+
+
+def handle_weak_assert_scan_q05(ctx: ExecutionContext, result: PhaseResult) -> None:
+    """Q05 finalize: 扫描生成的测试文件，产出 _weak_assert_context.json 供 weak_assert_gate 消费."""
+    from pathlib import Path
+
+    from dqg.context.weak_assert_context import (
+        collect_weak_assert_context,
+        write_weak_assert_context,
+    )
+    from dqg.json_utils import load_json
+
+    if not ctx.code_repo:
+        return
+
+    repo = Path(ctx.code_repo).resolve()
+    if not repo.exists():
+        return
+
+    # 从 phase_b_structured.json 提取测试文件路径
+    structured_path = ctx.phase_root / "phase_b_structured.json"
+    if not structured_path.exists():
+        return
+
+    structured = load_json(structured_path)
+    if not structured:
+        return
+
+    # 从 TCItem.covered_by (格式 TestClass#testMethod) 提取类名，搜索文件
+    test_classes: set[str] = set()
+    for tc in structured.get("test_cases", []):
+        covered_by = tc.get("covered_by", "")
+        if "#" in covered_by:
+            class_name = covered_by.split("#")[0].strip()
+            if class_name:
+                test_classes.add(class_name)
+
+    if not test_classes:
+        return
+
+    # 在 code_repo 中搜索测试文件
+    test_files: list[str] = []
+    for cls in test_classes:
+        # 支持 Java/Kotlin 文件
+        for suffix in (".java", ".kt"):
+            matches = list(repo.rglob(f"{cls}{suffix}"))
+            for m in matches:
+                rel = str(m.relative_to(repo))
+                if rel not in test_files:
+                    test_files.append(rel)
+
+    if not test_files:
+        return
+
+    # 构造轻量 diff_ctx 替身，只提供 test_files 列表
+    class _Q05DiffProxy:
+        def __init__(self, files: list[str]) -> None:
+            self._files = files
+            self.summary = "Q05 generated test files"
+            self.error = ""
+
+        def test_files(self) -> list[str]:
+            return self._files
+
+    provider = ctx.shared.get("language_provider")
+    payload = collect_weak_assert_context(
+        ctx.code_repo,
+        _Q05DiffProxy(test_files),
+        output_dir=ctx.output_dir,
+        project_id=ctx.project_id,
+        language_provider=provider,
+    )
+    write_weak_assert_context(
+        ctx.output_dir,
+        ctx.project_id,
+        ctx.phase_def["dir_suffix"],
+        payload,
+    )
 
 
 def handle_ai_origin_detection(ctx: ExecutionContext, result: PhaseResult) -> None:
@@ -130,7 +247,10 @@ def handle_ai_origin_detection(ctx: ExecutionContext, result: PhaseResult) -> No
     try:
         git_log = subprocess.run(
             ["git", "log", "--format=%b", "-50"],
-            cwd=str(repo_path), capture_output=True, text=True, timeout=10,
+            cwd=str(repo_path),
+            capture_output=True,
+            text=True,
+            timeout=10,
         )
         log_text = git_log.stdout if git_log.returncode == 0 else ""
     except (subprocess.TimeoutExpired, FileNotFoundError):
@@ -151,7 +271,10 @@ def handle_ai_origin_detection(ctx: ExecutionContext, result: PhaseResult) -> No
             try:
                 blame = subprocess.run(
                     ["git", "blame", "--porcelain", "-L", "1,5", str(f)],
-                    cwd=str(repo_path), capture_output=True, text=True, timeout=10,
+                    cwd=str(repo_path),
+                    capture_output=True,
+                    text=True,
+                    timeout=10,
                 )
                 if blame.returncode == 0:
                     for pattern in AI_ORIGIN_CO_AUTHOR_PATTERNS:
@@ -165,8 +288,7 @@ def handle_ai_origin_detection(ctx: ExecutionContext, result: PhaseResult) -> No
         msg = f"AI 产出检测: {ai_commits} 个 AI co-authored commits"
         if ai_files:
             msg += f", {len(ai_files)} 个 AI 生成文件"
-        result.add_event(EventType.AI_ORIGIN_DETECTED, msg,
-                         ai_commits=ai_commits, ai_files=ai_files[:10])
+        result.add_event(EventType.AI_ORIGIN_DETECTED, msg, ai_commits=ai_commits, ai_files=ai_files[:10])
 
     detection_result = {
         "ai_commits": ai_commits,
