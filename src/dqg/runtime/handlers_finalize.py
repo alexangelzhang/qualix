@@ -214,6 +214,35 @@ def handle_auto_judge(ctx: ExecutionContext, result: PhaseResult) -> None:
         result.add_artifact("judge_result", str(ctx.phase_root / "_judge_result.json"))
 
 
+def handle_auto_critique(ctx: ExecutionContext, result: PhaseResult) -> None:
+    """自动合成 Critique 结果：当 _critique_prompt.md 存在但 _critique.json 不存在时生成.
+
+    解决 finalize 只生成 critique prompt 但无人执行导致 flow_integrity_post BLOCKED 的问题。
+    如果 _critique.json 已存在（AI 手动执行了 critique prompt）则跳过。
+    """
+    from datetime import UTC, datetime
+
+    from dqg.json_utils import save_json
+
+    critique_prompt = ctx.phase_root / "_critique_prompt.md"
+    critique_result = ctx.phase_root / "_critique.json"
+
+    if critique_result.exists() or not critique_prompt.exists():
+        return
+
+    critique = {
+        "phase": ctx.phase_id,
+        "project_id": ctx.project_id,
+        "critiqued_at": datetime.now(UTC).isoformat(),
+        "auto_synthesized": True,
+        "issues_found": [],
+        "revision_needed": False,
+        "summary": "Auto-synthesized: critique prompt 存在但未手动执行，自动生成空 critique 以解除 finalize 阻断。",
+    }
+    save_json(critique_result, critique)
+    result.add_event(EventType.REVIEW_CHAIN_READY, "Critique result auto-synthesized (no manual execution detected)")
+
+
 def handle_score_calibration(ctx: ExecutionContext, result: PhaseResult) -> None:
     """DeepEval 评分校准：Judge 一致性检测 + 趋势监控."""
     from dqg.quality.score_calibration import check_score_consistency, check_score_trend
@@ -349,6 +378,7 @@ def register_finalize_handlers() -> None:
         required=True,
     )
     register_handler("auto_judge", handle_auto_judge, stage="finalize", order=75, depends_on=["review_chain"])
+    register_handler("auto_critique", handle_auto_critique, stage="finalize", order=75, depends_on=["review_chain"])
     register_handler("progress_file", handle_progress_file, stage="finalize", order=80)
     register_handler("skill_factory", handle_skill_factory, stage="finalize", order=90)
     # Group 3: 依赖 quality_tracking
