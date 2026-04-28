@@ -60,25 +60,25 @@ CATEGORY_MAPPING: Final = MappingProxyType(
             "phase": "Q01",
             "error_type": "FN",
             "root_cause": "SKILL_RULE",
-            "fix_target": "skills/requirement-structuring.md",
+            "fix_target": "skills/requirement-structuring/SKILL.md",
         },
         "需求遗漏": {
             "phase": "Q01",
             "error_type": "FN",
             "root_cause": "SKILL_RULE",
-            "fix_target": "skills/requirement-structuring.md",
+            "fix_target": "skills/requirement-structuring/SKILL.md",
         },
         "需求理解未对齐": {
             "phase": "Q01",
             "error_type": "FN",
             "root_cause": "SKILL_RULE",
-            "fix_target": "skills/requirement-structuring.md",
+            "fix_target": "skills/requirement-structuring/SKILL.md",
         },
         "产品需求不明确": {
             "phase": "Q01",
             "error_type": "FN",
             "root_cause": "CONTEXT",
-            "fix_target": "skills/requirement-structuring.md",
+            "fix_target": "skills/requirement-structuring/SKILL.md",
         },
         # 技术方案相关
         "技术方案不清晰": {

@@ -13,7 +13,6 @@
 
 from __future__ import annotations
 
-import re
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -37,7 +36,7 @@ def generate_skill_diff(
     Returns:
         {
             "phase": "Q01",
-            "skill_file": "skills/requirement-structuring.md",
+            "skill_file": "skills/requirement-structuring/SKILL.md",
             "diffs": [
                 {
                     "type": "ADD_ANTI_RAT",
@@ -74,31 +73,35 @@ def generate_skill_diff(
                 ar.get("rebuttal", ""),
                 suggestions.get("anti_rationalization_suggestions", []),
             )
-            diffs.append({
-                "type": "ADD_ANTI_RAT",
-                "section": "Anti-Rationalization",
-                "content": f'| "{excuse}" | {ar.get("rebuttal", "")} |',
-                "source_cases": source_cases,
-                "support_count": support_count,
-                "confidence": "high" if support_count >= HIGH_CONFIDENCE_THRESHOLD else "medium",
-                "auto_merge_suggested": support_count >= HIGH_CONFIDENCE_THRESHOLD,
-            })
+            diffs.append(
+                {
+                    "type": "ADD_ANTI_RAT",
+                    "section": "Anti-Rationalization",
+                    "content": f'| "{excuse}" | {ar.get("rebuttal", "")} |',
+                    "source_cases": source_cases,
+                    "support_count": support_count,
+                    "confidence": "high" if support_count >= HIGH_CONFIDENCE_THRESHOLD else "medium",
+                    "auto_merge_suggested": support_count >= HIGH_CONFIDENCE_THRESHOLD,
+                }
+            )
 
     # 2. 红线规则 diff
     existing_rules = _extract_existing_rules(skill_content)
     for rl in suggestions.get("red_line_suggestions", []):
         rule_text = rl.get("rule", "")
         if not _is_duplicate_rule(rule_text, existing_rules):
-            diffs.append({
-                "type": "ADD_RED_LINE",
-                "section": "红线规则 / 禁止事项",
-                "content": f'- {rule_text}',
-                "source_cases": [rl.get("source_case", "")],
-                "severity": rl.get("severity", "WARNING"),
-                "support_count": 1,
-                "confidence": "medium",
-                "auto_merge_suggested": False,
-            })
+            diffs.append(
+                {
+                    "type": "ADD_RED_LINE",
+                    "section": "红线规则 / 禁止事项",
+                    "content": f"- {rule_text}",
+                    "source_cases": [rl.get("source_case", "")],
+                    "severity": rl.get("severity", "WARNING"),
+                    "support_count": 1,
+                    "confidence": "medium",
+                    "auto_merge_suggested": False,
+                }
+            )
 
     if not diffs:
         return None
@@ -117,8 +120,7 @@ def generate_skill_diff(
         "total_diffs": len(diffs),
         "auto_merge_count": auto_count,
         "summary": (
-            f"Phase {phase}: {len(diffs)} diffs ({auto_count} high-confidence). "
-            f"Evolution type: {evolution_type}"
+            f"Phase {phase}: {len(diffs)} diffs ({auto_count} high-confidence). Evolution type: {evolution_type}"
         ),
     }
 
@@ -173,13 +175,14 @@ def generate_evolution_report(
         return None
 
     # 记录谱系
-    lineage_path = record_evolution(output_dir, project_id, phase, diff_result)
+    record_evolution(output_dir, project_id, phase, diff_result)
 
     # 生成可读报告
     report_dir = output_dir / project_id / "_skill_evolution"
     report_path = report_dir / f"report_{phase}.md"
     report_path.write_text(
-        _render_evolution_report(diff_result), encoding="utf-8",
+        _render_evolution_report(diff_result),
+        encoding="utf-8",
     )
 
     log.info("Skill evolution: %s", diff_result["summary"])
@@ -197,6 +200,7 @@ def _get_skill_path(phase: str) -> Path | None:
     if not skill_file:
         # fallback: 从 PHASE_DEFS 获取
         from dqg.core.phase_registry import PHASE_DEFS
+
         phase_def = PHASE_DEFS.get(phase, {})
         skill_file = phase_def.get("skill", "")
     if not skill_file:
@@ -252,10 +256,7 @@ def _is_duplicate_rule(rule: str, existing: list[str]) -> bool:
 def _count_case_support(rebuttal: str, all_suggestions: list[dict]) -> int:
     """统计同一 rebuttal 被多少个不同 case 支撑."""
     rebuttal_prefix = rebuttal[:30]
-    return sum(
-        1 for s in all_suggestions
-        if s.get("rebuttal", "")[:30] == rebuttal_prefix
-    )
+    return sum(1 for s in all_suggestions if s.get("rebuttal", "")[:30] == rebuttal_prefix)
 
 
 def _append_lineage_index(lineage_dir: Path, lineage: dict[str, Any]) -> None:
@@ -267,13 +268,15 @@ def _append_lineage_index(lineage_dir: Path, lineage: dict[str, Any]) -> None:
         if isinstance(data, list):
             index = data
 
-    index.append({
-        "phase": lineage["phase"],
-        "timestamp": lineage["timestamp"],
-        "evolution_type": lineage["evolution_type"],
-        "diff_count": len(lineage.get("diffs", [])),
-        "summary": lineage["summary"],
-    })
+    index.append(
+        {
+            "phase": lineage["phase"],
+            "timestamp": lineage["timestamp"],
+            "evolution_type": lineage["evolution_type"],
+            "diff_count": len(lineage.get("diffs", [])),
+            "summary": lineage["summary"],
+        }
+    )
 
     # 只保留最近 50 条
     index = index[-50:]
@@ -301,9 +304,9 @@ def _render_evolution_report(diff_result: dict[str, Any]) -> str:
         lines.append("")
         for d in auto_diffs:
             lines.append(f"**[{d['type']}]** → `{d['section']}`")
-            lines.append(f"```")
+            lines.append("```")
             lines.append(d["content"])
-            lines.append(f"```")
+            lines.append("```")
             lines.append(f"来源: {', '.join(d['source_cases'])} | 支撑: {d['support_count']} cases")
             lines.append("")
         if auto_merged:
@@ -319,9 +322,9 @@ def _render_evolution_report(diff_result: dict[str, Any]) -> str:
         lines.append("")
         for d in manual_diffs:
             lines.append(f"**[{d['type']}]** → `{d['section']}`")
-            lines.append(f"```")
+            lines.append("```")
             lines.append(d["content"])
-            lines.append(f"```")
+            lines.append("```")
             lines.append(f"来源: {', '.join(d['source_cases'])}")
             lines.append("")
 

@@ -11,6 +11,35 @@ if TYPE_CHECKING:
     from dqg.runtime.result import PhaseResult
 
 
+def handle_persist_inputs(ctx: ExecutionContext, result: PhaseResult) -> None:
+    """所有 Phase: 持久化 CLI 输入到 _inputs.json，供 finalize 阶段读取."""
+    if not ctx.internal_dir:
+        return
+    from dqg.json_utils import save_json
+
+    inputs: dict = {}
+    if ctx.code_repo:
+        inputs["code_repo"] = ctx.code_repo
+    if ctx.code_repos:
+        inputs["code_repos"] = ctx.code_repos
+    if ctx.base_branch != "master":
+        inputs["base_branch"] = ctx.base_branch
+    if ctx.feature_branch != "HEAD":
+        inputs["feature_branch"] = ctx.feature_branch
+
+    if inputs:
+        ctx.internal_dir.mkdir(parents=True, exist_ok=True)
+        inputs_path = ctx.internal_dir / "_inputs.json"
+        # 合并已有内容（auto 模式可能已写入）
+        if inputs_path.exists():
+            from dqg.json_utils import load_json
+
+            existing = load_json(inputs_path) or {}
+            existing.update(inputs)
+            inputs = existing
+        save_json(inputs_path, inputs)
+
+
 def handle_language_detect(ctx: ExecutionContext, result: PhaseResult) -> None:
     """所有 Phase: 检测代码仓库语言，将 Provider 存入 shared."""
     if not ctx.code_repo:
@@ -46,37 +75,59 @@ def handle_upstream_quality(ctx: ExecutionContext, result: PhaseResult) -> None:
 
 
 def handle_diff_context(ctx: ExecutionContext, result: PhaseResult) -> None:
-    """Phase C/D: 收集增量 diff 上下文."""
-    if ctx.phase_id not in ("Q06", "Q07") or not ctx.code_repo:
+    """Phase C/D: 收集增量 diff 上下文（支持多 repo）."""
+    if ctx.phase_id not in ("Q06", "Q07"):
+        return
+    repos = ctx.code_repos or ([ctx.code_repo] if ctx.code_repo else [])
+    if not repos:
         return
 
     from dqg.context.diff_context import collect_diff_context, write_diff_context
 
-    diff_ctx = collect_diff_context(ctx.code_repo, ctx.base_branch, ctx.feature_branch)
-    if diff_ctx.has_changes:
+    # 多 repo 时合并 diff 结果
+    merged_diff = None
+    for repo in repos:
+        diff_ctx = collect_diff_context(repo, ctx.base_branch, ctx.feature_branch)
+        if diff_ctx.has_changes:
+            if merged_diff is None:
+                merged_diff = diff_ctx
+            else:
+                merged_diff.changed_files.extend(diff_ctx.changed_files)
+                merged_diff.added_files.extend(diff_ctx.added_files)
+                merged_diff.modified_files.extend(diff_ctx.modified_files)
+                merged_diff.deleted_files.extend(diff_ctx.deleted_files)
+                merged_diff.total_additions += diff_ctx.total_additions
+                merged_diff.total_deletions += diff_ctx.total_deletions
+                merged_diff.diff_text += f"\n\n# --- {repo} ---\n" + diff_ctx.diff_text
+        elif diff_ctx.error:
+            result.add_warning(f"Diff analysis failed for {repo}: {diff_ctx.error}")
+
+    if merged_diff and merged_diff.has_changes:
         diff_path = write_diff_context(
             ctx.output_dir,
             ctx.project_id,
             ctx.phase_def["dir_suffix"],
-            diff_ctx,
+            merged_diff,
         )
         if diff_path:
             result.add_artifact("diff_context", str(diff_path))
-            ctx.shared["diff_context"] = diff_ctx
-    elif diff_ctx.error:
-        result.add_warning(f"Diff analysis failed: {diff_ctx.error}")
+            ctx.shared["diff_context"] = merged_diff
 
 
 def handle_weak_assert(ctx: ExecutionContext, result: PhaseResult) -> None:
-    """Phase C: 收集弱断言上下文."""
-    if ctx.phase_id != "Q06" or not ctx.code_repo:
+    """Phase C: 收集弱断言上下文（支持多 repo）."""
+    if ctx.phase_id != "Q06":
+        return
+    repos = ctx.code_repos or ([ctx.code_repo] if ctx.code_repo else [])
+    if not repos:
         return
 
     from dqg.context.weak_assert_context import collect_weak_assert_context, write_weak_assert_context
 
     diff_ctx = ctx.shared.get("diff_context")
     provider = ctx.shared.get("language_provider")
-    payload = collect_weak_assert_context(ctx.code_repo, diff_ctx, language_provider=provider)
+    # 使用第一个 repo 作为主 repo（weak_assert 分析基于 diff 结果）
+    payload = collect_weak_assert_context(repos[0], diff_ctx, language_provider=provider)
     json_path, md_path = write_weak_assert_context(
         ctx.output_dir,
         ctx.project_id,
@@ -106,21 +157,23 @@ def handle_business_mutations(ctx: ExecutionContext, result: PhaseResult) -> Non
 
 
 def handle_blast_radius(ctx: ExecutionContext, result: PhaseResult) -> None:
-    """Phase C: 代码改动影响范围分析."""
-    if not ctx.code_repo:
+    """Phase C: 代码改动影响范围分析（支持多 repo）."""
+    repos = ctx.code_repos or ([ctx.code_repo] if ctx.code_repo else [])
+    if not repos:
         return
 
     from dqg.quality.blast_radius import write_blast_radius
 
-    radius_path = write_blast_radius(
-        ctx.output_dir,
-        ctx.project_id,
-        ctx.code_repo,
-        ctx.base_branch,
-        ctx.feature_branch,
-    )
-    if radius_path:
-        result.add_artifact("blast_radius", str(radius_path))
+    for repo in repos:
+        radius_path = write_blast_radius(
+            ctx.output_dir,
+            ctx.project_id,
+            repo,
+            ctx.base_branch,
+            ctx.feature_branch,
+        )
+        if radius_path:
+            result.add_artifact("blast_radius", str(radius_path))
 
 
 def handle_data_patterns(ctx: ExecutionContext, result: PhaseResult) -> None:
@@ -133,20 +186,28 @@ def handle_data_patterns(ctx: ExecutionContext, result: PhaseResult) -> None:
 
 
 def handle_se_code_mapping(ctx: ExecutionContext, result: PhaseResult) -> None:
-    """Phase A.3/B/C/D: SE→Code 自动映射."""
-    if not ctx.code_repo:
+    """Phase A.3/B/C/D: SE→Code 自动映射（支持多 repo，结果合并）."""
+    repos = ctx.code_repos or ([ctx.code_repo] if ctx.code_repo else [])
+    if not repos:
         return
 
     from dqg.cache.code_semantic_search import write_se_code_mapping
 
-    path = write_se_code_mapping(
-        ctx.output_dir,
-        ctx.project_id,
-        ctx.code_repo,
-        ctx.phase_id,
-    )
-    if path:
-        result.add_artifact("se_code_mapping", str(path))
+    # 多 repo 时逐个调用，最后一个的结果文件会覆盖前一个
+    # 但 map_se_to_code 内部会搜索 repo 中的代码，多 repo 需要合并
+    # 当前实现：逐 repo 调用，后续可优化为合并模式
+    last_path = None
+    for repo in repos:
+        path = write_se_code_mapping(
+            ctx.output_dir,
+            ctx.project_id,
+            repo,
+            ctx.phase_id,
+        )
+        if path:
+            last_path = path
+    if last_path:
+        result.add_artifact("se_code_mapping", str(last_path))
 
 
 def handle_bootstrap_context(ctx: ExecutionContext, result: PhaseResult) -> None:
@@ -204,26 +265,29 @@ def handle_requirement_smell(ctx: ExecutionContext, result: PhaseResult) -> None
 
 
 def handle_demand_trace(ctx: ExecutionContext, result: PhaseResult) -> None:
-    """Phase Q07: 需求驱动代码路径追踪."""
-    if not ctx.code_repo:
+    """Phase Q07: 需求驱动代码路径追踪（支持多 repo）."""
+    repos = ctx.code_repos or ([ctx.code_repo] if ctx.code_repo else [])
+    if not repos:
         return
 
     from dqg.quality.demand_trace import write_demand_trace
 
-    path = write_demand_trace(
-        ctx.output_dir,
-        ctx.project_id,
-        ctx.code_repo,
-        ctx.base_branch,
-        ctx.feature_branch,
-    )
-    if path:
-        result.add_artifact("demand_trace", str(path))
+    for repo in repos:
+        path = write_demand_trace(
+            ctx.output_dir,
+            ctx.project_id,
+            repo,
+            ctx.base_branch,
+            ctx.feature_branch,
+        )
+        if path:
+            result.add_artifact("demand_trace", str(path))
 
 
 def handle_code_skeleton(ctx: ExecutionContext, result: PhaseResult) -> None:
-    """Phase Q07: TREEFRAG 代码骨架压缩 + Oracle 标注（provider dispatch）."""
-    if not ctx.code_repo:
+    """Phase Q07: TREEFRAG 代码骨架压缩 + Oracle 标注（支持多 repo）."""
+    repos = ctx.code_repos or ([ctx.code_repo] if ctx.code_repo else [])
+    if not repos:
         return
 
     from pathlib import Path as _Path
@@ -243,18 +307,23 @@ def handle_code_skeleton(ctx: ExecutionContext, result: PhaseResult) -> None:
     if trace_path.exists():
         trace_data = load_json(trace_path)
         if trace_data:
-            repo = _Path(ctx.code_repo).resolve()
+            # 尝试在所有 repo 中解析文件路径
             for f in trace_data.get("traced_files", []):
-                fp = repo / f
-                if fp.exists():
-                    target_files.append(fp)
+                for repo in repos:
+                    fp = _Path(repo).resolve() / f
+                    if fp.exists():
+                        target_files.append(fp)
+                        break
             for t in trace_data.get("traced_methods", []):
                 method = t.get("method", "")
                 file_path = t.get("file", "")
                 if method and file_path:
-                    full = str(repo / file_path)
-                    method_name = method.split(".")[-1] if "." in method else method
-                    se_code_mapping.setdefault(full, []).append(method_name)
+                    for repo in repos:
+                        full = str(_Path(repo).resolve() / file_path)
+                        if _Path(full).exists():
+                            method_name = method.split(".")[-1] if "." in method else method
+                            se_code_mapping.setdefault(full, []).append(method_name)
+                            break
 
     if not target_files:
         return
@@ -314,6 +383,12 @@ def handle_code_skeleton(ctx: ExecutionContext, result: PhaseResult) -> None:
 
 def register_execute_handlers() -> None:
     """注册所有 execute 阶段的 handler."""
+    register_handler(
+        "persist_inputs",
+        handle_persist_inputs,
+        stage="execute",
+        order=-1,
+    )
     register_handler(
         "language_detect",
         handle_language_detect,

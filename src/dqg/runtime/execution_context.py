@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from pathlib import Path
+from pathlib import Path  # noqa: TC003
 from typing import Any
 
 
@@ -21,6 +21,7 @@ class ExecutionContext:
     profile_id: str = ""
     model_name: str | None = None
     code_repo: str | None = None
+    code_repos: list[str] = field(default_factory=list)
     base_branch: str = "master"
     feature_branch: str = "HEAD"
 

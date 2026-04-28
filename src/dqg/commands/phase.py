@@ -83,13 +83,18 @@ def cmd_execute(args, output_dir: Path) -> int:
     from dqg.runtime.phase_runtime import runtime_execute
 
     profile_id = get_profile(getattr(args, "profile", None)).profile_id
+    raw_code_repo = getattr(args, "code_repo", None)
+    code_repos: list[str] = []
+    if raw_code_repo:
+        code_repos = [p.strip() for p in raw_code_repo.split(",") if p.strip()]
     ctx = ExecutionContext(
         output_dir=output_dir,
         project_id=args.project_id,
         phase_id=args.phase,
         profile_id=profile_id,
         model_name=getattr(args, "model", None),
-        code_repo=getattr(args, "code_repo", None),
+        code_repo=code_repos[0] if code_repos else None,
+        code_repos=code_repos,
         base_branch=getattr(args, "base_branch", "master"),
         feature_branch=getattr(args, "feature_branch", "HEAD"),
     )

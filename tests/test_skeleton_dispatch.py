@@ -91,6 +91,7 @@ def test_handle_code_skeleton_dispatches_through_provider(monkeypatch, tmp_path)
 
     ctx = SimpleNamespace(
         code_repo=str(repo_dir),
+        code_repos=[str(repo_dir)],
         output_dir=output_dir,
         project_id="test-proj",
         shared={"language_id": "typescript"},

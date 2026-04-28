@@ -194,12 +194,13 @@ class FabricationDetectorGuardrail(PhaseGuardrail):
         # 在 code_symbols 表中查询
         found_in_db = _check_symbols_in_db(ctx.output_dir, identifiers)
 
-        # 未找到的尝试 grep fallback
+        # 未找到的尝试 grep fallback（支持多 repo）
         not_found = all_names - found_in_db
         if not_found:
-            # 尝试从 _inputs.json 获取 code_repo
-            code_repo = self._get_code_repo(ctx)
-            if code_repo:
+            code_repos = self._get_code_repos(ctx)
+            for code_repo in code_repos:
+                if not not_found:
+                    break
                 found_in_grep = _grep_fallback(code_repo, not_found.copy())
                 not_found -= found_in_grep
 
@@ -232,23 +233,29 @@ class FabricationDetectorGuardrail(PhaseGuardrail):
             )
         ]
 
-    def _get_code_repo(self, ctx: GuardrailContext) -> Path | None:
-        """从 _inputs.json 获取 code_repo 路径."""
+    def _get_code_repos(self, ctx: GuardrailContext) -> list[Path]:
+        """从 _inputs.json 获取 code_repo 路径列表（支持多 repo）."""
         try:
             from dqg.core.state_machine import PHASE_DEFS, internal_dir
             from dqg.json_utils import load_json
 
             phase_def = PHASE_DEFS.get(ctx.phase_id)
             if not phase_def:
-                return None
+                return []
             int_dir = internal_dir(ctx.output_dir, ctx.project_id, phase_def)
             inputs_path = int_dir / "_inputs.json"
             if inputs_path.exists():
                 data = load_json(inputs_path)
-                if data and data.get("code_repo"):
-                    repo = Path(data["code_repo"])
-                    if repo.exists():
-                        return repo
+                if data:
+                    repos: list[Path] = []
+                    code_repos = data.get("code_repos", [])
+                    if not code_repos and data.get("code_repo"):
+                        code_repos = [data["code_repo"]]
+                    for r in code_repos:
+                        repo = Path(r)
+                        if repo.exists():
+                            repos.append(repo)
+                    return repos
         except Exception:
             log.debug("inputs.json 读取失败", exc_info=True)
-        return None
+        return []

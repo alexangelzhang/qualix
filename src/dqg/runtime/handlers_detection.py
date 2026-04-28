@@ -151,7 +151,7 @@ def handle_mock_coincidence_check(ctx: ExecutionContext, result: PhaseResult) ->
 
 
 def handle_weak_assert_scan_q05(ctx: ExecutionContext, result: PhaseResult) -> None:
-    """Q05 finalize: 扫描生成的测试文件，产出 _weak_assert_context.json 供 weak_assert_gate 消费."""
+    """Q05 finalize: 扫描生成的测试文件，产出 _weak_assert_context.json 供 weak_assert_gate 消费（支持多 repo）."""
     from pathlib import Path
 
     from dqg.context.weak_assert_context import (
@@ -160,11 +160,8 @@ def handle_weak_assert_scan_q05(ctx: ExecutionContext, result: PhaseResult) -> N
     )
     from dqg.json_utils import load_json
 
-    if not ctx.code_repo:
-        return
-
-    repo = Path(ctx.code_repo).resolve()
-    if not repo.exists():
+    repos = ctx.code_repos or ([ctx.code_repo] if ctx.code_repo else [])
+    if not repos:
         return
 
     # 从 phase_b_structured.json 提取测试文件路径
@@ -188,18 +185,24 @@ def handle_weak_assert_scan_q05(ctx: ExecutionContext, result: PhaseResult) -> N
     if not test_classes:
         return
 
-    # 在 code_repo 中搜索测试文件
+    # 在所有 code_repos 中搜索测试文件
     test_files: list[str] = []
-    for cls in test_classes:
-        # 支持 Java/Kotlin 文件
-        for suffix in (".java", ".kt"):
-            matches = list(repo.rglob(f"{cls}{suffix}"))
-            for m in matches:
-                rel = str(m.relative_to(repo))
-                if rel not in test_files:
-                    test_files.append(rel)
+    primary_repo = None
+    for repo_path in repos:
+        repo = Path(repo_path).resolve()
+        if not repo.exists():
+            continue
+        if primary_repo is None:
+            primary_repo = repo_path
+        for cls in test_classes:
+            for suffix in (".java", ".kt"):
+                matches = list(repo.rglob(f"{cls}{suffix}"))
+                for m in matches:
+                    rel = str(m.relative_to(repo))
+                    if rel not in test_files:
+                        test_files.append(rel)
 
-    if not test_files:
+    if not test_files or not primary_repo:
         return
 
     # 构造轻量 diff_ctx 替身，只提供 test_files 列表
@@ -214,7 +217,7 @@ def handle_weak_assert_scan_q05(ctx: ExecutionContext, result: PhaseResult) -> N
 
     provider = ctx.shared.get("language_provider")
     payload = collect_weak_assert_context(
-        ctx.code_repo,
+        primary_repo,
         _Q05DiffProxy(test_files),
         output_dir=ctx.output_dir,
         project_id=ctx.project_id,
@@ -229,72 +232,76 @@ def handle_weak_assert_scan_q05(ctx: ExecutionContext, result: PhaseResult) -> N
 
 
 def handle_ai_origin_detection(ctx: ExecutionContext, result: PhaseResult) -> None:
-    """AI 产出标记检测：通过 git blame + Co-Authored-By 推断代码来源."""
+    """AI 产出标记检测：通过 git blame + Co-Authored-By 推断代码来源（支持多 repo）."""
     import re
     import subprocess
     from pathlib import Path
 
     from dqg.constants import AI_ORIGIN_CO_AUTHOR_PATTERNS
 
-    code_repo = ctx.code_repo
-    if not code_repo:
+    repos = ctx.code_repos or ([ctx.code_repo] if ctx.code_repo else [])
+    if not repos:
         return
 
-    repo_path = Path(code_repo)
-    if not repo_path.exists():
-        return
+    total_ai_commits = 0
+    all_ai_files: list[str] = []
+    total_checked = 0
 
-    try:
-        git_log = subprocess.run(
-            ["git", "log", "--format=%b", "-50"],
-            cwd=str(repo_path),
-            capture_output=True,
-            text=True,
-            timeout=10,
-        )
-        log_text = git_log.stdout if git_log.returncode == 0 else ""
-    except (subprocess.TimeoutExpired, FileNotFoundError):
-        log_text = ""
+    for code_repo in repos:
+        repo_path = Path(code_repo)
+        if not repo_path.exists():
+            continue
 
-    ai_commits = 0
-    for pattern in AI_ORIGIN_CO_AUTHOR_PATTERNS:
-        ai_commits += len(re.findall(pattern, log_text, re.IGNORECASE))
+        try:
+            git_log = subprocess.run(
+                ["git", "log", "--format=%b", "-50"],
+                cwd=str(repo_path),
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
+            log_text = git_log.stdout if git_log.returncode == 0 else ""
+        except (subprocess.TimeoutExpired, FileNotFoundError):
+            log_text = ""
 
-    diff_ctx = ctx.shared.get("diff_context")
-    changed_files = getattr(diff_ctx, "changed_files", lambda: [])() if diff_ctx else []
-    ai_files: list[str] = []
-    if diff_ctx:
-        for f in changed_files:
-            file_path = repo_path / f
-            if not file_path.exists():
-                continue
-            try:
-                blame = subprocess.run(
-                    ["git", "blame", "--porcelain", "-L", "1,5", str(f)],
-                    cwd=str(repo_path),
-                    capture_output=True,
-                    text=True,
-                    timeout=10,
-                )
-                if blame.returncode == 0:
-                    for pattern in AI_ORIGIN_CO_AUTHOR_PATTERNS:
-                        if re.search(pattern, blame.stdout, re.IGNORECASE):
-                            ai_files.append(f)
-                            break
-            except (subprocess.TimeoutExpired, FileNotFoundError):
-                continue
+        for pattern in AI_ORIGIN_CO_AUTHOR_PATTERNS:
+            total_ai_commits += len(re.findall(pattern, log_text, re.IGNORECASE))
 
-    if ai_commits > 0 or ai_files:
-        msg = f"AI 产出检测: {ai_commits} 个 AI co-authored commits"
-        if ai_files:
-            msg += f", {len(ai_files)} 个 AI 生成文件"
-        result.add_event(EventType.AI_ORIGIN_DETECTED, msg, ai_commits=ai_commits, ai_files=ai_files[:10])
+        diff_ctx = ctx.shared.get("diff_context")
+        changed_files = getattr(diff_ctx, "changed_files", lambda: [])() if diff_ctx else []
+        total_checked += len(changed_files)
+        if diff_ctx:
+            for f in changed_files:
+                file_path = repo_path / f
+                if not file_path.exists():
+                    continue
+                try:
+                    blame = subprocess.run(
+                        ["git", "blame", "--porcelain", "-L", "1,5", str(f)],
+                        cwd=str(repo_path),
+                        capture_output=True,
+                        text=True,
+                        timeout=10,
+                    )
+                    if blame.returncode == 0:
+                        for pattern in AI_ORIGIN_CO_AUTHOR_PATTERNS:
+                            if re.search(pattern, blame.stdout, re.IGNORECASE):
+                                all_ai_files.append(f)
+                                break
+                except (subprocess.TimeoutExpired, FileNotFoundError):
+                    continue
+
+    if total_ai_commits > 0 or all_ai_files:
+        msg = f"AI 产出检测: {total_ai_commits} 个 AI co-authored commits"
+        if all_ai_files:
+            msg += f", {len(all_ai_files)} 个 AI 生成文件"
+        result.add_event(EventType.AI_ORIGIN_DETECTED, msg, ai_commits=total_ai_commits, ai_files=all_ai_files[:10])
 
     detection_result = {
-        "ai_commits": ai_commits,
-        "ai_files": ai_files,
-        "total_checked_files": len(changed_files),
-        "detected": ai_commits > 0 or bool(ai_files),
+        "ai_commits": total_ai_commits,
+        "ai_files": all_ai_files,
+        "total_checked_files": total_checked,
+        "detected": total_ai_commits > 0 or bool(all_ai_files),
     }
     _async_write_json(ctx.internal_dir / "_ai_origin_detection.json", detection_result)
 

@@ -18,21 +18,22 @@ from types import MappingProxyType
 from typing import Any, Final
 
 from dqg.constants import BUG_CASE_RELEVANCE_SEED_LIMIT
-from dqg.json_utils import load_json
 from dqg.core.state_machine import PHASE_DEFS
-from dqg.store import get_experiment_summary, insert_experiment, query_experiments
+from dqg.json_utils import load_json
 from dqg.services.phase_service import read_relevance_excerpt
+from dqg.store import get_experiment_summary, insert_experiment, query_experiments
 from dqg.tracking.case_selector import render_relevant_cases_for_prompt
 
-
 # Phase → skill 文件映射
-_PHASE_SKILL_MAP: Final = MappingProxyType({
-    "Q01": "skills/requirement-structuring.md",
-    "Q04": "skills/tech-coverage-audit.md",
-    "Q03": "skills/tech-quality-review.md",
-    "Q06": "skills/unit-test-audit.md",
-    "Q07": "skills/code-review.md",
-})
+_PHASE_SKILL_MAP: Final = MappingProxyType(
+    {
+        "Q01": "skills/requirement-structuring/SKILL.md",
+        "Q04": "skills/tech-coverage-audit.md",
+        "Q03": "skills/tech-quality-review.md",
+        "Q06": "skills/unit-test-audit.md",
+        "Q07": "skills/code-review.md",
+    }
+)
 
 
 def _hash_content(content: str) -> str:
@@ -69,7 +70,6 @@ def generate_experiment_prompt(
 
     # 获取历史实验记录
     history = query_experiments(output_dir, skill_file=skill_file, limit=max_history)
-    accepted_history = [h for h in history if h.get("accepted")]
     rejected_history = [h for h in history if not h.get("accepted")]
 
     # 获取 bug 案例库中该 Phase 的相关案例
@@ -83,7 +83,7 @@ def generate_experiment_prompt(
         "",
         "## 实验规则",
         "",
-        "1. 只修改 `{skill_file}` 这一个文件，不动其他文件".format(skill_file=skill_file),
+        f"1. 只修改 `{skill_file}` 这一个文件，不动其他文件",
         "2. 每次只做一个有针对性的改动（不要大规模重写）",
         "3. 改动必须基于证据（bug 案例、历史实验结果）",
         "4. 改完后跑 benchmark 评估，用 judge 打分",
@@ -99,12 +99,14 @@ def generate_experiment_prompt(
 
     # 历史实验
     if history:
-        lines.extend([
-            "## 历史实验记录",
-            "",
-            "| Cycle | Score | Delta | 结果 | 原因 |",
-            "|-------|-------|-------|------|------|",
-        ])
+        lines.extend(
+            [
+                "## 历史实验记录",
+                "",
+                "| Cycle | Score | Delta | 结果 | 原因 |",
+                "|-------|-------|-------|------|------|",
+            ]
+        )
         for h in history:
             accepted = "接受" if h.get("accepted") else "拒绝"
             score = h.get("judge_score", "?")
@@ -115,10 +117,12 @@ def generate_experiment_prompt(
         lines.append("")
 
         if rejected_history:
-            lines.extend([
-                "### 失败的改动（避免重复）",
-                "",
-            ])
+            lines.extend(
+                [
+                    "### 失败的改动（避免重复）",
+                    "",
+                ]
+            )
             for h in rejected_history[:3]:
                 diff = h.get("prompt_diff", "")[:200]
                 lines.append(f"- Cycle {h.get('cycle')}: {h.get('reason', '')} (diff: {diff}...)")
@@ -126,45 +130,49 @@ def generate_experiment_prompt(
 
     # Bug 案例作为改进方向
     if bug_cases_md:
-        lines.extend([
-            "## 待解决的 Bug 案例（改进方向）",
-            "",
-            bug_cases_md,
-            "",
-        ])
+        lines.extend(
+            [
+                "## 待解决的 Bug 案例（改进方向）",
+                "",
+                bug_cases_md,
+                "",
+            ]
+        )
 
     exp_dir = f"output/.dqg/experiments/cycle_{cycle:03d}"
 
     # Benchmark 说明
-    lines.extend([
-        "## 实验沙箱",
-        "",
-        f"**重要：不要直接修改原文件 `{skill_file}`！**",
-        "",
-        f"实验在沙箱目录 `{exp_dir}/` 中进行：",
-        f"- 原始副本: `{exp_dir}/{Path(skill_file).name}`（从原文件复制）",
-        f"- 修改后版本: `{exp_dir}/{Path(skill_file).name}` （在副本上修改）",
-        "",
-        "只有实验通过人工确认后，才会合并到原文件。",
-        "",
-        "## 实验步骤",
-        "",
-        "### Step 1: 准备沙箱",
-        f"```bash",
-        f"mkdir -p {exp_dir}",
-        f"cp {skill_file} {exp_dir}/",
-        f"```",
-        "",
-        "### Step 2: 分析改进方向",
-        f"读取 `{exp_dir}/{Path(skill_file).name}`，结合上面的 bug 案例和历史实验，",
-        "选择一个具体的改进点。优先修复高频 bug 模式。",
-        "",
-        "### Step 3: 修改 Skill（在沙箱中）",
-        f"编辑 `{exp_dir}/{Path(skill_file).name}`，做一个有针对性的改动。",
-        f"原文件 `{skill_file}` 保持不变。",
-        "",
-        "### Step 4: 评估",
-    ])
+    lines.extend(
+        [
+            "## 实验沙箱",
+            "",
+            f"**重要：不要直接修改原文件 `{skill_file}`！**",
+            "",
+            f"实验在沙箱目录 `{exp_dir}/` 中进行：",
+            f"- 原始副本: `{exp_dir}/{Path(skill_file).name}`（从原文件复制）",
+            f"- 修改后版本: `{exp_dir}/{Path(skill_file).name}` （在副本上修改）",
+            "",
+            "只有实验通过人工确认后，才会合并到原文件。",
+            "",
+            "## 实验步骤",
+            "",
+            "### Step 1: 准备沙箱",
+            "```bash",
+            f"mkdir -p {exp_dir}",
+            f"cp {skill_file} {exp_dir}/",
+            "```",
+            "",
+            "### Step 2: 分析改进方向",
+            f"读取 `{exp_dir}/{Path(skill_file).name}`，结合上面的 bug 案例和历史实验，",
+            "选择一个具体的改进点。优先修复高频 bug 模式。",
+            "",
+            "### Step 3: 修改 Skill（在沙箱中）",
+            f"编辑 `{exp_dir}/{Path(skill_file).name}`，做一个有针对性的改动。",
+            f"原文件 `{skill_file}` 保持不变。",
+            "",
+            "### Step 4: 评估",
+        ]
+    )
 
     if benchmark_case:
         lines.append(f"使用 benchmark case `{benchmark_case}` 评估改动效果：")
@@ -177,45 +185,47 @@ def generate_experiment_prompt(
         lines.append(f"1. 对最近的项目执行 `dqg-run <project> judge {phase_id}`")
         lines.append("2. 读取 `_judge_result.json` 获取分数")
 
-    lines.extend([
-        "",
-        "### Step 5: 决策",
-        "",
-        "将实验结果记录到以下 JSON 文件：",
-        "",
-        f"`output/.dqg/experiment_{phase_id.replace('.', '')}_{cycle:03d}.json`",
-        "",
-        "```json",
-        "{",
-        f'  "experiment_id": "exp-{phase_id.replace(".", "")}-{cycle:03d}",',
-        f'  "skill_file": "{skill_file}",',
-        f'  "phase_id": "{phase_id}",',
-        f'  "cycle": {cycle},',
-        f'  "benchmark_case": "{benchmark_case}",',
-        '  "prompt_diff": "改动的简要描述",',
-        f'  "prompt_hash": "改动后的 hash",',
-        '  "baseline_score": null,',
-        '  "judge_score": null,',
-        '  "delta": null,',
-        '  "accepted": false,',
-        '  "reason": "接受/拒绝的原因",',
-        f'  "started_at": "{datetime.now().isoformat()}",',
-        '  "finished_at": null',
-        "}",
-        "```",
-        "",
-        "**决策规则：**",
-        "- `judge_score > baseline_score` → 标记 `accepted: true`",
-        "- `judge_score <= baseline_score` → 标记 `accepted: false`",
-        "- 无论接受还是拒绝，都要填写 `reason`",
-        "",
-        "### Step 6: 合并（仅当 accepted=true 且人工确认后）",
-        "",
-        f"**不要自动合并！** 等人工确认后执行：",
-        f"```bash",
-        f"cp {exp_dir}/{Path(skill_file).name} {skill_file}",
-        f"```",
-    ])
+    lines.extend(
+        [
+            "",
+            "### Step 5: 决策",
+            "",
+            "将实验结果记录到以下 JSON 文件：",
+            "",
+            f"`output/.dqg/experiment_{phase_id.replace('.', '')}_{cycle:03d}.json`",
+            "",
+            "```json",
+            "{",
+            f'  "experiment_id": "exp-{phase_id.replace(".", "")}-{cycle:03d}",',
+            f'  "skill_file": "{skill_file}",',
+            f'  "phase_id": "{phase_id}",',
+            f'  "cycle": {cycle},',
+            f'  "benchmark_case": "{benchmark_case}",',
+            '  "prompt_diff": "改动的简要描述",',
+            '  "prompt_hash": "改动后的 hash",',
+            '  "baseline_score": null,',
+            '  "judge_score": null,',
+            '  "delta": null,',
+            '  "accepted": false,',
+            '  "reason": "接受/拒绝的原因",',
+            f'  "started_at": "{datetime.now().isoformat()}",',
+            '  "finished_at": null',
+            "}",
+            "```",
+            "",
+            "**决策规则：**",
+            "- `judge_score > baseline_score` → 标记 `accepted: true`",
+            "- `judge_score <= baseline_score` → 标记 `accepted: false`",
+            "- 无论接受还是拒绝，都要填写 `reason`",
+            "",
+            "### Step 6: 合并（仅当 accepted=true 且人工确认后）",
+            "",
+            "**不要自动合并！** 等人工确认后执行：",
+            "```bash",
+            f"cp {exp_dir}/{Path(skill_file).name} {skill_file}",
+            "```",
+        ]
+    )
 
     return "\n".join(lines)
 
@@ -295,6 +305,7 @@ def format_experiment_log(output_dir: Path, skill_file: str) -> str:
 # CLI handler
 # ---------------------------------------------------------------------------
 
+
 def cmd_experiment(args, output_dir: Path) -> int:
     """实验命令处理."""
     phase_id = args.phase
@@ -330,13 +341,13 @@ def cmd_experiment(args, output_dir: Path) -> int:
 
     path = write_experiment_prompt(output_dir, phase_id, cycle, benchmark)
     if not path:
-        print(f"  生成实验 prompt 失败", file=__import__("sys").stderr)
+        print("  生成实验 prompt 失败", file=__import__("sys").stderr)
         return 1
 
     print(f"\n  Skill 迭代实验 — Phase {phase_id}, Cycle {cycle}")
     print(f"  Skill: {skill_file}")
     print(f"  实验 prompt: {path}")
-    print(f"\n  请用 AI IDE 读取该文件执行实验")
+    print("\n  请用 AI IDE 读取该文件执行实验")
     print(f"  完成后: dqg experiment {phase_id} persist --cycle {cycle}")
     print(f"  查看日志: dqg experiment {phase_id} log")
     return 0

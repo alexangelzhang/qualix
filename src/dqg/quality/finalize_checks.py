@@ -7,25 +7,27 @@
 
 from __future__ import annotations
 
-from pathlib import Path
+from pathlib import Path  # noqa: TC003
 from types import MappingProxyType
-from typing import Any, Final
+from typing import Final
 
+from dqg.core.state_machine import PHASE_DEFS
+from dqg.core.state_machine import internal_dir as _internal_dir
+from dqg.core.state_machine import phase_dir as _phase_dir
 from dqg.json_utils import load_json, save_json
 from dqg.path_utils import resolve_internal_file
 from dqg.text_utils import STRUCTURED_JSON_MAP
-from dqg.core.state_machine import PHASE_DEFS, internal_dir as _internal_dir, phase_dir as _phase_dir
-
-
 
 # Phase → 需要检查数量的字段
-_COUNT_FIELDS: Final = MappingProxyType({
-    "Q01": ["requirements", "semantic_expectations", "gaps", "open_items"],
-    "Q04": ["req_coverage", "se_coverage", "gap_closure", "open_closure"],
-    "Q03": ["issues", "failure_modes"],
-    "Q06": ["audit_items"],
-    "Q07": ["findings"],
-})
+_COUNT_FIELDS: Final = MappingProxyType(
+    {
+        "Q01": ["requirements", "semantic_expectations", "gaps", "open_items"],
+        "Q04": ["req_coverage", "se_coverage", "gap_closure", "open_closure"],
+        "Q03": ["issues", "failure_modes"],
+        "Q06": ["audit_items"],
+        "Q07": ["findings"],
+    }
+)
 
 
 def check_reasoning_log(output_dir: Path, project_id: str, phase_id: str) -> list[str]:
@@ -162,25 +164,31 @@ def run_finalize_checks(output_dir: Path, project_id: str, phase_id: str) -> lis
 
     # AutoHarness: 从 schema + registry 自动推导校验
     from dqg.quality.auto_checks import auto_derive_checks
+
     errors.extend(auto_derive_checks(output_dir, project_id, phase_id))
 
-    # Phase B: 编译验证 gate（需要 code_repo 参数）
+    # Phase B: 编译验证 gate（需要 code_repo 参数，支持多 repo）
     if phase_id == "Q05":
         from dqg.quality.compile_check import check_phase_b_compilation
 
-        # 从 _inputs.json 读取 code_repo（execute 时用户输入）
+        # 从 _inputs.json 读取 code_repo/code_repos（execute 时用户输入）
         phase_def = PHASE_DEFS.get(phase_id)
         if phase_def:
             int_dir = _internal_dir(output_dir, project_id, phase_def)
             inputs_path = int_dir / "_inputs.json"
-            code_repo = None
+            code_repos: list[str] = []
             if inputs_path.exists():
                 inputs_data = load_json(inputs_path)
                 if inputs_data:
-                    code_repo = inputs_data.get("code_repo")
-            errors.extend(check_phase_b_compilation(output_dir, project_id, code_repo))
+                    code_repos = inputs_data.get("code_repos", [])
+                    if not code_repos and inputs_data.get("code_repo"):
+                        code_repos = [inputs_data["code_repo"]]
+            for repo in code_repos:
+                errors.extend(check_phase_b_compilation(output_dir, project_id, repo))
+            if not code_repos:
+                errors.extend(check_phase_b_compilation(output_dir, project_id, None))
 
-    # Phase C: 覆盖率门禁（解析 JaCoCo XML）
+    # Phase C: 覆盖率门禁（解析 JaCoCo XML，支持多 repo）
     if phase_id == "Q06":
         from dqg.quality.coverage_gate import check_phase_c_coverage
 
@@ -188,13 +196,18 @@ def run_finalize_checks(output_dir: Path, project_id: str, phase_id: str) -> lis
         if phase_def:
             int_dir = _internal_dir(output_dir, project_id, phase_def)
             inputs_path = int_dir / "_inputs.json"
-            code_repo = None
+            code_repos = []
             coverage_report = None
             if inputs_path.exists():
                 inputs_data = load_json(inputs_path)
                 if inputs_data:
-                    code_repo = inputs_data.get("code_repo")
+                    code_repos = inputs_data.get("code_repos", [])
+                    if not code_repos and inputs_data.get("code_repo"):
+                        code_repos = [inputs_data["code_repo"]]
                     coverage_report = inputs_data.get("coverage_report")
-            errors.extend(check_phase_c_coverage(output_dir, project_id, code_repo, coverage_report))
+            for repo in code_repos:
+                errors.extend(check_phase_c_coverage(output_dir, project_id, repo, coverage_report))
+            if not code_repos:
+                errors.extend(check_phase_c_coverage(output_dir, project_id, None, coverage_report))
 
     return errors

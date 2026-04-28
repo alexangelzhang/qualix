@@ -44,7 +44,7 @@ def _build_parser() -> argparse.ArgumentParser:
     p_exec = sub.add_parser("execute", help="启动 Phase")
     p_exec.add_argument("phase", help="Phase ID (Q01-Q07)")
     p_exec.add_argument("--model", "-m", default=None, help="模型名称（自动计算 token budget）")
-    p_exec.add_argument("--code-repo", default=None, help="代码仓库路径（Phase C/D 增量分析用）")
+    p_exec.add_argument("--code-repo", default=None, help="代码仓库路径，多个用逗号分隔（如 /path/a,/path/b）")
     p_exec.add_argument("--base-branch", default="master", help="基线分支（默认 master）")
     p_exec.add_argument("--feature-branch", default="HEAD", help="特性分支（默认 HEAD）")
 
