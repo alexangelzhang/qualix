@@ -38,6 +38,7 @@ def _pid_file() -> Path:
 # init
 # ---------------------------------------------------------------------------
 
+
 def _cmd_init(args: argparse.Namespace) -> int:
     """初始化 DQG 环境."""
     base = _base_dir()
@@ -59,6 +60,7 @@ def _cmd_init(args: argparse.Namespace) -> int:
     # Python package
     try:
         import dqg.core.runner  # noqa: F401
+
         print("   dqg package: OK")
     except ImportError:
         print("   dqg package: 未安装，执行 `pip install -e '.[dev]'`")
@@ -68,7 +70,9 @@ def _cmd_init(args: argparse.Namespace) -> int:
     try:
         result = subprocess.run(
             ["uvx", "larkkit", "version"],
-            capture_output=True, text=True, timeout=10,
+            capture_output=True,
+            text=True,
+            timeout=10,
         )
         if result.returncode == 0:
             version = result.stdout.strip().split("\n")[0]
@@ -81,6 +85,7 @@ def _cmd_init(args: argparse.Namespace) -> int:
     # streamlit
     try:
         import streamlit
+
         print(f"   streamlit: {streamlit.__version__}")
     except ImportError:
         print("   streamlit: 未安装，执行 `pip install streamlit`")
@@ -90,6 +95,7 @@ def _cmd_init(args: argparse.Namespace) -> int:
     print("\n3. 初始化数据库...")
     try:
         from dqg.store import migrate_all
+
         result = migrate_all(output)
         total = sum(result.values())
         if total > 0:
@@ -116,6 +122,7 @@ def _cmd_init(args: argparse.Namespace) -> int:
     print("\n5. 检查 Bug 案例库...")
     try:
         from dqg.tracking.bug_cases import load_cases, summarize_cases
+
         cases = load_cases()
         summary = summarize_cases(cases)
         print(f"   {summary['total']} 条案例 ({summary['open']} open, {summary['fixed']} fixed)")
@@ -141,6 +148,7 @@ def _cmd_init(args: argparse.Namespace) -> int:
 # ---------------------------------------------------------------------------
 # dashboard
 # ---------------------------------------------------------------------------
+
 
 def _is_dashboard_running() -> tuple[bool, int | None]:
     """检查看板是否在运行."""
@@ -171,11 +179,17 @@ def _start_dashboard(port: int = _DASHBOARD_PORT) -> bool:
     try:
         proc = subprocess.Popen(
             [
-                sys.executable, "-m", "streamlit", "run",
+                sys.executable,
+                "-m",
+                "streamlit",
+                "run",
                 str(dashboard_path),
-                "--server.port", str(port),
-                "--server.headless", "true",
-                "--browser.gatherUsageStats", "false",
+                "--server.port",
+                str(port),
+                "--server.headless",
+                "true",
+                "--browser.gatherUsageStats",
+                "false",
             ],
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
@@ -233,8 +247,10 @@ def _cmd_dashboard(args: argparse.Namespace) -> int:
 # version
 # ---------------------------------------------------------------------------
 
+
 def _cmd_version(_args: argparse.Namespace) -> int:
     from dqg.commands.setup import DQG_VERSION
+
     print(f"DQG (Dev Quality Gate) v{DQG_VERSION}")
     return 0
 
@@ -242,6 +258,7 @@ def _cmd_version(_args: argparse.Namespace) -> int:
 def _cmd_experiment(args: argparse.Namespace) -> int:
     """Skill 自动迭代实验."""
     from dqg.tracking.experiment import cmd_experiment
+
     return cmd_experiment(args, _output_dir())
 
 
@@ -288,12 +305,12 @@ def _export_semantic_cache(output_dir, project_id: str, output_path: str | None)
     try:
         with get_connection(output_dir) as conn:
             rows = conn.execute(
-                "SELECT query, result, phase_id, cache_version, updated_at "
-                "FROM semantic_cache WHERE project_id=? ORDER BY phase_id, updated_at DESC",
-                (project_id,),
+                "SELECT query_text, result_json, result_type, hit_count, created_at "
+                "FROM query_cache ORDER BY created_at DESC",
             ).fetchall()
     except Exception as e:
         from dqg.log import get_logger
+
         get_logger(__name__).debug("Semantic cache export failed: %s", e)
         return None
 
@@ -308,18 +325,13 @@ def _export_semantic_cache(output_dir, project_id: str, output_path: str | None)
         "",
     ]
 
-    current_phase = None
     for row in rows:
-        query, result, phase_id, cache_version, updated_at = row
-        if phase_id != current_phase:
-            current_phase = phase_id
-            lines.append(f"## Phase {phase_id}")
-            lines.append("")
+        query_text, result_json, result_type, hit_count, created_at = row
 
-        lines.append(f"### 查询: {(query or '')[:80]}")
-        lines.append(f"- 版本: `{cache_version or '—'}` | 更新: {updated_at or '—'}")
-        result_preview = (result or "")[:200].replace("\n", " ")
-        lines.append(f"- 结果: {result_preview}{'...' if len(result or '') > 200 else ''}")
+        lines.append(f"### 查询: {(query_text or '')[:80]}")
+        lines.append(f"- 类型: `{result_type or '—'}` | 命中: {hit_count or 0} | 创建: {created_at or '—'}")
+        result_preview = (result_json or "")[:200].replace("\n", " ")
+        lines.append(f"- 结果: {result_preview}{'...' if len(result_json or '') > 200 else ''}")
         lines.append("")
 
     content = "\n".join(lines)
@@ -335,6 +347,7 @@ def _export_semantic_cache(output_dir, project_id: str, output_path: str | None)
 # ---------------------------------------------------------------------------
 # main
 # ---------------------------------------------------------------------------
+
 
 def main() -> int:
     parser = argparse.ArgumentParser(
@@ -395,6 +408,7 @@ def main() -> int:
     if args.command == "run":
         # 委托给 dqg-run
         from dqg.core.runner import main as runner_main
+
         sys.argv = ["dqg-run", *args.run_args]
         return runner_main()
 
