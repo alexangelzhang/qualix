@@ -297,3 +297,32 @@ def handle_ai_origin_detection(ctx: ExecutionContext, result: PhaseResult) -> No
         "detected": ai_commits > 0 or bool(ai_files),
     }
     _async_write_json(ctx.internal_dir / "_ai_origin_detection.json", detection_result)
+
+
+def register_detection_handlers() -> None:
+    """注册异构检测层的 finalize handler."""
+    from dqg.runtime.lifecycle import register_handler
+
+    register_handler(
+        "weak_assert_scan_q05",
+        handle_weak_assert_scan_q05,
+        stage="finalize",
+        phases={"Q05"},
+        order=55,
+    )
+    register_handler(
+        "weak_assert_gate",
+        handle_weak_assert_gate,
+        stage="finalize",
+        phases={"Q05", "Q06"},
+        order=56,
+        depends_on=["weak_assert_scan_q05"],
+    )
+    register_handler(
+        "mock_coincidence_check",
+        handle_mock_coincidence_check,
+        stage="finalize",
+        phases={"Q05", "Q06"},
+        order=57,
+    )
+    register_handler("ai_origin_detection", handle_ai_origin_detection, stage="finalize", order=58)

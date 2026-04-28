@@ -339,33 +339,11 @@ def register_finalize_handlers() -> None:
     ]:
         register_handler(name, fn, stage="finalize", order=order)
 
-    # 异构检测层（从 handlers_detection 导入）
-    from dqg.runtime.handlers_detection import (
-        handle_ai_origin_detection,
-        handle_mock_coincidence_check,
-        handle_weak_assert_gate,
-        handle_weak_assert_scan_q05,
-    )
+    # 异构检测层（注册在 handlers_detection 内部）
+    from dqg.runtime.handlers_detection import register_detection_handlers
 
-    register_handler(
-        "weak_assert_scan_q05",
-        handle_weak_assert_scan_q05,
-        stage="finalize",
-        phases={"Q05"},
-        order=55,
-    )
-    register_handler(
-        "weak_assert_gate",
-        handle_weak_assert_gate,
-        stage="finalize",
-        phases={"Q05", "Q06"},
-        order=56,
-        depends_on=["weak_assert_scan_q05"],
-    )
-    register_handler(
-        "mock_coincidence_check", handle_mock_coincidence_check, stage="finalize", phases={"Q05", "Q06"}, order=57
-    )
-    register_handler("ai_origin_detection", handle_ai_origin_detection, stage="finalize", order=58)
+    register_detection_handlers()
+
     register_handler("profile_context_check", handle_profile_context_check, stage="finalize", order=60)
     register_handler(
         "requirement_graph",
