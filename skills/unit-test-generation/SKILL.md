@@ -174,16 +174,21 @@ Step 1.1 + 1.2 的结果必须输出为结构化 JSON：
 }
 ```
 
-**1.4 设计矩阵自检（硬性 gate）**
+**1.4 设计矩阵自检（硬性 gate — 必须对齐 Phase Q06 审计标准）**
 
 | 指标 | 要求 | 不达标则 |
 |------|------|---------|
 | REQ 覆盖率 | 100%（每条 REQ 至少 1 个用例） | BLOCKED |
-| BR 覆盖率 | ≥ 80%（含校验/限制的 BR 100%） | BLOCKED |
+| 后端 BR 覆盖率 | 100%（排除前端 BR 后，后端可测 BR 全覆盖） | BLOCKED |
 | SE 覆盖率 | 100%（有效 SE） | BLOCKED |
+| Happy Path | ≥ 80% 方法（逐个公开方法检查是否有正常链路用例） | BLOCKED |
+| Exception | 100%（逐个 throw/catch 必须有对应用例） | BLOCKED |
+| Boundary | 100%（逐个边界条件：0/null/MAX/时间临界/空集合 vs null） | BLOCKED |
+| Defense | 100%（逐个 if null return/if blank skip 必须有对应用例） | BLOCKED |
+| 状态机 | 100% 转移边（含反向/非法跳转） | BLOCKED |
+| 并发场景 | check-then-act 竞态窗口必须有用例 | BLOCKED |
 | 变更文件覆盖率 | P0 100% / P1 ≥ 80% | WARNING |
 | 代码分支覆盖率 | ≥ 70% | WARNING |
-| 路径均衡 | Happy ≥ 40% / Exception ≥ 30% / Boundary+防御 ≥ 30% | WARNING |
 
 > **设计矩阵是 Phase Q06 审计的基准**——Phase Q06 对照设计矩阵检查"设计了但没实现"和"实现了但没设计"。
 
