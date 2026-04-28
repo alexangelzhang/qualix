@@ -345,7 +345,7 @@
 - 跨项目知识自动注入（`phase_service.py` 在 execute 时调用 knowledge_network，历史 GAP/BUG/LESSON 自动注入 prompt）
 - 案例相关性二级匹配（`case_selector.py` 同义词扩展，"幂等"↔"重复提交"↔"并发安全" 等语义等价词自动关联）
 - 图片→Mermaid 验证闭环（VLM prompt 要求输出 Mermaid 代码+节点/边数量，`validate_mermaid.py` 自动校验结构完整性）
-- Phase Q05 编译验证 gate（`compile_check.py`，finalize 前自动编译检查，失败则 BLOCKED，支持 Maven/Gradle/Go）
+- Phase Q05 编译验证 gate（`compile_check.py`，finalize 前自动编译检查，失败则 BLOCKED，支持 Maven/Gradle/Go，自动检测 pom.xml 目标 JDK 版本并切换 JAVA_HOME）
 - Q04 覆盖度结构化映射表（`coverage_matrix.py`，从 Phase Q01 自动生成 REQ/BR/SE→技术设计映射矩阵，LLM 填充而非自由审计）
 - 业务域变异测试推导（`business_mutations.py`，从 Phase Q01 SE 自动推导金额精度/状态机跳转/并发保护/空值注入等变异规则）
 - Harness/Domain 分层 Phase 0（`PHASE_DEFS` 提取到 `phase_registry.py`，store schema 拆为 `_HARNESS_SCHEMA` + `_DOMAIN_SCHEMA`）

@@ -7,7 +7,10 @@
 
 from __future__ import annotations
 
+import os
+import re
 import subprocess
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -32,6 +35,90 @@ def detect_build_tool(code_repo: Path) -> str | None:
     if (code_repo / "go.mod").exists():
         return "go"
     return None
+
+
+def _detect_java_version(code_repo: Path) -> str | None:
+    """从 pom.xml 检测目标 Java 版本.
+
+    Returns:
+        版本字符串如 "1.8", "11", "17", "21"，未检测到返回 None
+    """
+    pom = code_repo / "pom.xml"
+    if not pom.exists():
+        return None
+    try:
+        content = pom.read_text(encoding="utf-8")
+        for pattern in [
+            r"<maven\.compiler\.source>\s*(\S+?)\s*</maven\.compiler\.source>",
+            r"<java\.version>\s*(\S+?)\s*</java\.version>",
+            r"<source>\s*(\S+?)\s*</source>",
+        ]:
+            m = re.search(pattern, content)
+            if m:
+                return m.group(1)
+    except OSError:
+        pass
+    return None
+
+
+def _resolve_java_home(target_version: str) -> str | None:
+    """通过 /usr/libexec/java_home 查找匹配的 JDK 路径（macOS）.
+
+    对 "1.8" 等短版本号，优先尝试 "1.8.0" 以避免匹配到 JavaAppletPlugin。
+
+    Returns:
+        JAVA_HOME 路径，找不到返回 None
+    """
+    if sys.platform != "darwin":
+        return None
+
+    # 尝试的版本号列表：精确版本优先
+    candidates = [target_version]
+    if target_version == "1.8":
+        candidates = ["1.8.0", "1.8"]
+
+    for ver in candidates:
+        try:
+            result = subprocess.run(
+                ["/usr/libexec/java_home", "-v", ver],
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+            if result.returncode == 0:
+                java_home = result.stdout.strip()
+                # 排除 JavaAppletPlugin（不是完整 JDK）
+                if java_home and Path(java_home).is_dir() and "JavaAppletPlugin" not in java_home:
+                    return java_home
+        except (subprocess.TimeoutExpired, OSError):
+            pass
+    return None
+
+
+def _build_env_for_java(code_repo: Path) -> dict[str, str] | None:
+    """为 Java 项目构建正确的 JAVA_HOME 环境.
+
+    Returns:
+        环境变量字典，无需调整时返回 None
+    """
+    target = _detect_java_version(code_repo)
+    if not target:
+        return None
+
+    java_home = _resolve_java_home(target)
+    if not java_home:
+        log.warning("未找到 JDK %s，使用系统默认 JDK", target)
+        return None
+
+    current = os.environ.get("JAVA_HOME", "")
+    if current and Path(current).resolve() == Path(java_home).resolve():
+        return None
+
+    log.info("JDK 版本切换: %s → %s (目标: %s)", current or "default", java_home, target)
+    env = os.environ.copy()
+    env["JAVA_HOME"] = java_home
+    env["PATH"] = f"{java_home}/bin:{env.get('PATH', '')}"
+    return env
 
 
 def run_compile_check(
@@ -68,6 +155,11 @@ def run_compile_check(
     cmd = _build_compile_command(build_tool, module)
     log.info("编译检查: %s (cwd=%s)", cmd, code_repo)
 
+    # Java 项目自动检测并切换 JDK 版本
+    env = None
+    if build_tool in ("maven", "gradle"):
+        env = _build_env_for_java(code_repo)
+
     try:
         result = subprocess.run(
             cmd,
@@ -76,6 +168,7 @@ def run_compile_check(
             text=True,
             timeout=_COMPILE_TIMEOUT,
             shell=True,
+            env=env,
         )
         passed = result.returncode == 0
         error_summary = ""
