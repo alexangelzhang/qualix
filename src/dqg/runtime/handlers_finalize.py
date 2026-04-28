@@ -161,7 +161,7 @@ def handle_profile_context_check(ctx: ExecutionContext, result: PhaseResult) -> 
         result.add_warning(f"Missing profile context: {profile_ctx_path}")
 
     report_path = ctx.phase_root / report_file
-    if report_path.exists() and "## PROFILE_CONTEXT" not in report_path.read_text(encoding="utf-8"):
+    if report_path.exists() and "PROFILE_CONTEXT" not in report_path.read_text(encoding="utf-8"):
         result.add_warning("Report missing PROFILE_CONTEXT section")
 
 

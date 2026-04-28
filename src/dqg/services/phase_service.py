@@ -7,7 +7,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from dqg.json_utils import dump_json_str
 from dqg.constants import (
     BUG_CASE_RELEVANCE_EXCERPT_LIMIT,
     BUG_CASE_RELEVANCE_INTERNAL_FILES,
@@ -17,6 +16,7 @@ from dqg.constants import (
 from dqg.core.state_machine import PHASE_DEFS
 from dqg.core.state_machine import internal_dir as _internal_dir
 from dqg.core.state_machine import phase_dir as _phase_dir
+from dqg.json_utils import dump_json_str
 from dqg.path_utils import resolve_ingest_file, resolve_internal_file
 from dqg.text_utils import REPORT_MAP
 from dqg.tracking.case_selector import render_relevant_cases_for_prompt
@@ -133,7 +133,7 @@ def profile_context_warnings(output_dir: Path, project_id: str, phase_id: str) -
     if not profile_ctx_path.exists():
         warnings.append(f"缺少 profile 上下文文件: {profile_ctx_path}")
     report_path = pd / report_file
-    if report_path.exists() and "## PROFILE_CONTEXT" not in report_path.read_text(encoding="utf-8"):
+    if report_path.exists() and "PROFILE_CONTEXT" not in report_path.read_text(encoding="utf-8"):
         warnings.append(f"报告未包含 PROFILE_CONTEXT: {report_path}")
     return warnings
 
@@ -179,9 +179,8 @@ def _inject_cross_project_insights(
             "",
             formatted,
         ]
-        (int_dir / "_cross_project_insights.md").write_text(
-            "\n".join(md_lines), encoding="utf-8"
-        )
+        (int_dir / "_cross_project_insights.md").write_text("\n".join(md_lines), encoding="utf-8")
     except Exception:
         from dqg.log import get_logger
+
         get_logger(__name__).warning("跨项目知识注入失败，不阻断主流程", exc_info=True)

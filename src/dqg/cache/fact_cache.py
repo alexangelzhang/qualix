@@ -217,10 +217,10 @@ def count_facts(
 
 
 def export_facts_to_markdown(
-    output_dir: "Path",
+    output_dir: Path,
     project_id: str,
     phase_id: str,
-) -> "Path | None":
+) -> Path | None:
     """将指定 Phase 的结构化事实导出为 Markdown，纳入 git 追踪.
 
     输出路径：output/<project_id>/<phase_dir>/facts_export.md
@@ -241,7 +241,7 @@ def export_facts_to_markdown(
 
     with get_connection(output_dir) as conn:
         rows = conn.execute(
-            "SELECT fact_type, fact_id, description, related_ids, confidence, updated_at "
+            "SELECT fact_type, fact_id, description, related_ids, confidence, created_at "
             "FROM structured_facts WHERE project_id=? AND phase_id=? ORDER BY fact_type, fact_id",
             (project_id, phase_id),
         ).fetchall()

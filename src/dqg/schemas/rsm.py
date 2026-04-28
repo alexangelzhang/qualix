@@ -18,29 +18,32 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import StrEnum
-from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from dqg.core.state_machine import PHASE_DEFS, phase_dir as _phase_dir
+if TYPE_CHECKING:
+    from pathlib import Path
+
+from dqg.core.state_machine import PHASE_DEFS
+from dqg.core.state_machine import phase_dir as _phase_dir
 from dqg.json_utils import load_json
 from dqg.text_utils import STRUCTURED_JSON_MAP
-
 
 # ---------------------------------------------------------------------------
 # 生命周期状态
 # ---------------------------------------------------------------------------
 
+
 class LifecycleStage(StrEnum):
-    IDENTIFIED = "IDENTIFIED"       # Phase A 创建
-    COVERED = "COVERED"             # Phase A.5 标注为覆盖
-    PARTIAL = "PARTIAL"             # Phase A.5 标注为部分覆盖
-    NOT_COVERED = "NOT_COVERED"     # Phase A.5 标注为未覆盖
-    HAS_EUT = "HAS_EUT"            # Phase B 有对应 EUT
-    NO_EUT = "NO_EUT"              # Phase B 无对应 EUT
-    REVIEWED = "REVIEWED"           # Phase D 有对应 finding
-    NOT_REVIEWED = "NOT_REVIEWED"   # Phase D 无对应 finding
-    CLOSED = "CLOSED"               # GAP/OPEN 已闭环
-    UNCLOSED = "UNCLOSED"           # GAP/OPEN 未闭环
+    IDENTIFIED = "IDENTIFIED"  # Phase A 创建
+    COVERED = "COVERED"  # Phase A.5 标注为覆盖
+    PARTIAL = "PARTIAL"  # Phase A.5 标注为部分覆盖
+    NOT_COVERED = "NOT_COVERED"  # Phase A.5 标注为未覆盖
+    HAS_EUT = "HAS_EUT"  # Phase B 有对应 EUT
+    NO_EUT = "NO_EUT"  # Phase B 无对应 EUT
+    REVIEWED = "REVIEWED"  # Phase D 有对应 finding
+    NOT_REVIEWED = "NOT_REVIEWED"  # Phase D 无对应 finding
+    CLOSED = "CLOSED"  # GAP/OPEN 已闭环
+    UNCLOSED = "UNCLOSED"  # GAP/OPEN 未闭环
 
 
 @dataclass
@@ -144,6 +147,7 @@ class CoverageReport:
 # 构建生命周期
 # ---------------------------------------------------------------------------
 
+
 def _load_phase_json(output_dir: Path, project_id: str, phase_id: str) -> dict | None:
     json_file = STRUCTURED_JSON_MAP.get(phase_id)
     if not json_file:
@@ -180,25 +184,33 @@ def build_lifecycle(
             if rid:
                 id_type = "REQ" if rid.startswith("REQ") else "BR"
                 lifecycle[rid] = RequirementLifecycle(
-                    req_id=rid, id_type=id_type, description=req.get("description", ""),
+                    req_id=rid,
+                    id_type=id_type,
+                    description=req.get("description", ""),
                 )
         for se in data_a.get("semantic_expectations", []):
             sid = se.get("se_id", "")
             if sid:
                 lifecycle[sid] = RequirementLifecycle(
-                    req_id=sid, id_type="SE", description=se.get("description", ""),
+                    req_id=sid,
+                    id_type="SE",
+                    description=se.get("description", ""),
                 )
         for gap in data_a.get("gaps", []):
             gid = gap.get("gap_id", "")
             if gid:
                 lifecycle[gid] = RequirementLifecycle(
-                    req_id=gid, id_type="GAP", description=gap.get("description", ""),
+                    req_id=gid,
+                    id_type="GAP",
+                    description=gap.get("description", ""),
                 )
         for op in data_a.get("open_items", []):
             oid = op.get("open_id", "")
             if oid:
                 lifecycle[oid] = RequirementLifecycle(
-                    req_id=oid, id_type="OPEN", description=op.get("question", ""),
+                    req_id=oid,
+                    id_type="OPEN",
+                    description=op.get("question", ""),
                 )
 
     # Phase A.5: 覆盖度标注 + 闭环状态
@@ -252,7 +264,8 @@ def compute_coverage(
     for item in lifecycle.values():
         if item.id_type == "REQ":
             report.total_reqs += 1
-            if item.coverage_status in ("COVERED", "IMPLICIT"):
+            # PARTIAL 也算已覆盖（与 SKILL 定义一致：无 MISSING 即通过）
+            if item.coverage_status in ("COVERED", "IMPLICIT", "PARTIAL"):
                 report.reqs_covered += 1
             if item.finding_ids:
                 report.reqs_with_finding += 1
@@ -295,6 +308,7 @@ def save_rsm(
 ) -> Path:
     """持久化 RSM 到 JSON 文件."""
     from dqg.json_utils import save_json
+
     path = _rsm_path(output_dir, project_id)
     path.parent.mkdir(parents=True, exist_ok=True)
     data = {
@@ -365,9 +379,11 @@ def load_rsm(output_dir: Path, project_id: str) -> dict[str, RequirementLifecycl
 # Lazy import to break rsm ↔ rsm_mutations circular dependency
 # ---------------------------------------------------------------------------
 
+
 def __getattr__(name: str):
-    _REEXPORTS = {"RSMMutation", "apply_mutations", "mutations_from_critique"}
-    if name in _REEXPORTS:
+    _reexports = {"RSMMutation", "apply_mutations", "mutations_from_critique"}
+    if name in _reexports:
         from dqg.schemas import rsm_mutations
+
         return getattr(rsm_mutations, name)
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
