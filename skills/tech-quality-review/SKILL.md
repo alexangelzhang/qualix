@@ -50,6 +50,7 @@ allowed-tools:
    - 从 API Provider 入口追踪每个改动功能点的完整调用链路
    - DDD+TMF 链路：Provider → CmdExe → DomainService → TMF.execute → decideSteps → Step → Ability → Extension → Gateway
    - 输出 `CALL_CHAIN` 章节，列出每个功能点的完整调用链路图
+   - **必须覆盖所有 REQ**：逐条对照 Phase Q01 的 REQ 列表，确认每个 REQ 在代码仓库中都有对应的改动分析。如果某个 REQ 在 commit 范围内无对应代码改动，必须显式标注 `REQ-xxx: 未发现代码改动`，不得静默跳过
 
 ### Step 1: 架构设计评审
 
@@ -104,12 +105,16 @@ allowed-tools:
 ### Step 8: 自检（提交前强制检查）
 
 - [ ] 架构/接口/数据/异常/性能五个维度已逐项检查
+- [ ] Phase Q01 的每个 REQ 都有对应的代码分析或显式标注「未发现代码改动」
 - [ ] 每个 issue 有具体代码/设计证据支撑
 - [ ] Failure Mode 分析覆盖所有写操作/RPC调用/状态迁移
 - [ ] 无 CRITICAL_GAP
 - [ ] 每个发现标注了来源和置信度
 - [ ] 如果是重跑：新版是旧版超集
 - [ ] 推理日志 `_reasoning_log.md` 已同步输出
+- [ ] 每条结论行有 `[来源: 文件名:行号]` 标注（参见 references/report-format-spec.md §1）
+- [ ] 推理日志使用 `### Step N` 标记且 ≥ 3 个（参见 references/report-format-spec.md §2）
+- [ ] 推理日志引用了 SKILL.md 的 Step 编号
 
 ### Step 9: Judge/Critique（提交前自我评审）
 

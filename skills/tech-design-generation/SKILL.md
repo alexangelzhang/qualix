@@ -109,6 +109,9 @@ P0 GAP 必须在技术方案中有明确处理，否则标为阻断项。
 - [ ] 聚合边界合理，状态机转换规则完整
 - [ ] 并发场景已识别并有对应方案
 - [ ] P0 GAP 已处理或有明确决策
+- [ ] 每条结论行有 `[来源: 文件名:行号]` 标注（参见 references/report-format-spec.md §1）
+- [ ] 推理日志使用 `### Step N` 标记且 ≥ 3 个（参见 references/report-format-spec.md §2）
+- [ ] 推理日志引用了 SKILL.md 的 Step 编号
 
 ### Step 6: Judge/Critique
 

@@ -6,6 +6,8 @@
 ## PROFILE_CONTEXT
 > 从 `output/<project>_phaseA/_profile_context.md` 复制，声明本次分析使用的 profile、baseline、风险词典和阈值。
 
+> **格式规范**: 本报告遵循 `references/report-format-spec.md`。每条结论行必须附 `[来源: 文件名:行号]` 标注。
+
 ## 0. 输入与范围
 - 需求名称：
 - PRD 版本：

@@ -172,6 +172,9 @@ Step 7: 检查是否所有入口都经过了这些保护点
 - [ ] DDD+TMF 项目已追踪完整调用链路
 - [ ] 如果是重跑：新版是旧版超集
 - [ ] 推理日志 `_reasoning_log.md` 已同步输出
+- [ ] 每条结论行有 `[来源: 文件名:行号]` 标注（参见 references/report-format-spec.md §1）
+- [ ] 推理日志使用 `### Step N` 标记且 ≥ 3 个（参见 references/report-format-spec.md §2）
+- [ ] 推理日志引用了 SKILL.md 的 Step 编号
 
 ## Judge/Critique（提交前自我评审）
 

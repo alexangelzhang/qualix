@@ -117,6 +117,9 @@ Step 8: 修正（根据 Step 7 发现的问题修正报告，重新执行 Step 6
 - [ ] 每个覆盖判定有技术方案原文证据引用
 - [ ] 未输出 UT/EUT
 - [ ] 如果是重跑：新版是旧版的超集（覆盖判定数量不减少，已有结论不丢失）
+- [ ] 每条结论行有 `[来源: 文件名:行号]` 标注（参见 references/report-format-spec.md §1）
+- [ ] 推理日志使用 `### Step N` 标记且 ≥ 3 个（参见 references/report-format-spec.md §2）
+- [ ] 推理日志引用了 SKILL.md 的 Step 编号
 
 ### Step 7: Judge/Critique（提交前自我评审）
 

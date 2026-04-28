@@ -241,6 +241,9 @@ Phase Q05 保证"按规则写了"，Phase Q06 检查"写得好不好"：
 - [ ] 每个发现标注了来源和置信度
 - [ ] 如果是重跑：新版是旧版超集
 - [ ] 推理日志 `_reasoning_log.md` 已同步输出
+- [ ] 每条结论行有 `[来源: 文件名:行号]` 标注（参见 references/report-format-spec.md §1）
+- [ ] 推理日志使用 `### Step N` 标记且 ≥ 3 个（参见 references/report-format-spec.md §2）
+- [ ] 推理日志引用了 SKILL.md 的 Step 编号
 
 ### Step 10: Judge/Critique（提交前自我评审）
 

@@ -174,6 +174,9 @@ python3 scripts/parse_image_assets.py \
 - [ ] 流程图已转为 Mermaid 图
 - [ ] 未输出 UT/EUT
 - [ ] 如果是重跑：新版是旧版的超集（REQ/BR/SE/GAP/OPEN 数量不减少，内容不丢失）
+- [ ] 每条结论行有 `[来源: 文件名:行号]` 标注（参见 references/report-format-spec.md §1）
+- [ ] 推理日志使用 `### Step N` 标记且 ≥ 3 个（参见 references/report-format-spec.md §2）
+- [ ] 推理日志引用了 SKILL.md 的 Step 编号
 
 ### Step 5: Judge/Critique（提交前自我评审）
 

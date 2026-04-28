@@ -4,6 +4,8 @@
 
 > 从 `output/<project>_phaseC/_profile_context.md` 复制，声明本次单测审计使用的 profile、baseline、风险词典和阈值。
 
+> **格式规范**: 本报告遵循 `references/report-format-spec.md`。每条结论行必须附 `[来源: 文件名:行号]` 标注。
+
 ## 1. 审计范围
 
 - 项目：
