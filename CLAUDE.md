@@ -25,4 +25,9 @@
 - 跨文件引用分析：code_index_refs，重构前用 code_index_blast_radius
 - 禁止在 code_index 可用时直接派 Explore agent 做代码探索
 
+## 项目经验
+
+- SE ID 格式必须与上游 Phase 保持一致（Q01 用 `SE-001` 则下游必须用 `SE-001`，不能用 `SE-1`），否则 RSM 覆盖率计算会归零
+- 手动模式下 DQG Phase 执行不要用 agent 方式跑，直接在主会话执行，避免 context 丢失和产出不一致
+
 *最后更新：2026-04-29*
