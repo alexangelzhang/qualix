@@ -3,6 +3,27 @@
 > 本文件定义 DQG 所有 Phase 报告产物的格式规范。`report_quality_checks.py` 基于这些规范做确定性检测。
 > 所有 SKILL.md 和模板文件引用本规范，修改格式要求时只改本文件。
 
+## 0. PROFILE_CONTEXT 章节
+
+每份报告必须包含 `## PROFILE_CONTEXT` 章节，声明本次评审/审计使用的 profile、baseline 和阈值。
+
+### 格式
+
+标题必须严格为 `## PROFILE_CONTEXT`，不加编号、不加后缀：
+
+```markdown
+## PROFILE_CONTEXT
+
+| 项 | 值 |
+|---|---|
+| Profile | java-ddd-tmf |
+| ... | ... |
+```
+
+错误示例（会触发 WARNING）：
+- `## 1. PROFILE_CONTEXT — 技术栈基线` — 不要加编号和后缀
+- `### PROFILE_CONTEXT` — 必须是二级标题 `##`
+
 ## 1. 来源标注（Source Annotation）
 
 每条结论行（包含 COVERED/PARTIAL/MISSING/IMPLICIT/风险/问题/建议等判定性词汇的行）必须附带来源标注。

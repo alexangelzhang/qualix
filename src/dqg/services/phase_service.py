@@ -133,7 +133,7 @@ def profile_context_warnings(output_dir: Path, project_id: str, phase_id: str) -
     if not profile_ctx_path.exists():
         warnings.append(f"缺少 profile 上下文文件: {profile_ctx_path}")
     report_path = pd / report_file
-    if report_path.exists() and "PROFILE_CONTEXT" not in report_path.read_text(encoding="utf-8"):
+    if report_path.exists() and "## PROFILE_CONTEXT" not in report_path.read_text(encoding="utf-8"):
         warnings.append(f"报告未包含 PROFILE_CONTEXT: {report_path}")
     return warnings
 
