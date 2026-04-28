@@ -68,30 +68,60 @@ _DECISION_OWNER_PATTERN = re.compile(
 def check_source_annotations(report_text: str) -> list[dict[str, Any]]:
     """检测结论行是否缺少来源标注."""
     issues = []
+    lines = report_text.splitlines()
     # 找到包含判定性词汇的行
     conclusion_patterns = re.compile(
         r"(缺失|遗漏|未覆盖|不完整|风险|问题|建议|BLOCKER|CRITICAL|WARNING"
         r"|COVERED|NOT_COVERED|PARTIAL|WRONG_TARGET|CONFLICT)",
     )
-    for i, line in enumerate(report_text.splitlines(), 1):
-        if conclusion_patterns.search(line) and not _SOURCE_PATTERN.search(line):
-            # 跳过表头、分隔线、空行
-            stripped = line.strip()
-            if stripped.startswith("|") and "---" in stripped:
-                continue
-            if stripped.startswith("#") or not stripped:
-                continue
-            # 跳过纯标签行（如 severity: HIGH）
-            if ":" in stripped and len(stripped.split()) <= 3:
-                continue
-            issues.append(
-                {
-                    "check": "source_annotation",
-                    "line": i,
-                    "message": "结论行缺少来源标注 [来源: 文件名:行号]",
-                    "content": stripped[:120],
-                }
-            )
+    # 表头检测：表格行后紧跟 |---| 分隔线的是表头
+    table_header_lines: set[int] = set()
+    for i, line in enumerate(lines):
+        stripped = line.strip()
+        if stripped.startswith("|") and "---" in stripped and i > 0:
+            # 这是分隔线，前一行是表头
+            table_header_lines.add(i)  # 0-indexed: 分隔线本身
+            table_header_lines.add(i - 1)  # 表头行
+
+    # 自我评审记录章节检测
+    in_self_review = False
+
+    for i, line in enumerate(lines):
+        stripped = line.strip()
+        # 检测是否进入/离开自我评审章节
+        if re.match(r"^#{1,3}\s*(自我评审|Judge|Critique|Step\s+\d)", stripped):
+            in_self_review = True
+        elif stripped.startswith("#") and not re.match(r"^#{1,3}\s*(自我评审|Judge|Critique|Step\s+\d)", stripped):
+            in_self_review = False
+
+        if not conclusion_patterns.search(line) or _SOURCE_PATTERN.search(line):
+            continue
+
+        # 跳过表头和分隔线
+        if i in table_header_lines:
+            continue
+        if stripped.startswith("|") and "---" in stripped:
+            continue
+        if stripped.startswith("#") or not stripped:
+            continue
+        # 跳过纯标签行（如 severity: HIGH）
+        if ":" in stripped and len(stripped.split()) <= 3:
+            continue
+        # 跳过自我评审记录章节（Judge/Critique 记录不需要来源标注）
+        if in_self_review:
+            continue
+        # 跳过统计行（表格行中不含具体 ID 的纯数字/百分比行）
+        if stripped.startswith("|") and not _VALID_ID_PATTERN.search(stripped):
+            continue
+
+        issues.append(
+            {
+                "check": "source_annotation",
+                "line": i + 1,  # 1-indexed
+                "message": "结论行缺少来源标注 [来源: 文件名:行号]",
+                "content": stripped[:120],
+            }
+        )
     return issues
 
 
