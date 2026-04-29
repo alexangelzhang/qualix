@@ -16,7 +16,7 @@ from dqg.core.state_machine import internal_dir as _internal_dir
 from dqg.core.state_machine import phase_dir as _phase_dir
 from dqg.json_utils import load_json, save_json
 from dqg.path_utils import resolve_internal_file
-from dqg.text_utils import STRUCTURED_JSON_MAP
+from dqg.text_utils import STRUCTURED_JSON_MAP, expand_eut_ids
 
 # Phase → 需要检查数量的字段
 _COUNT_FIELDS: Final = MappingProxyType(
@@ -141,6 +141,15 @@ def _count_items(json_path: Path, phase_id: str) -> dict[str, int]:
         reqs = data.get("requirements", [])
         counts["req_count"] = len([r for r in reqs if r.get("req_id", "").startswith("REQ-")])
         counts["br_count"] = len([r for r in reqs if r.get("req_id", "").startswith("BR-")])
+
+    # Q06: SE-based 模式下按展开后的 EUT 数量计数，兼容旧版逐条模式
+    if phase_id == "Q06" and "audit_items" in counts:
+        items = data.get("audit_items", [])
+        if items and items[0].get("se_id"):
+            all_euts: set[str] = set()
+            for item in items:
+                all_euts |= expand_eut_ids(item.get("eut_id", ""))
+            counts["audit_items"] = len(all_euts)
 
     return counts
 

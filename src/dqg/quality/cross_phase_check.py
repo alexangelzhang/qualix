@@ -10,6 +10,7 @@ from pathlib import Path  # noqa: TC003
 
 from dqg.constants import PHASE_DIR_MAP, STRUCTURED_JSON_MAP
 from dqg.json_utils import load_json
+from dqg.text_utils import expand_eut_ids
 
 
 def _extract_ids(data: dict, key: str, id_field: str) -> set[str]:
@@ -87,8 +88,12 @@ def check_cross_phase_refs(output_dir: Path, project_id: str) -> list[str]:
     if phase_b and phase_c:
         eut_ids = _extract_ids(phase_b, "eut_items", "eut_id")
         for item in phase_c.get("audit_items", []):
-            ref_id = item.get("eut_id", "")
-            if ref_id and ref_id not in eut_ids:
-                errors.append(f"Phase Q06 审计了 {ref_id}，但 Phase Q05 中不存在")
+            ref_raw = item.get("eut_id", "")
+            if not ref_raw:
+                continue
+            expanded = expand_eut_ids(ref_raw)
+            missing = expanded - eut_ids
+            if missing:
+                errors.append(f"Phase Q06 审计了 {', '.join(sorted(missing))}，但 Phase Q05 中不存在")
 
     return errors

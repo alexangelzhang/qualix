@@ -29,14 +29,71 @@ _jieba_available: bool | None = None
 _jieba_module: Any = None
 
 # 中文停用词（高频无意义词）
-_CHINESE_STOPWORDS: frozenset[str] = frozenset({
-    "的", "了", "在", "是", "我", "有", "和", "就", "不", "人", "都", "一",
-    "一个", "上", "也", "很", "到", "说", "要", "去", "你", "会", "着",
-    "没有", "看", "好", "自己", "这", "他", "她", "它", "们", "那", "些",
-    "什么", "怎么", "如果", "因为", "所以", "但是", "而且", "或者", "以及",
-    "可以", "需要", "进行", "使用", "通过", "对于", "关于", "其中", "以下",
-    "以上", "之后", "之前", "目前", "已经", "正在", "将要", "应该", "必须",
-})
+_CHINESE_STOPWORDS: frozenset[str] = frozenset(
+    {
+        "的",
+        "了",
+        "在",
+        "是",
+        "我",
+        "有",
+        "和",
+        "就",
+        "不",
+        "人",
+        "都",
+        "一",
+        "一个",
+        "上",
+        "也",
+        "很",
+        "到",
+        "说",
+        "要",
+        "去",
+        "你",
+        "会",
+        "着",
+        "没有",
+        "看",
+        "好",
+        "自己",
+        "这",
+        "他",
+        "她",
+        "它",
+        "们",
+        "那",
+        "些",
+        "什么",
+        "怎么",
+        "如果",
+        "因为",
+        "所以",
+        "但是",
+        "而且",
+        "或者",
+        "以及",
+        "可以",
+        "需要",
+        "进行",
+        "使用",
+        "通过",
+        "对于",
+        "关于",
+        "其中",
+        "以下",
+        "以上",
+        "之后",
+        "之前",
+        "目前",
+        "已经",
+        "正在",
+        "将要",
+        "应该",
+        "必须",
+    }
+)
 
 
 def _ensure_jieba() -> bool:
@@ -46,6 +103,7 @@ def _ensure_jieba() -> bool:
         return _jieba_available
     try:
         import jieba as _jb
+
         _jb.setLogLevel(20)  # 抑制 jieba 的 DEBUG 日志
         _jieba_module = _jb
         _jieba_available = True
@@ -109,7 +167,7 @@ def tokenize_chinese(text: str) -> str:
 
     cursor = 0
     for match in _CHINESE_SEGMENT_RE.finditer(text):
-        prefix = text[cursor:match.start()]
+        prefix = text[cursor : match.start()]
         for ident in _IDENTIFIER_RE.findall(prefix):
             add(ident)
             for part in _split_identifier_parts(ident):
@@ -183,3 +241,32 @@ def row_to_dict(row, json_fields: list[str] | None = None) -> dict[str, Any]:
             with suppress(json.JSONDecodeError, TypeError):
                 d[key] = json.loads(d[key])
     return d
+
+
+# ---------------------------------------------------------------------------
+# EUT ID 展开（支持逗号分隔 + 范围格式）
+# ---------------------------------------------------------------------------
+
+_EUT_RANGE_RE = re.compile(r"^(?:EUT-)?(\d+)~(?:EUT-)?(\d+)$")
+
+
+def expand_eut_ids(raw: str) -> set[str]:
+    """展开 EUT ID 字符串为独立 ID 集合.
+
+    支持格式: "EUT-001", "EUT-001,EUT-002", "EUT-008~012", "EUT-001,EUT-008~012"
+    """
+    result: set[str] = set()
+    for segment in re.split(r"[,\s]+", raw):
+        segment = segment.strip()
+        if not segment:
+            continue
+        range_match = _EUT_RANGE_RE.match(segment)
+        if range_match:
+            start, end = int(range_match.group(1)), int(range_match.group(2))
+            for n in range(start, end + 1):
+                result.add(f"EUT-{n:03d}")
+        elif re.match(r"^EUT-\d+$", segment):
+            result.add(segment)
+        elif re.match(r"^\d+$", segment):
+            result.add(f"EUT-{int(segment):03d}")
+    return result

@@ -190,8 +190,16 @@ def compute_incremental_coverage(
         class_name = method_ref.split(".")[0] if "." in method_ref else method_ref
         affected_sources.add(f"{class_name}.java")
 
+    # blast radius 中的测试文件名（用于 mock shadow 检测）
+    test_basenames: set[str] = set()
+    for f in blast_radius.get("changed_files", []):
+        basename = f.rsplit("/", 1)[-1]
+        if "Test" in basename and basename.endswith(".java"):
+            test_basenames.add(basename)
+
     # 匹配 JaCoCo sourcefile
     matched: list[str] = []
+    mock_shadowed: list[str] = []
     unmatched: list[str] = []
     agg: dict[str, dict[str, int]] = {}
 
@@ -204,6 +212,10 @@ def compute_incremental_coverage(
             or any(qualified.endswith(s) for s in affected_sources if "/" in s)
         )
         if is_affected:
+            # mock shadow 检测：JaCoCo 全 0 且有对应测试文件
+            if _is_mock_shadowed(filename, counters, test_basenames):
+                mock_shadowed.append(qualified)
+                continue
             matched.append(qualified)
             for counter_type, data in counters.items():
                 if counter_type not in agg:
@@ -223,11 +235,30 @@ def compute_incremental_coverage(
             "rate": round(data["covered"] / total, 4) if total > 0 else 0.0,
         }
 
-    return {
+    result: dict[str, Any] = {
         "incremental": incremental,
         "matched_files": matched,
         "unmatched_files_count": len(unmatched),
     }
+    if mock_shadowed:
+        result["mock_shadowed_files"] = mock_shadowed
+    return result
+
+
+def _is_mock_shadowed(
+    filename: str,
+    counters: dict[str, Any],
+    test_basenames: set[str],
+) -> bool:
+    """检测 Mockito CALLS_REAL_METHODS 导致的 JaCoCo 覆盖率假阴性.
+
+    条件：JaCoCo 所有计数器 covered=0 且 blast radius 中存在对应测试文件。
+    """
+    all_zero = all(c.get("covered", 0) == 0 for c in counters.values())
+    if not all_zero:
+        return False
+    class_name = filename.removesuffix(".java")
+    return any(t.startswith(class_name) and "Test" in t for t in test_basenames)
 
 
 def find_jacoco_report(code_repo: Path) -> Path | None:

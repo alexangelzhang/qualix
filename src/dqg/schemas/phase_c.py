@@ -16,9 +16,12 @@ class AuditStatus(StrEnum):
 
 
 class EutAuditItem(BaseModel):
-    """EUT 审计条目（audit 模式）."""
+    """EUT 审计条目（兼容 EUT 逐条和 SE-based 汇总两种模式）."""
 
-    eut_id: str = Field(pattern=r"^EUT-\d+$")
+    id: str = ""
+    se_id: str = ""
+    eut_id: str = Field(pattern=r"^EUT-\d+([\s,~]+(\d+|EUT-\d+))*$")
+    description: str = ""
     status: AuditStatus
     test_class: str = ""
     test_method: str = ""
@@ -27,6 +30,8 @@ class EutAuditItem(BaseModel):
     notes: str = ""
     tc_id: str = ""
     repo: str = ""
+    evidence: str = ""
+    recommendation: str = ""
     issues: list[str] = Field(default_factory=list)
 
 

@@ -198,7 +198,16 @@ def handle_weak_assert_scan_q05(ctx: ExecutionContext, result: PhaseResult) -> N
             if class_name:
                 test_classes.add(class_name)
 
-    if not test_classes:
+    # fallback: covered_by 为空时，从 class_under_test 搜索对应测试文件
+    use_cut_fallback = not test_classes
+    if use_cut_fallback:
+        classes_under_test: set[str] = set()
+        for tc in structured.get("test_cases", []):
+            cut = tc.get("class_under_test", "")
+            if cut:
+                classes_under_test.add(cut)
+
+    if not test_classes and not (use_cut_fallback and classes_under_test):
         return
 
     # 在所有 code_repos 中搜索测试文件
@@ -210,13 +219,21 @@ def handle_weak_assert_scan_q05(ctx: ExecutionContext, result: PhaseResult) -> N
             continue
         if primary_repo is None:
             primary_repo = repo_path
-        for cls in test_classes:
-            for suffix in (".java", ".kt"):
-                matches = list(repo.rglob(f"{cls}{suffix}"))
-                for m in matches:
-                    rel = str(m.relative_to(repo))
-                    if rel not in test_files:
-                        test_files.append(rel)
+        if use_cut_fallback:
+            for cls in classes_under_test:
+                for match in repo.rglob(f"{cls}*Test*.java"):
+                    if "/test/" in str(match):
+                        rel = str(match.relative_to(repo))
+                        if rel not in test_files:
+                            test_files.append(rel)
+        else:
+            for cls in test_classes:
+                for suffix in (".java", ".kt"):
+                    matches = list(repo.rglob(f"{cls}{suffix}"))
+                    for m in matches:
+                        rel = str(m.relative_to(repo))
+                        if rel not in test_files:
+                            test_files.append(rel)
 
     if not test_files or not primary_repo:
         return

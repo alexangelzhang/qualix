@@ -182,15 +182,21 @@ def _resolve_metric(output_dir: Path, project_id: str, phase_id: str, metric: st
         return float(sum(1 for f in findings if f.get("severity") in ("BLOCKER", "CRITICAL")))
     if metric == "req_coverage_rate":
         summary = data.get("coverage_summary", [])
-        for row in summary:
-            if row.get("dimension") in ("REQ", "req"):
-                return float(row.get("coverage_rate", 0))
+        if isinstance(summary, list):
+            for row in summary:
+                if isinstance(row, dict) and row.get("dimension") in ("REQ", "req"):
+                    return float(row.get("coverage_rate", 0))
     if metric == "se_coverage_rate":
-        # Q04: coverage_summary
+        # Q04: coverage_summary (list of dicts)
         summary = data.get("coverage_summary", [])
-        for row in summary:
-            if row.get("dimension") in ("SE", "se"):
-                return float(row.get("coverage_rate", 0))
+        if isinstance(summary, list):
+            for row in summary:
+                if isinstance(row, dict) and row.get("dimension") in ("SE", "se"):
+                    return float(row.get("coverage_rate", 0))
+        elif isinstance(summary, dict) and summary.get("total_se"):
+            total = summary.get("total_se", 0)
+            covered = summary.get("covered", 0)
+            return covered / total if total else 0.0
         # Q06: audit_items
         items = data.get("audit_items", [])
         if items:
