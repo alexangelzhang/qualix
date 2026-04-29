@@ -36,6 +36,7 @@ class EventType(StrEnum):
     WEAK_ASSERT_GATE = "weak_assert_gate"
     MOCK_COINCIDENCE_DETECTED = "mock_coincidence_detected"
     AI_ORIGIN_DETECTED = "ai_origin_detected"
+    SUPERSET_REGRESSION = "superset_regression"
 
     # Skill Evolution 自动闭环
     SKILL_AUTO_MERGED = "skill_auto_merged"

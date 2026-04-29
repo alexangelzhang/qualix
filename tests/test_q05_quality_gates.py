@@ -189,7 +189,9 @@ class TestMockCoincidenceQ05:
     """Q05 Mock 巧合正确检测: coincidence_hits 触发 BLOCKED."""
 
     def _write_report(self, tmp_path: Path, content: str) -> None:
-        (tmp_path / "eut_matrix.md").write_text(content, encoding="utf-8")
+        test_dir = tmp_path / "supplemental_tests"
+        test_dir.mkdir(exist_ok=True)
+        (test_dir / "SomeTest.java").write_text(content, encoding="utf-8")
 
     def test_q05_coincidence_hit_triggers_blocked(self, tmp_path: Path):
         from dqg.runtime.handlers_detection import handle_mock_coincidence_check

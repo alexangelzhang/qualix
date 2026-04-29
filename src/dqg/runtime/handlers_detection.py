@@ -1,4 +1,4 @@
-"""异构检测层 finalize handlers：弱断言 gate / Mock 巧合正确 / AI 产出标记."""
+"""异构检测层 finalize handlers：弱断言 gate / Mock 巧合正确 / AI 产出标记 / 覆盖超集."""
 
 from __future__ import annotations
 
@@ -351,3 +351,13 @@ def register_detection_handlers() -> None:
         order=57,
     )
     register_handler("ai_origin_detection", handle_ai_origin_detection, stage="finalize", order=58)
+
+    from dqg.runtime.handlers_superset import handle_superset_gate
+
+    register_handler(
+        "superset_gate",
+        handle_superset_gate,
+        stage="finalize",
+        phases={"Q05"},
+        order=59,
+    )

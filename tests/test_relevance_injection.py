@@ -2,18 +2,27 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from dqg.quality.judge import generate_judge_prompt
 from dqg.quality.critique import generate_critique_prompt
-from dqg.tracking.experiment import generate_experiment_prompt
+from dqg.quality.judge import generate_judge_prompt
 from dqg.tracking.case_selector import select_relevant_cases
-from dqg.constants import BUG_CASE_RELEVANCE_EXCERPT_LIMIT, BUG_CASE_RELEVANCE_SEED_LIMIT
+from dqg.tracking.experiment import generate_experiment_prompt
 
 
-def _write_case(root: Path, phase_dir: str, case_id: str, *, phase: str, title: str, lesson: str, input_text: str, severity: str = "medium") -> None:
+def _write_case(
+    root: Path,
+    phase_dir: str,
+    case_id: str,
+    *,
+    phase: str,
+    title: str,
+    lesson: str,
+    input_text: str,
+    severity: str = "medium",
+) -> None:
     case_dir = root / phase_dir / case_id
     case_dir.mkdir(parents=True, exist_ok=True)
     (case_dir / "case.json").write_text(
-        "{" 
+        "{"
         f'"case_id": "{case_id}", '
         f'"phase": "{phase}", '
         '"error_type": "FN", '
@@ -26,7 +35,7 @@ def _write_case(root: Path, phase_dir: str, case_id: str, *, phase: str, title: 
         '"source": {"validation_error": "字段缺失"}, '
         '"expected": {"content": "需要权限校验"}, '
         '"actual": {"content": "缺少权限拦截"}, '
-        f'"lesson": "{lesson}"' 
+        f'"lesson": "{lesson}"'
         "}",
         encoding="utf-8",
     )
@@ -57,8 +66,11 @@ def test_relevance_matching_used_by_judge_critique_and_experiment(tmp_path: Path
     )
 
     import dqg.tracking.case_selector as case_selector
+
     original_load = case_selector.load_cases_by_phase
-    monkeypatch.setattr(case_selector, "load_cases_by_phase", lambda phase, **kwargs: original_load(phase, cases_root, **kwargs))
+    monkeypatch.setattr(
+        case_selector, "load_cases_by_phase", lambda phase, **kwargs: original_load(phase, cases_root, **kwargs)
+    )
 
     phase_dir = tmp_path / "output" / "demo" / "Q01"
     phase_dir.mkdir(parents=True, exist_ok=True)
@@ -77,7 +89,7 @@ def test_relevance_matching_used_by_judge_critique_and_experiment(tmp_path: Path
     assert [case["case_id"] for case in selected] == ["CASE-001"]
 
     # experiment uses skill content as relevance input
-    skill_path = Path("skills/requirement-structuring.md")
+    skill_path = Path("skills/requirement-structuring/SKILL.md")
     skill_path.parent.mkdir(parents=True, exist_ok=True)
     old = skill_path.read_text(encoding="utf-8") if skill_path.exists() else None
     try:
