@@ -21,6 +21,8 @@ allowed-tools:
 
 IRON LAW: 测试通过 ≠ 测对了。每个 COVERED 判定必须验证期望值来源（来自需求还是猜测），无法确认来源的判定降级为 PARTIAL。
 
+IRON LAW: 每条 audit_item 的 evidence 字段必须引用具体代码位置（格式：`[文件名:行号]`），空 evidence 的 COVERED 判定会被 finalize gate 降级为 PARTIAL。报告中每条结论行必须有 `[来源: 文件名:行号]` 标注。
+
 验证单测是否真正测对了业务场景，而非仅追求覆盖率数字。
 
 ## 前置依赖
@@ -291,6 +293,36 @@ Phase Q05 保证"按规则写了"，Phase Q06 检查"写得好不好"：
 6. **改进建议** — 按优先级排序
 7. **评审结论** — PASS / PASS_WITH_RISKS / FAIL
 8. **自我评审记录** — Judge + Critique
+
+## phase_c_structured.json 产出格式（强制）
+
+```json
+{
+  "project_id": "xxx",
+  "audit_items": [
+    {
+      "id": "AUDIT-001",
+      "se_id": "SE-001",
+      "eut_id": "EUT-001,EUT-002",
+      "description": "SE 描述",
+      "status": "COVERED|PARTIAL|MISSING|WRONG_TARGET",
+      "test_class": "XxxTest [来源: XxxTest.java:45]",
+      "test_method": "method1, method2",
+      "evidence": "assertEquals('expected', actual) [XxxTest.java:52]; verify(mock).call() [XxxTest.java:58]",
+      "recommendation": ""
+    }
+  ],
+  "findings": [...],
+  "coverage_gate": {"line_coverage": 85.0, "branch_coverage": 72.0},
+  "conclusion": "PASS_WITH_RISKS",
+  "summary": {...}
+}
+```
+
+**evidence 字段铁律：**
+- COVERED 判定必须有 `[文件名:行号]` 格式的证据引用，至少 1 处
+- 空 evidence 的 COVERED 会被 finalize gate 自动降级为 PARTIAL
+- PARTIAL/MISSING 的 recommendation 必须具体到要补什么断言
 
 ## 通过标准
 
