@@ -156,6 +156,41 @@ def handle_business_mutations(ctx: ExecutionContext, result: PhaseResult) -> Non
         result.add_artifact("business_mutations", str(mutations_path))
 
 
+def handle_jacoco_report(ctx: ExecutionContext, result: PhaseResult) -> None:
+    """Phase C: 对每个 code_repo 自动运行 mvn jacoco:report 生成 XML 报告."""
+    import contextlib
+    import subprocess
+    from pathlib import Path
+
+    from dqg.quality.compile_check import _build_env_for_java, detect_build_tool
+    from dqg.quality.coverage_gate import find_jacoco_report
+
+    repos = ctx.code_repos or ([ctx.code_repo] if ctx.code_repo else [])
+    if not repos:
+        return
+
+    for repo in repos:
+        repo_path = Path(repo).resolve()
+        if not repo_path.is_dir():
+            continue
+        if detect_build_tool(repo_path) != "maven":
+            continue
+        if not list(repo_path.rglob("jacoco.exec")):
+            continue
+        if find_jacoco_report(repo_path):
+            continue
+        env = _build_env_for_java(repo_path)
+        with contextlib.suppress(subprocess.TimeoutExpired, OSError):
+            subprocess.run(
+                "mvn jacoco:report -q --batch-mode",
+                cwd=str(repo_path),
+                shell=True,
+                env=env,
+                timeout=120,
+                capture_output=True,
+            )
+
+
 def handle_blast_radius(ctx: ExecutionContext, result: PhaseResult) -> None:
     """Phase C: 代码改动影响范围分析（支持多 repo）."""
     repos = ctx.code_repos or ([ctx.code_repo] if ctx.code_repo else [])
@@ -449,6 +484,13 @@ def register_execute_handlers() -> None:
         phases={"Q05", "Q06"},
         order=50,
         depends_on=["diff_context"],
+    )
+    register_handler(
+        "jacoco_report",
+        handle_jacoco_report,
+        stage="execute",
+        phases={"Q06"},
+        order=45,
     )
     register_handler(
         "data_patterns",

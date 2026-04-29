@@ -64,6 +64,56 @@
 | Boundary | - | Z | - |
 | T1 核心 | A | B | B/A |
 
+## 并发测试模板（幂等性/竞态场景必用）
+
+当 SE 描述包含"幂等"、"重复提交"、"并发"、"同时操作"、"锁"关键词时，必须生成并发测试。仅 `assertThrows` 验证重复提交不算并发测试，必须多线程同时触发。
+
+```java
+@Test
+public void submit_concurrent_onlyOneSucceeds() throws Exception {
+    // Given: 构造合法请求
+    SubmitReq request = buildValidRequest();
+
+    int threadCount = 5;
+    CountDownLatch ready = new CountDownLatch(threadCount);
+    CountDownLatch go = new CountDownLatch(1);
+    AtomicInteger successCount = new AtomicInteger(0);
+    AtomicInteger failCount = new AtomicInteger(0);
+
+    // When: 5 个线程同时提交
+    ExecutorService executor = Executors.newFixedThreadPool(threadCount);
+    for (int i = 0; i < threadCount; i++) {
+        executor.submit(() -> {
+            ready.countDown();
+            try { go.await(); } catch (InterruptedException e) { return; }
+            try {
+                service.submit(request);
+                successCount.incrementAndGet();
+            } catch (BizException e) {
+                failCount.incrementAndGet();
+            }
+        });
+    }
+    ready.await();
+    go.countDown();
+    executor.shutdown();
+    executor.awaitTermination(10, TimeUnit.SECONDS);
+
+    // Then: 只有 1 个成功，其余全部失败
+    assertEquals(1, successCount.get());
+    assertEquals(threadCount - 1, failCount.get());
+}
+```
+
+需要的 import：
+```java
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+```
+
 ## 红线规则（违反即 FAIL）
 
 1. EUT 全部是 Happy Path，无 Exception/Boundary → FAIL

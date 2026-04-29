@@ -187,6 +187,11 @@ Step 1.1 + 1.2 的结果必须输出为结构化 JSON：
 | Defense | 100%（逐个 if null return/if blank skip 必须有对应用例） | BLOCKED |
 | 状态机 | 100% 转移边（含反向/非法跳转） | BLOCKED |
 | 并发场景 | check-then-act 竞态窗口必须有用例 | BLOCKED |
+
+> 并发测试必须使用 CountDownLatch 模式验证竞态窗口，具体模板见 `references/test-generation-rules.md`。仅 `assertThrows` 验证重复提交不算并发测试，必须多线程同时触发。触发条件（满足任一即触发）：
+> - SE 描述包含"幂等"、"重复提交"、"并发"、"同时操作"、"锁"关键词
+> - 代码中存在 check-then-act 模式：`synchronized`、`@Transactional` + 状态检查、分布式锁（`RedissonClient`/`@DistributedLock`）、`SELECT ... FOR UPDATE`
+> - 即使 Q01 未识别并发 SE，读代码时发现上述模式也必须生成并发测试
 | 变更文件覆盖率 | P0 100% / P1 ≥ 80% | WARNING |
 | 代码分支覆盖率 | ≥ 70% | WARNING |
 
