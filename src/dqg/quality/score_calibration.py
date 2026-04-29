@@ -8,11 +8,13 @@
 from __future__ import annotations
 
 from datetime import datetime
-from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from dqg.json_utils import load_json, save_json
 from dqg.log import get_logger
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 log = get_logger(__name__)
 
@@ -41,7 +43,8 @@ def check_score_consistency(
     dqg_score = judge_result.get("overall_score", 0.0)
 
     from dqg.constants import REPORT_MAP
-    from dqg.core.state_machine import PHASE_DEFS, phase_dir as _phase_dir
+    from dqg.core.state_machine import PHASE_DEFS
+    from dqg.core.state_machine import phase_dir as _phase_dir
 
     phase_def = PHASE_DEFS.get(phase_id)
     if not phase_def:
@@ -75,7 +78,10 @@ def check_score_consistency(
     if not consistent:
         log.warning(
             "Score drift: Phase %s DQG=%.1f DeepEval=%.1f drift=%.1f",
-            phase_id, dqg_score, deepeval_score, drift,
+            phase_id,
+            dqg_score,
+            deepeval_score,
+            drift,
         )
 
     _save_calibration_result(output_dir, project_id, phase_id, result)
@@ -98,7 +104,7 @@ def check_score_trend(
         }
 
     recent = history[-TREND_WINDOW:]
-    previous = history[-TREND_WINDOW * 2:-TREND_WINDOW]
+    previous = history[-TREND_WINDOW * 2 : -TREND_WINDOW]
 
     avg_recent = sum(h["score"] for h in recent) / len(recent)
     avg_previous = sum(h["score"] for h in previous) / len(previous)
@@ -127,34 +133,8 @@ def check_score_trend(
 
 
 def _run_deepeval_scoring(phase_id: str, report_text: str) -> float | None:
-    """用 DeepEval 对产物独立评分. Returns 0-5 or None."""
-    try:
-        from deepeval import metrics as dm
-        from deepeval.test_case import LLMTestCase, LLMTestCaseParams
-
-        criteria = _get_phase_criteria(phase_id)
-        # 使用 deepeval.metrics 的通用评估指标
-        metric = dm.GEval(
-            name=f"Phase_{phase_id}_Quality",
-            criteria=criteria,
-            evaluation_params=[LLMTestCaseParams.ACTUAL_OUTPUT],
-            threshold=0.6,
-        )
-
-        test_case = LLMTestCase(
-            input=f"Assess Phase {phase_id} output quality",
-            actual_output=report_text,
-        )
-
-        metric.measure(test_case)
-        return round(metric.score * 5, 2) if metric.score is not None else None
-
-    except ImportError:
-        log.debug("DeepEval not available")
-        return None
-    except Exception as exc:
-        log.warning("DeepEval scoring failed: %s", exc)
-        return None
+    """DeepEval 评分已禁用，DQG 内置 Judge/Critique 评审链已足够."""
+    return None
 
 
 def _get_phase_criteria(phase_id: str) -> str:
@@ -196,10 +176,14 @@ def _get_phase_criteria(phase_id: str) -> str:
 
 
 def _save_calibration_result(
-    output_dir: Path, project_id: str, phase_id: str, result: dict[str, Any],
+    output_dir: Path,
+    project_id: str,
+    phase_id: str,
+    result: dict[str, Any],
 ) -> None:
     """保存校准结果."""
-    from dqg.core.state_machine import PHASE_DEFS, internal_dir as _internal_dir
+    from dqg.core.state_machine import PHASE_DEFS
+    from dqg.core.state_machine import internal_dir as _internal_dir
 
     phase_def = PHASE_DEFS.get(phase_id)
     if not phase_def:
@@ -212,7 +196,10 @@ def _save_calibration_result(
 
 
 def _append_score_history(
-    output_dir: Path, project_id: str, phase_id: str, score: float,
+    output_dir: Path,
+    project_id: str,
+    phase_id: str,
+    score: float,
 ) -> None:
     """追加评分到历史记录."""
     history_path = output_dir / project_id / "_score_history.json"
@@ -225,16 +212,20 @@ def _append_score_history(
     if phase_id not in history:
         history[phase_id] = []
 
-    history[phase_id].append({
-        "score": score,
-        "timestamp": datetime.now().isoformat(),
-    })
+    history[phase_id].append(
+        {
+            "score": score,
+            "timestamp": datetime.now().isoformat(),
+        }
+    )
     history[phase_id] = history[phase_id][-20:]
     save_json(history_path, history)
 
 
 def _load_score_history(
-    output_dir: Path, project_id: str, phase_id: str,
+    output_dir: Path,
+    project_id: str,
+    phase_id: str,
 ) -> list[dict[str, Any]]:
     """加载评分历史."""
     history_path = output_dir / project_id / "_score_history.json"
