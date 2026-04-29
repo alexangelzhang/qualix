@@ -299,7 +299,11 @@ def check_phase_c_coverage(
         report_path,
     )
 
-    errors = check_coverage_gate(coverage)
+    # 全量覆盖率仅做 WARNING（不 BLOCK，整仓库覆盖率不是本次改动的责任）
+    errors: list[str] = []
+    full_errors = check_coverage_gate(coverage)
+    for e in full_errors:
+        errors.append(e.replace("BLOCKED:", "WARNING:"))
 
     # 尝试增量覆盖率分析
     incremental_result = _try_incremental_coverage(output_dir, project_id, report_path)
@@ -310,17 +314,19 @@ def check_phase_c_coverage(
         matched = incremental_result["matched_files"]
         log.info(
             "Coverage (incremental, %d files): line=%.1f%% branch=%.1f%%",
-            len(matched), inc_line * 100, inc_branch * 100,
+            len(matched),
+            inc_line * 100,
+            inc_branch * 100,
         )
-        # 增量覆盖率低于阈值时追加 WARNING（不 BLOCK，仅提示）
+        # 增量覆盖率低于阈值时 BLOCKED（本次改动的文件必须达标）
         if inc_line < DEFAULT_LINE_THRESHOLD and matched:
             errors.append(
-                f"WARNING: 增量行覆盖率 {inc_line:.1%}（blast radius 内 {len(matched)} 文件）"
+                f"BLOCKED: 增量行覆盖率 {inc_line:.1%}（blast radius 内 {len(matched)} 文件）"
                 f"低于阈值 {DEFAULT_LINE_THRESHOLD:.0%}"
             )
         if inc_branch < DEFAULT_BRANCH_THRESHOLD and matched:
             errors.append(
-                f"WARNING: 增量分支覆盖率 {inc_branch:.1%}（blast radius 内 {len(matched)} 文件）"
+                f"BLOCKED: 增量分支覆盖率 {inc_branch:.1%}（blast radius 内 {len(matched)} 文件）"
                 f"低于阈值 {DEFAULT_BRANCH_THRESHOLD:.0%}"
             )
         # 写入增量结果供 verification_bundle 消费
