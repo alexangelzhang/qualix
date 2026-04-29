@@ -198,6 +198,12 @@ Step 1.1 + 1.2 的结果必须输出为结构化 JSON：
 
 ### Step 3: 单测强断言约束代码实现
 
+**产出位置：直接写到业务仓库的 `src/test/java` 对应包目录下，不生成 patch 文件。**
+
+每个测试类放在被测类同一 Maven 模块的 `src/test/java` 下，包路径与被测类一致。例如：
+- 被测类: `car-mrs-domain/src/main/java/com/xiaomi/.../service/MrOrderMainService.java`
+- 测试类: `car-mrs-domain/src/test/java/com/xiaomi/.../service/MrOrderMainServiceTest.java`
+
 **3.1 写行为断言**：`assertEquals` 校验关键业务字段（金额、状态、ID、时间戳）。金额类断言必须精确到分。
 
 **3.2 副作用验证**：`Mockito.verify(client, times(1)).doAction(...)` 验证外部调用。不应该被调用的方法用 `verify(mock, never())` 验证。
@@ -212,13 +218,13 @@ Step 1.1 + 1.2 的结果必须输出为结构化 JSON：
 
 对照 Step 0.5d 的合并目标模块列表，逐仓库核对：
 
-| 仓库 | 设计 TC 数 | 生成 patch 数 | 缺失 |
+| 仓库 | 设计 TC 数 | 已写入测试类数 | 缺失 |
 |------|-----------|-------------|------|
 
 规则：
-- 每个有 MISSING TC 的仓库，必须有对应的 `supplemental_tests/` patch 文件
-- 如果某仓库的 TC 全部 COVERED（已有测试），可以没有 patch，但必须在表格中标注"全部已覆盖"
-- **任何仓库有 MISSING TC 但无 patch → BLOCKED，不能进入 Step 4**
+- 每个有 MISSING TC 的仓库，必须有对应的测试文件写入 `src/test/java`
+- 如果某仓库的 TC 全部 COVERED（已有测试），可以没有新增文件，但必须在表格中标注"全部已覆盖"
+- **任何仓库有 MISSING TC 但无新增测试文件 → BLOCKED，不能进入 Step 4**
 - 禁止默默跳过某个仓库的测试生成
 
 ### Step 4: 自检（提交前强制检查）
@@ -228,7 +234,9 @@ Step 1.1 + 1.2 的结果必须输出为结构化 JSON：
 - [ ] 异常路径有对应测试
 - [ ] 每个测试用例标注了关联的 REQ/BR/SE ID
 - [ ] **每条 TC 的 se_refs 非空（至少绑定一个 SE）**
-- [ ] **每个有 MISSING TC 的仓库都有对应的 supplemental_tests patch**
+- [ ] **每个仓库的新增测试文件已写入 `src/test/java` 对应包目录**
+- [ ] **`mvn test-compile` 编译通过（每个仓库）**
+- [ ] **`mvn test -Dtest=<新增测试类>` 运行无错误（每个仓库）**
 - [ ] 如果是重跑：新版是旧版超集
 - [ ] 推理日志 `_reasoning_log.md` 已同步输出
 - [ ] 每条结论行有 `[来源: 文件名:行号]` 标注（参见 references/report-format-spec.md §1）
@@ -249,7 +257,7 @@ Step 1.1 + 1.2 的结果必须输出为结构化 JSON：
 
 - EUT 矩阵（`eut_matrix.md`）
 - 结构化产物（`phase_b_structured.json`）— 格式见下方
-- 单测代码（基于 `templates/DomainStepTest.java.tmpl` 和 `templates/DomainAbilityTest.java.tmpl`）
+- 单测代码（直接写入业务仓库 `src/test/java` 对应包目录，基于 `templates/DomainStepTest.java.tmpl` 和 `templates/DomainAbilityTest.java.tmpl`）
 - 建议以 `../../references/eut-matrix-template.md` 作为 EUT 报告骨架，并在报告头保留 `PROFILE_CONTEXT`
 
 ### `phase_b_structured.json` 格式（必须严格遵守）
@@ -342,7 +350,8 @@ Step 1.1 + 1.2 的结果必须输出为结构化 JSON：
 | 验证项 | 检查方式 | 阻断级别 |
 |--------|---------|---------|
 | 推理日志存在 | finalize_checks: `_reasoning_log.md` 存在且 > 100 字符 | BLOCKED |
-| 编译通过 | compile_check: `mvn compile` / `gradle compileJava` / `go build` | BLOCKED |
+| 编译通过 | test_execution_gate: 对每个仓库 `mvn test-compile` | BLOCKED |
+| 测试运行通过 | test_execution_gate: 对每个仓库 `mvn test -Dtest=<新增类>` | BLOCKED |
 | 产物数量不回退 | finalize_checks: 对比 `_prev_counts.json` | REGRESSION |
 | Schema 校验 | schemas/phase_b.py 验证 `phase_b_structured.json` | BLOCKED |
 | EUT 覆盖 SE | 每条 SE 至少有一个 bound_se 匹配的 EUT | 人工确认 |

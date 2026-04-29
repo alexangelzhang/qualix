@@ -167,32 +167,11 @@ def run_finalize_checks(output_dir: Path, project_id: str, phase_id: str) -> lis
 
     errors.extend(auto_derive_checks(output_dir, project_id, phase_id))
 
-    # Phase B: 编译验证 gate（需要 code_repo 参数，支持多 repo）
-    # 仅在有 supplemental_tests 产出时才跑编译检查
+    # Phase B: 单测编译+运行铁律 gate（不可跳过）
     if phase_id == "Q05":
-        phase_def = PHASE_DEFS.get(phase_id)
-        has_test_code = False
-        if phase_def:
-            pd = _phase_dir(output_dir, project_id, phase_def)
-            has_test_code = (pd / "supplemental_tests").exists()
-        if has_test_code:
-            from dqg.quality.compile_check import check_phase_b_compilation
+        from dqg.quality.test_execution_gate import check_q05_test_execution
 
-            # 从 _inputs.json 读取 code_repo/code_repos（execute 时用户输入）
-            if phase_def:
-                int_dir = _internal_dir(output_dir, project_id, phase_def)
-                inputs_path = int_dir / "_inputs.json"
-                code_repos: list[str] = []
-                if inputs_path.exists():
-                    inputs_data = load_json(inputs_path)
-                    if inputs_data:
-                        code_repos = inputs_data.get("code_repos", [])
-                        if not code_repos and inputs_data.get("code_repo"):
-                            code_repos = [inputs_data["code_repo"]]
-                for repo in code_repos:
-                    errors.extend(check_phase_b_compilation(output_dir, project_id, repo))
-                if not code_repos:
-                    errors.extend(check_phase_b_compilation(output_dir, project_id, None))
+        errors.extend(check_q05_test_execution(output_dir, project_id))
 
     # Phase C: 覆盖率门禁（解析 JaCoCo XML，支持多 repo）
     if phase_id == "Q06":
