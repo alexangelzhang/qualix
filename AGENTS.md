@@ -284,4 +284,6 @@ Phase 执行时自动注入以下增强上下文（`context/upstream_collector.p
 - `Claude-Reflect Learnings` 由 `claude-reflect` 生成，禁止手工把本轮改动直接写进该区块
 - 需要补充 learnings 时，先更新 `.claude/memory/` 源文件，再走生成流程刷新
 
-*最后更新：2026-04-24*
+*最后更新：2026-04-30*
+
+> 通用工作规则见 `RULES.md`。
