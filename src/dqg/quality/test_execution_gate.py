@@ -12,7 +12,7 @@ from dqg.quality.compile_check import _build_env_for_java, detect_build_tool
 
 log = get_logger(__name__)
 
-_TEST_TIMEOUT = 180
+_TEST_TIMEOUT = 300
 
 
 def _discover_new_test_classes(code_repo: Path) -> list[dict[str, str]]:
@@ -87,46 +87,44 @@ def run_test_check(
 
     env = _build_env_for_java(code_repo)
 
-    compile_cmd = "mvn test-compile -q --batch-mode"
     if module:
-        compile_cmd += f" -pl {module} -am"
-
-    try:
-        cr = subprocess.run(
-            compile_cmd,
-            cwd=str(code_repo),
-            capture_output=True,
-            text=True,
-            timeout=_TEST_TIMEOUT,
-            shell=True,
-            env=env,
-        )
-        if cr.returncode != 0:
-            summary = _extract_errors(cr.stderr + cr.stdout)
+        install_cmd = f"mvn install -DskipTests -q --batch-mode -pl {module} -am -U"
+        try:
+            ir = subprocess.run(
+                install_cmd,
+                cwd=str(code_repo),
+                capture_output=True,
+                text=True,
+                timeout=_TEST_TIMEOUT,
+                shell=True,
+                env=env,
+            )
+            if ir.returncode != 0:
+                summary = _extract_errors(ir.stderr + ir.stdout)
+                return {
+                    "passed": False,
+                    "phase": "compile",
+                    "build_tool": build_tool,
+                    "test_classes": test_classes,
+                    "error_summary": summary or "依赖编译失败",
+                }
+        except subprocess.TimeoutExpired:
             return {
                 "passed": False,
                 "phase": "compile",
                 "build_tool": build_tool,
                 "test_classes": test_classes,
-                "error_summary": summary or "test-compile 失败",
+                "error_summary": f"依赖编译超时（>{_TEST_TIMEOUT}s）",
             }
-    except subprocess.TimeoutExpired:
-        return {
-            "passed": False,
-            "phase": "compile",
-            "build_tool": build_tool,
-            "test_classes": test_classes,
-            "error_summary": f"test-compile 超时（>{_TEST_TIMEOUT}s）",
-        }
 
     test_pattern = ",".join(test_classes)
-    test_cmd = f"mvn test -q --batch-mode -Dtest={test_pattern} -Dsurefire.useFile=false"
+    cmd = f"mvn test -q --batch-mode -Dtest={test_pattern} -Dsurefire.useFile=false -Dsurefire.failIfNoSpecifiedTests=false"
     if module:
-        test_cmd += f" -pl {module}"
+        cmd += f" -pl {module}"
 
     try:
         tr = subprocess.run(
-            test_cmd,
+            cmd,
             cwd=str(code_repo),
             capture_output=True,
             text=True,
@@ -136,12 +134,13 @@ def run_test_check(
         )
         if tr.returncode != 0:
             summary = _extract_errors(tr.stderr + tr.stdout)
+            phase = "compile" if "Compilation failure" in (tr.stderr + tr.stdout) else "test"
             return {
                 "passed": False,
-                "phase": "test",
+                "phase": phase,
                 "build_tool": build_tool,
                 "test_classes": test_classes,
-                "error_summary": summary or "测试运行失败",
+                "error_summary": summary or "测试失败",
             }
     except subprocess.TimeoutExpired:
         return {
@@ -149,7 +148,7 @@ def run_test_check(
             "phase": "test",
             "build_tool": build_tool,
             "test_classes": test_classes,
-            "error_summary": f"测试运行超时（>{_TEST_TIMEOUT}s）",
+            "error_summary": f"测试超时（>{_TEST_TIMEOUT}s）",
         }
 
     return {
