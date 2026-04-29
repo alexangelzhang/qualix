@@ -87,40 +87,10 @@ def run_test_check(
 
     env = _build_env_for_java(code_repo)
 
-    if module:
-        install_cmd = f"mvn install -DskipTests -q --batch-mode -pl {module} -am -U"
-        try:
-            ir = subprocess.run(
-                install_cmd,
-                cwd=str(code_repo),
-                capture_output=True,
-                text=True,
-                timeout=_TEST_TIMEOUT,
-                shell=True,
-                env=env,
-            )
-            if ir.returncode != 0:
-                summary = _extract_errors(ir.stderr + ir.stdout)
-                return {
-                    "passed": False,
-                    "phase": "compile",
-                    "build_tool": build_tool,
-                    "test_classes": test_classes,
-                    "error_summary": summary or "依赖编译失败",
-                }
-        except subprocess.TimeoutExpired:
-            return {
-                "passed": False,
-                "phase": "compile",
-                "build_tool": build_tool,
-                "test_classes": test_classes,
-                "error_summary": f"依赖编译超时（>{_TEST_TIMEOUT}s）",
-            }
-
     test_pattern = ",".join(test_classes)
     cmd = f"mvn test -q --batch-mode -Dtest={test_pattern} -Dsurefire.useFile=false -Dsurefire.failIfNoSpecifiedTests=false"
     if module:
-        cmd += f" -pl {module}"
+        cmd += f" -pl {module} -am"
 
     try:
         tr = subprocess.run(
