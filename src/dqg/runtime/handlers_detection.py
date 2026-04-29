@@ -80,6 +80,20 @@ def handle_weak_assert_gate(ctx: ExecutionContext, result: PhaseResult) -> None:
     _async_write_json(ctx.internal_dir / "_weak_assert_gate.json", gate_result)
 
 
+def _collect_test_code_text(phase_root) -> str:
+    """收集 Q05 supplemental_tests 目录下的测试代码文本."""
+    from pathlib import Path
+
+    test_dir = Path(phase_root) / "supplemental_tests"
+    if not test_dir.exists():
+        return ""
+    parts: list[str] = []
+    for f in sorted(test_dir.iterdir()):
+        if f.is_file() and f.suffix in (".patch", ".java", ".kt", ".go", ".py"):
+            parts.append(f.read_text(encoding="utf-8", errors="replace"))
+    return "\n".join(parts)
+
+
 def handle_mock_coincidence_check(ctx: ExecutionContext, result: PhaseResult) -> None:
     """Mock 巧合正确检测：检测 Mock 返回值与真实 API 行为的偏差模式."""
     import re
@@ -87,15 +101,20 @@ def handle_mock_coincidence_check(ctx: ExecutionContext, result: PhaseResult) ->
     from dqg.constants import MOCK_COINCIDENCE_KEYWORDS, MOCK_REALITY_KEYWORDS
     from dqg.text_utils import REPORT_MAP
 
-    report_file = REPORT_MAP.get(ctx.phase_id)
-    if not report_file:
-        return
+    is_q05 = ctx.phase_id == "Q05"
 
-    report_path = ctx.phase_root / report_file
-    if not report_path.exists():
-        return
-
-    report = report_path.read_text(encoding="utf-8")
+    if is_q05:
+        report = _collect_test_code_text(ctx.phase_root)
+        if not report:
+            return
+    else:
+        report_file = REPORT_MAP.get(ctx.phase_id)
+        if not report_file:
+            return
+        report_path = ctx.phase_root / report_file
+        if not report_path.exists():
+            return
+        report = report_path.read_text(encoding="utf-8")
 
     reality_found = sum(1 for kw in MOCK_REALITY_KEYWORDS if kw.lower() in report.lower() or kw in report)
 
@@ -110,7 +129,6 @@ def handle_mock_coincidence_check(ctx: ExecutionContext, result: PhaseResult) ->
 
     issues: list[str] = []
     blocked = False
-    is_q05 = ctx.phase_id == "Q05"
 
     if coincidence_hits:
         issues.append(
