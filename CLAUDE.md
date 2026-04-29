@@ -25,6 +25,18 @@
 - 跨文件引用分析：code_index_refs，重构前用 code_index_blast_radius
 - 禁止在 code_index 可用时直接派 Explore agent 做代码探索
 
+## 铁律自检（每次行动前）
+
+执行任何工具调用前，自问以下问题。任一答案为"是"则停止并切换方式：
+
+1. **我要派 Agent 执行 Phase 吗？** → 手动模式下禁止，在主会话直接执行 skill
+2. **我要用 Grep/Bash(grep) 搜索代码吗？** → 先用 code_index_search/code_index_refs，失败再 fallback
+3. **我要用 Explore agent 探索代码吗？** → 先用 code_index_lookup，失败再 fallback
+4. **SubAgent 报告"测试通过"了吗？** → 不信，在主会话重新跑 mvn test 验证
+5. **dqg_starter.md 和 CLAUDE.md 冲突了吗？** → CLAUDE.md 优先级更高
+
+> 铁律守卫 hook（`ironlaw_guard.py`）会在 Agent/Grep/Bash 调用时自动检查，但 hook 只能拦截明显违规。上述自检覆盖 hook 无法检测的语义场景。
+
 ## 项目经验
 
 - SE ID 格式必须与上游 Phase 保持一致（Q01 用 `SE-001` 则下游必须用 `SE-001`，不能用 `SE-1`），否则 RSM 覆盖率计算会归零
