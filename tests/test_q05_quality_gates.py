@@ -186,24 +186,18 @@ class TestWeakAssertGateQ05:
 
 
 class TestMockCoincidenceQ05:
-    """Q05 Mock 巧合正确检测: coincidence_hits 触发 BLOCKED."""
+    """Q05 Mock 巧合正确检测: Q05 跳过（测试代码用 Mock 是正常的）."""
 
-    def _write_report(self, tmp_path: Path, content: str) -> None:
-        test_dir = tmp_path / "supplemental_tests"
-        test_dir.mkdir(exist_ok=True)
-        (test_dir / "SomeTest.java").write_text(content, encoding="utf-8")
-
-    def test_q05_coincidence_hit_triggers_blocked(self, tmp_path: Path):
+    def test_q05_coincidence_skipped(self, tmp_path: Path):
         from dqg.runtime.handlers_detection import handle_mock_coincidence_check
 
         ctx = _make_ctx(tmp_path, "Q05")
-        self._write_report(tmp_path, "Mock 设置固定返回值，when(service).thenReturn(0)")
-
         result = PhaseResult(phase_id="Q05")
         handle_mock_coincidence_check(ctx, result)
 
-        assert not result.success
-        assert any("BLOCKED" in e for e in result.errors)
+        assert result.success
+        assert not result.errors
+        assert not result.warnings
 
     def test_q06_coincidence_hit_warning_only(self, tmp_path: Path):
         """Q06 同样 coincidence hit 只触发 WARNING."""
@@ -220,17 +214,6 @@ class TestMockCoincidenceQ05:
 
         assert result.success
         assert result.warnings
-
-    def test_no_report_noop(self, tmp_path: Path):
-        """报告文件不存在时静默跳过."""
-        from dqg.runtime.handlers_detection import handle_mock_coincidence_check
-
-        ctx = _make_ctx(tmp_path, "Q05")
-        result = PhaseResult(phase_id="Q05")
-        handle_mock_coincidence_check(ctx, result)
-
-        assert result.success
-        assert not result.errors
 
 
 # ---------------------------------------------------------------------------

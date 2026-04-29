@@ -104,9 +104,7 @@ def handle_mock_coincidence_check(ctx: ExecutionContext, result: PhaseResult) ->
     is_q05 = ctx.phase_id == "Q05"
 
     if is_q05:
-        report = _collect_test_code_text(ctx.phase_root)
-        if not report:
-            return
+        return
     else:
         report_file = REPORT_MAP.get(ctx.phase_id)
         if not report_file:
