@@ -236,11 +236,17 @@ def build_lifecycle(
     # Phase B: EUT 关联
     data_b = phase_data.get("Q05")
     if data_b:
-        for eut in data_b.get("eut_items", []):
-            bound_se = eut.get("bound_se", "")
-            eut_id = eut.get("eut_id", "")
-            if bound_se and bound_se in lifecycle:
-                lifecycle[bound_se].eut_ids.append(eut_id)
+        eut_list = data_b.get("eut_items", []) or data_b.get("test_cases", [])
+        for eut in eut_list:
+            eut_id = eut.get("eut_id", "") or eut.get("id", "")
+            bound_ses = eut.get("bound_se", "")
+            if not bound_ses:
+                bound_ses = eut.get("se_refs", [])
+            if isinstance(bound_ses, str):
+                bound_ses = [bound_ses] if bound_ses else []
+            for bound_se in bound_ses:
+                if bound_se and bound_se in lifecycle:
+                    lifecycle[bound_se].eut_ids.append(eut_id)
 
     # Phase D: Finding 关联
     data_d = phase_data.get("Q07")

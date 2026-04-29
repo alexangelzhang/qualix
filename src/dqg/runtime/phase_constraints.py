@@ -172,7 +172,7 @@ def _resolve_metric(output_dir: Path, project_id: str, phase_id: str, metric: st
         req_mapping = data.get("req_mapping", [])
         return float(len(req_mapping))
     if metric == "eut_count":
-        eut_items = data.get("eut_items", [])
+        eut_items = data.get("eut_items", []) or data.get("test_cases", [])
         return float(len(eut_items))
     if metric == "critical_count":
         issues = data.get("issues", [])
