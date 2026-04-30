@@ -262,7 +262,7 @@ def cmd_doctor(args, output_dir: Path) -> int:
         except (subprocess.TimeoutExpired, FileNotFoundError):
             print(f"  ✓ agent-browser ({ab_path})")
     else:
-        print("  - agent-browser 未安装 (可选，npm install -g agent-browser)")
+        print("  - agent-browser 未安装 (可选，npm install -g agent-browser && agent-browser install)")
 
     # 汇总
     print()
