@@ -128,7 +128,7 @@ python3 scripts/parse_image_assets.py \
 1. 通读 PRD 全文 + Step 1 解析的图片语义，建立完整的业务理解。
 2. 识别核心要素：业务流程、状态机、角色权限、系统边界、数据流向。
 3. 标注 PRD 中的模糊点、矛盾点、缺失点（后续进入 GAP/OPEN）。
-4. 如果是重跑，必须先读取旧版产物，新版必须是旧版的超集。
+4. 如果是重跑，必须先读取旧版产物的 structured JSON 作为数据基线（确保数量不减少），但报告必须按当前规范重新生成，**禁止直接复制旧版文件做增量修改**。旧版产物可能本身有格式错误或内容缺陷，读取时必须独立判断，不能照抄。
 
 ### Step 3: 需求结构化 (REQ/BR/SE/GAP/OPEN)
 
@@ -163,6 +163,12 @@ python3 scripts/parse_image_assets.py \
 - [ ] 对每个 GAP 问：这个"缺失"是否有合理的设计原因？→ 有则改为 OPEN 或删除
 
 ### Step 4: 自检（提交前强制检查）
+
+**格式前置检测（必须在人工自检前跑）：**
+```bash
+python -m dqg.quality.checks.report_quality_checks output/<project_id> <project_id> Q01
+```
+如果有 source_annotation / reasoning_log_quality / skill_reference 问题，必须修复后再继续。不要等 finalize 才发现。
 
 - [ ] 每条 PRD 中的明确需求都已进入 REQ/BR
 - [ ] 每个 BR 包含完整的字段列表、枚举值、校验规则、提示文案（禁止概括性描述）
