@@ -92,10 +92,15 @@ def main() -> int:
     parser.add_argument("--output-json", required=True, help="输出 JSON 路径")
     parser.add_argument("--output-md", required=True, help="输出 Markdown 路径")
     parser.add_argument("--details-dir", required=True, help="单图明细输出目录")
-    parser.add_argument("--backend", choices=["auto", "dashscope", "none"], default="auto")
-    parser.add_argument("--model", default="qwen3-vl-plus")
+    parser.add_argument(
+        "--backend",
+        choices=["auto", "dashscope", "anthropic", "openai", "none"],
+        default="auto",
+        help="VLM 后端（auto 自动检测环境变量）",
+    )
+    parser.add_argument("--model", default="", help="VLM 模型名（留空使用各后端默认值）")
     parser.add_argument("--timeout", type=int, default=120)
-    parser.add_argument("--api-key", default=None, help="DashScope API Key")
+    parser.add_argument("--api-key", default=None, help="VLM API Key（也可通过环境变量配置）")
     parser.add_argument("--prompt-file", default=None, help="提示词文件路径")
     parser.add_argument("--max-workers", type=int, default=5, help="VLM 并发数（默认5）")
 
@@ -125,7 +130,12 @@ def main() -> int:
         warn("未发现可解析图片")
 
     prompt = load_prompt(Path(args.prompt_file).expanduser().resolve() if args.prompt_file else None)
-    api_key = args.api_key or os.getenv("DASHSCOPE_API_KEY", "")
+    api_key = (
+        args.api_key
+        or os.getenv("DASHSCOPE_API_KEY", "")
+        or os.getenv("ANTHROPIC_API_KEY", "")
+        or os.getenv("OPENAI_API_KEY", "")
+    )
 
     output_json = Path(args.output_json).expanduser().resolve()
 

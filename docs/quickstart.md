@@ -29,6 +29,22 @@ dqg-run any-project doctor
 
 确认输出全部 ✓ 或只有 ⚠（警告不阻断）。
 
+## Step 3.5: 图片解析增强（可选）
+
+DQG 支持自动解析 PRD 中的图片（UI 截图、流程图、状态机）。需要安装 OCR 引擎：
+
+```bash
+dqg-run any-project setup-ocr
+```
+
+一键安装 tesseract + 中文语言包。安装后 `dqg-run doctor` 会显示 ✓。
+
+不装也不影响基础流程——图片会标记为 `manual_review_required`，由人工补录语义。
+
+**进阶（可选）**：
+- 高精度 OCR 兜底：`pip install surya-ocr`（~500MB）
+- VLM 深度解析：配置环境变量 `ANTHROPIC_API_KEY` / `OPENAI_API_KEY` / `DASHSCOPE_API_KEY`
+
 ## Step 4: 初始化项目
 
 ```bash
@@ -102,6 +118,7 @@ AI 会逐步引导你：
 | `dqg-run <project> startup` | 输出 JSON 菜单（供 AI 解析） |
 | `dqg-run <project> status` | 查看状态看板 |
 | `dqg-run <project> doctor` | 环境健康检查 |
+| `dqg-run <project> setup-ocr` | 一键安装 OCR 依赖 |
 | `dqg-run <project> update` | 更新到最新版本 |
 | `dqg-run <project> version` | 显示版本号 |
 | `@dqg_starter.md 执行` | AI IDE 一站式入口 |

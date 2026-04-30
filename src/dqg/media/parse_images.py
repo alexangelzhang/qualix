@@ -149,8 +149,9 @@ def sanitize_filename(raw: str) -> str:
 
 
 def maybe_load_dashscope(api_key: str) -> Any | None:
+    """Deprecated: 保留向后兼容。新代码请用 vlm.provider.get_vlm_provider()。"""
     try:
-        import dashscope  # type: ignore
+        import dashscope  # type: ignore[import-untyped]
 
         dashscope.api_key = api_key
         return dashscope
@@ -165,47 +166,10 @@ def call_dashscope(
     model: str,
     timeout: int,
 ) -> str:
-    response = dashscope.MultiModalConversation.call(
-        model=model,
-        messages=[
-            {
-                "role": "user",
-                "content": [
-                    {"image": str(image_path)},
-                    {"text": prompt},
-                ],
-            }
-        ],
-        timeout=timeout,
-    )
+    """Deprecated: 保留向后兼容。新代码请用 DashScopeProvider。"""
+    from dqg.media.vlm.dashscope_provider import _call_via_sdk
 
-    if getattr(response, "status_code", None) != 200:
-        code = getattr(response, "code", "unknown")
-        msg = getattr(response, "message", "unknown error")
-        raise RuntimeError(f"DashScope 调用失败: code={code}, message={msg}")
-
-    output = response.output if hasattr(response, "output") else {}
-    choices = output.get("choices", []) if isinstance(output, dict) else []
-    if not choices:
-        raise RuntimeError("DashScope 返回内容为空")
-
-    message = choices[0].get("message", {})
-    content = message.get("content", [])
-    if isinstance(content, list):
-        text_parts: list[str] = []
-        for item in content:
-            if isinstance(item, dict) and item.get("text"):
-                text_parts.append(str(item.get("text")))
-        result = "\n".join(text_parts).strip()
-        if result:
-            return result
-
-    # fallback
-    text = choices[0].get("text") or ""
-    if text:
-        return str(text)
-
-    raise RuntimeError("无法解析 DashScope 返回文本")
+    return _call_via_sdk(dashscope, image_path, prompt, model, timeout)
 
 
 def summarize(text: str, max_len: int = 160) -> str:
@@ -260,17 +224,22 @@ LIGHT_PROMPT = "这是一张 UI 截图或页面原型。请用一句话描述其
 def _analyze_single(
     idx: int,
     asset: dict[str, Any],
-    dashscope: Any | None,
+    vlm_provider: Any | None,
     prompt: str,
     model: str,
     timeout: int,
 ) -> dict[str, Any]:
     """解析单张图片（线程安全，供并发调用）.
 
-    分层策略：
-    - light: 用简化 prompt，减少输出 token
-    - deep: 用完整 prompt，提取 Mermaid 等结构化信息
+    三层 fallback 链路：
+    1. 本地 OCR（tesseract → surya）+ 语义分析
+    2. VLM Provider（quality_score < 阈值时）
+    3. manual_review_required
+
+    vlm_provider: VlmProvider 实例或旧版 dashscope 模块（向后兼容）。
     """
+    from dqg.constants import OCR_DEFAULT_LANGS, OCR_QUALITY_THRESHOLD
+
     image_path = Path(asset["path"])
     token = asset.get("token", "")
     tier = _classify_image_tier(asset)
@@ -282,7 +251,7 @@ def _analyze_single(
         "name": asset.get("name", ""),
         "section_path": asset.get("section_path", ""),
         "path": str(image_path),
-        "backend": "dashscope" if dashscope else "none",
+        "backend": "none",
         "status": "pending",
         "analysis": "",
         "summary": "",
@@ -292,22 +261,65 @@ def _analyze_single(
         "file_size": asset.get("file_size", 0),
     }
 
-    if dashscope is not None:
+    # Layer 1: 本地 OCR
+    ocr_done = False
+    try:
+        from dqg.media.ocr.engine import is_ocr_available, ocr_extract
+
+        if is_ocr_available():
+            ocr_result = ocr_extract(image_path, langs=OCR_DEFAULT_LANGS)
+            if ocr_result.text.strip():
+                from dqg.media.ocr.analyzer import analyze_ocr_result
+
+                analysis = analyze_ocr_result(
+                    ocr_result=ocr_result,
+                    asset=asset,
+                    quality_threshold=OCR_QUALITY_THRESHOLD,
+                )
+                if not analysis.needs_vlm:
+                    row["status"] = "ok"
+                    row["backend"] = f"ocr:{ocr_result.engine}"
+                    row["analysis"] = analysis.analysis
+                    row["summary"] = analysis.summary
+                    ocr_done = True
+                else:
+                    row["_ocr_partial"] = analysis.analysis
+    except Exception:
+        pass
+
+    if ocr_done:
+        return row
+
+    # Layer 2: VLM Provider
+    if vlm_provider is not None:
+        backend_name = getattr(vlm_provider, "backend_name", "dashscope")
         effective_prompt = LIGHT_PROMPT if tier == "light" else prompt
         try:
-            text = call_dashscope(
-                dashscope=dashscope,
-                image_path=image_path,
-                prompt=effective_prompt,
-                model=model,
-                timeout=timeout,
-            )
+            if hasattr(vlm_provider, "analyze_image"):
+                text = vlm_provider.analyze_image(image_path, effective_prompt)
+            else:
+                text = call_dashscope(
+                    dashscope=vlm_provider,
+                    image_path=image_path,
+                    prompt=effective_prompt,
+                    model=model,
+                    timeout=timeout,
+                )
             row["status"] = "ok"
+            row["backend"] = backend_name
             row["analysis"] = text
             row["summary"] = summarize(text)
+            return row
         except Exception as exc:
-            row["status"] = "failed"
             row["error"] = str(exc)
+
+    # Layer 3: fallback to manual
+    ocr_partial = row.pop("_ocr_partial", "")
+    if ocr_partial:
+        row["status"] = "ok"
+        row["backend"] = "ocr:partial"
+        row["analysis"] = ocr_partial
+        row["summary"] = summarize(ocr_partial)
     else:
         row["status"] = "manual_review_required"
         row["analysis"] = "未启用 VLM 解析。请人工确认该图片中的业务语义，并补充到 SE/REQ/BR 映射与 GAP/OPEN。"
@@ -326,18 +338,15 @@ def analyze_assets(
     cache_path: Path | None = None,
     max_workers: int = 5,
 ) -> list[dict[str, Any]]:
-    use_dashscope = False
-    dashscope = None
+    vlm_provider = None
 
-    if backend in {"auto", "dashscope"}:
-        if api_key:
-            dashscope = maybe_load_dashscope(api_key)
-            use_dashscope = dashscope is not None
-        elif backend == "dashscope":
+    if backend != "none":
+        from dqg.media.vlm.provider import get_vlm_provider
+
+        vlm_provider = get_vlm_provider(backend=backend, api_key=api_key, model=model, timeout=timeout)
+
+        if vlm_provider is None and backend == "dashscope":
             warn("未配置 DashScope API Key，降级为 no-vlm")
-
-    if backend == "none":
-        use_dashscope = False
 
     # 加载已有缓存，跳过已解析的图片
     cache = _load_existing_cache(cache_path) if cache_path else {}
@@ -374,9 +383,8 @@ def analyze_assets(
 
     # 并发解析待处理图片
     if pending:
-        ds = dashscope if use_dashscope else None
         effective_workers = min(max_workers, len(pending))
-        if effective_workers > 1 and ds:
+        if effective_workers > 1 and vlm_provider:
             tier_counts = {"light": 0, "deep": 0}
             for _, asset in pending:
                 t = _classify_image_tier(asset)
@@ -389,7 +397,8 @@ def analyze_assets(
 
         with ThreadPoolExecutor(max_workers=effective_workers) as executor:
             future_to_idx = {
-                executor.submit(_analyze_single, idx, asset, ds, prompt, model, timeout): idx for idx, asset in pending
+                executor.submit(_analyze_single, idx, asset, vlm_provider, prompt, model, timeout): idx
+                for idx, asset in pending
             }
             for future in as_completed(future_to_idx):
                 idx = future_to_idx[future]

@@ -208,6 +208,50 @@ def cmd_doctor(args, output_dir: Path) -> int:
         issues.append("git 未安装")
         print("  ✗ git 未安装")
 
+    # 9. OCR 引擎（可选，图片解析增强）
+    import shutil
+
+    tesseract_path = shutil.which("tesseract")
+    surya_path = shutil.which("surya_ocr")
+    if tesseract_path:
+        try:
+            ver = subprocess.run([tesseract_path, "--version"], capture_output=True, text=True, timeout=5)
+            ver_line = ver.stdout.splitlines()[0] if ver.stdout else "unknown"
+            print(f"  ✓ tesseract ({ver_line})")
+            lang_result = subprocess.run([tesseract_path, "--list-langs"], capture_output=True, text=True, timeout=5)
+            if "chi_sim" in lang_result.stdout:
+                print("  ✓ tesseract 中文语言包 (chi_sim)")
+            else:
+                warnings.append("tesseract 缺少中文语言包 chi_sim")
+                print("  ⚠ tesseract 缺少中文语言包 (dqg-run <project> setup-ocr 安装)")
+        except (subprocess.TimeoutExpired, FileNotFoundError):
+            warnings.append("tesseract 版本检测失败")
+            print("  ⚠ tesseract 版本检测失败")
+    else:
+        warnings.append("tesseract 未安装（图片 OCR 不可用）")
+        print("  ⚠ tesseract 未安装 (dqg-run <project> setup-ocr 安装)")
+
+    if surya_path:
+        print("  ✓ surya_ocr (高精度 OCR 兜底)")
+    else:
+        print("  - surya_ocr 未安装 (可选，pip install surya-ocr)")
+
+    # 10. VLM API Key（可选，图片深度解析）
+    import os
+
+    vlm_keys = {
+        "ANTHROPIC_API_KEY": "Anthropic Claude",
+        "OPENAI_API_KEY": "OpenAI GPT-4V",
+        "DASHSCOPE_API_KEY": "DashScope 通义千问",
+    }
+    vlm_found = False
+    for env_var, name in vlm_keys.items():
+        if os.getenv(env_var):
+            print(f"  ✓ {name} ({env_var})")
+            vlm_found = True
+    if not vlm_found:
+        print("  - VLM API Key 未配置 (可选，用于图片深度解析)")
+
     # 汇总
     print()
     print("-" * 50)
