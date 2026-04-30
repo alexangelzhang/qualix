@@ -4,11 +4,11 @@ from __future__ import annotations
 
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
-from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
+from dqg.ingest.common import RAW_IMAGE_KEY_PATTERN, REQUEST_TIMEOUT_SECONDS, info, warn
+from dqg.ingest.error_strategy import classify_error
 from dqg.ingest.feishu.asset_downloader import append_raw_image_key_assets, download_assets
-from dqg.json_utils import dump_json_str
 from dqg.ingest.feishu.auth import (
     call_with_token_fallback,
     normalize_url,
@@ -16,13 +16,13 @@ from dqg.ingest.feishu.auth import (
 )
 from dqg.ingest.feishu.bitable_ingest import ingest_bitable
 from dqg.ingest.feishu.block_parser import collect_mention_docs
-from dqg.ingest.common import RAW_IMAGE_KEY_PATTERN, REQUEST_TIMEOUT_SECONDS, info, warn
-from dqg.ingest.error_strategy import classify_error
 from dqg.ingest.feishu.larkkit_ingest import ingest_via_larkkit
 from dqg.ingest.feishu.segment_builder import build_segments_and_assets
+from dqg.json_utils import dump_json_str
 
 if TYPE_CHECKING:
     from collections.abc import Callable
+    from pathlib import Path
 
 
 def fetch_raw_content_with_fallback(
@@ -163,6 +163,17 @@ def ingest_single_document(
             prefer_user_token=content_use_user_token,
             retries=asset_retries,
         )
+        failed_boards = [
+            r for r in asset_results if r.get("status") == "failed" and r.get("kind") in ("board", "mindnote")
+        ]
+        if failed_boards:
+            from dqg.ingest.feishu.browser_fallback import browser_fallback_boards
+
+            browser_fallback_boards(
+                asset_results=asset_results,
+                feishu_url=normalized_input_url,
+                output_dir=assets_dir,
+            )
     else:
         for idx, asset in enumerate(assets, start=1):
             asset_results.append(
@@ -187,12 +198,21 @@ def ingest_single_document(
 
     text_segments = [seg for seg in segments if seg.get("text")]
     ingest = _build_ingest_payload(
-        url=normalized_input_url, resolved=resolved, doc_meta=doc_meta, document_id=document_id,
-        meta_use_user_token=meta_use_user_token, content_use_user_token=content_use_user_token,
-        blocks=blocks, segments=segments, text_segments=text_segments,
-        asset_results=asset_results, mention_docs=mention_docs,
-        raw_content=raw_content, raw_content_use_user_token=raw_content_use_user_token,
-        raw_content_attempts=raw_content_attempts, raw_image_keys=raw_image_keys,
+        url=normalized_input_url,
+        resolved=resolved,
+        doc_meta=doc_meta,
+        document_id=document_id,
+        meta_use_user_token=meta_use_user_token,
+        content_use_user_token=content_use_user_token,
+        blocks=blocks,
+        segments=segments,
+        text_segments=text_segments,
+        asset_results=asset_results,
+        mention_docs=mention_docs,
+        raw_content=raw_content,
+        raw_content_use_user_token=raw_content_use_user_token,
+        raw_content_attempts=raw_content_attempts,
+        raw_image_keys=raw_image_keys,
     )
 
     paths = _write_ingest_files(output_dir, ingest, plain_text, asset_results, content, save_raw_blocks)
@@ -215,12 +235,21 @@ def ingest_single_document(
 
 def _build_ingest_payload(
     *,
-    url: str, resolved: dict, doc_meta: dict, document_id: str,
-    meta_use_user_token: Any, content_use_user_token: Any,
-    blocks: list, segments: list, text_segments: list,
-    asset_results: list, mention_docs: list,
-    raw_content: str, raw_content_use_user_token: Any,
-    raw_content_attempts: list, raw_image_keys: list,
+    url: str,
+    resolved: dict,
+    doc_meta: dict,
+    document_id: str,
+    meta_use_user_token: Any,
+    content_use_user_token: Any,
+    blocks: list,
+    segments: list,
+    text_segments: list,
+    asset_results: list,
+    mention_docs: list,
+    raw_content: str,
+    raw_content_use_user_token: Any,
+    raw_content_attempts: list,
+    raw_image_keys: list,
 ) -> dict[str, Any]:
     return {
         "source": {
@@ -256,8 +285,12 @@ def _build_ingest_payload(
 
 
 def _write_ingest_files(
-    output_dir: Path, ingest: dict, plain_text: str,
-    asset_results: list, content: dict, save_raw_blocks: bool,
+    output_dir: Path,
+    ingest: dict,
+    plain_text: str,
+    asset_results: list,
+    content: dict,
+    save_raw_blocks: bool,
 ) -> dict[str, str]:
     ingest_subdir = output_dir / "ingest"
     ingest_subdir.mkdir(parents=True, exist_ok=True)
