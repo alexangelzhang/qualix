@@ -252,6 +252,18 @@ def cmd_doctor(args, output_dir: Path) -> int:
     if not vlm_found:
         print("  - VLM API Key 未配置 (可选，用于图片深度解析)")
 
+    # 11. agent-browser（可选，飞书画板/思维导图截图）
+    ab_path = shutil.which("agent-browser")
+    if ab_path:
+        try:
+            ver = subprocess.run([ab_path, "--version"], capture_output=True, text=True, timeout=5)
+            ver_line = ver.stdout.strip() or "unknown"
+            print(f"  ✓ agent-browser ({ver_line})")
+        except (subprocess.TimeoutExpired, FileNotFoundError):
+            print(f"  ✓ agent-browser ({ab_path})")
+    else:
+        print("  - agent-browser 未安装 (可选，npm install -g agent-browser)")
+
     # 汇总
     print()
     print("-" * 50)

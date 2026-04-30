@@ -19,7 +19,11 @@ cd dev-quality-gate
 
 ```bash
 pip install -e .
+pip install larkkit          # 飞书文档摄入
+npm install -g agent-browser # 飞书画板截图（可选）
 ```
+
+`larkkit` 用于从飞书抓取 PRD 文档。`agent-browser` 用于 API 下载失败时自动截图飞书画板/思维导图，不装不影响基础流程。
 
 ## Step 3: 环境检查
 
