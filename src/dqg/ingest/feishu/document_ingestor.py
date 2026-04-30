@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
+from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from dqg.ingest.common import RAW_IMAGE_KEY_PATTERN, REQUEST_TIMEOUT_SECONDS, info, warn
@@ -22,7 +23,6 @@ from dqg.json_utils import dump_json_str
 
 if TYPE_CHECKING:
     from collections.abc import Callable
-    from pathlib import Path
 
 
 def fetch_raw_content_with_fallback(
@@ -216,6 +216,16 @@ def ingest_single_document(
     )
 
     paths = _write_ingest_files(output_dir, ingest, plain_text, asset_results, content, save_raw_blocks)
+
+    # 文本预处理：版本标注显式化 + 删除线标记 + 表格展开
+    try:
+        from dqg.ingest.text_preprocessor import preprocess_plain_text
+
+        ingest_subdir = output_dir / "ingest"
+        pt_path = Path(paths["plain_text"])
+        preprocess_plain_text(pt_path, ingest_subdir)
+    except Exception as exc:
+        warn(f"文本预处理跳过: {exc}")
 
     return {
         "status": "ok",

@@ -216,6 +216,15 @@ def ingest_via_larkkit(
     ingest_path = ingest_subdir / "ingest.json"
     ingest_path.write_text(dump_json_str(ingest_payload), encoding="utf-8")
 
+    # 文本预处理：版本标注显式化 + 删除线标记 + 表格展开
+    try:
+        from dqg.ingest.text_preprocessor import preprocess_plain_text
+
+        comments_file = Path(comments_path) if comments_path else None
+        preprocess_plain_text(plain_text_path, ingest_subdir, comments_file)
+    except Exception as exc:
+        info(f"[larkkit] 文本预处理跳过: {exc}")
+
     return {
         "status": "ok",
         "url": url,

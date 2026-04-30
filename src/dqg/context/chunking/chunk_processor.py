@@ -155,7 +155,9 @@ def _collect_phase_artifacts(output_dir: Path, project_id: str, phase_id: str) -
                 )
             )
         else:
-            plain_text = _read_file_safe(resolve_ingest_file(phase_dir, "plain_text.txt"))
+            plain_text = _read_file_safe(resolve_ingest_file(phase_dir, "plain_text_enhanced.txt")) or _read_file_safe(
+                resolve_ingest_file(phase_dir, "plain_text.txt")
+            )
             if plain_text:
                 chunks.append(
                     ContextChunk(
@@ -199,7 +201,7 @@ def _collect_current_phase_inputs(phase_dir: Path, phase_id: str) -> list[Contex
             )
         )
     else:
-        for filename in ("aggregate_plain_text.txt", "plain_text.txt"):
+        for filename in ("aggregate_plain_text.txt", "plain_text_enhanced.txt", "plain_text.txt"):
             raw_text = _read_file_safe(resolve_ingest_file(phase_dir, filename))
             if raw_text:
                 chunks.append(
