@@ -223,13 +223,13 @@ def cmd_doctor(args, output_dir: Path) -> int:
                 print("  ✓ tesseract 中文语言包 (chi_sim)")
             else:
                 warnings.append("tesseract 缺少中文语言包 chi_sim")
-                print("  ⚠ tesseract 缺少中文语言包 (dqg-run <project> setup-ocr 安装)")
+                print("  ⚠ tesseract 缺少中文语言包 (brew install tesseract-lang)")
         except (subprocess.TimeoutExpired, FileNotFoundError):
             warnings.append("tesseract 版本检测失败")
             print("  ⚠ tesseract 版本检测失败")
     else:
         warnings.append("tesseract 未安装（图片 OCR 不可用）")
-        print("  ⚠ tesseract 未安装 (dqg-run <project> setup-ocr 安装)")
+        print("  ⚠ tesseract 未安装 (brew install tesseract tesseract-lang)")
 
     if surya_path:
         print("  ✓ surya_ocr (高精度 OCR 兜底)")

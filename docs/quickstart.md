@@ -38,12 +38,14 @@ dqg-run any-project doctor
 DQG 支持自动解析 PRD 中的图片（UI 截图、流程图、状态机）。需要安装 OCR 引擎：
 
 ```bash
-dqg-run any-project setup-ocr
+# macOS
+brew install tesseract tesseract-lang
+
+# Linux
+sudo apt-get install -y tesseract-ocr tesseract-ocr-chi-sim
 ```
 
-一键安装 tesseract + 中文语言包。安装后 `dqg-run doctor` 会显示 ✓。
-
-不装也不影响基础流程——图片会标记为 `manual_review_required`，由人工补录语义。
+安装后 `dqg-run doctor` 会显示 ✓。不装也不影响基础流程——图片会标记为 `manual_review_required`，由人工补录语义。
 
 **进阶（可选）**：
 - 高精度 OCR 兜底：`pip install surya-ocr`（~500MB）
