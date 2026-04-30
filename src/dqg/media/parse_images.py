@@ -13,19 +13,18 @@ Outputs:
 
 from __future__ import annotations
 
-import os
 import re
 import sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import Any
 
-from dqg.json_utils import load_json, load_json_strict
 from dqg.constants import (
     IMAGE_DEEP_READ_KEYWORDS,
     IMAGE_SIZE_LIGHT_THRESHOLD,
     IMAGE_SIZE_SKIP_THRESHOLD,
 )
+from dqg.json_utils import load_json, load_json_strict
 
 SUPPORTED_EXTS = {".png", ".jpg", ".jpeg", ".webp", ".gif", ".bmp"}
 
@@ -138,6 +137,7 @@ def discover_from_dir(assets_dir: Path) -> list[dict[str, Any]]:
                     "path": str(p.resolve()),
                     "status": "local",
                     "source_block_ids": [],
+                    "file_size": p.stat().st_size,
                 }
             )
     return assets
@@ -254,10 +254,7 @@ def _classify_image_tier(asset: dict[str, Any]) -> str:
     return "light"
 
 
-LIGHT_PROMPT = (
-    "这是一张 UI 截图或页面原型。请用一句话描述其主要内容和用途，"
-    "不需要详细分析。输出中文。"
-)
+LIGHT_PROMPT = "这是一张 UI 截图或页面原型。请用一句话描述其主要内容和用途，不需要详细分析。输出中文。"
 
 
 def _analyze_single(
@@ -313,10 +310,7 @@ def _analyze_single(
             row["error"] = str(exc)
     else:
         row["status"] = "manual_review_required"
-        row["analysis"] = (
-            "未启用 VLM 解析。请人工确认该图片中的业务语义，"
-            "并补充到 SE/REQ/BR 映射与 GAP/OPEN。"
-        )
+        row["analysis"] = "未启用 VLM 解析。请人工确认该图片中的业务语义，并补充到 SE/REQ/BR 映射与 GAP/OPEN。"
         row["summary"] = "未解析，需人工补录语义"
 
     return row
@@ -395,10 +389,7 @@ def analyze_assets(
 
         with ThreadPoolExecutor(max_workers=effective_workers) as executor:
             future_to_idx = {
-                executor.submit(
-                    _analyze_single, idx, asset, ds, prompt, model, timeout
-                ): idx
-                for idx, asset in pending
+                executor.submit(_analyze_single, idx, asset, ds, prompt, model, timeout): idx for idx, asset in pending
             }
             for future in as_completed(future_to_idx):
                 idx = future_to_idx[future]
@@ -429,12 +420,14 @@ def analyze_assets(
 # Lazy import to break parse_images ↔ parse_images_cli cycle
 # ---------------------------------------------------------------------------
 
+
 def __getattr__(name: str):
     if name in ("main", "write_outputs"):
         from dqg.media import parse_images_cli
+
         return getattr(parse_images_cli, name)
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(main())  # noqa: F821

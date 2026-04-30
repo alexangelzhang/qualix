@@ -7,7 +7,6 @@ from __future__ import annotations
 
 import argparse
 import os
-import sys
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -62,9 +61,7 @@ def write_outputs(
         section = row.get("section_path", "") or "-"
         summary = (row.get("summary", "") or "-").replace("|", "\\|")
         status = row.get("status", "")
-        md_lines.append(
-            f"| {idx} | {row.get('kind', '-') } | {token_short} | {section} | {status} | {summary} |"
-        )
+        md_lines.append(f"| {idx} | {row.get('kind', '-')} | {token_short} | {section} | {status} | {summary} |")
 
         detail_name = sanitize_filename(f"{idx:03d}_{row.get('kind', 'image')}_{token or 'no_token'}.md")
         detail_path = details_dir / detail_name
@@ -110,6 +107,12 @@ def main() -> int:
         if not manifest_path.exists():
             raise FileNotFoundError(f"manifest 不存在: {manifest_path}")
         assets = discover_from_manifest(manifest_path)
+        if not assets:
+            # manifest 中所有图片下载失败时，fallback 到同目录 assets/ 扫描
+            fallback_dir = manifest_path.parent / "assets"
+            if fallback_dir.is_dir():
+                info(f"manifest 无可用图片，fallback 到目录扫描: {fallback_dir}")
+                assets = discover_from_dir(fallback_dir)
     elif args.assets_dir:
         assets_dir = Path(args.assets_dir).expanduser().resolve()
         if not assets_dir.exists():
