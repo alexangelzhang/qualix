@@ -6,26 +6,28 @@
 
 - Python >= 3.11
 - git
-- AI IDE（Claude Code / Cursor / Windsurf）
+- AI IDE（Claude Code / Cursor / Windsurf / Codex）
 
-## Step 1: 克隆 DQG（只需一次）
+## Step 1: 克隆并安装
 
 ```bash
 git clone <your-dqg-repo-url>
 cd dev-quality-gate
+./scripts/install.sh
 ```
 
-## Step 2: 安装依赖
+一键脚本会自动完成：
+- 安装 Python 依赖（DQG + larkkit）
+- 安装 OCR 引擎（tesseract + 中文语言包）
+- 安装浏览器自动化（agent-browser）
+- 检测并配置 AI IDE（Claude Code / Cursor / Windsurf）
+- 运行环境检查（doctor）
 
-```bash
-pip install -e .
-pip install larkkit                              # 飞书文档摄入
-npm install -g agent-browser && agent-browser install  # 飞书画板截图（可选）
-```
+如果某个步骤失败，脚本会提示具体的修复命令。
 
-`larkkit` 用于从飞书抓取 PRD 文档。`agent-browser` 用于 API 下载失败时自动截图飞书画板/思维导图，不装不影响基础流程。
+## Step 2: 环境检查
 
-## Step 3: 环境检查
+安装脚本最后会自动运行 doctor。也可以手动检查：
 
 ```bash
 dqg-run any-project doctor
@@ -33,25 +35,11 @@ dqg-run any-project doctor
 
 确认输出全部 ✓ 或只有 ⚠（警告不阻断）。
 
-## Step 3.5: 图片解析增强（可选）
-
-DQG 支持自动解析 PRD 中的图片（UI 截图、流程图、状态机）。需要安装 OCR 引擎：
-
-```bash
-# macOS
-brew install tesseract tesseract-lang
-
-# Linux
-sudo apt-get install -y tesseract-ocr tesseract-ocr-chi-sim
-```
-
-安装后 `dqg-run doctor` 会显示 ✓。不装也不影响基础流程——图片会标记为 `manual_review_required`，由人工补录语义。
-
-**进阶（可选）**：
+**可选增强**（不装不影响基础流程）：
 - 高精度 OCR 兜底：`pip install surya-ocr`（~500MB）
-- VLM 深度解析：配置环境变量 `ANTHROPIC_API_KEY` / `OPENAI_API_KEY` / `DASHSCOPE_API_KEY`
+- VLM 图片深度解析：配置环境变量 `ANTHROPIC_API_KEY` / `OPENAI_API_KEY` / `DASHSCOPE_API_KEY`
 
-## Step 4: 初始化项目
+## Step 3: 初始化项目
 
 ```bash
 dqg-run my-first-project init --profile java-ddd-tmf
@@ -70,7 +58,7 @@ dqg-run my-first-project init --profile java-ddd-tmf
   下一步: dqg-run my-first-project startup
 ```
 
-## Step 5: 在 AI IDE 中启动
+## Step 4: 在 AI IDE 中启动
 
 ```bash
 @dqg_starter.md 执行
@@ -95,7 +83,7 @@ AI 会自动检测到 `my-first-project`，展示菜单：
 
 输入 `1` 开始 Phase A。
 
-## Step 6: 执行 Phase A
+## Step 5: 执行 Phase A
 
 AI 会逐步引导你：
 
@@ -106,7 +94,7 @@ AI 会逐步引导你：
 5. 自检 + Judge/Critique
 6. finalize → approve → 完成
 
-## Step 7: 查看进度
+## Step 6: 查看进度
 
 输入 `g` 查看全局进度，或 `v` 查看每个 Phase 的详情。
 
@@ -124,7 +112,6 @@ AI 会逐步引导你：
 | `dqg-run <project> startup` | 输出 JSON 菜单（供 AI 解析） |
 | `dqg-run <project> status` | 查看状态看板 |
 | `dqg-run <project> doctor` | 环境健康检查 |
-| `dqg-run <project> setup-ocr` | 一键安装 OCR 依赖 |
 | `dqg-run <project> update` | 更新到最新版本 |
 | `dqg-run <project> version` | 显示版本号 |
 | `@dqg_starter.md 执行` | AI IDE 一站式入口 |
