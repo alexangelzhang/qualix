@@ -1,0 +1,90 @@
+# SE 推导 Checklist — 通用维度 + Go 服务特定维度
+
+dimensions:
+  # ===== 通用维度（同 java-ddd-tmf，此处复用） =====
+
+  - id: state_machine
+    name: 状态机完整性
+    optional: false
+    applies_when: "PRD 包含状态流转、审批流、工单生命周期"
+    questions:
+      - "每条迁移边是否有触发条件和数据流定义？"
+      - "是否存在非法跳转路径？如何拦截？"
+      - "终态是否不可回退？"
+      - "循环边（驳回→重新发起）的数据流是否定义？"
+
+  - id: concurrency
+    name: 并发/幂等
+    optional: false
+    applies_when: "always"
+    questions:
+      - "同一资源被多人同时操作时的行为？"
+      - "重复提交同一请求的结果？（幂等键是什么？）"
+      - "goroutine 并发访问共享状态时的同步机制？"
+
+  - id: permission
+    name: 权限边界
+    optional: false
+    applies_when: "PRD 涉及多角色或数据隔离"
+    questions:
+      - "每个角色能看到哪些数据？能执行哪些操作？"
+      - "跨角色/跨组织的数据隔离在哪一层实现？"
+
+  - id: data_consistency
+    name: 数据一致性
+    optional: false
+    applies_when: "PRD 涉及多表更新、多系统交互、异步操作"
+    questions:
+      - "跨表/跨服务的数据更新是否在同一事务内？"
+      - "异步操作失败时数据是否会不一致？"
+
+  - id: precision
+    name: 精度/溢出
+    optional: false
+    applies_when: "PRD 涉及金额、数量、百分比计算"
+    questions:
+      - "金额计算是否使用 decimal 库而非 float64？"
+      - "数量/金额是否有上下限校验？"
+
+  - id: error_recovery
+    name: 异常恢复
+    optional: false
+    applies_when: "always"
+    questions:
+      - "中间步骤失败时的回滚/补偿策略？"
+      - "失败后能否重试？重试是否幂等？"
+
+  - id: time_window
+    name: 时间窗口
+    optional: false
+    applies_when: "PRD 涉及有效期、超时、定时任务"
+    questions:
+      - "时效限制的计算起点和终点是否明确？"
+      - "时区问题：服务器时区与用户时区不一致时的处理？"
+
+  - id: external_dependency
+    name: 外部依赖
+    optional: false
+    applies_when: "PRD 涉及调用外部系统/中台/第三方"
+    questions:
+      - "外部系统超时/不可用时的降级策略？"
+      - "context 超时传播是否正确？"
+
+  # ===== Go 服务特定维度 =====
+
+  - id: go_error_handling
+    name: Go 错误处理
+    optional: false
+    applies_when: "always"
+    questions:
+      - "error 是否逐层传播而非吞掉？"
+      - "是否区分业务错误和系统错误？（自定义 error type）"
+      - "panic recovery 是否在 HTTP handler 层统一处理？"
+
+  - id: go_context
+    name: Context 传播
+    optional: false
+    applies_when: "always"
+    questions:
+      - "长耗时操作是否接受 context.Context 并响应取消？"
+      - "下游调用是否传播了 trace ID？"

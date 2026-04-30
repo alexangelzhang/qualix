@@ -143,9 +143,25 @@ python3 scripts/parse_image_assets.py \
 - [ ] 是否有操作流程描述？→ 至少核心功能有 Step1→Step2→完成
 - [ ] PRD 中出现"并发""同时""批量"关键词时：是否提取了幂等/并发 SE 或 GAP？
 
-**3b. SE（关键语义显式化）：**
-1. 从文本与图片共同抽取 SE，禁止隐含语义。
-2. 每个 SE 必须绑定到 REQ/BR，且有可验证判定依据（表格格式）。
+**3b. SE（关键语义显式化 — Checklist 驱动）：**
+
+1. **加载 SE Checklist**：从当前 profile 的 `se_checklist.yaml` 加载维度化审计清单。
+   ```bash
+   python -c "
+   from pathlib import Path
+   from dqg.quality.se_checklist import load_se_checklist, format_checklist_prompt
+   profile_dir = Path('profiles/<profile_id>')
+   prd = Path('output/<project_id>/Q01/ingest/ingest/plain_text_enhanced.txt').read_text()
+   dims = load_se_checklist(profile_dir, prd_text=prd)
+   print(format_checklist_prompt(dims))
+   "
+   ```
+2. **逐维度扫描**：对每个 REQ/BR，按 checklist 的每个维度逐一提问。有发现则生成 SE，无发现则跳过。
+3. 从文本与图片共同抽取 SE，禁止隐含语义。
+4. 每个 SE 必须绑定到 REQ/BR，且有可验证判定依据（表格格式）。
+5. SE 的 `category` 字段必须对应 checklist 维度名（如"并发/幂等""权限边界"）。
+
+> **Checklist 维度说明**：通用维度（状态机/并发/权限/一致性/精度/异常/时间/外部依赖）所有项目都扫描；Profile 特定维度（如 DDD 聚合、审批流）按技术栈自动加载；标记 `optional: true` 的维度（如 TMF）需在 Q02/Q03 确认后激活。
 
 **3b 即时检查：**
 - [ ] 每个 SE 是否有判定依据列？→ 必须是表格格式，不是纯文字
