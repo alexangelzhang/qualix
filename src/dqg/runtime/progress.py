@@ -7,23 +7,27 @@
 from __future__ import annotations
 
 from datetime import datetime
-from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from dqg.core.state_machine import (
     PHASE_DEFS,
     PHASE_ORDER,
-    ProjectState,
     PhaseStatus,
+    ProjectState,
     load_state,
 )
 from dqg.core.state_machine import (
     internal_dir as _internal_dir,
+)
+from dqg.core.state_machine import (
     phase_dir as _phase_dir,
 )
 from dqg.json_utils import load_json, save_json
 from dqg.log import get_logger
 from dqg.text_utils import STRUCTURED_JSON_MAP
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 log = get_logger(__name__)
 
@@ -216,17 +220,12 @@ def _suggest_next_steps(state: ProjectState, phase_id: str) -> list[str]:
 def _suggest_project_next(state: ProjectState) -> list[str]:
     """项目级下一步建议."""
     from dqg.core.state_machine import get_available_phases
+
     available = get_available_phases(state)
     if not available:
-        all_done = all(
-            state.phases[pid].status in (PhaseStatus.APPROVED, PhaseStatus.SKIPPED)
-            for pid in PHASE_ORDER
-        )
+        all_done = all(state.phases[pid].status in (PhaseStatus.APPROVED, PhaseStatus.SKIPPED) for pid in PHASE_ORDER)
         if all_done:
             return ["All phases completed. Project ready for final review."]
         return ["No phases available. Check blocked dependencies."]
 
-    return [
-        f"Execute Phase {pid}({PHASE_DEFS[pid]['name']})"
-        for pid in available
-    ]
+    return [f"Execute Phase {pid}({PHASE_DEFS[pid]['name']})" for pid in available]

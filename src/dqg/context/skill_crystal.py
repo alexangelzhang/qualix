@@ -9,11 +9,13 @@
 from __future__ import annotations
 
 from datetime import datetime
-from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from dqg.json_utils import load_json, save_json
 from dqg.log import get_logger
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 log = get_logger(__name__)
 
@@ -37,10 +39,7 @@ def extract_crystal(
 
     # 提取高分维度的模式
     dimensions = judge_result.get("dimensions", [])
-    strong_dims = [
-        d for d in dimensions
-        if d.get("score", 0) >= 4 and not d.get("issues")
-    ]
+    strong_dims = [d for d in dimensions if d.get("score", 0) >= 4 and not d.get("issues")]
 
     if not strong_dims:
         return None
@@ -52,10 +51,7 @@ def extract_crystal(
         "project_id": project_id,
         "created_at": datetime.now().isoformat(),
         "overall_score": score,
-        "strong_dimensions": [
-            {"id": d.get("id", ""), "score": d.get("score", 0)}
-            for d in strong_dims
-        ],
+        "strong_dimensions": [{"id": d.get("id", ""), "score": d.get("score", 0)} for d in strong_dims],
         "summary": judge_result.get("summary", ""),
         "top_patterns": _extract_patterns(judge_result),
         "use_count": 0,

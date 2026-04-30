@@ -13,14 +13,15 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from dqg.json_utils import dump_json_str
 from dqg.log import get_logger
 from dqg.store import get_connection
 
-if False:  # TYPE_CHECKING
+if TYPE_CHECKING:
     from pathlib import Path
+
 
 log = get_logger(__name__)
 
@@ -136,7 +137,8 @@ def get_task_run(output_dir: Path, task_id: str) -> dict[str, Any] | None:
     _ensure_task_schema(output_dir)
     with get_connection(output_dir) as conn:
         row = conn.execute(
-            "SELECT * FROM task_runs WHERE task_id=?", (task_id,),
+            "SELECT * FROM task_runs WHERE task_id=?",
+            (task_id,),
         ).fetchone()
     return dict(row) if row else None
 
@@ -282,7 +284,8 @@ def replay_from_checkpoint(
 
     # 获取 checkpoint 之后的事件
     events_after = get_events_slice(
-        output_dir, task_id,
+        output_dir,
+        task_id,
         from_timestamp=cp_timestamp,
         limit=500,
     )

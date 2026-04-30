@@ -17,7 +17,6 @@ import subprocess
 import tempfile
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any
 
 
 def _is_remote_url(path: str) -> bool:
@@ -179,13 +178,20 @@ def collect_diff_context(
 
     with ThreadPoolExecutor(max_workers=3) as pool:
         fut_name_status = pool.submit(
-            _run_git, repo, ["diff", "--name-status", merge_base, feature_branch],
+            _run_git,
+            repo,
+            ["diff", "--name-status", merge_base, feature_branch],
         )
         fut_stat = pool.submit(
-            _run_git, repo, ["diff", "--stat", merge_base, feature_branch],
+            _run_git,
+            repo,
+            ["diff", "--stat", merge_base, feature_branch],
         )
         fut_diff = pool.submit(
-            _run_git, repo, ["diff", merge_base, feature_branch], 60,
+            _run_git,
+            repo,
+            ["diff", merge_base, feature_branch],
+            60,
         )
 
         ok, name_status = fut_name_status.result()
@@ -288,12 +294,14 @@ def render_diff_context_for_prompt(ctx: DiffContext) -> str:
             lines.append(f"- ... 共 {len(other)} 个")
         lines.append("")
 
-    lines.extend([
-        "### 审计范围说明",
-        "",
-        "本次为增量分析模式，只需审计上述变更文件涉及的功能点。",
-        "对于未变更的文件，沿用上次审计结论。",
-    ])
+    lines.extend(
+        [
+            "### 审计范围说明",
+            "",
+            "本次为增量分析模式，只需审计上述变更文件涉及的功能点。",
+            "对于未变更的文件，沿用上次审计结论。",
+        ]
+    )
 
     return "\n".join(lines)
 

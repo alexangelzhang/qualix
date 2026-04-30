@@ -101,7 +101,7 @@ DAG 调度器在执行每个 Phase 前自动运行 Preflight（`runtime/prefligh
 
 ### 上下文自动注入
 
-Phase 执行时自动注入以下增强上下文（`context/upstream_collector.py`）：
+Phase 执行时自动注入以下增强上下文（`context/loading/upstream_collector.py`）：
 
 | 来源 | 说明 |
 |------|------|
@@ -110,7 +110,7 @@ Phase 执行时自动注入以下增强上下文（`context/upstream_collector.p
 | Profile L0 | baseline + risk catalog 的压缩版元规则（~50% 压缩比） |
 | Bug Cases | 相关性匹配的历史失败案例 |
 
-上游产物加载带增量检测（`context/file_snapshot.py`）：sha256 + mtime 快照比对，未变更的上游 Phase 跳过重读。
+上游产物加载带增量检测（`context/loading/file_snapshot.py`）：sha256 + mtime 快照比对，未变更的上游 Phase 跳过重读。
 
 ## 必须交付物（每个 Phase）
 

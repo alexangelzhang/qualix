@@ -106,14 +106,14 @@
 - 文档同步自动化（`doc_sync_check.py` + `completion_gate.py` 集成）— 按变更范围精准映射需要更新的文档
 - RunStatus 5 值枚举（`runtime/result.py`）— ok/timeout/adapter_crashed/parse_failed/tainted，区分 infra failure 和 logic failure，infra failure 不计入 Judge 质量评分
 - 图片 token 优化（`media/parse_images.py`）— 三层分级策略：<10KB 跳过 / 10-50KB 轻量描述 / >50KB 或流程图关键词精读，自动关联 browser_asset_manifest.json 获取 size
-- Critique Gene/Capsule 反馈结晶（`quality/gene_store.py`）— 高置信度 Critique 提取为可复用评审基因（Gene），成功修正快照存为 Capsule，自动注入下游 Phase context
+- Critique Gene/Capsule 反馈结晶（`quality/regression/gene_store.py`）— 高置信度 Critique 提取为可复用评审基因（Gene），成功修正快照存为 Capsule，自动注入下游 Phase context
 - Profile L0 压缩（`core/profiles.py`）— baseline + risk catalog 压缩为结构化元规则（标题/表格/强约束句），压缩比 ~50%，减少 context token 消耗
 - Worker 经验结晶（`context/skill_crystal.py`）— 从高分执行（score>=4.0）提取成功模式，结晶为可复用模板注入后续同 Phase 执行
 - DAG Preflight 增强（`runtime/preflight.py`）— 上游产物完整性检查（report + structured JSON 非空）+ 级联失败阻断（上游 tainted/parse_failed 时阻断下游），DAG 调度器每个 Phase 执行前自动运行
-- 静默失败修复（`runtime/handlers_finalize.py`）— `_async_write_json` 和 `_emit_handler` 的 `except: pass` 改为 `log.debug` 记录失败原因，消除调试盲区
+- 静默失败修复（`runtime/handlers/handlers_finalize.py`）— `_async_write_json` 和 `_emit_handler` 的 `except: pass` 改为 `log.debug` 记录失败原因，消除调试盲区
 - CLI 命令整合 — 砍掉 4 个孤儿 entry point（dqg-orchestrate/dqg-metrics/dqg-observe/dqg-regression），收编为 `dqg-run` 子命令（metrics/observe/regression）；统一 Phase ID help 文本为 Q01-Q07；`dqg version` 去重委托 setup.py
-- 增量上下文检测（`context/file_snapshot.py`）— sha256 + mtime 快照比对，上游 Phase 产物未变更时跳过重读，减少 DAG 模式和重跑场景的 IO 开销
-- 异构检测层（`runtime/handlers_detection.py`）— 四个 finalize handler：弱断言 gate（Q05 high-risk≥1 BLOCKED 左移卡控 / Q06 WARNING）、Q05 弱断言扫描（从 structured JSON 提取测试文件并生成 _weak_assert_context.json）、Mock 巧合正确检测（Q05 coincidence_hits BLOCKED / Q06 WARNING）、AI 产出标记（git blame + Co-Authored-By 推断代码来源）；EUT then 字段模糊检测（schema validator 拒绝"验证成功"等模糊描述，要求包含具体断言或值）
+- 增量上下文检测（`context/loading/file_snapshot.py`）— sha256 + mtime 快照比对，上游 Phase 产物未变更时跳过重读，减少 DAG 模式和重跑场景的 IO 开销
+- 异构检测层（`runtime/handlers/handlers_detection.py`）— 四个 finalize handler：弱断言 gate（Q05 high-risk≥1 BLOCKED 左移卡控 / Q06 WARNING）、Q05 弱断言扫描（从 structured JSON 提取测试文件并生成 _weak_assert_context.json）、Mock 巧合正确检测（Q05 coincidence_hits BLOCKED / Q06 WARNING）、AI 产出标记（git blame + Co-Authored-By 推断代码来源）；EUT then 字段模糊检测（schema validator 拒绝"验证成功"等模糊描述，要求包含具体断言或值）
 - Skill Evolution 全自动闭环（`tracking/skill_auto_merge.py`）— 高置信度规则（3+ case 支撑）自动合入 SKILL.md + holdout 验证 + overfitting 自动 revert；低置信度仍走 HUMAN_REVIEW；`SKILL_AUTO_MERGE_ENABLED` 全局开关
 
 2026-04-24 新增（卡控机制审计 Phase 1 — 堵漏洞）：
@@ -146,7 +146,7 @@
   - Profile L1 压缩安全上线（评分偏移 0~-0.25，token 节省 41-57%），已切入生产路径（`upstream_collector.py`）
   - Rubric compact（5 级→3 级）有评分漂移（-0.3~-1.0），保留为可选严格模式（`compose_rubric_compact()`），不替换默认
 - Profile L1 Phase 感知压缩（`core/profiles.py`）— `compress_to_l1()` 按 Phase 过滤 baseline sections（`_PHASE_RELEVANT_SECTIONS` 映射表），`load_profile_context_l1()` 输出纯文本替代 JSON 包裹，Q03 节省 57% / Q04 节省 41% / Q07 节省 51%
-- Judge rubric compact 模式（`quality/judge_rubrics.py`）— `compose_rubric_compact()` 将 5 级 rubric 压缩为 3 级（5/3/1）+ 精简 anti-rationalization，token 节省 43-45%，保留为可选模式
+- Judge rubric compact 模式（`quality/judge/judge_rubrics.py`）— `compose_rubric_compact()` 将 5 级 rubric 压缩为 3 级（5/3/1）+ 精简 anti-rationalization，token 节省 43-45%，保留为可选模式
 
 仍需推进（P1）：
 
@@ -162,15 +162,15 @@
 
 2026-04-25 新增（Runtime Eval Checkpoint）：
 
-- Checkpoint Validator（`quality/checkpoint_validator.py`）— 规则 + LLM 两层验证，规则层零 LLM 成本检查非空/ID 覆盖率/来源标注，LLM 层 haiku 级确认（覆盖率 60-80% 时触发，10 秒超时 fallback PASS）
+- Checkpoint Validator（`quality/checks/checkpoint_validator.py`）— 规则 + LLM 两层验证，规则层零 LLM 成本检查非空/ID 覆盖率/来源标注，LLM 层 haiku 级确认（覆盖率 60-80% 时触发，10 秒超时 fallback PASS）
 - Two-Phase Worker 断点（`agents/two_phase_worker.py`）— Collector 输出 evidence_pack 后验证质量，不合格不启动 Writer，省掉无效 Writer 调用
 - DAG Preflight 内容质量检查（`runtime/preflight.py`）— 上游 Phase 产物不仅检查文件存在性，还检查内容质量（ID 覆盖率、报告长度、章节完整性），不达标阻断下游 Phase
 
 2026-04-25 新增（Phase Evaluation Protocol）：
 
-- Phase-level 评估协议（`quality/evaluation_protocols.py`）— 7 Phase × 2 角色（Judge+Critique）专属检查清单 + 行为红线 + 领域词汇，替代通用人设标签
-- Gene Store phase+role 过滤（`quality/gene_store.py`）— Gene 新增 agent_role 字段，注入时按 phase_id + agent_role 过滤，Q03 Judge 只看 Q03 Judge 的历史经验
-- Protocol Compliance（`runtime/handlers_protocol.py`）— 已从 finalize 主流程移除。evaluation_protocols 的 prompt 注入功能保留（Judge/Critique checklist 注入），事后 keyword matching 验证因误报率高不再卡主流程。handler 文件保留供 regression 评测体系使用
+- Phase-level 评估协议（`quality/eval/evaluation_protocols.py`）— 7 Phase × 2 角色（Judge+Critique）专属检查清单 + 行为红线 + 领域词汇，替代通用人设标签
+- Gene Store phase+role 过滤（`quality/regression/gene_store.py`）— Gene 新增 agent_role 字段，注入时按 phase_id + agent_role 过滤，Q03 Judge 只看 Q03 Judge 的历史经验
+- Protocol Compliance（`runtime/handlers/handlers_protocol.py`）— 已从 finalize 主流程移除。evaluation_protocols 的 prompt 注入功能保留（Judge/Critique checklist 注入），事后 keyword matching 验证因误报率高不再卡主流程。handler 文件保留供 regression 评测体系使用
 - 研究驱动设计：基于 PRISM/EMNLP/Wharton 三篇独立研究结论，具体检查清单 >> 身份标签
 
 2026-04-25 新增（Prompt Harness P0）：
@@ -182,10 +182,10 @@
 2026-04-25 新增（Prompt Policy Gate P1）：
 
 - Prompt policy 模块（`prompting/policy.py`）— 校验 manifest 完整性、prompt hash、结构化输出 schema、evidence contract、检查清单和行为红线，并阻断专家 persona 标签
-- finalize handler（`runtime/handlers_prompt_policy.py`）— `review_chain` 之后运行，发现 BLOCKED 级 policy issue 时阻断 finalize，并写入 `_internal/_prompt_policy.json`
+- finalize handler（`runtime/handlers/handlers_prompt_policy.py`）— `review_chain` 之后运行，发现 BLOCKED 级 policy issue 时阻断 finalize，并写入 `_internal/_prompt_policy.json`
 - policy 仍保持多语言无关：只治理 prompt 元数据和评审契约，不绑定具体语言 Provider
-- Judge/Critique 生成器去 persona 化 — `quality/judge.py` / `quality/critique.py` 从“你的身份/专家经验”改为“评估目标/行为约束/Phase Protocol”
-- PromptAssembler（`prompting/assembler.py`）— 统一 Judge/Critique/Preference/Review Chain 的片段顺序、必选/可选片段和轻量模板渲染，`quality/judge.py`、`quality/critique.py`、`quality/review_chain.py` 与 `agents/adaptive_loop.py` 共用同一入口
+- Judge/Critique 生成器去 persona 化 — `quality/judge/judge.py` / `quality/judge/critique.py` 从”你的身份/专家经验”改为”评估目标/行为约束/Phase Protocol”
+- PromptAssembler（`prompting/assembler.py`）— 统一 Judge/Critique/Preference/Review Chain 的片段顺序、必选/可选片段和轻量模板渲染，`quality/judge/judge.py`、`quality/judge/critique.py`、`quality/judge/review_chain.py` 与 `agents/adaptive_loop.py` 共用同一入口
 - 片段级追踪 — prompt manifest 新增 `assembly_order`、`section_hashes`、`section_sources`，可定位 prompt_hash 变化来自哪个片段、顺序变化或来源资产
 - Prompt eval runner（P2）— `tracking/prompt_eval.py` 支持可注入 executor 与离线 `prompt_outputs/<version>.json`，逐版本执行后计算 PHASE_METRICS，并输出 prompt hash、assembly order、execution source 与指标表
 
@@ -364,7 +364,7 @@
 - `commands/phase.py` 切换到 runtime 入口（cmd_execute/cmd_finalize 瘦身为薄壳，调用 runtime_execute/runtime_finalize + lifecycle handler）
 - `dqg_starter.md` 全面更新（Phase DAG、Q02、推理日志、Judge/Critique 前置、sidecar 说明、覆盖率门禁）
 - 新增模块测试补齐（compile_check/blast_radius/coverage_matrix/dynamic_rubric/coverage_gate 共 21 条测试）
-- multi_agent.py judge prompt 统一到 quality/judge.py（消除 Phase-A-only 的独立实现，dag_scheduler 自动获得全 Phase rubric）
+- multi_agent.py judge prompt 统一到 quality/judge/judge.py（消除 Phase-A-only 的独立实现，dag_scheduler 自动获得全 Phase rubric）
 - cmd_auto 切换到 runtime 入口（execute/finalize handler 在 auto 模式下正常触发）
 - adaptive_loop report_map 补齐 Q02/Q05/Q06/Q07（消除 fallback 到不存在文件的问题）
 - skill_loader 接入 dag_scheduler（progressive disclosure 从死代码变为活代码）
@@ -400,7 +400,7 @@
 - Profile 扩展（DqgProfile 新增 language 字段，新增 `typescript-service` profile）
 - 端到端验证（service-cli 接入：detect→Jest 识别→tsc 编译→断言解析→弱断言报告）
 - LoopHealthMonitor（`agents/loop_health.py`，adaptive loop 3 维死循环检测：score stagnation / issue repetition / infra failure streak，支持 EARLY_STOP 早停省 token）
-- OutputCompletenessGuardrail（`quality/output_completeness.py`，报告截断检测 + 按 Phase 最小长度门槛，注册为第 6 个 guardrail，零 LLM 成本前置拦截残缺报告）
+- OutputCompletenessGuardrail（`quality/guardrail/output_completeness.py`，报告截断检测 + 按 Phase 最小长度门槛，注册为第 6 个 guardrail，零 LLM 成本前置拦截残缺报告）
 - Reasoning Sandwich（`phase_registry.py` 每个 Phase 增加 `reasoning_profile`，`context_loader.py` 按 execution level 动态调整 budget：high=100%/standard=60%，为推理留更多空间）
 - Worker 内部拆分（`two_phase_worker.py`，Collector Agent 只做证据收集输出 `_evidence_pack.json`，Writer Agent 只看 evidence pack 不看原始文档，context 更干净）
 
@@ -444,9 +444,9 @@
 - **spawn_subagent 安全**：深度限制 MAX_DEPTH=2 + 返回值截断 16k 字符（可配置）
 - **性能优化**：Tool output pruning（旧工具返回值替换占位符）+ Frozen Snapshot（Adaptive Loop system prompt 不变保护 prefix cache）+ 按 Phase 配置模型等级（strong/standard → MODEL_TIER 映射）
 - **Context 压缩**：跨 Phase 结构化摘要模板（ID 级摘要替代全文）+ Facts 数量监控（超 5000 阈值自动降级为摘要模式）
-- **Trajectory Compressor**：`quality/trajectory.py`（压缩 Agent 执行轨迹为 JSONL，保护首尾 turn，压缩中间 tool call）
-- **AutoHarness finalize**：`quality/auto_checks.py`（从 Pydantic schema + phase_registry 自动推导校验：schema 合规 / 交叉引用 / 严重等级 / RSM 覆盖率）
-- **行为指纹回归**：`quality/behavioral_fingerprint.py`（从 trajectory 提取工具调用模式 / ID 数量 / 输出长度，统计分布替代 binary diff，PASS/FAIL/INCONCLUSIVE 三态判定）
+- **Trajectory Compressor**：`quality/regression/trajectory.py`（压缩 Agent 执行轨迹为 JSONL，保护首尾 turn，压缩中间 tool call）
+- **AutoHarness finalize**：`quality/checks/auto_checks.py`（从 Pydantic schema + phase_registry 自动推导校验：schema 合规 / 交叉引用 / 严重等级 / RSM 覆盖率）
+- **行为指纹回归**：`quality/eval/behavioral_fingerprint.py`（从 trajectory 提取工具调用模式 / ID 数量 / 输出长度，统计分布替代 binary diff，PASS/FAIL/INCONCLUSIVE 三态判定）
 - **batch_query 工具**：一次提交多个 search/wiki 查询，O(N)→O(1) token overhead
 - **Memory 防污染**：`memory/memory_filter.py`（条目按 global/project 标签分级，Phase Q01 只注入 global，注入时加免责声明）+ Wiki 读取加不可靠提示 + 写入加来源元数据
 - **Worker 结构化优先**：输出以 JSON 为主，md 从 JSON 自动渲染（`reporting/render.py`），JSON 是 source of truth
@@ -560,8 +560,8 @@
 
 | 项目 | 状态 | 说明 |
 |------|------|------|
-| PhaseGuardrail 基类 + GuardrailResult | **已完成** | `quality/guardrail.py`，支持 BLOCKED/WARNING/INFO 三级 |
-| 三层检查包装 | **已完成** | `quality/guardrail_impl.py`：FinalizeChecksGuardrail / PhaseConstraintsGuardrail / RuleComplianceGuardrail |
+| PhaseGuardrail 基类 + GuardrailResult | **已完成** | `quality/guardrail/guardrail.py`，支持 BLOCKED/WARNING/INFO 三级 |
+| 三层检查包装 | **已完成** | `quality/guardrail/guardrail_impl.py`：FinalizeChecksGuardrail / PhaseConstraintsGuardrail / RuleComplianceGuardrail |
 | 并发执行 + 结果持久化 | **已完成** | `run_guardrails()` 支持 ThreadPoolExecutor 并发，结果写入 `_guardrail_results.json` |
 | 接入 runtime_finalize | **已完成** | finalize handler 执行后统一跑 guardrail，不阻断主流程 |
 
