@@ -39,3 +39,43 @@ class TestSourceLocation:
     def test_file_must_not_be_empty(self):
         with pytest.raises(ValidationError):
             SourceLocation(file="", line_start=1)
+
+
+class TestTCItemWithLocation:
+    def test_tc_item_without_location_is_valid(self):
+        from dqg.schemas.phase_q05 import TCItem
+
+        item = TCItem(id="TC-001", repo="car-mrs")
+        assert item.test_location is None
+        assert item.production_location is None
+
+    def test_tc_item_with_test_location(self):
+        from dqg.schemas.phase_q05 import TCItem
+
+        loc = SourceLocation(file="OrderServiceTest.java", line_start=45)
+        item = TCItem(id="TC-001", repo="car-mrs", test_location=loc)
+        assert item.test_location.line_start == 45
+
+    def test_tc_item_with_both_locations(self):
+        from dqg.schemas.phase_q05 import TCItem
+
+        item = TCItem(
+            id="TC-001",
+            repo="car-mrs",
+            test_location=SourceLocation(
+                file="OrderServiceTest.java",
+                line_start=45,
+                line_end=72,
+                class_name="OrderServiceTest",
+                method_name="testApprove",
+                repo="car-mrs",
+            ),
+            production_location=SourceLocation(
+                file="OrderService.java",
+                line_start=88,
+                class_name="OrderService",
+                method_name="approve",
+                repo="car-mrs",
+            ),
+        )
+        assert item.production_location.method_name == "approve"
