@@ -246,6 +246,7 @@ Phase Q05 保证"按规则写了"，Phase Q06 检查"写得好不好"：
 - [ ] 每条结论行有 `[来源: 文件名:行号]` 标注（参见 references/report-format-spec.md §1）
 - [ ] 推理日志使用 `### Step N` 标记且 ≥ 3 个（参见 references/report-format-spec.md §2）
 - [ ] 推理日志引用了 SKILL.md 的 Step 编号
+- [ ] 每个 COVERED 判定已填写 `test_location`（`line_start` 指向断言行）
 
 ### Step 10: Judge/Critique（提交前自我评审）
 
@@ -309,7 +310,21 @@ Phase Q05 保证"按规则写了"，Phase Q06 检查"写得好不好"：
       "test_class": "XxxTest [来源: XxxTest.java:45]",
       "test_method": "method1, method2",
       "evidence": "assertEquals('expected', actual) [XxxTest.java:52]; verify(mock).call() [XxxTest.java:58]",
-      "recommendation": ""
+      "recommendation": "",
+      "test_location": {
+        "file": "com/xiaomi/service/XxxTest.java",
+        "line_start": 52,
+        "class_name": "XxxTest",
+        "method_name": "method1",
+        "repo": "car-mrs"
+      },
+      "production_location": {
+        "file": "com/xiaomi/service/Xxx.java",
+        "line_start": 88,
+        "class_name": "Xxx",
+        "method_name": "targetMethod",
+        "repo": "car-mrs"
+      }
     }
   ],
   "findings": [...],
@@ -323,6 +338,11 @@ Phase Q05 保证"按规则写了"，Phase Q06 检查"写得好不好"：
 - COVERED 判定必须有 `[文件名:行号]` 格式的证据引用，至少 1 处
 - 空 evidence 的 COVERED 会被 finalize gate 自动降级为 PARTIAL
 - PARTIAL/MISSING 的 recommendation 必须具体到要补什么断言
+
+**location 字段铁律：**
+- COVERED 判定必须填写 `test_location`，`line_start` 指向断言所在行（不是测试方法第一行）
+- `production_location` 必须对应被测方法的实现起始行
+- 空 `test_location` 的 COVERED 会被 finalize gate 自动降级为 PARTIAL
 
 ## 通过标准
 
