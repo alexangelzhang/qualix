@@ -1,9 +1,9 @@
 from .critique import (
     generate_critique_prompt,
-    persist_preference,
     write_critique_prompt,
     write_preference_prompt,
 )
+from .critique_feedback import persist_preference
 from .judge import (
     build_judge_prompt,
     format_judge_summary,
