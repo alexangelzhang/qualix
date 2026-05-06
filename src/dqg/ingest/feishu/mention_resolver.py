@@ -139,7 +139,7 @@ def process_batch_results(
 ) -> list[dict[str, Any]]:
     """Process ingestion results: append nodes/edges, return next batch."""
     next_batch: list[dict[str, Any]] = []
-    for ctx, node in zip(job_contexts, batch_results, strict=False):
+    for ctx, node in zip(job_contexts, batch_results, strict=True):
         doc_key = ctx["doc_key"]
         node_id = ctx["node_id"]
         current_depth = ctx["depth"]
