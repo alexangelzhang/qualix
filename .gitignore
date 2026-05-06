@@ -26,6 +26,11 @@ observability/
 .ruff_cache/
 .deepeval/
 .dqg-wiki/
+.dqg-graph/
+.playwright-mcp/
+
+# Claude Code 本地配置（MCP 服务器）
+.mcp.json
 
 # IDE
 .idea/
