@@ -25,7 +25,19 @@ log = get_logger(__name__)
 from typing import TYPE_CHECKING, Any
 
 from dqg.json_utils import dump_json_str
+from dqg.memory.hyperedge import build_business_hyperedges
 from dqg.store import get_connection
+
+__all__ = [
+    "add_link",
+    "build_business_hyperedges",
+    "build_cross_project_links",
+    "format_insights",
+    "get_cross_project_insights",
+    "index_bug_cases",
+    "index_project_facts",
+    "upsert_node",
+]
 
 if TYPE_CHECKING:
     from pathlib import Path

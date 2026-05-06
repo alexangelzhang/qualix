@@ -22,6 +22,7 @@ from dqg.ingest.feishu.asset_downloader import sanitize_filename
 from dqg.ingest.feishu.auth import normalize_url, parse_feishu_url
 
 # --- Backward-compatible re-exports ---
+from dqg.ingest.feishu.block_parser import collect_mention_docs
 from dqg.ingest.feishu.document_ingestor import (
     fetch_raw_content_with_fallback,
     ingest_single_document,

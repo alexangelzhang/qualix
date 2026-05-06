@@ -18,6 +18,16 @@ if TYPE_CHECKING:
 
 from dqg.json_utils import load_json, save_json
 from dqg.log import get_logger
+from dqg.runtime.phase_constraints import enforce_phase_constraints
+
+__all__ = [
+    "check_report_structure",
+    "enforce_phase_constraints",
+    "extract_priority_ids",
+    "generate_phase_contract",
+    "load_phase_contract",
+    "render_contract_for_judge",
+]
 
 log = get_logger(__name__)
 
