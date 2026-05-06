@@ -247,6 +247,7 @@ Step 1.1 + 1.2 的结果必须输出为结构化 JSON：
 - [ ] 每条结论行有 `[来源: 文件名:行号]` 标注（参见 references/report-format-spec.md §1）
 - [ ] 推理日志使用 `### Step N` 标记且 ≥ 3 个（参见 references/report-format-spec.md §2）
 - [ ] 推理日志引用了 SKILL.md 的 Step 编号
+- [ ] **COVERED 的 TC 已填写 `test_location`（`line_start` 指向断言行，非方法第一行）**
 
 ### Step 5: Judge/Critique（提交前自我评审）
 
@@ -275,13 +276,29 @@ Step 1.1 + 1.2 的结果必须输出为结构化 JSON：
       "id": "TC-001",
       "repo": "car-mrs",
       "status": "COVERED",
-      "covered_by": "SomeTest#testMethod",
+      "covered_by": "MrOrderMainServiceTest#testApplyEarlyDelivery_success",
       "scenario": "测试场景描述",
       "se_refs": ["SE-001"],
       "method": "applyEarlyDelivery",
       "class_under_test": "MrOrderMainService",
       "requirement": "BR-001",
-      "priority": "P0"
+      "priority": "P0",
+      "test_location": {
+        "file": "com/xiaomi/service/MrOrderMainServiceTest.java",
+        "line_start": 45,
+        "line_end": 72,
+        "class_name": "MrOrderMainServiceTest",
+        "method_name": "testApplyEarlyDelivery_success",
+        "repo": "car-mrs"
+      },
+      "production_location": {
+        "file": "com/xiaomi/service/MrOrderMainService.java",
+        "line_start": 120,
+        "line_end": 145,
+        "class_name": "MrOrderMainService",
+        "method_name": "applyEarlyDelivery",
+        "repo": "car-mrs"
+      }
     }
   ]
 }
@@ -293,6 +310,8 @@ Step 1.1 + 1.2 的结果必须输出为结构化 JSON：
 - `se_refs`: 必填，至少包含一个 SE ID
 - `status`: COVERED / MISSING / PARTIAL
 - `covered_by`: COVERED 时必填，格式 `TestClass#testMethod`
+- `test_location`: COVERED 时强烈建议填写，`line_start` 指向断言所在行
+- `production_location`: 填写被测方法的实现起始行
 
 产物必须包含以下标准章节（缺一不可）：
 
