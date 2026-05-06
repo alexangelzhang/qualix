@@ -12,13 +12,13 @@ from __future__ import annotations
 import streamlit as st
 
 from .cache import _ensure_db
-from .data_mgmt import _page_dag, _page_token, _page_waterfall, _page_data_management
-from .events import _page_events, _page_bug_cases
+from .data_mgmt import _page_dag, _page_data_management, _page_token, _page_waterfall
+from .events import _page_bug_cases, _page_events
 from .observability import _page_observability
 from .overview import _page_overview
 from .scores import _page_scores
 from .scoring import _page_scoring_overview
-from .trend import _page_quality_trend, _page_phase_score_trend
+from .trend import _page_phase_score_trend, _page_quality_trend
 
 
 def main():
@@ -27,20 +27,23 @@ def main():
     _ensure_db()
 
     st.sidebar.header("导航")
-    page = st.sidebar.radio("页面", [
-        "总览",
-        "评分总览",
-        "流程 DAG",
-        "Token 消耗",
-        "执行瀑布图",
-        "质量评分",
-        "事件追踪",
-        "Bug 案例库",
-        "质量趋势",
-        "Phase 评分趋势",
-        "可观测性",
-        "数据管理",
-    ])
+    page = st.sidebar.radio(
+        "页面",
+        [
+            "总览",
+            "评分总览",
+            "流程 DAG",
+            "Token 消耗",
+            "执行瀑布图",
+            "质量评分",
+            "事件追踪",
+            "Bug 案例库",
+            "质量趋势",
+            "Phase 评分趋势",
+            "可观测性",
+            "数据管理",
+        ],
+    )
 
     pages = {
         "总览": _page_overview,

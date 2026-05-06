@@ -13,9 +13,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from dqg.json_utils import dump_json_str
-
 from dqg.ingest.common import info, warn
+from dqg.json_utils import dump_json_str
 
 
 def _run_larkkit_bitable(
@@ -118,7 +117,7 @@ def _flatten_field_value(value: Any) -> str:
         return ""
     if isinstance(value, str):
         return value
-    if isinstance(value, (int, float)):
+    if isinstance(value, int | float):
         return str(value)
     if isinstance(value, bool):
         return "是" if value else "否"

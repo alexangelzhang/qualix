@@ -439,4 +439,4 @@ def __getattr__(name: str):
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())  # noqa: F821
+    raise SystemExit(main())  # noqa: F821  # main is loaded lazily via __getattr__

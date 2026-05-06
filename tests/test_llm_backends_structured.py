@@ -1,6 +1,5 @@
 """Tests for StructuredChatResult and chat_structured()."""
-import json
-import pytest
+
 from dqg.agents.llm_backends import StructuredChatResult, _extract_json
 
 

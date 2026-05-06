@@ -13,7 +13,6 @@ from dqg.json_utils import save_json
 from dqg.log import get_logger
 
 from .weak_assert_analysis import (
-    WeakAssertSignal,  # noqa: F401 — re-export for backward compat
     analyze_test_method,
     analyze_with_ast,
     extract_test_methods_regex,

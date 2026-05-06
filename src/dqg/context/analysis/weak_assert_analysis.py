@@ -28,7 +28,10 @@ try:
         is_available as _ast_available,
     )
 except ImportError:
-    _ast_available = lambda: False  # noqa: E731
+
+    def _ast_available() -> bool:
+        return False
+
 
 _TEST_ANNOTATION_PATTERN = re.compile(
     r"^\s*@(?:Test|ParameterizedTest|RepeatedTest|TestFactory|TestTemplate)\b",

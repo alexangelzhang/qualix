@@ -7,6 +7,7 @@ Usage:
     # 先关闭 Chrome，然后运行：
     python scripts/feishu_browser_images.py <feishu_url> -o <output_dir>
 """
+
 from __future__ import annotations
 
 import argparse
@@ -17,7 +18,6 @@ import subprocess
 import sys
 import time
 from pathlib import Path
-
 
 CDP_PORT = 9222
 
@@ -39,6 +39,7 @@ def launch_chrome_with_cdp() -> subprocess.Popen:
     )
     # 等 CDP 端口就绪
     import socket
+
     for _ in range(30):
         try:
             with socket.create_connection(("127.0.0.1", CDP_PORT), timeout=1):
@@ -54,7 +55,7 @@ async def download_images(url: str, output_dir: Path, timeout: int = 90) -> dict
     assets_dir = output_dir / "ingest" / "ingest" / "assets"
     assets_dir.mkdir(parents=True, exist_ok=True)
 
-    print(f"[browser_images] 启动 Chrome (CDP mode)...", file=sys.stderr)
+    print("[browser_images] 启动 Chrome (CDP mode)...", file=sys.stderr)
     chrome_proc = launch_chrome_with_cdp()
 
     try:
@@ -68,14 +69,14 @@ async def download_images(url: str, output_dir: Path, timeout: int = 90) -> dict
             await asyncio.sleep(5)
 
             # 等待飞书文档容器出现
-            print(f"[browser_images] 等待文档容器...", file=sys.stderr)
+            print("[browser_images] 等待文档容器...", file=sys.stderr)
             try:
                 await page.wait_for_selector(".bear-web-x-container", timeout=30000)
             except Exception:
-                print(f"[browser_images] 未找到 .bear-web-x-container，尝试继续", file=sys.stderr)
+                print("[browser_images] 未找到 .bear-web-x-container，尝试继续", file=sys.stderr)
 
             # 边滚边收集图片 URL（飞书虚拟滚动会卸载不可见的 DOM）
-            print(f"[browser_images] 滚动并收集图片...", file=sys.stderr)
+            print("[browser_images] 滚动并收集图片...", file=sys.stderr)
             img_count = await page.evaluate("""
             async () => {
                 const delay = ms => new Promise(r => setTimeout(r, ms));
@@ -124,7 +125,7 @@ async def download_images(url: str, output_dir: Path, timeout: int = 90) -> dict
             print(f"[browser_images] 收集到 {img_count} 张图片 URL", file=sys.stderr)
 
             # 在浏览器内 fetch 所有图片为 base64
-            print(f"[browser_images] 在浏览器内 fetch 图片...", file=sys.stderr)
+            print("[browser_images] 在浏览器内 fetch 图片...", file=sys.stderr)
             fetch_results = await page.evaluate("""
             async () => {
                 const imgs = window.__feishu_imgs || [];
@@ -169,7 +170,7 @@ async def download_images(url: str, output_dir: Path, timeout: int = 90) -> dict
             }
             """)
 
-            print(f"[browser_images] fetch 完成，处理结果...", file=sys.stderr)
+            print("[browser_images] fetch 完成，处理结果...", file=sys.stderr)
 
             # 保存到本地
             results = []
@@ -203,10 +204,16 @@ async def download_images(url: str, output_dir: Path, timeout: int = 90) -> dict
                 target = assets_dir / filename
                 target.write_bytes(raw)
 
-                results.append({
-                    "index": idx, "filename": filename, "status": "downloaded",
-                    "size": len(raw), "type": img_type, "src": src,
-                })
+                results.append(
+                    {
+                        "index": idx,
+                        "filename": filename,
+                        "status": "downloaded",
+                        "size": len(raw),
+                        "type": img_type,
+                        "src": src,
+                    }
+                )
                 print(f"  [{idx}] OK: {filename} ({len(raw)} bytes)", file=sys.stderr)
 
             await page.close()

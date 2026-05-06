@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import sys
-from pathlib import Path  # noqa: TC003
+from pathlib import Path
 
 from dqg.core.state_machine import (
     PHASE_DEFS,
@@ -103,7 +103,6 @@ def prompt_approve(project_id: str, phase_id: str, phase_name: str) -> tuple[boo
 
 def cmd_auto(args, output_dir: Path) -> int:
     """全自动推进 pipeline."""
-    import dqg.runtime  # noqa: F401 — 触发 handler 注册
     from dqg.commands.phase import _telemetry
     from dqg.commands.query import print_status
     from dqg.core.profiles import get_profile
@@ -208,7 +207,7 @@ def cmd_auto(args, output_dir: Path) -> int:
                     print("\n  Auto 模式退出")
                     print_status(state, output_dir)
                     return 0
-                PhaseRunRecord, append_record, _ = _telemetry()  # noqa: N806
+                PhaseRunRecord, append_record, _ = _telemetry()
                 if approved:
                     approve_phase(state, pid, comment)
                     save_state(output_dir, state)

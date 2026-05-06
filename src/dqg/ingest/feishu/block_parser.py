@@ -4,8 +4,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from dqg.ingest.common import BLOCK_TYPE_NAME
-
 if TYPE_CHECKING:
     from collections.abc import Callable
 

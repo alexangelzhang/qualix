@@ -1,7 +1,6 @@
 """Tests for dqg.memory.memory_filter."""
 
 from dqg.memory.memory_filter import (
-    MEMORY_DISCLAIMER,
     MemoryEntry,
     filter_memory_for_phase,
     parse_memory_entries,
@@ -9,7 +8,6 @@ from dqg.memory.memory_filter import (
 
 
 class TestParseMemoryEntries:
-
     def test_plain_entries_are_global(self):
         text = "- PRD 中的图片必须解析\n- 接口幂等性必须校验"
         entries = parse_memory_entries(text)
@@ -32,12 +30,7 @@ class TestParseMemoryEntries:
         assert entries[0].content == "PRD 图片必须解析"
 
     def test_mixed(self):
-        text = (
-            "- [global] 通用规则\n"
-            "- [project:proj-a] 项目A规则\n"
-            "- [project:proj-b] 项目B规则\n"
-            "- 无标签规则\n"
-        )
+        text = "- [global] 通用规则\n- [project:proj-a] 项目A规则\n- [project:proj-b] 项目B规则\n- 无标签规则\n"
         entries = parse_memory_entries(text)
         assert len(entries) == 4
         assert entries[0].scope == "global"
@@ -52,7 +45,6 @@ class TestParseMemoryEntries:
 
 
 class TestFilterMemoryForPhase:
-
     def _make_entries(self) -> list[MemoryEntry]:
         return parse_memory_entries(
             "- [global] 通用规则1\n"

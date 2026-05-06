@@ -7,7 +7,7 @@ from enum import StrEnum
 
 from pydantic import BaseModel, Field, field_validator
 
-from dqg.schemas.location import SourceLocation  # noqa: TC001
+from dqg.schemas.location import SourceLocation
 
 # EUT then 字段模糊描述黑名单（匹配到即拒绝）
 _VAGUE_THEN_PATTERNS: list[re.Pattern[str]] = [

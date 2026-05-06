@@ -50,17 +50,28 @@ FORMAL_FILES = {
     "image_semantics.json",
 }
 
-PHASE_DIRS = {"phaseA", "phaseA3", "phaseA5", "phaseA6", "phaseB", "phaseC", "phaseD",
-              "Q01", "Q02", "Q03", "Q04", "Q05", "Q06", "Q07"}
+PHASE_DIRS = {
+    "phaseA",
+    "phaseA3",
+    "phaseA5",
+    "phaseA6",
+    "phaseB",
+    "phaseC",
+    "phaseD",
+    "Q01",
+    "Q02",
+    "Q03",
+    "Q04",
+    "Q05",
+    "Q06",
+    "Q07",
+}
 
 
 def is_phase_dir(path: Path) -> bool:
     """判断是否是 phase 目录（支持带项目名前缀的旧格式）."""
     name = path.name
-    for pd in PHASE_DIRS:
-        if name == pd or name.endswith(f"_{pd}"):
-            return True
-    return False
+    return any(name == pd or name.endswith(f"_{pd}") for pd in PHASE_DIRS)
 
 
 def migrate_phase_dir(phase_dir: Path, dry_run: bool) -> int:

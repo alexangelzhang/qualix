@@ -1,9 +1,9 @@
 """Tests for modularized feishu ingest components."""
 
+from dqg.ingest.error_strategy import classify_error, derive_final_error_type, map_failure_category
 from dqg.ingest.feishu.asset_downloader import append_raw_image_key_assets
 from dqg.ingest.feishu.auth import normalize_url, parse_feishu_reference_url, parse_feishu_url
 from dqg.ingest.feishu.crawler import collect_mention_docs
-from dqg.ingest.error_strategy import classify_error, derive_final_error_type, map_failure_category
 from dqg.ingest.feishu.mention_graph import resolve_mention_target
 
 

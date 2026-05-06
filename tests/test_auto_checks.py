@@ -4,8 +4,6 @@ import json
 import tempfile
 from pathlib import Path
 
-import pytest
-
 from dqg.quality.auto_checks import auto_derive_checks
 
 
@@ -37,7 +35,12 @@ VALID_PHASE_A = {
         {"se_id": "SE-001", "description": "幂等性校验"},
     ],
     "gaps": [
-        {"gap_id": "GAP-001", "related_ids": ["REQ-001"], "description": "并发场景未定义", "required_clarification": "需要明确并发策略"},
+        {
+            "gap_id": "GAP-001",
+            "related_ids": ["REQ-001"],
+            "description": "并发场景未定义",
+            "required_clarification": "需要明确并发策略",
+        },
     ],
     "open_items": [
         {"open_id": "OPEN-001", "related_ids": ["REQ-001"], "question": "超时时间是多少？"},
@@ -46,7 +49,6 @@ VALID_PHASE_A = {
 
 
 class TestAutoChecksPhaseA:
-
     def test_valid_data_passes(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             output_dir = _setup_phase_a(Path(tmpdir), VALID_PHASE_A)
@@ -61,27 +63,46 @@ class TestAutoChecksPhaseA:
             assert any("MISSING" in e for e in errors)
 
     def test_invalid_req_id_pattern(self):
-        data = {**VALID_PHASE_A, "requirements": [
-            {"req_id": "INVALID-001", "description": "bad id"},
-        ]}
+        data = {
+            **VALID_PHASE_A,
+            "requirements": [
+                {"req_id": "INVALID-001", "description": "bad id"},
+            ],
+        }
         with tempfile.TemporaryDirectory() as tmpdir:
             output_dir = _setup_phase_a(Path(tmpdir), data)
             errors = auto_derive_checks(output_dir, "test-proj", "Q01")
             assert any("SCHEMA" in e for e in errors)
 
     def test_gap_references_nonexistent_id(self):
-        data = {**VALID_PHASE_A, "gaps": [
-            {"gap_id": "GAP-001", "related_ids": ["REQ-999"], "description": "引用不存在的ID", "required_clarification": "x"},
-        ]}
+        data = {
+            **VALID_PHASE_A,
+            "gaps": [
+                {
+                    "gap_id": "GAP-001",
+                    "related_ids": ["REQ-999"],
+                    "description": "引用不存在的ID",
+                    "required_clarification": "x",
+                },
+            ],
+        }
         with tempfile.TemporaryDirectory() as tmpdir:
             output_dir = _setup_phase_a(Path(tmpdir), data)
             errors = auto_derive_checks(output_dir, "test-proj", "Q01")
             assert any("XREF" in e and "REQ-999" in e for e in errors)
 
     def test_gap_missing_clarification(self):
-        data = {**VALID_PHASE_A, "gaps": [
-            {"gap_id": "GAP-001", "related_ids": ["REQ-001"], "description": "缺少澄清", "required_clarification": ""},
-        ]}
+        data = {
+            **VALID_PHASE_A,
+            "gaps": [
+                {
+                    "gap_id": "GAP-001",
+                    "related_ids": ["REQ-001"],
+                    "description": "缺少澄清",
+                    "required_clarification": "",
+                },
+            ],
+        }
         with tempfile.TemporaryDirectory() as tmpdir:
             output_dir = _setup_phase_a(Path(tmpdir), data)
             errors = auto_derive_checks(output_dir, "test-proj", "Q01")
@@ -89,9 +110,12 @@ class TestAutoChecksPhaseA:
 
     def test_no_req_level_requirement(self):
         """只有 BR 没有 REQ 应该被 schema validator 捕获."""
-        data = {**VALID_PHASE_A, "requirements": [
-            {"req_id": "BR-001", "description": "只有分支需求"},
-        ]}
+        data = {
+            **VALID_PHASE_A,
+            "requirements": [
+                {"req_id": "BR-001", "description": "只有分支需求"},
+            ],
+        }
         with tempfile.TemporaryDirectory() as tmpdir:
             output_dir = _setup_phase_a(Path(tmpdir), data)
             errors = auto_derive_checks(output_dir, "test-proj", "Q01")
@@ -99,7 +123,6 @@ class TestAutoChecksPhaseA:
 
 
 class TestAutoChecksPhaseA6:
-
     def test_valid_a6_passes(self):
         data = {
             "project_id": "test-proj",
@@ -107,7 +130,12 @@ class TestAutoChecksPhaseA6:
                 {"issue_id": "ARCH-001", "description": "架构问题", "severity": "HIGH"},
             ],
             "failure_modes": [
-                {"business_path": "创建工单", "failure_scenario": "超时", "has_exception_handling": True, "status": "SAFE"},
+                {
+                    "business_path": "创建工单",
+                    "failure_scenario": "超时",
+                    "has_exception_handling": True,
+                    "status": "SAFE",
+                },
             ],
         }
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -130,7 +158,6 @@ class TestAutoChecksPhaseA6:
 
 
 class TestAutoChecksUnknownPhase:
-
     def test_unknown_phase_returns_empty(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             errors = auto_derive_checks(Path(tmpdir), "test-proj", "Z")

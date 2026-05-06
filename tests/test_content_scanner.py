@@ -1,7 +1,5 @@
 """Tests for dqg.security.content_scanner."""
 
-import pytest
-
 from dqg.security.content_scanner import scan_content
 
 

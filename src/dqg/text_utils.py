@@ -11,11 +11,6 @@ import re
 from contextlib import suppress
 from typing import Any
 
-from dqg.constants import (
-    REPORT_MAP,  # noqa: F401 - re-export
-    STRUCTURED_JSON_MAP,  # noqa: F401 - re-export
-)
-
 _CHINESE_SEGMENT_RE = re.compile(r"[\u4e00-\u9fff]+")
 _IDENTIFIER_RE = re.compile(r"[A-Za-z0-9]+(?:[_\-][A-Za-z0-9]+)*")
 _CAMEL_PART_RE = re.compile(r"[A-Z]?[a-z]+|[A-Z]+(?![a-z])|\d+")

@@ -9,6 +9,11 @@ from dqg.constants import LEGACY_PHASE_ID_MAP
 from dqg.json_utils import load_json
 from dqg.store import get_connection, migrate_all
 
+from .cache import (
+    _cached_phase_durations,
+    _cached_projects,
+    _cached_token_consumption,
+)
 from .constants import (
     OUTPUT_DIR,
     PHASE_NAMES,
@@ -17,16 +22,11 @@ from .constants import (
     _format_dag_comment,
     _normalize_phase_id,
 )
-from .cache import (
-    _cached_projects,
-    _cached_token_consumption,
-    _cached_phase_durations,
-)
-
 
 # ---------------------------------------------------------------------------
 # 流程 DAG 页
 # ---------------------------------------------------------------------------
+
 
 def _page_dag():
     projects = _cached_projects()
@@ -61,7 +61,7 @@ def _page_dag():
         dur_str = f"{duration:.0f}s" if duration else "—"
         with cols[i]:
             st.markdown(
-                f"""<div style="background:{color};border-radius:8px;padding:10px 6px;text-align:center;color:{'#fff' if status != 'not_started' else '#666'}">
+                f"""<div style="background:{color};border-radius:8px;padding:10px 6px;text-align:center;color:{"#fff" if status != "not_started" else "#666"}">
                 <div style="font-size:1.1em;font-weight:bold">{qid}</div>
                 <div style="font-size:0.75em;margin:2px 0">{name}</div>
                 <div style="font-size:0.8em">{label}</div>
@@ -79,20 +79,23 @@ def _page_dag():
     for qid in dag_order:
         ps = phases.get(qid, {})
         status = ps.get("status", "not_started")
-        rows.append({
-            "Phase": qid,
-            "名称": PHASE_NAMES.get(qid, qid),
-            "状态": STATUS_LABEL.get(status, status),
-            "耗时(s)": ps.get("duration_seconds", "—"),
-            "Judge 评分": ps.get("judge_score", "—"),
-            "备注": _format_dag_comment(ps.get("comment", "")),
-        })
+        rows.append(
+            {
+                "Phase": qid,
+                "名称": PHASE_NAMES.get(qid, qid),
+                "状态": STATUS_LABEL.get(status, status),
+                "耗时(s)": ps.get("duration_seconds", "—"),
+                "Judge 评分": ps.get("judge_score", "—"),
+                "备注": _format_dag_comment(ps.get("comment", "")),
+            }
+        )
     st.dataframe(pd.DataFrame(rows), hide_index=True, width="stretch")
 
 
 # ---------------------------------------------------------------------------
 # Token 消耗页
 # ---------------------------------------------------------------------------
+
 
 def _page_token():
     projects = _cached_projects()
@@ -117,7 +120,9 @@ def _page_token():
     st.subheader("Token 消耗（按 Phase）")
     token_df = df[df["metric_name"].isin(["input_tokens", "output_tokens"])]
     if not token_df.empty:
-        pivot = token_df.pivot_table(index="phase_id", columns="metric_name", values="metric_value", aggfunc="sum", fill_value=0)
+        pivot = token_df.pivot_table(
+            index="phase_id", columns="metric_name", values="metric_value", aggfunc="sum", fill_value=0
+        )
         st.bar_chart(pivot)
 
     # 成本汇总
@@ -145,6 +150,7 @@ def _page_token():
     st.caption("命中率越高，重复查询越多走缓存，节省的 token 越多")
     try:
         from dqg.cache.semantic_cache import cache_stats
+
         stats = cache_stats(OUTPUT_DIR)
         c1, c2, c3, c4 = st.columns(4)
         with c1:
@@ -155,13 +161,15 @@ def _page_token():
             st.caption("历史上命中缓存的查询总次数（节省了等量 LLM 调用）")
         with c3:
             hit_rate = stats["hit_rate"]
-            st.metric("整体命中率", f"{hit_rate:.0%}",
-                      delta_color="normal" if hit_rate >= 0.3 else "inverse")
+            st.metric("整体命中率", f"{hit_rate:.0%}", delta_color="normal" if hit_rate >= 0.3 else "inverse")
             st.caption("命中率 ≥ 30% 表示缓存在有效工作；< 10% 说明查询多样性高或缓存 TTL 过短")
         with c4:
             recent_rate = stats["recent_hit_rate_24h"]
-            st.metric("近24h 命中率", f"{recent_rate:.0%}",
-                      delta=f"{stats['recent_hits_24h']} hits / {stats['recent_misses_24h']} misses")
+            st.metric(
+                "近24h 命中率",
+                f"{recent_rate:.0%}",
+                delta=f"{stats['recent_hits_24h']} hits / {stats['recent_misses_24h']} misses",
+            )
             st.caption("近24小时的缓存效率，反映当前工作负载的缓存友好程度")
     except Exception as e:
         st.caption(f"缓存统计暂不可用: {e}")
@@ -170,6 +178,7 @@ def _page_token():
 # ---------------------------------------------------------------------------
 # 执行瀑布图页
 # ---------------------------------------------------------------------------
+
 
 def _page_waterfall():
     projects = _cached_projects()
@@ -212,6 +221,7 @@ def _page_waterfall():
 # 数据管理页
 # ---------------------------------------------------------------------------
 
+
 def _page_data_management():
     st.subheader("数据迁移")
     st.caption("将现有 JSONL 历史数据迁移到 SQLite")
@@ -230,12 +240,10 @@ def _page_data_management():
         st.caption(f"大小: {size_kb:.1f} KB")
 
         with get_connection(OUTPUT_DIR) as conn:
-            tables = conn.execute(
-                "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name"
-            ).fetchall()
+            tables = conn.execute("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name").fetchall()
             for t in tables:
                 name = t["name"]
-                count = conn.execute(f"SELECT COUNT(*) FROM {name}").fetchone()[0]  # noqa: S608
+                count = conn.execute(f"SELECT COUNT(*) FROM {name}").fetchone()[0]
                 st.caption(f"  {name}: {count} 条记录")
     else:
         st.info("数据库尚未创建。执行迁移或运行 Phase 后自动创建。")

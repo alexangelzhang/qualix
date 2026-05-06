@@ -5,6 +5,7 @@ from __future__ import annotations
 import shutil
 import sys
 from pathlib import Path
+from typing import Final
 
 from dqg.core.state_machine import (
     PHASE_DEFS,
@@ -13,8 +14,6 @@ from dqg.core.state_machine import (
     reset_phase,
     save_state,
 )
-
-from typing import Final
 
 # 产出物目录中需要保留的子目录（输入上下文，不是产出物）
 _KEEP_DIRS: Final = frozenset({"_internal", "ingest"})
@@ -119,7 +118,7 @@ def cmd_reset(args, output_dir: Path) -> int:
             ),
         )
 
-    print(f"\n  Reset 完成:")
+    print("\n  Reset 完成:")
     for pid, action_type, count, archive_name in reset_results:
         if action_type == "archived" and archive_name:
             print(f"    Phase {pid}: {count} 个产出物已归档到 {archive_name}")

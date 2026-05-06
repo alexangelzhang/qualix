@@ -11,23 +11,24 @@ from typing import Any, Final
 from dqg.constants import CASES_DIR, PHASE_DIR_MAP, SKILL_FILE_MAP
 from dqg.json_utils import save_json
 
-
 # Judge 维度 → error_type 映射
-_JUDGE_DIM_TO_ERROR_TYPE: Final = MappingProxyType({
-    "faithfulness": "FP",
-    "completeness": "FN",
-    "se_explicitness": "FN",
-    "gap_detection": "FN",
-    "coverage_accuracy": "WRONG",
-    "missing_detection": "FN",
-    "reverse_audit": "FN",
-    "issue_validity": "FP",
-    "failure_mode_coverage": "FN",
-    "exception_coverage": "FN",
-    "audit_accuracy": "WRONG",
-    "wrong_target_detection": "FN",
-    "exception_branch": "FN",
-})
+_JUDGE_DIM_TO_ERROR_TYPE: Final = MappingProxyType(
+    {
+        "faithfulness": "FP",
+        "completeness": "FN",
+        "se_explicitness": "FN",
+        "gap_detection": "FN",
+        "coverage_accuracy": "WRONG",
+        "missing_detection": "FN",
+        "reverse_audit": "FN",
+        "issue_validity": "FP",
+        "failure_mode_coverage": "FN",
+        "exception_coverage": "FN",
+        "audit_accuracy": "WRONG",
+        "wrong_target_detection": "FN",
+        "exception_branch": "FN",
+    }
+)
 
 
 def auto_generate_bug_case(
@@ -124,7 +125,9 @@ def suggest_prompt_fix(cases: list[dict[str, Any]]) -> list[dict[str, str]]:
             continue
 
         lessons = [c.get("lesson", "") for c in target_cases if c.get("lesson")]
-        categories = list({c.get("source", {}).get("category2", "") for c in target_cases if c.get("source", {}).get("category2")})
+        categories = list(
+            {c.get("source", {}).get("category2", "") for c in target_cases if c.get("source", {}).get("category2")}
+        )
 
         suggestion = {
             "file": target,

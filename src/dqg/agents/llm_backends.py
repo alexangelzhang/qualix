@@ -6,18 +6,19 @@ import json
 import os
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, ClassVar
 
 from dqg.json_utils import dump_json_str
-
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _extract_json(text: str) -> dict[str, Any] | None:
     """Extract JSON object from text. Returns None if no valid JSON found."""
     import re as _re
+
     m = _re.search(r"```json\s*\n([\s\S]*?)\n```", text)
     if m:
         try:
@@ -38,9 +39,11 @@ def _extract_json(text: str) -> dict[str, Any] | None:
 # LLM Backend 抽象层
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class LLMConfig:
     """模型配置，支持主模型+备用模型."""
+
     primary: str = "claude-opus-4-6"
     fallback: str | None = "deepseek-chat"
     temperature: float = 0.0
@@ -48,7 +51,7 @@ class LLMConfig:
     timeout: int = 120
 
     # API 配置（从环境变量读取）
-    _MODEL_KEY_MAP = {
+    _MODEL_KEY_MAP: ClassVar[dict[str, str]] = {
         "claude": "ANTHROPIC_API_KEY",
         "opus": "ANTHROPIC_API_KEY",
         "sonnet": "ANTHROPIC_API_KEY",
@@ -85,6 +88,7 @@ class LLMConfig:
 @dataclass
 class StructuredChatResult:
     """Return type for chat_structured — preserves raw text for guard/audit."""
+
     parsed: dict[str, Any]
     raw_text: str
     provider_meta: dict[str, Any]
@@ -94,15 +98,16 @@ class LLMBackend(ABC):
     """LLM 后端抽象接口."""
 
     @abstractmethod
-    def chat(self, messages: list[dict[str, Any]], **kwargs) -> tuple[str, dict[str, int]]:
-        ...
+    def chat(self, messages: list[dict[str, Any]], **kwargs) -> tuple[str, dict[str, int]]: ...
 
     @abstractmethod
-    def name(self) -> str:
-        ...
+    def name(self) -> str: ...
 
     def chat_structured(
-        self, messages: list[dict[str, Any]], response_schema: dict[str, Any], **kwargs,
+        self,
+        messages: list[dict[str, Any]],
+        response_schema: dict[str, Any],
+        **kwargs,
     ) -> StructuredChatResult:
         """Structured output with schema enforcement. Default: prompt-based fallback."""
         prompt_suffix = (
@@ -118,7 +123,8 @@ class LLMBackend(ABC):
         raw_text, usage = self.chat(augmented, **kwargs)
         parsed = _extract_json(raw_text)
         if parsed is None:
-            retry_msgs = augmented + [
+            retry_msgs = [
+                *augmented,
                 {"role": "assistant", "content": raw_text},
                 {"role": "user", "content": "你的回复不是有效 JSON。请只输出 JSON 对象，不要包含任何其他文本。"},
             ]
@@ -142,8 +148,8 @@ class AnthropicBackend(LLMBackend):
     def chat(self, messages: list[dict[str, Any]], **kwargs) -> tuple[str, dict[str, int]]:
         try:
             import anthropic
-        except ImportError:
-            raise RuntimeError("pip install anthropic")
+        except ImportError as err:
+            raise RuntimeError("pip install anthropic") from err
 
         client = anthropic.Anthropic(api_key=self.api_key)
         system_blocks = []
@@ -164,16 +170,12 @@ class AnthropicBackend(LLMBackend):
                 # 典型场景：evidence pack、bug cases、rubric 等跨轮稳定内容
                 explicit_cache = m.get("cache_control", False)
                 if explicit_cache:
-                    chat_msgs.append({
-                        "role": m["role"],
-                        "content": [
-                            {
-                                "type": "text",
-                                "text": content,
-                                "cache_control": {"type": "ephemeral"}
-                            }
-                        ]
-                    })
+                    chat_msgs.append(
+                        {
+                            "role": m["role"],
+                            "content": [{"type": "text", "text": content, "cache_control": {"type": "ephemeral"}}],
+                        }
+                    )
                 else:
                     chat_msgs.append({"role": m["role"], "content": content})
 
@@ -209,6 +211,7 @@ class AnthropicBackend(LLMBackend):
     def _parse_sse_response(sse_text: str) -> tuple[str, dict[str, int]]:
         """解析 SDK 0.88.0+ 返回的 SSE 字符串."""
         import json as _json
+
         content_parts: list[str] = []
         usage: dict[str, int] = {"input_tokens": 0, "output_tokens": 0}
 
@@ -243,7 +246,7 @@ class OpenAICompatibleBackend(LLMBackend):
     """OpenAI 兼容 API 后端（支持 GPT/Codex/DeepSeek/Qwen/Kimi/Moonshot）."""
 
     # 模型 → 默认 base_url
-    _BASE_URLS = {
+    _BASE_URLS: ClassVar[dict[str, str]] = {
         "deepseek": "https://api.deepseek.com/v1",
         "qwen": "https://dashscope.aliyuncs.com/compatible-mode/v1",
         "kimi": "https://api.moonshot.cn/v1",
@@ -265,8 +268,8 @@ class OpenAICompatibleBackend(LLMBackend):
     def chat(self, messages: list[dict[str, Any]], **kwargs) -> tuple[str, dict[str, int]]:
         try:
             import openai
-        except ImportError:
-            raise RuntimeError("pip install openai")
+        except ImportError as err:
+            raise RuntimeError("pip install openai") from err
 
         client = openai.OpenAI(api_key=self.api_key, base_url=self.base_url)
         # remove cache_control tags as openai doesn't support them in direct messages same way
@@ -293,20 +296,20 @@ class OpenAICompatibleBackend(LLMBackend):
         return f"openai-compat:{self.model}"
 
     def chat_structured(
-        self, messages: list[dict[str, Any]], response_schema: dict[str, Any], **kwargs,
+        self,
+        messages: list[dict[str, Any]],
+        response_schema: dict[str, Any],
+        **kwargs,
     ) -> StructuredChatResult:
         """OpenAI-compatible: use response_format=json_object when available."""
         try:
             import openai
-        except ImportError:
-            raise RuntimeError("pip install openai")
+        except ImportError as err:
+            raise RuntimeError("pip install openai") from err
 
         client = openai.OpenAI(api_key=self.api_key, base_url=self.base_url)
         clean_msgs = [{"role": m["role"], "content": m["content"]} for m in messages]
-        schema_hint = (
-            "\n\nOutput ONLY a valid JSON object matching this schema:\n"
-            + dump_json_str(response_schema)
-        )
+        schema_hint = "\n\nOutput ONLY a valid JSON object matching this schema:\n" + dump_json_str(response_schema)
         clean_msgs[-1]["content"] += schema_hint
 
         try:
@@ -378,8 +381,8 @@ class GeminiBackend(LLMBackend):
         """通过 OpenAI 兼容接口调用 Gemini."""
         try:
             import openai
-        except ImportError:
-            raise RuntimeError("pip install openai 或 pip install google-generativeai")
+        except ImportError as err:
+            raise RuntimeError("pip install openai 或 pip install google-generativeai") from err
 
         client = openai.OpenAI(
             api_key=self.api_key,

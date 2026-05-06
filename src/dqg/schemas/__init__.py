@@ -7,7 +7,7 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path  # noqa: TC003 — used at runtime in validate_phase_output
+from pathlib import Path
 from types import MappingProxyType
 from typing import Final
 

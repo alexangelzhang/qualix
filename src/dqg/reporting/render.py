@@ -6,10 +6,8 @@ md 报告从 JSON 自动渲染，确保 md 和 JSON 永远一致。
 
 from __future__ import annotations
 
-from typing import Any, Final
 from types import MappingProxyType
-
-from dqg.text_utils import REPORT_MAP
+from typing import Any, Final
 
 
 def render_phase_a(data: dict[str, Any]) -> str:
@@ -138,12 +136,14 @@ def render_phase_d(data: dict[str, Any]) -> str:
 
 
 # Phase → 渲染函数
-_RENDERERS: Final = MappingProxyType({
-    "Q01": render_phase_a,
-    "Q03": render_phase_a6,
-    "Q05": render_phase_b,
-    "Q07": render_phase_d,
-})
+_RENDERERS: Final = MappingProxyType(
+    {
+        "Q01": render_phase_a,
+        "Q03": render_phase_a6,
+        "Q05": render_phase_b,
+        "Q07": render_phase_d,
+    }
+)
 
 
 def render_report(phase_id: str, data: dict[str, Any]) -> str | None:

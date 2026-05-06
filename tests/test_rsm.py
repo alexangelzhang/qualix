@@ -9,7 +9,6 @@ from dqg.schemas.rsm import (
     apply_mutations,
     build_lifecycle,
     compute_coverage,
-    CoverageReport,
     load_rsm,
     mutations_from_critique,
     save_rsm,
@@ -26,76 +25,111 @@ def _setup_full_project(tmpdir: Path) -> Path:
     pid = "test-proj"
 
     # Phase A
-    _write_phase_json(tmpdir, pid, "Q01", "phase_a_structured.json", {
-        "project_id": pid,
-        "requirements": [
-            {"req_id": "REQ-001", "description": "创建工单"},
-            {"req_id": "REQ-002", "description": "查询工单"},
-            {"req_id": "BR-001", "parent_id": "REQ-001", "description": "幂等性校验"},
-        ],
-        "semantic_expectations": [
-            {"se_id": "SE-001", "description": "幂等性"},
-            {"se_id": "SE-002", "description": "并发控制"},
-        ],
-        "gaps": [
-            {"gap_id": "GAP-001", "description": "超时未定义", "related_ids": ["REQ-001"]},
-        ],
-        "open_items": [
-            {"open_id": "OPEN-001", "question": "超时时间？", "related_ids": ["REQ-001"]},
-        ],
-    })
+    _write_phase_json(
+        tmpdir,
+        pid,
+        "Q01",
+        "phase_a_structured.json",
+        {
+            "project_id": pid,
+            "requirements": [
+                {"req_id": "REQ-001", "description": "创建工单"},
+                {"req_id": "REQ-002", "description": "查询工单"},
+                {"req_id": "BR-001", "parent_id": "REQ-001", "description": "幂等性校验"},
+            ],
+            "semantic_expectations": [
+                {"se_id": "SE-001", "description": "幂等性"},
+                {"se_id": "SE-002", "description": "并发控制"},
+            ],
+            "gaps": [
+                {"gap_id": "GAP-001", "description": "超时未定义", "related_ids": ["REQ-001"]},
+            ],
+            "open_items": [
+                {"open_id": "OPEN-001", "question": "超时时间？", "related_ids": ["REQ-001"]},
+            ],
+        },
+    )
 
     # Phase A.5
-    _write_phase_json(tmpdir, pid, "Q04", "phase_a5_structured.json", {
-        "project_id": pid,
-        "req_coverage": [
-            {"req_id": "REQ-001", "status": "COVERED"},
-            {"req_id": "REQ-002", "status": "MISSING"},
-        ],
-        "se_coverage": [
-            {"se_id": "SE-001", "status": "COVERED"},
-            {"se_id": "SE-002", "status": "PARTIAL"},
-        ],
-        "gap_closure": [
-            {"gap_id": "GAP-001", "status": "已闭环"},
-        ],
-        "open_closure": [
-            {"open_id": "OPEN-001", "status": "未闭环"},
-        ],
-    })
+    _write_phase_json(
+        tmpdir,
+        pid,
+        "Q04",
+        "phase_a5_structured.json",
+        {
+            "project_id": pid,
+            "req_coverage": [
+                {"req_id": "REQ-001", "status": "COVERED"},
+                {"req_id": "REQ-002", "status": "MISSING"},
+            ],
+            "se_coverage": [
+                {"se_id": "SE-001", "status": "COVERED"},
+                {"se_id": "SE-002", "status": "PARTIAL"},
+            ],
+            "gap_closure": [
+                {"gap_id": "GAP-001", "status": "已闭环"},
+            ],
+            "open_closure": [
+                {"open_id": "OPEN-001", "status": "未闭环"},
+            ],
+        },
+    )
 
     # Phase B
-    _write_phase_json(tmpdir, pid, "Q05", "phase_b_structured.json", {
-        "project_id": pid,
-        "eut_items": [
-            {"eut_id": "EUT-001", "bound_se": "SE-001", "route_type": "Happy Path",
-             "given": "g", "when": "w", "then": "t"},
-        ],
-    })
+    _write_phase_json(
+        tmpdir,
+        pid,
+        "Q05",
+        "phase_b_structured.json",
+        {
+            "project_id": pid,
+            "eut_items": [
+                {
+                    "eut_id": "EUT-001",
+                    "bound_se": "SE-001",
+                    "route_type": "Happy Path",
+                    "given": "g",
+                    "when": "w",
+                    "then": "t",
+                },
+            ],
+        },
+    )
 
     # Phase D
-    _write_phase_json(tmpdir, pid, "Q07", "phase_d_structured.json", {
-        "project_id": pid,
-        "findings": [
-            {"finding_id": "F-001", "description": "缺少异常处理", "severity": "MAJOR", "related_req": "REQ-001"},
-        ],
-    })
+    _write_phase_json(
+        tmpdir,
+        pid,
+        "Q07",
+        "phase_d_structured.json",
+        {
+            "project_id": pid,
+            "findings": [
+                {"finding_id": "F-001", "description": "缺少异常处理", "severity": "MAJOR", "related_req": "REQ-001"},
+            ],
+        },
+    )
 
     return tmpdir
 
 
 class TestBuildLifecycle:
-
     def test_builds_from_phase_a(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             output_dir = Path(tmpdir)
-            _write_phase_json(output_dir, "p", "Q01", "phase_a_structured.json", {
-                "project_id": "p",
-                "requirements": [{"req_id": "REQ-001", "description": "test"}],
-                "semantic_expectations": [{"se_id": "SE-001", "description": "test"}],
-                "gaps": [{"gap_id": "GAP-001", "description": "test"}],
-                "open_items": [{"open_id": "OPEN-001", "question": "test"}],
-            })
+            _write_phase_json(
+                output_dir,
+                "p",
+                "Q01",
+                "phase_a_structured.json",
+                {
+                    "project_id": "p",
+                    "requirements": [{"req_id": "REQ-001", "description": "test"}],
+                    "semantic_expectations": [{"se_id": "SE-001", "description": "test"}],
+                    "gaps": [{"gap_id": "GAP-001", "description": "test"}],
+                    "open_items": [{"open_id": "OPEN-001", "question": "test"}],
+                },
+            )
             lc = build_lifecycle(output_dir, "p")
             assert "REQ-001" in lc
             assert "SE-001" in lc
@@ -132,7 +166,6 @@ class TestBuildLifecycle:
 
 
 class TestComputeCoverage:
-
     def test_full_coverage_report(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             output_dir = _setup_full_project(Path(tmpdir))
@@ -179,7 +212,6 @@ class TestComputeCoverage:
 
 
 class TestRSMMutations:
-
     def test_add_mutation(self):
         lc = {"REQ-001": build_lifecycle.__wrapped__} if False else {}
         # 从空 lifecycle 开始
@@ -193,6 +225,7 @@ class TestRSMMutations:
 
     def test_modify_mutation(self):
         from dqg.schemas.rsm import RequirementLifecycle
+
         lc = {"REQ-001": RequirementLifecycle(req_id="REQ-001", id_type="REQ", description="旧描述")}
         mut = RSMMutation(target_id="REQ-001", action="modify", value="新描述", reason="不完整")
         lc, applied = apply_mutations(lc, [mut])
@@ -201,6 +234,7 @@ class TestRSMMutations:
 
     def test_delete_mutation(self):
         from dqg.schemas.rsm import RequirementLifecycle
+
         lc = {"REQ-001": RequirementLifecycle(req_id="REQ-001", id_type="REQ", description="误报")}
         mut = RSMMutation(target_id="REQ-001", action="delete", reason="误报")
         lc, applied = apply_mutations(lc, [mut])
@@ -209,9 +243,10 @@ class TestRSMMutations:
 
     def test_escalate_gap(self):
         from dqg.schemas.rsm import RequirementLifecycle
+
         lc = {"GAP-001": RequirementLifecycle(req_id="GAP-001", id_type="GAP", closure_status="已闭环")}
         mut = RSMMutation(target_id="GAP-001", action="escalate", reason="实际未解决")
-        lc, applied = apply_mutations(lc, [mut])
+        lc, _applied = apply_mutations(lc, [mut])
         assert lc["GAP-001"].closure_status == "未闭环"
 
     def test_skip_nonexistent_modify(self):
@@ -222,7 +257,6 @@ class TestRSMMutations:
 
 
 class TestMutationsFromCritique:
-
     def test_extracts_rsm_mutations(self):
         critique_data = {
             "phase_id": "Q01",
@@ -240,9 +274,9 @@ class TestMutationsFromCritique:
 
 
 class TestRSMPersistence:
-
     def test_save_and_load(self):
         from dqg.schemas.rsm import RequirementLifecycle
+
         with tempfile.TemporaryDirectory() as tmpdir:
             output_dir = Path(tmpdir)
             lc = {

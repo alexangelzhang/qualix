@@ -12,7 +12,6 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
-from pathlib import Path
 
 _PROJECT_TAG_RE = re.compile(r"^\[project:([^\]]+)\]\s*")
 _GLOBAL_TAG_RE = re.compile(r"^\[global\]\s*")
@@ -52,14 +51,14 @@ def parse_memory_entries(mem_text: str) -> list[MemoryEntry]:
         proj_match = _PROJECT_TAG_RE.match(body)
         if proj_match:
             pid = proj_match.group(1).strip()
-            content = body[proj_match.end():].strip()
+            content = body[proj_match.end() :].strip()
             entries.append(MemoryEntry(raw=line, content=content, scope=f"project:{pid}", project_id=pid))
             continue
 
         # 检查 global 标签
         global_match = _GLOBAL_TAG_RE.match(body)
         if global_match:
-            content = body[global_match.end():].strip()
+            content = body[global_match.end() :].strip()
             entries.append(MemoryEntry(raw=line, content=content, scope="global", project_id=""))
             continue
 
@@ -85,9 +84,7 @@ def filter_memory_for_phase(
     filtered: list[str] = []
 
     for entry in entries:
-        if entry.scope == "global":
-            filtered.append(f"- {entry.content}")
-        elif not global_only and entry.project_id == project_id:
+        if entry.scope == "global" or (not global_only and entry.project_id == project_id):
             filtered.append(f"- {entry.content}")
         # 其他项目的条目：跳过
 

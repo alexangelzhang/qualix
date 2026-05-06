@@ -1,12 +1,18 @@
 """Tests for adaptive loop guard + JudgeRunner integration."""
-import pytest
+
 from dqg.agents.adaptive_loop import JudgeVote, VoteResult, judge_health_check
 
 
 def test_judge_vote_has_raw_output_and_health():
     vote = JudgeVote(
-        model="test", scores={}, overall=3.5, verdict="PASS",
-        issues=[], duration=1.0, raw_output="raw text", health="HEALTHY",
+        model="test",
+        scores={},
+        overall=3.5,
+        verdict="PASS",
+        issues=[],
+        duration=1.0,
+        raw_output="raw text",
+        health="HEALTHY",
     )
     assert vote.raw_output == "raw text"
     assert vote.health == "HEALTHY"
@@ -14,8 +20,12 @@ def test_judge_vote_has_raw_output_and_health():
 
 def test_judge_vote_health_defaults_to_healthy():
     vote = JudgeVote(
-        model="test", scores={}, overall=3.5, verdict="PASS",
-        issues=[], duration=1.0,
+        model="test",
+        scores={},
+        overall=3.5,
+        verdict="PASS",
+        issues=[],
+        duration=1.0,
     )
     assert vote.health == "HEALTHY"
     assert vote.raw_output == ""

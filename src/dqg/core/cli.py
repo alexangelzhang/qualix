@@ -59,7 +59,7 @@ def _cmd_init(args: argparse.Namespace) -> int:
 
     # Python package
     try:
-        import dqg.core.runner  # noqa: F401
+        import dqg.core.runner
 
         print("   dqg package: OK")
     except ImportError:

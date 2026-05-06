@@ -1,5 +1,5 @@
 """Tests for report structure contract check."""
-import pytest
+
 from dqg.runtime.phase_contract import check_report_structure
 
 

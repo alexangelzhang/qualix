@@ -347,7 +347,7 @@ def _check_impl_slice(pd: Path, report: str, phase_id: str) -> tuple[bool, str]:
 # 检查函数映射表（合并本模块 + Phase B/C 子模块）
 # ---------------------------------------------------------------------------
 
-from .rule_checks_bc import BC_CHECK_FUNCS  # noqa: E402
+from .rule_checks_bc import BC_CHECK_FUNCS
 
 CHECK_FUNCS: Final = MappingProxyType(
     {

@@ -7,7 +7,6 @@ from pathlib import Path
 
 import pytest
 
-
 # ---------------------------------------------------------------------------
 # coverage_matrix 测试
 # ---------------------------------------------------------------------------
@@ -161,7 +160,8 @@ class TestBlastRadius:
         from dqg.quality.blast_radius import build_call_graph_regex
 
         java_file = tmp_path / "OrderService.java"
-        java_file.write_text(textwrap.dedent("""\
+        java_file.write_text(
+            textwrap.dedent("""\
             public class OrderService {
                 public void createOrder(OrderRequest req) {
                     paymentService.charge(req.getAmount());
@@ -171,7 +171,8 @@ class TestBlastRadius:
                     paymentService.refund(orderId);
                 }
             }
-        """))
+        """)
+        )
         graph = build_call_graph_regex(tmp_path, ["OrderService.java"])
         assert "OrderService.createOrder" in graph
         assert "OrderService.cancelOrder" in graph
@@ -388,11 +389,7 @@ class TestOvercorrectionGuard:
         from dqg.quality.rationalization_guard import OvercorrectionGuard
 
         guard = OvercorrectionGuard()
-        output = (
-            "该模块整体质量一般。\n\n"
-            "FAIL: 缺少异常处理逻辑，不符合规范要求。\n\n"
-            "PASS: 接口定义清晰。"
-        )
+        output = "该模块整体质量一般。\n\nFAIL: 缺少异常处理逻辑，不符合规范要求。\n\nPASS: 接口定义清晰。"
         result = guard.check(output)
         assert result.has_overcorrection
         assert len(result.fail_without_evidence) == 1
@@ -403,9 +400,7 @@ class TestOvercorrectionGuard:
 
         guard = OvercorrectionGuard()
         output = (
-            "FAIL: 空指针风险。\n"
-            "OrderService.java:88 — getOrder() 返回值未做 null 检查，"
-            "下游 calculateTotal() 会 NPE。"
+            "FAIL: 空指针风险。\nOrderService.java:88 — getOrder() 返回值未做 null 检查，下游 calculateTotal() 会 NPE。"
         )
         result = guard.check(output)
         # Has evidence, so fail_without_evidence should be empty
@@ -563,24 +558,34 @@ class TestDemandTrace:
 
         graph = {
             "Controller.handleOrder": {
-                "file": "Controller.java", "line": 10,
-                "calls": ["Service.createOrder"], "called_by": [],
+                "file": "Controller.java",
+                "line": 10,
+                "calls": ["Service.createOrder"],
+                "called_by": [],
             },
             "Service.createOrder": {
-                "file": "Service.java", "line": 20,
-                "calls": ["Repo.save", "Validator.check"], "called_by": ["Controller.handleOrder"],
+                "file": "Service.java",
+                "line": 20,
+                "calls": ["Repo.save", "Validator.check"],
+                "called_by": ["Controller.handleOrder"],
             },
             "Repo.save": {
-                "file": "Repo.java", "line": 30,
-                "calls": [], "called_by": ["Service.createOrder"],
+                "file": "Repo.java",
+                "line": 30,
+                "calls": [],
+                "called_by": ["Service.createOrder"],
             },
             "Validator.check": {
-                "file": "Validator.java", "line": 40,
-                "calls": ["Validator.checkAmount"], "called_by": ["Service.createOrder"],
+                "file": "Validator.java",
+                "line": 40,
+                "calls": ["Validator.checkAmount"],
+                "called_by": ["Service.createOrder"],
             },
             "Validator.checkAmount": {
-                "file": "Validator.java", "line": 50,
-                "calls": [], "called_by": ["Validator.check"],
+                "file": "Validator.java",
+                "line": 50,
+                "calls": [],
+                "called_by": ["Validator.check"],
             },
         }
 
@@ -655,7 +660,9 @@ class TestDemandTrace:
 
         trace = {
             "traced_methods": [
-                {"method": "A.a"}, {"method": "B.b"}, {"method": "C.c"},
+                {"method": "A.a"},
+                {"method": "B.b"},
+                {"method": "C.c"},
             ],
         }
         blast = {
@@ -737,11 +744,7 @@ class TestRequirementSmell:
     def test_quality_score_degrades(self):
         from dqg.quality.requirement_smell import detect_smells
 
-        text = (
-            "系统应适当处理并发请求。\n"
-            "所有用户数据不限容量。\n"
-            "界面要美观大方。\n"
-        )
+        text = "系统应适当处理并发请求。\n所有用户数据不限容量。\n界面要美观大方。\n"
         report = detect_smells(text)
         assert report.quality_score < 1.0
         assert len(report.smells) >= 3

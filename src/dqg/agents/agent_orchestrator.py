@@ -2,19 +2,19 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from pathlib import Path
-from typing import Callable
 
-from dqg.agents.llm_backends import LLMConfig
-from dqg.constants import DEFAULT_FALLBACK_MODEL, DEFAULT_JUDGE_MODEL, DEFAULT_PRIMARY_MODEL, MODEL_TIER
 from dqg.agents.agent import Agent, AgentResult
 from dqg.agents.builtin_tools import build_builtin_tools
+from dqg.agents.llm_backends import LLMConfig
 from dqg.agents.pipeline_io import (
     extract_and_save_json,
     format_deterministic_report,
     process_critique_feedback,
     render_report_from_json,
 )
+from dqg.constants import DEFAULT_FALLBACK_MODEL, DEFAULT_JUDGE_MODEL, DEFAULT_PRIMARY_MODEL, MODEL_TIER
 from dqg.core.phase_registry import PHASE_DEFS
 from dqg.core.state_machine import phase_dir as _phase_dir
 from dqg.log import get_logger
@@ -34,7 +34,9 @@ class AgentOrchestrator:
         self._depth = _depth
         self.subagent_result_limit = subagent_result_limit or self.DEFAULT_SUBAGENT_RESULT_LIMIT
 
-    def create_worker(self, project_id: str, phase_id: str, skill_content: str, tools: list[Callable] | None = None) -> Agent:
+    def create_worker(
+        self, project_id: str, phase_id: str, skill_content: str, tools: list[Callable] | None = None
+    ) -> Agent:
         writeback_prompt = "\n\n【The Writeback Discipline 约束】: 如果你在分析中发现了当前项目代码或需求里有价值的全局约束、隐式逻辑，请立即调用 write_to_wiki 工具将其记入 `.dqg-wiki/`。不要让它随风消逝！"
         phase_def = PHASE_DEFS.get(phase_id, {})
         tier = phase_def.get("recommended_model", "strong")
@@ -45,7 +47,7 @@ class AgentOrchestrator:
             system_prompt=skill_content + writeback_prompt,
             model=LLMConfig(primary=model, fallback=DEFAULT_FALLBACK_MODEL),
             output_dir=self.output_dir,
-            tools=tools
+            tools=tools,
         )
 
     def create_judge(self, project_id: str, phase_id: str, rubric: str, tools: list[Callable] | None = None) -> Agent:
@@ -56,10 +58,12 @@ class AgentOrchestrator:
             system_prompt=rubric + writeback_prompt,
             model=LLMConfig(primary=DEFAULT_JUDGE_MODEL, fallback=DEFAULT_FALLBACK_MODEL),
             output_dir=self.output_dir,
-            tools=tools
+            tools=tools,
         )
 
-    def create_critique(self, project_id: str, phase_id: str, critique_prompt: str, tools: list[Callable] | None = None) -> Agent:
+    def create_critique(
+        self, project_id: str, phase_id: str, critique_prompt: str, tools: list[Callable] | None = None
+    ) -> Agent:
         writeback_prompt = "\n\n【The Writeback Discipline 约束】: 如果你在挑错中找出了被违背的设计原则或高频痛点，务必调用 write_to_wiki 工具将其定格入 `.dqg-wiki/`，为长效免疫做贡献。"
         return Agent(
             name=f"{project_id}-{phase_id}-critique",
@@ -67,7 +71,7 @@ class AgentOrchestrator:
             system_prompt=critique_prompt + writeback_prompt,
             model=LLMConfig(primary=DEFAULT_JUDGE_MODEL, fallback=DEFAULT_FALLBACK_MODEL),
             output_dir=self.output_dir,
-            tools=tools
+            tools=tools,
         )
 
     def run_pipeline(
@@ -92,7 +96,11 @@ class AgentOrchestrator:
 
         # Step 1: Worker
         worker_result, pd, worker_output, structured_json_path = self._run_worker(
-            project_id, phase_id, worker_prompt, builtin_tools, context_files,
+            project_id,
+            phase_id,
+            worker_prompt,
+            builtin_tools,
+            context_files,
         )
         results["worker"] = worker_result
         if worker_result.status == "failed":
@@ -100,15 +108,27 @@ class AgentOrchestrator:
 
         # Step 2: Judge
         judge_result, det_path = self._run_judge(
-            project_id, phase_id, judge_rubric, builtin_tools,
-            pd, worker_output, structured_json_path,
+            project_id,
+            phase_id,
+            judge_rubric,
+            builtin_tools,
+            pd,
+            worker_output,
+            structured_json_path,
         )
         results["judge"] = judge_result
 
         # Step 3: Critique
         critique_result = self._run_critique(
-            project_id, phase_id, critique_prompt, builtin_tools,
-            pd, worker_output, structured_json_path, det_path, judge_result,
+            project_id,
+            phase_id,
+            critique_prompt,
+            builtin_tools,
+            pd,
+            worker_output,
+            structured_json_path,
+            det_path,
+            judge_result,
         )
         results["critique"] = critique_result
 
@@ -121,8 +141,12 @@ class AgentOrchestrator:
         return results
 
     def _run_worker(
-        self, project_id: str, phase_id: str, worker_prompt: str,
-        builtin_tools: list, context_files: list[Path] | None,
+        self,
+        project_id: str,
+        phase_id: str,
+        worker_prompt: str,
+        builtin_tools: list,
+        context_files: list[Path] | None,
     ) -> tuple[AgentResult, Path, Path, Path | None]:
         worker_tools = filter_tools_by_role(builtin_tools, "worker")
         worker = self.create_worker(project_id, phase_id, worker_prompt, tools=worker_tools)
@@ -157,6 +181,7 @@ class AgentOrchestrator:
             render_report_from_json(structured_json_path, pd, phase_id)
 
         from dqg.schemas.rsm import load_rsm
+
         rsm_lifecycle = load_rsm(self.output_dir, project_id)
         if rsm_lifecycle:
             log.info("RSM updated after Phase %s: %d items", phase_id, len(rsm_lifecycle))
@@ -164,8 +189,14 @@ class AgentOrchestrator:
         return result, pd, worker_output, structured_json_path
 
     def _run_judge(
-        self, project_id: str, phase_id: str, judge_rubric: str,
-        builtin_tools: list, pd: Path, worker_output: Path, structured_json_path: Path | None,
+        self,
+        project_id: str,
+        phase_id: str,
+        judge_rubric: str,
+        builtin_tools: list,
+        pd: Path,
+        worker_output: Path,
+        structured_json_path: Path | None,
     ) -> tuple[AgentResult, Path]:
         from dqg.quality.auto_checks import auto_derive_checks
 
@@ -202,13 +233,22 @@ class AgentOrchestrator:
         return result, det_path
 
     def _run_critique(
-        self, project_id: str, phase_id: str, critique_prompt: str,
-        builtin_tools: list, pd: Path, worker_output: Path,
-        structured_json_path: Path | None, det_path: Path, judge_result: AgentResult,
+        self,
+        project_id: str,
+        phase_id: str,
+        critique_prompt: str,
+        builtin_tools: list,
+        pd: Path,
+        worker_output: Path,
+        structured_json_path: Path | None,
+        det_path: Path,
+        judge_result: AgentResult,
     ) -> AgentResult:
         critique_tools = filter_tools_by_role(builtin_tools, "critique")
         critique = self.create_critique(project_id, phase_id, critique_prompt, tools=critique_tools)
-        critique_files = [structured_json_path] if structured_json_path and structured_json_path.exists() else [worker_output]
+        critique_files = (
+            [structured_json_path] if structured_json_path and structured_json_path.exists() else [worker_output]
+        )
         if judge_result.status != "failed":
             critique_files.append(pd / "_judge_result_v2.json")
         critique_files.append(det_path)
@@ -234,20 +274,23 @@ class AgentOrchestrator:
 
     def _save_trajectories(self, results: dict[str, AgentResult], project_id: str, phase_id: str) -> None:
         from dqg.quality.trajectory import compress_trajectory, save_trajectories
+
         trajectories = []
         for role_name, agent_result in results.items():
             if agent_result.trajectory:
-                trajectories.append(compress_trajectory(
-                    trajectory=agent_result.trajectory,
-                    project_id=project_id,
-                    phase_id=phase_id,
-                    agent_name=agent_result.agent_name,
-                    agent_role=role_name,
-                    model_used=agent_result.model_used,
-                    status=agent_result.status,
-                    duration_seconds=agent_result.duration_seconds,
-                    token_usage=agent_result.token_usage,
-                ))
+                trajectories.append(
+                    compress_trajectory(
+                        trajectory=agent_result.trajectory,
+                        project_id=project_id,
+                        phase_id=phase_id,
+                        agent_name=agent_result.agent_name,
+                        agent_role=role_name,
+                        model_used=agent_result.model_used,
+                        status=agent_result.status,
+                        duration_seconds=agent_result.duration_seconds,
+                        token_usage=agent_result.token_usage,
+                    )
+                )
         if trajectories:
             save_trajectories(self.output_dir, project_id, phase_id, trajectories)
 
@@ -262,6 +305,7 @@ class AgentOrchestrator:
         """Coverage Gap 自动补充."""
 
         from dqg.json_utils import load_json_strict
+
         gap_data = load_json_strict(gap_tasks_path)
         tasks = gap_data.get("tasks", [])
         if not tasks:
@@ -283,7 +327,10 @@ class AgentOrchestrator:
 
         worker_tools = filter_tools_by_role(builtin_tools, "worker")
         remediation_worker = self.create_worker(
-            project_id, phase_id, worker_prompt, tools=worker_tools,
+            project_id,
+            phase_id,
+            worker_prompt,
+            tools=worker_tools,
         )
 
         phase_def = PHASE_DEFS.get(phase_id, {})
@@ -291,8 +338,11 @@ class AgentOrchestrator:
 
         result = remediation_worker.run(
             remediation_prompt,
-            context_files=[pd / f for f in (pd.iterdir()) if f.suffix in (".json", ".md") and not f.name.startswith("_")]
-            if pd.exists() else None,
+            context_files=[
+                pd / f for f in (pd.iterdir()) if f.suffix in (".json", ".md") and not f.name.startswith("_")
+            ]
+            if pd.exists()
+            else None,
         )
 
         if result.status != "failed":
@@ -301,6 +351,7 @@ class AgentOrchestrator:
             log.info("Remediation completed for %d gaps", len(tasks))
 
             from dqg.schemas.rsm import load_rsm
+
             rsm_lifecycle = load_rsm(self.output_dir, project_id)
             if rsm_lifecycle:
                 log.info("RSM refreshed after remediation: %d items", len(rsm_lifecycle))

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import re
-from pathlib import Path  # noqa: TC003 — used at runtime in function signatures
+from pathlib import Path
 
 from dqg.log import get_logger
 
@@ -111,7 +111,7 @@ def process_critique_feedback(content: str, phase_dir: Path, phase_id: str) -> N
     if raw is None:
         return
 
-    parsed, errors = try_parse_structured_output(raw)
+    parsed, _errors = try_parse_structured_output(raw)
     if not parsed:
         return
 

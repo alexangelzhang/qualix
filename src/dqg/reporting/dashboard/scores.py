@@ -8,18 +8,18 @@ import streamlit as st
 from dqg.constants import PHASE_DIR_MAP, STRUCTURED_JSON_MAP
 from dqg.json_utils import load_json
 
+from .cache import _cached_projects
 from .constants import (
-    OUTPUT_DIR,
     DIM_NAMES,
+    OUTPUT_DIR,
     SEV_ZH,
     UT_STATUS_ZH,
 )
-from .cache import _cached_projects
-
 
 # ---------------------------------------------------------------------------
 # 质量评分页
 # ---------------------------------------------------------------------------
+
 
 def _page_scores():
     projects = _cached_projects()
@@ -45,11 +45,14 @@ def _page_scores():
                 sev = issue.get("severity", "UNKNOWN")
                 severity_counts[sev] = severity_counts.get(sev, 0) + 1
             col1, col2, col3, col4 = st.columns(4)
-            for col, key in zip([col1, col2, col3, col4], ["CRITICAL", "HIGH", "MEDIUM", "LOW"]):
+            for col, key in zip([col1, col2, col3, col4], ["CRITICAL", "HIGH", "MEDIUM", "LOW"], strict=False):
                 with col:
                     cnt = severity_counts.get(key, 0)
-                    st.metric(f"{SEV_ZH.get(key, key)}({key})", cnt,
-                              delta=f"{'⚠️ 需处理' if key in ('CRITICAL','HIGH') and cnt > 0 else ''}")
+                    st.metric(
+                        f"{SEV_ZH.get(key, key)}({key})",
+                        cnt,
+                        delta=f"{'⚠️ 需处理' if key in ('CRITICAL', 'HIGH') and cnt > 0 else ''}",
+                    )
 
             dim_counts = {}
             for issue in issues:
@@ -107,7 +110,11 @@ def _page_scores():
         if summary:
             st.markdown("#### Q04 技术方案覆盖度")
             cov_df = pd.DataFrame(summary)
-            display_cols = [c for c in ["dimension", "total", "covered", "partial", "missing", "coverage_rate"] if c in cov_df.columns]
+            display_cols = [
+                c
+                for c in ["dimension", "total", "covered", "partial", "missing", "coverage_rate"]
+                if c in cov_df.columns
+            ]
             cov_df = cov_df[display_cols].copy()
             col_rename = {
                 "dimension": "维度",
@@ -136,8 +143,12 @@ def _page_scores():
             total = len(items)
             covered = status_counts.get("COVERED", 0)
             rate = covered / total if total else 0
-            st.metric("SE 覆盖率", f"{rate:.0%}", delta=f"{covered}/{total} 已覆盖",
-                      delta_color="normal" if rate >= 0.8 else "inverse")
+            st.metric(
+                "SE 覆盖率",
+                f"{rate:.0%}",
+                delta=f"{covered}/{total} 已覆盖",
+                delta_color="normal" if rate >= 0.8 else "inverse",
+            )
             cols = st.columns(len(status_counts))
             for i, (s, c) in enumerate(sorted(status_counts.items())):
                 with cols[i]:

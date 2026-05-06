@@ -8,7 +8,6 @@
 
 from __future__ import annotations
 
-import re
 from collections import Counter, defaultdict
 from pathlib import Path
 from typing import Any
@@ -54,7 +53,7 @@ _DATA_PATTERNS: list[dict[str, Any]] = [
         "description": "空值和 null 的边界处理",
         "test_data_suggestions": [
             "必填字段传 null",
-            "字符串字段传空串 \"\"",
+            '字符串字段传空串 ""',
             "集合字段传空集合 Collections.emptyList()",
             "嵌套对象为 null（如 order.getAddress() 返回 null）",
             "Optional 字段的 empty 场景",
@@ -171,13 +170,15 @@ def analyze_data_patterns(phase: str | None = None) -> dict[str, Any]:
     for pid, count in pattern_counter.most_common():
         pattern_def = next((p for p in _DATA_PATTERNS if p["id"] == pid), None)
         if pattern_def:
-            top_patterns.append({
-                "id": pid,
-                "name": pattern_def["name"],
-                "count": count,
-                "suggestions": pattern_def["test_data_suggestions"],
-                "example_cases": cases_by_pattern[pid][:3],
-            })
+            top_patterns.append(
+                {
+                    "id": pid,
+                    "name": pattern_def["name"],
+                    "count": count,
+                    "suggestions": pattern_def["test_data_suggestions"],
+                    "example_cases": cases_by_pattern[pid][:3],
+                }
+            )
 
     return {
         "total_cases": len(cases),
@@ -228,6 +229,7 @@ def write_data_patterns(
         return None
 
     from dqg.constants import PHASE_DIR_MAP
+
     dir_suffix = PHASE_DIR_MAP.get(phase_id, f"phase{phase_id}")
     phase_dir = output_dir / project_id / dir_suffix
 

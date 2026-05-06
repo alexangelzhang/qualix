@@ -9,7 +9,6 @@
 from __future__ import annotations
 
 import re
-from typing import Optional
 
 # ---------------------------------------------------------------------------
 # 威胁模式（正则 + 分类 ID）
@@ -51,7 +50,7 @@ _INVISIBLE_CHARS: set[str] = {
 _INVISIBLE_RE = re.compile("[" + "".join(_INVISIBLE_CHARS) + "]")
 
 
-def scan_content(content: str) -> Optional[str]:
+def scan_content(content: str) -> str | None:
     """扫描 Agent 写入内容，返回拦截原因或 None（安全）.
 
     Returns:
@@ -64,10 +63,7 @@ def scan_content(content: str) -> Optional[str]:
     match = _INVISIBLE_RE.search(content)
     if match:
         char = match.group()
-        return (
-            f"Blocked: 内容包含不可见 unicode 字符 U+{ord(char):04X}，"
-            f"可能是 prompt injection 攻击。"
-        )
+        return f"Blocked: 内容包含不可见 unicode 字符 U+{ord(char):04X}，可能是 prompt injection 攻击。"
 
     # 2. 威胁模式匹配
     for pattern, threat_id in _THREAT_PATTERNS:

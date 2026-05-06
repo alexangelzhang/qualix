@@ -4,12 +4,12 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+from dqg.ingest.common import BLOCK_TYPE_NAME
 from dqg.ingest.feishu.block_parser import (
     extract_block_text,
     extract_media_asset,
     find_root_block_id,
 )
-from dqg.ingest.common import BLOCK_TYPE_NAME
 
 if TYPE_CHECKING:
     from collections.abc import Callable

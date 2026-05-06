@@ -94,7 +94,9 @@ def get_token_consumption(output_dir: Path, project_id: str | None = None) -> li
         conditions.append("project_id = ?")
         params.append(project_id)
 
-    conditions.append("metric_name IN ('input_tokens', 'output_tokens', 'total_tokens', 'cost_estimate_usd', 'tokens_per_second')")
+    conditions.append(
+        "metric_name IN ('input_tokens', 'output_tokens', 'total_tokens', 'cost_estimate_usd', 'tokens_per_second')"
+    )
     where = f"WHERE {' AND '.join(conditions)}"
 
     with get_connection(output_dir) as conn:
@@ -132,7 +134,7 @@ def get_event_timeline(output_dir: Path, project_id: str, phase_id: str | None =
     where = f"WHERE {' AND '.join(conditions)}"
     with get_connection(output_dir) as conn:
         rows = conn.execute(
-            f"SELECT * FROM events {where} ORDER BY id ASC LIMIT 500",  # noqa: S608
+            f"SELECT * FROM events {where} ORDER BY id ASC LIMIT 500",
             params,
         ).fetchall()
         return [row_to_dict(r) for r in rows]

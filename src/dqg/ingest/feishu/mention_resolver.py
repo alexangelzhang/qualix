@@ -139,7 +139,7 @@ def process_batch_results(
 ) -> list[dict[str, Any]]:
     """Process ingestion results: append nodes/edges, return next batch."""
     next_batch: list[dict[str, Any]] = []
-    for ctx, node in zip(job_contexts, batch_results):
+    for ctx, node in zip(job_contexts, batch_results, strict=False):
         doc_key = ctx["doc_key"]
         node_id = ctx["node_id"]
         current_depth = ctx["depth"]
@@ -179,9 +179,7 @@ def finalize_edges(
     doc_key_to_node_id: dict[str, str],
 ) -> None:
     """Reconcile edge statuses against final node results (in-place)."""
-    node_by_id: dict[str, dict[str, Any]] = {
-        str(n.get("node_id", "")): n for n in nodes
-    }
+    node_by_id: dict[str, dict[str, Any]] = {str(n.get("node_id", "")): n for n in nodes}
     for edge in edges:
         to_doc_key = str(edge.get("to_doc_key", "") or "")
         if not to_doc_key:

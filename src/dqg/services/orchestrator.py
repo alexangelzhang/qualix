@@ -20,26 +20,34 @@ import sys
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-
-from dqg.constants import PHASE_DIR_MAP, REPORT_MAP
 from types import MappingProxyType
 from typing import Final
 
+from dqg.constants import PHASE_DIR_MAP, REPORT_MAP
+
 # 从 PHASE_DEFS 常量派生，仅补充 orchestrator 专用字段（command / description / inputs）
-_ORCH_EXTRA: Final = MappingProxyType({
-    "Q01":   {"command": "/dev-quality-gate",      "description": "PRD → 需求点/关键语义/缺口/待确认项", "inputs": []},
-    "Q04": {"command": "/tech-coverage-audit",   "description": "验证技术方案有没有漏掉需求",           "inputs": ["Q01"]},
-    "Q03": {"command": "/tech-quality-review",   "description": "审架构/接口/数据/异常/性能",           "inputs": ["Q01"]},
-    "Q05":   {"command": "/ut-generator",          "description": "从需求生成测试大纲和单测代码",         "inputs": ["Q01"]},
-    "Q06":   {"command": "/ut-audit-zh",           "description": "验证单测是否真正测对了业务场景",       "inputs": ["Q01"]},
-    "Q07":   {"command": "/review-zh",             "description": "验证代码是否与需求和设计一致",         "inputs": ["Q01"]},
-})
+_ORCH_EXTRA: Final = MappingProxyType(
+    {
+        "Q01": {"command": "/dev-quality-gate", "description": "PRD → 需求点/关键语义/缺口/待确认项", "inputs": []},
+        "Q04": {"command": "/tech-coverage-audit", "description": "验证技术方案有没有漏掉需求", "inputs": ["Q01"]},
+        "Q03": {"command": "/tech-quality-review", "description": "审架构/接口/数据/异常/性能", "inputs": ["Q01"]},
+        "Q05": {"command": "/ut-generator", "description": "从需求生成测试大纲和单测代码", "inputs": ["Q01"]},
+        "Q06": {"command": "/ut-audit-zh", "description": "验证单测是否真正测对了业务场景", "inputs": ["Q01"]},
+        "Q07": {"command": "/review-zh", "description": "验证代码是否与需求和设计一致", "inputs": ["Q01"]},
+    }
+)
 
 # Phase 名称映射
-_PHASE_NAMES: Final = MappingProxyType({
-    "Q01": "需求结构化", "Q04": "技术方案覆盖度审计", "Q03": "技术方案质量评审",
-    "Q05": "单测生成", "Q06": "单测覆盖审计", "Q07": "代码评审",
-})
+_PHASE_NAMES: Final = MappingProxyType(
+    {
+        "Q01": "需求结构化",
+        "Q04": "技术方案覆盖度审计",
+        "Q03": "技术方案质量评审",
+        "Q05": "单测生成",
+        "Q06": "单测覆盖审计",
+        "Q07": "代码评审",
+    }
+)
 
 # 组装 PHASES 列表（权威数据来自 constants.py，orchestrator 只补充自己的字段）
 PHASES = [
@@ -76,7 +84,7 @@ def detect_phase_status(output_dir: Path, project_id: str, phase: dict) -> Phase
     # 旧版命名：<project_id>_requirements*, <project_id>_larkkit_cli, 等
     candidates = [
         # 标准命名
-        output_dir / project_id / phase['dir_suffix'],
+        output_dir / project_id / phase["dir_suffix"],
     ]
 
     # 旧版命名兼容（仅 Phase A）
@@ -115,7 +123,7 @@ def detect_phase_status(output_dir: Path, project_id: str, phase: dict) -> Phase
                 )
 
     # 检查是否有目录存在但关键文件缺失（正在进行中）
-    primary = output_dir / project_id / phase['dir_suffix']
+    primary = output_dir / project_id / phase["dir_suffix"]
     if primary.is_dir():
         # 有 ingest 数据说明至少跑过 Step 0
         has_ingest = (primary / "ingest.json").exists() or (primary / "aggregate_ingest.json").exists()
@@ -175,9 +183,7 @@ def print_status_dashboard(statuses: list[PhaseStatus], skip_phases: list[str]):
     print("=" * 64)
 
 
-def find_next_phase(
-    statuses: list[PhaseStatus], skip_phases: list[str]
-) -> dict | None:
+def find_next_phase(statuses: list[PhaseStatus], skip_phases: list[str]) -> dict | None:
     """找到下一个应该执行的阶段。"""
     completed_ids = {s.phase_id for s in statuses if s.completed}
     completed_ids.update(skip_phases)
@@ -195,9 +201,7 @@ def find_next_phase(
     return None
 
 
-def build_next_command(
-    phase: dict, statuses: list[PhaseStatus], project_id: str
-) -> str:
+def build_next_command(phase: dict, statuses: list[PhaseStatus], project_id: str) -> str:
     """构建下一阶段的执行提示。"""
     # 收集输入文件路径
     input_files = []
@@ -224,15 +228,17 @@ def save_orchestration_state(output_dir: Path, project_id: str, statuses: list[P
         "skipped": skip_phases,
     }
     for s in statuses:
-        state["phases"].append({
-            "id": s.phase_id,
-            "name": s.name,
-            "completed": s.completed,
-            "skipped": s.phase_id in skip_phases,
-            "dir_path": s.dir_path,
-            "key_file_path": s.key_file_path,
-            "modified_time": s.modified_time,
-        })
+        state["phases"].append(
+            {
+                "id": s.phase_id,
+                "name": s.name,
+                "completed": s.completed,
+                "skipped": s.phase_id in skip_phases,
+                "dir_path": s.dir_path,
+                "key_file_path": s.key_file_path,
+                "modified_time": s.modified_time,
+            }
+        )
 
     state_file = output_dir / project_id / "orchestration.json"
     (output_dir / project_id).mkdir(parents=True, exist_ok=True)

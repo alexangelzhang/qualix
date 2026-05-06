@@ -115,14 +115,18 @@ class DAGScheduler:
                 except TimeoutError as exc:
                     log.error("Phase %s 超时: %s", pid, exc)
                     result = PhaseResult(
-                        phase_id=pid, status="failed",
-                        run_status=RunStatus.TIMEOUT, error=str(exc),
+                        phase_id=pid,
+                        status="failed",
+                        run_status=RunStatus.TIMEOUT,
+                        error=str(exc),
                     )
                 except Exception as exc:
                     log.error("Phase %s 执行异常: %s", pid, exc)
                     result = PhaseResult(
-                        phase_id=pid, status="failed",
-                        run_status=RunStatus.ADAPTER_CRASHED, error=str(exc),
+                        phase_id=pid,
+                        status="failed",
+                        run_status=RunStatus.ADAPTER_CRASHED,
+                        error=str(exc),
                     )
                 results.append(result)
 
@@ -170,9 +174,7 @@ class DAGScheduler:
                 break
 
             groups = get_parallel_groups(state)
-            groups = [
-                [p for p in g if p in available] for g in groups
-            ]
+            groups = [[p for p in g if p in available] for g in groups]
             groups = [g for g in groups if g]
 
             if not groups:
@@ -183,15 +185,22 @@ class DAGScheduler:
             log.info("DAG 批次执行: %s", " + ".join(batch))
 
             self._execute_dag_batch(
-                project_id, batch, dag_result, mode, max_parallel,
-                primary_model, fallback_model, task_id,
+                project_id,
+                batch,
+                dag_result,
+                mode,
+                max_parallel,
+                primary_model,
+                fallback_model,
+                task_id,
             )
 
         dag_result.total_duration = time.time() - dag_start
 
         # Task store: 标记完成
         complete_task_run(
-            self.output_dir, task_id,
+            self.output_dir,
+            task_id,
             status="completed" if dag_result.phases_failed == 0 else "failed",
             result_summary=f"{dag_result.phases_executed} executed, {dag_result.phases_failed} failed",
         )
@@ -201,15 +210,20 @@ class DAGScheduler:
     # -- 内部方法 ----------------------------------------------------------
 
     def _execute_dag_batch(
-        self, project_id: str, batch: list[str], dag_result: DAGResult,
-        mode: str, max_parallel: int, primary_model: str, fallback_model: str,
+        self,
+        project_id: str,
+        batch: list[str],
+        dag_result: DAGResult,
+        mode: str,
+        max_parallel: int,
+        primary_model: str,
+        fallback_model: str,
         task_id: str,
     ) -> None:
         from dqg.runtime.task_store import add_task_event, save_checkpoint
 
         # 标记 in_progress + 执行 runtime handler
         for pid in batch:
-            import dqg.runtime  # noqa: F401
             from dqg.runtime.execution_context import ExecutionContext
             from dqg.runtime.phase_runtime import runtime_execute
 
@@ -222,16 +236,18 @@ class DAGScheduler:
             if not result.success:
                 log.warning("Phase %s 启动失败: %s", pid, result.errors)
                 dag_result.phase_results.append(
-                    PhaseResult(phase_id=pid, status="failed",
-                                error="; ".join(result.errors))
+                    PhaseResult(phase_id=pid, status="failed", error="; ".join(result.errors))
                 )
                 dag_result.phases_failed += 1
 
         # 并行执行
         batch_results = self.execute_parallel_phases(
-            project_id, batch,
-            mode=mode, max_parallel=max_parallel,
-            primary_model=primary_model, fallback_model=fallback_model,
+            project_id,
+            batch,
+            mode=mode,
+            max_parallel=max_parallel,
+            primary_model=primary_model,
+            fallback_model=fallback_model,
         )
 
         # finalize 每个成功的 Phase
@@ -268,18 +284,26 @@ class DAGScheduler:
                 log.warning("Phase %s finalize 失败: %s", pr.phase_id, fin_result.errors)
 
         # Task store: 批次完成检查点
-        add_task_event(self.output_dir, task_id, "batch_completed", {
-            "batch": [pr.phase_id for pr in batch_results],
-            "executed": dag_result.phases_executed,
-            "failed": dag_result.phases_failed,
-        })
-        save_checkpoint(self.output_dir, task_id,
-                        checkpoint_id=f"batch-{dag_result.phases_executed}",
-                        state_snapshot={
-                            "phases_executed": dag_result.phases_executed,
-                            "phases_failed": dag_result.phases_failed,
-                            "completed_phases": [pr.phase_id for pr in dag_result.phase_results if pr.status != "failed"],
-                        })
+        add_task_event(
+            self.output_dir,
+            task_id,
+            "batch_completed",
+            {
+                "batch": [pr.phase_id for pr in batch_results],
+                "executed": dag_result.phases_executed,
+                "failed": dag_result.phases_failed,
+            },
+        )
+        save_checkpoint(
+            self.output_dir,
+            task_id,
+            checkpoint_id=f"batch-{dag_result.phases_executed}",
+            state_snapshot={
+                "phases_executed": dag_result.phases_executed,
+                "phases_failed": dag_result.phases_failed,
+                "completed_phases": [pr.phase_id for pr in dag_result.phase_results if pr.status != "failed"],
+            },
+        )
 
     def _run_single_phase(
         self,
@@ -301,9 +325,7 @@ class DAGScheduler:
 
         preflight = run_preflight(self.output_dir, project_id, phase_id)
         if not preflight.can_continue:
-            fail_details = [
-                c["detail"] for c in preflight.checks if c["status"] == "FAIL"
-            ]
+            fail_details = [c["detail"] for c in preflight.checks if c["status"] == "FAIL"]
             return PhaseResult(
                 phase_id=phase_id,
                 status="failed",
@@ -318,6 +340,7 @@ class DAGScheduler:
         context_files = resolve_effective_context_files(pd)
 
         from dqg.context.skill_loader import resolve_worker_prompt
+
         worker_prompt = resolve_worker_prompt(phase_id)
 
         from dqg.agents.multi_agent import (
@@ -325,23 +348,28 @@ class DAGScheduler:
             generate_judge_prompt,
         )
 
-        judge_rubric = generate_judge_prompt(
-            self.output_dir, project_id, phase_id
-        )
-        critique_prompt = generate_critique_prompt(
-            self.output_dir, project_id, phase_id
-        )
+        judge_rubric = generate_judge_prompt(self.output_dir, project_id, phase_id)
+        critique_prompt = generate_critique_prompt(self.output_dir, project_id, phase_id)
 
         if mode == "adaptive":
             run_status = self._run_adaptive(
-                project_id, phase_id, worker_prompt,
-                judge_rubric, critique_prompt, context_files,
-                primary_model, fallback_model,
+                project_id,
+                phase_id,
+                worker_prompt,
+                judge_rubric,
+                critique_prompt,
+                context_files,
+                primary_model,
+                fallback_model,
             )
         else:
             run_status = self._run_agent(
-                project_id, phase_id, worker_prompt,
-                judge_rubric, critique_prompt, context_files,
+                project_id,
+                phase_id,
+                worker_prompt,
+                judge_rubric,
+                critique_prompt,
+                context_files,
             )
 
         duration = time.time() - start
@@ -368,7 +396,8 @@ class DAGScheduler:
 
         orch = AgentOrchestrator(self.output_dir)
         results = orch.run_pipeline(
-            project_id, phase_id,
+            project_id,
+            phase_id,
             worker_prompt=worker_prompt,
             judge_rubric=judge_rubric,
             critique_prompt=critique_prompt,
@@ -393,7 +422,8 @@ class DAGScheduler:
 
         loop = AdaptiveLoop(self.output_dir)
         result = loop.run(
-            project_id, phase_id,
+            project_id,
+            phase_id,
             worker_prompt=worker_prompt,
             judge_rubric=judge_rubric,
             critique_prompt=critique_prompt,
@@ -424,13 +454,11 @@ class DAGScheduler:
         lines = [
             f"\n  DAG 调度完成 — 项目: {result.project_id}",
             f"  总耗时: {result.total_duration:.1f}s",
-            f"  执行: {result.phases_executed} 个 Phase, "
-            f"失败: {result.phases_failed} 个",
+            f"  执行: {result.phases_executed} 个 Phase, 失败: {result.phases_failed} 个",
             "",
         ]
         for pr in result.phase_results:
-            icon = {"success": "+", "failed": "x",
-                    "skipped": "-"}.get(pr.status, "?")
+            icon = {"success": "+", "failed": "x", "skipped": "-"}.get(pr.status, "?")
             line = f"    [{icon}] Phase {pr.phase_id}: {pr.status}"
             if pr.run_status != RunStatus.OK:
                 line += f" [{pr.run_status.value}]"
@@ -445,7 +473,8 @@ class DAGScheduler:
 
     @staticmethod
     def format_dag_plan(
-        project_id: str, groups: list[list[str]],
+        project_id: str,
+        groups: list[list[str]],
         skip_phases: list[str] | None = None,
     ) -> str:
         """格式化 DAG 执行计划."""
@@ -464,9 +493,7 @@ class DAGScheduler:
             tag = "（并行）" if len(effective) > 1 else ""
             lines.append(f"    Step {step}: {parallel}{tag}")
             for pid in effective:
-                lines.append(
-                    f"      -> Phase {pid}: Worker -> Judge -> Critique"
-                )
+                lines.append(f"      -> Phase {pid}: Worker -> Judge -> Critique")
             step += 1
 
         if step == 1:

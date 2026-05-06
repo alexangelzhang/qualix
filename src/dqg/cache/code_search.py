@@ -11,8 +11,8 @@ from __future__ import annotations
 import json
 import re
 from pathlib import Path
-from typing import Any, Final
 from types import MappingProxyType
+from typing import Any, Final
 
 from dqg.json_utils import dump_json_str
 from dqg.log import get_logger
@@ -26,28 +26,59 @@ from dqg.text_utils import build_fts_query, text_query_has_signal, tokenize_chin
 # 1. 业务概念 → 代码关键词映射
 # ---------------------------------------------------------------------------
 
-CONCEPT_MAP: Final = MappingProxyType({
-    "幂等": ["idempotent", "unique_no", "distribute_unique", "dedup", "幂等", "@Idempotent", "idempotentKey"],
-    "并发": ["synchronized", "@Lock", "RedissonLock", "tryLock", "ConcurrentHashMap", "AtomicInteger", "ReentrantLock", "分布式锁", "concurrent"],
-    "事务": ["@Transactional", "TransactionTemplate", "rollback", "commit", "propagation", "REQUIRES_NEW", "事务"],
-    "权限": ["@UserLogin", "permission", "authorize", "role", "权限", "checkPermission", "hasRole", "SecurityContext"],
-    "校验": ["validate", "check", "assert", "Preconditions", "校验", "@NotNull", "@NotBlank", "@Valid", "BusinessException"],
-    "缓存": ["@Cacheable", "RedisTemplate", "cache", "expire", "evict", "缓存", "CacheManager"],
-    "异步": ["@Async", "CompletableFuture", "ThreadPool", "ExecutorService", "异步", "MQ", "RocketMQ", "Kafka"],
-    "重试": ["@Retryable", "retry", "backoff", "maxAttempts", "重试", "RetryTemplate"],
-    "降级": ["fallback", "degrade", "熔断", "降级", "CircuitBreaker", "Sentinel", "Hystrix"],
-    "日志": ["log.info", "log.error", "log.warn", "@Slf4j", "Logger", "MDC", "traceId"],
-    "定时任务": ["@Scheduled", "cron", "ScheduledTask", "Timer", "定时", "xxl-job"],
-    "状态机": ["StateMachine", "status", "state", "transition", "状态机", "StatusEnum", "changeStatus"],
-    "审批": ["approval", "bpm", "audit", "审批", "process", "workflow", "AuditStatus"],
-    "脱敏": ["desensitize", "mask", "encrypt", "脱敏", "加密", "DataDesensitiz"],
-    "分页": ["PageHelper", "PageInfo", "pageNum", "pageSize", "分页", "Pageable"],
-    "导出": ["export", "Excel", "导出", "EasyExcel", "POI", "AsyncExport"],
-    "通知": ["notify", "message", "push", "通知", "feishu", "飞书", "sms"],
-    "金额": ["BigDecimal", "amount", "price", "金额", "ROUND_HALF_UP", "分", "元"],
-    "DDD领域": ["DomainService", "Repository", "Aggregate", "ValueObject", "Entity", "Gateway"],
-    "TMF链路": ["Step", "Ability", "Extension", "TMF", "decideSteps", "execute"],
-})
+CONCEPT_MAP: Final = MappingProxyType(
+    {
+        "幂等": ["idempotent", "unique_no", "distribute_unique", "dedup", "幂等", "@Idempotent", "idempotentKey"],
+        "并发": [
+            "synchronized",
+            "@Lock",
+            "RedissonLock",
+            "tryLock",
+            "ConcurrentHashMap",
+            "AtomicInteger",
+            "ReentrantLock",
+            "分布式锁",
+            "concurrent",
+        ],
+        "事务": ["@Transactional", "TransactionTemplate", "rollback", "commit", "propagation", "REQUIRES_NEW", "事务"],
+        "权限": [
+            "@UserLogin",
+            "permission",
+            "authorize",
+            "role",
+            "权限",
+            "checkPermission",
+            "hasRole",
+            "SecurityContext",
+        ],
+        "校验": [
+            "validate",
+            "check",
+            "assert",
+            "Preconditions",
+            "校验",
+            "@NotNull",
+            "@NotBlank",
+            "@Valid",
+            "BusinessException",
+        ],
+        "缓存": ["@Cacheable", "RedisTemplate", "cache", "expire", "evict", "缓存", "CacheManager"],
+        "异步": ["@Async", "CompletableFuture", "ThreadPool", "ExecutorService", "异步", "MQ", "RocketMQ", "Kafka"],
+        "重试": ["@Retryable", "retry", "backoff", "maxAttempts", "重试", "RetryTemplate"],
+        "降级": ["fallback", "degrade", "熔断", "降级", "CircuitBreaker", "Sentinel", "Hystrix"],
+        "日志": ["log.info", "log.error", "log.warn", "@Slf4j", "Logger", "MDC", "traceId"],
+        "定时任务": ["@Scheduled", "cron", "ScheduledTask", "Timer", "定时", "xxl-job"],
+        "状态机": ["StateMachine", "status", "state", "transition", "状态机", "StatusEnum", "changeStatus"],
+        "审批": ["approval", "bpm", "audit", "审批", "process", "workflow", "AuditStatus"],
+        "脱敏": ["desensitize", "mask", "encrypt", "脱敏", "加密", "DataDesensitiz"],
+        "分页": ["PageHelper", "PageInfo", "pageNum", "pageSize", "分页", "Pageable"],
+        "导出": ["export", "Excel", "导出", "EasyExcel", "POI", "AsyncExport"],
+        "通知": ["notify", "message", "push", "通知", "feishu", "飞书", "sms"],
+        "金额": ["BigDecimal", "amount", "price", "金额", "ROUND_HALF_UP", "分", "元"],
+        "DDD领域": ["DomainService", "Repository", "Aggregate", "ValueObject", "Entity", "Gateway"],
+        "TMF链路": ["Step", "Ability", "Extension", "TMF", "decideSteps", "execute"],
+    }
+)
 
 
 def expand_query(query: str) -> list[str]:
@@ -62,10 +93,6 @@ def expand_query(query: str) -> list[str]:
 # ---------------------------------------------------------------------------
 # 2. 代码结构索引
 # ---------------------------------------------------------------------------
-
-
-
-
 
 
 def index_java_repo(output_dir: Path, repo_path: str | Path, max_files: int = 500) -> int:
@@ -107,62 +134,68 @@ def _parse_java_file(content: str, file_path: str) -> list[dict[str, Any]]:
         stripped = line.strip()
 
         # 注解
-        ann_match = re.match(r'^@(\w+)', stripped)
+        ann_match = re.match(r"^@(\w+)", stripped)
         if ann_match:
             annotations_buffer.append(ann_match.group(0))
             continue
 
         # 类/接口/枚举
-        class_match = re.match(r'(?:public\s+)?(?:abstract\s+)?(?:class|interface|enum)\s+(\w+)', stripped)
+        class_match = re.match(r"(?:public\s+)?(?:abstract\s+)?(?:class|interface|enum)\s+(\w+)", stripped)
         if class_match:
             current_class = class_match.group(1)
-            symbols.append({
-                "file_path": file_path,
-                "symbol_type": "class",
-                "symbol_name": current_class,
-                "parent_symbol": "",
-                "annotations": annotations_buffer.copy(),
-                "line_number": i,
-                "signature": stripped[:200],
-            })
+            symbols.append(
+                {
+                    "file_path": file_path,
+                    "symbol_type": "class",
+                    "symbol_name": current_class,
+                    "parent_symbol": "",
+                    "annotations": annotations_buffer.copy(),
+                    "line_number": i,
+                    "signature": stripped[:200],
+                }
+            )
             annotations_buffer.clear()
             continue
 
         # 方法
         method_match = re.match(
-            r'(?:public|private|protected)?\s*(?:static\s+)?(?:[\w<>\[\],\s]+)\s+(\w+)\s*\(([^)]*)\)',
+            r"(?:public|private|protected)?\s*(?:static\s+)?(?:[\w<>\[\],\s]+)\s+(\w+)\s*\(([^)]*)\)",
             stripped,
         )
         if method_match and current_class and not stripped.startswith("//"):
             method_name = method_match.group(1)
             if method_name not in ("if", "for", "while", "switch", "catch", "return"):
-                symbols.append({
-                    "file_path": file_path,
-                    "symbol_type": "method",
-                    "symbol_name": method_name,
-                    "parent_symbol": current_class,
-                    "annotations": annotations_buffer.copy(),
-                    "line_number": i,
-                    "signature": stripped[:200],
-                })
+                symbols.append(
+                    {
+                        "file_path": file_path,
+                        "symbol_type": "method",
+                        "symbol_name": method_name,
+                        "parent_symbol": current_class,
+                        "annotations": annotations_buffer.copy(),
+                        "line_number": i,
+                        "signature": stripped[:200],
+                    }
+                )
             annotations_buffer.clear()
             continue
 
         # 字段（枚举值或成员变量）
         field_match = re.match(
-            r'(?:public|private|protected)?\s*(?:static\s+)?(?:final\s+)?(\w+)\s+(\w+)\s*[=;]',
+            r"(?:public|private|protected)?\s*(?:static\s+)?(?:final\s+)?(\w+)\s+(\w+)\s*[=;]",
             stripped,
         )
         if field_match and current_class:
-            symbols.append({
-                "file_path": file_path,
-                "symbol_type": "field",
-                "symbol_name": field_match.group(2),
-                "parent_symbol": current_class,
-                "annotations": annotations_buffer.copy(),
-                "line_number": i,
-                "signature": stripped[:200],
-            })
+            symbols.append(
+                {
+                    "file_path": file_path,
+                    "symbol_type": "field",
+                    "symbol_name": field_match.group(2),
+                    "parent_symbol": current_class,
+                    "annotations": annotations_buffer.copy(),
+                    "line_number": i,
+                    "signature": stripped[:200],
+                }
+            )
             annotations_buffer.clear()
             continue
 
@@ -181,8 +214,16 @@ def _save_symbols(output_dir: Path, repo_path: str, symbols: list[dict[str, Any]
                 """INSERT INTO code_symbols
                 (repo_path, file_path, symbol_type, symbol_name, parent_symbol, annotations, line_number, signature)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
-                (repo_path, sym["file_path"], sym["symbol_type"], sym["symbol_name"],
-                 sym.get("parent_symbol", ""), ann_str, sym.get("line_number", 0), sym.get("signature", "")),
+                (
+                    repo_path,
+                    sym["file_path"],
+                    sym["symbol_type"],
+                    sym["symbol_name"],
+                    sym.get("parent_symbol", ""),
+                    ann_str,
+                    sym.get("line_number", 0),
+                    sym.get("signature", ""),
+                ),
             )
             row_id = conn.execute("SELECT last_insert_rowid()").fetchone()[0]
             tokenized = tokenize_chinese(f"{sym['symbol_name']} {sym.get('signature', '')} {ann_str}")
@@ -195,6 +236,7 @@ def _save_symbols(output_dir: Path, repo_path: str, symbols: list[dict[str, Any]
 # ---------------------------------------------------------------------------
 # 3. 智能搜索
 # ---------------------------------------------------------------------------
+
 
 def search_code(
     output_dir: Path,

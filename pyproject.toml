@@ -47,11 +47,44 @@ select = [
 ]
 ignore = [
     "E501",    # line too long — 交给 formatter
+    "E402",    # module import not at top — scripts 常用 sys.path 再 import
+    "N802",    # 函数名小写 — BaseHTTPRequestHandler 的 do_POST/do_OPTIONS 是标准接口
+    "N806",    # non-lowercase in function — 矩阵/张量命名 X/Y 常见
     "SIM108",  # ternary operator — 可读性优先
+    "TC001",   # typing-only first-party import — 与 __future__ annotations 重复收益
+    "TC003",   # typing-only stdlib import — 与 __future__ annotations 重复收益
     "RUF001",  # ambiguous unicode char in string — 中文项目，全角字符正常
     "RUF002",  # ambiguous unicode char in docstring
     "RUF003",  # ambiguous unicode char in comment
 ]
+
+[tool.ruff.lint.per-file-ignores]
+"**/__init__.py" = ["F401", "F403"]  # re-export 是 __init__.py 的本职
+"**/tests/**" = ["RUF012"]  # 测试类的 SAMPLE_DATA dict 默认值无需 ClassVar
+"**/test_*.py" = ["RUF012"]
+# Facade re-export 文件（拆包后对外保持向后兼容）
+"**/ingest/feishu/crawler.py" = ["F401"]
+"**/memory/knowledge_network.py" = ["F401"]
+"**/quality/judge/critique.py" = ["F401"]
+"**/runtime/phase_contract.py" = ["F401"]
+"**/dqg/skill_tracker.py" = ["F401"]
+"**/dqg/text_utils.py" = ["F401"]
+"**/context/analysis/weak_assert_context.py" = ["F401"]
+"**/agents/adaptive_loop.py" = ["F401"]
+"**/quality/eval/eval_baseline.py" = ["F401"]
+"**/schemas/phase_a.py" = ["F403"]
+"**/schemas/phase_a3.py" = ["F403"]
+"**/schemas/phase_a5.py" = ["F403"]
+"**/schemas/phase_a6.py" = ["F403"]
+"**/schemas/phase_b.py" = ["F403"]
+"**/schemas/phase_c.py" = ["F403"]
+"**/schemas/phase_d.py" = ["F403"]
+# Importability 探测（try import 检查包可用性）
+"**/agents/dag_scheduler.py" = ["F401"]
+"**/commands/phase.py" = ["F401"]
+"**/commands/phase_auto.py" = ["F401"]
+"**/dqg/core/cli.py" = ["F401"]
+"**/test_runtime.py" = ["F401"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["dqg"]

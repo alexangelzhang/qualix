@@ -4,10 +4,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Final
 
-from dqg.json_utils import dump_json_str, load_json_strict, save_json
-
 from dqg.ingest.feishu.auth import load_larkkit, parse_feishu_url
 from dqg.ingest.feishu.crawler import crawl_documents
+from dqg.json_utils import dump_json_str, load_json_strict, save_json
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -20,20 +19,24 @@ SNAPSHOT_FILES = (
     "plain_text.txt",
 )
 
-VOLATILE_KEYS: Final = frozenset({
-    "generated_at",
-})
+VOLATILE_KEYS: Final = frozenset(
+    {
+        "generated_at",
+    }
+)
 
-NORMALIZED_PATH_KEYS: Final = frozenset({
-    "path",
-    "output_dir",
-    "dependency_graph_path",
-    "aggregate_plain_text_path",
-    "ingest_path",
-    "plain_text_path",
-    "asset_manifest_path",
-    "raw_blocks_path",
-})
+NORMALIZED_PATH_KEYS: Final = frozenset(
+    {
+        "path",
+        "output_dir",
+        "dependency_graph_path",
+        "aggregate_plain_text_path",
+        "ingest_path",
+        "plain_text_path",
+        "asset_manifest_path",
+        "raw_blocks_path",
+    }
+)
 
 
 def build_snapshot_case_name(url: str, case_name: str | None) -> str:

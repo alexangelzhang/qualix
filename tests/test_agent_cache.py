@@ -15,7 +15,7 @@ class _FakeBackend:
         self._responses = responses
         self.calls = 0
 
-    def chat(self, messages, **kwargs):  # noqa: ANN001
+    def chat(self, messages, **kwargs):
         if self.calls >= len(self._responses):
             raise AssertionError("unexpected extra chat call")
         response = self._responses[self.calls]
@@ -40,7 +40,9 @@ def test_agent_run_caches_final_response_and_reuses_it(tmp_path: Path, monkeypat
     primary = _FakeBackend("openai-compat:test-model", [("final answer", {"input_tokens": 10, "output_tokens": 3})])
     fallback = _FakeBackend("openai-compat:fallback", [("fallback answer", {"input_tokens": 10, "output_tokens": 3})])
 
-    monkeypatch.setattr("dqg.agents.agent.create_backend", lambda model, api_key: primary if model == "test-model" else fallback)
+    monkeypatch.setattr(
+        "dqg.agents.agent.create_backend", lambda model, api_key: primary if model == "test-model" else fallback
+    )
 
     agent = Agent(
         name="demo-agent",
@@ -115,4 +117,3 @@ def test_agent_run_does_not_cache_tool_call_turns(tmp_path: Path, monkeypatch) -
     assert result.cached is False
     assert primary.calls == 2
     assert rows == 0
-

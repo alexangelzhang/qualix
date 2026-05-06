@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from pathlib import Path
-from typing import Callable
 
 from dqg.agents.agent import Agent
 from dqg.agents.llm_backends import LLMConfig
@@ -34,8 +34,10 @@ def build_builtin_tools(
             return f"BLOCKED: 子 Agent 嵌套深度已达上限 ({max_subagent_depth})，禁止继续委派。"
         log.info("Spawning subagent at depth %d...", current_depth + 1)
         sub = Agent(
-            name="subagent", role="researcher", system_prompt="你是一个独立调研器。",
-            model=LLMConfig(primary="claude-haiku-3.5", fallback=DEFAULT_FALLBACK_MODEL)
+            name="subagent",
+            role="researcher",
+            system_prompt="你是一个独立调研器。",
+            model=LLMConfig(primary="claude-haiku-3.5", fallback=DEFAULT_FALLBACK_MODEL),
         )
         res = sub.run(task_prompt)
         content = res.content
@@ -49,6 +51,7 @@ def build_builtin_tools(
         - rule_description: 要永久记忆的规则描述。
         """
         from dqg.security.content_scanner import scan_content
+
         blocked = scan_content(rule_description)
         if blocked:
             log.warning("Memory write blocked: %s", blocked)
@@ -67,6 +70,7 @@ def build_builtin_tools(
         - query_keyword: 要搜索的关键词。
         """
         from dqg.memory.memory_layer import MemoryLayer
+
         mem = MemoryLayer(output_dir)
         res = mem.search(query_keyword, scope="facts", limit=5)
         return dump_json_str(res)
@@ -82,8 +86,7 @@ def build_builtin_tools(
         content = path.read_text(encoding="utf-8")
         return (
             "[System note: 以下 wiki 内容由 Agent 在之前的 Phase 中生成，"
-            "可能包含不准确的推断。请与原始证据交叉验证后再引用。]\n\n"
-            + content
+            "可能包含不准确的推断。请与原始证据交叉验证后再引用。]\n\n" + content
         )
 
     def write_to_wiki(page_name: str, page_content: str, mode: str = "overwrite") -> str:
@@ -94,15 +97,14 @@ def build_builtin_tools(
         - mode: overwrite（覆盖）或 append（追加）
         """
         from datetime import datetime
+
         from dqg.security.content_scanner import scan_content
+
         blocked = scan_content(page_content)
         if blocked:
             log.warning("Wiki write blocked for %s: %s", page_name, blocked)
             return f"BLOCKED: {blocked}"
-        metadata = (
-            f"\n\n<!-- written_by: agent | project: {project_id} "
-            f"| timestamp: {datetime.now().isoformat()} -->"
-        )
+        metadata = f"\n\n<!-- written_by: agent | project: {project_id} | timestamp: {datetime.now().isoformat()} -->"
         path = Path(".dqg-wiki") / page_name
         path.parent.mkdir(parents=True, exist_ok=True)
         mode_flag = "a" if mode == "append" else "w"
@@ -121,7 +123,13 @@ def build_builtin_tools(
             qtype = q.get("type", "")
             try:
                 if qtype == "search":
-                    results.append({"type": "search", "keyword": q.get("keyword", ""), "result": search_upstream_context(q["keyword"])})
+                    results.append(
+                        {
+                            "type": "search",
+                            "keyword": q.get("keyword", ""),
+                            "result": search_upstream_context(q["keyword"]),
+                        }
+                    )
                 elif qtype == "wiki":
                     results.append({"type": "wiki", "page": q.get("page", ""), "result": read_wiki_page(q["page"])})
                 else:
@@ -130,4 +138,11 @@ def build_builtin_tools(
                 results.append({"type": qtype, "error": str(e)})
         return dump_json_str(results)
 
-    return [spawn_subagent, append_persistent_memory, search_upstream_context, read_wiki_page, write_to_wiki, batch_query]
+    return [
+        spawn_subagent,
+        append_persistent_memory,
+        search_upstream_context,
+        read_wiki_page,
+        write_to_wiki,
+        batch_query,
+    ]

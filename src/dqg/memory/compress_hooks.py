@@ -6,6 +6,7 @@
 
 from __future__ import annotations
 
+import contextlib
 import re
 from pathlib import Path
 from typing import Any
@@ -49,10 +50,8 @@ def on_pre_compress(
 
         # 提取 Judge 评分
         for match in re.finditer(r"(?:score|评分|overall)[:：]\s*([\d.]+)", content, re.IGNORECASE):
-            try:
+            with contextlib.suppress(ValueError):
                 extracted["iteration_scores"].append(float(match.group(1)))
-            except ValueError:
-                pass
 
         # 提取关键发现（BLOCKER/CRITICAL）
         for match in re.finditer(r"\[(?:BLOCKER|CRITICAL)\]\s*(.+?)(?:\n|$)", content):
@@ -92,7 +91,10 @@ def get_compress_state(
 
 
 def _save_compress_state(
-    output_dir: Path, project_id: str, phase_id: str, state: dict[str, Any],
+    output_dir: Path,
+    project_id: str,
+    phase_id: str,
+    state: dict[str, Any],
 ) -> None:
     from dqg.constants import PHASE_DIR_MAP
     from dqg.core.phase_registry import PHASE_DEFS
@@ -107,7 +109,7 @@ def _save_compress_state(
     # 合并已有状态（增量追加）
     existing = load_json(state_path) or {}
     for key in ("fixed_issues", "confirmed_decisions", "key_findings", "iteration_scores"):
-        merged = list(dict.fromkeys((existing.get(key, []) + state.get(key, []))))
+        merged = list(dict.fromkeys(existing.get(key, []) + state.get(key, [])))
         state[key] = merged[-20:]  # 保留最近 20 条
 
     save_json(state_path, state)

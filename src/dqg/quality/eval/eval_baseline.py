@@ -509,4 +509,3 @@ def _compute_rule_changes(
 
 
 # Backward-compat re-export: holdout validation moved to eval_holdout.py
-from .eval_holdout import validate_against_holdout  # noqa: E402, F401

@@ -1,13 +1,20 @@
 """Tests for adaptive loop → SkillReflector integration."""
-import pytest
-from dqg.agents.adaptive_loop import judge_health_check, VoteResult, JudgeVote
+
+from dqg.agents.adaptive_loop import JudgeVote, VoteResult, judge_health_check
 
 
 def test_judge_health_check_triggers_semantic_fail():
     """When all votes are HEALTHY but all consensus FAIL → SEMANTIC_FAIL."""
-    votes = [JudgeVote(model="m", scores={}, overall=2.0, verdict="FAIL", issues=[
-        {"severity": "high", "description": "missing boundary test"}
-    ], health="HEALTHY")]
+    votes = [
+        JudgeVote(
+            model="m",
+            scores={},
+            overall=2.0,
+            verdict="FAIL",
+            issues=[{"severity": "high", "description": "missing boundary test"}],
+            health="HEALTHY",
+        )
+    ]
     vr = VoteResult(votes=votes, consensus="FAIL", avg_score=2.0, disagreements=[])
     assert judge_health_check([vr, vr, vr]) == "SEMANTIC_FAIL"
 

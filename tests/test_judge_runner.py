@@ -1,6 +1,6 @@
 """Tests for JudgeRunner canonical schema normalization."""
-import pytest
-from dqg.quality.judge_runner import JudgeRunner, JudgeResult
+
+from dqg.quality.judge_runner import JudgeResult, JudgeRunner
 
 
 def test_normalize_adaptive_format():

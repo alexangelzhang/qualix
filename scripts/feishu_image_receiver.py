@@ -7,20 +7,22 @@
 Usage:
     python scripts/feishu_image_receiver.py -o output/kind-care/Q01
 """
+
 from __future__ import annotations
 
 import argparse
 import base64
-import hashlib
+import contextlib
 import json
 import sys
 import threading
-from http.server import HTTPServer, BaseHTTPRequestHandler
+from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 
 
 class ImageReceiver(BaseHTTPRequestHandler):
     """接收浏览器 POST 过来的图片数据。"""
+
     assets_dir: Path
     results: list
     total_expected: int = 0
@@ -49,13 +51,16 @@ class ImageReceiver(BaseHTTPRequestHandler):
         idx = data.get("idx", 0)
         b64_data = data.get("data", "")
         img_type = data.get("type", "image/png")
-        size = data.get("size", 0)
         error = data.get("error", "")
 
         if error:
-            ImageReceiver.results.append({
-                "index": idx, "status": "failed", "error": error,
-            })
+            ImageReceiver.results.append(
+                {
+                    "index": idx,
+                    "status": "failed",
+                    "error": error,
+                }
+            )
             print(f"  [{idx}] FAIL: {error}", file=sys.stderr)
         elif b64_data:
             # 解码并保存
@@ -77,10 +82,15 @@ class ImageReceiver(BaseHTTPRequestHandler):
             target = ImageReceiver.assets_dir / filename
             target.write_bytes(raw)
 
-            ImageReceiver.results.append({
-                "index": idx, "filename": filename, "status": "downloaded",
-                "size": len(raw), "type": img_type,
-            })
+            ImageReceiver.results.append(
+                {
+                    "index": idx,
+                    "filename": filename,
+                    "status": "downloaded",
+                    "size": len(raw),
+                    "type": img_type,
+                }
+            )
             print(f"  [{idx}] OK: {filename} ({len(raw)} bytes)", file=sys.stderr)
 
         ImageReceiver.received_count += 1
@@ -90,7 +100,7 @@ class ImageReceiver(BaseHTTPRequestHandler):
 
         # 全部接收完毕
         if ImageReceiver.received_count >= ImageReceiver.total_expected > 0:
-            print(f"\n[receiver] 全部接收完毕!", file=sys.stderr)
+            print("\n[receiver] 全部接收完毕!", file=sys.stderr)
             threading.Thread(target=self.server.shutdown, daemon=True).start()
 
     def do_OPTIONS(self):
@@ -122,12 +132,10 @@ def main():
 
     server = HTTPServer(("127.0.0.1", args.port), ImageReceiver)
     print(f"[receiver] 监听 http://127.0.0.1:{args.port}", file=sys.stderr)
-    print(f"[receiver] 等待浏览器发送图片数据...", file=sys.stderr)
+    print("[receiver] 等待浏览器发送图片数据...", file=sys.stderr)
 
-    try:
+    with contextlib.suppress(KeyboardInterrupt):
         server.serve_forever()
-    except KeyboardInterrupt:
-        pass
 
     # 保存 manifest
     manifest_path = Path(args.output) / "ingest" / "ingest" / "browser_asset_manifest.json"
@@ -136,13 +144,19 @@ def main():
     downloaded = sum(1 for r in ImageReceiver.results if r["status"] == "downloaded")
     failed = sum(1 for r in ImageReceiver.results if r.get("status") == "failed")
     print(f"\n[receiver] 完成: {downloaded} 下载, {failed} 失败", file=sys.stderr)
-    print(json.dumps({
-        "total": len(ImageReceiver.results),
-        "downloaded": downloaded,
-        "failed": failed,
-        "manifest_path": str(manifest_path),
-        "assets_dir": str(assets_dir),
-    }, indent=2, ensure_ascii=False))
+    print(
+        json.dumps(
+            {
+                "total": len(ImageReceiver.results),
+                "downloaded": downloaded,
+                "failed": failed,
+                "manifest_path": str(manifest_path),
+                "assets_dir": str(assets_dir),
+            },
+            indent=2,
+            ensure_ascii=False,
+        )
+    )
 
 
 if __name__ == "__main__":

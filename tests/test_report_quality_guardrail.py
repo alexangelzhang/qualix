@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
-import pytest
-
+from dqg.quality.fabrication_detector import (
+    FabricationDetectorGuardrail,
+    _extract_java_identifiers,
+)
+from dqg.quality.guardrail import GuardrailContext
 from dqg.quality.report_quality_checks import (
     check_confidence_annotations,
     check_gap_risk_level,
@@ -11,13 +14,7 @@ from dqg.quality.report_quality_checks import (
     check_open_decision_owner,
     check_source_annotations,
 )
-from dqg.quality.fabrication_detector import (
-    FabricationDetectorGuardrail,
-    _extract_java_identifiers,
-)
 from dqg.quality.semantic_guardrail import ReportSemanticGuardrail
-from dqg.quality.guardrail import GuardrailContext
-
 
 # ---------------------------------------------------------------------------
 # report_quality_checks
@@ -129,8 +126,10 @@ class TestConfidenceAnnotations:
 # semantic_guardrail
 # ---------------------------------------------------------------------------
 
+
 def _make_ctx(phase_id: str, report: str = "", data: dict | None = None) -> GuardrailContext:
     from pathlib import Path
+
     return GuardrailContext(
         output_dir=Path("/tmp/test"),
         project_id="test",
@@ -144,9 +143,12 @@ def _make_ctx(phase_id: str, report: str = "", data: dict | None = None) -> Guar
 class TestReportSemanticGuardrail:
     def test_br_detail_detects_vague(self):
         g = ReportSemanticGuardrail()
-        ctx = _make_ctx("Q01", data={
-            "requirements": [{"req_id": "BR-001", "description": "需要校验"}],
-        })
+        ctx = _make_ctx(
+            "Q01",
+            data={
+                "requirements": [{"req_id": "BR-001", "description": "需要校验"}],
+            },
+        )
         results = g.check(ctx)
         warnings = [r for r in results if not r.passed]
         assert len(warnings) >= 1
@@ -154,12 +156,17 @@ class TestReportSemanticGuardrail:
 
     def test_br_detail_passes_with_detail(self):
         g = ReportSemanticGuardrail()
-        ctx = _make_ctx("Q01", data={
-            "requirements": [{
-                "req_id": "BR-001",
-                "description": "订单金额字段必须为 BigDecimal，精度 2 位，校验范围 0.01-999999.99",
-            }],
-        })
+        ctx = _make_ctx(
+            "Q01",
+            data={
+                "requirements": [
+                    {
+                        "req_id": "BR-001",
+                        "description": "订单金额字段必须为 BigDecimal，精度 2 位，校验范围 0.01-999999.99",
+                    }
+                ],
+            },
+        )
         results = g.check(ctx)
         br_warnings = [r for r in results if not r.passed and "概括性" in r.message]
         assert len(br_warnings) == 0
@@ -198,18 +205,26 @@ class TestReportSemanticGuardrail:
 
     def test_p0_unclosed_detects(self):
         g = ReportSemanticGuardrail()
-        ctx = _make_ctx("Q01", report="整体通过，建议上线", data={
-            "gaps": [{"gap_id": "GAP-001", "severity": "P0", "status": "open"}],
-        })
+        ctx = _make_ctx(
+            "Q01",
+            report="整体通过，建议上线",
+            data={
+                "gaps": [{"gap_id": "GAP-001", "severity": "P0", "status": "open"}],
+            },
+        )
         results = g.check(ctx)
         warnings = [r for r in results if not r.passed and "P0" in r.message]
         assert len(warnings) >= 1
 
     def test_p0_closed_passes(self):
         g = ReportSemanticGuardrail()
-        ctx = _make_ctx("Q01", report="整体通过", data={
-            "gaps": [{"gap_id": "GAP-001", "severity": "P0", "status": "closed"}],
-        })
+        ctx = _make_ctx(
+            "Q01",
+            report="整体通过",
+            data={
+                "gaps": [{"gap_id": "GAP-001", "severity": "P0", "status": "closed"}],
+            },
+        )
         results = g.check(ctx)
         warnings = [r for r in results if not r.passed and "P0" in r.message]
         assert len(warnings) == 0
@@ -218,32 +233,41 @@ class TestReportSemanticGuardrail:
 class TestFindingsCodeEvidence:
     def test_detects_no_evidence(self):
         g = ReportSemanticGuardrail()
-        ctx = _make_ctx("Q07", data={
-            "findings": [
-                {"description": "这个方法有问题"},
-                {"description": "逻辑不对"},
-            ],
-        })
+        ctx = _make_ctx(
+            "Q07",
+            data={
+                "findings": [
+                    {"description": "这个方法有问题"},
+                    {"description": "逻辑不对"},
+                ],
+            },
+        )
         results = g.check(ctx)
         warnings = [r for r in results if not r.passed and "代码证据" in r.message]
         assert len(warnings) >= 1
 
     def test_passes_with_evidence(self):
         g = ReportSemanticGuardrail()
-        ctx = _make_ctx("Q07", data={
-            "findings": [
-                {"description": "空指针风险", "location": "OrderService.java:42"},
-            ],
-        })
+        ctx = _make_ctx(
+            "Q07",
+            data={
+                "findings": [
+                    {"description": "空指针风险", "location": "OrderService.java:42"},
+                ],
+            },
+        )
         results = g.check(ctx)
         warnings = [r for r in results if not r.passed and "代码证据" in r.message]
         assert len(warnings) == 0
 
     def test_skips_non_applicable_phases(self):
         g = ReportSemanticGuardrail()
-        ctx = _make_ctx("Q01", data={
-            "findings": [{"description": "无证据"}],
-        })
+        ctx = _make_ctx(
+            "Q01",
+            data={
+                "findings": [{"description": "无证据"}],
+            },
+        )
         results = g.check(ctx)
         warnings = [r for r in results if not r.passed and "代码证据" in r.message]
         assert len(warnings) == 0
@@ -268,23 +292,29 @@ class TestCoverageDescriptionVague:
 class TestGapOpenClosureEmpty:
     def test_detects_empty_closure(self):
         g = ReportSemanticGuardrail()
-        ctx = _make_ctx("Q04", data={
-            "gap_closure": [
-                {"gap_id": "GAP-001", "closure_status": ""},
-                {"gap_id": "GAP-002", "closure_status": "closed"},
-            ],
-        })
+        ctx = _make_ctx(
+            "Q04",
+            data={
+                "gap_closure": [
+                    {"gap_id": "GAP-001", "closure_status": ""},
+                    {"gap_id": "GAP-002", "closure_status": "closed"},
+                ],
+            },
+        )
         results = g.check(ctx)
         warnings = [r for r in results if not r.passed and "闭环状态为空" in r.message]
         assert len(warnings) >= 1
 
     def test_passes_all_filled(self):
         g = ReportSemanticGuardrail()
-        ctx = _make_ctx("Q04", data={
-            "gap_closure": [
-                {"gap_id": "GAP-001", "closure_status": "closed"},
-            ],
-        })
+        ctx = _make_ctx(
+            "Q04",
+            data={
+                "gap_closure": [
+                    {"gap_id": "GAP-001", "closure_status": "closed"},
+                ],
+            },
+        )
         results = g.check(ctx)
         warnings = [r for r in results if not r.passed and "闭环状态为空" in r.message]
         assert len(warnings) == 0
@@ -317,9 +347,11 @@ class TestIsolatedAnalysis:
 
     def test_passes_with_call_chain(self):
         g = ReportSemanticGuardrail()
-        report = ("OrderService.createOrder 方法存在空指针风险。\n"
-                  "调用链: Controller → OrderService → PaymentGateway\n"
-                  "上游 Controller 未做参数校验导致 null 传入\n" * 10)
+        report = (
+            "OrderService.createOrder 方法存在空指针风险。\n"
+            "调用链: Controller → OrderService → PaymentGateway\n"
+            "上游 Controller 未做参数校验导致 null 传入\n" * 10
+        )
         ctx = _make_ctx("Q07", report=report)
         results = g.check(ctx)
         warnings = [r for r in results if not r.passed and "孤立分析" in r.message]

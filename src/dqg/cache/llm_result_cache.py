@@ -13,7 +13,8 @@ from pathlib import Path
 from typing import Any
 
 from dqg.constants import REPORT_MAP, SKILL_FILE_MAP, STRUCTURED_JSON_MAP
-from dqg.core.state_machine import PHASE_DEFS, phase_dir as _phase_dir
+from dqg.core.state_machine import PHASE_DEFS
+from dqg.core.state_machine import phase_dir as _phase_dir
 from dqg.json_utils import load_json, save_json
 from dqg.log import get_logger
 
@@ -33,13 +34,16 @@ def _get_stats(cache_file: Path) -> dict[str, Any]:
     if key not in _inmemory_stats:
         # Load from disk on first access
         cache = _load_cache(cache_file)
-        _inmemory_stats[key] = cache.get(_STATS_KEY, {
-            "total_hits": 0,
-            "total_misses": 0,
-            "total_puts": 0,
-            "saved_calls": {},
-            "last_updated": "",
-        })
+        _inmemory_stats[key] = cache.get(
+            _STATS_KEY,
+            {
+                "total_hits": 0,
+                "total_misses": 0,
+                "total_puts": 0,
+                "saved_calls": {},
+                "last_updated": "",
+            },
+        )
     return _inmemory_stats[key]
 
 
@@ -97,7 +101,7 @@ def _build_context_hash(
     if not signatures or all(s == "missing" for s in signatures):
         return None
 
-    combined = "|".join([phase_id, project_id] + signatures)
+    combined = "|".join([phase_id, project_id, *signatures])
     return hashlib.sha256(combined.encode()).hexdigest()[:20]
 
 
@@ -172,7 +176,10 @@ def get_cached_result(
     _update_stats(cache_file, "hit", result_type)
     log.info(
         "LLM result cache HIT: %s/%s/%s (cached at %s)",
-        project_id, phase_id, result_type, entry.get("cached_at", "?"),
+        project_id,
+        phase_id,
+        result_type,
+        entry.get("cached_at", "?"),
     )
     return entry.get("result")
 
@@ -202,10 +209,7 @@ def put_cached_result(
     }
 
     # 清理旧的同类型缓存（只保留最新的）
-    stale_keys = [
-        k for k in cache
-        if k.startswith(f"{result_type}:") and k != key and k != _STATS_KEY
-    ]
+    stale_keys = [k for k in cache if k.startswith(f"{result_type}:") and k != key and k != _STATS_KEY]
     for sk in stale_keys:
         del cache[sk]
 

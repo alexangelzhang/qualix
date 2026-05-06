@@ -1,7 +1,9 @@
 """Tests for SkillReflector reflect→write→verify loop."""
-import pytest
+
 from dqg.tracking.skill_reflector import (
-    SkillReflector, ReflectResult, WriteResult, EvolutionOutcome,
+    EvolutionOutcome,
+    ReflectResult,
+    SkillReflector,
     compute_case_fingerprint,
 )
 
@@ -17,15 +19,27 @@ def test_compute_case_fingerprint():
 def test_reflect_extracts_patterns():
     reflector = SkillReflector(phase="Q01", project_id="test-proj")
     judge_results = [
-        {"verdict": "FAIL", "overall": 2.0, "issues": [
-            {"severity": "high", "description": "missing boundary test for concurrent access"},
-        ]},
-        {"verdict": "FAIL", "overall": 2.5, "issues": [
-            {"severity": "high", "description": "missing boundary test for null input"},
-        ]},
-        {"verdict": "FAIL", "overall": 2.0, "issues": [
-            {"severity": "high", "description": "missing boundary test for edge case"},
-        ]},
+        {
+            "verdict": "FAIL",
+            "overall": 2.0,
+            "issues": [
+                {"severity": "high", "description": "missing boundary test for concurrent access"},
+            ],
+        },
+        {
+            "verdict": "FAIL",
+            "overall": 2.5,
+            "issues": [
+                {"severity": "high", "description": "missing boundary test for null input"},
+            ],
+        },
+        {
+            "verdict": "FAIL",
+            "overall": 2.0,
+            "issues": [
+                {"severity": "high", "description": "missing boundary test for edge case"},
+            ],
+        },
     ]
     result = reflector.reflect(judge_results)
     assert result.actionable is True

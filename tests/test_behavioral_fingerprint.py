@@ -5,7 +5,6 @@ import tempfile
 from pathlib import Path
 
 from dqg.quality.behavioral_fingerprint import (
-    BehavioralFingerprint,
     compare_fingerprints,
     extract_fingerprint,
     extract_fingerprints_from_file,
@@ -22,19 +21,25 @@ def _make_trajectory(
         {"role": "system", "content": "你是需求分析专家。"},
         {"role": "user", "content": "执行 Phase 任务。"},
     ]
-    for tool in (tool_calls or []):
-        messages.append({
+    for tool in tool_calls or []:
+        messages.append(
+            {
+                "role": "assistant",
+                "content": f'调用工具\n<tool_call name="{tool}">\n{{"keyword": "test"}}\n</tool_call>',
+            }
+        )
+        messages.append(
+            {
+                "role": "user",
+                "content": f'<tool_result name="{tool}">\nresult\n</tool_result>',
+            }
+        )
+    messages.append(
+        {
             "role": "assistant",
-            "content": f'调用工具\n<tool_call name="{tool}">\n{{"keyword": "test"}}\n</tool_call>',
-        })
-        messages.append({
-            "role": "user",
-            "content": f'<tool_result name="{tool}">\nresult\n</tool_result>',
-        })
-    messages.append({
-        "role": "assistant",
-        "content": f"最终报告 {ids_in_output}\n" + "x" * output_length,
-    })
+            "content": f"最终报告 {ids_in_output}\n" + "x" * output_length,
+        }
+    )
     return {
         "project_id": "test",
         "phase_id": phase_id,
@@ -44,7 +49,6 @@ def _make_trajectory(
 
 
 class TestExtractFingerprint:
-
     def test_basic_extraction(self):
         traj = _make_trajectory(tool_calls=["search_upstream_context", "read_wiki_page"])
         fp = extract_fingerprint(traj)
@@ -69,7 +73,6 @@ class TestExtractFingerprint:
 
 
 class TestCompareFingerprints:
-
     def test_identical_passes(self):
         traj = _make_trajectory(tool_calls=["search_upstream_context"])
         baseline = extract_fingerprint(traj)
@@ -79,23 +82,31 @@ class TestCompareFingerprints:
         assert result.deviations == []
 
     def test_id_regression_detected(self):
-        baseline = extract_fingerprint(_make_trajectory(
-            ids_in_output="REQ-001 REQ-002 REQ-003 REQ-004 BR-001 GAP-001",
-        ))
-        current = extract_fingerprint(_make_trajectory(
-            ids_in_output="REQ-001",  # 大幅减少
-        ))
+        baseline = extract_fingerprint(
+            _make_trajectory(
+                ids_in_output="REQ-001 REQ-002 REQ-003 REQ-004 BR-001 GAP-001",
+            )
+        )
+        current = extract_fingerprint(
+            _make_trajectory(
+                ids_in_output="REQ-001",  # 大幅减少
+            )
+        )
         result = compare_fingerprints(baseline, current)
         assert result.verdict == "FAIL"
         assert any("ID_REGRESSION" in d for d in result.deviations)
 
     def test_tool_disappeared_inconclusive(self):
-        baseline = extract_fingerprint(_make_trajectory(
-            tool_calls=["search_upstream_context", "read_wiki_page"],
-        ))
-        current = extract_fingerprint(_make_trajectory(
-            tool_calls=["search_upstream_context"],  # read_wiki_page 消失
-        ))
+        baseline = extract_fingerprint(
+            _make_trajectory(
+                tool_calls=["search_upstream_context", "read_wiki_page"],
+            )
+        )
+        current = extract_fingerprint(
+            _make_trajectory(
+                tool_calls=["search_upstream_context"],  # read_wiki_page 消失
+            )
+        )
         result = compare_fingerprints(baseline, current)
         assert any("TOOL_DISAPPEARED" in d for d in result.deviations)
 
@@ -106,14 +117,18 @@ class TestCompareFingerprints:
         assert any("OUTPUT_SHRINK" in d for d in result.deviations)
 
     def test_phase_a6_missing_dimensions(self):
-        baseline = extract_fingerprint(_make_trajectory(
-            phase_id="Q03",
-            ids_in_output="ARCH-001 API-001 DATA-001 EXC-001 PERF-001",
-        ))
-        current = extract_fingerprint(_make_trajectory(
-            phase_id="Q03",
-            ids_in_output="ARCH-001 API-001",  # 缺少 DATA/EXC/PERF
-        ))
+        baseline = extract_fingerprint(
+            _make_trajectory(
+                phase_id="Q03",
+                ids_in_output="ARCH-001 API-001 DATA-001 EXC-001 PERF-001",
+            )
+        )
+        current = extract_fingerprint(
+            _make_trajectory(
+                phase_id="Q03",
+                ids_in_output="ARCH-001 API-001",  # 缺少 DATA/EXC/PERF
+            )
+        )
         result = compare_fingerprints(baseline, current)
         assert any("INVARIANT" in d for d in result.deviations)
 
@@ -125,7 +140,6 @@ class TestCompareFingerprints:
 
 
 class TestExtractFromFile:
-
     def test_reads_jsonl(self):
         traj1 = _make_trajectory(tool_calls=["search_upstream_context"])
         traj2 = _make_trajectory(tool_calls=["read_wiki_page"])

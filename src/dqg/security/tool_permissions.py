@@ -5,26 +5,35 @@
 
 from __future__ import annotations
 
-from typing import Callable, Final
+from collections.abc import Callable
 from types import MappingProxyType
+from typing import Final
 
 # 角色 → 禁止使用的工具名
-ROLE_BLOCKED_TOOLS: Final = MappingProxyType({
-    "worker": frozenset(),  # Worker 保留全部工具
-    "judge": frozenset({
-        "append_persistent_memory",  # Judge 不应写入持久记忆
-        "write_to_wiki",             # Judge 不应写入 wiki
-        "spawn_subagent",            # Judge 不需要委派
-    }),
-    "critique": frozenset({
-        "spawn_subagent",            # Critique 不需要委派
-    }),
-    "researcher": frozenset({
-        "append_persistent_memory",  # 子 agent 不应写共享 memory
-        "write_to_wiki",             # 子 agent 不应写 wiki
-        "spawn_subagent",            # 禁止递归委派
-    }),
-})
+ROLE_BLOCKED_TOOLS: Final = MappingProxyType(
+    {
+        "worker": frozenset(),  # Worker 保留全部工具
+        "judge": frozenset(
+            {
+                "append_persistent_memory",  # Judge 不应写入持久记忆
+                "write_to_wiki",  # Judge 不应写入 wiki
+                "spawn_subagent",  # Judge 不需要委派
+            }
+        ),
+        "critique": frozenset(
+            {
+                "spawn_subagent",  # Critique 不需要委派
+            }
+        ),
+        "researcher": frozenset(
+            {
+                "append_persistent_memory",  # 子 agent 不应写共享 memory
+                "write_to_wiki",  # 子 agent 不应写 wiki
+                "spawn_subagent",  # 禁止递归委派
+            }
+        ),
+    }
+)
 
 
 def filter_tools_by_role(tools: list[Callable], role: str) -> list[Callable]:

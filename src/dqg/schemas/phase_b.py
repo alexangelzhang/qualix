@@ -3,4 +3,4 @@
 本文件保留是为了向后兼容旧 import 路径，新代码请直接使用 phase_q05.py。
 """
 
-from dqg.schemas.phase_q05 import *  # noqa: F403
+from dqg.schemas.phase_q05 import *

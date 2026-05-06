@@ -5,11 +5,13 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-from dqg.core.state_machine import PHASE_DEFS, phase_dir as _phase_dir
+from dqg.core.state_machine import PHASE_DEFS
+from dqg.core.state_machine import phase_dir as _phase_dir
 
 
 def cmd_judge(args, output_dir: Path) -> int:
     from dqg.quality.judge import format_judge_summary, load_judge_result, write_judge_prompt
+
     result = load_judge_result(output_dir, args.project_id, args.phase)
     if result:
         print(f"\n  {format_judge_summary(result)}")
@@ -19,12 +21,13 @@ def cmd_judge(args, output_dir: Path) -> int:
         print(f"  Phase {args.phase} 不支持 Judge 评审", file=sys.stderr)
         return 1
     print(f"\n  Judge 评审 prompt 已生成: {judge_path}")
-    print(f"  请用 AI IDE 读取该文件执行评审")
+    print("  请用 AI IDE 读取该文件执行评审")
     return 0
 
 
 def cmd_critique(args, output_dir: Path) -> int:
     from dqg.quality.critique import write_critique_prompt, write_preference_prompt
+
     phase_def = PHASE_DEFS.get(args.phase)
     if not phase_def:
         print(f"  未知的 Phase: {args.phase}", file=sys.stderr)
@@ -53,6 +56,7 @@ def cmd_critique(args, output_dir: Path) -> int:
 
 def cmd_preference(args, output_dir: Path) -> int:
     from dqg.quality.critique import persist_preference, write_preference_prompt
+
     phase_def = PHASE_DEFS.get(args.phase)
     if not phase_def:
         print(f"  未知的 Phase: {args.phase}", file=sys.stderr)
@@ -77,6 +81,7 @@ def cmd_preference(args, output_dir: Path) -> int:
 
 def cmd_golden(args, output_dir: Path) -> int:
     from dqg.quality.golden_sample import compare_with_golden, format_golden_diff, save_golden
+
     base_dir = Path(args.base_dir).resolve()
     if getattr(args, "save", False):
         path = save_golden(output_dir, args.project_id, args.phase, base_dir)

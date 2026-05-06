@@ -6,7 +6,7 @@ from enum import StrEnum
 
 from pydantic import BaseModel, Field, model_validator
 
-from dqg.schemas.location import SourceLocation  # noqa: TC001
+from dqg.schemas.location import SourceLocation
 
 
 class AuditStatus(StrEnum):

@@ -10,7 +10,6 @@
 from __future__ import annotations
 
 import re
-from collections import Counter
 from types import MappingProxyType
 from typing import Any, Final
 
@@ -21,16 +20,18 @@ log = get_logger(__name__)
 
 
 # tag → lesson 映射（从 bitable 的 category2 标签推断）
-_TAG_LESSON_MAP: Final = MappingProxyType({
-    "函数未覆盖": "新增/修改的函数缺少对应单测，需要补充单测覆盖",
-    "函数正常分支未覆盖": "函数的正常业务分支缺少单测覆盖，需要补充 Happy Path 测试",
-    "函数异常分支未覆盖": "函数的异常分支缺少单测覆盖，需要补充 Exception Path 测试",
-    "有单测未运行": "单测存在但未被 CI 执行，检查测试配置和运行范围",
-    "需求理解未对齐": "开发对需求的理解与产品意图不一致，需要在 Phase A 阶段加强需求确认",
-    "产品需求不明确": "PRD 描述模糊导致实现偏差，应在 Phase A 标记为 GAP/OPEN",
-    "需求遗漏": "PRD 遗漏了关键需求点，Phase A 的完备性检查未覆盖",
-    "性能问题": "代码存在性能瓶颈，Phase D 评审应包含性能维度检查",
-})
+_TAG_LESSON_MAP: Final = MappingProxyType(
+    {
+        "函数未覆盖": "新增/修改的函数缺少对应单测，需要补充单测覆盖",
+        "函数正常分支未覆盖": "函数的正常业务分支缺少单测覆盖，需要补充 Happy Path 测试",
+        "函数异常分支未覆盖": "函数的异常分支缺少单测覆盖，需要补充 Exception Path 测试",
+        "有单测未运行": "单测存在但未被 CI 执行，检查测试配置和运行范围",
+        "需求理解未对齐": "开发对需求的理解与产品意图不一致，需要在 Phase A 阶段加强需求确认",
+        "产品需求不明确": "PRD 描述模糊导致实现偏差，应在 Phase A 标记为 GAP/OPEN",
+        "需求遗漏": "PRD 遗漏了关键需求点，Phase A 的完备性检查未覆盖",
+        "性能问题": "代码存在性能瓶颈，Phase D 评审应包含性能维度检查",
+    }
+)
 
 # title 模式 → lesson 映射（从 AUTO 生成的 schema error 推断）
 _TITLE_PATTERNS: Final[list[tuple[str, str]]] = [
@@ -43,14 +44,16 @@ _TITLE_PATTERNS: Final[list[tuple[str, str]]] = [
 ]
 
 # error_type + root_cause 组合 → 通用 lesson
-_COMBO_LESSON_MAP: Final = MappingProxyType({
-    ("WRONG", "SCHEMA"): "结构化输出格式错误，需要修正 schema 定义或输出逻辑",
-    ("FN", "SCHEMA"): "结构化输出遗漏了必要字段，schema 校验未能拦截",
-    ("FN", "SKILL_RULE"): "Skill 规则未覆盖此失败场景，需要补充检查项",
-    ("FN", "KNOWLEDGE"): "缺少领域知识导致遗漏，需要补充知识库",
-    ("FN", "CONTEXT"): "上下文加载不完整导致遗漏，需要改进输入解析",
-    ("FP", "SKILL_RULE"): "Skill 规则过于激进导致误报，需要增加排除条件",
-})
+_COMBO_LESSON_MAP: Final = MappingProxyType(
+    {
+        ("WRONG", "SCHEMA"): "结构化输出格式错误，需要修正 schema 定义或输出逻辑",
+        ("FN", "SCHEMA"): "结构化输出遗漏了必要字段，schema 校验未能拦截",
+        ("FN", "SKILL_RULE"): "Skill 规则未覆盖此失败场景，需要补充检查项",
+        ("FN", "KNOWLEDGE"): "缺少领域知识导致遗漏，需要补充知识库",
+        ("FN", "CONTEXT"): "上下文加载不完整导致遗漏，需要改进输入解析",
+        ("FP", "SKILL_RULE"): "Skill 规则过于激进导致误报，需要增加排除条件",
+    }
+)
 
 
 def infer_lesson(case: dict[str, Any]) -> str | None:
@@ -115,11 +118,13 @@ def infer_all_lessons() -> dict[str, Any]:
     for case in cases:
         lesson = infer_lesson(case)
         if lesson:
-            inferred_lessons.append({
-                "case_id": case.get("case_id", ""),
-                "phase": case.get("phase", ""),
-                "inferred_lesson": lesson,
-            })
+            inferred_lessons.append(
+                {
+                    "case_id": case.get("case_id", ""),
+                    "phase": case.get("phase", ""),
+                    "inferred_lesson": lesson,
+                }
+            )
 
     inferred_count = len(inferred_lessons)
     still_missing = total - already_has - inferred_count

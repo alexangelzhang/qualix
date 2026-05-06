@@ -354,12 +354,6 @@ def generate_preference_prompt(
 # ---------------------------------------------------------------------------
 # Backward-compat re-export: feedback functions moved to critique_feedback.py
 # ---------------------------------------------------------------------------
-from .critique_feedback import (  # noqa: F401, E402
-    get_cached_critique_result,
-    get_cached_preference_result,
-    load_critique_result,
-    persist_preference,
-)
 
 
 def write_critique_prompt(

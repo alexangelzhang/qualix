@@ -14,11 +14,6 @@ from dqg.json_utils import load_json
 from dqg.store import get_connection
 
 
-
-
-
-
-
 def track_version(
     output_dir: Path,
     project_id: str,
@@ -66,7 +61,7 @@ def track_version(
                 changes["unchanged"].append(fact_id)
 
         # 检查删除
-        for fact_id, prev in prev_map.items():
+        for fact_id, _prev in prev_map.items():
             if fact_id not in curr_map:
                 conn.execute(
                     "UPDATE requirement_versions SET status='removed', valid_until=? WHERE project_id=? AND phase_id=? AND fact_id=? AND status='active'",
@@ -89,7 +84,8 @@ def _insert_version(conn, project_id, phase_id, fact, version, change_type, prev
         (project_id, phase_id, fact_id, fact_type, description, version, status, prev_description, change_type, valid_from)
         VALUES (?, ?, ?, ?, ?, ?, 'active', ?, ?, ?)""",
         (
-            project_id, phase_id,
+            project_id,
+            phase_id,
             fact.get("fact_id", ""),
             fact.get("fact_type", ""),
             fact.get("description", ""),
@@ -153,36 +149,44 @@ def extract_facts_from_json(json_path: Path) -> list[dict[str, Any]]:
 
     facts = []
     for req in data.get("requirements", []):
-        facts.append({
-            "fact_id": req.get("req_id", ""),
-            "fact_type": "REQ" if req.get("req_id", "").startswith("REQ") else "BR",
-            "description": req.get("description", ""),
-        })
+        facts.append(
+            {
+                "fact_id": req.get("req_id", ""),
+                "fact_type": "REQ" if req.get("req_id", "").startswith("REQ") else "BR",
+                "description": req.get("description", ""),
+            }
+        )
     for se in data.get("semantic_expectations", []):
-        facts.append({
-            "fact_id": se.get("se_id", ""),
-            "fact_type": "SE",
-            "description": se.get("description", ""),
-        })
+        facts.append(
+            {
+                "fact_id": se.get("se_id", ""),
+                "fact_type": "SE",
+                "description": se.get("description", ""),
+            }
+        )
     for gap in data.get("gaps", []):
-        facts.append({
-            "fact_id": gap.get("gap_id", ""),
-            "fact_type": "GAP",
-            "description": gap.get("description", ""),
-        })
+        facts.append(
+            {
+                "fact_id": gap.get("gap_id", ""),
+                "fact_type": "GAP",
+                "description": gap.get("description", ""),
+            }
+        )
     for op in data.get("open_items", []):
-        facts.append({
-            "fact_id": op.get("open_id", ""),
-            "fact_type": "OPEN",
-            "description": op.get("question", "") or op.get("description", ""),
-        })
+        facts.append(
+            {
+                "fact_id": op.get("open_id", ""),
+                "fact_type": "OPEN",
+                "description": op.get("question", "") or op.get("description", ""),
+            }
+        )
     return facts
 
 
 def format_version_diff(diff: dict[str, Any]) -> str:
     """格式化版本差异报告."""
     lines = [
-        f"  需求版本追踪:",
+        "  需求版本追踪:",
         f"  新增: {diff['added']} | 修改: {diff['modified']} | 删除: {diff['removed']} | 不变: {diff['unchanged']}",
     ]
     details = diff.get("details", {})

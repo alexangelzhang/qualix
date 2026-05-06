@@ -2,15 +2,13 @@
 
 from __future__ import annotations
 
-from pathlib import Path
-
 import pandas as pd
 import streamlit as st
 
 from dqg.tracking.bug_cases import load_cases, summarize_cases
 
-from .constants import OUTPUT_DIR, PHASE_NAMES, STATUS_LABEL
-from .cache import _cached_projects, _cached_summary, _cached_observe_alerts
+from .cache import _cached_observe_alerts, _cached_projects, _cached_summary
+from .constants import OUTPUT_DIR
 from .trend import _load_phase_score_history
 
 # ---------------------------------------------------------------------------
@@ -38,27 +36,31 @@ def _compute_alerts(projects: list[str]) -> list[dict]:
         for phase, r in latest_by_phase.items():
             score = r.get("score")
             if score is not None and score < _ALERT_SCORE_THRESHOLD:
-                alerts.append({
-                    "level": "error" if score < 2.5 else "warning",
-                    "project": pid,
-                    "phase": phase,
-                    "phase_name": r.get("phase_name", phase),
-                    "score": score,
-                    "msg": f"[{pid}] {r.get('phase_name', phase)} Judge 评分 {score:.1f}/5 未达标",
-                })
+                alerts.append(
+                    {
+                        "level": "error" if score < 2.5 else "warning",
+                        "project": pid,
+                        "phase": phase,
+                        "phase_name": r.get("phase_name", phase),
+                        "score": score,
+                        "msg": f"[{pid}] {r.get('phase_name', phase)} Judge 评分 {score:.1f}/5 未达标",
+                    }
+                )
 
         # 通过率告警
         summary = _cached_summary(pid)
         rate = summary.get("phase_approval_rate", 1.0)
         if rate < _ALERT_PASS_RATE_THRESHOLD and summary.get("total_finalized", 0) >= 3:
-            alerts.append({
-                "level": "warning",
-                "project": pid,
-                "phase": "",
-                "phase_name": "",
-                "score": None,
-                "msg": f"[{pid}] Phase 通过率 {rate:.0%} 低于 {_ALERT_PASS_RATE_THRESHOLD:.0%}",
-            })
+            alerts.append(
+                {
+                    "level": "warning",
+                    "project": pid,
+                    "phase": "",
+                    "phase_name": "",
+                    "score": None,
+                    "msg": f"[{pid}] Phase 通过率 {rate:.0%} 低于 {_ALERT_PASS_RATE_THRESHOLD:.0%}",
+                }
+            )
 
     return alerts
 
@@ -70,14 +72,16 @@ def _show_alerts(projects: list[str]) -> None:
     observe_alerts = _cached_observe_alerts()
     for oa in observe_alerts:
         level = "error" if oa.get("severity") == "HIGH" else "warning"
-        alerts.append({
-            "level": level,
-            "project": oa.get("project_id", ""),
-            "phase": oa.get("phase", ""),
-            "phase_name": "",
-            "score": None,
-            "msg": f"[{oa.get('rule', '')}] {oa.get('message', '')}",
-        })
+        alerts.append(
+            {
+                "level": level,
+                "project": oa.get("project_id", ""),
+                "phase": oa.get("phase", ""),
+                "phase_name": "",
+                "score": None,
+                "msg": f"[{oa.get('rule', '')}] {oa.get('message', '')}",
+            }
+        )
 
     if not alerts:
         return
@@ -100,6 +104,7 @@ def _show_alerts(projects: list[str]) -> None:
 # ---------------------------------------------------------------------------
 # 总览页
 # ---------------------------------------------------------------------------
+
 
 def _page_overview():
     projects = _cached_projects()

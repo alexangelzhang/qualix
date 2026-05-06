@@ -378,7 +378,3 @@ def check_report_structure(report_content: str, phase: str) -> dict[str, Any]:
 # ---------------------------------------------------------------------------
 # Backward-compat re-export: DSL constraints moved to phase_constraints.py
 # ---------------------------------------------------------------------------
-from dqg.runtime.phase_constraints import (  # noqa: E402, F401
-    PHASE_CONSTRAINTS,
-    enforce_phase_constraints,
-)

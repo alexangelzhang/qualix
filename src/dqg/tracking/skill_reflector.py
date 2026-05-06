@@ -109,7 +109,7 @@ class SkillReflector:
                 seen.add(key)
                 unique_issues.append(issue)
 
-        root_cause, pattern, fix = self._classify_root_cause(unique_issues)
+        root_cause, _pattern, fix = self._classify_root_cause(unique_issues)
 
         if root_cause == "UNKNOWN":
             return ReflectResult(actionable=False, failure_patterns=unique_issues)

@@ -2,9 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Any
-
 from pathlib import Path
+from typing import Any
 
 from dqg.store.core import get_connection, row_to_dict
 
@@ -59,7 +58,7 @@ def query_observe_alerts(
 
     with get_connection(output_dir) as conn:
         rows = conn.execute(
-            f"SELECT * FROM observe_alerts {where} ORDER BY id DESC LIMIT ?",  # noqa: S608
+            f"SELECT * FROM observe_alerts {where} ORDER BY id DESC LIMIT ?",
             params,
         ).fetchall()
         return [row_to_dict(r) for r in rows]

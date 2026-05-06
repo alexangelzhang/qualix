@@ -6,7 +6,7 @@ import threading
 from typing import TYPE_CHECKING
 
 from dqg.json_utils import save_json
-from dqg.runtime.events import EventType  # noqa: TC001 — used at runtime (.value)
+from dqg.runtime.events import EventType
 
 if TYPE_CHECKING:
     from pathlib import Path

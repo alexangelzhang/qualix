@@ -14,7 +14,7 @@ from collections import Counter
 from pathlib import Path
 from typing import Any
 
-from dqg.schemas.rsm import build_lifecycle, load_rsm
+from dqg.schemas.rsm import load_rsm
 
 
 def extract_gap_patterns(
@@ -33,10 +33,7 @@ def extract_gap_patterns(
     if project_ids is None:
         # 自动发现所有项目
         if output_dir.exists():
-            project_ids = [
-                d.name for d in output_dir.iterdir()
-                if d.is_dir() and not d.name.startswith(".")
-            ]
+            project_ids = [d.name for d in output_dir.iterdir() if d.is_dir() and not d.name.startswith(".")]
         else:
             project_ids = []
 
@@ -57,9 +54,27 @@ def extract_gap_patterns(
 
     keywords = Counter()
     _SEED_KEYWORDS = {
-        "并发", "幂等", "超时", "异常", "回滚", "重试", "权限", "校验",
-        "边界", "精度", "缓存", "一致性", "死锁", "溢出", "注入",
-        "降级", "熔断", "限流", "监控", "告警", "日志",
+        "并发",
+        "幂等",
+        "超时",
+        "异常",
+        "回滚",
+        "重试",
+        "权限",
+        "校验",
+        "边界",
+        "精度",
+        "缓存",
+        "一致性",
+        "死锁",
+        "溢出",
+        "注入",
+        "降级",
+        "熔断",
+        "限流",
+        "监控",
+        "告警",
+        "日志",
     }
 
     # Layer 1: 种子关键词
@@ -71,7 +86,7 @@ def extract_gap_patterns(
     # Layer 2: 高频 bigram 提取（发现种子关键词未覆盖的模式）
     bigram_counter: Counter = Counter()
     for desc in gap_descriptions:
-        chars = [c for c in desc if '\u4e00' <= c <= '\u9fff']  # 只取中文字符
+        chars = [c for c in desc if "\u4e00" <= c <= "\u9fff"]  # 只取中文字符
         for i in range(len(chars) - 1):
             bigram = chars[i] + chars[i + 1]
             if bigram not in _SEED_KEYWORDS:  # 避免和种子重复
@@ -89,12 +104,14 @@ def extract_gap_patterns(
         if count < 2:
             continue  # 只保留出现 2 次以上的模式
         examples = [d for d in gap_descriptions if kw in d][:3]
-        patterns.append({
-            "pattern": kw,
-            "count": count,
-            "examples": examples,
-            "projects": [pid for pid, descs in gap_by_project.items() if any(kw in d for d in descs)],
-        })
+        patterns.append(
+            {
+                "pattern": kw,
+                "count": count,
+                "examples": examples,
+                "projects": [pid for pid, descs in gap_by_project.items() if any(kw in d for d in descs)],
+            }
+        )
 
     return patterns
 
@@ -150,6 +167,7 @@ def save_patterns_to_file(
 ) -> Path:
     """保存模式到独立文件（供分析和审计）."""
     from dqg.json_utils import save_json
+
     path = output_dir / ".dqg" / "rsm_patterns.json"
     path.parent.mkdir(parents=True, exist_ok=True)
     save_json(path, patterns)

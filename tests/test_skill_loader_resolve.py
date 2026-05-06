@@ -1,7 +1,7 @@
 """Tests for resolve_worker_prompt unified skill resolution."""
-import pytest
-from pathlib import Path
+
 from unittest.mock import patch
+
 from dqg.context.skill_loader import resolve_worker_prompt
 
 

@@ -23,10 +23,8 @@ from typing import TYPE_CHECKING, Any
 from dqg.agents.agent import Agent, extract_llm_call
 from dqg.agents.handoff_builder import build_handoff_document
 from dqg.agents.issue_tracker import IssueTracker
-from dqg.agents.judge_vote import (  # noqa: F401 — re-export for backward compat
+from dqg.agents.judge_vote import (
     IterationRecord,
-    JudgeVote,
-    VoteResult,
     judge_health_check,
     multi_judge_vote,
 )

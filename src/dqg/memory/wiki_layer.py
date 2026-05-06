@@ -4,8 +4,15 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from dqg.constants import WIKI_COMPILE_CONTEXT_LIMIT, WIKI_DIR, WIKI_LINT_FILE_EXCERPT_LIMIT, WIKI_LINT_TOTAL_EXCERPT_LIMIT, WIKI_RAW_TEXT_FALLBACK_LIMIT
-from dqg.core.state_machine import PHASE_DEFS, phase_dir as _phase_dir
+from dqg.constants import (
+    WIKI_COMPILE_CONTEXT_LIMIT,
+    WIKI_DIR,
+    WIKI_LINT_FILE_EXCERPT_LIMIT,
+    WIKI_LINT_TOTAL_EXCERPT_LIMIT,
+    WIKI_RAW_TEXT_FALLBACK_LIMIT,
+)
+from dqg.core.state_machine import PHASE_DEFS
+from dqg.core.state_machine import phase_dir as _phase_dir
 from dqg.path_utils import resolve_ingest_file, resolve_internal_file
 
 
@@ -51,7 +58,9 @@ class WikiManager:
         if summary:
             return summary
 
-        raw_text = _read_excerpt(_find_phase_file(self.output_dir, project_id, "Q01", "plain_text.txt"), WIKI_RAW_TEXT_FALLBACK_LIMIT)
+        raw_text = _read_excerpt(
+            _find_phase_file(self.output_dir, project_id, "Q01", "plain_text.txt"), WIKI_RAW_TEXT_FALLBACK_LIMIT
+        )
         return raw_text
 
     def _collect_lint_bundle(self, project_id: str) -> str:

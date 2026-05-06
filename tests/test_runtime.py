@@ -4,13 +4,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import pytest
-
 from dqg.runtime.events import EventType
 from dqg.runtime.execution_context import ExecutionContext
 from dqg.runtime.lifecycle import LifecycleRegistry
 from dqg.runtime.result import PhaseResult, RuntimeEvent
-
 
 # ---------------------------------------------------------------------------
 # PhaseResult 测试
@@ -110,7 +107,9 @@ class TestLifecycleRegistry:
         reg.register("mid", lambda ctx, r: order_log.append("mid"), stage="execute", order=100)
 
         ctx = ExecutionContext(
-            output_dir=Path("/tmp"), project_id="test", phase_id="Q01",
+            output_dir=Path("/tmp"),
+            project_id="test",
+            phase_id="Q01",
         )
         result = PhaseResult()
         reg.run_handlers("execute", ctx, result)
@@ -124,7 +123,9 @@ class TestLifecycleRegistry:
 
         reg.register("bad", bad_handler, stage="execute")
         ctx = ExecutionContext(
-            output_dir=Path("/tmp"), project_id="test", phase_id="Q01",
+            output_dir=Path("/tmp"),
+            project_id="test",
+            phase_id="Q01",
         )
         result = PhaseResult()
         reg.run_handlers("execute", ctx, result)
@@ -135,14 +136,13 @@ class TestLifecycleRegistry:
         reg = LifecycleRegistry()
         reg.register("noop", lambda ctx, r: None, stage="execute")
         ctx = ExecutionContext(
-            output_dir=Path("/tmp"), project_id="test", phase_id="Q01",
+            output_dir=Path("/tmp"),
+            project_id="test",
+            phase_id="Q01",
         )
         result = PhaseResult()
         reg.run_handlers("execute", ctx, result)
-        assert any(
-            e.event_type == EventType.SIDECAR_COMPLETED and "noop" in e.message
-            for e in result.events
-        )
+        assert any(e.event_type == EventType.SIDECAR_COMPLETED and "noop" in e.message for e in result.events)
 
 
 # ---------------------------------------------------------------------------
@@ -163,7 +163,9 @@ class TestExecutionContext:
 
     def test_shared_data(self):
         ctx = ExecutionContext(
-            output_dir=Path("/tmp"), project_id="p", phase_id="Q01",
+            output_dir=Path("/tmp"),
+            project_id="p",
+            phase_id="Q01",
         )
         ctx.shared["key"] = "value"
         assert ctx.shared["key"] == "value"
@@ -177,7 +179,6 @@ class TestExecutionContext:
 class TestGlobalRegistration:
     def test_handlers_registered_on_import(self):
         """Import runtime 包后，全局 registry 应该有 handler."""
-        import dqg.runtime  # noqa: F401
         from dqg.runtime.lifecycle import get_registry
 
         reg = get_registry()

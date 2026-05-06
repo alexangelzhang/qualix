@@ -4,10 +4,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from dqg.json_utils import dump_json_str, load_json_strict, save_json
-
 from dqg.ingest.feishu.auth import load_larkkit, parse_feishu_url
 from dqg.ingest.feishu.crawler import crawl_documents
+from dqg.json_utils import dump_json_str, load_json_strict, save_json
 
 if TYPE_CHECKING:
     from pathlib import Path

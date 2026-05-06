@@ -7,7 +7,6 @@ from __future__ import annotations
 
 from datetime import datetime
 from pathlib import Path
-from typing import Any
 
 from dqg.constants import PHASE_DIR_MAP
 from dqg.log import get_logger
@@ -72,14 +71,17 @@ def verify_with_holdout(phase: str) -> bool:
         if result.get("overfitting_signal"):
             log.warning(
                 "Holdout overfitting detected for %s: coverage_gap=%.2f",
-                phase, result.get("coverage_gap", 0),
+                phase,
+                result.get("coverage_gap", 0),
             )
             return False
         gap = result.get("coverage_gap", 0)
         if gap > SKILL_AUTO_MERGE_OVERFITTING_THRESHOLD:
             log.warning(
                 "Holdout coverage gap %.2f exceeds threshold %.2f for %s",
-                gap, SKILL_AUTO_MERGE_OVERFITTING_THRESHOLD, phase,
+                gap,
+                SKILL_AUTO_MERGE_OVERFITTING_THRESHOLD,
+                phase,
             )
             return False
         return True
@@ -89,8 +91,11 @@ def verify_with_holdout(phase: str) -> bool:
 
 
 def _write_hints_file(
-    project_id: str, phase: str, hint_type: str,
-    failure_patterns: list[str], suggested_changes: list[str],
+    project_id: str,
+    phase: str,
+    hint_type: str,
+    failure_patterns: list[str],
+    suggested_changes: list[str],
 ) -> str:
     """Append hints to _{hint_type}_hints.md in phase _internal/ dir."""
     dir_suffix = PHASE_DIR_MAP.get(phase, phase)
@@ -113,20 +118,29 @@ def _write_hints_file(
 
 
 def write_context_hints(
-    project_id: str, phase: str, failure_patterns: list[str], suggested_changes: list[str],
+    project_id: str,
+    phase: str,
+    failure_patterns: list[str],
+    suggested_changes: list[str],
 ) -> str:
     return _write_hints_file(project_id, phase, "context", failure_patterns, suggested_changes)
 
 
 def write_schema_hints(
-    project_id: str, phase: str, failure_patterns: list[str], suggested_changes: list[str],
+    project_id: str,
+    phase: str,
+    failure_patterns: list[str],
+    suggested_changes: list[str],
 ) -> str:
     return _write_hints_file(project_id, phase, "schema", failure_patterns, suggested_changes)
 
 
 def write_suggestion_file(
-    project_id: str, phase: str, root_cause: str,
-    failure_patterns: list[str], suggested_changes: list[str],
+    project_id: str,
+    phase: str,
+    root_cause: str,
+    failure_patterns: list[str],
+    suggested_changes: list[str],
 ) -> str:
     """Write suggestion file for human review."""
     suggestion_dir = Path("output") / project_id / PHASE_DIR_MAP.get(phase, phase)

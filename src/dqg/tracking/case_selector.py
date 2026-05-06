@@ -8,24 +8,44 @@ from typing import Any, Final
 
 from dqg.tracking.bug_cases import load_cases_by_phase
 
-
 # 同义词扩展表：复用 knowledge_network 的 pattern 关键词组
 # 当 case 关键词命中某 group 中的任一词时，把该 group 所有词加入匹配集
-_SYNONYM_GROUPS: Final = MappingProxyType({
-    "并发": ["并发", "幂等", "锁", "竞争", "冲突", "重复提交", "并发安全"],
-    "权限": ["权限", "隔离", "越权", "鉴权", "角色"],
-    "状态机": ["状态机", "状态流转", "状态迁移", "驳回", "循环", "非法跳转"],
-    "金额": ["金额", "计算", "精度", "BigDecimal", "分", "精度丢失"],
-    "超时": ["超时", "重试", "降级", "熔断", "补偿"],
-    "通知": ["通知", "消息", "推送", "飞书", "提醒"],
-    "导出": ["导出", "异步", "大数据量"],
-    "缓存": ["缓存", "失效", "一致性"],
-})
+_SYNONYM_GROUPS: Final = MappingProxyType(
+    {
+        "并发": ["并发", "幂等", "锁", "竞争", "冲突", "重复提交", "并发安全"],
+        "权限": ["权限", "隔离", "越权", "鉴权", "角色"],
+        "状态机": ["状态机", "状态流转", "状态迁移", "驳回", "循环", "非法跳转"],
+        "金额": ["金额", "计算", "精度", "BigDecimal", "分", "精度丢失"],
+        "超时": ["超时", "重试", "降级", "熔断", "补偿"],
+        "通知": ["通知", "消息", "推送", "飞书", "提醒"],
+        "导出": ["导出", "异步", "大数据量"],
+        "缓存": ["缓存", "失效", "一致性"],
+    }
+)
 
 
 def _extract_keywords(text: str) -> set[str]:
     """从文本中提取关键词（中文分词简化版：按标点和空格切分）."""
-    stopwords = {"的", "了", "在", "是", "和", "与", "或", "等", "为", "对", "从", "到", "中", "上", "下", "不", "有", "无"}
+    stopwords = {
+        "的",
+        "了",
+        "在",
+        "是",
+        "和",
+        "与",
+        "或",
+        "等",
+        "为",
+        "对",
+        "从",
+        "到",
+        "中",
+        "上",
+        "下",
+        "不",
+        "有",
+        "无",
+    }
     tokens = re.findall(r"[\u4e00-\u9fff]{2,}|[A-Za-z_][A-Za-z0-9_]+", text)
     return {t for t in tokens if t not in stopwords and len(t) >= 2}
 
@@ -123,7 +143,9 @@ def render_relevant_cases_for_prompt(
     ]
 
     for i, c in enumerate(cases, 1):
-        error_label = {"FN": "漏报", "FP": "误报", "WRONG": "错判"}.get(c.get("error_type", ""), c.get("error_type", ""))
+        error_label = {"FN": "漏报", "FP": "误报", "WRONG": "错判"}.get(
+            c.get("error_type", ""), c.get("error_type", "")
+        )
         lines.append(f"### 反例 {i}: {c.get('title', '')[:80]} [{error_label}]")
         lines.append("")
 

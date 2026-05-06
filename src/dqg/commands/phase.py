@@ -77,7 +77,6 @@ def profile_context_warnings(output_dir: Path, project_id: str, phase_id: str) -
 
 
 def cmd_execute(args, output_dir: Path) -> int:
-    import dqg.runtime  # noqa: F401 — 触发 handler 注册
     from dqg.core.profiles import get_profile
     from dqg.runtime.execution_context import ExecutionContext
     from dqg.runtime.phase_runtime import runtime_execute
@@ -136,7 +135,6 @@ def cmd_execute(args, output_dir: Path) -> int:
 
 
 def cmd_finalize(args, output_dir: Path) -> int:
-    import dqg.runtime  # noqa: F401 — 触发 handler 注册
     from dqg.memory.version_tracker import format_version_diff
     from dqg.quality.golden_sample import format_golden_diff
     from dqg.quality.rule_compliance import format_compliance_report

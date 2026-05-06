@@ -84,8 +84,9 @@ def write_alerts(output_dir: Path, label: str, alerts: list[dict[str, Any]]) -> 
     # 同步写入 SQLite，供 dashboard 实时查询
     try:
         from dqg.store.observability import insert_observe_alerts
+
         insert_observe_alerts(output_dir, label, alerts)
-    except Exception:  # noqa: BLE001 — 文件写入是主路径，SQLite 是增强
+    except Exception:
         pass
     lines = [f"# DQG 告警 — {label}", ""]
     if not alerts:
@@ -126,9 +127,7 @@ def write_prometheus_snapshot(output_dir: Path, payload: dict[str, Any], alerts:
         lines.append(f'dqg_project_gap_closure_rate{{project="{project}"}} {item["gap_closure_rate"]}')
         lines.append(f'dqg_project_block_count{{project="{project}"}} {item["block_count"]}')
         for phase, stat in item["phase_stats"].items():
-            lines.append(
-                f'dqg_phase_failure_rate{{project="{project}",phase="{phase}"}} {stat["failure_rate"]}'
-            )
+            lines.append(f'dqg_phase_failure_rate{{project="{project}",phase="{phase}"}} {stat["failure_rate"]}')
     lines.append(f"dqg_alert_count {len(alerts)}")
     path.write_text("\n".join(lines).strip() + "\n", encoding="utf-8")
     return path

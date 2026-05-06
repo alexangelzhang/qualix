@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import json
 import re
-from pathlib import Path  # noqa: TC003
+from pathlib import Path
 
 from dqg.json_utils import dump_json_str
 

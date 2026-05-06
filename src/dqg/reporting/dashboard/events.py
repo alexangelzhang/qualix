@@ -7,13 +7,12 @@ import streamlit as st
 
 from dqg.tracking.bug_cases import load_cases
 
-from .constants import SEV_ZH
-from .cache import _cached_projects, _cached_event_timeline
-
+from .cache import _cached_event_timeline, _cached_projects
 
 # ---------------------------------------------------------------------------
 # 事件追踪页
 # ---------------------------------------------------------------------------
+
 
 def _page_events():
     projects = _cached_projects()
@@ -57,6 +56,7 @@ def _page_events():
 # Bug 案例库页
 # ---------------------------------------------------------------------------
 
+
 def _page_bug_cases():
     cases = load_cases()
     if not cases:
@@ -83,13 +83,15 @@ def _page_bug_cases():
     if filtered:
         rows = []
         for c in filtered:
-            rows.append({
-                "Case ID": c.get("case_id", ""),
-                "Phase": c.get("phase", ""),
-                "类型": {"FN": "漏报", "FP": "误报", "WRONG": "错判"}.get(c.get("error_type", ""), ""),
-                "严重度": c.get("severity", ""),
-                "标题": c.get("title", "")[:60],
-                "归因": c.get("root_cause", ""),
-                "状态": c.get("status", ""),
-            })
+            rows.append(
+                {
+                    "Case ID": c.get("case_id", ""),
+                    "Phase": c.get("phase", ""),
+                    "类型": {"FN": "漏报", "FP": "误报", "WRONG": "错判"}.get(c.get("error_type", ""), ""),
+                    "严重度": c.get("severity", ""),
+                    "标题": c.get("title", "")[:60],
+                    "归因": c.get("root_cause", ""),
+                    "状态": c.get("status", ""),
+                }
+            )
         st.dataframe(pd.DataFrame(rows), hide_index=True, width="stretch")
