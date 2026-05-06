@@ -197,6 +197,22 @@ Phase 执行时自动注入以下增强上下文（`context/loading/upstream_col
 - 禁止编造不存在的接口、字段、逻辑
 - 禁止一次性列出所有输入问题（必须逐步交互）
 
+## 产出规范
+
+### Schema/ID/字段命名查证（违反即 BLOCKER）
+
+产出任何结构化 schema 数据（ID 格式、字段命名、枚举值、JSON 结构）前，**禁止自己发明格式**，必须按优先级查证：
+
+1. **Schema 定义**（最权威）：`src/dqg/schemas/phase_*.py` 里的 pydantic `Field(pattern=...)` 就是法定格式。样例不在 schema 不代表它对。
+2. **SKILL.md 样例**：SKILL 里的 JSON 样例是契约，不是示意。
+3. **references / templates**：`references/report-template.md`、SKILL.md 指向的 Format spec 文件必读。
+4. **已有项目产物**：`output/*/Q<phase>/phase_*_structured.json`（已通过校验的成品）、`tests/test_*_schema*.py` / `tests/fixtures/`。
+5. **真正的新场景**：以上 4 步都没有才能自己定。原则：① 先问用户（多解不自决）；② 从最保守的约定开始（三位数字、扁平编号）；③ 在 `_reasoning_log.md` 显式声明"此项目首次引入 X 约定"。
+
+**触发信号（立即停手）**：脑子里闪过"这样看起来更清晰"、"加个前缀更好"、"我觉得应该"——这是发明前兆。99% 是你没搜到，不是真没有。
+
+**典型反例**：xiaoshu-chuku Q01 产出 `BR-001-01` 嵌套 ID，schema 要求 `^(REQ|BR)-\d+$`，触发 43 条 validation errors。根因是自己发明了"子 BR 带父号看起来更清晰"的格式，没查 `src/dqg/schemas/phase_q01.py` 和 `output/kind-care/Q01/phase_a_structured.json`（扁平 BR-001 ~ BR-146 就在眼前）。
+
 ## 文档同步铁律
 
 代码变更后必须同步更新相关文档。`completion_gate.py` 会根据变更范围自动检测需要更新哪些文件并阻断提醒。
