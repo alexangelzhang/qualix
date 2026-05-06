@@ -13,6 +13,7 @@ from typing import Final
 
 from dqg.constants import PHASE_DIR_MAP, STRUCTURED_JSON_MAP
 from dqg.json_utils import load_json_strict
+from dqg.schemas.location import SourceLocation
 from dqg.schemas.phase_q01 import PhaseAOutput
 from dqg.schemas.phase_q02 import PhaseA3Output
 from dqg.schemas.phase_q03 import PhaseA6Output
@@ -29,6 +30,7 @@ __all__ = [
     "PhaseBOutput",
     "PhaseCOutput",
     "PhaseDOutput",
+    "SourceLocation",
     "validate_phase_output",
 ]
 
