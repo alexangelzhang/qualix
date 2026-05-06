@@ -1,0 +1,30 @@
+{
+  "case_id": "JUDGE-Q04-20260428181233-dyn_state_machine-01",
+  "phase": "Q04",
+  "error_type": "FN",
+  "severity": "medium",
+  "title": "OPEN-001/004未分析当前状态机的实际行为",
+  "root_cause": "SKILL_RULE",
+  "fix_target": "skills/tech-coverage-audit/SKILL.md",
+  "tags": [
+    "judge-extracted",
+    "dim:dyn_state_machine",
+    "project:shuangzhou-v4"
+  ],
+  "created_at": "2026-04-28",
+  "status": "open",
+  "source": {
+    "project_id": "shuangzhou-v4",
+    "judge_extracted": true,
+    "dimension": "dyn_state_machine",
+    "dim_score": 3,
+    "dim_max_score": 5
+  },
+  "expected": {
+    "content": "（需人工补充期望行为）"
+  },
+  "actual": {
+    "content": "OPEN-001/004未分析当前状态机的实际行为"
+  },
+  "lesson": "OPEN-001/004未分析当前状态机的实际行为"
+}

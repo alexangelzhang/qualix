@@ -1,0 +1,30 @@
+{
+  "case_id": "JUDGE-Q05-20260429164113-dyn_permission-01",
+  "phase": "Q05",
+  "error_type": "FN",
+  "severity": "high",
+  "title": "BR-003（角色条件：店长/服务顾问主管/服务顾问）无独立 EUT 验证非授权角色被拒绝",
+  "root_cause": "SKILL_RULE",
+  "fix_target": "",
+  "tags": [
+    "judge-extracted",
+    "dim:dyn_permission",
+    "project:shuangzhou-v4"
+  ],
+  "created_at": "2026-04-29",
+  "status": "open",
+  "source": {
+    "project_id": "shuangzhou-v4",
+    "judge_extracted": true,
+    "dimension": "dyn_permission",
+    "dim_score": 2,
+    "dim_max_score": 5
+  },
+  "expected": {
+    "content": "（需人工补充期望行为）"
+  },
+  "actual": {
+    "content": "BR-003（角色条件：店长/服务顾问主管/服务顾问）无独立 EUT 验证非授权角色被拒绝"
+  },
+  "lesson": "BR-003（角色条件：店长/服务顾问主管/服务顾问）无独立 EUT 验证非授权角色被拒绝"
+}

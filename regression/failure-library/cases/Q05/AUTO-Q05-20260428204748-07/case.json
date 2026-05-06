@@ -1,0 +1,27 @@
+{
+  "case_id": "AUTO-Q05-20260428204748-07",
+  "phase": "Q05",
+  "error_type": "FN",
+  "severity": "medium",
+  "title": "eut_items.2.then",
+  "root_cause": "SKILL_RULE",
+  "fix_target": "",
+  "tags": [
+    "auto-generated",
+    "project:shuangzhou-v4"
+  ],
+  "created_at": "2026-04-28",
+  "status": "open",
+  "source": {
+    "project_id": "shuangzhou-v4",
+    "auto_generated": true,
+    "validation_error": "eut_items.2.then"
+  },
+  "expected": {
+    "content": "（需人工确认）"
+  },
+  "actual": {
+    "content": "eut_items.2.then"
+  },
+  "lesson": ""
+}

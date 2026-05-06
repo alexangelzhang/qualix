@@ -1,0 +1,30 @@
+{
+  "case_id": "JUDGE-Q05-20260429164113-dyn_permission-00",
+  "phase": "Q05",
+  "error_type": "FN",
+  "severity": "high",
+  "title": "SE-014（授权店与直营店隔离）仅通过 EUT-003/013/014 验证了 isCarAuthorityBusinessMode 的 true/false，未验证直营店调用提前交车接口时的拦截行",
+  "root_cause": "SKILL_RULE",
+  "fix_target": "",
+  "tags": [
+    "judge-extracted",
+    "dim:dyn_permission",
+    "project:shuangzhou-v4"
+  ],
+  "created_at": "2026-04-29",
+  "status": "open",
+  "source": {
+    "project_id": "shuangzhou-v4",
+    "judge_extracted": true,
+    "dimension": "dyn_permission",
+    "dim_score": 2,
+    "dim_max_score": 5
+  },
+  "expected": {
+    "content": "（需人工补充期望行为）"
+  },
+  "actual": {
+    "content": "SE-014（授权店与直营店隔离）仅通过 EUT-003/013/014 验证了 isCarAuthorityBusinessMode 的 true/false，未验证直营店调用提前交车接口时的拦截行为"
+  },
+  "lesson": "SE-014（授权店与直营店隔离）仅通过 EUT-003/013/014 验证了 isCarAuthorityBusinessMode 的 true/false，未验证直营店调用提前交车接口时的拦截行为"
+}

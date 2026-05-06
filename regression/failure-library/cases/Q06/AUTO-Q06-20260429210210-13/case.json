@@ -1,0 +1,27 @@
+{
+  "case_id": "AUTO-Q06-20260429210210-13",
+  "phase": "Q06",
+  "error_type": "FN",
+  "severity": "medium",
+  "title": "Phase Q06 审计了 EUT-004, EUT-005, EUT-009, EUT-044，但 Phase Q05 中不存在",
+  "root_cause": "SKILL_RULE",
+  "fix_target": "skills/unit-test-audit/SKILL.md",
+  "tags": [
+    "auto-generated",
+    "project:finance-model"
+  ],
+  "created_at": "2026-04-29",
+  "status": "open",
+  "source": {
+    "project_id": "finance-model",
+    "auto_generated": true,
+    "validation_error": "Phase Q06 审计了 EUT-004, EUT-005, EUT-009, EUT-044，但 Phase Q05 中不存在"
+  },
+  "expected": {
+    "content": "（需人工确认）"
+  },
+  "actual": {
+    "content": "Phase Q06 审计了 EUT-004, EUT-005, EUT-009, EUT-044，但 Phase Q05 中不存在"
+  },
+  "lesson": ""
+}

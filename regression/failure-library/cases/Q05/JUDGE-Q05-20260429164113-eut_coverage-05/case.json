@@ -1,0 +1,30 @@
+{
+  "case_id": "JUDGE-Q05-20260429164113-eut_coverage-05",
+  "phase": "Q05",
+  "error_type": "FN",
+  "severity": "medium",
+  "title": "VIN 半隐藏规则(BR-026) 无独立 EUT，desensitizaChar(EUT-030) 是通用方法测试，未验证 VIN 特定的后8位逻辑",
+  "root_cause": "SKILL_RULE",
+  "fix_target": "",
+  "tags": [
+    "judge-extracted",
+    "dim:eut_coverage",
+    "project:shuangzhou-v4"
+  ],
+  "created_at": "2026-04-29",
+  "status": "open",
+  "source": {
+    "project_id": "shuangzhou-v4",
+    "judge_extracted": true,
+    "dimension": "eut_coverage",
+    "dim_score": 3,
+    "dim_max_score": 5
+  },
+  "expected": {
+    "content": "（需人工补充期望行为）"
+  },
+  "actual": {
+    "content": "VIN 半隐藏规则(BR-026) 无独立 EUT，desensitizaChar(EUT-030) 是通用方法测试，未验证 VIN 特定的后8位逻辑"
+  },
+  "lesson": "VIN 半隐藏规则(BR-026) 无独立 EUT，desensitizaChar(EUT-030) 是通用方法测试，未验证 VIN 特定的后8位逻辑"
+}

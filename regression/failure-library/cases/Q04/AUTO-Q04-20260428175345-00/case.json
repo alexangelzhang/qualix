@@ -1,0 +1,27 @@
+{
+  "case_id": "AUTO-Q04-20260428175345-00",
+  "phase": "Q04",
+  "error_type": "FN",
+  "severity": "medium",
+  "title": "REGRESSION: req_coverage 数量从 8 减少到 6。重跑时产物数量不得减少，新版必须是旧版超集。请检查是否遗漏了旧版中的内容。",
+  "root_cause": "SKILL_RULE",
+  "fix_target": "skills/tech-coverage-audit/SKILL.md",
+  "tags": [
+    "auto-generated",
+    "project:shuangzhou-v4"
+  ],
+  "created_at": "2026-04-28",
+  "status": "open",
+  "source": {
+    "project_id": "shuangzhou-v4",
+    "auto_generated": true,
+    "validation_error": "REGRESSION: req_coverage 数量从 8 减少到 6。重跑时产物数量不得减少，新版必须是旧版超集。请检查是否遗漏了旧版中的内容。"
+  },
+  "expected": {
+    "content": "（需人工确认）"
+  },
+  "actual": {
+    "content": "REGRESSION: req_coverage 数量从 8 减少到 6。重跑时产物数量不得减少，新版必须是旧版超集。请检查是否遗漏了旧版中的内容。"
+  },
+  "lesson": ""
+}
