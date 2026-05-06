@@ -79,3 +79,58 @@ class TestTCItemWithLocation:
             ),
         )
         assert item.production_location.method_name == "approve"
+
+
+class TestEutAuditItemWithLocation:
+    def test_eut_audit_item_without_location_is_valid(self):
+        from dqg.schemas.phase_q06 import EutAuditItem
+
+        item = EutAuditItem(eut_id="EUT-001", status="COVERED")
+        assert item.test_location is None
+        assert item.production_location is None
+
+    def test_eut_audit_item_with_locations(self):
+        from dqg.schemas.phase_q06 import EutAuditItem
+
+        item = EutAuditItem(
+            eut_id="EUT-001",
+            status="COVERED",
+            test_location=SourceLocation(
+                file="OrderServiceTest.java",
+                line_start=52,
+                class_name="OrderServiceTest",
+                method_name="testApprove_success",
+                repo="car-mrs",
+            ),
+            production_location=SourceLocation(
+                file="OrderService.java",
+                line_start=88,
+                class_name="OrderService",
+                method_name="approve",
+                repo="car-mrs",
+            ),
+        )
+        assert item.test_location.line_start == 52
+        assert item.production_location.class_name == "OrderService"
+
+
+class TestFindingItemWithLocation:
+    def test_finding_item_without_location_is_valid(self):
+        from dqg.schemas.phase_q06 import FindingItem
+
+        item = FindingItem(id="FIND-001", severity="HIGH")
+        assert item.production_location is None
+
+    def test_finding_item_with_production_location(self):
+        from dqg.schemas.phase_q06 import FindingItem
+
+        item = FindingItem(
+            id="FIND-001",
+            severity="HIGH",
+            production_location=SourceLocation(
+                file="OrderService.java",
+                line_start=88,
+                repo="car-mrs",
+            ),
+        )
+        assert item.production_location.file == "OrderService.java"
