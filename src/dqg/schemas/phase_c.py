@@ -6,6 +6,8 @@ from enum import StrEnum
 
 from pydantic import BaseModel, Field, model_validator
 
+from dqg.schemas.location import SourceLocation  # noqa: TC001
+
 
 class AuditStatus(StrEnum):
     COVERED = "COVERED"
@@ -33,6 +35,8 @@ class EutAuditItem(BaseModel):
     evidence: str = ""
     recommendation: str = ""
     issues: list[str] = Field(default_factory=list)
+    test_location: SourceLocation | None = None
+    production_location: SourceLocation | None = None
 
 
 class FindingItem(BaseModel):
@@ -47,6 +51,7 @@ class FindingItem(BaseModel):
     affected_reqs: list[str] = Field(default_factory=list)
     evidence: dict | str = Field(default="")
     recommendation: str = ""
+    production_location: SourceLocation | None = None
 
 
 class CoverageGate(BaseModel):

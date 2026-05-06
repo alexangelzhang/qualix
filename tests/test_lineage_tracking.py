@@ -1,8 +1,13 @@
 """Tests for SourceLocation model."""
 
+import json
+import tempfile
+from pathlib import Path
+
 import pytest
 from pydantic import ValidationError
 
+from dqg.quality.auto_checks import auto_derive_checks
 from dqg.schemas.location import SourceLocation
 
 
@@ -134,3 +139,68 @@ class TestFindingItemWithLocation:
             ),
         )
         assert item.production_location.file == "OrderService.java"
+
+
+def _write_q06_json(tmpdir: Path, data: dict) -> Path:
+    phase_dir = tmpdir / "test-proj" / "Q06"
+    phase_dir.mkdir(parents=True)
+    json_path = phase_dir / "phase_c_structured.json"
+    json_path.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
+    return tmpdir
+
+
+class TestLocationGate:
+    def test_covered_without_test_location_is_downgraded(self):
+        data = {
+            "project_id": "test-proj",
+            "audit_items": [
+                {
+                    "eut_id": "EUT-001",
+                    "status": "COVERED",
+                    "evidence": "assertEquals(...) [Foo.java:10]",
+                    "test_location": None,
+                }
+            ],
+        }
+        with tempfile.TemporaryDirectory() as tmpdir:
+            output_dir = _write_q06_json(Path(tmpdir), data)
+            errors = auto_derive_checks(output_dir, "test-proj", "Q06")
+        assert any("test_location" in e and "PARTIAL" in e for e in errors)
+
+    def test_covered_with_test_location_passes(self):
+        data = {
+            "project_id": "test-proj",
+            "audit_items": [
+                {
+                    "eut_id": "EUT-001",
+                    "status": "COVERED",
+                    "evidence": "assertEquals(...) [Foo.java:10]",
+                    "test_location": {
+                        "file": "FooTest.java",
+                        "line_start": 10,
+                    },
+                }
+            ],
+        }
+        with tempfile.TemporaryDirectory() as tmpdir:
+            output_dir = _write_q06_json(Path(tmpdir), data)
+            errors = auto_derive_checks(output_dir, "test-proj", "Q06")
+        location_errors = [e for e in errors if "test_location" in e and "PARTIAL" in e]
+        assert len(location_errors) == 0
+
+    def test_missing_status_skips_location_check(self):
+        data = {
+            "project_id": "test-proj",
+            "audit_items": [
+                {
+                    "eut_id": "EUT-001",
+                    "status": "MISSING",
+                    "test_location": None,
+                }
+            ],
+        }
+        with tempfile.TemporaryDirectory() as tmpdir:
+            output_dir = _write_q06_json(Path(tmpdir), data)
+            errors = auto_derive_checks(output_dir, "test-proj", "Q06")
+        location_errors = [e for e in errors if "test_location" in e and "PARTIAL" in e]
+        assert len(location_errors) == 0

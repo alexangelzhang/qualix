@@ -102,6 +102,8 @@ def auto_derive_checks(
                 errors.extend(_check_cross_references(validated, phase_id))
                 # --- 4. 严重等级标注校验 ---
                 errors.extend(_check_severity_annotations(validated, phase_id))
+                # --- 5. Location 覆盖校验（Q06 COVERED 必须有 test_location）---
+                errors.extend(_check_location_coverage(validated, phase_id))
 
     # --- 5. RSM 覆盖率校验（跨 Phase，在 A.5/B/D finalize 时触发）---
     if phase_id in {"Q04", "Q05", "Q06", "Q07"}:
@@ -156,6 +158,22 @@ def _check_severity_annotations(validated: BaseModel, phase_id: str) -> list[str
             if not gap.required_clarification:
                 errors.append(f"INCOMPLETE: {gap.gap_id} 缺少 required_clarification（需要说明需要澄清什么）")
 
+    return errors
+
+
+def _check_location_coverage(validated: BaseModel, phase_id: str) -> list[str]:
+    """Q06 COVERED 判定必须有 test_location，否则降级为 PARTIAL."""
+    if phase_id != "Q06":
+        return []
+    errors: list[str] = []
+    for item in getattr(validated, "audit_items", []):
+        status = getattr(item, "status", None)
+        test_location = getattr(item, "test_location", None)
+        eut_id = getattr(item, "eut_id", "unknown")
+        if str(status) == "COVERED" and test_location is None:
+            errors.append(
+                f"LOCATION: {eut_id}: status=COVERED 但 test_location 为空，降级为 PARTIAL。请补充测试代码坐标。"
+            )
     return errors
 
 
