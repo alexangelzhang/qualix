@@ -31,13 +31,13 @@ log = get_logger(__name__)
 # Phase → Pydantic 模型类（延迟导入避免循环）
 _SCHEMA_MAP: Final = MappingProxyType(
     {
-        "Q01": "dqg.schemas.phase_a:PhaseAOutput",
-        "Q02": "dqg.schemas.phase_a3:PhaseA3Output",
-        "Q04": "dqg.schemas.phase_a5:PhaseA5Output",
-        "Q03": "dqg.schemas.phase_a6:PhaseA6Output",
-        "Q05": "dqg.schemas.phase_b:PhaseBOutput",
-        "Q06": "dqg.schemas.phase_c:PhaseCOutput",
-        "Q07": "dqg.schemas.phase_d:PhaseDOutput",
+        "Q01": "dqg.schemas.phase_q01:PhaseAOutput",
+        "Q02": "dqg.schemas.phase_q02:PhaseA3Output",
+        "Q04": "dqg.schemas.phase_q04:PhaseA5Output",
+        "Q03": "dqg.schemas.phase_q03:PhaseA6Output",
+        "Q05": "dqg.schemas.phase_q05:PhaseBOutput",
+        "Q06": "dqg.schemas.phase_q06:PhaseCOutput",
+        "Q07": "dqg.schemas.phase_q07:PhaseDOutput",
     }
 )
 
