@@ -240,8 +240,8 @@ python -m dqg.quality.checks.report_quality_checks output/<project_id> <project_
 2. **项目信息** — 项目名/用户/优先级/排除范围
 3. **状态机** — Mermaid stateDiagram（如涉及）
 4. **业务流程** — Mermaid flowchart
-5. **图片资产清单** — 表格（#/来源/类型/内容/关联REQ）
-6. **REQ/BR 需求清单** — 按模块分组，每条有来源标注和置信度
+5. **图片资产清单** — **摘要+外链**模式（仅 1-3 张关键图可直贴正文，>5 张 UI 截图必须外链到 `image_assets_<section>.md`），格式见 [references/output-templates.md §图片资产清单](references/output-templates.md)
+6. **REQ/BR 需求清单** — **按业务模块分组**，每个模块一个 `###` 小节，每个小节内**一张 REQ+BR 统一表格**（不要平铺 `### REQ-001` 后跟 `#### BR-001`）。格式和模板见 [references/output-templates.md §REQ/BR 需求清单](references/output-templates.md)
 7. **SE 关键语义清单** — 表格（ID/绑定/语义/判定依据/置信度）
 8. **GAP 缺口清单** — 表格（ID/描述/关联/风险/置信度）
 9. **OPEN 待确认清单** — 表格（ID/问题/关联/决策方/置信度）
