@@ -37,7 +37,7 @@ def apply_mutations(
     Returns:
         (updated_lifecycle, applied_descriptions)
     """
-    from dqg.schemas.rsm import RequirementLifecycle as _RL
+    from dqg.schemas.rsm import RequirementLifecycle
 
     applied: list[str] = []
 
@@ -49,7 +49,7 @@ def apply_mutations(
                     if mut.target_id.startswith(prefix):
                         id_type = prefix
                         break
-                lifecycle[mut.target_id] = _RL(
+                lifecycle[mut.target_id] = RequirementLifecycle(
                     req_id=mut.target_id,
                     id_type=id_type,
                     description=mut.value or mut.reason,
@@ -69,12 +69,11 @@ def apply_mutations(
                 del lifecycle[mut.target_id]
                 applied.append(f"DELETE {mut.target_id}: {mut.reason}")
 
-        elif mut.action == "escalate":
-            if mut.target_id in lifecycle:
-                item = lifecycle[mut.target_id]
-                if item.id_type == "GAP":
-                    item.closure_status = "未闭环"
-                applied.append(f"ESCALATE {mut.target_id}: {mut.reason}")
+        elif mut.action == "escalate" and mut.target_id in lifecycle:
+            item = lifecycle[mut.target_id]
+            if item.id_type == "GAP":
+                item.closure_status = "未闭环"
+            applied.append(f"ESCALATE {mut.target_id}: {mut.reason}")
 
     return lifecycle, applied
 
@@ -100,11 +99,13 @@ def mutations_from_critique(critique_data: dict) -> list[RSMMutation]:
         if not is_rsm_id:
             continue
 
-        mutations.append(RSMMutation(
-            target_id=target_id,
-            action=item.get("action", "modify"),
-            value=item.get("patch", ""),
-            reason=item.get("reason", ""),
-        ))
+        mutations.append(
+            RSMMutation(
+                target_id=target_id,
+                action=item.get("action", "modify"),
+                value=item.get("patch", ""),
+                reason=item.get("reason", ""),
+            )
+        )
 
     return mutations
