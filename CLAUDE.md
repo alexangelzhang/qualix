@@ -26,8 +26,18 @@
 - 控制权交还：Phase 产出后进入 finalize 流程，不自动建议下一步
 - Phase 任务必须读取对应 skill 文件执行，禁止脱离 skill 自由发挥
 - 状态管理必须通过 `dqg-run` CLI，禁止手动编辑 `state.json`
-- 收尾四步：产出检测 → finalize → approve → 刷新菜单
+- 收尾四步：产出检测 → finalize → approve → 刷新菜单；finalize 前必须对照 gate checklist 逐项自检，不能只依赖 hook 拦截
 - 代码变更后必须同步指令文件 — `completion_gate.py` 会自动检测并阻断，映射规则见 `AGENTS.md > 文档同步铁律`
+
+<important if="executing any Phase in manual mode">
+手动模式下禁止派 SubAgent 执行 Phase，必须在主会话直接执行 skill。
+CLAUDE.md 优先级高于 dqg_starter.md，两者冲突时以 CLAUDE.md 为准。
+</important>
+
+<important if="writing or reviewing EUT then fields">
+then 字段必须包含具体断言方法和期望值（如 assertEquals(200, response.status)），
+禁止模糊描述（如"验证成功"、"返回正确结果"）。
+</important>
 
 ## Code Index（强制）
 
@@ -53,5 +63,6 @@
 
 - SE ID 格式必须与上游 Phase 保持一致（Q01 用 `SE-001` 则下游必须用 `SE-001`，不能用 `SE-1`），否则 RSM 覆盖率计算会归零
 - 手动模式下 DQG Phase 执行不要用 agent 方式跑，直接在主会话执行，避免 context 丢失和产出不一致
+- Q04（覆盖度审计）、Q06（单测覆盖审计）等需要深度推理的 Phase，启动 prompt 加 `ultrathink` 可激活更强推理模式，效果优于直接执行
 
-*最后更新：2026-04-30*
+*最后更新：2026-05-07*
