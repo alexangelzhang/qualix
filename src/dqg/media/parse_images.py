@@ -266,31 +266,32 @@ def _analyze_single(
         "file_size": asset.get("file_size") or 0,
     }
 
-    # Layer 1: 本地 OCR
+    # Layer 1: 本地 OCR（deep tier 跳过，流程图/状态机需要 VLM 理解关系）
     ocr_done = False
-    try:
-        from dqg.media.ocr.engine import is_ocr_available, ocr_extract
+    if tier != "deep":
+        try:
+            from dqg.media.ocr.engine import is_ocr_available, ocr_extract
 
-        if is_ocr_available():
-            ocr_result = ocr_extract(image_path, langs=OCR_DEFAULT_LANGS)
-            if ocr_result.text.strip():
-                from dqg.media.ocr.analyzer import analyze_ocr_result
+            if is_ocr_available():
+                ocr_result = ocr_extract(image_path, langs=OCR_DEFAULT_LANGS)
+                if ocr_result.text.strip():
+                    from dqg.media.ocr.analyzer import analyze_ocr_result
 
-                analysis = analyze_ocr_result(
-                    ocr_result=ocr_result,
-                    asset=asset,
-                    quality_threshold=OCR_QUALITY_THRESHOLD,
-                )
-                if not analysis.needs_vlm:
-                    row["status"] = "ok"
-                    row["backend"] = f"ocr:{ocr_result.engine}"
-                    row["analysis"] = analysis.analysis
-                    row["summary"] = analysis.summary
-                    ocr_done = True
-                else:
-                    row["_ocr_partial"] = analysis.analysis
-    except Exception:
-        pass
+                    analysis = analyze_ocr_result(
+                        ocr_result=ocr_result,
+                        asset=asset,
+                        quality_threshold=OCR_QUALITY_THRESHOLD,
+                    )
+                    if not analysis.needs_vlm:
+                        row["status"] = "ok"
+                        row["backend"] = f"ocr:{ocr_result.engine}"
+                        row["analysis"] = analysis.analysis
+                        row["summary"] = analysis.summary
+                        ocr_done = True
+                    else:
+                        row["_ocr_partial"] = analysis.analysis
+        except Exception:
+            pass
 
     if ocr_done:
         return row
