@@ -22,16 +22,16 @@ class OcrResult:
 
 
 def ocr_extract(image_path: Path, langs: str = "chi_sim+eng") -> OcrResult:
-    """自动选择可用引擎提取文字：tesseract 优先（快），surya 兜底（准）。
+    """自动选择可用引擎提取文字：surya 优先（准），tesseract 兜底（快）。
 
     两个都不可用时返回空结果（engine="none"）。
     """
-    result = _run_tesseract(image_path, langs)
+    surya_langs = _convert_langs_for_surya(langs)
+    result = _run_surya(image_path, surya_langs)
     if result is not None:
         return result
 
-    surya_langs = _convert_langs_for_surya(langs)
-    result = _run_surya(image_path, surya_langs)
+    result = _run_tesseract(image_path, langs)
     if result is not None:
         return result
 
