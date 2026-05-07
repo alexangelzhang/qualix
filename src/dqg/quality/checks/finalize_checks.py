@@ -148,7 +148,7 @@ def _count_items(json_path: Path, phase_id: str) -> dict[str, int]:
         if items and items[0].get("se_id"):
             all_euts: set[str] = set()
             for item in items:
-                all_euts |= expand_eut_ids(item.get("eut_id", ""))
+                all_euts |= expand_eut_ids(item.get("eut_id") or "")
             counts["audit_items"] = len(all_euts)
 
     return counts
