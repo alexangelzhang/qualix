@@ -13,6 +13,7 @@ Outputs:
 
 from __future__ import annotations
 
+import contextlib
 import re
 import sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -198,7 +199,10 @@ def _classify_image_tier(asset: dict[str, Any]) -> str:
         "light": 轻量描述（UI 截图等，语义已在 PRD 文本中）
         "deep": 精读（流程图/状态机/架构图，需要提取 Mermaid）
     """
-    file_size = asset.get("file_size", 0)
+    file_size = asset.get("file_size") or 0
+    if not file_size and asset.get("path"):
+        with contextlib.suppress(OSError):
+            file_size = Path(asset["path"]).stat().st_size
     if file_size < IMAGE_SIZE_SKIP_THRESHOLD:
         return "skip"
 
@@ -258,7 +262,7 @@ def _analyze_single(
         "error": "",
         "cached": False,
         "tier": tier,
-        "file_size": asset.get("file_size", 0),
+        "file_size": asset.get("file_size") or 0,
     }
 
     # Layer 1: 本地 OCR
