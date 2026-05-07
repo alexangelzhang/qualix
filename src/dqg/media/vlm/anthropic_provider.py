@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import urllib.request
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
@@ -12,7 +13,14 @@ from dqg.media.vlm.provider import image_to_base64
 if TYPE_CHECKING:
     from pathlib import Path
 
-ANTHROPIC_API_URL = "https://api.anthropic.com/v1/messages"
+_DEFAULT_API_URL = "https://api.anthropic.com/v1/messages"
+
+
+def _api_url() -> str:
+    base = os.getenv("ANTHROPIC_BASE_URL", "").rstrip("/")
+    if base:
+        return f"{base}/v1/messages"
+    return _DEFAULT_API_URL
 
 
 @dataclass
@@ -43,7 +51,7 @@ class AnthropicProvider:
         }
 
         req = urllib.request.Request(
-            ANTHROPIC_API_URL,
+            _api_url(),
             data=json.dumps(payload).encode(),
             headers={
                 "Content-Type": "application/json",
