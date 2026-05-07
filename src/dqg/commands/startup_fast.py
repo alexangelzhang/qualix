@@ -103,6 +103,8 @@ def _get_parallel_groups(phases: dict, available: list[str]) -> list[list[str]]:
 
 def cmd_startup(args, output_dir: Path) -> int:
     """快速 startup：直接读 dict，不走 pydantic."""
+    from dqg.runtime.gate_verdict import load_verdict
+
     data = _load_state_dict(output_dir, args.project_id)
     phases = data["phases"]
     available = _get_available(phases)
@@ -114,6 +116,19 @@ def cmd_startup(args, output_dir: Path) -> int:
         phase_def = PHASE_DEFS[phase_id]
         status = ps.get("status", "not_started")
         duration = ps.get("duration_seconds")
+        comment = ps.get("comment") or None
+
+        stale = False
+        if status == "pending_review":
+            try:
+                verdict = load_verdict(output_dir, args.project_id, phase_id)
+                if verdict and verdict.is_stale(output_dir, args.project_id):
+                    stale = True
+                    stale_note = "⚠️ 上游产物已变更，建议重新 finalize"
+                    comment = f"{comment}；{stale_note}" if comment else stale_note
+            except Exception:
+                pass
+
         menu_items.append(
             {
                 "phase_id": phase_id,
@@ -129,7 +144,8 @@ def cmd_startup(args, output_dir: Path) -> int:
                 "deliverables": phase_def.get("deliverables", []),
                 "approve_checklist": phase_def.get("approve_checklist", []),
                 "duration": f"{duration:.0f}s" if duration else None,
-                "comment": ps.get("comment") or None,
+                "comment": comment,
+                "stale": stale,
             }
         )
 

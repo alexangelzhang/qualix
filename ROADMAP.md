@@ -137,6 +137,13 @@
 - 修复断裂点 2: finalize 时执行 Phase Constraints 并写入 verdict
 - 多语言无关设计：通过 `source` 字段区分检查来源，不绑定具体语言
 
+2026-05-07 新增（GateVerdict 上游产物哈希检测）：
+
+- `GateVerdict.upstream_hashes`（`runtime/gate_verdict.py`）— finalize 时记录依赖的上游产物文件 MD5，`is_stale()` 方法检测哈希变化
+- `check_cross_phase_refs` 返回值扩展为 `tuple[list[str], dict[str, str]]`，第二个元素为实际读取的文件路径→MD5 哈希字典
+- `cmd_startup` stale 检测（`commands/startup_fast.py`）— `pending_review` Phase 自动检测上游产物是否变更，stale 时 menu item 标注 `stale: true` 并追加 comment 提示重新 finalize
+- 解决问题：上游 Phase 产物修补后，下游 Phase 的旧 finalize 校验结果不再误报为有效
+
 2026-04-27 新增（Evidence Pack Compaction 基线遥测）：
 
 - Judge token usage 链路打通（`judge_runner.py` → `judge_vote.py` → `adaptive_loop.py`）— JudgeResult/JudgeVote 新增 `token_usage` 字段，adaptive loop 每轮 judge 投票后提取 token 数据到 `iter_llm_calls`，修复 telemetry `llm_calls` 始终为空的问题

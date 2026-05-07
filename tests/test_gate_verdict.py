@@ -157,6 +157,7 @@ class TestSaveLoadVerdict:
                 CheckItem(source="handler", name="a", passed=True, level="HARD"),
                 CheckItem(source="phase_constraints", name="b", passed=False, level="SOFT", message="fail"),
             ],
+            upstream_hashes={"Q05/phase_b_structured.json": "abc123"},
         )
         save_verdict(output_dir, "PROJ", "Q01", verdict)
         loaded = load_verdict(output_dir, "PROJ", "Q01")
@@ -166,6 +167,7 @@ class TestSaveLoadVerdict:
         assert len(loaded.checks) == 2
         assert loaded.soft_blocked
         assert not loaded.hard_blocked
+        assert loaded.upstream_hashes == {"Q05/phase_b_structured.json": "abc123"}
 
     def test_load_missing(self, tmp_path):
         from dqg.runtime.gate_verdict import load_verdict
@@ -173,6 +175,42 @@ class TestSaveLoadVerdict:
         output_dir = tmp_path / "output"
         output_dir.mkdir()
         assert load_verdict(output_dir, "PROJ", "Q01") is None
+
+    def test_is_stale_no_hashes(self, tmp_path):
+        output_dir = tmp_path / "output"
+        output_dir.mkdir()
+        verdict = GateVerdict(phase_id="Q06")
+        assert verdict.is_stale(output_dir, "PROJ") is False
+
+    def test_is_stale_file_unchanged(self, tmp_path):
+        import hashlib
+
+        output_dir = tmp_path / "output"
+        proj_dir = output_dir / "PROJ" / "Q05"
+        proj_dir.mkdir(parents=True)
+        f = proj_dir / "phase_b_structured.json"
+        f.write_text('{"x": 1}', encoding="utf-8")
+        h = hashlib.md5(f.read_bytes()).hexdigest()
+
+        verdict = GateVerdict(phase_id="Q06", upstream_hashes={"Q05/phase_b_structured.json": h})
+        assert verdict.is_stale(output_dir, "PROJ") is False
+
+    def test_is_stale_file_changed(self, tmp_path):
+        output_dir = tmp_path / "output"
+        proj_dir = output_dir / "PROJ" / "Q05"
+        proj_dir.mkdir(parents=True)
+        f = proj_dir / "phase_b_structured.json"
+        f.write_text('{"x": 1}', encoding="utf-8")
+
+        verdict = GateVerdict(phase_id="Q06", upstream_hashes={"Q05/phase_b_structured.json": "stale_hash"})
+        assert verdict.is_stale(output_dir, "PROJ") is True
+
+    def test_is_stale_file_missing(self, tmp_path):
+        output_dir = tmp_path / "output"
+        (output_dir / "PROJ").mkdir(parents=True)
+        verdict = GateVerdict(phase_id="Q06", upstream_hashes={"Q05/phase_b_structured.json": "abc"})
+        # 文件不存在时 compute_file_hash 返回空串，与 "abc" 不匹配 → stale
+        assert verdict.is_stale(output_dir, "PROJ") is True
 
 
 class TestExtractHandlerName:

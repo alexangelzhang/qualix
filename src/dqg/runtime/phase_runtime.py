@@ -208,7 +208,7 @@ def runtime_finalize(ctx: ExecutionContext) -> PhaseResult:
 
     # Schema 校验
     validation_errors = validate_phase_output(ctx.output_dir, ctx.project_id, ctx.phase_id) or []
-    ref_errors = check_cross_phase_refs(ctx.output_dir, ctx.project_id)
+    ref_errors, upstream_hashes = check_cross_phase_refs(ctx.output_dir, ctx.project_id)
     if ref_errors:
         validation_errors.extend(ref_errors)
 
@@ -350,6 +350,7 @@ def runtime_finalize(ctx: ExecutionContext) -> PhaseResult:
             guardrail_results=g_out,
             constraint_violations=constraint_violations,
             schema_errors=ctx.shared.get("validation_errors"),
+            upstream_hashes=upstream_hashes,
         )
         save_verdict(ctx.output_dir, ctx.project_id, ctx.phase_id, verdict)
         ctx.shared["gate_verdict"] = verdict.to_dict()

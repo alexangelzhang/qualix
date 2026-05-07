@@ -7,6 +7,7 @@ approve 命令只读 _gate_verdict.json 做决策。
 
 from __future__ import annotations
 
+import hashlib
 from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any, Literal
@@ -40,6 +41,7 @@ class GateVerdict:
     phase_id: str
     timestamp: str = ""
     checks: list[CheckItem] = field(default_factory=list)
+    upstream_hashes: dict[str, str] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         if not self.timestamp:
@@ -75,6 +77,7 @@ class GateVerdict:
             "hard_blocked": len(hf) > 0,
             "soft_blocked": len(sf) > 0,
             "checks": [asdict(c) for c in self.checks],
+            "upstream_hashes": self.upstream_hashes,
             "summary": {
                 "total": len(self.checks),
                 "passed": sum(1 for c in self.checks if c.passed),
@@ -83,6 +86,17 @@ class GateVerdict:
             },
         }
 
+    def is_stale(self, output_dir: Path, project_id: str) -> bool:
+        """上游产物是否已变更（哈希不匹配则 stale）."""
+        if not self.upstream_hashes:
+            return False
+        base = output_dir / project_id
+        for rel_path, saved_hash in self.upstream_hashes.items():
+            current = compute_file_hash(base / rel_path)
+            if current != saved_hash:
+                return True
+        return False
+
 
 def build_verdict(
     phase_id: str,
@@ -90,6 +104,7 @@ def build_verdict(
     guardrail_results: list[dict[str, Any]] | None = None,
     constraint_violations: list[dict[str, Any]] | None = None,
     schema_errors: list[str] | None = None,
+    upstream_hashes: dict[str, str] | None = None,
 ) -> GateVerdict:
     """从各检查源构建 GateVerdict.
 
@@ -99,8 +114,11 @@ def build_verdict(
         guardrail_results: _guardrail_results.json 内容
         constraint_violations: enforce_phase_constraints() 返回值
         schema_errors: Schema validation errors（HARD 级别，不可 --force 绕过）
+        upstream_hashes: 上游产物文件路径 → MD5 哈希（由 check_cross_phase_refs 提供）
     """
     verdict = GateVerdict(phase_id=phase_id)
+    if upstream_hashes:
+        verdict.upstream_hashes = upstream_hashes
 
     # 0. Schema validation errors → HARD (不可 --force 绕过)
     for err in schema_errors or []:
@@ -216,6 +234,7 @@ def load_verdict(output_dir: Path, project_id: str, phase_id: str) -> GateVerdic
         return None
 
     verdict = GateVerdict(phase_id=data.get("phase_id", phase_id), timestamp=data.get("timestamp", ""))
+    verdict.upstream_hashes = data.get("upstream_hashes", {})
     for c in data.get("checks", []):
         verdict.checks.append(
             CheckItem(
@@ -247,3 +266,11 @@ def _format_constraint_message(v: dict[str, Any]) -> str:
     actual_str = "N/A" if actual is None else str(actual)
     reason = f" ({v['reason']})" if v.get("reason") else ""
     return f"{v.get('label', '?')}: 实际值 {actual_str} {v.get('op', '?')} {v.get('threshold', '?')} 不满足{reason}"
+
+
+def compute_file_hash(path: Path) -> str:
+    """计算文件 MD5，文件不存在返回空串."""
+    try:
+        return hashlib.md5(path.read_bytes()).hexdigest()
+    except OSError:
+        return ""

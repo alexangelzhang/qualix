@@ -254,7 +254,7 @@ Phase 执行时自动注入以下增强上下文（`context/loading/upstream_col
 | 第一层 | `handlers_flow_integrity.py` (流程完整性) | 产物存在性/core_arrays 非空/judge-critique 闭环，critique 缺失为 CRITICAL | finalize pre(order=5) + post(order=76) |
 | 第二层 | `semantic_guardrail.py` (PhaseGuardrail) | BR 概括性描述/覆盖度虚高/跨 Phase 越权/P0 未闭环 | finalize 后 guardrail 并发执行 |
 | 第二层 | `rationalization_guard.py` | Judge 放水检测/过严误报检测 | adaptive loop judge 阶段 |
-| 汇总层 | `gate_verdict.py` (GateVerdict) | 所有检查结果汇入 `_gate_verdict.json`，HARD/SOFT 二级分类，approve 统一读取 | finalize 末尾自动构建，approve 时读取决策 |
+| 汇总层 | `gate_verdict.py` (GateVerdict) | 所有检查结果汇入 `_gate_verdict.json`，HARD/SOFT 二级分类，approve 统一读取；`upstream_hashes` 记录上游产物 MD5，`is_stale()` 检测变更，startup 时 pending_review Phase 自动标注 stale | finalize 末尾自动构建，approve 时读取决策，startup 时检测 stale |
 | 第三层 | `git_safety_guard.py` (PreToolUse hook) | git push/force push/--no-verify 拦截 | 每次 Bash 调用前 |
 | 第三层 | `completion_gate.py` (Stop hook) | git clean/文档同步/goal-tracker | 响应结束前 |
 

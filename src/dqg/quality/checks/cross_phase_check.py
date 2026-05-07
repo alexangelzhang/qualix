@@ -10,6 +10,7 @@ from pathlib import Path
 
 from dqg.constants import PHASE_DIR_MAP, STRUCTURED_JSON_MAP
 from dqg.json_utils import load_json
+from dqg.runtime.gate_verdict import compute_file_hash
 from dqg.text_utils import expand_eut_ids
 
 
@@ -21,21 +22,30 @@ def _extract_ids(data: dict, key: str, id_field: str) -> set[str]:
     return {item.get(id_field, "") for item in items if isinstance(item, dict) and item.get(id_field)}
 
 
-def check_cross_phase_refs(output_dir: Path, project_id: str) -> list[str]:
+def check_cross_phase_refs(output_dir: Path, project_id: str) -> tuple[list[str], dict[str, str]]:
     """校验跨 Phase 的 ID 引用完整性.
 
     Returns:
-        []: 全部通过
-        ["error1", ...]: 引用缺失列表
+        (errors, upstream_hashes):
+            errors: 引用缺失列表，空表示全部通过
+            upstream_hashes: 实际读取的上游产物文件相对路径 → MD5 哈希
     """
     errors: list[str] = []
+    upstream_hashes: dict[str, str] = {}
+    base = output_dir / project_id
+
+    def _record_hash(path: Path) -> None:
+        if path.exists():
+            upstream_hashes[str(path.relative_to(base))] = compute_file_hash(path)
 
     # 加载 Phase A 产物
     phase_a_path = output_dir / project_id / PHASE_DIR_MAP["Q01"] / STRUCTURED_JSON_MAP["Q01"]
     phase_a = load_json(phase_a_path)
 
     if not phase_a:
-        return []  # Phase A 没有结构化产物，跳过
+        return [], {}  # Phase A 没有结构化产物，跳过
+
+    _record_hash(phase_a_path)
 
     # Phase A 中定义的 ID
     req_ids = _extract_ids(phase_a, "requirements", "req_id")
@@ -51,6 +61,7 @@ def check_cross_phase_refs(output_dir: Path, project_id: str) -> list[str]:
         phase_a5 = load_json(phase_a5_path)
 
     if phase_a5:
+        _record_hash(phase_a5_path)
         for item in phase_a5.get("req_coverage", []):
             ref_id = item.get("req_id", "")
             if ref_id and ref_id not in req_ids:
@@ -76,6 +87,7 @@ def check_cross_phase_refs(output_dir: Path, project_id: str) -> list[str]:
     phase_b = load_json(phase_b_path)
 
     if phase_b:
+        _record_hash(phase_b_path)
         for item in phase_b.get("eut_items", []):
             bound_se = item.get("bound_se", "")
             if bound_se and bound_se not in se_ids and bound_se not in req_ids:
@@ -96,4 +108,4 @@ def check_cross_phase_refs(output_dir: Path, project_id: str) -> list[str]:
             if missing:
                 errors.append(f"Phase Q06 审计了 {', '.join(sorted(missing))}，但 Phase Q05 中不存在")
 
-    return errors
+    return errors, upstream_hashes
