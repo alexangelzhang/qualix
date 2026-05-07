@@ -37,7 +37,7 @@ dqg-run any-project doctor
 
 **可选增强**（不装不影响基础流程）：
 - 高精度 OCR 兜底：`pip install surya-ocr`（~500MB）
-- VLM 图片深度解析：配置环境变量 `ANTHROPIC_API_KEY` / `OPENAI_API_KEY` / `DASHSCOPE_API_KEY`
+- VLM 图片深度解析：配置环境变量 `ANTHROPIC_API_KEY` / `OPENAI_API_KEY` / `DASHSCOPE_API_KEY` / `OPENROUTER_API_KEY`
 
 ## Step 3: 初始化项目
 
@@ -53,7 +53,7 @@ dqg-run my-first-project init --profile java-ddd-tmf
   项目 my-first-project 初始化完成:
     Profile: java-ddd-tmf
     输出目录: output/my-first-project
-    Phase 目录: phaseA, phaseA3, phaseA6, phaseA5, phaseB, phaseC, phaseD
+    Phase 目录: Q01, Q02, Q03, Q04, Q05, Q06, Q07
 
   下一步: dqg-run my-first-project startup
 ```

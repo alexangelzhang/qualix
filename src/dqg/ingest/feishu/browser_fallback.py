@@ -41,6 +41,162 @@ def _agent_browser_available() -> bool:
     return shutil.which("agent-browser") is not None
 
 
+def _playwright_available() -> bool:
+    try:
+        import playwright  # noqa: F401
+
+        return True
+    except ImportError:
+        return False
+
+
+def _playwright_fallback_boards(
+    asset_results: list[dict[str, Any]],
+    feishu_url: str,
+    output_dir: Path,
+) -> list[dict[str, Any]]:
+    """用 playwright CDP 模式截图失败的 board/mindnote 资源。"""
+    failed = [
+        (i, r) for i, r in enumerate(asset_results) if r.get("status") == "failed" and r.get("kind") in _FALLBACK_KINDS
+    ]
+    if not failed:
+        return asset_results
+
+    try:
+        from playwright.sync_api import sync_playwright
+    except ImportError:
+        warn("[browser_fallback] playwright 未安装，跳过 playwright fallback")
+        return asset_results
+
+    info(f"[browser_fallback] 尝试 playwright CDP fallback: {len(failed)} 个画板/思维导图")
+    output_dir.mkdir(parents=True, exist_ok=True)
+    recovered = 0
+
+    try:
+        with sync_playwright() as p:
+            try:
+                browser = p.chromium.connect_over_cdp("http://127.0.0.1:9222")
+            except Exception as exc:
+                warn(f"[browser_fallback] playwright CDP 连接失败（Chrome 未启动？）: {exc}")
+                return asset_results
+
+            context = browser.contexts[0] if browser.contexts else browser.new_context()
+            page = context.new_page()
+
+            try:
+                page.goto(feishu_url, wait_until="networkidle", timeout=60000)
+            except Exception as exc:
+                warn(f"[browser_fallback] playwright 打开文档失败: {exc}")
+                page.close()
+                browser.close()
+                return asset_results
+
+            title = page.title()
+            if "登录" in title or "login" in title.lower():
+                warn(f"[browser_fallback] 飞书未登录，跳过 playwright fallback (title={title})")
+                page.close()
+                browser.close()
+                return asset_results
+
+            info(f"[browser_fallback] playwright 文档已打开: {title[:60]}")
+            time.sleep(2)
+
+            for idx, result in failed:
+                token = result.get("token", "")
+                kind = result.get("kind", "board")
+                section = result.get("section_path", "")
+                target = Path(result.get("path", ""))
+                if not target.name:
+                    target = output_dir / f"{kind}_{token}.png"
+
+                if section:
+                    js_scroll = (
+                        f"(function(){{"
+                        f"const links = document.querySelectorAll('a[href*=\"#\"]');"
+                        f"for (const a of links) {{"
+                        f"  if (a.textContent.includes({section!r})) {{"
+                        f"    a.click(); return 'ok';"
+                        f"  }}"
+                        f"}}"
+                        f"return 'not_found';"
+                        f"}})()"
+                    )
+                    page.evaluate(js_scroll)
+                    time.sleep(1.5)
+
+                cap_id = f"dqg-pw-{idx}"
+                js_find = (
+                    f"(function(){{"
+                    f"const wbs = document.querySelectorAll('{_WHITEBOARD_SELECTOR}');"
+                    f"for (const w of wbs) {{"
+                    f"  const r = w.getBoundingClientRect();"
+                    f"  if (r.top > -200 && r.top < 1200 && r.height > 20) {{"
+                    f"    w.scrollIntoView({{block:'center'}}); w.click();"
+                    f"    w.id = '{cap_id}';"
+                    f"    return JSON.stringify({{ok:true}});"
+                    f"  }}"
+                    f"}}"
+                    f"return JSON.stringify({{ok:false}});"
+                    f"}})()"
+                )
+                out = page.evaluate(js_find)
+                if not out or '"ok":false' in str(out) or '"ok": false' in str(out):
+                    warn(f"[browser_fallback] playwright ✗ {kind} {token[:12]}... 未找到元素")
+                    result["attempts"].append(
+                        {
+                            "attempt": len(result.get("attempts", [])) + 1,
+                            "local_retry": 1,
+                            "use_user_token": None,
+                            "error": "playwright_element_not_found",
+                            "error_type": "browser_fallback_failed",
+                        }
+                    )
+                    continue
+
+                time.sleep(0.5)
+                try:
+                    page.locator(f"#{cap_id}").screenshot(path=str(target))
+                    if target.exists() and target.stat().st_size > 500:
+                        result["status"] = "downloaded"
+                        result["error"] = ""
+                        result["error_type"] = ""
+                        result["failure_category"] = ""
+                        result["path"] = str(target)
+                        result["attempts"].append(
+                            {
+                                "attempt": len(result.get("attempts", [])) + 1,
+                                "local_retry": 1,
+                                "use_user_token": None,
+                                "error": "",
+                                "error_type": "playwright_fallback_success",
+                            }
+                        )
+                        recovered += 1
+                        info(f"[browser_fallback] playwright ✓ {kind} {token[:12]}... → {target.name}")
+                    else:
+                        raise RuntimeError("screenshot too small or missing")
+                except Exception as exc:
+                    warn(f"[browser_fallback] playwright ✗ {kind} {token[:12]}... 截图失败: {exc}")
+                    result["attempts"].append(
+                        {
+                            "attempt": len(result.get("attempts", [])) + 1,
+                            "local_retry": 1,
+                            "use_user_token": None,
+                            "error": str(exc),
+                            "error_type": "browser_fallback_failed",
+                        }
+                    )
+
+            page.close()
+            browser.close()
+
+    except Exception as exc:
+        warn(f"[browser_fallback] playwright fallback 异常: {exc}")
+
+    info(f"[browser_fallback] playwright 完成: {recovered}/{len(failed)} 恢复")
+    return asset_results
+
+
 def _open_document(url: str) -> bool:
     rc, out = _run(["agent-browser", "--auto-connect", "open", url], timeout=60)
     if rc != 0:
@@ -141,8 +297,13 @@ def browser_fallback_boards(
 
     if not _agent_browser_available():
         warn(
-            f"[browser_fallback] agent-browser 未安装，跳过 {len(failed)} 个失败的画板资源。"
-            " 安装: npm i -g agent-browser && agent-browser install"
+            f"[browser_fallback] agent-browser 未安装，尝试 playwright fallback ({len(failed)} 个画板资源)。"
+            " 如需安装 agent-browser: npm i -g agent-browser && agent-browser install"
+        )
+        if _playwright_available():
+            return _playwright_fallback_boards(asset_results, feishu_url, output_dir)
+        warn(
+            "[browser_fallback] playwright 也未安装，跳过画板截图。pip install playwright && playwright install chromium"
         )
         return asset_results
 

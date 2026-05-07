@@ -116,7 +116,21 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-# 5. 配置 AI IDE MCP
+# 5. Playwright（board 截图兜底）
+# ---------------------------------------------------------------------------
+echo ""
+echo "安装 Playwright..."
+if pip show playwright &>/dev/null 2>&1; then
+    ok "playwright 已安装"
+else
+    pip install playwright -q && ok "playwright" || warn "playwright 安装失败（画板截图兜底不可用）"
+fi
+if python3 -m playwright --version &>/dev/null 2>&1; then
+    python3 -m playwright install chromium 2>/dev/null && ok "playwright chromium" || warn "playwright chromium 安装失败"
+fi
+
+# ---------------------------------------------------------------------------
+# 6. 配置 AI IDE MCP
 # ---------------------------------------------------------------------------
 echo ""
 echo "配置 AI IDE..."
@@ -166,7 +180,7 @@ if command -v codex &>/dev/null; then
 fi
 
 # ---------------------------------------------------------------------------
-# 6. 验证
+# 7. 验证
 # ---------------------------------------------------------------------------
 echo ""
 echo "=========================================="
