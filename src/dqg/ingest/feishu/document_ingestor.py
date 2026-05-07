@@ -78,7 +78,7 @@ def ingest_single_document(
     output_dir.mkdir(parents=True, exist_ok=True)
     normalized_input_url = normalize_url(input_url)
 
-    # larkkit 主路径：文本/评论/表格走 larkkit CLI，图片走现有方案
+    # larkkit 主路径：文本/评论/表格走 larkkit CLI，图片走自建 API
     if use_larkkit:
         try:
             result = ingest_via_larkkit(
@@ -87,6 +87,47 @@ def ingest_single_document(
                 use_user_token=prefer_user_token,
             )
             info(f"[larkkit] 文档摄入成功: {result.get('title', '')}")
+
+            # 图片下载：larkkit 因 API 权限限制跳过了图片，这里补下载
+            if download_images:
+                resolved = resolve_input_doc(client, normalized_input_url, prefer_user_token)
+                document_id = str(resolved["resolved_doc_id"])
+                content_data, content_use_user_token = call_with_token_fallback(
+                    lambda use_user_token: client.get_document_content(document_id, use_user_token=use_user_token),
+                    prefer_user_token,
+                )
+                blocks = content_data.get("items", []) if isinstance(content_data, dict) else []
+                _, assets, _ = build_segments_and_assets(blocks, get_code_language)
+                if assets:
+                    ingest_subdir = output_dir / "ingest"
+                    assets_dir = ingest_subdir / "assets"
+                    info(f"[larkkit] 开始下载图片资源: total={len(assets)}")
+                    asset_results = download_assets(
+                        client=client,
+                        assets=assets,
+                        output_dir=assets_dir,
+                        prefer_user_token=content_use_user_token,
+                        retries=asset_retries,
+                    )
+                    failed_boards = [
+                        r
+                        for r in asset_results
+                        if r.get("status") == "failed" and r.get("kind") in ("board", "mindnote")
+                    ]
+                    if failed_boards:
+                        from dqg.ingest.feishu.browser_fallback import browser_fallback_boards
+
+                        browser_fallback_boards(
+                            asset_results=asset_results,
+                            feishu_url=normalized_input_url,
+                            output_dir=assets_dir,
+                        )
+                    asset_manifest_path = ingest_subdir / "asset_manifest.json"
+                    asset_manifest_path.write_text(dump_json_str(asset_results), encoding="utf-8")
+                    result["asset_manifest_path"] = str(asset_manifest_path)
+                    result["summary"]["images_downloaded"] = True
+                    info(f"[larkkit] 图片下载完成: {len(asset_results)} 个资源")
+
             return result
         except Exception as exc:
             warn(f"[larkkit] 摄入失败，回退到自建 API: {exc}")
