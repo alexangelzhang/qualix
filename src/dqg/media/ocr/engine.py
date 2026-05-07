@@ -38,9 +38,33 @@ def ocr_extract(image_path: Path, langs: str = "chi_sim+eng") -> OcrResult:
     return OcrResult()
 
 
+_EXTRA_BIN_PATHS = [
+    "/opt/homebrew/bin",
+    "/usr/local/bin",
+    "/usr/bin",
+]
+
+
+def _which_with_fallback(name: str) -> str | None:
+    """shutil.which + 常见安装路径 fallback（应对 pyenv 环境 PATH 不完整的情况）。"""
+    found = shutil.which(name)
+    if found:
+        return found
+    # pyenv bin
+    pyenv_bin = Path.home() / ".pyenv" / "versions"
+    for p in sorted(pyenv_bin.glob("*/bin/" + name), reverse=True):
+        if p.is_file():
+            return str(p)
+    for d in _EXTRA_BIN_PATHS:
+        candidate = Path(d) / name
+        if candidate.is_file():
+            return str(candidate)
+    return None
+
+
 def is_ocr_available() -> bool:
     """检查是否有任何 OCR 引擎可用。"""
-    return shutil.which("tesseract") is not None or shutil.which("surya_ocr") is not None
+    return _which_with_fallback("tesseract") is not None or _which_with_fallback("surya_ocr") is not None
 
 
 def _run_tesseract(image_path: Path, langs: str = "chi_sim+eng") -> OcrResult | None:
@@ -48,7 +72,7 @@ def _run_tesseract(image_path: Path, langs: str = "chi_sim+eng") -> OcrResult | 
 
     返回 None 表示 tesseract 不可用（未安装或语言包缺失）。
     """
-    tesseract = shutil.which("tesseract")
+    tesseract = _which_with_fallback("tesseract")
     if tesseract is None:
         return None
 
@@ -85,7 +109,7 @@ def _run_tesseract(image_path: Path, langs: str = "chi_sim+eng") -> OcrResult | 
 
 def _get_tesseract_confidence(image_path: Path, langs: str = "chi_sim+eng") -> float:
     """用 tesseract TSV 输出获取平均置信度。"""
-    tesseract = shutil.which("tesseract")
+    tesseract = _which_with_fallback("tesseract")
     if tesseract is None:
         return 0.5
 
@@ -121,14 +145,14 @@ def _run_surya(image_path: Path, langs: str = "zh,en") -> OcrResult | None:
 
     返回 None 表示 surya 不可用。
     """
-    surya = shutil.which("surya_ocr")
+    surya = _which_with_fallback("surya_ocr")
     if surya is None:
         return None
 
     with tempfile.TemporaryDirectory() as tmpdir:
         try:
             result = subprocess.run(
-                [surya, str(image_path), "--langs", langs, "--results_dir", tmpdir],
+                [surya, str(image_path), "--output_dir", tmpdir],
                 capture_output=True,
                 timeout=120,
             )
