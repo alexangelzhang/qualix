@@ -35,3 +35,9 @@
 
 - 87 条真实 bug 案例从飞书 Bitable 导入（Phase Q06: 56, Phase Q01: 22, Phase Q03: 6, Phase Q04: 1）
 - 4 条手动创建的示例案例（并发幂等、覆盖度错判、RPC 无补偿、弱断言）
+
+## 待办（文档债）
+
+### 2026-05-08
+
+- **缺少 phase_c_structured.schema.json** — Q06 产物格式（EUT 逐条 vs SE-based）没有显式 schema 文档，导致执行时容易误用 SE-based 汇总模式。需补充 `skills/unit-test-audit/references/phase_c_structured.schema.json`（或 schema 说明文档），明确每条 audit_item 必须对应一个 eut_id，禁止按 SE 汇总。同理 Q05 的 phase_b_structured.json 也需要对应 schema 文档。
