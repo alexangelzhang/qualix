@@ -1,0 +1,27 @@
+{
+  "case_id": "AUTO-Q01-20260506223915-26",
+  "phase": "Q01",
+  "error_type": "FN",
+  "severity": "medium",
+  "title": "String should match pattern '^(REQ|BR)-\\d+$' [type=string_pattern_mismatch, input_value='BR-002-04',",
+  "root_cause": "SKILL_RULE",
+  "fix_target": "skills/requirement-structuring/SKILL.md",
+  "tags": [
+    "auto-generated",
+    "project:xiaoshu-chuku"
+  ],
+  "created_at": "2026-05-06",
+  "status": "open",
+  "source": {
+    "project_id": "xiaoshu-chuku",
+    "auto_generated": true,
+    "validation_error": "String should match pattern '^(REQ|BR)-\\d+$' [type=string_pattern_mismatch, input_value='BR-002-04', input_type=str]"
+  },
+  "expected": {
+    "content": "（需人工确认）"
+  },
+  "actual": {
+    "content": "String should match pattern '^(REQ|BR)-\\d+$' [type=string_pattern_mismatch, input_value='BR-002-04', input_type=str]"
+  },
+  "lesson": ""
+}
