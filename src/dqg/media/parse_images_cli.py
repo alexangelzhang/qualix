@@ -94,7 +94,7 @@ def main() -> int:
     parser.add_argument("--details-dir", required=True, help="单图明细输出目录")
     parser.add_argument(
         "--backend",
-        choices=["auto", "dashscope", "anthropic", "openai", "none"],
+        choices=["auto", "dashscope", "anthropic", "openai", "openrouter", "none"],
         default="auto",
         help="VLM 后端（auto 自动检测环境变量）",
     )

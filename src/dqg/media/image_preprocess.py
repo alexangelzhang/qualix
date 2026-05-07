@@ -15,6 +15,48 @@ from typing import Any
 from dqg.json_utils import load_json
 
 
+def crop_whitespace(image_path: Path, padding: int = 20) -> bytes | None:
+    """裁剪图片四周空白，返回裁剪后的 PNG bytes。
+
+    适用于飞书 board 导出图片：有效内容只占画布一小角，大面积空白
+    会导致 VLM 在压缩/采样后丢失内容。
+
+    返回 None 表示 Pillow 不可用或裁剪无意义（内容已占满画布）。
+    """
+    try:
+        from PIL import Image, ImageOps
+    except ImportError:
+        return None
+
+    try:
+        import io
+
+        img = Image.open(image_path).convert("RGB")
+        w, h = img.size
+
+        inverted = ImageOps.invert(img.convert("L"))
+        bbox = inverted.getbbox()
+        if not bbox:
+            return None
+
+        # 内容已占满画布（留 10% 余量），不裁剪
+        content_ratio = (bbox[2] - bbox[0]) * (bbox[3] - bbox[1]) / (w * h)
+        if content_ratio > 0.9:
+            return None
+
+        x1 = max(0, bbox[0] - padding)
+        y1 = max(0, bbox[1] - padding)
+        x2 = min(w, bbox[2] + padding)
+        y2 = min(h, bbox[3] + padding)
+        cropped = img.crop((x1, y1, x2, y2))
+
+        buf = io.BytesIO()
+        cropped.save(buf, format="PNG")
+        return buf.getvalue()
+    except Exception:
+        return None
+
+
 def build_shallow_descriptions(
     assets_dir: Path,
     ingest_json_path: Path,
@@ -52,15 +94,19 @@ def build_shallow_descriptions(
                 break
 
         section = seg.get("section_path", "")
-        description = f"{section + ' - ' if section else ''}{ctx}" if ctx else f"页面原型（位置: segment {seg.get('seq', i)}）"
+        description = (
+            f"{section + ' - ' if section else ''}{ctx}" if ctx else f"页面原型（位置: segment {seg.get('seq', i)}）"
+        )
 
-        results.append({
-            "filename": filename,
-            "kind": "image",
-            "description": description,
-            "related_reqs": [],
-            "section_context": section or ctx,
-        })
+        results.append(
+            {
+                "filename": filename,
+                "kind": "image",
+                "description": description,
+                "related_reqs": [],
+                "section_context": section or ctx,
+            }
+        )
 
     return results
 

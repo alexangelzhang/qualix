@@ -16,6 +16,7 @@ from __future__ import annotations
 import contextlib
 import re
 import sys
+import tempfile
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import Any
@@ -299,16 +300,34 @@ def _analyze_single(
         backend_name = getattr(vlm_provider, "backend_name", "dashscope")
         effective_prompt = LIGHT_PROMPT if tier == "light" else prompt
         try:
+            # deep tier（流程图/状态机）先裁剪空白，避免 VLM 压缩后丢失内容
+            vlm_image_path = image_path
+            if tier == "deep":
+                try:
+                    from dqg.media.image_preprocess import crop_whitespace
+
+                    cropped_bytes = crop_whitespace(image_path)
+                    if cropped_bytes:
+                        with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp:
+                            tmp.write(cropped_bytes)
+                            vlm_image_path = Path(tmp.name)
+                except Exception:
+                    pass
+
             if hasattr(vlm_provider, "analyze_image"):
-                text = vlm_provider.analyze_image(image_path, effective_prompt)
+                text = vlm_provider.analyze_image(vlm_image_path, effective_prompt)
             else:
                 text = call_dashscope(
                     dashscope=vlm_provider,
-                    image_path=image_path,
+                    image_path=vlm_image_path,
                     prompt=effective_prompt,
                     model=model,
                     timeout=timeout,
                 )
+
+            if vlm_image_path != image_path:
+                with contextlib.suppress(OSError):
+                    vlm_image_path.unlink()
             row["status"] = "ok"
             row["backend"] = backend_name
             row["analysis"] = text
