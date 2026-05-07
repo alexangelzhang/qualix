@@ -171,7 +171,12 @@ def _run_surya(image_path: Path, langs: str = "zh,en") -> OcrResult | None:
 
 
 def _parse_surya_output(results_dir: Path) -> tuple[str, list[str]]:
-    """解析 surya_ocr 的 JSON 输出。"""
+    """解析 surya_ocr 的 JSON 输出。
+
+    兼容两种格式：
+    - 旧版: {"pages": [{text_lines: [...]}]} 或 [{text_lines: [...]}]
+    - 新版: {"<filename>": [{text_lines: [...]}]}
+    """
     json_files = list(results_dir.rglob("*.json"))
     if not json_files:
         return "", []
@@ -185,7 +190,14 @@ def _parse_surya_output(results_dir: Path) -> tuple[str, list[str]]:
             continue
 
         if isinstance(data, dict):
-            pages = data.get("pages", [data])
+            if "pages" in data:
+                pages = data["pages"]
+            else:
+                # 新版格式：{filename: [{text_lines: [...]}]}
+                pages = []
+                for v in data.values():
+                    if isinstance(v, list):
+                        pages.extend(v)
         elif isinstance(data, list):
             pages = data
         else:
