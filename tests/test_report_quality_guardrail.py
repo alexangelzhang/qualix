@@ -442,3 +442,64 @@ class TestFabricationDetectorGuardrail:
         results = g.check(ctx)
         fabrication_warnings = [r for r in results if r.guardrail_name == "fabrication_detector"]
         assert len(fabrication_warnings) == 0
+
+
+# ---------------------------------------------------------------------------
+# rule_checks._check_traceability
+# ---------------------------------------------------------------------------
+
+
+class TestTraceability:
+    def _setup(self, tmp_path, req_ids: list[str]):
+        import json as _json
+
+        q02_dir = tmp_path / "Q02"
+        q02_dir.mkdir(parents=True)
+        q01_dir = tmp_path / "Q01"
+        q01_dir.mkdir(parents=True)
+        (q01_dir / "phase_a_structured.json").write_text(
+            _json.dumps({"requirements": [{"req_id": rid} for rid in req_ids]}),
+            encoding="utf-8",
+        )
+        return q02_dir
+
+    def test_all_ids_traced(self, tmp_path):
+        from dqg.quality.rules.rule_checks import _check_traceability
+
+        q02_dir = self._setup(tmp_path, ["REQ-001", "REQ-002"])
+        report = "技术方案覆盖 REQ-001 和 REQ-002 的所有场景"
+        passed, detail = _check_traceability(q02_dir, report, "Q02")
+        assert passed
+        assert "2/2" in detail
+
+    def test_detects_missing_id(self, tmp_path):
+        from dqg.quality.rules.rule_checks import _check_traceability
+
+        q02_dir = self._setup(tmp_path, ["REQ-001", "REQ-002", "REQ-003"])
+        report = "技术方案覆盖 REQ-001 和 REQ-002"
+        passed, detail = _check_traceability(q02_dir, report, "Q02")
+        assert not passed
+        assert "REQ-003" in detail
+
+    def test_skips_when_q01_absent(self, tmp_path):
+        from dqg.quality.rules.rule_checks import _check_traceability
+
+        q02_dir = tmp_path / "Q02"
+        q02_dir.mkdir(parents=True)
+        passed, detail = _check_traceability(q02_dir, "任意报告", "Q02")
+        assert passed
+        assert "未找到 Q01" in detail
+
+    def test_skips_when_no_requirements(self, tmp_path):
+        import json as _json
+
+        q02_dir = tmp_path / "Q02"
+        q02_dir.mkdir(parents=True)
+        q01_dir = tmp_path / "Q01"
+        q01_dir.mkdir(parents=True)
+        (q01_dir / "phase_a_structured.json").write_text(_json.dumps({"requirements": []}), encoding="utf-8")
+
+        from dqg.quality.rules.rule_checks import _check_traceability
+
+        passed, _ = _check_traceability(q02_dir, "任意报告", "Q02")
+        assert passed
