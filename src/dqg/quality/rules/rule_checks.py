@@ -12,8 +12,6 @@ from typing import TYPE_CHECKING, Final
 from dqg.text_utils import REPORT_MAP
 
 from .rule_definitions import (
-    RE_A6_SOURCE,
-    RE_AUDIT_REFS,
     RE_CONFIDENCE,
     RE_CONFIDENCE_D,
     RE_COVERAGE_EVIDENCE,
@@ -24,16 +22,13 @@ from .rule_definitions import (
     RE_OPEN_DEF_LINE,
     RE_OPEN_OWNER,
     RE_OPEN_TABLE_LINE,
-    RE_REQ_BR_SE_GAP,
-    RE_REVIEW_REFS,
-    RE_SE_EUT_TARGET,
     RE_SE_LINE,
-    RE_SOURCE_ANNOTATION,
     RE_STATE_ENUM,
     RE_URL_DESIGN,
     RE_URL_FALLBACK,
     RE_UT_EUT,
 )
+from .source_spec import compute_source_coverage
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -112,35 +107,13 @@ def _check_judge_critique(pd: Path, report: str, phase_id: str) -> tuple[bool, s
 
 
 def _check_source_annotation(pd: Path, report: str, phase_id: str) -> tuple[bool, str]:
-    if phase_id == "Q02":
-        req_refs = len(RE_REQ_BR_SE_GAP.findall(report))
-        if req_refs >= 5:
-            return True, f"{req_refs} 处需求 ID 引用"
-        return False, f"仅 {req_refs} 处需求 ID 引用（要求 ≥5）"
-    if phase_id == "Q03":
-        matches = RE_A6_SOURCE.findall(report)
-        if len(matches) >= 3:
-            return True, f"{len(matches)} 处来源标注"
-        return False, f"仅 {len(matches)} 处来源标注（要求 ≥3）"
-    if phase_id == "Q05":
-        refs = len(RE_SE_EUT_TARGET.findall(report))
-        if refs >= 5:
-            return True, f"{refs} 处 SE/EUT 引用"
-        return False, f"仅 {refs} 处 SE/EUT 引用（要求 ≥5）"
-    if phase_id == "Q06":
-        refs = len(RE_AUDIT_REFS.findall(report))
-        if refs >= 5:
-            return True, f"{refs} 处审计引用"
-        return False, f"仅 {refs} 处审计引用（要求 ≥5）"
-    if phase_id == "Q07":
-        refs = len(RE_REVIEW_REFS.findall(report))
-        if refs >= 5:
-            return True, f"{refs} 处评审引用"
-        return False, f"仅 {refs} 处评审引用（要求 ≥5）"
-    matches = RE_SOURCE_ANNOTATION.findall(report)
-    if len(matches) >= 3:
-        return True, f"{len(matches)} 处来源标注"
-    return False, f"仅 {len(matches)} 处来源标注（要求 ≥3）"
+    annotated, total, missing = compute_source_coverage(report, phase_id)
+    if total == 0:
+        return True, "报告无判定性结论"
+    if annotated == total:
+        return True, f"{annotated}/{total} 结论行挂来源"
+    sample = "; ".join(f"L{ln}" for ln in missing[:3])
+    return False, f"{annotated}/{total} 结论行挂来源，{total - annotated} 行缺失（如 {sample}）"
 
 
 def _check_confidence_annotation(pd: Path, report: str, phase_id: str) -> tuple[bool, str]:
@@ -343,6 +316,37 @@ def _check_impl_slice(pd: Path, report: str, phase_id: str) -> tuple[bool, str]:
     return False, "未找到实施切片建议"
 
 
+def _check_traceability(pd: Path, report: str, phase_id: str) -> tuple[bool, str]:
+    """检查 Q01 的 REQ/BR 在下游报告里是否被追溯.
+
+    ground truth：Q01 的 phase_a_structured.json 中的 requirements.req_id 集合。
+    通过条件：集合中每个 ID 在 report 中至少出现一次。
+    找不到 Q01 产物则跳过（不阻断）。
+    """
+    from dqg.json_utils import load_json
+
+    q01_json = pd.parent / "Q01" / "phase_a_structured.json"
+    if not q01_json.exists():
+        return True, "未找到 Q01 产物，跳过可追溯性检查"
+
+    data = load_json(q01_json) or {}
+    ids: set[str] = set()
+    for item in data.get("requirements") or []:
+        if isinstance(item, dict):
+            rid = item.get("req_id") or item.get("id")
+            if isinstance(rid, str) and rid:
+                ids.add(rid)
+
+    if not ids:
+        return True, "Q01 无 REQ/BR，跳过可追溯性检查"
+
+    missing = sorted(rid for rid in ids if rid not in report)
+    if not missing:
+        return True, f"{len(ids)}/{len(ids)} 条 REQ/BR 已追溯"
+    sample = ", ".join(missing[:5])
+    return False, f"{len(ids) - len(missing)}/{len(ids)} 条 REQ/BR 已追溯，缺失：{sample}"
+
+
 # ---------------------------------------------------------------------------
 # 检查函数映射表（合并本模块 + Phase B/C 子模块）
 # ---------------------------------------------------------------------------
@@ -372,6 +376,7 @@ CHECK_FUNCS: Final = MappingProxyType(
         "_check_state_machine": _check_state_machine,
         "_check_reuse_analysis": _check_reuse_analysis,
         "_check_impl_slice": _check_impl_slice,
+        "_check_traceability": _check_traceability,
         **BC_CHECK_FUNCS,
     }
 )

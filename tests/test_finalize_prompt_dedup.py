@@ -51,7 +51,7 @@ def test_finalize_reuses_review_chain_payload_and_does_not_regenerate_prompts(
     monkeypatch.setattr("dqg.commands.phase.record_judge_score", lambda *args, **kwargs: None)
 
     monkeypatch.setattr("dqg.quality.finalize_checks.run_finalize_checks", lambda *args, **kwargs: [])
-    monkeypatch.setattr("dqg.quality.cross_phase_check.check_cross_phase_refs", lambda *args, **kwargs: [])
+    monkeypatch.setattr("dqg.quality.cross_phase_check.check_cross_phase_refs", lambda *args, **kwargs: ([], {}))
     monkeypatch.setattr("dqg.schemas.validate_phase_output", lambda *args, **kwargs: [])
     monkeypatch.setattr("dqg.cache.fact_cache.index_phase_facts", lambda *args, **kwargs: 0)
     monkeypatch.setattr("dqg.reporting.perf_tracker.collect_phase_metrics", lambda *args, **kwargs: {})

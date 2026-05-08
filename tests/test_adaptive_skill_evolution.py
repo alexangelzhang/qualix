@@ -1,6 +1,6 @@
 """Tests for adaptive loop → SkillReflector integration."""
 
-from dqg.agents.adaptive_loop import JudgeVote, VoteResult, judge_health_check
+from dqg.agents.judge_vote import JudgeVote, VoteResult, judge_health_check
 
 
 def test_judge_health_check_triggers_semantic_fail():

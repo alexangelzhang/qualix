@@ -12,11 +12,6 @@ from typing import Any
 # 预编译正则：避免在检查函数内重复编译
 # ---------------------------------------------------------------------------
 
-RE_REQ_BR_SE_GAP = re.compile(r"REQ-\d+|BR-\d+|SE-\d+|GAP-\d+")
-RE_SE_EUT_TARGET = re.compile(r"SE-\d+|EUT-\d+|target_class|target_method")
-RE_AUDIT_REFS = re.compile(r"SE-\d+|assertEquals|assertThrows|Test\.java|A 组|B 组")
-RE_REVIEW_REFS = re.compile(r"D-\d+|\.java:\d+|行\d+|line\s*\d+")
-RE_SOURCE_ANNOTATION = re.compile(r"\[来源[:：]")
 RE_CONFIDENCE = re.compile(r"\[置信度[:：]\s*(High|Medium|Low)\]|置信度[:：]\s*(High|Medium|Low)|`(High|Medium|Low)`")
 RE_CONFIDENCE_D = re.compile(
     r"\[置信度[:：]\s*(High|Medium|Low)\]|置信度[:：]\s*(High|Medium|Low)"
@@ -38,7 +33,6 @@ RE_STATE_ENUM = re.compile(r"状态[名枚]|码值|状态码|status.*\d+")
 RE_REQ_ID = re.compile(r"REQ-\d+")
 RE_BR_ID = re.compile(r"BR-\d+")
 RE_SE_ID = re.compile(r"SE-\d+")
-RE_A6_SOURCE = re.compile(r"\[来源[:：]|tech_design\.md|ARCH-\d+|API-\d+|DATA-\d+|EXC-\d+|PERF-\d+")
 
 
 # ---------------------------------------------------------------------------
@@ -145,6 +139,12 @@ def get_rules(phase_id: str) -> list[dict[str, Any]]:
             },
             {"id": "R-REUSE", "name": "现有代码复用分析", "category": "质量", "check": "_check_reuse_analysis"},
             {"id": "R-SLICE", "name": "实施切片建议", "category": "质量", "check": "_check_impl_slice"},
+            {
+                "id": "R-TRACEABILITY",
+                "name": "Q01 的 REQ/BR 在技术方案中已追溯",
+                "category": "可追溯性",
+                "check": "_check_traceability",
+            },
         ],
         "Q05": [
             {"id": "R-DESIGN-MATRIX", "name": "单测设计矩阵存在", "category": "流程", "check": "_check_design_matrix"},

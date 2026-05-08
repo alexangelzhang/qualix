@@ -24,24 +24,40 @@ from dqg.quality.semantic_guardrail import ReportSemanticGuardrail
 class TestSourceAnnotations:
     def test_detects_missing_source(self):
         text = "该接口缺失幂等校验，存在重复提交风险\n"
-        issues = check_source_annotations(text)
+        issues = check_source_annotations(text, "Q01")
         assert len(issues) >= 1
         assert issues[0]["check"] == "source_annotation"
 
     def test_passes_with_source(self):
         text = "该接口缺失幂等校验 [来源: OrderService.java:42]\n"
-        issues = check_source_annotations(text)
+        issues = check_source_annotations(text, "Q01")
         assert len(issues) == 0
 
     def test_skips_table_headers(self):
         text = "| --- | --- | --- |\n"
-        issues = check_source_annotations(text)
+        issues = check_source_annotations(text, "Q01")
         assert len(issues) == 0
 
     def test_skips_headings(self):
         text = "# 风险总结\n"
-        issues = check_source_annotations(text)
+        issues = check_source_annotations(text, "Q01")
         assert len(issues) == 0
+
+    def test_q05_accepts_se_eut_as_source(self):
+        text = "SE-003 对应 EUT-007 的异常路径遗漏，需补充边界测试\n"
+        issues = check_source_annotations(text, "Q05")
+        assert len(issues) == 0
+
+    def test_q07_accepts_file_line_as_source(self):
+        text = "OrderService.createOrder 存在空指针风险 OrderService.java:42\n"
+        issues = check_source_annotations(text, "Q07")
+        assert len(issues) == 0
+
+    def test_q01_rejects_req_id_as_source(self):
+        text = "REQ-001 缺失幂等校验，存在重复提交风险\n"
+        issues = check_source_annotations(text, "Q01")
+        assert len(issues) >= 1
+        assert issues[0]["check"] == "source_annotation"
 
 
 class TestIdFormat:

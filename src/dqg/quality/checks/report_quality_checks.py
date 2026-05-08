@@ -24,6 +24,7 @@ from dqg.core.state_machine import phase_dir as _phase_dir
 from dqg.json_utils import load_json
 from dqg.log import get_logger
 from dqg.path_utils import resolve_internal_file
+from dqg.quality.rules.source_spec import is_source_annotated, iter_conclusion_lines
 from dqg.text_utils import REPORT_MAP, STRUCTURED_JSON_MAP
 
 log = get_logger(__name__)
@@ -31,9 +32,6 @@ log = get_logger(__name__)
 # ---------------------------------------------------------------------------
 # 正则模式
 # ---------------------------------------------------------------------------
-
-# [来源: xxx] 或 [来源：xxx] 或 [Source: xxx]
-_SOURCE_PATTERN = re.compile(r"\[来源[:：]\s*.+?\]|\[Source:\s*.+?\]", re.IGNORECASE)
 
 # 合法 ID 格式: REQ-001, BR-002, SE-003, GAP-004, OPEN-005
 _VALID_ID_PATTERN = re.compile(r"\b(REQ|BR|SE|GAP|OPEN)-\d{1,4}\b")
@@ -65,61 +63,18 @@ _DECISION_OWNER_PATTERN = re.compile(
 # ---------------------------------------------------------------------------
 
 
-def check_source_annotations(report_text: str) -> list[dict[str, Any]]:
-    """检测结论行是否缺少来源标注."""
-    issues = []
-    lines = report_text.splitlines()
-    # 找到包含判定性词汇的行
-    conclusion_patterns = re.compile(
-        r"(缺失|遗漏|未覆盖|不完整|风险|问题|建议|BLOCKER|CRITICAL|WARNING"
-        r"|COVERED|NOT_COVERED|PARTIAL|WRONG_TARGET|CONFLICT)",
-    )
-    # 表头检测：表格行后紧跟 |---| 分隔线的是表头
-    table_header_lines: set[int] = set()
-    for i, line in enumerate(lines):
-        stripped = line.strip()
-        if stripped.startswith("|") and "---" in stripped and i > 0:
-            # 这是分隔线，前一行是表头
-            table_header_lines.add(i)  # 0-indexed: 分隔线本身
-            table_header_lines.add(i - 1)  # 表头行
-
-    # 自我评审记录章节检测
-    in_self_review = False
-
-    for i, line in enumerate(lines):
-        stripped = line.strip()
-        # 检测是否进入/离开自我评审章节
-        if re.match(r"^#{1,3}\s*(自我评审|Judge|Critique|Step\s+\d)", stripped):
-            in_self_review = True
-        elif stripped.startswith("#") and not re.match(r"^#{1,3}\s*(自我评审|Judge|Critique|Step\s+\d)", stripped):
-            in_self_review = False
-
-        if not conclusion_patterns.search(line) or _SOURCE_PATTERN.search(line):
+def check_source_annotations(report_text: str, phase_id: str) -> list[dict[str, Any]]:
+    """检测结论行是否挂了 Phase 允许的来源标注."""
+    issues: list[dict[str, Any]] = []
+    for lineno, content in iter_conclusion_lines(report_text):
+        if is_source_annotated(content, phase_id):
             continue
-
-        # 跳过表头和分隔线
-        if i in table_header_lines:
-            continue
-        if stripped.startswith("|") and "---" in stripped:
-            continue
-        if stripped.startswith("#") or not stripped:
-            continue
-        # 跳过纯标签行（如 severity: HIGH）
-        if ":" in stripped and len(stripped.split()) <= 3:
-            continue
-        # 跳过自我评审记录章节（Judge/Critique 记录不需要来源标注）
-        if in_self_review:
-            continue
-        # 跳过统计行（表格行中不含具体 ID 的纯数字/百分比行）
-        if stripped.startswith("|") and not _VALID_ID_PATTERN.search(stripped):
-            continue
-
         issues.append(
             {
                 "check": "source_annotation",
-                "line": i + 1,  # 1-indexed
-                "message": "结论行缺少来源标注 [来源: 文件名:行号]",
-                "content": stripped[:120],
+                "line": lineno,
+                "message": "结论行缺少来源标注",
+                "content": content[:120],
             }
         )
     return issues
@@ -322,7 +277,7 @@ def run_report_quality_checks(
 
     # 3. 运行各项检测
     if report_text:
-        all_issues.extend(check_source_annotations(report_text))
+        all_issues.extend(check_source_annotations(report_text, phase_id))
         all_issues.extend(check_confidence_annotations(report_text, phase_id))
 
     if structured_data:
