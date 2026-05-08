@@ -164,9 +164,31 @@ Phase Q05 保证"按规则写了"，Phase Q06 检查"写得好不好"：
 2. 每个 `SEM` 必须绑定 `REQ/BR`，并在矩阵中可定位到 `CODE/UT/EUT`。
 3. 对关键 `SEM` 至少检查两类用例：规则正确性 + 边界或稳定性。
 
+### Step 1.5: 测试文件全量枚举（强制，不可跳过）
+
+审计漏扫的主因是 LLM 倾向于只看名字"像单测"的文件（如 `*EutTest.java`、`*EarlyDeliveryTest.java`），漏掉主测试文件（如 `XxxServiceTest.java`）。必须对每个被测类做穷举：
+
+1. **按被测类名穷举**：对 Step 1 场景表中每个被测类 `Xxx`，枚举所有候选测试文件：
+   - 同名：`XxxTest.java`、`XxxTests.java`、`XxxIT.java`（主测试）
+   - 后缀变体：`Xxx*Test.java`（补充/专项测试，如 `XxxEarlyDeliveryTest.java`、`XxxSupplementTest.java`、`XxxEutTest.java`）
+   - 反射命名：`TestXxx.java`、`XxxSpec.java`、`XxxTestSuite.java`
+2. **按包路径穷举**：在 `<code_repo>/**/src/test/java/<被测类包路径>/` 下 `find` 所有 `.java`，不预设命名模式。
+3. **按 public 方法名反查**：对每个被测类的 public 业务方法（`applyXxx`、`createXxx`、`handleXxx`），grep 所有测试代码里是否调用了这个方法，即使测试类命名不带 `Xxx`。
+4. **列出完整测试文件清单**，并与 Q05 产出的 `eut_matrix.md` / `phase_b_structured.json` 里的 EUT `test_class` 字段**逐个交叉核对**，不得遗漏。
+5. 若存在 `_internal/_se_code_mapping.md`，其中标注的测试文件必须全部纳入扫描。
+
+**输出要求**：本步必须在推理日志 `_reasoning_log.md` 中显式列出每个被测类对应的测试文件完整清单（含主测试 + 补充测试），空清单或只有补充测试无主测试的情况要 flag。
+
+**反模式**：
+- 只看 `EarlyDelivery*Test.java`、`*EutTest.java`、`*SupplementTest.java` 这类补充测试
+- 认为"主测试已经被人看过了"就跳过
+- 用被测类名过滤但只取 3-5 个命中结果
+
 ### Step 2: 场景 → 代码 → 测试映射
 
 执行本步骤前，先查看 `_weak_assert_context.md` 中命中的测试方法；对 sidecar 标记为 `ASSERT_NOT_NULL_ONLY`、`CONSTANT_BOOLEAN_ASSERT`、`VERIFY_ONLY_NO_BUSINESS_ASSERT`、`ASSERT_THROWS_NO_EFFECT_ASSERT` 的用例，优先回到源码核实是否应判为 `WRONG_TARGET` 或 `PARTIAL`。
+
+**前置**：必须已经完成 Step 1.5 的测试文件全量枚举，否则场景→测试映射一定漏。
 
 对每个场景执行三段映射：
 1. 场景对应代码点（类/方法/分支）
@@ -236,6 +258,7 @@ Phase Q05 保证"按规则写了"，Phase Q06 检查"写得好不好"：
 
 ### Step 9: 自检（提交前强制检查）
 
+- [ ] Step 1.5 测试文件枚举已在 `_reasoning_log.md` 列出每个被测类对应的完整测试文件清单（主测试 + 补充测试）
 - [ ] 每个审计判定（COVERED/MISSING/WRONG_TARGET/CONFLICT）有代码证据
 - [ ] T1 核心异常分支 100% 覆盖检查
 - [ ] 弱断言（assertNotNull/assertTrue(true)等）已识别为 WRONG_TARGET

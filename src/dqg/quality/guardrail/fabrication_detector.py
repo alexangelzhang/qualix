@@ -37,8 +37,8 @@ _JAVA_METHOD_PATTERN = re.compile(
 )
 # 更通用的方法调用模式: xxx.methodName(
 _METHOD_CALL_PATTERN = re.compile(r"(\w+)\.([a-z]\w{2,})\s*\(")
-# 字段引用: xxx.fieldName 或 getFieldName/setFieldName
-_FIELD_PATTERN = re.compile(r"\b(?:get|set|is)([A-Z]\w{2,})\b")
+# 字段引用: getFieldName/setFieldName/isFieldName — 纯 camelCase，不含 _ 和中文
+_FIELD_PATTERN = re.compile(r"\b(?:get|set|is)([A-Z][a-zA-Z0-9]+)\b(?![_一-鿿])")
 
 
 def _extract_java_identifiers(text: str) -> dict[str, set[str]]:

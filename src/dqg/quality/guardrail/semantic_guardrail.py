@@ -94,19 +94,32 @@ class ReportSemanticGuardrail(PhaseGuardrail):
         if ctx.phase_id not in ("Q04", "Q06"):
             return []
 
-        report = ctx.report_content
-        if not report:
-            return []
-
         results = []
         covered_no_evidence = 0
-        for line in report.splitlines():
-            # 找到标记为 COVERED 的行
-            if "COVERED" in line and "NOT_COVERED" not in line:
-                # 检查同一行是否有证据引用（文件名:行号 或 [来源:xxx]）
+
+        data = ctx.structured_data
+        if data and data.get("audit_items"):
+            for item in data["audit_items"]:
+                if not isinstance(item, dict):
+                    continue
+                if item.get("status") != "COVERED":
+                    continue
+                evidence = str(item.get("evidence", ""))
+                has_evidence = bool(re.search(r"\[.+:\d+\]|\w+\.\w+:\d+|@Test", evidence))
+                if not has_evidence:
+                    covered_no_evidence += 1
+        else:
+            report = ctx.report_content
+            if not report:
+                return []
+            for line in report.splitlines():
+                if "COVERED" not in line or "NOT_COVERED" in line:
+                    continue
+                if not re.search(r"(?:EUT|AUDIT|REQ|SE|BR)[-_]\d+", line):
+                    continue
                 has_evidence = bool(
                     re.search(r"\[来源[:：]", line)
-                    or re.search(r"\w+\.\w+:\d+", line)  # file.java:123
+                    or re.search(r"\w+\.\w+:\d+", line)
                     or re.search(r"第\s*\d+\s*行", line)
                     or re.search(r"line\s*\d+", line, re.IGNORECASE)
                 )
