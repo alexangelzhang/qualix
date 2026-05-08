@@ -1,0 +1,27 @@
+{
+  "case_id": "AUTO-Q06-20260507230305-13",
+  "phase": "Q06",
+  "error_type": "FN",
+  "severity": "medium",
+  "title": "findings.3.id",
+  "root_cause": "SKILL_RULE",
+  "fix_target": "skills/unit-test-audit/SKILL.md",
+  "tags": [
+    "auto-generated",
+    "project:shuangzhou-v4"
+  ],
+  "created_at": "2026-05-07",
+  "status": "open",
+  "source": {
+    "project_id": "shuangzhou-v4",
+    "auto_generated": true,
+    "validation_error": "findings.3.id"
+  },
+  "expected": {
+    "content": "（需人工确认）"
+  },
+  "actual": {
+    "content": "findings.3.id"
+  },
+  "lesson": ""
+}

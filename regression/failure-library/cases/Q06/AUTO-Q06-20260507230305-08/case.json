@@ -1,0 +1,27 @@
+{
+  "case_id": "AUTO-Q06-20260507230305-08",
+  "phase": "Q06",
+  "error_type": "WRONG",
+  "severity": "medium",
+  "title": "Field required [type=missing, input_value={'type': 'SKELETON_TESTS'...4', 'SE-006', 'SE-007']}, inpu",
+  "root_cause": "SCHEMA",
+  "fix_target": "src/dqg/schemas/phase_q06.py",
+  "tags": [
+    "auto-generated",
+    "project:shuangzhou-v4"
+  ],
+  "created_at": "2026-05-07",
+  "status": "open",
+  "source": {
+    "project_id": "shuangzhou-v4",
+    "auto_generated": true,
+    "validation_error": "Field required [type=missing, input_value={'type': 'SKELETON_TESTS'...4', 'SE-006', 'SE-007']}, input_type=dict]"
+  },
+  "expected": {
+    "content": "（需人工确认）"
+  },
+  "actual": {
+    "content": "Field required [type=missing, input_value={'type': 'SKELETON_TESTS'...4', 'SE-006', 'SE-007']}, input_type=dict]"
+  },
+  "lesson": ""
+}
