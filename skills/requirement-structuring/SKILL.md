@@ -157,7 +157,7 @@ python3 scripts/parse_image_assets.py \
    "
    ```
 2. **逐维度扫描**：对每个 REQ/BR，按 checklist 的每个维度逐一提问。有发现则生成 SE，无发现则跳过。
-3. **示例对照强度**：并发/幂等、数据一致性、外部依赖、状态机四个维度在 prompt 中会附带"✓ 可验证 SE" 与"✗ 不可验证写法"对照。生成的 SE 描述和判定依据必须达到 ✓ 示例的具体化程度——仅凭描述能直接写出单测。若只能写出"需要并发控制""降级处理"这类模糊表述，视为无效 SE，改为 GAP 或 OPEN。
+3. **示例对照强度**：并发/幂等、数据一致性、外部依赖、状态机四个维度在 prompt 中会附带"✓ 可验证 SE" 与"✗ 不可验证写法"对照。生成的 SE 必须同时填写 `description`（SE 语义）和 `verification`（可执行判定），两个字段都要达到 ✓ 示例的具体化程度——仅凭 verification 能直接写出单测。若 verification 只能写"需要并发控制""降级处理"这类模糊表述，视为无效 SE，改为 GAP 或 OPEN。
 4. 从文本与图片共同抽取 SE，禁止隐含语义。
 5. 每个 SE 必须绑定到 REQ/BR，且有可验证判定依据（表格格式）。
 6. SE 的 `category` 字段必须对应 checklist 维度名（如"并发/幂等""权限边界"）。
@@ -282,6 +282,7 @@ python -m dqg.quality.checks.report_quality_checks output/<project_id> <project_
     {
       "se_id": "SE-001",
       "description": "提前交车申请幂等控制",
+      "verification": "CountDownLatch 对同一 workOrderId 发起 N 个并发 POST /early-delivery/apply；断言恰好 1 次 2xx、N-1 次 409+errorCode=EARLY_DELIVERY_IN_REVIEW；SELECT COUNT(*) 为 1",
       "category": "幂等/并发",
       "bound_reqs": ["REQ-001", "BR-006"],
       "confidence": "高",
@@ -312,7 +313,7 @@ python -m dqg.quality.checks.report_quality_checks output/<project_id> <project_
 
 **字段约束：**
 - `requirements`: REQ 必须有 `priority`；BR 必须有 `parent_id`；所有条目必须填写 `trigger`、`behavior_change`、`acceptance_criteria`、`source`
-- `semantic_expectations`: `bound_reqs` 必填（至少绑定一个 REQ/BR）；`category` 和 `confidence` 必填；`source` 必填
+- `semantic_expectations`: `bound_reqs` 必填（至少绑定一个 REQ/BR）；`category` 和 `confidence` 必填；`source` 必填；**`verification` 必填且必须达到 se_checklist 示例对 ✓ 强度**（含具体 HTTP 状态码/errorCode/SQL 断言/参数化枚举，仅凭该字段可直接写单测）
 - `gaps`: `risk_level` 必填（高/中/低）；`required_clarification` 必填
 - 报告中有的结构化信息必须同步到 JSON，JSON 不能是报告的降级版
 

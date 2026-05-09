@@ -10,6 +10,10 @@ class SemanticExpectation(BaseModel):
 
     se_id: str = Field(pattern=r"^SE-\d+$")
     description: str = Field(min_length=1)
+    verification: str = Field(
+        default="",
+        description="判定依据：可执行的测试步骤（发什么请求 + 断言什么），应达到 se_checklist 示例对 ✓ 强度，如含 HTTP 状态码/errorCode/SQL 断言/参数化枚举",
+    )
     category: str = Field(
         default="",
         description="语义类别：幂等/并发、状态迁移、数据转换、匹配冲突、跨系统口径、默认行为、时间窗口、接口约定等",

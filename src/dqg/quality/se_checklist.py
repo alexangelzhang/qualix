@@ -91,7 +91,9 @@ def format_checklist_prompt(dimensions: list[dict[str, Any]]) -> str:
 
     lines.append("**规则**：每个维度至少扫描一遍。无发现时跳过，不要强行生成 SE。")
     lines.append("有发现时，SE 必须绑定到具体 REQ/BR，且有可验证的判定依据。")
-    lines.append("**写法强度**：生成的 SE 描述和判定依据必须达到上述 ✓ 示例的具体化程度，仅凭描述可直接写出单测。")
+    lines.append(
+        "**写法强度**：每条 SE 必须同时填写 `description`（业务语义）和 `verification`（可执行判定依据），两者都达到上述 ✓ 示例的具体化程度——仅凭 verification 可直接写出单测。"
+    )
 
     return "\n".join(lines)
 

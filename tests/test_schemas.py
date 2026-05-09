@@ -56,6 +56,31 @@ class TestPhaseASchema:
         with pytest.raises(ValidationError):
             Requirement(req_id="REQ-001", description="")
 
+    def test_semantic_expectation_verification_field(self):
+        """verification 字段 default=''（向后兼容），且能正常读写新值。"""
+        # 老数据不传 verification：default="" 兼容
+        se_old = SemanticExpectation(se_id="SE-001", description="老 SE 无 verification")
+        assert se_old.verification == ""
+
+        # 新数据传 verification：正常读写
+        se_new = SemanticExpectation(
+            se_id="SE-002",
+            description="并发幂等控制",
+            verification="CountDownLatch 10 并发 POST；断言 1 次 2xx + 9 次 409+errorCode=DUPLICATE_SUBMIT",
+        )
+        assert "CountDownLatch" in se_new.verification
+        assert "errorCode=DUPLICATE_SUBMIT" in se_new.verification
+
+        # 从 JSON dict 构造（模拟从 phase_a_structured.json 读入）
+        raw = {
+            "se_id": "SE-003",
+            "description": "已有 SE",
+            "category": "幂等/并发",
+            "bound_reqs": ["REQ-001"],
+        }
+        se_from_dict = SemanticExpectation.model_validate(raw)
+        assert se_from_dict.verification == ""  # 历史产物不 break
+
 
 class TestPhaseA5Schema:
     def test_valid_coverage(self):
