@@ -146,3 +146,29 @@ T11 独立（RationalizationProbe 字段级护栏）
 
 - ~~**缺少 phase_c_structured.schema.json**~~ — 已于 2026-05-09 补充：`skills/unit-test-audit/references/phase_c_structured.schema.json`。
 - **缺少 phase_b_structured.schema.json（Q05）** — 原备注把它挂在 T5 范围下不准确（T5 是 validator，不是 schema 文档）。独立为 **T13（P1，0.5 周）**：补一份 Q05 输出层 schema 文档，配合 T7 EnumSource 做硬约束。
+
+## 2026-05-10 — Skill 治理发现的架构缺陷（T14）
+
+来源：本 session 对 skills/ 目录结构治理 + Q05/Q06 failure-library 归类分析。
+
+### T14：adaptive_loop schema 校验反馈回路（P1，2 周）
+
+**现状**：Pydantic schema 校验只在 finalize 阶段（`phase_runtime.py:210`）执行，错误写入 telemetry/state 但**不回流到 adaptive_loop 的下一轮 iteration**。agent 在 loop 内永远看不到 schema 错误，下轮继续用同样方式产 JSON，schema 校验失败 → 无限循环。
+
+**证据**：
+- failure-library 抽样 20 个 Q05/Q06 case 归类，Q06 约 30% 是 E 类（schema 校验失败、修的是 schema 字段而非 skill 规则）
+- `grep validate_phase_output src/dqg/agents/` → 0 命中，确认 adaptive_loop 完全不调用校验
+- `grep "iteration|feedback|judge_result.issues" src/dqg/agents/adaptive_loop.py` → 0 命中，确认 loop 无 per-iteration feedback 机制
+
+**实施要点**（详见 memory `deliverable_dqg_p2_schema_feedback_loop.md`）：
+1. 在 `adaptive_loop._execute_iteration` 里 worker 产出后立即调 `validate_phase_output`
+2. schema errors 注入 Judge rubric，让 judge 把 schema 违规当 issue
+3. 下轮 worker prompt 拼接"上轮 schema 错误：..."引导修复
+4. `IterationRecord` 新增 `schema_errors: list[str]` 字段
+5. 不改 schema 定义、不改 finalize 卡控、不改性能
+
+**预估**：200-350 行代码改动 + 2-3 个新测试。
+
+**依赖**：本 session 已完成的 Q05/Q06 SKILL.md 规则侧改进（contract 提前、severity 歧义消除、Q05 补 4 条覆盖判定规则），形成"规则+反馈"闭环。
+
+**验收**：Q06 iteration 1 缺 `findings[0].severity` 时，iteration 2 的 worker prompt 必须看到该错误且大概率补齐；finalize 阶段 `validate_phase_output` 作为最后防线不变。

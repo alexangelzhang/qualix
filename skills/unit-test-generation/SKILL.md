@@ -127,6 +127,10 @@ IRON LAW: 不写 assertTrue(true) 占位符。写不了的测试标记 TODO 并�
 - 涉及金额/状态/枚举的 BR，必须有 Boundary 用例
 - 未覆盖的 REQ/BR 必须标注原因（前端逻辑/BPM 配置/不在代码范围）
 - **每条用例必须标注归属仓库名**
+- **每条 SE/BR MUST 有直接 EUT，禁止仅靠"间接覆盖"标记为 COVERED**：直接 EUT 指测试方法直接调用被测 SE/BR 对应的方法并断言其业务结果；"间接覆盖"（例如 SE-018 仅因 EUT-034 在测试其它逻辑时顺带触发了 SE-018 的代码路径）Q06 审计时会降级为 `PARTIAL`
+- **通用方法测试 MUST NOT 替代特定 BR 测试**：BR-026（如 VIN 半隐藏）必须有绑定 BR-026 的专用 EUT，不允许用 `testCommonFormat()` 这类通用方法覆盖；每条 BR 必须在用例表里看到至少一行 `绑定 SE/BR` 列 = 该 BR 的记录
+- **分层职责边界：集成测试范围内的 domain 层 MUST 仍有单测**：即使外层用集成测试（如 Spec/Step 层）覆盖了端到端流程，domain 层的状态变更、领域规则、聚合根不变式 MUST 有独立的 domain 层单测；禁止用"反正集成测试会覆盖"跳过 domain 层（Q06 cases #3/#4/#7 的反模式）
+- **状态机每条迁移路径 MUST 有直接 EUT**：`状态 A → 状态 B` 的每条迁移边，必须有一个 EUT 直接断言 `targetState == B`；仅靠"间接被触发"不算覆盖（例：主状态机的 `WAIT_APPROVE → REJECTED` MUST 有 EUT 显式 `assertEquals(REJECTED, actual.getState())`，不能依赖其它 EUT 测试回退路径时顺带验证）
 
 **1.2 代码→用例补充（有分支代码时）**
 

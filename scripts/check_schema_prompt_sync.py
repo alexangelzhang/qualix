@@ -70,7 +70,7 @@ def _check_q06(skill_text: str) -> list[str]:
             if field not in section:
                 errs.append(f"Q06 SKILL findings 节未覆盖 schema 必填字段 {field!r}")
 
-    start2 = "## phase_c_structured.json 产出格式"
+    start2 = "## phase_c_structured.json 产出"
     sec2 = _slice(skill_text, start2, "## 通过标准")
     if not sec2.strip():
         errs.append("Q06 SKILL 缺少 phase_c_structured 产出格式节")

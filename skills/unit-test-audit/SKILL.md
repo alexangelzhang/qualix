@@ -65,6 +65,69 @@ IRON LAW: 每条 audit_item 的 evidence 字段必须引用具体代码位置（
 
 > **CONFLICT vs WRONG_TARGET**：当 assertNotNull / verify-only 模式是团队有意的架构约定（如 Gateway 层只验证调用不验证返回值），标记 CONFLICT 而非 WRONG_TARGET。CONFLICT 不计入 FAIL 判定，但必须在报告中列出供 approve 阶段人工确认。
 
+## phase_c_structured.json 产出契约（**开始审计前必读**）
+
+Q06 最常见的失败模式是产出 JSON 时 schema 校验不过。先锁定契约再动手，比写完被 schema 拒收再返工省 10 倍成本。完整契约以 [references/phase_c_structured.schema.json](references/phase_c_structured.schema.json) 为准。
+
+**`findings[]` 每条必填字段（MUST，任一缺失 schema 直接拒收整份 JSON）：**
+
+| 字段 | 约束 | 说明 |
+|------|------|------|
+| `id` | MUST 存在，非空字符串 | 唯一标识 |
+| `severity` | **MUST 存在，非空字符串**；取值建议使用 `CRITICAL`/`HIGH`/`MEDIUM`/`LOW`（与 Q03 口径一致），但不强制枚举 |
+| `description` / `title` | 至少其一非空，能独立看懂问题 | 内容约束 |
+
+> **常见陷阱**：agent 误以为 `severity` 既然"建议取值"则字段可选 → schema 会以 `missing` 错误拒收整份 JSON。记住：**字段存在是必填，取值才是建议**。
+
+**audit_items / findings 示例骨架：**
+
+```json
+{
+  "project_id": "xxx",
+  "audit_items": [
+    {
+      "id": "AUDIT-001",
+      "se_id": "SE-001",
+      "eut_id": "EUT-001,EUT-002",
+      "description": "SE 描述",
+      "status": "COVERED|PARTIAL|MISSING|WRONG_TARGET|CONFLICT",
+      "test_class": "XxxTest [来源: XxxTest.java:45]",
+      "test_method": "method1, method2",
+      "evidence": "assertEquals('expected', actual) [XxxTest.java:52]; verify(mock).call() [XxxTest.java:58]",
+      "recommendation": "",
+      "test_location": {
+        "file": "com/xiaomi/service/XxxTest.java",
+        "line_start": 52,
+        "class_name": "XxxTest",
+        "method_name": "method1",
+        "repo": "car-mrs"
+      },
+      "production_location": {
+        "file": "com/xiaomi/service/Xxx.java",
+        "line_start": 88,
+        "class_name": "Xxx",
+        "method_name": "targetMethod",
+        "repo": "car-mrs"
+      }
+    }
+  ],
+  "findings": [...],
+  "coverage_gate": {"line_coverage": 85.0, "branch_coverage": 72.0},
+  "conclusion": "PASS_WITH_RISKS",
+  "summary": {...}
+}
+```
+
+**evidence 字段铁律：**
+- COVERED 判定必须有 `[文件名:行号]` 格式的证据引用，至少 1 处
+- 空 evidence 的 COVERED 会被 finalize gate 自动降级为 PARTIAL
+- PARTIAL/MISSING 的 recommendation 必须具体到要补什么断言
+
+**location 字段铁律：**
+- COVERED 判定必须填写 `test_location`，`line_start` 指向断言所在行（不是测试方法第一行）
+- `production_location` 必须对应被测方法的实现起始行
+- 空 `test_location` 的 COVERED 会被 finalize gate 自动降级为 PARTIAL
+
 ## 执行流程
 
 ### Phase Q06 的定位（与 Phase Q05 的分工）
@@ -319,65 +382,6 @@ Phase Q05 保证"按规则写了"，Phase Q06 检查"写得好不好"：
 6. **改进建议** — 按优先级排序
 7. **评审结论** — PASS / PASS_WITH_RISKS / FAIL
 8. **自我评审记录** — Judge + Critique
-
-## phase_c_structured.json 产出格式（强制）
-
-结构化契约（含 `audit_items` / `findings` 必填字段）以 [references/phase_c_structured.schema.json](references/phase_c_structured.schema.json) 为准。
-
-**`findings[]` 每条必填（禁止「severity 整段缺失」）：**
-
-| 字段 | 说明 |
-|------|------|
-| `id` | 唯一标识 |
-| `severity` | 建议 `CRITICAL|HIGH|MEDIUM|LOW`，与 Q03 口径一致 |
-| `description` / `title` | 至少其一能独立看懂问题 |
-
-```json
-{
-  "project_id": "xxx",
-  "audit_items": [
-    {
-      "id": "AUDIT-001",
-      "se_id": "SE-001",
-      "eut_id": "EUT-001,EUT-002",
-      "description": "SE 描述",
-      "status": "COVERED|PARTIAL|MISSING|WRONG_TARGET|CONFLICT",
-      "test_class": "XxxTest [来源: XxxTest.java:45]",
-      "test_method": "method1, method2",
-      "evidence": "assertEquals('expected', actual) [XxxTest.java:52]; verify(mock).call() [XxxTest.java:58]",
-      "recommendation": "",
-      "test_location": {
-        "file": "com/xiaomi/service/XxxTest.java",
-        "line_start": 52,
-        "class_name": "XxxTest",
-        "method_name": "method1",
-        "repo": "car-mrs"
-      },
-      "production_location": {
-        "file": "com/xiaomi/service/Xxx.java",
-        "line_start": 88,
-        "class_name": "Xxx",
-        "method_name": "targetMethod",
-        "repo": "car-mrs"
-      }
-    }
-  ],
-  "findings": [...],
-  "coverage_gate": {"line_coverage": 85.0, "branch_coverage": 72.0},
-  "conclusion": "PASS_WITH_RISKS",
-  "summary": {...}
-}
-```
-
-**evidence 字段铁律：**
-- COVERED 判定必须有 `[文件名:行号]` 格式的证据引用，至少 1 处
-- 空 evidence 的 COVERED 会被 finalize gate 自动降级为 PARTIAL
-- PARTIAL/MISSING 的 recommendation 必须具体到要补什么断言
-
-**location 字段铁律：**
-- COVERED 判定必须填写 `test_location`，`line_start` 指向断言所在行（不是测试方法第一行）
-- `production_location` 必须对应被测方法的实现起始行
-- 空 `test_location` 的 COVERED 会被 finalize gate 自动降级为 PARTIAL
 
 ## 通过标准
 
