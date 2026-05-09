@@ -176,6 +176,12 @@ def run_finalize_checks(output_dir: Path, project_id: str, phase_id: str) -> lis
 
     errors.extend(auto_derive_checks(output_dir, project_id, phase_id))
 
+    # Phase B: 结构合规（EUT/路径/Mock 启发式）先于编译执行
+    if phase_id == "Q05":
+        from .q05_structure_checks import run_q05_structure_checks
+
+        errors.extend(run_q05_structure_checks(output_dir, project_id))
+
     # Phase B: 单测编译+运行铁律 gate（不可跳过）
     if phase_id == "Q05":
         from .test_execution_gate import check_q05_test_execution
