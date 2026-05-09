@@ -12,5 +12,6 @@
   "expected": "{\"content\": \"（需人工确认）\"}",
   "actual": "{\"content\": \"套装商品建单这个分支流程，国际化，自测未覆盖到 异常文案没用通用组件封装\"}",
   "lesson": "套装商品建单这个分支流程，国际化，自测未覆盖到 异常文案没用通用组件封装",
-  "holdout": "False"
+  "holdout": "False",
+  "case_category": "STRUCTURED_SCHEMA"
 }

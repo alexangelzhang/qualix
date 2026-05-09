@@ -7,5 +7,6 @@
   "fingerprint": "64ff6e5382d81fb6",
   "source_signature": "finance-model",
   "auto_generated": true,
-  "timestamp": "2026-04-27T11:43:14.367022"
+  "timestamp": "2026-04-27T11:43:14.367022",
+  "case_category": "STRUCTURED_SCHEMA"
 }

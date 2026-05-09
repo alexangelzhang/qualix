@@ -26,5 +26,6 @@
     "content": "单测场景未覆盖，todo"
   },
   "lesson": "提高单测场景对比度",
-  "holdout": false
+  "holdout": false,
+  "case_category": "STRUCTURED_SCHEMA"
 }

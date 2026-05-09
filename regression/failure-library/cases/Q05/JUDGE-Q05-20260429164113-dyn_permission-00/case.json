@@ -26,5 +26,6 @@
   "actual": {
     "content": "SE-014（授权店与直营店隔离）仅通过 EUT-003/013/014 验证了 isCarAuthorityBusinessMode 的 true/false，未验证直营店调用提前交车接口时的拦截行为"
   },
-  "lesson": "SE-014（授权店与直营店隔离）仅通过 EUT-003/013/014 验证了 isCarAuthorityBusinessMode 的 true/false，未验证直营店调用提前交车接口时的拦截行为"
+  "lesson": "SE-014（授权店与直营店隔离）仅通过 EUT-003/013/014 验证了 isCarAuthorityBusinessMode 的 true/false，未验证直营店调用提前交车接口时的拦截行为",
+  "case_category": "CROSS_PHASE_IDS"
 }

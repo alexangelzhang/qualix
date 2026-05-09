@@ -12,5 +12,6 @@
   "expected": "{\"content\": \"（根据bug描述推理，需人工确认）\"}",
   "actual": "{\"content\": \"接口调用，不同发货仓的配件创建索赔单，可以创建成功。预期：接口调用，传入不同发货仓的配件，应该不能创建成功。\"}",
   "lesson": "bug描述含明确预期，实际行为与预期不符",
-  "holdout": "False"
+  "holdout": "False",
+  "case_category": "STRUCTURED_SCHEMA"
 }

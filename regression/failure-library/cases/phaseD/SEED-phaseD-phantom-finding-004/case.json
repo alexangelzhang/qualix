@@ -24,5 +24,6 @@
     "content": "finding 引用了不存在的方法调用，是 LLM 幻觉"
   },
   "lesson": "代码评审的每条 finding 必须标注 [来源: 文件名:行号]。无法在代码中找到证据的问题不能写入报告。反幻觉公约是 BLOCKER 级规则。",
-  "holdout": false
+  "holdout": false,
+  "case_category": "DOC_SKILL_DRIFT"
 }

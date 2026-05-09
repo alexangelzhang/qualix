@@ -24,5 +24,6 @@
     "content": "编译报错：cannot find symbol / incompatible types in mock setup"
   },
   "lesson": "生成单测前必须读取被测类的完整 import 列表和构造函数依赖，确保 mock 类型与实际接口一致。compile_check gate 会在 finalize 时拦截。",
-  "holdout": false
+  "holdout": false,
+  "case_category": "DOC_SKILL_DRIFT"
 }

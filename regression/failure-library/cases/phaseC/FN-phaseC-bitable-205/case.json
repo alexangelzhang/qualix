@@ -26,5 +26,6 @@
     "content": "若三方传的时区数据有问题，应该使用系统默认时区，以防止出现异常"
   },
   "lesson": "提高单测场景覆盖度",
-  "holdout": false
+  "holdout": false,
+  "case_category": "STRUCTURED_SCHEMA"
 }

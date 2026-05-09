@@ -25,5 +25,6 @@
     "content": "问题搜索接口未实现source_type字段过滤逻辑"
   },
   "lesson": "补充单测",
-  "holdout": false
+  "holdout": false,
+  "case_category": "STRUCTURED_SCHEMA"
 }

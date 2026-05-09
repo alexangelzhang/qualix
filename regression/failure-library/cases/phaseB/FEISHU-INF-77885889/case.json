@@ -12,5 +12,6 @@
   "expected": "{\"content\": \"（根据bug描述推理，需人工确认）\"}",
   "actual": "{\"content\": \"创建运营活动，同一门店类型有重叠的活动时间，报错提示错误  预期报错为：TESTP000000000005  测试零件E已经存在未开始或进行中的活动\"}",
   "lesson": "接口500/报错，异常分支未处理",
-  "holdout": "False"
+  "holdout": "False",
+  "case_category": "STRUCTURED_SCHEMA"
 }

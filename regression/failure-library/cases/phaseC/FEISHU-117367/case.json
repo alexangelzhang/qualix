@@ -13,5 +13,6 @@
   "expected": "{\"content\": \"增加分支覆盖\"}",
   "actual": "{\"content\": \"校验场景考虑不全,只做了数据库的查重校验, 遗漏了当前导入数据的查重校验\"}",
   "lesson": "增加分支覆盖",
-  "holdout": "False"
+  "holdout": "False",
+  "case_category": "STRUCTURED_SCHEMA"
 }

@@ -12,5 +12,6 @@
   "expected": "{\"content\": \"（根据bug描述推理，需人工确认）\"}",
   "actual": "{\"content\": \"/customer/balance接口，配置走迁移前逻辑可以返回数据，配置走迁移后逻辑报500\"}",
   "lesson": "接口500/报错，异常分支未处理",
-  "holdout": "False"
+  "holdout": "False",
+  "case_category": "STRUCTURED_SCHEMA"
 }

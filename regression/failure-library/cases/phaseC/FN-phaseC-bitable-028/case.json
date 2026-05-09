@@ -25,5 +25,6 @@
     "content": "没有测试单包物料的场景，人为修改bug的时候改动了2个分支(实际只有一个分支有bug)，单测只覆盖了其中一个分支场景"
   },
   "lesson": "增加其他场景的单测覆盖",
-  "holdout": false
+  "holdout": false,
+  "case_category": "STRUCTURED_SCHEMA"
 }

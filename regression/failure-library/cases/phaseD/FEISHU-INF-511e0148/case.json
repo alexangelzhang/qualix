@@ -12,5 +12,6 @@
   "expected": "{\"content\": \"（根据bug描述推理，需人工确认）\"}",
   "actual": "{\"content\": \"pre - 所有工单出现两个一模一样的单子\"}",
   "lesson": "数据重复，疑似幂等/并发问题",
-  "holdout": "False"
+  "holdout": "False",
+  "case_category": "STRUCTURED_SCHEMA"
 }

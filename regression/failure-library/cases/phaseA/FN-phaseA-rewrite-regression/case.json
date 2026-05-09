@@ -24,5 +24,6 @@
     "content": "从零重写导致旧版 BR 字段级描述和 29 条 SE 判定依据全部丢失"
   },
   "lesson": "重跑 Phase 时必须先读取旧版产物作为基线，在基线上增量修改。禁止从零重写。",
-  "holdout": false
+  "holdout": false,
+  "case_category": "DOC_SKILL_DRIFT"
 }

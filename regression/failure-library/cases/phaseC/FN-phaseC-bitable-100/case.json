@@ -25,5 +25,6 @@
     "content": "PAD 排程日历在 car-mrs扩展 “绿通专项活动可约数量（greenActivityRemainingCapacity）” 字段时，因该字段未在多处字段映射逻辑中定义，虽底层接口已返回该字段值，但映射赋值失败，最终取默认值 0。"
   },
   "lesson": "针对新增场景，比如本次的“PAD”排程日历，进行回归覆盖，判断单测是否符合预期",
-  "holdout": false
+  "holdout": false,
+  "case_category": "STRUCTURED_SCHEMA"
 }

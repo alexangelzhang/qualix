@@ -23,6 +23,7 @@
   "actual": {
     "content": "Input should be a valid list [type=list_type, input_value={'req': {'total': 9, 'cov...pen': 2, 'rate': '80%'}}, input_type=dict]"
   },
-  "lesson": "",
-  "holdout": false
+  "lesson": "Skill 规则未覆盖此失败场景，需要补充检查项",
+  "holdout": false,
+  "case_category": "DOC_SKILL_DRIFT"
 }

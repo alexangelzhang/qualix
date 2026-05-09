@@ -13,5 +13,6 @@
   "expected": "{\"content\": \"增加单测判断 入参传下来的查询参数拼接结果是否正确\"}",
   "actual": "{\"content\": \"历史存在bug：原本的搜索框就没和状态联动搜索，研发同学又只看本次改动点 增加了筛选条件没有分析考虑全面影响点。\"}",
   "lesson": "增加单测判断 入参传下来的查询参数拼接结果是否正确",
-  "holdout": "False"
+  "holdout": "False",
+  "case_category": "STRUCTURED_SCHEMA"
 }

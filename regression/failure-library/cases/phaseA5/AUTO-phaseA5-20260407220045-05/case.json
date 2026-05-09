@@ -23,6 +23,7 @@
   "actual": {
     "content": "Phase A.5 引用了 SE-018，但 Phase A 中不存在"
   },
-  "lesson": "",
-  "holdout": false
+  "lesson": "对照对应 Phase 的 SKILL.md 与 references：补齐规则要求的表格/矩阵/证据后再产出。",
+  "holdout": false,
+  "case_category": "DOC_SKILL_DRIFT"
 }

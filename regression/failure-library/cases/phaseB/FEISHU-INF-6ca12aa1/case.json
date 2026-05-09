@@ -12,5 +12,6 @@
   "expected": "{\"content\": \"（根据bug描述推理，需人工确认）\"}",
   "actual": "{\"content\": \"【家桩-用户管理/设备管理】/shadow/privateCharger/auth/userList、/privateCharger/equipment/list，接口报502\"}",
   "lesson": "后端bug，默认推理为函数未覆盖",
-  "holdout": "False"
+  "holdout": "False",
+  "case_category": "STRUCTURED_SCHEMA"
 }

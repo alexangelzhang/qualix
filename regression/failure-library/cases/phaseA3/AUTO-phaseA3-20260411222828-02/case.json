@@ -23,6 +23,7 @@
   "actual": {
     "content": "Field required [type=missing, input_value={'project_id': 'damage-as...方案', 'modules': []}, input_type=dict]"
   },
-  "lesson": "",
-  "holdout": true
+  "lesson": "必填字段缺失",
+  "holdout": true,
+  "case_category": "STRUCTURED_SCHEMA"
 }

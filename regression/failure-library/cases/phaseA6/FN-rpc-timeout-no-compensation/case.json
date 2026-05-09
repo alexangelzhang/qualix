@@ -22,5 +22,6 @@
     "content": "Phase A.6 未识别该问题，Failure Mode 分析中该路径标记为 SAFE"
   },
   "lesson": "跨服务写操作（扣库存+创建订单）必须检查是否有补偿/saga/TCC 机制，缺失即为 RISK 或 CRITICAL_GAP",
-  "holdout": false
+  "holdout": false,
+  "case_category": "STRUCTURED_SCHEMA"
 }

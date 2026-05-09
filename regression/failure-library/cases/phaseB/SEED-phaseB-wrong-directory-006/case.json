@@ -24,5 +24,6 @@
     "content": "单测文件放在了错误的模块目录下，mvn compile 报 cannot find symbol"
   },
   "lesson": "生成单测前必须确认被测类所在的 Maven 模块（通过 pom.xml 或目录结构），单测文件放在同一模块的 src/test/java 下，package 声明与被测类一致。compile_check gate 可拦截但应在生成阶段就避免。",
-  "holdout": false
+  "holdout": false,
+  "case_category": "DOC_SKILL_DRIFT"
 }

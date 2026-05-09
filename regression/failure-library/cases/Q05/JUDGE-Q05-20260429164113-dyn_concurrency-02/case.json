@@ -26,5 +26,6 @@
   "actual": {
     "content": "applyEarlyDeliveryAuthStore 的幂等控制（EUT-002）仅验证了串行重复提交，未验证并发提交的竞态条件"
   },
-  "lesson": "applyEarlyDeliveryAuthStore 的幂等控制（EUT-002）仅验证了串行重复提交，未验证并发提交的竞态条件"
+  "lesson": "applyEarlyDeliveryAuthStore 的幂等控制（EUT-002）仅验证了串行重复提交，未验证并发提交的竞态条件",
+  "case_category": "CROSS_PHASE_IDS"
 }

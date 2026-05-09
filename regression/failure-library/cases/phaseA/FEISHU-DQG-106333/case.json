@@ -12,5 +12,6 @@
   "expected": "{\"content\": \"（需人工确认）\"}",
   "actual": "{\"content\": \"PRD未明确提及多商品订单的退货的规则(受理意向转换的规则)\"}",
   "lesson": "PRD未明确提及多商品订单的退货的规则(受理意向转换的规则)",
-  "holdout": "False"
+  "holdout": "False",
+  "case_category": "STRUCTURED_SCHEMA"
 }

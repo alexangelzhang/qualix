@@ -22,5 +22,6 @@
     "content": "维修项目管理的信息/操作/添加方式三层结构被压平成一段文字"
   },
   "lesson": "复杂模块用子BR保留层级，研发需要看到层级来设计代码结构",
-  "holdout": false
+  "holdout": false,
+  "case_category": "DOC_SKILL_DRIFT"
 }

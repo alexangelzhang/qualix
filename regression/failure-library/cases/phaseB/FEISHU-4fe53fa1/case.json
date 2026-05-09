@@ -13,5 +13,6 @@
   "expected": "{\"content\": \"增加单测对于不同场景校验验证\"}",
   "actual": "{\"content\": \"研发同学没有考虑清楚该条件是否必传，只做了传则校验，不传不校验；该case没有传 发货仓入参；\"}",
   "lesson": "增加单测对于不同场景校验验证",
-  "holdout": "False"
+  "holdout": "False",
+  "case_category": "STRUCTURED_SCHEMA"
 }

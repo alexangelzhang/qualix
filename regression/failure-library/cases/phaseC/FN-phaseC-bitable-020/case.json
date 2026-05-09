@@ -24,6 +24,7 @@
   "actual": {
     "content": "遗漏了逻辑：\n 不是 DD_DJS（到店 - 待寄送）\n 不是 DD_BWFC（到店 - 保外返厂）\n 不是 DD_FCXS（到店 - 到店返厂（线上））\n 不是迈创物料\n 需要配料\n 到店或寄修的维修单\n需要走一键定料的逻辑：原先只生成配料单，库管审核后生成缺料单。一键定料为备件逻辑，备件提供接口，调用后直接生成缺料单"
   },
-  "lesson": "",
-  "holdout": false
+  "lesson": "函数的正常业务分支缺少单测覆盖，需要补充 Happy Path 测试",
+  "holdout": false,
+  "case_category": "STRUCTURED_SCHEMA"
 }

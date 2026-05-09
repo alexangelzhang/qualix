@@ -23,5 +23,6 @@
   "actual": {
     "content": "结构化产物文件不存在: phase_c_structured.json"
   },
-  "lesson": ""
+  "lesson": "Skill 规则未覆盖此失败场景，需要补充检查项",
+  "case_category": "STRUCTURED_SCHEMA"
 }

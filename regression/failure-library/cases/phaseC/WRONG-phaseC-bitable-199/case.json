@@ -26,5 +26,6 @@
     "content": "Sql缺少过滤条件"
   },
   "lesson": "提高单测覆盖度",
-  "holdout": true
+  "holdout": true,
+  "case_category": "STRUCTURED_SCHEMA"
 }

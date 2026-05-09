@@ -23,6 +23,7 @@
   "actual": {
     "content": "Field required [type=missing, input_value={'scenario': 'BI同步时...表或版本号校验'}, input_type=dict]"
   },
-  "lesson": "",
-  "holdout": false
+  "lesson": "必填字段缺失",
+  "holdout": false,
+  "case_category": "STRUCTURED_SCHEMA"
 }

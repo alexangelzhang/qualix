@@ -12,5 +12,6 @@
   "expected": "{\"content\": \"（根据bug描述推理，需人工确认）\"}",
   "actual": "{\"content\": \"新完成的单据，在创建索赔单右侧列表，发货仓字段未返回，预期应该显示发货仓\"}",
   "lesson": "字段返回值不正确，断言应验证具体字段",
-  "holdout": "False"
+  "holdout": "False",
+  "case_category": "STRUCTURED_SCHEMA"
 }

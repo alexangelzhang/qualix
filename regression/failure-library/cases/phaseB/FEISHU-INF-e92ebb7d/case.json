@@ -12,5 +12,6 @@
   "expected": "{\"content\": \"（根据bug描述推理，需人工确认）\"}",
   "actual": "{\"content\": \"编辑运营活动，有相同的零件，当活动时间与其他未开始，进行中活动时间有重叠时，可以编辑成功。预期：编辑的时间与其他重叠时，不能编辑成功\"}",
   "lesson": "bug描述含明确预期，实际行为与预期不符",
-  "holdout": "False"
+  "holdout": "False",
+  "case_category": "STRUCTURED_SCHEMA"
 }

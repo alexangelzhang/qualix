@@ -12,6 +12,7 @@
   "source": "{\"feishu_table\": \"tblGxARLByCc5h3T\", \"bug_id\": null, \"requirement\": \"问题分类-故障原因模块\"}",
   "expected": "{\"content\": \"（需人工确认）\"}",
   "actual": "{\"content\": \"不是bug，空调品类只能app操作，但是可以优化错误提示和交互，在前端进行拦截\"}",
-  "lesson": "",
-  "holdout": "False"
+  "lesson": "对照 Phase skill、schema 与历史反例复盘本案例；修复后更新 case 状态并补充可复现片段。",
+  "holdout": "False",
+  "case_category": "STRUCTURED_SCHEMA"
 }

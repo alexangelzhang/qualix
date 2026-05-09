@@ -26,5 +26,6 @@
   "actual": {
     "content": "SE-12 标 MISSING 正确，但未分析 BPM 回调并发场景：同一流程多个回调消息同时到达时的处理顺序（与 Q03 EXC-005 同源）"
   },
-  "lesson": "SE-12 标 MISSING 正确，但未分析 BPM 回调并发场景：同一流程多个回调消息同时到达时的处理顺序（与 Q03 EXC-005 同源）"
+  "lesson": "SE-12 标 MISSING 正确，但未分析 BPM 回调并发场景：同一流程多个回调消息同时到达时的处理顺序（与 Q03 EXC-005 同源）",
+  "case_category": "STRUCTURED_SCHEMA"
 }

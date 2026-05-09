@@ -23,5 +23,6 @@
   "actual": {
     "content": "REGRESSION: audit_items 数量从 100 减少到 17。重跑时产物数量不得减少，新版必须是旧版超集。请检查是否遗漏了旧版中的内容。"
   },
-  "lesson": ""
+  "lesson": "Skill 规则未覆盖此失败场景，需要补充检查项",
+  "case_category": "CROSS_PHASE_IDS"
 }

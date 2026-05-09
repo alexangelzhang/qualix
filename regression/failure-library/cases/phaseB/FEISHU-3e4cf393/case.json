@@ -13,5 +13,6 @@
   "expected": "{\"content\": \"单测覆盖的场景不全，有nacos配置了修改本地的场景，没有反过来的场景\"}",
   "actual": "{\"content\": \"本地配置还会覆盖 Nacos 配置，所以怎么改 Nacos 都不生效\"}",
   "lesson": "单测覆盖的场景不全，有nacos配置了修改本地的场景，没有反过来的场景",
-  "holdout": "False"
+  "holdout": "False",
+  "case_category": "STRUCTURED_SCHEMA"
 }

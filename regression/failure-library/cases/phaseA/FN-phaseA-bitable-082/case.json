@@ -25,5 +25,6 @@
     "content": "需要对没有服务项的互动单独处理\n需求有明确表示，但没覆盖到"
   },
   "lesson": "增加提醒类单测",
-  "holdout": false
+  "holdout": false,
+  "case_category": "STRUCTURED_SCHEMA"
 }

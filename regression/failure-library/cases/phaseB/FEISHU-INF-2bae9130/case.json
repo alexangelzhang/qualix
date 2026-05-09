@@ -12,5 +12,6 @@
   "expected": "{\"content\": \"（根据bug描述推理，需人工确认）\"}",
   "actual": "{\"content\": \"运单少件索赔后，已入库数量未正确显示，可索赔20个，索赔了10个，已入库数量显示为0，预期显示为10\"}",
   "lesson": "后端bug，默认推理为函数未覆盖",
-  "holdout": "False"
+  "holdout": "False",
+  "case_category": "STRUCTURED_SCHEMA"
 }

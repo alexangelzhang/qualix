@@ -23,6 +23,7 @@
   "actual": {
     "content": "Field required [type=missing, input_value={'id': 'REQ-005', 'title'...R-005-01', 'BR-005-02']}, input_type=dict]"
   },
-  "lesson": "",
-  "holdout": false
+  "lesson": "必填字段缺失",
+  "holdout": false,
+  "case_category": "STRUCTURED_SCHEMA"
 }

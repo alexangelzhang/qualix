@@ -12,5 +12,6 @@
   "expected": "{\"content\": \"（需人工确认）\"}",
   "actual": "{\"content\": \"已跟测试拉齐，可以忽略，bug已删除。原因：提测前已做了修改，但为了第二天提测演示系统稳定性，未发布； 枚举没用通用工具覆盖\"}",
   "lesson": "已跟测试拉齐，可以忽略，bug已删除。原因：提测前已做了修改，但为了第二天提测演示系统稳定性，未发布； 枚举没用通用工具覆盖",
-  "holdout": "False"
+  "holdout": "False",
+  "case_category": "STRUCTURED_SCHEMA"
 }

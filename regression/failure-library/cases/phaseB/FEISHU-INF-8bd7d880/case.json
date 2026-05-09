@@ -12,5 +12,6 @@
   "expected": "{\"content\": \"（根据bug描述推理，需人工确认）\"}",
   "actual": "{\"content\": \"/shadow/publicCharger/station/basicInfo/list接口日志没有记录策略字段\"}",
   "lesson": "日志缺失，正常分支逻辑遗漏",
-  "holdout": "False"
+  "holdout": "False",
+  "case_category": "STRUCTURED_SCHEMA"
 }

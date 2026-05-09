@@ -25,5 +25,6 @@
     "content": "前端权限校验问题，只对菜单路由做了权限校验，未对直接URL访问页面做权限校验"
   },
   "lesson": "客服统一工作台菜单权限绕过问题-治理方案",
-  "holdout": false
+  "holdout": false,
+  "case_category": "STRUCTURED_SCHEMA"
 }

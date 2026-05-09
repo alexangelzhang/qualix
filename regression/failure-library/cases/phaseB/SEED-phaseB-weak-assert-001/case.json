@@ -24,5 +24,6 @@
     "content": "assertNotNull(result) — 只验证非空，不验证业务语义"
   },
   "lesson": "单测必须用 assertEquals 验证关键业务字段（金额、状态、ID），assertNotNull 不算有效覆盖。生成时应从 SE 提取需要验证的字段列表。",
-  "holdout": false
+  "holdout": false,
+  "case_category": "ASSERTION_QUALITY"
 }

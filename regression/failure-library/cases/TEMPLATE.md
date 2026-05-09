@@ -24,9 +24,21 @@
   "actual": {
     "item_type": null,
     "content": "skill 实际输出（或未输出）"
-  }
+  },
+  "lesson": "一句话可执行教训（与 Signs 二选一必填；批量补齐见 scripts/backfill_failure_case_lessons.py）",
+  "case_category": "STRUCTURED_SCHEMA"
 }
 ```
+
+### case_category（五类，可选但推荐）
+
+| 值 | 含义 |
+|----|------|
+| STRUCTURED_SCHEMA | 缺字段、矩阵不全、Pydantic/schema 校验失败 |
+| ENUM_VOCABULARY | severity 等枚举自造词 |
+| CROSS_PHASE_IDS | phantom EUT、上下游 ID 漂移 |
+| ASSERTION_QUALITY | then 弱断言、断言未对准业务后果 |
+| DOC_SKILL_DRIFT | skill 示例与 schema 冲突、prompt 未列必填 |
 
 ### 字段说明
 

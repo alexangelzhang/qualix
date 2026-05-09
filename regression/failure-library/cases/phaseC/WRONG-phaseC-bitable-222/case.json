@@ -25,5 +25,6 @@
     "content": "物料编码未正确展示，属于前端取错字段；价格问题，属于实现错误，用错了底层接口字段"
   },
   "lesson": "单测增加字段返回值的正确性验证",
-  "holdout": false
+  "holdout": false,
+  "case_category": "STRUCTURED_SCHEMA"
 }

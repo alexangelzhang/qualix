@@ -26,5 +26,6 @@
   "actual": {
     "content": "REQ-003 的审批通过/拒绝(BR-020/BR-021)的 BPM 发起属集成测试范围，但回调后 domain 层状态处理属单测范围（rejected 回调缺 EUT）"
   },
-  "lesson": "REQ-003 的审批通过/拒绝(BR-020/BR-021)的 BPM 发起属集成测试范围，但回调后 domain 层状态处理属单测范围（rejected 回调缺 EUT）"
+  "lesson": "REQ-003 的审批通过/拒绝(BR-020/BR-021)的 BPM 发起属集成测试范围，但回调后 domain 层状态处理属单测范围（rejected 回调缺 EUT）",
+  "case_category": "DOC_SKILL_DRIFT"
 }

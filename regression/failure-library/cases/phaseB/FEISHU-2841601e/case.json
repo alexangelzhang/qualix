@@ -12,6 +12,7 @@
   "source": "{\"feishu_table\": \"tblGxARLByCc5h3T\", \"bug_id\": null, \"requirement\": \"国际-售后-送修退货流程\"}",
   "expected": "{\"content\": \"（需人工确认）\"}",
   "actual": "{\"content\": \"国际化问题：前端+后端\"}",
-  "lesson": "",
-  "holdout": "False"
+  "lesson": "对照 Phase skill、schema 与历史反例复盘本案例；修复后更新 case 状态并补充可复现片段。",
+  "holdout": "False",
+  "case_category": "STRUCTURED_SCHEMA"
 }

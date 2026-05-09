@@ -12,5 +12,6 @@
   "expected": "{\"content\": \"（需人工确认）\"}",
   "actual": "{\"content\": \"PRD和测试用例评审都未提及 产品期望在检测处理提交时再校验，而不是勾选人损触发费用计算就校验\"}",
   "lesson": "PRD和测试用例评审都未提及 产品期望在检测处理提交时再校验，而不是勾选人损触发费用计算就校验",
-  "holdout": "False"
+  "holdout": "False",
+  "case_category": "STRUCTURED_SCHEMA"
 }

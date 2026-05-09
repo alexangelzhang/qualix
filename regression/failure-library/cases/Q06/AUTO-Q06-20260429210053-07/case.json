@@ -23,5 +23,6 @@
   "actual": {
     "content": "audit_items.17.eut_id"
   },
-  "lesson": ""
+  "lesson": "EUT 编号须来自 Q05 phase_b_structured.json，禁止按测试代码臆造编号",
+  "case_category": "CROSS_PHASE_IDS"
 }

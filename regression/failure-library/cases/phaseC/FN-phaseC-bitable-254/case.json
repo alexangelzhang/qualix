@@ -24,6 +24,7 @@
   "actual": {
     "content": "代码不健壮，自测应该可以发现"
   },
-  "lesson": "",
-  "holdout": false
+  "lesson": "函数的正常业务分支缺少单测覆盖，需要补充 Happy Path 测试",
+  "holdout": false,
+  "case_category": "STRUCTURED_SCHEMA"
 }

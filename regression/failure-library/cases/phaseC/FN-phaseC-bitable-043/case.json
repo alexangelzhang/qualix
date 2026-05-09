@@ -25,5 +25,6 @@
     "content": "对于串号场景,未对串号所在库区做准确校验,导致借用区也可锁库存,与业务逻辑不符"
   },
   "lesson": "对于关键字段要有严格校验覆盖,避免漏测",
-  "holdout": false
+  "holdout": false,
+  "case_category": "STRUCTURED_SCHEMA"
 }

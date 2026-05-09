@@ -13,5 +13,6 @@
   "expected": "{\"content\": \"单测场景覆盖要全面\"}",
   "actual": "{\"content\": \"校验有问题，未正确识别和确认需求改动点\"}",
   "lesson": "单测场景覆盖要全面",
-  "holdout": "False"
+  "holdout": "False",
+  "case_category": "STRUCTURED_SCHEMA"
 }

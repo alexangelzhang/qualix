@@ -24,5 +24,6 @@
     "content": "7 条 SE 无对应 EUT，特别是 SE-008(幂等校验)、SE-011(超时降级)、SE-014(越权拦截) 完全遗漏"
   },
   "lesson": "EUT 生成必须逐条对照 Phase A 的 SE 列表，生成后自动检查 bound_se 覆盖率。遗漏的 SE 应标记为 GAP 而非静默跳过。",
-  "holdout": false
+  "holdout": false,
+  "case_category": "DOC_SKILL_DRIFT"
 }

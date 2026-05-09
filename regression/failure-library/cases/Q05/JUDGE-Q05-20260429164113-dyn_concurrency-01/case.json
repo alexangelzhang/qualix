@@ -26,5 +26,6 @@
   "actual": {
     "content": "batchModifyDayCapacity 使用 CompletableFuture 并发执行（EUT-068），但未验证并发写入冲突场景"
   },
-  "lesson": "batchModifyDayCapacity 使用 CompletableFuture 并发执行（EUT-068），但未验证并发写入冲突场景"
+  "lesson": "batchModifyDayCapacity 使用 CompletableFuture 并发执行（EUT-068），但未验证并发写入冲突场景",
+  "case_category": "CROSS_PHASE_IDS"
 }

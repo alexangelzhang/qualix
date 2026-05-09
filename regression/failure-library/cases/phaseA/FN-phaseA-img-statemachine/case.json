@@ -24,5 +24,6 @@
     "content": "旧 Phase A 完全跳过图片中的状态机，导致状态迁移规则缺失"
   },
   "lesson": "状态机图、流程图是 P0 必解析项，漏掉等于漏掉需求骨架。已在 skill prompt 中强制要求图片必须解析并转为 Mermaid 输出",
-  "holdout": false
+  "holdout": false,
+  "case_category": "DOC_SKILL_DRIFT"
 }

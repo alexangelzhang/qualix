@@ -26,5 +26,6 @@
   "actual": {
     "content": "SubProcess 状态机覆盖了 WAIT_APPROVE/APPROVED/REJECTED/CANCELLED 四个状态，但 CANCELLED（撤销）的触发需调 BPM API 属集成测试范围，单测仅需验证撤销后 SubProcess 状态变更逻辑"
   },
-  "lesson": "SubProcess 状态机覆盖了 WAIT_APPROVE/APPROVED/REJECTED/CANCELLED 四个状态，但 CANCELLED（撤销）的触发需调 BPM API 属集成测试范围，单测仅需验证撤销后 SubProcess 状态变更逻辑"
+  "lesson": "SubProcess 状态机覆盖了 WAIT_APPROVE/APPROVED/REJECTED/CANCELLED 四个状态，但 CANCELLED（撤销）的触发需调 BPM API 属集成测试范围，单测仅需验证撤销后 SubProcess 状态变更逻辑",
+  "case_category": "DOC_SKILL_DRIFT"
 }

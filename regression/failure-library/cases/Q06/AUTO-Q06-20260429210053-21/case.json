@@ -23,5 +23,6 @@
   "actual": {
     "content": "Phase Q06 审计了 EUT-004, EUT-005, EUT-009, EUT-044，但 Phase Q05 中不存在"
   },
-  "lesson": ""
+  "lesson": "Skill 规则未覆盖此失败场景，需要补充检查项",
+  "case_category": "CROSS_PHASE_IDS"
 }

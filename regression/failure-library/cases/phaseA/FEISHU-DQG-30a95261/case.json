@@ -12,5 +12,6 @@
   "expected": "{\"content\": \"（需人工确认）\"}",
   "actual": "{\"content\": \"PRD未提及建单的时候需要查询服务活动\"}",
   "lesson": "PRD未提及建单的时候需要查询服务活动",
-  "holdout": "False"
+  "holdout": "False",
+  "case_category": "STRUCTURED_SCHEMA"
 }

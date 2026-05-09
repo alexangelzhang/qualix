@@ -24,5 +24,6 @@
     "content": "10 个 EUT 全部是 Happy Path，0 个 Exception，0 个 Boundary"
   },
   "lesson": "EUT 生成必须按 Happy/Exception/Boundary 三种路径类型均衡覆盖。SE 中包含'校验''异常''边界''并发'关键词的必须有对应的 Exception/Boundary EUT。",
-  "holdout": false
+  "holdout": false,
+  "case_category": "DOC_SKILL_DRIFT"
 }

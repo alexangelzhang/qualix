@@ -23,5 +23,6 @@
   "actual": {
     "content": "Input should be a valid list [type=list_type, input_value={'req': {'total': 10, 'co...ing': 2, 'implicit': 1}}, input_type=dict]"
   },
-  "lesson": ""
+  "lesson": "Skill 规则未覆盖此失败场景，需要补充检查项",
+  "case_category": "DOC_SKILL_DRIFT"
 }

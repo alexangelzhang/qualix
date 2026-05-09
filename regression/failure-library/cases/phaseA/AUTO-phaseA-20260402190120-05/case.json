@@ -23,6 +23,7 @@
   "actual": {
     "content": "Input should be a valid boolean [type=bool_type, input_value=['REQ-001'], input_type=list]"
   },
-  "lesson": "",
-  "holdout": true
+  "lesson": "布尔字段传入了列表值，schema 类型定义与实际输出不匹配",
+  "holdout": true,
+  "case_category": "STRUCTURED_SCHEMA"
 }

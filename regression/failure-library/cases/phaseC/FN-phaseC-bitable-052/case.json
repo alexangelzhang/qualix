@@ -25,6 +25,7 @@
   "actual": {
     "content": "保存逻辑没有按品类层级传递正确的入参"
   },
-  "lesson": "",
-  "holdout": false
+  "lesson": "函数的正常业务分支缺少单测覆盖，需要补充 Happy Path 测试",
+  "holdout": false,
+  "case_category": "STRUCTURED_SCHEMA"
 }

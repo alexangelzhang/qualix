@@ -23,6 +23,7 @@
   "actual": {
     "content": "Field required [type=missing, input_value={'url': '/mtop/nr/worktim...': '工时转译列表'}, input_type=dict]"
   },
-  "lesson": "",
-  "holdout": false
+  "lesson": "必填字段缺失",
+  "holdout": false,
+  "case_category": "STRUCTURED_SCHEMA"
 }

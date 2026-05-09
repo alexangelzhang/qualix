@@ -12,6 +12,7 @@
   "source": "{\"feishu_table\": \"tblGxARLByCc5h3T\", \"bug_id\": \"102149\", \"requirement\": \"Maitrox Integration - Smartphone Aftersales Service\"}",
   "expected": "{\"content\": \"（需人工确认）\"}",
   "actual": "{\"content\": \"国家化翻译词条配置未导入（后面都全量盘点了翻译词条未导入问题）\"}",
-  "lesson": "",
-  "holdout": "False"
+  "lesson": "对照 Phase skill、schema 与历史反例复盘本案例；修复后更新 case 状态并补充可复现片段。",
+  "holdout": "False",
+  "case_category": "STRUCTURED_SCHEMA"
 }

@@ -26,5 +26,6 @@
   "actual": {
     "content": "BR级覆盖详查中部分IMPLICIT判定缺少具体来源行号"
   },
-  "lesson": "BR级覆盖详查中部分IMPLICIT判定缺少具体来源行号"
+  "lesson": "BR级覆盖详查中部分IMPLICIT判定缺少具体来源行号",
+  "case_category": "DOC_SKILL_DRIFT"
 }

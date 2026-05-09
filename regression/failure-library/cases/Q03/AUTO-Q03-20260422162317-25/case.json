@@ -23,5 +23,6 @@
   "actual": {
     "content": "issues.8.issue_id"
   },
-  "lesson": ""
+  "lesson": "issues 条目 issue_id 或 severity 不符合 schema，禁止自造枚举词",
+  "case_category": "STRUCTURED_SCHEMA"
 }

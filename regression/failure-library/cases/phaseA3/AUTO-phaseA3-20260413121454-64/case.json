@@ -23,6 +23,7 @@
   "actual": {
     "content": "interfaces.10.type"
   },
-  "lesson": "",
-  "holdout": false
+  "lesson": "Skill 规则未覆盖此失败场景，需要补充检查项",
+  "holdout": false,
+  "case_category": "DOC_SKILL_DRIFT"
 }

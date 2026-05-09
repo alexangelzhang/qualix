@@ -25,5 +25,6 @@
     "content": "评审报告未提及金额精度问题"
   },
   "lesson": "所有涉及金额的代码必须检查数据类型：float/double 用于金额计算一律标为 BLOCKER。business_mutations.py 的 DECIMAL_PRECISION 变异规则可辅助检测。",
-  "holdout": false
+  "holdout": false,
+  "case_category": "DOC_SKILL_DRIFT"
 }

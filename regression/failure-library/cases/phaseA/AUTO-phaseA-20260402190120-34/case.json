@@ -23,6 +23,7 @@
   "actual": {
     "content": "semantic_expectations.11.mapped_to_req_br"
   },
-  "lesson": "",
-  "holdout": true
+  "lesson": "SE 的 mapped_to_req_br 字段格式错误，应为字符串而非列表",
+  "holdout": true,
+  "case_category": "DOC_SKILL_DRIFT"
 }

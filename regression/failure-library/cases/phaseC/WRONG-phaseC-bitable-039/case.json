@@ -25,6 +25,7 @@
   "actual": {
     "content": "国内页面功能不需要插入vat字段，仅国际需要，回归的功能为国内环境"
   },
-  "lesson": "",
-  "holdout": true
+  "lesson": "对照 Phase skill、schema 与历史反例复盘本案例；修复后更新 case 状态并补充可复现片段。",
+  "holdout": true,
+  "case_category": "STRUCTURED_SCHEMA"
 }

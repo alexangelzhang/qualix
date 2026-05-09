@@ -23,5 +23,6 @@
   "actual": {
     "content": "Field required [type=missing, input_value={'id': 'FINDING-04', 'sev...和同步触发测试'}, input_type=dict]"
   },
-  "lesson": ""
+  "lesson": "必填字段缺失",
+  "case_category": "STRUCTURED_SCHEMA"
 }

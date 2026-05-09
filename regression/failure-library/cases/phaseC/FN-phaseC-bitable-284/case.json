@@ -24,6 +24,7 @@
   "actual": {
     "content": "没适配好，自测不充分"
   },
-  "lesson": "",
-  "holdout": true
+  "lesson": "新增/修改的函数缺少对应单测，需要补充单测覆盖",
+  "holdout": true,
+  "case_category": "STRUCTURED_SCHEMA"
 }

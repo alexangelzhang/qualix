@@ -25,5 +25,6 @@
     "content": "之前都是通过权限点控制菜单是否展示，没有根据权限点对接口进行拦截处理"
   },
   "lesson": "需要端到端测试，单测无需改进",
-  "holdout": false
+  "holdout": false,
+  "case_category": "STRUCTURED_SCHEMA"
 }

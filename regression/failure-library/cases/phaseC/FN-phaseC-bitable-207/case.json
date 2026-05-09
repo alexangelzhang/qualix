@@ -26,5 +26,6 @@
     "content": "Sql边界条件缺失"
   },
   "lesson": "多场景单测覆盖",
-  "holdout": false
+  "holdout": false,
+  "case_category": "STRUCTURED_SCHEMA"
 }

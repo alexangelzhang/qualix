@@ -23,5 +23,6 @@
   "actual": {
     "content": "String should match pattern '^EUT-\\d+([\\s,~]+(\\d+|EUT-\\d+))*$' [type=string_pattern_mismatch, input_value='', input_type=str]"
   },
-  "lesson": ""
+  "lesson": "Skill 规则未覆盖此失败场景，需要补充检查项",
+  "case_category": "CROSS_PHASE_IDS"
 }

@@ -13,5 +13,6 @@
   "expected": "{\"content\": \"提高单测场景覆盖\"}",
   "actual": "{\"content\": \"缺失接口返回字段。   接口先拿出来看看。\"}",
   "lesson": "提高单测场景覆盖",
-  "holdout": "False"
+  "holdout": "False",
+  "case_category": "STRUCTURED_SCHEMA"
 }

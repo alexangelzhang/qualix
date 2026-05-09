@@ -25,5 +25,6 @@
     "content": "汽车电源模式acc模式下部分操作禁止，但维保侧不会感知"
   },
   "lesson": "测试车辆状态异常，单测无法覆盖",
-  "holdout": false
+  "holdout": false,
+  "case_category": "STRUCTURED_SCHEMA"
 }

@@ -26,5 +26,6 @@
   "actual": {
     "content": "VIN 半隐藏规则(BR-026) 无独立 EUT，desensitizaChar(EUT-030) 是通用方法测试，未验证 VIN 特定的后8位逻辑"
   },
-  "lesson": "VIN 半隐藏规则(BR-026) 无独立 EUT，desensitizaChar(EUT-030) 是通用方法测试，未验证 VIN 特定的后8位逻辑"
+  "lesson": "VIN 半隐藏规则(BR-026) 无独立 EUT，desensitizaChar(EUT-030) 是通用方法测试，未验证 VIN 特定的后8位逻辑",
+  "case_category": "CROSS_PHASE_IDS"
 }

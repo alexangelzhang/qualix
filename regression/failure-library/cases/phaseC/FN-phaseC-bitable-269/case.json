@@ -26,5 +26,6 @@
     "content": "国际和国内三包展示规则不一致。"
   },
   "lesson": "补充单测",
-  "holdout": false
+  "holdout": false,
+  "case_category": "STRUCTURED_SCHEMA"
 }

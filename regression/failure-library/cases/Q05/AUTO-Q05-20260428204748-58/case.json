@@ -23,5 +23,6 @@
   "actual": {
     "content": "eut_items.25.then"
   },
-  "lesson": ""
+  "lesson": "EUT then 须写具体断言与期望值，禁止「验证成功」等模糊描述",
+  "case_category": "ASSERTION_QUALITY"
 }

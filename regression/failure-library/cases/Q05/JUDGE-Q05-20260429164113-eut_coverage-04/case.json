@@ -26,5 +26,6 @@
   "actual": {
     "content": "SE-018（按钮展示接口扩展 userAuthV2）仅被 EUT-015 间接覆盖，无直接验证 buttons 字段新增类型的 EUT"
   },
-  "lesson": "SE-018（按钮展示接口扩展 userAuthV2）仅被 EUT-015 间接覆盖，无直接验证 buttons 字段新增类型的 EUT"
+  "lesson": "SE-018（按钮展示接口扩展 userAuthV2）仅被 EUT-015 间接覆盖，无直接验证 buttons 字段新增类型的 EUT",
+  "case_category": "CROSS_PHASE_IDS"
 }

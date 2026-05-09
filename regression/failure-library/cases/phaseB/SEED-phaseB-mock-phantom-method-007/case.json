@@ -24,5 +24,6 @@
     "content": "Mock 了不存在的方法 Result.isSuccess()，编译报错 cannot find symbol"
   },
   "lesson": "生成单测前必须读取被 Mock 类的实际方法列表（通过 AST 解析或 import 分析），禁止基于'常见 API 模式'猜测方法名。这是典型的 LLM 幻觉问题，Claude Code 在生成后自动编译验证可有效拦截，但 DQG 的 Q05 Phase 应在 skill 规则中明确要求验证 Mock 方法存在性。",
-  "holdout": false
+  "holdout": false,
+  "case_category": "STRUCTURED_SCHEMA"
 }

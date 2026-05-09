@@ -26,5 +26,6 @@
   "actual": {
     "content": "未提取并发/幂等SE：多人同时对同一VIN提交善意关怀时的并发控制未显式化为SE"
   },
-  "lesson": "未提取并发/幂等SE：多人同时对同一VIN提交善意关怀时的并发控制未显式化为SE"
+  "lesson": "未提取并发/幂等SE：多人同时对同一VIN提交善意关怀时的并发控制未显式化为SE",
+  "case_category": "DOC_SKILL_DRIFT"
 }

@@ -23,6 +23,7 @@
   "actual": {
     "content": "String should match pattern '^(REQ|BR)-\\d+$' [type=string_pattern_mismatch, input_value='BR-003-02', input_type=str]"
   },
-  "lesson": "",
-  "holdout": false
+  "lesson": "Skill 规则未覆盖此失败场景，需要补充检查项",
+  "holdout": false,
+  "case_category": "DOC_SKILL_DRIFT"
 }

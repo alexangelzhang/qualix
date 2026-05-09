@@ -26,5 +26,6 @@
   "actual": {
     "content": "OPEN-001/004未分析当前状态机的实际行为"
   },
-  "lesson": "OPEN-001/004未分析当前状态机的实际行为"
+  "lesson": "OPEN-001/004未分析当前状态机的实际行为",
+  "case_category": "DOC_SKILL_DRIFT"
 }

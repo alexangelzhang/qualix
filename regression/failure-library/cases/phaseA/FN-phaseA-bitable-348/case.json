@@ -26,5 +26,6 @@
     "content": "沟通问题，新增服务判责比较特殊，只需要审批结果的跟进记录，不需要发起审批的跟进记录。两名研发在分工之后，没有沟通清楚，另一位研发没注意到这一点。"
   },
   "lesson": "common sence",
-  "holdout": false
+  "holdout": false,
+  "case_category": "DOC_SKILL_DRIFT"
 }

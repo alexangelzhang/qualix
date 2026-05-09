@@ -25,5 +25,6 @@
     "content": "count接口本次新写的，没和列表的逻辑对齐"
   },
   "lesson": "补充单测，覆盖条件查询",
-  "holdout": false
+  "holdout": false,
+  "case_category": "STRUCTURED_SCHEMA"
 }

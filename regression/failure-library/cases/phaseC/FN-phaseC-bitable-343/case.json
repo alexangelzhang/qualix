@@ -25,6 +25,7 @@
   "actual": {
     "content": "对非必填信息（上传附件ID）判空造成"
   },
-  "lesson": "",
-  "holdout": false
+  "lesson": "新增/修改的函数缺少对应单测，需要补充单测覆盖",
+  "holdout": false,
+  "case_category": "STRUCTURED_SCHEMA"
 }

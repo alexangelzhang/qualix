@@ -12,5 +12,6 @@
   "expected": "{\"content\": \"（根据bug描述推理，需人工确认）\"}",
   "actual": "{\"content\": \"日志验证，家桩接口日志没有打印\\\"策略\\\"，预期是和其他服务日志一样进行打印\"}",
   "lesson": "日志缺失，正常分支逻辑遗漏",
-  "holdout": "False"
+  "holdout": "False",
+  "case_category": "STRUCTURED_SCHEMA"
 }

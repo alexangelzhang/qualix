@@ -24,6 +24,7 @@
   "actual": {
     "content": "遗漏，没有考虑到这个case，保险履约场景很多，只覆盖碎屏延保啥的，没有覆盖换新；（这个是个集成测试问题）"
   },
-  "lesson": "",
-  "holdout": false
+  "lesson": "函数的正常业务分支缺少单测覆盖，需要补充 Happy Path 测试",
+  "holdout": false,
+  "case_category": "STRUCTURED_SCHEMA"
 }

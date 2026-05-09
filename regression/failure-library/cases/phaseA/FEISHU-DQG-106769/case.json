@@ -12,5 +12,6 @@
   "expected": "{\"content\": \"（需人工确认）\"}",
   "actual": "{\"content\": \"国际化 未关注到 枚举没用通用工具覆盖\"}",
   "lesson": "国际化 未关注到 枚举没用通用工具覆盖",
-  "holdout": "False"
+  "holdout": "False",
+  "case_category": "STRUCTURED_SCHEMA"
 }

@@ -13,5 +13,6 @@
   "expected": "{\"content\": \"增加分支覆盖\"}",
   "actual": "{\"content\": \"校验场景考虑不全,对于发货仓与收货仓相同的校验场景没拦截住\"}",
   "lesson": "增加分支覆盖",
-  "holdout": "False"
+  "holdout": "False",
+  "case_category": "STRUCTURED_SCHEMA"
 }

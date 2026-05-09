@@ -13,5 +13,6 @@
   "expected": "{\"content\": \"增加单测 mock各种数据场景组合，以及对于结果数据判断正确性\"}",
   "actual": "{\"content\": \"该查询后端逻辑没统计到 历史逻辑中的 索赔后剩余入库数量，比如a001 采购了20个，少件了9个 这9个可以发起索赔，剩下的11个要入库（这11个没有计算到）。涉及到集成测试\"}",
   "lesson": "增加单测 mock各种数据场景组合，以及对于结果数据判断正确性",
-  "holdout": "False"
+  "holdout": "False",
+  "case_category": "STRUCTURED_SCHEMA"
 }

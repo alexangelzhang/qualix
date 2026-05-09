@@ -25,5 +25,6 @@
     "content": "历史接口调用链路较长（包含了出入库、异常创建、调用bpm审批、补发逻辑处理等模块或服务），加上测试环境不太稳定，迁移网关后配置超时时间短，导致超时"
   },
   "lesson": "在测试环境网关更改到6s；线上环境持续观察分析，有问题在技术贡献专项上优化",
-  "holdout": false
+  "holdout": false,
+  "case_category": "STRUCTURED_SCHEMA"
 }

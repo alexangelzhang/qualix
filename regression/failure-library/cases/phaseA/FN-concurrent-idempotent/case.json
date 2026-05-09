@@ -31,5 +31,6 @@
     "content": "Phase A 仅提取了「用户可以下单」作为 REQ，未识别并发场景的隐式语义"
   },
   "lesson": "当 PRD 出现「并发」「同时」「批量」等关键词时，应主动提取幂等性/并发控制相关的 SE 和 GAP",
-  "holdout": false
+  "holdout": false,
+  "case_category": "DOC_SKILL_DRIFT"
 }

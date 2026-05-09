@@ -26,5 +26,6 @@
     "content": "数据库新增了截止时间字段,默认值为1970-08-02,后端遗漏了该字段的默认值处理逻辑,将默认值传递给了前端\n单测缺失了该字段为默认值的场景"
   },
   "lesson": "对于所有时间字段 需要补充时间默认值的单测场景覆盖",
-  "holdout": false
+  "holdout": false,
+  "case_category": "STRUCTURED_SCHEMA"
 }

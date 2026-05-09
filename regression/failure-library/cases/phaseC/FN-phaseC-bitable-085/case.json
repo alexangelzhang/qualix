@@ -25,5 +25,6 @@
     "content": "业务需求清楚，实现出现问题\n需求角度的校验\n远诊数据规则异常边界值区分开"
   },
   "lesson": "范围校验应该大于最大值，小于最小值",
-  "holdout": true
+  "holdout": true,
+  "case_category": "STRUCTURED_SCHEMA"
 }

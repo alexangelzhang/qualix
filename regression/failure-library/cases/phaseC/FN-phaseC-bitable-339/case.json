@@ -25,6 +25,7 @@
   "actual": {
     "content": "客观原因：PRD未提及，群里和前端聊过，后端同学遗漏\n\n主观原因：意识不强，基本的长度校验逻辑"
   },
-  "lesson": "",
-  "holdout": false
+  "lesson": "函数的异常分支缺少单测覆盖，需要补充 Exception Path 测试",
+  "holdout": false,
+  "case_category": "STRUCTURED_SCHEMA"
 }

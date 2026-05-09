@@ -25,5 +25,6 @@
     "content": "字段超长，业务场景需要增加限制，后端接口同步增加限制"
   },
   "lesson": "单测增加字段取值范围和长度的测试",
-  "holdout": false
+  "holdout": false,
+  "case_category": "STRUCTURED_SCHEMA"
 }

@@ -12,6 +12,7 @@
   "source": "{\"feishu_table\": \"tblGxARLByCc5h3T\", \"bug_id\": \"132765\", \"requirement\": \"国际-主数据-产品、技术、备件主数据\"}",
   "expected": "{\"content\": \"（需人工确认）\"}",
   "actual": "{\"content\": \"sql是通过注解方式实现的，新增时间戳字段写入时只修改了mapper.xml，字段写入遗漏了\"}",
-  "lesson": "",
-  "holdout": "False"
+  "lesson": "对照 Phase skill、schema 与历史反例复盘本案例；修复后更新 case 状态并补充可复现片段。",
+  "holdout": "False",
+  "case_category": "STRUCTURED_SCHEMA"
 }

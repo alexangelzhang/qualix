@@ -22,5 +22,6 @@
     "content": "核损驳回→重新发起定损的循环边没有定义回调数据"
   },
   "lesson": "遍历状态机每条边确认BR中有对应描述，循环边容易遗漏",
-  "holdout": false
+  "holdout": false,
+  "case_category": "DOC_SKILL_DRIFT"
 }

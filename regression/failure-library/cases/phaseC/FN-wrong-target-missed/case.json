@@ -21,5 +21,6 @@
     "content": "COVERED — 因为存在对应方法的测试用例就判定为已覆盖"
   },
   "lesson": "COVERED 判定必须检查断言强度：仅 assertNotNull/assertTrue(true) 等弱断言应判为 WRONG_TARGET",
-  "holdout": false
+  "holdout": false,
+  "case_category": "ASSERTION_QUALITY"
 }

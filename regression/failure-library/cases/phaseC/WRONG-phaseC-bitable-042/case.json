@@ -25,5 +25,6 @@
     "content": "单测断言未验证日志表的字段，且日志流水非核心业务表"
   },
   "lesson": "增加关键字段的断言",
-  "holdout": false
+  "holdout": false,
+  "case_category": "STRUCTURED_SCHEMA"
 }

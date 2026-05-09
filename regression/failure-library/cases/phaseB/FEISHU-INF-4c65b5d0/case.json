@@ -12,5 +12,6 @@
   "expected": "{\"content\": \"（根据bug描述推理，需人工确认）\"}",
   "actual": "{\"content\": \"/customer/secret密钥的三个接口配置为走迁移后逻辑，接口报500，配置走迁移前逻辑可以正常提交\"}",
   "lesson": "接口500/报错，异常分支未处理",
-  "holdout": "False"
+  "holdout": "False",
+  "case_category": "STRUCTURED_SCHEMA"
 }

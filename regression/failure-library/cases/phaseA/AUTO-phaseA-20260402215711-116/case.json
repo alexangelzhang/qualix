@@ -23,6 +23,7 @@
   "actual": {
     "content": "Field required [type=missing, input_value={'id': 'GAP-011', 'bound'...展示规则未定义'}, input_type=dict]"
   },
-  "lesson": "",
-  "holdout": false
+  "lesson": "必填字段缺失",
+  "holdout": false,
+  "case_category": "STRUCTURED_SCHEMA"
 }

@@ -12,6 +12,7 @@
   "source": "{\"feishu_table\": \"tblGxARLByCc5h3T\", \"bug_id\": \"135241\", \"requirement\": \"问题分类-故障原因模块\"}",
   "expected": "{\"content\": \"（需人工确认）\"}",
   "actual": "{\"content\": \"边界场景，多商品分别提交故障原因和null的场景测试用例未覆盖到\"}",
-  "lesson": "",
-  "holdout": "False"
+  "lesson": "对照 Phase skill、schema 与历史反例复盘本案例；修复后更新 case 状态并补充可复现片段。",
+  "holdout": "False",
+  "case_category": "STRUCTURED_SCHEMA"
 }

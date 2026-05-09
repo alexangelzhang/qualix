@@ -26,6 +26,7 @@
   "actual": {
     "content": "产研对此功能未达成一致，服务端认为将查询数据源从 xms 切换至天工即可，产品认为前后端应该保持统一查询权限时均需要指定当前用户登录岗位"
   },
-  "lesson": "",
-  "holdout": false
+  "lesson": "开发对需求的理解与产品意图不一致，需要在 Phase A 阶段加强需求确认",
+  "holdout": false,
+  "case_category": "STRUCTURED_SCHEMA"
 }

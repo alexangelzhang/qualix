@@ -12,5 +12,6 @@
   "expected": "{\"content\": \"（需人工确认）\"}",
   "actual": "{\"content\": \"PRD未明确提及客户地址要展示国家，只说了通用信息和国内一致\"}",
   "lesson": "PRD未明确提及客户地址要展示国家，只说了通用信息和国内一致",
-  "holdout": "False"
+  "holdout": "False",
+  "case_category": "STRUCTURED_SCHEMA"
 }

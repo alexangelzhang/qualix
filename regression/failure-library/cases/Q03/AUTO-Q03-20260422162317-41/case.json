@@ -23,5 +23,6 @@
   "actual": {
     "content": "Field required [type=missing, input_value={'id': 'API-007', 'dimens...'非功能特性章节'}, input_type=dict]"
   },
-  "lesson": ""
+  "lesson": "必填字段缺失",
+  "case_category": "STRUCTURED_SCHEMA"
 }

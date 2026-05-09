@@ -13,5 +13,6 @@
   "expected": "{\"content\": \"AI生成的代码以及单测，需要人工核验，避免出现理解错误的情况\"}",
   "actual": "{\"content\": \"导出查询关联属性的relationId拼接错误，取值应该是spuId，代码中错误取成SecondCategoryId\"}",
   "lesson": "AI生成的代码以及单测，需要人工核验，避免出现理解错误的情况",
-  "holdout": "False"
+  "holdout": "False",
+  "case_category": "STRUCTURED_SCHEMA"
 }

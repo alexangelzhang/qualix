@@ -26,5 +26,6 @@
   "actual": {
     "content": "未提取超时/降级SE：BPM审批系统不可用时善意关怀提交的降级策略"
   },
-  "lesson": "未提取超时/降级SE：BPM审批系统不可用时善意关怀提交的降级策略"
+  "lesson": "未提取超时/降级SE：BPM审批系统不可用时善意关怀提交的降级策略",
+  "case_category": "DOC_SKILL_DRIFT"
 }

@@ -12,5 +12,6 @@
   "expected": "{\"content\": \"（需人工确认）\"}",
   "actual": "{\"content\": \"@周鹏工单节点信息有处理国际化，但是修改“用户信息”中的“性别”字段，未自测覆盖到 枚举没用通用工具覆盖\"}",
   "lesson": "@周鹏工单节点信息有处理国际化，但是修改“用户信息”中的“性别”字段，未自测覆盖到 枚举没用通用工具覆盖",
-  "holdout": "False"
+  "holdout": "False",
+  "case_category": "STRUCTURED_SCHEMA"
 }

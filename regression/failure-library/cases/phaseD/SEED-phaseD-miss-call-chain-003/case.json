@@ -25,5 +25,6 @@
     "content": "评审报告只覆盖了 PaymentService 的业务逻辑，Gateway 层未提及"
   },
   "lesson": "DDD+TMF 项目的代码评审必须追踪完整调用链到 Gateway 层。每个 RPC/HTTP 调用点必须检查：超时配置、重试策略、降级方案、补偿机制。",
-  "holdout": false
+  "holdout": false,
+  "case_category": "DOC_SKILL_DRIFT"
 }

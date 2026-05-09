@@ -24,6 +24,7 @@
   "actual": {
     "content": "没有考虑政策版本，设计遗漏"
   },
-  "lesson": "",
-  "holdout": false
+  "lesson": "PRD 遗漏了关键需求点，Phase A 的完备性检查未覆盖",
+  "holdout": false,
+  "case_category": "STRUCTURED_SCHEMA"
 }

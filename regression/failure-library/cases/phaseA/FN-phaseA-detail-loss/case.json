@@ -24,5 +24,6 @@
     "content": "新版 BR 只写了概括性描述如'自动查询保司信息并回传展示'，丢失了具体回传的9个字段"
   },
   "lesson": "BR 是验收条件级别，必须细到能直接写测试用例。概括性描述属于 REQ 级别，不是 BR 级别。",
-  "holdout": false
+  "holdout": false,
+  "case_category": "DOC_SKILL_DRIFT"
 }

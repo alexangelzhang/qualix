@@ -13,5 +13,6 @@
   "expected": "{\"content\": \"针对提示语正确性做断言；\"}",
   "actual": "{\"content\": \"提示语错误，责任人未做好细节验收，预期报错提示未和需求完全一致,调整报错提示\"}",
   "lesson": "针对提示语正确性做断言；",
-  "holdout": "False"
+  "holdout": "False",
+  "case_category": "STRUCTURED_SCHEMA"
 }

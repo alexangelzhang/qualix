@@ -24,6 +24,7 @@
   "actual": {
     "content": "非bug，线上就是这样，log信息不刷新"
   },
-  "lesson": "",
-  "holdout": false
+  "lesson": "开发对需求的理解与产品意图不一致，需要在 Phase A 阶段加强需求确认",
+  "holdout": false,
+  "case_category": "STRUCTURED_SCHEMA"
 }

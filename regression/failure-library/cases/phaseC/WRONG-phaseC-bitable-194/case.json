@@ -26,5 +26,6 @@
     "content": "单测断言覆盖不够，未覆盖排序场景"
   },
   "lesson": "提升单测覆盖率",
-  "holdout": false
+  "holdout": false,
+  "case_category": "STRUCTURED_SCHEMA"
 }

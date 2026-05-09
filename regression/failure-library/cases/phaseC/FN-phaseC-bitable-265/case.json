@@ -24,6 +24,7 @@
   "actual": {
     "content": "查询完成后没有过滤掉自身工单"
   },
-  "lesson": "",
-  "holdout": false
+  "lesson": "新增/修改的函数缺少对应单测，需要补充单测覆盖",
+  "holdout": false,
+  "case_category": "STRUCTURED_SCHEMA"
 }

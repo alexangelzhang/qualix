@@ -26,5 +26,6 @@
     "content": "数据获取bug，导致获取字段的地方出现偏差"
   },
   "lesson": "关注数据来源，增加数据正确性校验",
-  "holdout": false
+  "holdout": false,
+  "case_category": "STRUCTURED_SCHEMA"
 }

@@ -22,5 +22,6 @@
     "content": "把如转译有误请联系总部运营写成了流程判断节点"
   },
   "lesson": "流程图中系统行为和UI提示必须区分，提示文案不能作为流程节点",
-  "holdout": false
+  "holdout": false,
+  "case_category": "DOC_SKILL_DRIFT"
 }

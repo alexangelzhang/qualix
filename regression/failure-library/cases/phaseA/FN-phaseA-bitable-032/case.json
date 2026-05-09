@@ -25,5 +25,6 @@
     "content": "设计阶段遗漏了一个状态"
   },
   "lesson": "加强技术方案设计确认",
-  "holdout": true
+  "holdout": true,
+  "case_category": "STRUCTURED_SCHEMA"
 }

@@ -13,5 +13,6 @@
   "expected": "{\"content\": \"提升单测覆盖率\"}",
   "actual": "{\"content\": \"历史问题,\"}",
   "lesson": "提升单测覆盖率",
-  "holdout": "False"
+  "holdout": "False",
+  "case_category": "STRUCTURED_SCHEMA"
 }

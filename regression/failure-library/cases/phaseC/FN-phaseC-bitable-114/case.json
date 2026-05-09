@@ -26,5 +26,6 @@
     "content": "新增接口缺少source_type字段过滤，导致返回多了数据"
   },
   "lesson": "下游正确性自测闭环，联调及测试阶段，对多入口展示的同一份基础数据做交叉对比验证",
-  "holdout": false
+  "holdout": false,
+  "case_category": "STRUCTURED_SCHEMA"
 }

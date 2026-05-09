@@ -26,5 +26,6 @@
   "actual": {
     "content": "BPM 回调后 SubProcess 从 WAIT_APPROVE→APPROVED 和 WAIT_APPROVE→REJECTED 两条迁移路径，后者无 EUT"
   },
-  "lesson": "BPM 回调后 SubProcess 从 WAIT_APPROVE→APPROVED 和 WAIT_APPROVE→REJECTED 两条迁移路径，后者无 EUT"
+  "lesson": "BPM 回调后 SubProcess 从 WAIT_APPROVE→APPROVED 和 WAIT_APPROVE→REJECTED 两条迁移路径，后者无 EUT",
+  "case_category": "DOC_SKILL_DRIFT"
 }

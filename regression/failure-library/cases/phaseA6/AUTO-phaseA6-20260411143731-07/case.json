@@ -23,6 +23,7 @@
   "actual": {
     "content": "issues.2.issue_id"
   },
-  "lesson": "",
-  "holdout": true
+  "lesson": "issues 条目 issue_id 或 severity 不符合 schema，禁止自造枚举词",
+  "holdout": true,
+  "case_category": "STRUCTURED_SCHEMA"
 }

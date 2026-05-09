@@ -13,5 +13,6 @@
   "expected": "{\"content\": \"测试覆盖不全\"}",
   "actual": "{\"content\": \"走Dubbo远程时，有几个对象未做序列化\"}",
   "lesson": "测试覆盖不全",
-  "holdout": "False"
+  "holdout": "False",
+  "case_category": "STRUCTURED_SCHEMA"
 }

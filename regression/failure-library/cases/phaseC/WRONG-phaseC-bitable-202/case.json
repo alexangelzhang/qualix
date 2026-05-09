@@ -26,5 +26,6 @@
     "content": "sql语句边界条件未覆盖到"
   },
   "lesson": "提高单测场景覆盖度",
-  "holdout": false
+  "holdout": false,
+  "case_category": "STRUCTURED_SCHEMA"
 }

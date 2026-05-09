@@ -24,5 +24,6 @@
     "content": "只按功能模块拆分了REQ/BR，没有从用户角度描述完整的操作流程"
   },
   "lesson": "研发需要的不只是每个字段是什么，还需要用户从头到尾怎么操作。操作流程是理解需求的关键视角。",
-  "holdout": true
+  "holdout": true,
+  "case_category": "DOC_SKILL_DRIFT"
 }

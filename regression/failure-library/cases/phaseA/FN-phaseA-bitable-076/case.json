@@ -25,5 +25,6 @@
     "content": "维修门店本次不传，但是对应的字段之前是必传，在不传对应字段是报错"
   },
   "lesson": "增加单测场景覆盖",
-  "holdout": false
+  "holdout": false,
+  "case_category": "STRUCTURED_SCHEMA"
 }

@@ -24,5 +24,6 @@
     "content": "MINOR: 建议使用 BigDecimal 替代 double（代码风格）"
   },
   "lesson": "涉及金额/费用/价格的计算问题一律标为 BLOCKER，不是代码风格问题。Judge 的 anti-rationalization table 已包含此规则。",
-  "holdout": true
+  "holdout": true,
+  "case_category": "DOC_SKILL_DRIFT"
 }

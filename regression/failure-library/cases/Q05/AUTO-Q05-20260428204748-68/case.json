@@ -23,5 +23,6 @@
   "actual": {
     "content": "Value error, EUT then 字段缺少具体性: '标记已提前交车'。需包含断言方法、具体值、状态码、异常类型等可验证内容。 [type=value_error, input_value='标记已提前交车', input_type=str]"
   },
-  "lesson": ""
+  "lesson": "EUT then 须写具体断言与期望值，禁止「验证成功」等模糊描述",
+  "case_category": "ASSERTION_QUALITY"
 }

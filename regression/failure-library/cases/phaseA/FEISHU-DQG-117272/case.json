@@ -12,5 +12,6 @@
   "expected": "{\"content\": \"（需人工确认）\"}",
   "actual": "{\"content\": \"前端业务逻辑复杂，极端情况下此场景存在设计遗漏，和产品沟通后增加默认兜底解决\"}",
   "lesson": "前端业务逻辑复杂，极端情况下此场景存在设计遗漏，和产品沟通后增加默认兜底解决",
-  "holdout": "False"
+  "holdout": "False",
+  "case_category": "STRUCTURED_SCHEMA"
 }

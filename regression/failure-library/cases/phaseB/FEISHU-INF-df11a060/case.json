@@ -12,5 +12,6 @@
   "expected": "{\"content\": \"（根据bug描述推理，需人工确认）\"}",
   "actual": "{\"content\": \"配件寄存，搜索框与状态筛选没有联动。预期:通过搜索框查询后，进行状态筛选，应该筛选出符合条件的数据\"}",
   "lesson": "筛选联动逻辑未覆盖",
-  "holdout": "False"
+  "holdout": "False",
+  "case_category": "STRUCTURED_SCHEMA"
 }

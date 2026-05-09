@@ -23,5 +23,6 @@
   "actual": {
     "content": "1 validation error for PhaseA5Output"
   },
-  "lesson": ""
+  "lesson": "结构化输出不符合 schema 约束，检查字段类型和必填项",
+  "case_category": "STRUCTURED_SCHEMA"
 }

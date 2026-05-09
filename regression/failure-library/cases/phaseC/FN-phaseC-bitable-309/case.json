@@ -24,6 +24,7 @@
   "actual": {
     "content": "缺少扫码某门店后，可查询非当前门店的预约单展示的单测场景"
   },
-  "lesson": "",
-  "holdout": false
+  "lesson": "函数的异常分支缺少单测覆盖，需要补充 Exception Path 测试",
+  "holdout": false,
+  "case_category": "STRUCTURED_SCHEMA"
 }

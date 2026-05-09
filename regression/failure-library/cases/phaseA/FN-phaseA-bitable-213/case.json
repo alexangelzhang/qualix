@@ -25,6 +25,7 @@
   "actual": {
     "content": "前端展示dos字段只截取小数点后两位，后端比较时未截取比较"
   },
-  "lesson": "",
-  "holdout": false
+  "lesson": "开发对需求的理解与产品意图不一致，需要在 Phase A 阶段加强需求确认",
+  "holdout": false,
+  "case_category": "STRUCTURED_SCHEMA"
 }

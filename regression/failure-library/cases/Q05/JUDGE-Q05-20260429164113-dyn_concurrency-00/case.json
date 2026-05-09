@@ -26,5 +26,6 @@
   "actual": {
     "content": "EUT-039/045 验证了 BPM 回调幂等（相同 processInstanceId 重复回调），但未验证两个不同审批人同时审批的并发场景（SE-013 的核心语义）"
   },
-  "lesson": "EUT-039/045 验证了 BPM 回调幂等（相同 processInstanceId 重复回调），但未验证两个不同审批人同时审批的并发场景（SE-013 的核心语义）"
+  "lesson": "EUT-039/045 验证了 BPM 回调幂等（相同 processInstanceId 重复回调），但未验证两个不同审批人同时审批的并发场景（SE-013 的核心语义）",
+  "case_category": "CROSS_PHASE_IDS"
 }

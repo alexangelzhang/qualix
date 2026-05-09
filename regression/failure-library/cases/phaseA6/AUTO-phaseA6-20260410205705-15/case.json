@@ -23,6 +23,7 @@
   "actual": {
     "content": "For further information visit https://errors.pydantic.dev/2.12/v/enum"
   },
-  "lesson": "",
-  "holdout": false
+  "lesson": "Pydantic 校验失败，结构化输出的字段类型与 schema 定义不一致",
+  "holdout": false,
+  "case_category": "STRUCTURED_SCHEMA"
 }

@@ -24,6 +24,7 @@
   "actual": {
     "content": "没有明确定义，历史线上就这样，本轮修复"
   },
-  "lesson": "",
-  "holdout": true
+  "lesson": "PRD 描述模糊导致实现偏差，应在 Phase A 标记为 GAP/OPEN",
+  "holdout": true,
+  "case_category": "DOC_SKILL_DRIFT"
 }

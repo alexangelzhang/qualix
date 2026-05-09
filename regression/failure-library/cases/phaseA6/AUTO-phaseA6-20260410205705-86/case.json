@@ -23,6 +23,7 @@
   "actual": {
     "content": "Field required [type=missing, input_value={'scenario': '批量下...': '改为异步打包'}, input_type=dict]"
   },
-  "lesson": "",
-  "holdout": false
+  "lesson": "必填字段缺失",
+  "holdout": false,
+  "case_category": "STRUCTURED_SCHEMA"
 }

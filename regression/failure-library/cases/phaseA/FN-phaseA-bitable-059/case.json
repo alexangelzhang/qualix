@@ -26,5 +26,6 @@
     "content": "需求理解不一致导致，研发认为的pid字段与测试理解的不一致"
   },
   "lesson": "需要明确每个字段定义，避免歧义",
-  "holdout": true
+  "holdout": true,
+  "case_category": "STRUCTURED_SCHEMA"
 }

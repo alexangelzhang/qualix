@@ -26,5 +26,6 @@
     "content": "未做格式转化"
   },
   "lesson": "增加内容格式比对",
-  "holdout": false
+  "holdout": false,
+  "case_category": "STRUCTURED_SCHEMA"
 }

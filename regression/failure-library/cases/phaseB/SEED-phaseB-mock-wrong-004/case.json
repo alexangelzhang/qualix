@@ -24,5 +24,6 @@
     "content": "Mock 返回空对象或默认值，掩盖了真实调用时的字段缺失问题"
   },
   "lesson": "Mock 返回值必须符合接口契约，至少包含被测方法会访问的所有字段。建议从技术方案的 DTO 定义中提取必填字段构造 mock 数据。",
-  "holdout": false
+  "holdout": false,
+  "case_category": "DOC_SKILL_DRIFT"
 }

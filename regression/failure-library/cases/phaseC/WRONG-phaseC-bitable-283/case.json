@@ -25,5 +25,6 @@
     "content": "同一个作业单号可以有多条数据，没有做到对应场景的兼容，单测没有做到覆盖"
   },
   "lesson": "增加分支覆盖",
-  "holdout": true
+  "holdout": true,
+  "case_category": "STRUCTURED_SCHEMA"
 }

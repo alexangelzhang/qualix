@@ -26,6 +26,7 @@
   "actual": {
     "content": "未获取到版本标识导致请求未染色成功，仍然请求老的xmx权限\n根因是 x-uid 头的写成了uid，且自测用例未覆盖"
   },
-  "lesson": "",
-  "holdout": false
+  "lesson": "对照 Phase skill、schema 与历史反例复盘本案例；修复后更新 case 状态并补充可复现片段。",
+  "holdout": false,
+  "case_category": "STRUCTURED_SCHEMA"
 }

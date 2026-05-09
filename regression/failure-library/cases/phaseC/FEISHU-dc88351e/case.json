@@ -13,5 +13,6 @@
   "expected": "{\"content\": \"增加单测验证 幂等逻辑代码分支 以及返回结果正确性，\"}",
   "actual": "{\"content\": \"1. 幂等校验错误；\"}",
   "lesson": "增加单测验证 幂等逻辑代码分支 以及返回结果正确性，",
-  "holdout": "False"
+  "holdout": "False",
+  "case_category": "STRUCTURED_SCHEMA"
 }

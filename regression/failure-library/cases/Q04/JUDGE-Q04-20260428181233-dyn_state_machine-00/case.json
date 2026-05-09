@@ -26,5 +26,6 @@
   "actual": {
     "content": "GAP-002标未闭环但未分析代驾单取消对状态机的具体影响路径"
   },
-  "lesson": "GAP-002标未闭环但未分析代驾单取消对状态机的具体影响路径"
+  "lesson": "GAP-002标未闭环但未分析代驾单取消对状态机的具体影响路径",
+  "case_category": "DOC_SKILL_DRIFT"
 }

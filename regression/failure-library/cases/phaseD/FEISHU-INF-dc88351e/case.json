@@ -12,5 +12,6 @@
   "expected": "{\"content\": \"（根据bug描述推理，需人工确认）\"}",
   "actual": "{\"content\": \"少件详情里的少件入库，点击入库后，重复调用接口，能调用成功，库存也会增加。预期：只有第一次增加，之后应该拦截\"}",
   "lesson": "bug描述含\"重复\"关键词，疑似幂等问题",
-  "holdout": "False"
+  "holdout": "False",
+  "case_category": "STRUCTURED_SCHEMA"
 }

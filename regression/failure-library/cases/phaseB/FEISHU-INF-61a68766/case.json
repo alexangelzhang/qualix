@@ -12,5 +12,6 @@
   "expected": "{\"content\": \"（根据bug描述推理，需人工确认）\"}",
   "actual": "{\"content\": \"接口/publicCharger/station/equipment/basicInfo/list日志没有打印策略字段\"}",
   "lesson": "日志缺失，正常分支逻辑遗漏",
-  "holdout": "False"
+  "holdout": "False",
+  "case_category": "STRUCTURED_SCHEMA"
 }

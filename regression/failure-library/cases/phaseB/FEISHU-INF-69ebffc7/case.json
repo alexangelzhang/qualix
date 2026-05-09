@@ -12,5 +12,6 @@
   "expected": "{\"content\": \"（根据bug描述推理，需人工确认）\"}",
   "actual": "{\"content\": \"配件采购列表，只看有可索赔少件筛选，和状态筛选没有联动，切换状态，数据没有变化。预期：切换状态，数据显示对应状态的数据\"}",
   "lesson": "筛选联动逻辑未覆盖",
-  "holdout": "False"
+  "holdout": "False",
+  "case_category": "STRUCTURED_SCHEMA"
 }

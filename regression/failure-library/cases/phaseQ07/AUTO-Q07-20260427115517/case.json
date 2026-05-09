@@ -7,5 +7,6 @@
   "fingerprint": "8a127098a7941b84",
   "source_signature": "finance-model",
   "auto_generated": true,
-  "timestamp": "2026-04-27T11:55:17.002751"
+  "timestamp": "2026-04-27T11:55:17.002751",
+  "case_category": "DOC_SKILL_DRIFT"
 }

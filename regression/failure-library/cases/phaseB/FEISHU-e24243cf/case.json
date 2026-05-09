@@ -13,5 +13,6 @@
   "expected": "{\"content\": \"需要补充新增枚举类型的单测\"}",
   "actual": "{\"content\": \"旧代码改造，新增一个枚举类型。但是查询语句没有做改造，查询语句有个白名单过滤逻辑，没有新增这个枚举值。导致被过滤了。\"}",
   "lesson": "需要补充新增枚举类型的单测",
-  "holdout": "False"
+  "holdout": "False",
+  "case_category": "STRUCTURED_SCHEMA"
 }

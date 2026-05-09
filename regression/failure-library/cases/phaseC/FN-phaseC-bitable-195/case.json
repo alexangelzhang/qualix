@@ -26,5 +26,6 @@
     "content": "测试用例应该覆盖超级工单号和维保单号创建远诊吗，通过维保单号创建远诊未覆盖"
   },
   "lesson": "提升单测覆盖率",
-  "holdout": true
+  "holdout": true,
+  "case_category": "STRUCTURED_SCHEMA"
 }

@@ -12,5 +12,6 @@
   "expected": "{\"content\": \"（根据bug描述推理，需人工确认）\"}",
   "actual": "{\"content\": \"灰度放量配置task配置百分比是0，但是执行AddressRefreshTask走的是dubbo，预期是走spring\"}",
   "lesson": "灰度/配置分支逻辑不正确",
-  "holdout": "False"
+  "holdout": "False",
+  "case_category": "STRUCTURED_SCHEMA"
 }

@@ -24,6 +24,7 @@
   "actual": {
     "content": "@罗杰加了接口，接口兼容场景，调试阶段上到测试环境，以为没影响"
   },
-  "lesson": "",
-  "holdout": false
+  "lesson": "单测存在但未被 CI 执行，检查测试配置和运行范围",
+  "holdout": false,
+  "case_category": "DOC_SKILL_DRIFT"
 }

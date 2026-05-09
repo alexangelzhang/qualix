@@ -12,5 +12,6 @@
   "expected": "{\"content\": \"（需人工确认）\"}",
   "actual": "{\"content\": \"展示可用保险和算费兼容意外+延保物料漏了算费部分\"}",
   "lesson": "展示可用保险和算费兼容意外+延保物料漏了算费部分",
-  "holdout": "False"
+  "holdout": "False",
+  "case_category": "STRUCTURED_SCHEMA"
 }

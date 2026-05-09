@@ -25,5 +25,6 @@
     "content": "单测编写阶段滞后，提测后研发才开始准备"
   },
   "lesson": "写完单测再进行提测",
-  "holdout": false
+  "holdout": false,
+  "case_category": "STRUCTURED_SCHEMA"
 }

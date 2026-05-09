@@ -24,6 +24,7 @@
   "actual": {
     "content": "sql按照条件查询，未按变更的ID列表查询，导致大数据量情况下sql查询超时"
   },
-  "lesson": "",
-  "holdout": false
+  "lesson": "代码存在性能瓶颈，Phase D 评审应包含性能维度检查",
+  "holdout": false,
+  "case_category": "STRUCTURED_SCHEMA"
 }

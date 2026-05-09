@@ -24,6 +24,7 @@
   "actual": {
     "content": "prd文案没定义，延用顿号"
   },
-  "lesson": "",
-  "holdout": false
+  "lesson": "PRD 描述模糊导致实现偏差，应在 Phase A 标记为 GAP/OPEN",
+  "holdout": false,
+  "case_category": "DOC_SKILL_DRIFT"
 }

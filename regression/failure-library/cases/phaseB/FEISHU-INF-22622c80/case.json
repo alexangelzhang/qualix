@@ -12,5 +12,6 @@
   "expected": "{\"content\": \"未及时暂停测试，已知问题\"}",
   "actual": "{\"content\": \"因为支持技能市场项目，未能及时与qa沟通暂停，上周问题已经修复，没能及时提交修改。原因是：走Dubbo远程时，有几个接口的对象未做序列化\"}",
   "lesson": "未及时暂停测试，已知问题",
-  "holdout": "False"
+  "holdout": "False",
+  "case_category": "STRUCTURED_SCHEMA"
 }
