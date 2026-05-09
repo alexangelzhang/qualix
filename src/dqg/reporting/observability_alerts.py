@@ -18,6 +18,7 @@ def build_alerts(
     block_spike_ratio: float,
     phase_failure_threshold: float,
     failure_library: dict[str, Any] | None = None,
+    extra_alerts: list[dict[str, Any]] | None = None,
 ) -> list[dict[str, Any]]:
     alerts: list[dict[str, Any]] = []
     today_rows = [r for r in history if r.get("date") == current_label]
@@ -72,6 +73,8 @@ def build_alerts(
                         "message": f"失败样例回归失败: week={week.get('label')}, failed={failed_cases}, total={total_cases}",
                     }
                 )
+    if extra_alerts:
+        alerts.extend(extra_alerts)
     return alerts
 
 
