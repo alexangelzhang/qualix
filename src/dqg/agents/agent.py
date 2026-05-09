@@ -407,23 +407,33 @@ class Agent:
         if final_content.strip():
             raw_trajectory.append({"role": "assistant", "content": final_content.strip()})
 
-        from dqg.reporting.telemetry_payload import maybe_sample_agent_payload
+        from dqg.reporting.telemetry_payload import (
+            build_prompt_preview,
+            maybe_sample_agent_payload,
+            read_telemetry_span,
+            telemetry_payload_max_chars,
+        )
 
         fc = final_content.strip()
         prompt_ex, resp_ex = maybe_sample_agent_payload(messages, fc)
 
-        if prompt_ex and self.output_dir:
+        # Review fix #1: prompt 版本库存储从采样率解耦 —— 全量去重存储，
+        # 采样只影响 telemetry excerpt。UNIQUE(prompt_hash, content_hash)
+        # 保证相同内容不会重复入库，体积可控。
+        if self.output_dir:
             try:
                 from dqg.store.prompt_versions import record_prompt_snapshot
 
-                tr = str((telemetry_span or {}).get("trace_run_id", "") or "")
+                prompt_max, _ = telemetry_payload_max_chars()
+                prompt_full = build_prompt_preview(messages, prompt_max)
+                trace_run_id = read_telemetry_span(telemetry_span, "trace_run_id")
                 record_prompt_snapshot(
                     self.output_dir,
                     prompt_hash=prompt_hash,
-                    prompt_text=prompt_ex,
+                    prompt_text=prompt_full,
                     agent_name=self.name,
                     agent_role=self.role,
-                    trace_run_id=tr,
+                    trace_run_id=trace_run_id,
                 )
             except Exception:
                 log.debug("prompt_versions snapshot skipped", exc_info=True)

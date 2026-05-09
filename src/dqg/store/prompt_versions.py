@@ -8,7 +8,10 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+from dqg.log import get_logger
 from dqg.store.core import get_connection, row_to_dict
+
+log = get_logger(__name__)
 
 
 def _enabled() -> bool:
@@ -58,6 +61,7 @@ def record_prompt_snapshot(
             )
         return ver
     except Exception:
+        log.debug("prompt_versions record failed", exc_info=True)
         return None
 
 

@@ -10,6 +10,23 @@ _DEFAULT_SAMPLE_RATE = 0.02
 _DEFAULT_PROMPT_MAX = 8000
 _DEFAULT_RESPONSE_MAX = 4000
 
+# Telemetry span dict 允许的 key —— review fix #2：集中语义，避免散落的
+# dict.get() 调用慢慢腐烂。TODO: 任务量允许时升级为 @dataclass TelemetrySpan。
+TELEMETRY_SPAN_KEYS = frozenset({"trace_run_id", "phase_id", "iteration", "agent_name"})
+
+
+def read_telemetry_span(span: dict[str, Any] | None, key: str, default: str = "") -> str:
+    """从 telemetry_span dict 读取一个已注册的 key，未注册的 key 直接抛断言。
+
+    当前故意不升级为 dataclass：跨多个 call site 的同步成本大，且目前只有
+    trace_run_id 一个 key 被实际消费。当 span 成员增加到 3+ 时再收敛。
+    """
+    assert key in TELEMETRY_SPAN_KEYS, f"unknown telemetry span key: {key}"
+    if not span:
+        return default
+    value = span.get(key, default)
+    return str(value) if value is not None else default
+
 
 def telemetry_payload_sample_rate() -> float:
     raw = os.environ.get("DQG_TELEMETRY_PAYLOAD_SAMPLE_RATE", str(_DEFAULT_SAMPLE_RATE)).strip()
