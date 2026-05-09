@@ -165,6 +165,18 @@ _DYNAMIC_DIMENSION_TEMPLATES: Final[dict[str, dict[str, Any]]] = {
 }
 
 
+# Q01 必查业务语义域：即使 SE 0 命中也生成对应维度，让 Judge 能打低分触发 fail_threshold
+# 解决"生成侧失败导致评分侧盲区"问题——如 PRD 明显有 BPM 依赖但旧 SE 没触及关键词，
+# 按默认生成逻辑 dyn_external_dependency 压根不生成，门限管不到。
+_REQUIRED_DOMAINS: Final[tuple[str, ...]] = (
+    "状态机",
+    "并发安全",
+    "外部依赖",
+    "异常恢复",
+    "数据一致性",
+)
+
+
 def classify_se_domains(se_list: list[dict[str, Any]]) -> dict[str, int]:
     """对 SE 列表按业务域分类，返回每个域的 SE 数量.
 
@@ -185,6 +197,7 @@ def generate_dynamic_dimensions(
     project_id: str,
     phase_id: str,
     min_se_count: int = 2,
+    required_domains: tuple[str, ...] | None = None,
 ) -> list[dict[str, Any]]:
     """根据 Phase A SE 分布生成动态评分维度.
 
@@ -193,37 +206,50 @@ def generate_dynamic_dimensions(
         project_id: 项目 ID
         phase_id: 当前 Phase ID
         min_se_count: 某个域至少有多少个 SE 才生成对应维度
+        required_domains: 必查维度白名单——即使 SE 0 命中也生成，让门限能管到
+            默认使用 _REQUIRED_DOMAINS（Q01 核心 5 个业务语义域）
 
     Returns:
         动态维度列表（可追加到静态 rubric 的 dimensions 中）
     """
     from dqg.constants import PHASE_DIR_MAP, STRUCTURED_JSON_MAP
 
+    if required_domains is None:
+        required_domains = _REQUIRED_DOMAINS
+
     phase_a_path = output_dir / project_id / PHASE_DIR_MAP["Q01"] / STRUCTURED_JSON_MAP["Q01"]
-    if not phase_a_path.exists():
-        return []
 
-    data = load_json(phase_a_path)
-    if not data:
-        return []
+    se_list: list[dict[str, Any]] = []
+    if phase_a_path.exists():
+        data = load_json(phase_a_path)
+        if data:
+            se_list = data.get("semantic_expectations", [])
 
-    se_list = data.get("semantic_expectations", [])
-    if not se_list:
-        return []
+    domain_counts = classify_se_domains(se_list) if se_list else {}
 
-    domain_counts = classify_se_domains(se_list)
-    if not domain_counts:
-        return []
+    # 合并：所有命中过 min_se_count 的域 + 必查白名单（即使命中=0 也包含）
+    selected_domains: set[str] = {d for d, c in domain_counts.items() if c >= min_se_count}
+    selected_domains.update(required_domains)
 
     dynamic_dims: list[dict[str, Any]] = []
-    for domain, count in sorted(domain_counts.items(), key=lambda x: -x[1]):
-        if count < min_se_count:
-            continue
+    # 先按命中数排序生成（命中多的优先），必查但 0 命中的排后面
+    ordered = sorted(
+        selected_domains,
+        key=lambda d: (-domain_counts.get(d, 0), d),
+    )
+    for domain in ordered:
         template = _DYNAMIC_DIMENSION_TEMPLATES.get(domain)
         if not template:
             continue
+        count = domain_counts.get(domain, 0)
+        is_required = domain in required_domains
         dim = dict(template)
-        dim["description"] = f"[{count} SE] {dim['description']}"
+        marker = (
+            "[必查" + (f", {count} SE 命中]" if count else ", 0 SE 命中 — 按门限兜底]")
+            if is_required
+            else f"[{count} SE]"
+        )
+        dim["description"] = f"{marker} {dim['description']}"
         dynamic_dims.append(dim)
 
     if dynamic_dims:

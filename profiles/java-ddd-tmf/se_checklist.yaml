@@ -58,7 +58,7 @@ dimensions:
   - id: data_consistency
     name: 数据一致性
     optional: false
-    applies_when: "PRD 涉及多表更新、多系统交互、异步操作"
+    applies_when: "PRD 涉及多表更新、多系统交互、异步操作、两个入口、多入口、同步、一致性、冗余字段、数据对齐"
     questions:
       - "跨表/跨服务的数据更新是否在同一事务内？"
       - "异步操作（消息队列/回调）失败时数据是否会不一致？"
@@ -92,6 +92,17 @@ dimensions:
       - "中间步骤失败时的回滚/补偿策略？"
       - "失败后能否重试？重试是否幂等？"
       - "异常状态的数据是否会被后续流程误读？"
+    se_examples:
+      - scenario: "用户操作失败（提交/保存/审批拒绝）后的数据处理规则"
+        bad_se: "失败时回滚数据"
+        good_se:
+          description: "用户提交 {业务动作} 失败时（校验/依赖/超时任一失败），本次输入的 {字段列表} 必须在前端保留至少 {N 分钟} 供重试；后端侧不得留下任何 status=PROCESSING 的中间态记录，否则视为数据孤岛"
+          verification: "Mock 依赖抛异常触发失败；断言 GET 该业务主键详情无 PROCESSING 记录；断言前端表单 fields 与提交时完全一致（包括输入顺序、格式）；{N 分钟} 内发起重试断言成功；{N+1 分钟} 后前端表单自动清空"
+      - scenario: "可撤销的业务动作（如撤销申请/撤回审批）被调用后的状态回退目标"
+        bad_se: "撤销后恢复原状态"
+        good_se:
+          description: "{业务动作} 被撤销后，业务对象必须回退到撤销发起前的 {明确的前置状态}（不是「未知原状态」），且数据库 audit_log 有 1 条 status=CANCELLED_BY_USER 记录标注撤销人/时间/前置状态；用户再次发起同动作时必须走新流程（新 ID），不得复用撤销记录"
+          verification: "构造：状态迁移链 A→B→C 中，在 C 处撤销；断言回到 B（非 A）；SELECT * FROM audit_log WHERE action='CANCEL' AND target_id=? 恰有 1 条，字段 previous_status=B；用户再发起进入状态 B→C，断言新产生的记录 id 与原 id 不同"
 
   - id: time_window
     name: 时间窗口
@@ -105,7 +116,7 @@ dimensions:
   - id: external_dependency
     name: 外部依赖
     optional: false
-    applies_when: "PRD 涉及调用外部系统/中台/第三方"
+    applies_when: "PRD 涉及调用外部系统/中台/第三方/审批/BPM/支付网关/风控/发券/外部接口"
     questions:
       - "外部系统超时/不可用时的降级策略？"
       - "外部系统返回异常数据时的校验和兜底？"

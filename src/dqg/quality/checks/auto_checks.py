@@ -104,6 +104,8 @@ def auto_derive_checks(
                 errors.extend(_check_severity_annotations(validated, phase_id))
                 # --- 5. Location 覆盖校验（Q06 COVERED 必须有 test_location）---
                 errors.extend(_check_location_coverage(validated, phase_id))
+                # --- 6. SE verification 质量校验（Q01 WARN 级，不阻断）---
+                errors.extend(_check_se_verification_quality(validated, phase_id))
 
     # --- 5. RSM 覆盖率校验（跨 Phase，在 A.5/B/D finalize 时触发）---
     if phase_id in {"Q04", "Q05", "Q06", "Q07"}:
@@ -173,6 +175,47 @@ def _check_location_coverage(validated: BaseModel, phase_id: str) -> list[str]:
         if str(status) == "COVERED" and test_location is None:
             errors.append(
                 f"LOCATION: {eut_id}: status=COVERED 但 test_location 为空，降级为 PARTIAL。请补充测试代码坐标。"
+            )
+    return errors
+
+
+_VERIFICATION_STRONG_ANCHORS: Final = (
+    "断言",
+    "assert",
+    "SELECT",
+    "HTTP",
+    "errorCode",
+    "参数化",
+    "Mock",
+    "verify(",
+    "CountDownLatch",
+    "断点",
+    "DB",
+)
+
+
+def _check_se_verification_quality(validated: BaseModel, phase_id: str) -> list[str]:
+    """Q01 SE 的 verification 字段质量 WARN 级检查（不阻断，仅提醒）。
+
+    只在 verification **非空且明显弱**时报 WARN。弱写法：
+    - 长度 < 20 字符
+    - 或不含任何强锚点词（断言/assert/SELECT/HTTP/errorCode/Mock/CountDownLatch/参数化 等）
+
+    verification 为空（历史产物）不报——schema 允许 default=""，兼容存量数据。
+    """
+    if phase_id != "Q01":
+        return []
+    errors: list[str] = []
+    for se in getattr(validated, "semantic_expectations", []):
+        verification = getattr(se, "verification", "")
+        if not verification:
+            continue  # 空字段视为未提供，不报
+        weak = len(verification) < 20 or not any(anchor in verification for anchor in _VERIFICATION_STRONG_ANCHORS)
+        if weak:
+            se_id = getattr(se, "se_id", "SE-?")
+            errors.append(
+                f"WARN: {se_id} verification 写法弱（长度={len(verification)}，"
+                "无断言/SQL/HTTP 等强锚点），建议补至 se_checklist ✓ 示例强度"
             )
     return errors
 

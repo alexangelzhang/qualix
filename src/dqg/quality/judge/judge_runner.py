@@ -46,6 +46,16 @@ class JudgeResult:
 class JudgeRunner:
     """Unified Judge execution with primary→fallback model chain."""
 
+    def __init__(self, rubric_dims: list[dict[str, Any]] | None = None) -> None:
+        """Initialize runner.
+
+        Args:
+            rubric_dims: 可选的评分维度定义（含 fail_threshold），传入后
+                内部 _call_judge 调 normalize 时会自动应用门限机制。
+                不传则保持旧行为（只加权平均打分，不做门限降级）。
+        """
+        self._rubric_dims = rubric_dims
+
     @staticmethod
     def normalize(
         raw: dict[str, Any],
@@ -166,7 +176,7 @@ class JudgeRunner:
                 JUDGE_RESPONSE_SCHEMA,
                 max_tokens=2000,
             )
-            result = self.normalize(structured.parsed, raw_output=structured.raw_text)
+            result = self.normalize(structured.parsed, raw_output=structured.raw_text, rubric_dims=self._rubric_dims)
             result.model = model
             result.token_usage = structured.provider_meta.get("usage", {})
             log.info("JudgeRunner %s: verdict=%s, overall=%.1f", model, result.verdict, result.overall_score)

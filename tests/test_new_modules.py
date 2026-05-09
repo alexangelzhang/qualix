@@ -73,10 +73,22 @@ class TestDynamicRubric:
         assert domains.get("并发安全", 0) == 1
 
     def test_generate_dynamic_dimensions_empty(self, tmp_path):
+        """老行为：required_domains=() 时无 SE 返回空列表."""
         from dqg.quality.dynamic_rubric import generate_dynamic_dimensions
 
-        dims = generate_dynamic_dimensions(tmp_path, "nonexistent", "Q01")
+        dims = generate_dynamic_dimensions(tmp_path, "nonexistent", "Q01", required_domains=())
         assert dims == []
+
+    def test_generate_dynamic_dimensions_required_defaults(self, tmp_path):
+        """新行为：默认必查白名单即使 SE 0 命中也生成 5 个维度兜底."""
+        from dqg.quality.dynamic_rubric import _REQUIRED_DOMAINS, generate_dynamic_dimensions
+
+        dims = generate_dynamic_dimensions(tmp_path, "nonexistent", "Q01")
+        assert len(dims) == len(_REQUIRED_DOMAINS)
+        # 所有必查维度都带"0 SE 命中 — 按门限兜底"标记
+        for d in dims:
+            assert "0 SE 命中" in d["description"]
+            assert d.get("fail_threshold") == 2
 
     def test_enrich_rubric_normalizes_weights(self):
         from dqg.quality.dynamic_rubric import enrich_rubric_with_dynamic_dimensions

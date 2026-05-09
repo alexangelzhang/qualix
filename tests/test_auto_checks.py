@@ -121,6 +121,43 @@ class TestAutoChecksPhaseA:
             errors = auto_derive_checks(output_dir, "test-proj", "Q01")
             assert any("SCHEMA" in e for e in errors)
 
+    def test_verification_empty_not_warned(self):
+        """verification 字段空字符串不报 WARN（兼容历史产物）."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            output_dir = _setup_phase_a(Path(tmpdir), VALID_PHASE_A)
+            errors = auto_derive_checks(output_dir, "test-proj", "Q01")
+            assert not any("WARN:" in e for e in errors)
+
+    def test_verification_weak_triggers_warn(self):
+        """verification 非空但弱（<20 字符 且 无强锚点）应该报 WARN."""
+        data = {
+            **VALID_PHASE_A,
+            "semantic_expectations": [
+                {"se_id": "SE-001", "description": "幂等校验", "verification": "防止重复"},
+            ],
+        }
+        with tempfile.TemporaryDirectory() as tmpdir:
+            output_dir = _setup_phase_a(Path(tmpdir), data)
+            errors = auto_derive_checks(output_dir, "test-proj", "Q01")
+            assert any("WARN:" in e and "SE-001" in e for e in errors)
+
+    def test_verification_strong_not_warned(self):
+        """verification 含强锚点词（断言/SELECT/HTTP 等）不报 WARN."""
+        data = {
+            **VALID_PHASE_A,
+            "semantic_expectations": [
+                {
+                    "se_id": "SE-001",
+                    "description": "幂等校验",
+                    "verification": "CountDownLatch 10 并发 POST；断言 1 次 2xx + 9 次 409+errorCode=DUP",
+                },
+            ],
+        }
+        with tempfile.TemporaryDirectory() as tmpdir:
+            output_dir = _setup_phase_a(Path(tmpdir), data)
+            errors = auto_derive_checks(output_dir, "test-proj", "Q01")
+            assert not any("WARN:" in e for e in errors)
+
 
 class TestAutoChecksPhaseA6:
     def test_valid_a6_passes(self):

@@ -79,10 +79,28 @@ def _run_single_judge(
     fallback: str,
     warning_override: str | None = None,
 ) -> JudgeVote | None:
-    """Thin wrapper: delegates to JudgeRunner, handles round orchestration."""
+    """Thin wrapper: delegates to JudgeRunner, handles round orchestration.
+
+    Q01 专用增强：自动从 report_path 推 project_id/phase_id，注入动态维度
+    让门限机制生效（任一维度 score<fail_threshold 会强制 verdict=FAIL）。
+    """
     from dqg.quality.judge_runner import JudgeRunner
 
-    runner = JudgeRunner()
+    rubric_dims: list[dict[str, Any]] | None = None
+    # 路径约定：output/{project_id}/{phase_id}/phase_a_report.md
+    try:
+        phase_id = report_path.parent.name
+        project_id = report_path.parent.parent.name
+    except (AttributeError, IndexError):
+        phase_id = ""
+        project_id = ""
+
+    if phase_id == "Q01" and project_id:
+        from dqg.quality.judge.dynamic_rubric import generate_dynamic_dimensions
+
+        rubric_dims = generate_dynamic_dimensions(output_dir, project_id, phase_id)
+
+    runner = JudgeRunner(rubric_dims=rubric_dims)
     result = runner.run(
         phase="",
         report_path=str(report_path),
