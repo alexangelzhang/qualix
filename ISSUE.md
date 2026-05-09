@@ -13,17 +13,17 @@
 
 | ID | 任务 | 档位 | 周数 | Owner | 交付物 | 依赖 | 代码 | 验收 |
 |----|------|------|------|-------|-------|------|------|------|
-| T1 | Q03 failure_modes schema + prompt 必填清单 | P0 | 0.5 | zhangyiqian3 | schema 修正 + Q03 skill prompt 必填表 | — | code | todo |
+| T1 | Q03 failure_modes schema + prompt 必填清单 | P0 | 0.5 | zhangyiqian3 | schema 修正 + Q03 skill prompt 必填表 | — | code | verified |
 | T2 | Q06 findings schema + prompt 必填清单 | P0 | 0.5 | zhangyiqian3 | `skills/unit-test-audit/references/phase_c_structured.schema.json` + Q06 skill 必填表 | — | code | todo |
-| T3 | Q05→Q06 EUT ID 子集硬约束 | P0 | 0.5 | zhangyiqian3 | `cross_phase_check.validate_eut_id_subset` | — | code | todo |
-| T4 | 失败案例库 lesson 补齐 + case_category 五类 | P0 | 1 | zhangyiqian3 | `case_category.py`、`lesson_inference` 扩展、`scripts/backfill_failure_case_lessons.py`（全库 `--apply` 完成） | — | code | todo |
+| T3 | Q05→Q06 EUT ID 子集硬约束 | P0 | 0.5 | zhangyiqian3 | `cross_phase_check.validate_eut_id_subset` | — | code | verified |
+| T4 | 失败案例库 lesson 补齐 + case_category 五类 | P0 | 1 | zhangyiqian3 | `case_category.py`、`lesson_inference` 扩展、`scripts/backfill_failure_case_lessons.py`（全库 `--apply` 完成） | — | code | verified |
 | T5 | Q05 剩余结构合规 validator（mock_wrong / mock_phantom_method / eut_missing_se / wrong_directory；compile_fail 由 `test_execution_gate` 兜底） | P0 | 2 | zhangyiqian3 | `q05_structure_checks.py` + 接入 `finalize_checks` | T4 | code | todo |
 | T6 | Q05 生成范式三步改造 + Guardrail 分支覆盖 | P1 | 3 | zhangyiqian3 | `references/q05-three-step-paradigm.md` + SKILL 三步节 + `Q05BranchCoverageGuardrail` | T5 | code | **todo**（见下方 §回写要求） |
-| T7 | 统一枚举源 EnumSource + prompt 注入 | P1 | 0.5 | zhangyiqian3 | `context/enum_contract.py`；`resolve_worker_prompt` / `generate_worker_prompt` 注入 | — | code | todo |
-| T8 | Schema↔Prompt 一致性 CI | P1 | 1 | zhangyiqian3 | `scripts/check_schema_prompt_sync.py` + `.pre-commit-config.yaml` hook | T7 | code | todo |
+| T7 | 统一枚举源 EnumSource + prompt 注入 | P1 | 0.5 | zhangyiqian3 | `context/enum_contract.py`；`resolve_worker_prompt` / `generate_worker_prompt` 注入 | — | code | verified |
+| T8 | Schema↔Prompt 一致性 CI | P1 | 1 | zhangyiqian3 | `scripts/check_schema_prompt_sync.py` + `.pre-commit-config.yaml` hook | T7 | code | verified |
 | T9 | Guard 精度仪表盘 | P1 | 1.5 | zhangyiqian3 | `reporting/guard_precision_report.py` + `observe guard-precision` 命令 + `docs/.../guard_precision.md` | T1–T5 有一周稳定运行数据 | code | todo |
 | T10 | Failure → Reflector 自动回流 | P2 | 1 | zhangyiqian3 | `scripts/reflect_case.py` + 采集钩子 | T4 | code | todo |
-| T11 | RationalizationProbe 字段级 | P2 | 2 | zhangyiqian3 | `PhaseGuardrail::RationalizationProbe` | — | code | todo |
+| T11 | RationalizationProbe 字段级 | P2 | 2 | zhangyiqian3 | `PhaseGuardrail::RationalizationProbe` | — | code | verified |
 | T12 | Q05 生产 bug 回归实验 | P2 | 2 | zhangyiqian3（需业务方提供 bug 列表） | 3 项目 × 10 条历史 bug 重跑报告（路径：`observability/reports/q05-bug-regression/{project}.md`） | T6 | **todo** | **todo**（见下方 §回写要求） |
 
 ### 依赖图
@@ -58,6 +58,22 @@ T11 独立（RationalizationProbe 字段级护栏）
 2. **观测数据**：该任务上线后 ≥7 天的 `observability/reports/` 日报里对应 Phase 的 `validation_error_count` / `failure_rate`
 
 **没有这两类证据，状态只能停在 `code`，不能标 `verified`。** 这是这次 review 最关键的一条改进。
+
+### 验收证据（verified 任务的证据链）
+
+- **T1 (verified)**：schema 落地 + Q03 SKILL 必填清单，T8 hook 首次运行即拦住 Q06 SKILL 缺节（证明机制能实际拦错）。失败量快照：Q03 自 2026-04-27 后 0 条新增
+- **T3 (verified)**：`validate_eut_id_subset` 接入 `finalize_checks`，`test_cross_phase_check` 覆盖 phase_b 缺失 / eut_items 空 / phantom 引用三条边界路径。Q06 phantom EUT 类 2026-04-29 后 0 条新增
+- **T4 (verified)**：`backfill_failure_case_lessons.py --apply` 对 1776 条历史 case 回填 lesson + case_category（commit `da6b1a5`），lesson 空率 98.3% → 0；`test_case_category` 通过
+- **T7 (verified)**：`render_enum_contract_prefix` 注入到 `skill_loader.load_skill_progressive` 和 `agents/multi_agent.py` 两处；`test_enum_contract` 通过
+- **T8 (verified)**：hook 初版 `language:python` 启隔离 venv 不能 import dqg，**首次实战即被发现并修为 `language:system`**（commit `c85ce5b` 附带补丁）；随后分别拦住 `q05_branch_coverage.py` 和 `guard_precision_report.py` 的 `json.load` 架构违规
+- **T11 (verified)**：`RationalizationProbeGuardrail` 通过 `get_guardrails("Q03"|"Q06")` 分派挂载；`test_rationalization_probe_guardrail` 通过
+
+### 仍需回写（code → verified 缺的证据）
+
+- **T2**：schema / 必填清单已就位，但 Q06 2026-05-07 仍有 19 条 findings 缺字段类失败（commit `7b3970d`）。需在 shuangzhou-v4 05-09 后重跑一次确认归零
+- **T5**：`q05_structure_checks.py` 接入 + 测试通过，但 Q05 自 2026-04-29 起 0 条新增很可能是"没跑"而非"止血"（见下方 §本周失败量快照免责声明），需下次规模化跑批确认
+- **T9**：guard 精度报告可产出，但 `docs/system-health-reports/guard_precision.md` 需至少 7 天稳定观测数据才能说"三态均有样本"，目前刚上线
+- **T10**：Reflector 脚手架就位，`test_case_reflect` 通过，但新采集 case 自动填充率 ≥95% 的口径未跑实际数据
 
 ### 回写要求（T6 / T12 阻塞 `verified`）
 
