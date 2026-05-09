@@ -3,7 +3,7 @@
 import json
 from pathlib import Path
 
-from dqg.quality.cross_phase_check import check_cross_phase_refs
+from dqg.quality.cross_phase_check import check_cross_phase_refs, validate_eut_id_subset
 
 
 def _write_json(path: Path, data: dict) -> None:
@@ -171,3 +171,35 @@ class TestCrossPhaseRefs:
         errors, hashes = check_cross_phase_refs(output_dir, "PROJ")
         assert len(errors) == 1
         assert "EUT-999" in errors[0]
+
+    def test_c_refs_when_phase_b_file_missing(self, tmp_path: Path):
+        """Q06 引用 EUT 但 Q05 产物不存在时须报错（phantom / 无法对齐子集）。"""
+        output_dir = tmp_path / "output"
+        _write_json(
+            output_dir / "PROJ" / "Q01" / "phase_a_structured.json",
+            {
+                "project_id": "PROJ",
+                "requirements": [{"req_id": "REQ-001", "description": "x"}],
+                "semantic_expectations": [],
+                "gaps": [],
+                "open_items": [],
+            },
+        )
+        _write_json(
+            output_dir / "PROJ" / "Q06" / "phase_c_structured.json",
+            {
+                "project_id": "PROJ",
+                "audit_items": [{"eut_id": "EUT-001", "status": "MISSING"}],
+            },
+        )
+        errors, hashes = check_cross_phase_refs(output_dir, "PROJ")
+        assert len(errors) == 1
+        assert "phase_b_structured.json" in errors[0]
+
+    def test_validate_eut_id_subset_unit(self):
+        phase_c = {"audit_items": [{"eut_id": "EUT-007", "status": "MISSING"}]}
+        err_missing_b = validate_eut_id_subset(None, phase_c)
+        assert len(err_missing_b) == 1
+        assert "phase_b_structured.json" in err_missing_b[0]
+        phase_b = {"eut_items": [{"eut_id": "EUT-007", "bound_se": ""}]}
+        assert validate_eut_id_subset(phase_b, phase_c) == []

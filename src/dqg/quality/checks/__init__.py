@@ -5,7 +5,7 @@ from .checkpoint_validator import validate_checkpoint
 from .compile_check import detect_build_tool
 from .coverage_gate import check_phase_c_coverage, find_jacoco_report
 from .coverage_matrix import write_coverage_matrix
-from .cross_phase_check import check_cross_phase_refs
+from .cross_phase_check import check_cross_phase_refs, validate_eut_id_subset
 from .demand_trace import write_demand_trace
 from .finalize_checks import run_finalize_checks
 from .report_quality_checks import run_report_quality_checks

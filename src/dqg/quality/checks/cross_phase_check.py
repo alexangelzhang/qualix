@@ -22,6 +22,47 @@ def _extract_ids(data: dict, key: str, id_field: str) -> set[str]:
     return {item.get(id_field, "") for item in items if isinstance(item, dict) and item.get(id_field)}
 
 
+def validate_eut_id_subset(phase_b: dict | None, phase_c: dict | None) -> list[str]:
+    """校验 Q06 `audit_items` 中出现的 EUT ID 均为 Q05 `eut_items` 的子集（phantom EUT 阻断）.
+
+    - phase_b 缺失（文件不存在 / 读取失败）而 Q06 已引用 EUT → 报错（历史上 `phase_b` 为 falsy 时整条校验被跳过）。
+    - Q05 `eut_items` 为空但 Q06 引用任意 EUT → 每条引用单独报错（与旧行为一致）。
+    """
+    errors: list[str] = []
+    if not phase_c or not isinstance(phase_c, dict):
+        return errors
+    audit_items = phase_c.get("audit_items", [])
+    if not isinstance(audit_items, list):
+        return errors
+
+    has_eut_ref = False
+    for item in audit_items:
+        if isinstance(item, dict) and item.get("eut_id"):
+            has_eut_ref = True
+            break
+    if not has_eut_ref:
+        return errors
+
+    if phase_b is None:
+        errors.append(
+            "Phase Q06 audit_items 引用了 EUT，但未找到 Phase Q05 结构化产物 phase_b_structured.json（无法对齐 Q05→Q06 EUT 子集）"
+        )
+        return errors
+
+    eut_ids = _extract_ids(phase_b, "eut_items", "eut_id")
+    for item in audit_items:
+        if not isinstance(item, dict):
+            continue
+        ref_raw = item.get("eut_id", "")
+        if not ref_raw:
+            continue
+        expanded = expand_eut_ids(ref_raw)
+        missing = expanded - eut_ids
+        if missing:
+            errors.append(f"Phase Q06 审计了 {', '.join(sorted(missing))}，但 Phase Q05 中不存在")
+    return errors
+
+
 def check_cross_phase_refs(output_dir: Path, project_id: str) -> tuple[list[str], dict[str, str]]:
     """校验跨 Phase 的 ID 引用完整性.
 
@@ -93,19 +134,12 @@ def check_cross_phase_refs(output_dir: Path, project_id: str) -> tuple[list[str]
             if bound_se and bound_se not in se_ids and bound_se not in req_ids:
                 errors.append(f"Phase Q05 EUT {item.get('eut_id', '?')} 绑定了 {bound_se}，但 Phase Q01 中不存在")
 
-    # 校验 Phase C：审计的 EUT ID 是否在 Phase B 中存在
+    # 校验 Phase C：审计的 EUT ID 是否为 Phase B 的子集（phantom EUT）
     phase_c_path = output_dir / project_id / PHASE_DIR_MAP["Q06"] / STRUCTURED_JSON_MAP["Q06"]
     phase_c = load_json(phase_c_path)
 
-    if phase_b and phase_c:
-        eut_ids = _extract_ids(phase_b, "eut_items", "eut_id")
-        for item in phase_c.get("audit_items", []):
-            ref_raw = item.get("eut_id", "")
-            if not ref_raw:
-                continue
-            expanded = expand_eut_ids(ref_raw)
-            missing = expanded - eut_ids
-            if missing:
-                errors.append(f"Phase Q06 审计了 {', '.join(sorted(missing))}，但 Phase Q05 中不存在")
+    if phase_c:
+        _record_hash(phase_c_path)
+        errors.extend(validate_eut_id_subset(phase_b, phase_c))
 
     return errors, upstream_hashes
