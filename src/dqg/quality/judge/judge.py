@@ -488,4 +488,17 @@ def synthesize_judge_result(
 
     pd.mkdir(parents=True, exist_ok=True)
     save_json(result_path, result)
+    try:
+        from dqg.memory.trust_level import TrustLevel, record_trust_event
+
+        record_trust_event(
+            output_dir,
+            project_id=project_id,
+            phase_id=phase_id,
+            event_type="judge_auto_synthesized",
+            trust_level=TrustLevel.MEDIUM,
+            payload={"overall_score": score, "auto_synthesized": True},
+        )
+    except Exception:
+        pass
     return result
