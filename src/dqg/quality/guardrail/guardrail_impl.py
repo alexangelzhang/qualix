@@ -166,4 +166,13 @@ def get_guardrails(phase_id: str) -> list[PhaseGuardrail]:
     custom = phase_def.get("output_guardrails")
     if custom is not None:
         return custom
-    return DEFAULT_OUTPUT_GUARDRAILS
+    base: list[PhaseGuardrail] = list(DEFAULT_OUTPUT_GUARDRAILS)
+    if phase_id == "Q05":
+        from dqg.quality.guardrail.q05_branch_coverage import Q05BranchCoverageGuardrail
+
+        base.append(Q05BranchCoverageGuardrail())
+    elif phase_id in ("Q03", "Q06"):
+        from dqg.quality.guardrail.rationalization_probe import RationalizationProbeGuardrail
+
+        base.append(RationalizationProbeGuardrail())
+    return base

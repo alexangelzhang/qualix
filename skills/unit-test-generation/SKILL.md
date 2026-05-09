@@ -46,6 +46,18 @@ IRON LAW: 不写 assertTrue(true) 占位符。写不了的测试标记 TODO 并�
 3. **断言约束**：禁止"空气单测"。必须断言：状态变更、副作用交互次数（Mockito.verify）、数据库核心字段写入。
 4. **Phase Q06 对齐**：生成的每个测试都要能通过 Phase Q06 的审计标准。
 
+## 三步生成范式（T6 — 强制，防 no-exception-test）
+
+在 **Step 1 设计矩阵** 与 **Step 2/3 写代码** 之间，必须完成 **分支 → 后果 → EUT** 三步；细节与 JSON 模板见 [references/q05-three-step-paradigm.md](references/q05-three-step-paradigm.md)。
+
+| 步骤 | 产物路径 | 要点 |
+|------|-----------|------|
+| **A 分支清单** | `_internal/_q05_branch_inventory.json` | 列出 happy / boundary / **exception** / concurrency；含异常类分支时后续必须有 Exception EUT |
+| **B 业务后果** | `_internal/_q05_business_outcomes.json` | 每条分支 `outcome_id` + 可验证 `expected`（返回值/状态/异常类型） |
+| **C 写 EUT** | `phase_b_structured.json` 的 `eut_items` | `then` 必须能关联回 **B** 的 `outcome_id`；异常用 `route_type: "Exception"` |
+
+> Guardrail `q05_branch_coverage`：若 Step A 登记了异常类分支，但 `eut_items` 中无任何 `Exception` 路由，则 finalize **BLOCKED**。
+
 ## 执行流程
 
 ### Step 0: 输入确认与上下文加载
