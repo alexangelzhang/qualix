@@ -18,17 +18,36 @@
 
 from __future__ import annotations
 
+from collections import deque
+from typing import TYPE_CHECKING, Any
+
 from dqg.log import get_logger
 
 log = get_logger(__name__)
-
-from typing import TYPE_CHECKING, Any
 
 from dqg.json_utils import dump_json_str
 from dqg.memory.hyperedge import build_business_hyperedges
 from dqg.store import get_connection
 
+LINK_SUPERSEDES = "SUPERSEDES"
+LINK_CONTRADICTS = "CONTRADICTS"
+LINK_DERIVED_FROM = "DERIVED_FROM"
+
+DEFAULT_LINK_TYPE_WEIGHTS: dict[str, float] = {
+    "SIMILAR": 1.0,
+    "CAUSED_BY": 1.0,
+    "RESOLVED_BY": 1.0,
+    "RELATED": 0.65,
+    "SUPERSEDES": 0.88,
+    "CONTRADICTS": -0.35,
+    "DERIVED_FROM": 0.72,
+}
+
 __all__ = [
+    "DEFAULT_LINK_TYPE_WEIGHTS",
+    "LINK_CONTRADICTS",
+    "LINK_DERIVED_FROM",
+    "LINK_SUPERSEDES",
     "add_link",
     "build_business_hyperedges",
     "build_cross_project_links",
@@ -37,6 +56,7 @@ __all__ = [
     "index_bug_cases",
     "index_project_facts",
     "upsert_node",
+    "walk_weighted_neighbors",
 ]
 
 if TYPE_CHECKING:
@@ -273,6 +293,49 @@ def get_cross_project_insights(
                 )
 
         return insights
+
+
+def walk_weighted_neighbors(
+    output_dir: Path,
+    start_node_id: str,
+    *,
+    max_depth: int = 2,
+    max_nodes: int = 48,
+    link_type_weights: dict[str, float] | None = None,
+) -> list[dict[str, Any]]:
+    """从起点做 BFS，边得分 = 父节点 score × 类型权重 × 边 strength，取到达各节点的最高得分路径.
+
+    CONTRADICTS 等负权重会降低累计得分，便于检索排序时降权矛盾邻居。
+    """
+    wmap = link_type_weights or DEFAULT_LINK_TYPE_WEIGHTS
+    best: dict[str, tuple[int, float]] = {start_node_id: (0, 1.0)}
+    q: deque[str] = deque([start_node_id])
+
+    with get_connection(output_dir) as conn:
+        while q and len(best) < max_nodes:
+            cur = q.popleft()
+            depth, score = best[cur]
+            if depth >= max_depth:
+                continue
+            rows = conn.execute(
+                "SELECT target_id, link_type, strength FROM knowledge_links WHERE source_id=?",
+                (cur,),
+            ).fetchall()
+            for tgt, lt, st in rows:
+                mult = float(wmap.get(str(lt), 0.25))
+                nscore = score * mult * float(st or 1.0)
+                if abs(nscore) < 1e-12:
+                    continue
+                nd = depth + 1
+                prev = best.get(str(tgt))
+                if prev is None or nscore > prev[1]:
+                    best[str(tgt)] = (nd, nscore)
+                    if nd < max_depth:
+                        q.append(str(tgt))
+
+    out = [{"node_id": nid, "depth": d, "score": sc} for nid, (d, sc) in best.items() if nid != start_node_id]
+    out.sort(key=lambda x: -x["score"])
+    return out[: max_nodes - 1]
 
 
 def format_insights(insights: list[dict[str, Any]]) -> str:
