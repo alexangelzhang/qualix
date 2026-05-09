@@ -9,6 +9,7 @@ from dqg.tracking.bug_cases import load_cases, summarize_cases
 
 from .cache import _cached_observe_alerts, _cached_projects, _cached_summary
 from .constants import OUTPUT_DIR
+from .observability import _load_observe_reports
 from .trend import _load_phase_score_history
 
 # ---------------------------------------------------------------------------
@@ -65,6 +66,26 @@ def _compute_alerts(projects: list[str]) -> list[dict]:
     return alerts
 
 
+def _observe_quick_stats() -> None:
+    """总览：最近一份 observe 日报 JSON 中的 LLM 成本与采样统计。"""
+    reps = _load_observe_reports("daily")
+    if not reps:
+        return
+    pe = reps[0].get("prompt_effectiveness") or {}
+    if not pe.get("token_distribution"):
+        return
+    st.subheader("可观测性速览（最近日报窗口）")
+    c1, c2, c3, c4 = st.columns(4)
+    with c1:
+        st.metric("Est. USD（粗估）", f"{pe.get('cost_total_usd', 0):.4f}")
+    with c2:
+        st.metric("Payload 采样命中", int(pe.get("payload_sample_calls", 0) or 0))
+    with c3:
+        st.metric("Cache 命中率", f"{pe.get('cache_hit_rate', 0):.0%}")
+    with c4:
+        st.metric("LLM 调用条数", int(pe.get("cache_total", 0) or 0))
+
+
 def _show_alerts(projects: list[str]) -> None:
     alerts = _compute_alerts(projects)
 
@@ -115,6 +136,7 @@ def _page_overview():
 
     # 主动监控告警
     _show_alerts(projects)
+    _observe_quick_stats()
 
     cols = st.columns(min(len(projects), 3))
     for i, pid in enumerate(projects):

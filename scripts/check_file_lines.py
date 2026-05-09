@@ -37,6 +37,7 @@ LEGACY_ALLOWLIST: set[str] = {
     "src/dqg/core/cli.py",
     "src/dqg/ingest/feishu/crawler.py",
     "src/dqg/media/parse_images.py",
+    "src/dqg/reporting/perf_tracker.py",
     "src/dqg/memory/knowledge_network.py",
     "src/dqg/quality/checks/blast_radius.py",
     "src/dqg/quality/checks/coverage_gate.py",

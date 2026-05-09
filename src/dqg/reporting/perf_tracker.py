@@ -252,6 +252,16 @@ def _estimate_cost(
     return round(input_cost + output_cost, 4)
 
 
+def estimate_llm_call_cost_usd(
+    input_tokens: int,
+    output_tokens: int,
+    cache_creation_tokens: int = 0,
+    cache_read_tokens: int = 0,
+) -> float:
+    """单次 LLM 调用 USD 粗估（与 `_estimate_cost` 同源，供 observe / telemetry 聚合）."""
+    return _estimate_cost(input_tokens, output_tokens, cache_creation_tokens, cache_read_tokens)
+
+
 def persist_phase_metrics(output_dir: Path, metrics: dict[str, Any]) -> None:
     """将性能指标批量持久化到 SQLite."""
     from dqg.store.core import get_connection

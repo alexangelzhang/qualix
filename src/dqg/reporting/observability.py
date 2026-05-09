@@ -152,22 +152,65 @@ def _failure_history_path(output_dir: Path) -> Path:
     return output_dir.parent / "regression" / "failure-library" / "history.jsonl"
 
 
+def _build_trace_summary(all_records: list[PhaseRunRecord]) -> dict[str, Any]:
+    """P2: 从 llm_calls 聚合分层 trace 路径（扁平 span_path）."""
+    paths: Counter[str] = Counter()
+    runs: set[str] = set()
+    for r in all_records:
+        for c in r.llm_calls:
+            p = str(c.get("span_path", "") or "").strip()
+            if p:
+                paths[p] += 1
+            tr = str(c.get("trace_run_id", "") or "").strip()
+            if tr:
+                runs.add(tr)
+    return {
+        "unique_trace_runs": len(runs),
+        "span_paths": [{"path": k, "count": v} for k, v in paths.most_common(40)],
+    }
+
+
 def _build_prompt_effectiveness(all_records: list[PhaseRunRecord]) -> dict[str, Any]:
     """从 telemetry 记录中聚合 Prompt 效果指标."""
+    from dqg.reporting.perf_tracker import estimate_llm_call_cost_usd
+
     calls = [{**c, "phase_id": r.phase_id} for r in all_records for c in r.llm_calls]
     if not calls:
         return {}
     hash_counter = Counter(c.get("prompt_hash", "unknown") for c in calls)
-    token_map: dict[tuple[str, str], dict[str, int]] = defaultdict(lambda: {"input": 0, "output": 0, "calls": 0})
+    token_map: dict[tuple[str, str], dict[str, float | int]] = defaultdict(
+        lambda: {"input": 0, "output": 0, "calls": 0, "cost_usd": 0.0}
+    )
     for c in calls:
-        key = (c["phase_id"], c.get("model_id", "unknown"))
-        token_map[key]["input"] += c.get("input_tokens", 0)
-        token_map[key]["output"] += c.get("output_tokens", 0)
+        key = (c["phase_id"], str(c.get("model_id", "unknown")))
+        inp = int(c.get("input_tokens", 0) or 0)
+        outp = int(c.get("output_tokens", 0) or 0)
+        cc = int(c.get("cache_creation_input_tokens", 0) or 0)
+        cr = int(c.get("cache_read_input_tokens", 0) or 0)
+        token_map[key]["input"] += inp
+        token_map[key]["output"] += outp
         token_map[key]["calls"] += 1
+        token_map[key]["cost_usd"] = float(token_map[key]["cost_usd"]) + estimate_llm_call_cost_usd(inp, outp, cc, cr)
+    rows = []
+    cost_total = 0.0
+    for k, v in sorted(token_map.items()):
+        row = {
+            "phase_id": k[0],
+            "model_id": k[1],
+            "calls": int(v["calls"]),
+            "input": int(v["input"]),
+            "output": int(v["output"]),
+            "cost_usd": round(float(v["cost_usd"]), 4),
+        }
+        cost_total += float(row["cost_usd"])
+        rows.append(row)
     total, hits = len(calls), sum(1 for c in calls if c.get("cache_hit"))
+    sampled_payload_calls = sum(1 for c in calls if c.get("prompt_excerpt") or c.get("response_excerpt"))
     return {
         "prompt_distribution": [{"prompt_hash": h, "count": n} for h, n in hash_counter.most_common(10)],
-        "token_distribution": [{"phase_id": k[0], "model_id": k[1], **v} for k, v in sorted(token_map.items())],
+        "token_distribution": rows,
+        "cost_total_usd": round(cost_total, 4),
+        "payload_sample_calls": sampled_payload_calls,
         "cache_hit_rate": round(hits / total, 4) if total else 0.0,
         "cache_hits": hits,
         "cache_total": total,
@@ -223,21 +266,49 @@ def _write_markdown_report(path: Path, payload: dict[str, Any]) -> None:
         lines += [f"| `{i['prompt_hash'][:12]}` | {i['count']} |" for i in pe.get("prompt_distribution", [])]
         lines += [
             "",
-            "### Token 成本分布",
+            "### Token / 成本聚合（粗估 USD，定价与 perf_tracker 一致）",
             "",
-            "| Phase | Model | Calls | Input Tokens | Output Tokens |",
-            "| --- | --- | ---: | ---: | ---: |",
+            "| Phase | Model | Calls | Input Tokens | Output Tokens | Est. USD |",
+            "| --- | --- | ---: | ---: | ---: | ---: |",
         ]
         lines += [
-            f"| {i['phase_id']} | {i['model_id']} | {i['calls']} | {i['input']:,} | {i['output']:,} |"
+            f"| {i['phase_id']} | {i['model_id']} | {i['calls']} | {i['input']:,} | {i['output']:,} | {i.get('cost_usd', 0):.4f} |"
             for i in pe.get("token_distribution", [])
         ]
+        lines += ["", f"- **窗口内 Est. USD 合计:** {pe.get('cost_total_usd', 0):.4f}"]
         lines += [
+            f"- **Payload 采样命中调用数:** {pe.get('payload_sample_calls', 0)}（环境变量 `DQG_TELEMETRY_PAYLOAD_SAMPLE_RATE`）",
             "",
             "### Cache 命中率",
             "",
             f"- 命中: {pe.get('cache_hits', 0)} / {pe.get('cache_total', 0)} ({pe.get('cache_hit_rate', 0.0):.2%})",
         ]
+    ts = payload.get("trace_summary") or {}
+    if ts.get("span_paths"):
+        lines += [
+            "",
+            "## Trace 分层摘要（P2）",
+            "",
+            f"- 独立 trace_run 数: {ts.get('unique_trace_runs', 0)}",
+            "",
+            "| span_path | calls |",
+            "| --- | ---: |",
+        ]
+        lines += [f"| `{i['path']}` | {i['count']} |" for i in ts.get("span_paths", [])]
+    an = payload.get("metric_anomalies") or []
+    if an:
+        lines += [
+            "",
+            "## 指标异常（P3 Z-score / IQR）",
+            "",
+            "| Project | Phase | Metric | Current | Mean | Methods |",
+            "| --- | --- | --- | ---: | ---: | --- |",
+        ]
+        for x in an:
+            lines.append(
+                f"| {x['project_id']} | {x['phase']} | {x['metric']} | {x['current']} | {x['hist_mean']} | "
+                f"{','.join(x.get('methods', []))} |"
+            )
     path.write_text("\n".join(lines).strip() + "\n", encoding="utf-8")
 
 
@@ -346,6 +417,10 @@ def generate_report(
     }
     payload["failure_library"] = build_failure_trend(_failure_history_path(output_dir), period="weekly")
     payload["prompt_effectiveness"] = _build_prompt_effectiveness(all_records)
+    payload["trace_summary"] = _build_trace_summary(all_records)
+    from dqg.reporting.observability_anomalies import detect_metric_anomalies
+
+    payload["metric_anomalies"] = detect_metric_anomalies(_load_history(output_dir), period.label)
     json_path, md_path = _report_paths(output_dir, period_name, period.label)
     save_json(json_path, payload)
     _write_markdown_report(md_path, payload)
@@ -378,12 +453,16 @@ def _cmd_daily(args: argparse.Namespace) -> int:
     )
     inserted = _append_history(output_dir, "daily", payload)
     history = _load_history(output_dir)
+    from dqg.reporting.observability_anomalies import anomalies_to_alert_dicts
+
+    extra = anomalies_to_alert_dicts(payload.get("metric_anomalies") or [])
     alerts = _build_alerts(
         history,
         payload["label"],
         block_spike_ratio=args.block_spike_ratio,
         phase_failure_threshold=args.phase_failure_threshold,
         failure_library=payload.get("failure_library"),
+        extra_alerts=extra,
     )
     alerts_json, alerts_md = _write_alerts(output_dir, payload["label"], alerts)
     prom_path = _write_prometheus_snapshot(output_dir, payload, alerts)
