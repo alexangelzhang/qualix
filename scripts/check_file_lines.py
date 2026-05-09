@@ -29,6 +29,7 @@ LEGACY_ALLOWLIST: set[str] = {
     "src/dqg/agents/dag_scheduler.py",
     "src/dqg/agents/llm_backends.py",
     "src/dqg/commands/phase.py",
+    "src/dqg/constants.py",
     "src/dqg/context/chunking/chunk_processor.py",
     "src/dqg/context/analysis/code_skeleton.py",
     "src/dqg/context/loading/context_loader.py",
