@@ -195,6 +195,21 @@
     "一段字符串" prompt 不是一回事，强上 deployment 可能和现有 skill
     加载链打架。这条不做决策时的默认状态是"不启动"。
 
+- **Memory Garden 全局重算拆分** — 当前 `run_memory_garden` 内嵌
+  `build_cross_project_links(output_dir)` 做全库跨项目相似度扫描，每个
+  phase finalize 后都会跑一次，O(N²) 复杂度随项目数增长。5 个项目
+  时 runtime 可忽略，10+ 项目时 finalize 会明显变慢。
+  - **拆分方案**：`build_cross_project_links` 从 `run_memory_garden`
+    里移出，改成独立入口由 `dqg-run observe daily` 每天调用一次；
+    phase finalize 时的 Garden 只跑本 phase 边（supersedes /
+    derived_from / gap_contradiction）
+  - **启动条件**：已索引项目数 ≥10，或单次 finalize 的 Garden handler
+    耗时 >5s（观测指标见 `_perf_metrics.json::handler_duration`）
+  - **工作量预估**：garden.py 签名微调 + ops.py 加命令 + 一份测试，
+    总计约 0.5 周
+  - **跳过条件**：项目数维持在个位数则默认不启动，当前内嵌写法
+    实现成本低于拆分成本
+
 2026-04-25 新增（RDT-Inspired Review Optimization）：
 
 - P1 ACT 审查深度自适应（`constants.py` REVIEW_DEPTH_CONFIG + `adaptive_loop.py` risk_tier 查表）— blast_radius risk_tier 驱动 max_iterations/force_secondary/skip_critique，LOW tier 省 ~60-70% token
@@ -589,7 +604,62 @@
 3. 检索兜底：召回不足时允许回退到更宽松的摘要层，但不直接回全文
 4. 渐进落地：先覆盖最频繁的应用路径，每次落地配命中率/token 变化/调用次数三类指标
 
-*最后更新：2026-04-25*
+### 记忆置信度衰减（jcode 对齐，2026-05-09）
+
+参考：[jcode](https://github.com/1jehuang/jcode)。实现：`src/dqg/memory/confidence_decay.py`；项目级信任标量可由 `feedback_trust` 经 `recent_mean_trust_weight()` 聚合，与 `trust_level.py` 离散权重一致。
+
+**按记忆类型的半衰期（天）**：Correction 365、Preference 90、Fact 30。
+
+**公式**（`age` 为天；`log` 为自然对数 `ln`）：
+
+`confidence = initial × e^(-age / half_life) × (1 + 0.1 × ln(access_count + 1)) × trust_weight`
+
+接入检索或 Memory 注入时由调用方传入 `age_days`、`access_count` 与 `memory_category`（`correction` / `preference` / `fact`；与 `structured_facts.fact_type` 不同语义层）。子节更新：2026-05-09。
+
+### Adaptive loop、Skill Evolution 与 Harness 增强（规划中，2026-05-09）
+
+> 以下将 **AutoResearchClaw**（阶段目录版本化、空指标退化）、**Meta-Harness**（rubric 搜索、完整实验史、跨模型验证）等与 **DQG 现状** 对位，统一写入路线图，**不代表已排期开发**；实施时以 ISSUE 任务拆解为准。
+
+#### 八项提案总览
+
+| # | 主题 | 价值摘要 | 与 DQG 现状 | 建议优先级 |
+|---|------|----------|-------------|------------|
+| 1 | **PIVOT/REFINE 版本化目录** | 多轮修正可对比、可回退到较优轮次、为 eval_baseline 提供历史序列 | Adaptive 循环内 Worker/Judge 产物多为 **覆盖写**（如 `_worker_output`、结构化 JSON） | P0–P1 |
+| 2 | **Evolution Store 时间衰减** | 老 lesson 自然降权；90 天硬过期减轻过时教训污染 context | `tracking/skill_evolution.py` 以 case **支撑数** 定置信，**无时间维度**；可与 `memory/confidence_decay.py` 思路对齐，注意与 Preference 半衰期 **口径统一** | P1 |
+| 3 | **连续「无实质改善」退化检测** | 省 token；避免 doom loop；可强制结束并打 quality warning | 已有 `agents/loop_health.py`（分数停滞、issue 重复、infra 连续失败）；**可补**「产出指纹不变 + 驳回理由签名不变」与 AutoResearchClaw 式空 metrics 对位 | P0–P1 |
+| 4 | **Agentic Proposer 搜索 Judge rubric** | 自动搜索维度权重、措辞、Anti-Rat 等，holdout 验证 | `quality/judge/judge_rubrics.py` 为 **静态**；成本高、需防过拟合 | P2 |
+| 5 | **保留完整实验历史** | 反射器/元 harness 用上 traces+分数+上下文，优于仅摘要 | `_adaptive_summary.json`、`_judge_iter*` 等 **已存在**；Skill Reflector 通路偏窄带宽摘要时可显式引用原始片段 | P1–P2 |
+| 6 | **跨模型泛化验证** | 回答「在模型 A 上调的 harness 在模型 B 是否仍有效」，支撑 `model_registry` primary/fallback | 多模型 **已支持**，**缺** 系统性 held-out 矩阵与报告落盘 | P1（流程可先半手动） |
+| 7 | **data_patterns sidecar** | 按 Phase 过滤案例、保留 top N **lesson 原文**，降噪增效 | `tracking/data_patterns.py` 当前 **固定从 Q06** 提取注入各 Phase | P1 |
+| 8 | **ironlaw_guard 规则外置** | 规则与案例库/配置同源，改规则少改代码 | Hook 偏 **写死**；动态全自动聚合有 **误杀与审计** 风险 | 规划-only：分阶段外置（见下表），**不预设自动从全库生效** |
+
+#### 分阶段路线图（建议执行顺序）
+
+**短期（约 2–4 周）**
+
+1. **#7 data_patterns**：`write_data_patterns` 按当前 `phase_id` 过滤案例源（替代写死 Q06）；输出侧保留 top N 条 lesson 原文（长度上限可配置）。
+2. **#3 退化检测**：在 `AdaptiveLoop` 与现有 `LoopHealthMonitor` 并存维度上，增加「Worker 产出指纹 / Judge 驳回摘要签名」连续不变则 **EARLY_STOP 或 PROCEED+WARNING**，结果写入 `_adaptive_summary` 与 Gate 相关字段（具体字段在任务中定）。
+3. **#1 版本化（最小形态）**：在 Judge **FAIL** 且即将进入下一轮 Worker **之前**，将当前结构化 JSON、报告及 `_internal` 关键件快照到 `_pivot_v{n}/`（或等价 tarball），并维护 **当前生效** 指针（文档约定），避免下游误读旧目录。
+
+**中期**
+
+1. **#2 Evolution**：为 lesson/建议条目增加时间元数据（`first_seen` / `last_reinforced`）；评分乘 **指数衰减**（可与 ARClaw 式 `exp(-age·ln2/τ)` 对齐）并实施 **90 天硬过滤**；与 `confidence_decay` 文档口径统一。
+2. **#5 反射输入契约**：Skill Reflector / evolution 输入显式引用 adaptive、judge 原始片段（设 token 上限），禁止「仅摘要无出处」。
+3. **#6 跨模型验证**：定义 golden / failure-library 子集 × 多 held-out 模型 × 少量指标的 **runbook**，产出进 `observability/reports/`（可先脚本化半手动）。
+
+**长期 / 研究**
+
+1. **#4 Rubric 搜索**：独立 sandbox；搜索空间、训练/验证 split、与默认 rubric 回退策略单独立项。
+2. **#8 ironlaw**：**阶段 A** 静态 YAML/JSON + schema + CI 校验，hook 只读配置；**阶段 B** 案例库仅生成 **候选规则**，经 PR 人审合并进配置；**阶段 C（可选）** 按 profile/Phase 覆盖。**不推荐**：hook 启动时从全库全自动聚合并直接生效。
+
+#### 风险与依赖（摘要）
+
+- **#1**：磁盘增长；需「当前指针」与索引/工具链约定，避免多版本并行时读错。
+- **#3**：「强制 PROCEED」必须配套 **WARNING / GateVerdict**，避免误读为质量绿灯。
+- **#2 与记忆衰减**：同一文档中区分「Evolution lesson 衰减」与 `confidence_decay` 的 **Preference 90 天** 各自适用场景。
+- **#8**：外置规则需 **版本与审计**，防止不可复盘的行为漂移。
+
+*最后更新：2026-04-25；本节规划增补：2026-05-09*
 
 ---
 

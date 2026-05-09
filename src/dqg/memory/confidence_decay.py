@@ -108,3 +108,24 @@ def compute_decayed_confidence_for_project(
         "age_days": max(0.0, float(age_days)),
         "access_count": max(0, int(access_count)),
     }
+
+
+def retrieval_weight_for_project(
+    output_dir: Path,
+    project_id: str,
+    *,
+    clamp_min: float = 0.25,
+    clamp_max: float = 1.25,
+) -> float:
+    """把项目的历史信任权重均值封装成可直接传给 walk_weighted_neighbors(initial_score=) 的数值。
+
+    - `recent_mean_trust_weight` 返回 [0.35, 1.0] 区间的 trust 均值
+    - 这里再 clamp 到 [clamp_min, clamp_max]，防止极端值拖垮检索（信任均值极低时仍保留基本召回）
+    - 当 feedback_trust 为空返回 MEDIUM（约 0.65），属合理中性值
+
+    目前该函数仅作为启用 TrustLevel → 检索闭环的 ready 接口：调用点在
+    memory 检索入口接入（比如 `get_cross_project_insights` 将来改用
+    `walk_weighted_neighbors(initial_score=retrieval_weight_for_project(...))`）。
+    """
+    raw = recent_mean_trust_weight(output_dir, project_id)
+    return max(float(clamp_min), min(float(clamp_max), float(raw)))

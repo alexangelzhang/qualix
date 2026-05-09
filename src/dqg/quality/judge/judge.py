@@ -18,6 +18,9 @@ from dqg.constants import PHASE_DIR_MAP, REPORT_MAP, STRUCTURED_JSON_MAP
 from dqg.core.state_machine import PHASE_DEFS
 from dqg.core.state_machine import phase_dir as _phase_dir
 from dqg.json_utils import load_json
+from dqg.log import get_logger
+
+log = get_logger(__name__)
 from dqg.prompting import PromptAssembler, PromptAsset, PromptBuild, PromptSpec, write_prompt_manifest
 from dqg.prompting.record import record_prompt_manifest
 from dqg.services.phase_service import read_relevance_excerpt
@@ -500,5 +503,5 @@ def synthesize_judge_result(
             payload={"overall_score": score, "auto_synthesized": True},
         )
     except Exception:
-        pass
+        log.debug("judge trust event write skipped", exc_info=True)
     return result

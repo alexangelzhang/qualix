@@ -302,13 +302,17 @@ def walk_weighted_neighbors(
     max_depth: int = 2,
     max_nodes: int = 48,
     link_type_weights: dict[str, float] | None = None,
+    initial_score: float = 1.0,
 ) -> list[dict[str, Any]]:
     """从起点做 BFS，边得分 = 父节点 score × 类型权重 × 边 strength，取到达各节点的最高得分路径.
 
     CONTRADICTS 等负权重会降低累计得分，便于检索排序时降权矛盾邻居。
+    initial_score: 起点初始分。调用方可传入 TrustLevel 对应的信任权重
+    （见 confidence_decay.retrieval_weight_for_project），让检索结果
+    随项目历史信任度整体缩放。
     """
     wmap = link_type_weights or DEFAULT_LINK_TYPE_WEIGHTS
-    best: dict[str, tuple[int, float]] = {start_node_id: (0, 1.0)}
+    best: dict[str, tuple[int, float]] = {start_node_id: (0, float(initial_score))}
     q: deque[str] = deque([start_node_id])
 
     with get_connection(output_dir) as conn:

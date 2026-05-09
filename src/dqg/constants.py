@@ -96,6 +96,10 @@ DASHBOARD_PID_FILE = ".dqg/dashboard.pid"
 MEMORY_FILE = ".dqg/MEMORY.md"
 MEMORY_SIDECAR_QUEUE = ".dqg/memory_sidecar_queue.jsonl"
 MEMORY_GARDEN_REPORT = ".dqg/_memory_garden_report.json"
+# memory/garden: 同 Phase GAP 两两极性冲突检测的配对上限（O(n²) 保护）。
+# 超限后截断并发 log.info 告警，不抽样、不抛异常。GAP 数 >40 的场景目前罕见，
+# 真实出现后再考虑抽样策略或按 business_path 分桶。
+MEMORY_GAP_CONTRADICTION_MAX_PAIRS = 40
 WIKI_DIR = ".dqg-wiki"
 CASES_DIR = "regression/failure-library/cases"
 GOLDEN_DIR = "regression/golden"

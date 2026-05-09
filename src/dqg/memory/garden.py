@@ -7,7 +7,7 @@ import re
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-from dqg.constants import MEMORY_GARDEN_REPORT, MEMORY_SIDECAR_QUEUE
+from dqg.constants import MEMORY_GAP_CONTRADICTION_MAX_PAIRS, MEMORY_GARDEN_REPORT, MEMORY_SIDECAR_QUEUE
 from dqg.json_utils import save_json
 from dqg.log import get_logger
 from dqg.memory.knowledge_network import (
@@ -147,7 +147,9 @@ def build_derived_from_hyperedges(output_dir: Path, project_id: str, phase_id: s
     return count
 
 
-def build_gap_contradiction_links(output_dir: Path, project_id: str, phase_id: str, *, max_pairs: int = 40) -> int:
+def build_gap_contradiction_links(
+    output_dir: Path, project_id: str, phase_id: str, *, max_pairs: int = MEMORY_GAP_CONTRADICTION_MAX_PAIRS
+) -> int:
     """同 Phase 的 GAP 事实之间，基于极保守的极性冲突启发式添加 CONTRADICTS（双向）."""
     with get_connection(output_dir) as conn:
         rows = conn.execute(
@@ -161,6 +163,13 @@ def build_gap_contradiction_links(output_dir: Path, project_id: str, phase_id: s
     for i, a in enumerate(nodes):
         for b in nodes[i + 1 :]:
             if pair_budget <= 0:
+                log.info(
+                    "gap_contradiction: max_pairs=%d reached for %s/%s (nodes=%d), truncated",
+                    max_pairs,
+                    project_id,
+                    phase_id,
+                    len(nodes),
+                )
                 return added
             if _polarity_clash(a.get("content", ""), b.get("content", "")):
                 add_link(
