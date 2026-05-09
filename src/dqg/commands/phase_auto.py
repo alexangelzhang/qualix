@@ -103,11 +103,25 @@ def prompt_approve(project_id: str, phase_id: str, phase_name: str) -> tuple[boo
 
 def cmd_auto(args, output_dir: Path) -> int:
     """全自动推进 pipeline."""
+    from dqg.commands.cli_json import print_cli_json
     from dqg.commands.phase import _telemetry
     from dqg.commands.query import print_status
     from dqg.core.profiles import get_profile
     from dqg.runtime.execution_context import ExecutionContext
     from dqg.runtime.phase_runtime import runtime_execute, runtime_finalize
+
+    if getattr(args, "json", False):
+        print_cli_json(
+            {
+                "success": False,
+                "exit_code": 2,
+                "command": "auto",
+                "project_id": args.project_id,
+                "error": "interactive_pipeline",
+                "message": "auto 依赖交互式输入，不支持 --json；请用 execute/finalize 单步命令加 --json",
+            }
+        )
+        return 2
 
     state = load_state(output_dir, args.project_id)
     state.profile_id = get_profile(getattr(args, "profile", None)).profile_id

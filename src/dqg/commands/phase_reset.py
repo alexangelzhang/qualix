@@ -71,6 +71,7 @@ def _clean_artifacts(phase_path: Path) -> int:
 
 
 def cmd_reset(args, output_dir: Path) -> int:
+    from dqg.commands.cli_json import cli_envelope, cli_json_mode, print_cli_json
     from dqg.commands.phase import _telemetry
     from dqg.core.state_machine import phase_dir_by_id
 
@@ -117,6 +118,28 @@ def cmd_reset(args, output_dir: Path) -> int:
                 comment=f"{action_type}: {count} files" + (f" → {archive_name}" if archive_name else ""),
             ),
         )
+
+    rows = [
+        {
+            "phase_id": pid,
+            "action_type": action_type,
+            "count": count,
+            "archive_name": archive_name,
+        }
+        for pid, action_type, count, archive_name in reset_results
+    ]
+    if cli_json_mode(args):
+        print_cli_json(
+            cli_envelope(
+                command="reset",
+                project_id=args.project_id,
+                success=True,
+                exit_code=0,
+                phase_id=args.phase,
+                extra={"cascade": cascade, "clean": clean, "results": rows},
+            )
+        )
+        return 0
 
     print("\n  Reset 完成:")
     for pid, action_type, count, archive_name in reset_results:

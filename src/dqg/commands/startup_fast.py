@@ -103,6 +103,7 @@ def _get_parallel_groups(phases: dict, available: list[str]) -> list[list[str]]:
 
 def cmd_startup(args, output_dir: Path) -> int:
     """快速 startup：直接读 dict，不走 pydantic."""
+    from dqg.commands.cli_json import cli_json_mode
     from dqg.runtime.gate_verdict import load_verdict
 
     data = _load_state_dict(output_dir, args.project_id)
@@ -181,8 +182,9 @@ def cmd_startup(args, output_dir: Path) -> int:
         )
     )
 
-    # Session orientation：轻量版，不走 pydantic
-    _print_orientation(output_dir, args.project_id, data, phases)
+    # Session orientation：轻量版，不走 pydantic（--json 时省略，避免与 stdout JSON 混淆）
+    if not cli_json_mode(args):
+        _print_orientation(output_dir, args.project_id, data, phases)
 
     return 0
 

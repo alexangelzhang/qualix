@@ -87,19 +87,48 @@ def print_status(state, output_dir: Path) -> None:
 
 
 def cmd_status(args, output_dir: Path) -> int:
+    from dqg.commands.cli_json import cli_envelope, cli_json_mode, print_cli_json
     from dqg.core.profiles import get_profile
 
     state = load_state(output_dir, args.project_id)
     if getattr(args, "profile", None):
         state.profile_id = get_profile(args.profile).profile_id
         save_state(output_dir, state)
+    if cli_json_mode(args):
+        print_cli_json(
+            cli_envelope(
+                command="status",
+                project_id=args.project_id,
+                success=True,
+                exit_code=0,
+                extra={
+                    "state": state.model_dump(mode="json"),
+                    "available_phases": get_available_phases(state),
+                    "parallel_groups": get_parallel_groups(state),
+                },
+            )
+        )
+        return 0
     print_status(state, output_dir)
     return 0
 
 
 def cmd_next(args, output_dir: Path) -> int:
+    from dqg.commands.cli_json import cli_envelope, cli_json_mode, print_cli_json
+
     state = load_state(output_dir, args.project_id)
     groups = get_parallel_groups(state)
+    if cli_json_mode(args):
+        print_cli_json(
+            cli_envelope(
+                command="next",
+                project_id=args.project_id,
+                success=True,
+                exit_code=0,
+                extra={"parallel_groups": groups},
+            )
+        )
+        return 0
     if not groups:
         print("  无可执行的 Phase")
         return 0
@@ -115,14 +144,57 @@ def cmd_next(args, output_dir: Path) -> int:
 
 
 def cmd_detail(args, output_dir: Path) -> int:
+    from dqg.commands.cli_json import cli_envelope, cli_json_mode, print_cli_json
+
     state = load_state(output_dir, args.project_id)
     phase_id = args.phase
     phase_def = PHASE_DEFS.get(phase_id)
     if not phase_def:
-        print(f"  ERROR: 未知的 Phase: {phase_id}", file=sys.stderr)
+        if cli_json_mode(args):
+            print_cli_json(
+                cli_envelope(
+                    command="detail",
+                    project_id=args.project_id,
+                    success=False,
+                    exit_code=1,
+                    phase_id=phase_id,
+                    extra={"error": "unknown_phase"},
+                )
+            )
+        else:
+            print(f"  ERROR: 未知的 Phase: {phase_id}", file=sys.stderr)
         return 1
 
     ps = state.phases[phase_id]
+    if cli_json_mode(args):
+        phase_dir = _phase_dir(output_dir, args.project_id, phase_def)
+        deliverables = phase_def.get("deliverables", [])
+        files_status: list[dict] = []
+        for d in deliverables:
+            filename = d.split("—")[0].strip().split(" ")[0].strip()
+            filepath = phase_dir / filename
+            files_status.append(
+                {
+                    "spec": d,
+                    "filename": filename,
+                    "exists": filepath.exists(),
+                    "bytes": filepath.stat().st_size if filepath.exists() else None,
+                }
+            )
+        print_cli_json(
+            cli_envelope(
+                command="detail",
+                project_id=args.project_id,
+                success=True,
+                exit_code=0,
+                phase_id=phase_id,
+                extra={
+                    "phase_state": ps.model_dump(mode="json"),
+                    "deliverables": files_status,
+                },
+            )
+        )
+        return 0
     print()
     print("=" * 60)
     print(f"  Phase {phase_id} — {phase_def['name']}")
@@ -172,8 +244,21 @@ def cmd_detail(args, output_dir: Path) -> int:
 
 
 def cmd_log(args, output_dir: Path) -> int:
-    from dqg.reporting.telemetry import print_run_summary
+    from dqg.commands.cli_json import cli_envelope, cli_json_mode, print_cli_json
+    from dqg.reporting.telemetry import load_records, print_run_summary
 
+    if cli_json_mode(args):
+        records = load_records(output_dir, args.project_id)
+        print_cli_json(
+            cli_envelope(
+                command="log",
+                project_id=args.project_id,
+                success=True,
+                exit_code=0,
+                extra={"records": [r.model_dump(mode="json") for r in records]},
+            )
+        )
+        return 0
     print_run_summary(output_dir, args.project_id)
     return 0
 

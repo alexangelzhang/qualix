@@ -14,6 +14,23 @@ _APT_TESSERACT_CMD = ["sudo", "apt-get", "install", "-y", "tesseract-ocr", "tess
 
 def cmd_setup_ocr(args, output_dir: Path) -> int:
     """一键安装 OCR 依赖（tesseract + 中文语言包）。"""
+    from dqg.commands.cli_json import cli_envelope, cli_json_mode, print_cli_json
+
+    if cli_json_mode(args):
+        print_cli_json(
+            cli_envelope(
+                command="setup-ocr",
+                project_id=args.project_id,
+                success=False,
+                exit_code=2,
+                extra={
+                    "error": "interactive_only",
+                    "message": "setup-ocr runs brew/apt and is interactive; omit --json for installation",
+                },
+            )
+        )
+        return 2
+
     import platform
     import shutil
 

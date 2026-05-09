@@ -77,6 +77,7 @@ def profile_context_warnings(output_dir: Path, project_id: str, phase_id: str) -
 
 
 def cmd_execute(args, output_dir: Path) -> int:
+    from dqg.commands.cli_json import cli_envelope, cli_json_mode, print_cli_json
     from dqg.core.profiles import get_profile
     from dqg.runtime.execution_context import ExecutionContext
     from dqg.runtime.phase_runtime import runtime_execute
@@ -99,6 +100,19 @@ def cmd_execute(args, output_dir: Path) -> int:
     )
 
     result = runtime_execute(ctx)
+
+    if cli_json_mode(args):
+        print_cli_json(
+            cli_envelope(
+                command="execute",
+                project_id=args.project_id,
+                success=result.success,
+                exit_code=result.exit_code,
+                phase_id=args.phase,
+                phase_result=result.to_dict(),
+            )
+        )
+        return result.exit_code
 
     for event in result.events:
         if event.event_type.value == "error":
@@ -134,7 +148,34 @@ def cmd_execute(args, output_dir: Path) -> int:
     return result.exit_code
 
 
+def _finalize_shared_jsonable(shared: dict) -> dict:
+    keys = (
+        "duration_seconds",
+        "index_result",
+        "quality_report",
+        "compliance",
+        "golden_diff",
+        "auto_bug_cases",
+        "prompt_fixes",
+        "perf_metrics",
+    )
+    out: dict = {}
+    for k in keys:
+        if k not in shared:
+            continue
+        v = shared[k]
+        try:
+            import json
+
+            json.dumps(v, default=str)
+            out[k] = v
+        except (TypeError, ValueError):
+            out[k] = str(v)
+    return out
+
+
 def cmd_finalize(args, output_dir: Path) -> int:
+    from dqg.commands.cli_json import cli_envelope, cli_json_mode, print_cli_json
     from dqg.memory.version_tracker import format_version_diff
     from dqg.quality.golden_sample import format_golden_diff
     from dqg.quality.rule_compliance import format_compliance_report
@@ -150,6 +191,35 @@ def cmd_finalize(args, output_dir: Path) -> int:
     )
 
     result = runtime_finalize(ctx)
+
+    if cli_json_mode(args):
+        print_cli_json(
+            cli_envelope(
+                command="finalize",
+                project_id=args.project_id,
+                success=result.success,
+                exit_code=result.exit_code,
+                phase_id=args.phase,
+                phase_result=result.to_dict(),
+                extra={"shared": _finalize_shared_jsonable(ctx.shared)},
+            )
+        )
+        if result.success:
+            try:
+                from datetime import date as _date
+
+                from dqg.reporting.observability import generate_report
+
+                generate_report(
+                    output_dir,
+                    period_name="daily",
+                    anchor=_date.today(),
+                    project_filter=args.project_id,
+                )
+            except Exception:
+                log.warning("Observability report generation failed", exc_info=True)
+        _flush_events()
+        return result.exit_code
 
     for event in result.events:
         if event.event_type.value == "error":
@@ -265,32 +335,49 @@ def cmd_finalize(args, output_dir: Path) -> int:
 
 
 def cmd_approve(args, output_dir: Path) -> int:
+    from dqg.commands.cli_json import cli_envelope, cli_json_mode, print_cli_json
     from dqg.quality.judge import load_judge_result
     from dqg.skill_tracker import extract_judge_cases
 
     state = load_state(output_dir, args.project_id)
     comment = args.comment or ""
 
+    def _approve_out(success: bool, code: int, **data) -> int:
+        if cli_json_mode(args):
+            print_cli_json(
+                cli_envelope(
+                    command="approve",
+                    project_id=args.project_id,
+                    success=success,
+                    exit_code=code,
+                    phase_id=args.phase,
+                    extra=data,
+                )
+            )
+        return code
+
     judge_result = load_judge_result(output_dir, args.project_id, args.phase)
     if not judge_result:
-        print(
-            f"\n  ❌ 未找到 Phase {args.phase} 的 Judge 评审结果。\n"
-            f"  请先执行 finalize 生成评审结果后再 approve。\n"
-            f"  命令: dqg-run {args.project_id} finalize {args.phase}",
-            file=sys.stderr,
-        )
-        return 1
+        if not cli_json_mode(args):
+            print(
+                f"\n  ❌ 未找到 Phase {args.phase} 的 Judge 评审结果。\n"
+                f"  请先执行 finalize 生成评审结果后再 approve。\n"
+                f"  命令: dqg-run {args.project_id} finalize {args.phase}",
+                file=sys.stderr,
+            )
+        return _approve_out(False, 1, error="missing_judge_result")
 
     if judge_result.get("verdict") == "HARD_BLOCK" or judge_result.get("hard_blocked"):
-        print(
-            f"\n  🚫 Judge 评审被 Anti-Rationalization Guard 硬拦截。\n"
-            f"  原因: {judge_result.get('block_reason', '放水行为确认')}\n"
-            f"  检测到的放水内容:\n"
-            + "\n".join(f"    - {r}" for r in judge_result.get("confirmed_rationalizations", []))
-            + "\n\n  请重新执行 finalize 触发 Judge 重新评审。",
-            file=sys.stderr,
-        )
-        return 1
+        if not cli_json_mode(args):
+            print(
+                f"\n  🚫 Judge 评审被 Anti-Rationalization Guard 硬拦截。\n"
+                f"  原因: {judge_result.get('block_reason', '放水行为确认')}\n"
+                f"  检测到的放水内容:\n"
+                + "\n".join(f"    - {r}" for r in judge_result.get("confirmed_rationalizations", []))
+                + "\n\n  请重新执行 finalize 触发 Judge 重新评审。",
+                file=sys.stderr,
+            )
+        return _approve_out(False, 1, error="hard_block", judge_result=judge_result)
 
     dim_scores = {
         d["id"]: d["score"] / d.get("max_score", 5) * 5
@@ -308,12 +395,13 @@ def cmd_approve(args, output_dir: Path) -> int:
     ps_pre = state.phases.get(args.phase)
     force = getattr(args, "force", False)
     if ps_pre and ps_pre.judge_score is not None and not ps_pre.judge_passed and not force:
-        print(f"\n  ⚠️  Judge 评分 {ps_pre.judge_score:.1f}/5 未达标（阈值 3.5）", file=sys.stderr)
-        top_issues = judge_result.get("top_issues", []) if judge_result else []
-        for issue in top_issues[:3]:
-            print(f"    - {issue}", file=sys.stderr)
-        print(f"\n  使用 --force 强制通过: dqg-run {args.project_id} approve {args.phase} --force", file=sys.stderr)
-        return 1
+        if not cli_json_mode(args):
+            print(f"\n  ⚠️  Judge 评分 {ps_pre.judge_score:.1f}/5 未达标（阈值 3.5）", file=sys.stderr)
+            top_issues = judge_result.get("top_issues", []) if judge_result else []
+            for issue in top_issues[:3]:
+                print(f"    - {issue}", file=sys.stderr)
+            print(f"\n  使用 --force 强制通过: dqg-run {args.project_id} approve {args.phase} --force", file=sys.stderr)
+        return _approve_out(False, 1, error="judge_score_below_threshold", judge_score=ps_pre.judge_score)
 
     from dqg.runtime.gate_verdict import load_verdict
 
@@ -321,17 +409,36 @@ def cmd_approve(args, output_dir: Path) -> int:
     if verdict:
         # GateVerdict 路径：统一决策
         if verdict.hard_blocked:
-            print("\n  HARD 约束未满足，approve 被阻断（--force 无法绕过）：", file=sys.stderr)
-            for c in verdict.hard_failures:
-                print(f"    [{c.source}] {c.name}: {c.message}", file=sys.stderr)
-            print("\n  请修复问题后重新 finalize。", file=sys.stderr)
-            return 1
+            if not cli_json_mode(args):
+                print("\n  HARD 约束未满足，approve 被阻断（--force 无法绕过）：", file=sys.stderr)
+                for c in verdict.hard_failures:
+                    print(f"    [{c.source}] {c.name}: {c.message}", file=sys.stderr)
+                print("\n  请修复问题后重新 finalize。", file=sys.stderr)
+            return _approve_out(
+                False,
+                1,
+                error="gate_hard_blocked",
+                hard_failures=[
+                    {"source": c.source, "name": c.name, "message": c.message} for c in verdict.hard_failures
+                ],
+            )
         if verdict.soft_blocked and not force:
-            print("\n  SOFT 约束未满足：", file=sys.stderr)
-            for c in verdict.soft_failures:
-                print(f"    [{c.source}] {c.name}: {c.message}", file=sys.stderr)
-            print(f"\n  使用 --force 强制通过: dqg-run {args.project_id} approve {args.phase} --force", file=sys.stderr)
-            return 1
+            if not cli_json_mode(args):
+                print("\n  SOFT 约束未满足：", file=sys.stderr)
+                for c in verdict.soft_failures:
+                    print(f"    [{c.source}] {c.name}: {c.message}", file=sys.stderr)
+                print(
+                    f"\n  使用 --force 强制通过: dqg-run {args.project_id} approve {args.phase} --force",
+                    file=sys.stderr,
+                )
+            return _approve_out(
+                False,
+                1,
+                error="gate_soft_blocked",
+                soft_failures=[
+                    {"source": c.source, "name": c.name, "message": c.message} for c in verdict.soft_failures
+                ],
+            )
     else:
         # Fallback: verdict 文件不存在，走旧逻辑
         from dqg.runtime.phase_contract import enforce_phase_constraints
@@ -339,21 +446,24 @@ def cmd_approve(args, output_dir: Path) -> int:
         violations = enforce_phase_constraints(output_dir, args.project_id, args.phase)
         blocking = [v for v in violations if v.get("block_if_fail")]
         if blocking:
-            print("\n  Phase Contract 约束未满足，approve 被阻断：", file=sys.stderr)
-            for v in blocking:
-                actual_str = "N/A" if v.get("actual") is None else str(v["actual"])
-                reason = f" ({v['reason']})" if v.get("reason") else ""
-                print(
-                    f"    {v['label']}: 实际值 {actual_str} {v['op']} {v['threshold']} 不满足{reason}", file=sys.stderr
-                )
-            print("\n  Phase Contract 是硬约束，--force 无法绕过。请修复问题后重新 finalize。", file=sys.stderr)
-            return 1
+            if not cli_json_mode(args):
+                print("\n  Phase Contract 约束未满足，approve 被阻断：", file=sys.stderr)
+                for v in blocking:
+                    actual_str = "N/A" if v.get("actual") is None else str(v["actual"])
+                    reason = f" ({v['reason']})" if v.get("reason") else ""
+                    print(
+                        f"    {v['label']}: 实际值 {actual_str} {v['op']} {v['threshold']} 不满足{reason}",
+                        file=sys.stderr,
+                    )
+                print("\n  Phase Contract 是硬约束，--force 无法绕过。请修复问题后重新 finalize。", file=sys.stderr)
+            return _approve_out(False, 1, error="phase_contract_blocking", violations=blocking)
 
     errors = approve_phase(state, args.phase, comment)
     if errors:
-        for e in errors:
-            print(f"  ERROR: {e}", file=sys.stderr)
-        return 1
+        if not cli_json_mode(args):
+            for e in errors:
+                print(f"  ERROR: {e}", file=sys.stderr)
+        return _approve_out(False, 1, error="approve_phase_errors", errors=errors)
 
     save_state(output_dir, state)
     _, append_record, _ = _telemetry()
@@ -371,7 +481,8 @@ def cmd_approve(args, output_dir: Path) -> int:
         ),
     )
 
-    print(f"\n  Phase {args.phase} 已 approved")
+    if not cli_json_mode(args):
+        print(f"\n  Phase {args.phase} 已 approved")
     _emit_cmd(
         output_dir,
         args.project_id,
@@ -381,17 +492,20 @@ def cmd_approve(args, output_dir: Path) -> int:
         action="approve",
         comment=comment,
     )
+    new_case_count = 0
     if judge_result:
         ps = state.phases[args.phase]
-        passed_str = "✅ PASS" if ps.judge_passed else "⚠️  FAIL (--force)"
-        print(f"  Judge 评分: {ps.judge_score:.1f}/5 {passed_str}")
+        if not cli_json_mode(args):
+            passed_str = "✅ PASS" if ps.judge_passed else "⚠️  FAIL (--force)"
+            print(f"  Judge 评分: {ps.judge_score:.1f}/5 {passed_str}")
         new_cases = extract_judge_cases(args.project_id, args.phase, judge_result)
-        if new_cases:
+        new_case_count = len(new_cases) if new_cases else 0
+        if new_cases and not cli_json_mode(args):
             print(f"  飞轮: 已提取 {len(new_cases)} 条 judge issue → failure-library")
 
     available = get_available_phases(state)
-    if available:
-        groups = get_parallel_groups(state)
+    groups = get_parallel_groups(state) if available else []
+    if not cli_json_mode(args) and available:
         print("\n  下一步可执行:")
         for group in groups:
             if len(group) > 1:
@@ -400,16 +514,40 @@ def cmd_approve(args, output_dir: Path) -> int:
             else:
                 print(f"    dqg-run {args.project_id} execute {group[0]}")
     _flush_events()
+    if cli_json_mode(args):
+        ps = state.phases[args.phase]
+        return _approve_out(
+            True,
+            0,
+            judge_score=ps.judge_score,
+            judge_passed=ps.judge_passed,
+            new_bug_cases_extracted=new_case_count,
+            next_groups=groups,
+        )
     return 0
 
 
 def cmd_skip(args, output_dir: Path) -> int:
+    from dqg.commands.cli_json import cli_envelope, cli_json_mode, print_cli_json
+
     state = load_state(output_dir, args.project_id)
     comment = args.comment or "skipped"
     errors = skip_phase(state, args.phase, comment)
     if errors:
-        for e in errors:
-            print(f"  ERROR: {e}", file=sys.stderr)
+        if not cli_json_mode(args):
+            for e in errors:
+                print(f"  ERROR: {e}", file=sys.stderr)
+        if cli_json_mode(args):
+            print_cli_json(
+                cli_envelope(
+                    command="skip",
+                    project_id=args.project_id,
+                    success=False,
+                    exit_code=1,
+                    phase_id=args.phase,
+                    extra={"errors": errors},
+                )
+            )
         return 1
     save_state(output_dir, state)
     _, append_record, _ = _telemetry()
@@ -426,7 +564,8 @@ def cmd_skip(args, output_dir: Path) -> int:
             comment=comment,
         ),
     )
-    print(f"\n  Phase {args.phase} 已跳过")
+    if not cli_json_mode(args):
+        print(f"\n  Phase {args.phase} 已跳过")
     _emit_cmd(
         output_dir,
         args.project_id,
@@ -436,4 +575,15 @@ def cmd_skip(args, output_dir: Path) -> int:
         action="skip",
         comment=comment,
     )
+    if cli_json_mode(args):
+        print_cli_json(
+            cli_envelope(
+                command="skip",
+                project_id=args.project_id,
+                success=True,
+                exit_code=0,
+                phase_id=args.phase,
+                extra={"comment": comment},
+            )
+        )
     return 0

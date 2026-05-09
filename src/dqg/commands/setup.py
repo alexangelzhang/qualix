@@ -5,14 +5,12 @@ from __future__ import annotations
 import subprocess
 import sys
 from datetime import datetime
-from typing import TYPE_CHECKING
+from pathlib import Path
+from typing import Any
 
 from dqg.core.phase_registry import PHASE_DEFS, PHASE_ORDER
 from dqg.core.state_machine import ProjectState, load_state, save_state
 from dqg.json_utils import load_json_strict, save_json
-
-if TYPE_CHECKING:
-    from pathlib import Path
 
 # ---------------------------------------------------------------------------
 # version
@@ -23,7 +21,20 @@ DQG_VERSION = "0.2.0"
 
 def cmd_version(args, output_dir: Path) -> int:
     """显示 DQG 版本."""
-    print(f"DQG (Dev Quality Gate) v{DQG_VERSION}")
+    from dqg.commands.cli_json import cli_envelope, cli_json_mode, print_cli_json
+
+    if cli_json_mode(args):
+        print_cli_json(
+            cli_envelope(
+                command="version",
+                project_id=args.project_id,
+                success=True,
+                exit_code=0,
+                extra={"dqg_version": DQG_VERSION},
+            )
+        )
+    else:
+        print(f"DQG (Dev Quality Gate) v{DQG_VERSION}")
     return 0
 
 
@@ -34,6 +45,8 @@ def cmd_version(args, output_dir: Path) -> int:
 
 def cmd_init(args, output_dir: Path) -> int:
     """一键初始化项目：创建目录结构、state.json、version.json."""
+    from dqg.commands.cli_json import cli_envelope, cli_json_mode, print_cli_json
+
     project_id = args.project_id
     requested_profile_id = getattr(args, "profile", None) or "java-ddd-tmf"
 
@@ -50,8 +63,11 @@ def cmd_init(args, output_dir: Path) -> int:
 
     # 初始化 state.json
     state_path = project_dir / "state.json"
-    if state_path.exists():
-        print(f"  state.json 已存在，跳过（使用 dqg-run {project_id} status 查看状态）")
+    had_state_before = state_path.exists()
+    state_json_created = False
+    if had_state_before:
+        if not cli_json_mode(args):
+            print(f"  state.json 已存在，跳过（使用 dqg-run {project_id} status 查看状态）")
         state = load_state(output_dir, project_id)
     else:
         from dqg.core.profiles import get_profile
@@ -60,7 +76,9 @@ def cmd_init(args, output_dir: Path) -> int:
         profile_id = profile.profile_id
         state = ProjectState(project_id=project_id, profile_id=profile_id)
         save_state(output_dir, state)
-        print("  ✓ state.json 已创建")
+        state_json_created = True
+        if not cli_json_mode(args):
+            print("  ✓ state.json 已创建")
 
     profile_id = state.profile_id
 
@@ -74,15 +92,34 @@ def cmd_init(args, output_dir: Path) -> int:
             "profile_id": profile_id,
         },
     )
-    print(f"  ✓ version.json 已创建 (v{DQG_VERSION})")
+    if not cli_json_mode(args):
+        print(f"  ✓ version.json 已创建 (v{DQG_VERSION})")
 
     # 汇总
     phase_dirs = [PHASE_DEFS[pid]["dir_suffix"] for pid in PHASE_ORDER]
-    print(f"\n  项目 {project_id} 初始化完成:")
-    print(f"    Profile: {profile_id}")
-    print(f"    输出目录: {project_dir}")
-    print(f"    Phase 目录: {', '.join(phase_dirs)}")
-    print(f"\n  下一步: dqg-run {project_id} startup")
+    if cli_json_mode(args):
+        print_cli_json(
+            cli_envelope(
+                command="init",
+                project_id=project_id,
+                success=True,
+                exit_code=0,
+                extra={
+                    "profile_id": profile_id,
+                    "project_dir": str(project_dir),
+                    "phase_dirs": phase_dirs,
+                    "state_json_created": state_json_created,
+                    "state_existed_before": had_state_before,
+                    "version_path": str(version_path),
+                },
+            )
+        )
+    else:
+        print(f"\n  项目 {project_id} 初始化完成:")
+        print(f"    Profile: {profile_id}")
+        print(f"    输出目录: {project_dir}")
+        print(f"    Phase 目录: {', '.join(phase_dirs)}")
+        print(f"\n  下一步: dqg-run {project_id} startup")
     return 0
 
 
@@ -90,195 +127,27 @@ def cmd_init(args, output_dir: Path) -> int:
 # doctor
 # ---------------------------------------------------------------------------
 
-_REQUIRED_PACKAGES = ["pydantic", "jinja2"]
-_OPTIONAL_PACKAGES = ["deepeval", "tree_sitter"]
-_REQUIRED_SCRIPTS = [
-    "scripts/feishu_direct_ingest.py",
-    "scripts/parse_image_assets.py",
-]
-
 
 def cmd_doctor(args, output_dir: Path) -> int:
     """环境健康检查."""
+    from dqg.commands.cli_json import cli_envelope, cli_json_mode, print_cli_json
+    from dqg.commands.doctor_checks import print_doctor_human, run_doctor_checks
+
     base_dir = output_dir.parent
-    issues: list[str] = []
-    warnings: list[str] = []
-
-    print()
-    print("=" * 50)
-    print("  DQG Doctor — 环境健康检查")
-    print("=" * 50)
-
-    # 1. Python 版本
-    v = sys.version_info
-    py_ver = f"{v.major}.{v.minor}.{v.micro}"
-    if v.minor >= 11:
-        print(f"  ✓ Python {py_ver}")
-    else:
-        issues.append(f"Python {py_ver} < 3.11")
-        print(f"  ✗ Python {py_ver} (需要 >= 3.11)")
-
-    # 2. 必需依赖
-    for pkg in _REQUIRED_PACKAGES:
-        try:
-            __import__(pkg)
-            print(f"  ✓ {pkg}")
-        except ImportError:
-            issues.append(f"缺少依赖: {pkg}")
-            print(f"  ✗ {pkg} (pip install {pkg})")
-
-    # 3. 可选依赖
-    for pkg in _OPTIONAL_PACKAGES:
-        try:
-            __import__(pkg)
-            print(f"  ✓ {pkg} (可选)")
-        except ImportError:
-            warnings.append(f"可选依赖未安装: {pkg}")
-            print(f"  ⚠ {pkg} 未安装 (可选，pip install {pkg})")
-
-    # 4. 关键脚本
-    for script in _REQUIRED_SCRIPTS:
-        script_path = base_dir / script
-        if script_path.exists():
-            print(f"  ✓ {script}")
-        else:
-            warnings.append(f"脚本不存在: {script}")
-            print(f"  ⚠ {script} 不存在")
-
-    # 5. profiles 目录 + schema 校验
-    profiles_dir = base_dir / "profiles"
-    if profiles_dir.exists():
-        profiles = [d.name for d in profiles_dir.iterdir() if d.is_dir()]
-        print(f"  ✓ profiles/ ({', '.join(profiles)})")
-        from dqg.core.profiles import validate_all_profiles
-
-        profile_issues = validate_all_profiles(profiles_root=profiles_dir, repo_root=base_dir)
-        if profile_issues:
-            for profile_id, profile_errors in profile_issues.items():
-                for err in profile_errors:
-                    issues.append(f"profile {profile_id}: {err}")
-            print(f"  ✗ profile schema ({sum(len(v) for v in profile_issues.values())} issues)")
-        else:
-            print("  ✓ profile schema")
-    else:
-        issues.append("profiles/ 目录不存在")
-        print("  ✗ profiles/ 目录不存在")
-
-    # 6. skills 目录
-    skills_dir = base_dir / "skills"
-    if skills_dir.exists():
-        skill_count = sum(1 for _ in skills_dir.rglob("SKILL.md"))
-        print(f"  ✓ skills/ ({skill_count} SKILL.md)")
-    else:
-        issues.append("skills/ 目录不存在")
-        print("  ✗ skills/ 目录不存在")
-
-    # 7. 飞书 token
-    try:
-        result = subprocess.run(
-            ["uvx", "larkkit", "auth", "status"],
-            capture_output=True,
-            text=True,
-            timeout=5,
+    issues, warnings, signals = run_doctor_checks(base_dir)
+    if cli_json_mode(args):
+        ec = 1 if issues else 0
+        print_cli_json(
+            cli_envelope(
+                command="doctor",
+                project_id=args.project_id,
+                success=ec == 0,
+                exit_code=ec,
+                extra={"issues": issues, "warnings": warnings, "signals": signals},
+            )
         )
-        if result.returncode == 0:
-            print("  ✓ 飞书 token 有效")
-        else:
-            warnings.append("飞书 token 无效或未配置")
-            print("  ⚠ 飞书 token 无效 (uvx larkkit auth login)")
-    except (FileNotFoundError, subprocess.TimeoutExpired):
-        warnings.append("larkkit 未安装或超时")
-        print("  ⚠ larkkit 未安装 (pip install larkkit)")
-
-    # 8. git
-    try:
-        result = subprocess.run(
-            ["git", "rev-parse", "--is-inside-work-tree"],
-            capture_output=True,
-            text=True,
-            timeout=5,
-            cwd=base_dir,
-        )
-        if result.returncode == 0:
-            print("  ✓ git 仓库")
-        else:
-            warnings.append("当前目录不是 git 仓库")
-            print("  ⚠ 当前目录不是 git 仓库")
-    except FileNotFoundError:
-        issues.append("git 未安装")
-        print("  ✗ git 未安装")
-
-    # 9. OCR 引擎（可选，图片解析增强）
-    import shutil
-
-    tesseract_path = shutil.which("tesseract")
-    surya_path = shutil.which("surya_ocr")
-    if tesseract_path:
-        try:
-            ver = subprocess.run([tesseract_path, "--version"], capture_output=True, text=True, timeout=5)
-            ver_line = ver.stdout.splitlines()[0] if ver.stdout else "unknown"
-            print(f"  ✓ tesseract ({ver_line})")
-            lang_result = subprocess.run([tesseract_path, "--list-langs"], capture_output=True, text=True, timeout=5)
-            if "chi_sim" in lang_result.stdout:
-                print("  ✓ tesseract 中文语言包 (chi_sim)")
-            else:
-                warnings.append("tesseract 缺少中文语言包 chi_sim")
-                print("  ⚠ tesseract 缺少中文语言包 (brew install tesseract-lang)")
-        except (subprocess.TimeoutExpired, FileNotFoundError):
-            warnings.append("tesseract 版本检测失败")
-            print("  ⚠ tesseract 版本检测失败")
-    else:
-        warnings.append("tesseract 未安装（图片 OCR 不可用）")
-        print("  ⚠ tesseract 未安装 (brew install tesseract tesseract-lang)")
-
-    if surya_path:
-        print("  ✓ surya_ocr (高精度 OCR 兜底)")
-    else:
-        print("  - surya_ocr 未安装 (可选，pip install surya-ocr)")
-
-    # 10. VLM API Key（可选，图片深度解析）
-    import os
-
-    vlm_keys = {
-        "ANTHROPIC_API_KEY": "Anthropic Claude",
-        "OPENAI_API_KEY": "OpenAI GPT-4V",
-        "DASHSCOPE_API_KEY": "DashScope 通义千问",
-    }
-    vlm_found = False
-    for env_var, name in vlm_keys.items():
-        if os.getenv(env_var):
-            print(f"  ✓ {name} ({env_var})")
-            vlm_found = True
-    if not vlm_found:
-        print("  - VLM API Key 未配置 (可选，用于图片深度解析)")
-
-    # 11. agent-browser（可选，飞书画板/思维导图截图）
-    ab_path = shutil.which("agent-browser")
-    if ab_path:
-        try:
-            ver = subprocess.run([ab_path, "--version"], capture_output=True, text=True, timeout=5)
-            ver_line = ver.stdout.strip() or "unknown"
-            print(f"  ✓ agent-browser ({ver_line})")
-        except (subprocess.TimeoutExpired, FileNotFoundError):
-            print(f"  ✓ agent-browser ({ab_path})")
-    else:
-        print("  - agent-browser 未安装 (可选，npm install -g agent-browser && agent-browser install)")
-
-    # 汇总
-    print()
-    print("-" * 50)
-    if issues:
-        print(f"  ✗ {len(issues)} 个问题需要修复:")
-        for i in issues:
-            print(f"    - {i}")
-    if warnings:
-        print(f"  ⚠ {len(warnings)} 个警告:")
-        for w in warnings:
-            print(f"    - {w}")
-    if not issues and not warnings:
-        print("  ✓ 环境健康，一切就绪")
-
-    print()
+        return ec
+    print_doctor_human(base_dir, issues, warnings, signals)
     return 1 if issues else 0
 
 
@@ -289,10 +158,13 @@ def cmd_doctor(args, output_dir: Path) -> int:
 
 def cmd_update(args, output_dir: Path) -> int:
     """更新 DQG 到最新版本."""
+    from dqg.commands.cli_json import cli_envelope, cli_json_mode, print_cli_json
+
     base_dir = output_dir.parent
 
     # git pull
-    print("  拉取最新代码...")
+    if not cli_json_mode(args):
+        print("  拉取最新代码...")
     result = subprocess.run(
         ["git", "pull", "--rebase"],
         capture_output=True,
@@ -301,25 +173,57 @@ def cmd_update(args, output_dir: Path) -> int:
         cwd=base_dir,
     )
     if result.returncode != 0:
-        print(f"  ✗ git pull 失败: {result.stderr.strip()}", file=sys.stderr)
+        if cli_json_mode(args):
+            print_cli_json(
+                cli_envelope(
+                    command="update",
+                    project_id=args.project_id,
+                    success=False,
+                    exit_code=1,
+                    extra={"error": "git_pull_failed", "stderr": (result.stderr or "").strip()},
+                )
+            )
+        else:
+            print(f"  ✗ git pull 失败: {result.stderr.strip()}", file=sys.stderr)
         return 1
-    print(f"  ✓ {result.stdout.strip()}")
+    pull_out = (result.stdout or "").strip()
+    if not cli_json_mode(args):
+        print(f"  ✓ {pull_out}")
 
     # 检查项目 version.json 是否需要更新
     project_id = args.project_id
     version_path = output_dir / project_id / "version.json"
+    version_bump: dict[str, Any] = {"version_path_exists": version_path.exists()}
     if version_path.exists():
         ver_data = load_json_strict(version_path)
         old_ver = ver_data.get("dqg_version", "unknown")
+        version_bump["old_dqg_version"] = old_ver
         if old_ver != DQG_VERSION:
-            print(f"  版本变更: {old_ver} → {DQG_VERSION}")
+            version_bump["updated"] = True
+            version_bump["new_dqg_version"] = DQG_VERSION
             ver_data["dqg_version"] = DQG_VERSION
             ver_data["updated_at"] = datetime.now().isoformat()
             save_json(version_path, ver_data)
-            print("  ✓ version.json 已更新")
+            if not cli_json_mode(args):
+                print(f"  版本变更: {old_ver} → {DQG_VERSION}")
+                print("  ✓ version.json 已更新")
         else:
-            print(f"  ✓ 已是最新版本 (v{DQG_VERSION})")
+            version_bump["updated"] = False
+            if not cli_json_mode(args):
+                print(f"  ✓ 已是最新版本 (v{DQG_VERSION})")
     else:
-        print(f"  ⚠ version.json 不存在，建议执行 dqg-run {project_id} init")
+        version_bump["hint"] = f"dqg-run {project_id} init"
+        if not cli_json_mode(args):
+            print(f"  ⚠ version.json 不存在，建议执行 dqg-run {project_id} init")
 
+    if cli_json_mode(args):
+        print_cli_json(
+            cli_envelope(
+                command="update",
+                project_id=project_id,
+                success=True,
+                exit_code=0,
+                extra={"git_pull_stdout": pull_out, "version": version_bump, "dqg_version": DQG_VERSION},
+            )
+        )
     return 0
