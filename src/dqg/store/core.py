@@ -17,6 +17,28 @@ if TYPE_CHECKING:
 
 log = get_logger(__name__)
 
+
+def _ensure_prompt_versions_table(conn: sqlite3.Connection) -> None:
+    """P2: 已有库补建 prompt_versions（CREATE IF NOT EXISTS 幂等）."""
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS prompt_versions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            prompt_hash TEXT NOT NULL,
+            content_hash TEXT NOT NULL,
+            version INTEGER NOT NULL,
+            agent_name TEXT DEFAULT '',
+            agent_role TEXT DEFAULT '',
+            trace_run_id TEXT DEFAULT '',
+            prompt_text TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            UNIQUE(prompt_hash, content_hash)
+        );
+        """
+    )
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_promptver_hash ON prompt_versions(prompt_hash, version DESC);")
+
+
 # ---------------------------------------------------------------------------
 # Harness 层 Schema：通用基础设施表（LLM cache、代码索引、知识图谱）
 # 这些表不含 DQG 业务概念，可被任何 Domain App 复用
@@ -395,6 +417,10 @@ def _get_cached_connection(db_str: str) -> sqlite3.Connection:
             log.debug("Schema migration check failed for %s", db_str, exc_info=True)
         _initialized_dbs.add(db_str)
         log.debug("Schema initialized: %s", db_str)
+    try:
+        _ensure_prompt_versions_table(conn)
+    except Exception:
+        log.debug("prompt_versions table ensure failed", exc_info=True)
     cache[db_str] = conn
     return conn
 
@@ -428,6 +454,7 @@ def row_to_dict(row: sqlite3.Row) -> dict[str, Any]:
         "metric_data",
         "gate_checklist",
         "top_issues",
+        "llm_calls",
     ):
         if key in d and isinstance(d[key], str):
             with suppress(json.JSONDecodeError, TypeError):

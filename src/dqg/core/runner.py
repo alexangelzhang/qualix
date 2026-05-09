@@ -173,7 +173,7 @@ def _build_parser() -> argparse.ArgumentParser:
         "observe_action",
         nargs="?",
         default="report",
-        choices=["report", "daily", "guard-precision"],
+        choices=["report", "daily", "guard-precision", "prompt-versions"],
     )
     p_observe.add_argument("--period", choices=["daily", "weekly"], default="daily")
     p_observe.add_argument("--date", default=None, help="锚点日期 YYYY-MM-DD")
@@ -181,6 +181,7 @@ def _build_parser() -> argparse.ArgumentParser:
     p_observe.add_argument("--phase", default=None, help="Phase 过滤")
     p_observe.add_argument("--block-spike-ratio", type=float, default=2.0, help="BLOCK 激增阈值倍数")
     p_observe.add_argument("--phase-failure-threshold", type=float, default=0.5, help="Phase 失败率阈值")
+    p_observe.add_argument("--prompt-hash", default=None, help="observe prompt-versions 时按 hash 过滤")
 
     # regression
     p_regr = sub.add_parser("regression", help="回归测试（原 dqg-regression）")

@@ -73,6 +73,12 @@ from dqg.store.preferences import (
     query_preferences,
 )
 
+# --- prompt versions (P2) ---
+from dqg.store.prompt_versions import (
+    query_prompt_versions,
+    record_prompt_snapshot,
+)
+
 # --- telemetry ---
 from dqg.store.telemetry import (
     insert_telemetry,

@@ -7,12 +7,15 @@ import json
 import re
 import time
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from dqg.agents.llm_backends import LLMBackend, LLMConfig, create_backend
 from dqg.constants import AGENT_EVIDENCE_EXCERPT_LIMIT, AGENT_EVIDENCE_TOTAL_LIMIT
 from dqg.json_utils import dump_json_compact, dump_json_str
+from dqg.log import get_logger
 from dqg.store import get_connection
+
+log = get_logger(__name__)
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -40,11 +43,14 @@ class AgentResult:
     cached: bool = False
     trajectory: list[dict[str, str]] = field(default_factory=list)
     prompt_hash: str = ""
+    # P0 可观测性：低频采样写入 telemetry（见 telemetry_payload）
+    telemetry_prompt_excerpt: str = ""
+    telemetry_response_excerpt: str = ""
 
 
-def extract_llm_call(result: AgentResult) -> dict[str, int | str | bool | float]:
+def extract_llm_call(result: AgentResult) -> dict[str, Any]:
     """Extract LLM call telemetry from an AgentResult."""
-    return {
+    out: dict[str, Any] = {
         "agent_name": result.agent_name,
         "agent_role": result.role,
         "model_id": result.model_used,
@@ -57,6 +63,13 @@ def extract_llm_call(result: AgentResult) -> dict[str, int | str | bool | float]
         "duration_seconds": round(result.duration_seconds, 2),
         "status": result.status,
     }
+    pex = getattr(result, "telemetry_prompt_excerpt", "") or ""
+    rex = getattr(result, "telemetry_response_excerpt", "") or ""
+    if pex:
+        out["prompt_excerpt"] = pex
+    if rex:
+        out["response_excerpt"] = rex
+    return out
 
 
 _PRUNED_TOOL_PLACEHOLDER = "[旧工具输出已清理以节省 context]"
@@ -261,6 +274,8 @@ class Agent:
         user_message: str,
         context_files: list[Path] | None = None,
         dynamic_context_files: list[Path] | None = None,
+        *,
+        telemetry_span: dict[str, Any] | None = None,
     ) -> AgentResult:
         """执行 Agent 任务，失败自动切换备用模型."""
         self._init_backends()
@@ -392,11 +407,32 @@ class Agent:
         if final_content.strip():
             raw_trajectory.append({"role": "assistant", "content": final_content.strip()})
 
+        from dqg.reporting.telemetry_payload import maybe_sample_agent_payload
+
+        fc = final_content.strip()
+        prompt_ex, resp_ex = maybe_sample_agent_payload(messages, fc)
+
+        if prompt_ex and self.output_dir:
+            try:
+                from dqg.store.prompt_versions import record_prompt_snapshot
+
+                tr = str((telemetry_span or {}).get("trace_run_id", "") or "")
+                record_prompt_snapshot(
+                    self.output_dir,
+                    prompt_hash=prompt_hash,
+                    prompt_text=prompt_ex,
+                    agent_name=self.name,
+                    agent_role=self.role,
+                    trace_run_id=tr,
+                )
+            except Exception:
+                log.debug("prompt_versions snapshot skipped", exc_info=True)
+
         result = AgentResult(
             agent_name=self.name,
             role=self.role,
             status="success" if not self._fallback_backend or model_used == self._backend.name() else "fallback",
-            content=final_content.strip(),
+            content=fc,
             model_used=model_used or self.model.primary,
             duration_seconds=time.time() - start,
             token_usage={
@@ -409,6 +445,8 @@ class Agent:
             cached=False,
             trajectory=raw_trajectory,
             prompt_hash=prompt_hash,
+            telemetry_prompt_excerpt=prompt_ex,
+            telemetry_response_excerpt=resp_ex,
         )
 
         if not saw_tool_call:

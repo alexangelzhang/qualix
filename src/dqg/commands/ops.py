@@ -39,9 +39,23 @@ def cmd_observe(args: argparse.Namespace, output_dir: Path) -> int:
 
     if action == "daily":
         return int(_cmd_daily(args))
-    if action == "guard-precision":
-        from pathlib import Path
+    if action == "prompt-versions":
+        from dqg.store.prompt_versions import query_prompt_versions
 
+        base = Path(getattr(args, "base_dir", ".") or ".").resolve()
+        out_dir = base / "output"
+        ph = getattr(args, "prompt_hash", None)
+        rows = query_prompt_versions(out_dir, prompt_hash=ph, limit=50)
+        if not rows:
+            print("  (无 prompt_versions 记录；需开启采样且 Agent 带 output_dir)")
+            return 0
+        for r in rows:
+            print(
+                f"  v{r.get('version')} hash={r.get('prompt_hash', '')[:12]}… "
+                f"agent={r.get('agent_name')}/{r.get('agent_role')} run={r.get('trace_run_id', '')}"
+            )
+        return 0
+    if action == "guard-precision":
         from dqg.reporting.guard_precision_report import write_guard_precision_report
 
         base = Path(getattr(args, "base_dir", ".") or ".").resolve()
