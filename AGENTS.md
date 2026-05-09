@@ -33,13 +33,13 @@ Phase ID 统一使用 Q01-Q07（旧 ID A/A.3/A.5/A.6/B/C/D 仍兼容）。
 
 | Phase | 名称 | Skill 文件 | 依赖 | 备注 |
 |-------|------|-----------|------|------|
-| Q01 | 需求结构化 | `skills/requirement-structuring.md` | 无 | |
-| Q02 | 技术方案生成 | `skills/tech-design-generation.md` | Q01 | 可选，已有技术方案时 skip |
-| Q03 | 技术方案质量评审 | `skills/tech-quality-review.md` | Q02 | 先评审质量 |
-| Q04 | 技术方案覆盖度审计 | `skills/tech-coverage-audit.md` | Q03 | 再审覆盖度 |
-| Q05 | 单测生成 | `skills/unit-test-generation.md` | Q01 | |
-| Q06 | 单测覆盖审计 | `skills/unit-test-audit.md` | Q01 | |
-| Q07 | 代码评审 | `skills/code-review.md` | Q01 | |
+| Q01 | 需求结构化 | `skills/requirement-structuring/SKILL.md` | 无 | |
+| Q02 | 技术方案生成 | `skills/tech-design-generation/SKILL.md` | Q01 | 可选，已有技术方案时 skip |
+| Q03 | 技术方案质量评审 | `skills/tech-quality-review/SKILL.md` | Q02 | 先评审质量 |
+| Q04 | 技术方案覆盖度审计 | `skills/tech-coverage-audit/SKILL.md` | Q03 | 再审覆盖度 |
+| Q05 | 单测生成 | `skills/unit-test-generation/SKILL.md` | Q01 | |
+| Q06 | 单测覆盖审计 | `skills/unit-test-audit/SKILL.md` | Q01 | |
+| Q07 | 代码评审 | `skills/code-review/SKILL.md` | Q01 | |
 
 ## Phase DAG
 

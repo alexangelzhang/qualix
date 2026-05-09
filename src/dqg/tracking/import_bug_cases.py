@@ -23,37 +23,37 @@ CATEGORY_MAPPING: Final = MappingProxyType(
             "phase": "Q06",
             "error_type": "FN",
             "root_cause": "SKILL_RULE",
-            "fix_target": "skills/unit-test-audit.md",
+            "fix_target": "skills/unit-test-audit/SKILL.md",
         },
         "函数正常分支未覆盖": {
             "phase": "Q06",
             "error_type": "FN",
             "root_cause": "SKILL_RULE",
-            "fix_target": "skills/unit-test-audit.md",
+            "fix_target": "skills/unit-test-audit/SKILL.md",
         },
         "函数异常分支未覆盖": {
             "phase": "Q06",
             "error_type": "FN",
             "root_cause": "SKILL_RULE",
-            "fix_target": "skills/unit-test-audit.md",
+            "fix_target": "skills/unit-test-audit/SKILL.md",
         },
         "函数覆盖assert不对": {
             "phase": "Q06",
             "error_type": "WRONG",
             "root_cause": "SKILL_RULE",
-            "fix_target": "skills/unit-test-audit.md",
+            "fix_target": "skills/unit-test-audit/SKILL.md",
         },
         "有单测未运行": {
             "phase": "Q06",
             "error_type": "FN",
             "root_cause": "CONTEXT",
-            "fix_target": "skills/unit-test-audit.md",
+            "fix_target": "skills/unit-test-audit/SKILL.md",
         },
         "提测前无单测": {
             "phase": "Q06",
             "error_type": "FN",
             "root_cause": "CONTEXT",
-            "fix_target": "skills/unit-test-audit.md",
+            "fix_target": "skills/unit-test-audit/SKILL.md",
         },
         # 需求分析相关
         "需求实现遗漏": {
@@ -85,13 +85,13 @@ CATEGORY_MAPPING: Final = MappingProxyType(
             "phase": "Q03",
             "error_type": "FN",
             "root_cause": "SKILL_RULE",
-            "fix_target": "skills/tech-quality-review.md",
+            "fix_target": "skills/tech-quality-review/SKILL.md",
         },
         "技术实现遗漏": {
             "phase": "Q03",
             "error_type": "FN",
             "root_cause": "SKILL_RULE",
-            "fix_target": "skills/tech-quality-review.md",
+            "fix_target": "skills/tech-quality-review/SKILL.md",
         },
         # 安全/性能/幂等
         "安全问题": {

@@ -63,6 +63,8 @@ IRON LAW: 每条 audit_item 的 evidence 字段必须引用具体代码位置（
 | `WRONG_TARGET` | 有测试，但验证目标错误（过度 mock、仅验调用次数、仅非空断言） |
 | `CONFLICT` | 有测试，断言模式与审计标准不一致，但可能是团队有意的设计决策，交人工裁决 |
 
+> **CONFLICT vs WRONG_TARGET**：当 assertNotNull / verify-only 模式是团队有意的架构约定（如 Gateway 层只验证调用不验证返回值），标记 CONFLICT 而非 WRONG_TARGET。CONFLICT 不计入 FAIL 判定，但必须在报告中列出供 approve 阶段人工确认。
+
 ## 执行流程
 
 ### Phase Q06 的定位（与 Phase Q05 的分工）
