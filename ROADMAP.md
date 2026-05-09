@@ -144,6 +144,18 @@
 - `cmd_startup` stale 检测（`commands/startup_fast.py`）— `pending_review` Phase 自动检测上游产物是否变更，stale 时 menu item 标注 `stale: true` 并追加 comment 提示重新 finalize
 - 解决问题：上游 Phase 产物修补后，下游 Phase 的旧 finalize 校验结果不再误报为有效
 
+2026-05-09 新增（系统健康报告 T1–T12 落地）：
+
+- T3 — `validate_eut_id_subset`（`quality/checks/cross_phase_check.py`）拦截 Q06 审计 Q05 不存在的 EUT 编号（phantom EUT），接入 `finalize_checks`
+- T5 — Q05 结构合规 validator（`quality/checks/q05_structure_checks.py`）覆盖 mock_wrong / mock_phantom_method / eut_missing_se / wrong_directory 四类失败，compile_fail 仍由 `test_execution_gate` 兜底
+- T6 — Q05 生成范式三步改造（`references/q05-three-step-paradigm.md` + SKILL 三步节）+ `Q05BranchCoverageGuardrail`（`quality/guardrail/q05_branch_coverage.py`），分支覆盖校验挂入 `get_phase_guardrails("Q05")`
+- T7 — EnumSource 统一枚举源（`context/enum_contract.py::render_enum_contract_prefix`），在 `skill_loader.load_skill_progressive` 和 `agents/multi_agent.py` prompt 装配时自动注入 `ENUM_CONTRACT` 前缀节，与 schema 同源
+- T8 — Schema↔Prompt 一致性 CI（`scripts/check_schema_prompt_sync.py`），挂入 `.pre-commit-config.yaml` 的 pre-commit hook
+- T9 — Guard 精度周报（`reporting/guard_precision_report.py`）+ `dqg-run observe guard-precision` 命令 + finalize 后自动刷新
+- T10 — Failure → Reflector 自动回流（`tracking/lesson_inference.py` 扩展 + `scripts/backfill_failure_case_lessons.py`），新采集 case 自动写 lesson
+- T11 — `RationalizationProbeGuardrail`（`quality/guardrail/rationalization_probe.py`）字段级拦截合理化话术，挂入 Q03/Q06 的 `get_phase_guardrails`
+- 状态跟踪见 `ISSUE.md §2026-05-09`：T1-T11 代码 done、验收 todo；T6/T12 阻塞 verified 待回写重跑数据
+
 2026-04-27 新增（Evidence Pack Compaction 基线遥测）：
 
 - Judge token usage 链路打通（`judge_runner.py` → `judge_vote.py` → `adaptive_loop.py`）— JudgeResult/JudgeVote 新增 `token_usage` 字段，adaptive loop 每轮 judge 投票后提取 token 数据到 `iter_llm_calls`，修复 telemetry `llm_calls` 始终为空的问题
@@ -571,6 +583,7 @@
 | 三层检查包装 | **已完成** | `quality/guardrail/guardrail_impl.py`：FinalizeChecksGuardrail / PhaseConstraintsGuardrail / RuleComplianceGuardrail |
 | 并发执行 + 结果持久化 | **已完成** | `run_guardrails()` 支持 ThreadPoolExecutor 并发，结果写入 `_guardrail_results.json` |
 | 接入 runtime_finalize | **已完成** | finalize handler 执行后统一跑 guardrail，不阻断主流程 |
+| Phase 级 guardrail 注入（T6/T11） | **已完成** | `get_phase_guardrails(phase_id)` 按 Phase 挂额外 guardrail：Q05 接 `Q05BranchCoverageGuardrail`，Q03/Q06 接 `RationalizationProbeGuardrail` |
 
 ### 长期（规划中，依赖 Agent SDK 迁移）
 

@@ -97,6 +97,26 @@ Phase 执行结果的 5 值枚举：ok / timeout / adapter_crashed / parse_faile
 Judge 放水检测器。识别 Judge 评分中的合理化倾向（"虽然...但可以接受"），触发 rejudge。同时检测过严误报。
 - _Avoid_: "bias detector"（专注于 rationalization 这一特定认知偏差）
 
+### EnumSource / EnumContract
+枚举单一真源。定义 severity、id 正则、状态机等枚举在 schema / prompt / 示例中的唯一权威值，由 `context/enum_contract.py::render_enum_contract_prefix` 渲染为 `ENUM_CONTRACT` 节注入到 skill prompt 头部，与 Pydantic schema 同源。
+- _Avoid_: "枚举表"、"常量表"（EnumSource 强调"唯一真源"和"跨文档同源"两个属性）
+- Relationships: 解决 Skill 示例 ≠ Schema required 的"两张皮"问题；T8 Schema↔Prompt 一致性 CI 以 EnumSource 作为比对基准
+
+### Q05BranchCoverageGuardrail
+Q05 Phase 专属的 PhaseGuardrail。校验 EUT 对业务方法各分支（happy / 边界 / 异常 / 并发）的覆盖率，关键方法（含 throws / try-catch）必须 ≥1 条异常分支 EUT，否则 BLOCKED。配合 Q05 三步生成范式（分支枚举 → 业务后果映射 → 断言对准）使用。
+- _Avoid_: 与通用 PhaseGuardrail 混用（这是 Q05 专属挂载，只在 `get_phase_guardrails("Q05")` 时生效）
+- Relationships: 由 T6 Q05 范式改造引入；T12 bug 回归实验的验收依赖它真能拦住 no-exception-test
+
+### RationalizationProbeGuardrail
+字段级合理化拦截器。在 Q03/Q06 的 `PhaseGuardrail` 中对自由文本字段（business_path、failure_scenario、finding.message）扫描合理化话术（"虽然... 但是..."、"按常识...")，与对话层的 RationalizationGuard 形成互补。
+- _Avoid_: 与 Rationalization Guard 混为一体（前者作用在"字段"，后者作用在"Judge 对话"）
+- Relationships: 由 T11 引入，挂载在 `get_phase_guardrails("Q03"|"Q06")`
+
+### Guard Precision Report
+Guard 精度周报。聚合 `output/*/_guardrail_results.json`，按 guard 维度统计"拦对/拦错/漏拦"三态，输出到 `docs/*/guard_precision.md`。命令 `dqg-run observe guard-precision`，finalize 后自动刷新。
+- _Avoid_: "guardrail 报告"（此处特指精度三态观测，非单次 guardrail 执行结果）
+- Relationships: 由 T9 引入；是 DoD "上线后"维度的观测数据源之一
+
 ## Flagged Ambiguities
 
 | 术语 | 歧义场景 | 裁决 |
@@ -107,4 +127,4 @@ Judge 放水检测器。识别 Judge 评分中的合理化倾向（"虽然...但
 | Profile | DQG 项目配置集 vs 用户 profile | DQG 语境下指项目配置集；其他场景需加限定词 |
 | Gate | 质量门禁（概念）vs gate_verdict.py（实现）| 讨论概念用 "Gate"，讨论实现用 "GateVerdict" |
 
-*最后更新：2026-04-27*
+*最后更新：2026-05-09*

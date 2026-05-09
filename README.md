@@ -286,6 +286,9 @@ dqg-run PROJ observe report --period weekly --project rights-platform --phase Q0
 
 # 每日任务：生成日报 + 写入历史指标仓 + 告警输出（建议配合 cron）
 dqg-run PROJ observe daily
+
+# Guard 精度周报（T9）：聚合各 guard 的拦对/拦错/漏拦三态
+dqg-run PROJ observe guard-precision
 ```
 
 输出目录：
@@ -294,6 +297,7 @@ dqg-run PROJ observe daily
 - 指标仓：`observability/metrics_history.jsonl`
 - 告警：`observability/alerts/*.json|*.md`
 - Prometheus：`observability/prometheus/*.prom`（`dqg-run PROJ observe daily` 自动产出）
+- Guard 精度：`docs/system-health-reports/guard_precision.md`（finalize 后自动刷新，也可手动 `observe guard-precision`）
 
 当前指标覆盖：
 

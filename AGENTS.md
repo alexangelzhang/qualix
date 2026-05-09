@@ -109,6 +109,7 @@ Phase 执行时自动注入以下增强上下文（`context/loading/upstream_col
 | Skill Crystal | 历史高分执行的成功模式结晶，同 Phase 复用 |
 | Profile L0 | baseline + risk catalog 的压缩版元规则（~50% 压缩比） |
 | Bug Cases | 相关性匹配的历史失败案例 |
+| EnumSource / ENUM_CONTRACT | 枚举单一真源（T7），由 `context/enum_contract.py::render_enum_contract_prefix` 注入到 skill prompt 头部，与 Pydantic schema 同源 |
 
 上游产物加载带增量检测（`context/loading/file_snapshot.py`）：sha256 + mtime 快照比对，未变更的上游 Phase 跳过重读。
 
@@ -123,6 +124,10 @@ Phase 执行时自动注入以下增强上下文（`context/loading/upstream_col
 | `_internal/_prompt_manifests/*.json` | Prompt Harness 追踪信息（prompt hash、section hash、section sources、资产 hash、组装顺序、角色、schema） |
 | `_internal/_prompt_policy.json` | Prompt Policy Gate 结果（manifest/hash/schema/evidence contract） |
 | `_perf_metrics.json` | 性能指标 |
+| `_guardrail_results.json` | PhaseGuardrail 执行结果（含 Phase 级挂载，如 Q05 分支覆盖、Q03/Q06 RationalizationProbe） |
+| `_gate_verdict.json` | GateVerdict 统一卡控裁决（HARD/SOFT，含 Guardrail + Phase Constraints + Finalize handler errors） |
+
+Finalize 后自动跑一次 `guard_precision_report`，汇总到 `docs/system-health-reports/guard_precision.md`（T9），可用 `dqg-run observe guard-precision` 手动刷新。
 
 ## 工作规范
 
