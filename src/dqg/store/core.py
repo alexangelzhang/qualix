@@ -18,6 +18,25 @@ if TYPE_CHECKING:
 log = get_logger(__name__)
 
 
+def _ensure_feedback_trust_table(conn: sqlite3.Connection) -> None:
+    """已有库补建 feedback_trust（CREATE IF NOT EXISTS 幂等）."""
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS feedback_trust (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            project_id TEXT NOT NULL,
+            phase_id TEXT NOT NULL,
+            event_type TEXT NOT NULL,
+            trust_level TEXT NOT NULL,
+            payload TEXT DEFAULT '{}',
+            created_at TEXT DEFAULT (datetime('now'))
+        );
+        """
+    )
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_fb_trust_project ON feedback_trust(project_id, phase_id);")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_fb_trust_created ON feedback_trust(created_at);")
+
+
 def _ensure_prompt_versions_table(conn: sqlite3.Connection) -> None:
     """P2: 已有库补建 prompt_versions（CREATE IF NOT EXISTS 幂等）."""
     conn.execute(
@@ -372,6 +391,18 @@ CREATE TABLE IF NOT EXISTS requirement_versions (
 CREATE INDEX IF NOT EXISTS idx_reqver_project ON requirement_versions(project_id, phase_id);
 CREATE INDEX IF NOT EXISTS idx_reqver_fact ON requirement_versions(fact_id);
 CREATE INDEX IF NOT EXISTS idx_reqver_status ON requirement_versions(status);
+
+CREATE TABLE IF NOT EXISTS feedback_trust (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    project_id TEXT NOT NULL,
+    phase_id TEXT NOT NULL,
+    event_type TEXT NOT NULL,
+    trust_level TEXT NOT NULL,
+    payload TEXT DEFAULT '{}',
+    created_at TEXT DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_fb_trust_project ON feedback_trust(project_id, phase_id);
+CREATE INDEX IF NOT EXISTS idx_fb_trust_created ON feedback_trust(created_at);
 """
 
 # 合并后的完整 schema（向后兼容）
@@ -417,6 +448,10 @@ def _get_cached_connection(db_str: str) -> sqlite3.Connection:
             log.debug("Schema migration check failed for %s", db_str, exc_info=True)
         _initialized_dbs.add(db_str)
         log.debug("Schema initialized: %s", db_str)
+    try:
+        _ensure_feedback_trust_table(conn)
+    except Exception:
+        log.debug("feedback_trust table ensure failed", exc_info=True)
     try:
         _ensure_prompt_versions_table(conn)
     except Exception:
