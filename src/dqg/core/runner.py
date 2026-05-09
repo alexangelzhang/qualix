@@ -8,7 +8,9 @@
     dqg-run <project_id> status              # 查看状态看板
     dqg-run <project_id> next                # 显示下一步可执行的 Phase
     dqg-run <project_id> log                 # 查看执行记录
+    dqg-run <project_id> spec --phase Q05    # Phase 规范（JSON：schema + contract）
 
+各子命令可追加 --json，stdout 仅输出一条 JSON（execute/finalize/approve/…）。
 Phase ID: Q01-Q07（旧 ID A/A.3/A.5/A.6/B/C/D 仍兼容）
 """
 
@@ -18,6 +20,7 @@ import argparse
 import subprocess
 import sys
 from pathlib import Path
+from typing import Any
 
 from dqg.constants import (
     DEFAULT_ADAPTIVE_JUDGE_MODELS,
@@ -190,7 +193,29 @@ def _build_parser() -> argparse.ArgumentParser:
     p_regr.add_argument("--period", choices=["weekly"], default="weekly")
     p_regr.add_argument("--output-dir", dest="regression_output_dir", default=None, help="输出目录")
 
+    # spec：Phase 规范（JSON Schema + contract），代码为单一事实源
+    p_spec = sub.add_parser("spec", help="输出 Phase 规范（JSON Schema + phase_contract），供 Agent 解析")
+    p_spec.add_argument("--phase", required=True, help="Phase ID (Q01-Q07)")
+
+    _inject_json_flag_on_all_subparsers(parser)
+
     return parser
+
+
+def _inject_json_flag_on_all_subparsers(parser: argparse.ArgumentParser) -> None:
+    """为每个子命令追加 --json，便于 ``dqg-run <pid> execute Q01 --json`` 形式."""
+    for action in parser._actions:
+        if type(action).__name__ != "_SubParsersAction":
+            continue
+        choices: dict[str, Any] = getattr(action, "choices", {}) or {}
+        for subparser in choices.values():
+            if "--json" not in getattr(subparser, "_option_string_actions", {}):
+                subparser.add_argument(
+                    "--json",
+                    action="store_true",
+                    help="stdout 仅输出一条 JSON（machine-readable）",
+                )
+        break
 
 
 def _dispatch(cmd: str) -> callable:
@@ -249,11 +274,23 @@ def _dispatch(cmd: str) -> callable:
 
         return {"metrics": cmd_metrics, "observe": cmd_observe, "regression": cmd_regression}[cmd]
 
+    if cmd == "spec":
+        from dqg.commands.phase_spec import cmd_spec
+
+        return cmd_spec
+
     return None
 
 
-def _resolve_output_dir(base_dir: str) -> Path:
-    """解析 output 目录，worktree 环境自动回退到主仓库."""
+def _resolve_output_dir(base_dir: str, *, quiet: bool = False) -> Path:
+    """解析 output 目录，worktree 环境自动回退到主仓库.
+
+    Args:
+        base_dir: 项目根目录
+        quiet: True 时压制 worktree 重定向 stderr 提示（--json 模式下启用，
+               避免污染 stdout 单条 JSON 契约；Agent 侧如果 stderr 合并捕获
+               会破坏解析）
+    """
     base = Path(base_dir).resolve()
     try:
         r_dir = subprocess.run(
@@ -287,7 +324,8 @@ def _resolve_output_dir(base_dir: str) -> Path:
                     target = main_repo_root / rel / "output"
                 else:
                     target = main_repo_root / "output"
-                print(f"[worktree] output 重定向到主仓库: {target}", file=sys.stderr)
+                if not quiet:
+                    print(f"[worktree] output 重定向到主仓库: {target}", file=sys.stderr)
                 return target
     except (FileNotFoundError, ValueError):
         pass
@@ -297,7 +335,8 @@ def _resolve_output_dir(base_dir: str) -> Path:
 def main() -> int:
     parser = _build_parser()
     args = parser.parse_args()
-    output_dir = _resolve_output_dir(args.base_dir)
+    quiet_env = bool(getattr(args, "json", False))
+    output_dir = _resolve_output_dir(args.base_dir, quiet=quiet_env)
 
     handler = _dispatch(args.command)
     if not handler:
