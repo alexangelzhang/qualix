@@ -96,11 +96,19 @@ def generate_worker_prompt(
     phase_def = PHASE_DEFS.get(phase_id, {})
     pd = _phase_dir(output_dir, project_id, phase_def)
 
-    parts = [
+    from dqg.context.enum_contract import render_enum_contract_prefix
+
+    enum_block = render_enum_contract_prefix(phase_id)
+    head: list[str] = [
         f"# Worker Agent — Phase {phase_id}",
         f"项目: {project_id}",
         f"产物目录: {pd}",
         "",
+    ]
+    if enum_block:
+        head.extend(["## ENUM_CONTRACT（与 schema 同源）", "", enum_block, ""])
+    parts = [
+        *head,
         "## 任务",
         f"严格按照 skill 文件 `{skill_path}` 的 Step 0-6 执行 Phase {phase_id}。",
         "输出报告和结构化 JSON 到产物目录。",

@@ -10,7 +10,8 @@ def test_resolve_worker_prompt_default():
     with patch("dqg.context.skill_loader.load_skill_progressive") as mock_load:
         mock_load.return_value = "skill content"
         result = resolve_worker_prompt("Q01")
-        assert result == "skill content"
+        assert result.endswith("skill content")
+        assert "ENUM_CONTRACT" in result
         call_args = mock_load.call_args
         assert "requirement-structuring" in str(call_args[0][0])
         assert call_args[0][1] == "Q01"
@@ -23,6 +24,7 @@ def test_resolve_worker_prompt_with_override(tmp_path):
     with patch("dqg.context.skill_loader.load_skill_progressive") as mock_load:
         mock_load.return_value = "loaded via progressive"
         result = resolve_worker_prompt("Q01", skill_override=str(override_file))
-        assert result == "loaded via progressive"
+        assert result.endswith("loaded via progressive")
+        assert "ENUM_CONTRACT" in result
         call_args = mock_load.call_args
         assert str(call_args[0][0]) == str(override_file)

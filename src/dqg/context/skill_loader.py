@@ -24,12 +24,11 @@ def _read_skill_file(path_str: str) -> str:
         return ""
     return path.read_text(encoding="utf-8")
 
+
 # Skill 文件中的按需加载标记格式：
 # <!-- @include: path/to/detail.md -->
 # <!-- @include-if-phase: C: path/to/detail.md -->
-_INCLUDE_PATTERN = re.compile(
-    r"<!--\s*@include(?:-if-phase:\s*(\S+))?\s*:\s*(.+?)\s*-->"
-)
+_INCLUDE_PATTERN = re.compile(r"<!--\s*@include(?:-if-phase:\s*(\S+))?\s*:\s*(.+?)\s*-->")
 
 
 def resolve_skill_includes(
@@ -70,7 +69,10 @@ def resolve_skill_includes(
             content = full_path.read_text(encoding="utf-8").strip()
             # 递归解析嵌套 include
             content = resolve_skill_includes(
-                content, full_path.parent, phase_id, max_depth - 1,
+                content,
+                full_path.parent,
+                phase_id,
+                max_depth - 1,
             )
             return content
         except OSError as exc:
@@ -128,7 +130,13 @@ def resolve_worker_prompt(phase: str, skill_override: str | None = None) -> str:
     if skill_override:
         skill_path = Path(skill_override)
 
-    return load_skill_progressive(skill_path, phase)
+    body = load_skill_progressive(skill_path, phase)
+    from dqg.context.enum_contract import render_enum_contract_prefix
+
+    prefix = render_enum_contract_prefix(phase)
+    if prefix:
+        return f"{prefix}\n---\n\n{body}"
+    return body
 
 
 def estimate_skill_token_savings(
