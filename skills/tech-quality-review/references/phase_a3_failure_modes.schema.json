@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dqg.local/schemas/phase_a3_failure_modes.schema.json",
+  "title": "Phase Q03 structured JSON — issues & failure_modes (machine contract)",
+  "description": "文档化契约，与 src/dqg/schemas/phase_q03.py（PhaseA6Output）对齐。产出文件名仍为 phase_a6_structured.json。禁止自造 severity/status 词汇。",
+  "type": "object",
+  "required": ["project_id", "issues", "failure_modes"],
+  "additionalProperties": true,
+  "properties": {
+    "project_id": { "type": "string", "minLength": 1 },
+    "issues": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/quality_issue" }
+    },
+    "failure_modes": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/failure_mode_item" }
+    },
+    "conclusion": { "type": "string" }
+  },
+  "$defs": {
+    "severity": {
+      "type": "string",
+      "enum": ["CRITICAL", "HIGH", "MEDIUM", "LOW"],
+      "description": "与 Severity(StrEnum) 一致；禁止 IMPORTANT/Suggestion/Nit 等"
+    },
+    "failure_mode_status": {
+      "type": "string",
+      "enum": ["SAFE", "RISK", "CRITICAL_GAP"],
+      "description": "与 FailureModeStatus(StrEnum) 一致；禁止用 assessment 代替 status（Pydantic 会归一化，但原始 JSON 应直接写 status）"
+    },
+    "quality_issue": {
+      "type": "object",
+      "required": ["issue_id", "description", "severity"],
+      "additionalProperties": true,
+      "properties": {
+        "issue_id": {
+          "type": "string",
+          "pattern": "^(ARCH|API|DATA|EXC|PERF)-\\d+$"
+        },
+        "description": { "type": "string", "minLength": 1 },
+        "severity": { "$ref": "#/$defs/severity" },
+        "suggestion": { "type": "string" },
+        "dimension": { "type": "string" },
+        "evidence": { "type": "string" }
+      }
+    },
+    "failure_mode_item": {
+      "type": "object",
+      "required": [
+        "business_path",
+        "failure_scenario",
+        "has_exception_handling",
+        "status"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "business_path": {
+          "type": "string",
+          "minLength": 1,
+          "description": "必填；勿用 path 缩写（兼容层会映射，但产出应用 canonical 名）"
+        },
+        "failure_scenario": {
+          "type": "string",
+          "minLength": 1,
+          "description": "必填；勿用 scenario 缩写"
+        },
+        "has_exception_handling": {
+          "type": "boolean",
+          "description": "必填（可为 false）；禁止省略该键"
+        },
+        "user_impact": {
+          "type": "string",
+          "description": "建议填写；可为空字符串"
+        },
+        "status": { "$ref": "#/$defs/failure_mode_status" }
+      }
+    }
+  }
+}

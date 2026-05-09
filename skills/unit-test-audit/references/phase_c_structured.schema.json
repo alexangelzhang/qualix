@@ -1,0 +1,107 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dqg.local/schemas/phase_c_structured.schema.json",
+  "title": "Phase Q06 structured JSON — phase_c_structured.json",
+  "description": "与 src/dqg/schemas/phase_q06.py（PhaseCOutput）对齐。IRON LAW: audit_items 每条须有 eut_id（EUT 逐条），禁止按 SE 汇总代替多条 EUT。findings 每条须有 id 与 severity。",
+  "type": "object",
+  "required": ["project_id"],
+  "additionalProperties": true,
+  "properties": {
+    "project_id": { "type": "string", "minLength": 1 },
+    "audit_items": {
+      "type": "array",
+      "description": "主审计模式：每条对应一个或一组 EUT（逗号/区间语法见 eut_id pattern）",
+      "items": { "$ref": "#/$defs/eut_audit_item" }
+    },
+    "findings": {
+      "type": "array",
+      "description": "补充发现列表；每条必须含 id、severity，避免「整段缺失」导致 finalize 后无法消费",
+      "items": { "$ref": "#/$defs/finding_item" }
+    },
+    "coverage_gate": { "$ref": "#/$defs/coverage_gate" },
+    "conclusion": { "type": "string" },
+    "summary": { "type": "object" },
+    "verdict": { "type": "string" }
+  },
+  "$defs": {
+    "audit_status": {
+      "type": "string",
+      "enum": ["COVERED", "PARTIAL", "MISSING", "WRONG_TARGET", "CONFLICT"]
+    },
+    "source_location": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "file": { "type": "string" },
+        "line_start": { "type": "integer" },
+        "class_name": { "type": "string" },
+        "method_name": { "type": "string" },
+        "repo": { "type": "string" }
+      }
+    },
+    "eut_audit_item": {
+      "type": "object",
+      "required": ["eut_id", "status"],
+      "additionalProperties": true,
+      "properties": {
+        "id": { "type": "string" },
+        "se_id": { "type": "string" },
+        "eut_id": {
+          "type": "string",
+          "pattern": "^EUT-\\d+([\\s,~]+(\\d+|EUT-\\d+))*$",
+          "description": "支持 EUT-001、EUT-001,EUT-002、EUT-008~012"
+        },
+        "description": { "type": "string" },
+        "status": { "$ref": "#/$defs/audit_status" },
+        "test_class": { "type": "string" },
+        "test_method": { "type": "string" },
+        "assertion_strength": { "type": "string" },
+        "source": { "type": "string" },
+        "notes": { "type": "string" },
+        "tc_id": { "type": "string" },
+        "repo": { "type": "string" },
+        "evidence": { "type": ["string", "object"] },
+        "recommendation": { "type": "string" },
+        "issues": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "test_location": { "$ref": "#/$defs/source_location" },
+        "production_location": { "$ref": "#/$defs/source_location" }
+      }
+    },
+    "finding_severity": {
+      "type": "string",
+      "minLength": 1,
+      "description": "建议与 Q03 对齐：CRITICAL|HIGH|MEDIUM|LOW；Pydantic 现为任意非空 string"
+    },
+    "finding_item": {
+      "type": "object",
+      "required": ["id", "severity"],
+      "additionalProperties": true,
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "severity": { "$ref": "#/$defs/finding_severity" },
+        "category": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "impact": { "type": "string" },
+        "affected_reqs": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "evidence": { "type": ["string", "object"] },
+        "recommendation": { "type": "string" },
+        "production_location": { "$ref": "#/$defs/source_location" }
+      }
+    },
+    "coverage_gate": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "line_coverage": { "type": "number", "minimum": 0, "maximum": 100 },
+        "branch_coverage": { "type": "number", "minimum": 0, "maximum": 100 }
+      }
+    }
+  }
+}

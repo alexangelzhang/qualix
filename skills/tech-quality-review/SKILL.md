@@ -91,6 +91,20 @@ allowed-tools:
 - `RISK`：有处理但可能静默
 - `CRITICAL_GAP`：无处理 + 静默失败或数据不一致（必须上线前修复）
 
+**`failure_modes[]` 每条必填字段（与 Pydantic / JSON Schema 一致，缺一不可）：**
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `business_path` | string | 业务路径说明（勿用别名 `path`） |
+| `failure_scenario` | string | 故障场景（勿用别名 `scenario`） |
+| `has_exception_handling` | boolean | 是否有异常处理路径（可填 `false`，不得省略键） |
+| `user_impact` | string | 用户/业务影响（可无文字但建议填写） |
+| `status` | enum | 仅 `SAFE` \| `RISK` \| `CRITICAL_GAP`（勿用 `assessment` 代替） |
+
+**`issues[]` 每条必填：** `issue_id`、`description`、`severity`（仅 `CRITICAL|HIGH|MEDIUM|LOW`）。
+
+完整 JSON Schema 见 [references/phase_a3_failure_modes.schema.json](references/phase_a3_failure_modes.schema.json)（产出文件名仍为 `phase_a6_structured.json`）。
+
 ### Step 7: 完整性 Gate
 
 - [ ] 架构分层已逐项检查
@@ -131,6 +145,8 @@ allowed-tools:
 复用 `../../references/tech-design-quality-template.md`。
 
 ### `phase_a6_structured.json` 格式（必须严格遵守）
+
+机器可读契约（字段必填 / 枚举）以 [references/phase_a3_failure_modes.schema.json](references/phase_a3_failure_modes.schema.json) 为准；下文为精简示例。
 
 ```json
 {

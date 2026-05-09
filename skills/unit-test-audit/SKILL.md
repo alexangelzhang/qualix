@@ -320,6 +320,16 @@ Phase Q05 保证"按规则写了"，Phase Q06 检查"写得好不好"：
 
 ## phase_c_structured.json 产出格式（强制）
 
+结构化契约（含 `audit_items` / `findings` 必填字段）以 [references/phase_c_structured.schema.json](references/phase_c_structured.schema.json) 为准。
+
+**`findings[]` 每条必填（禁止「severity 整段缺失」）：**
+
+| 字段 | 说明 |
+|------|------|
+| `id` | 唯一标识 |
+| `severity` | 建议 `CRITICAL|HIGH|MEDIUM|LOW`，与 Q03 口径一致 |
+| `description` / `title` | 至少其一能独立看懂问题 |
+
 ```json
 {
   "project_id": "xxx",
@@ -329,7 +339,7 @@ Phase Q05 保证"按规则写了"，Phase Q06 检查"写得好不好"：
       "se_id": "SE-001",
       "eut_id": "EUT-001,EUT-002",
       "description": "SE 描述",
-      "status": "COVERED|PARTIAL|MISSING|WRONG_TARGET",
+      "status": "COVERED|PARTIAL|MISSING|WRONG_TARGET|CONFLICT",
       "test_class": "XxxTest [来源: XxxTest.java:45]",
       "test_method": "method1, method2",
       "evidence": "assertEquals('expected', actual) [XxxTest.java:52]; verify(mock).call() [XxxTest.java:58]",
