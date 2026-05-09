@@ -14,6 +14,17 @@ dimensions:
       - "终态是否不可回退？"
       - "循环边（驳回→重新发起）的数据流是否定义？"
       - "并行状态（如审批中+发放中）是否互斥？"
+    se_examples:
+      - scenario: "PRD 定义了 N 个状态，但未列出非法跳转"
+        bad_se: "需要拦截非法状态跳转"
+        good_se:
+          description: "除 PRD 明示的 K 条合法迁移外，其余任意 (src, dst) 调用必须返回 409 CONFLICT 且不修改状态"
+          verification: "对每个非法 (src, dst) 组合发一次状态迁移请求；断言 HTTP 409 + errorCode=INVALID_TRANSITION + 查询状态未变"
+      - scenario: "同一 src 状态有多条出边（如发放失败→完成 / 发放失败→重新申请）"
+        bad_se: "根据业务规则决定流向"
+        good_se:
+          description: "发放失败后，若 retry_count < 3 流转到待提交；否则流转到完成并打终态标记"
+          verification: "参数化测试：retry_count ∈ {0, 2, 3, 5}，断言目标状态分别为 {待提交, 待提交, 完成, 完成}"
 
   - id: concurrency
     name: 并发/幂等
@@ -23,6 +34,17 @@ dimensions:
       - "同一资源被多人同时操作时的行为？（乐观锁/悲观锁/队列）"
       - "重复提交同一请求的结果？（幂等键是什么？）"
       - "批量操作中部分失败时的回滚策略？"
+    se_examples:
+      - scenario: "多用户同时对同一业务对象（VIN/订单号/工单 ID）执行写操作"
+        bad_se: "需要并发控制防止重复提交"
+        good_se:
+          description: "同一 {业务主键} 并发发起 N 次写操作时仅允许 1 次成功，其余返回 409 CONFLICT + errorCode=DUPLICATE_SUBMIT，数据库仅产生 1 条记录"
+          verification: "CountDownLatch 发起 N 个并发请求；断言恰好 1 次 2xx、N-1 次 409；SELECT COUNT(*) WHERE {业务主键}={x} 结果为 1"
+      - scenario: "客户端重试同一请求（网络抖动/超时重发）"
+        bad_se: "防止重复数据"
+        good_se:
+          description: "相同 idempotencyKey + 相同 payload 的请求在 {时间窗口} 内必须返回首次结果，不触发二次业务逻辑"
+          verification: "先调用成功获取 responseA；立即重放同 payload+idempotencyKey 获取 responseB；断言 responseA==responseB 且下游（订单/支付）仅被调用 1 次"
 
   - id: permission
     name: 权限边界
@@ -41,6 +63,17 @@ dimensions:
       - "跨表/跨服务的数据更新是否在同一事务内？"
       - "异步操作（消息队列/回调）失败时数据是否会不一致？"
       - "缓存与数据库的一致性策略？"
+    se_examples:
+      - scenario: "同一业务动作有多个入口（如金刚位+投诉单两个入口都能提交善意关怀）"
+        bad_se: "两个入口数据保持一致"
+        good_se:
+          description: "入口 A 和入口 B 对同一业务主键提交后，读取聚合视图时核心字段 {字段列表} 完全一致，且入口标识字段正确标记数据来源"
+          verification: "分别通过入口 A/B 提交 payload_A / payload_B（核心字段相同）；查询统一列表接口，断言两条记录核心字段 == 提交值、source_channel ∈ {A, B}"
+      - scenario: "写主库 + 发消息/更新缓存 的异步链路"
+        bad_se: "保证最终一致"
+        good_se:
+          description: "主库写入成功后，{N 秒}内下游（缓存/ES/MQ 消费方）必须收到变更；消息消费失败时进入死信队列并告警，不允许静默丢失"
+          verification: "写入后 poll 下游读接口直到命中或超时（断言 ≤N 秒）；人为抛出消费异常，断言死信队列有对应消息 + 告警计数 +1"
 
   - id: precision
     name: 精度/溢出
@@ -77,6 +110,17 @@ dimensions:
       - "外部系统超时/不可用时的降级策略？"
       - "外部系统返回异常数据时的校验和兜底？"
       - "调用频率限制（rate limit）和重试策略？"
+    se_examples:
+      - scenario: "核心链路依赖外部系统（BPM/审批中台/支付网关/风控）"
+        bad_se: "外部系统异常时降级处理"
+        good_se:
+          description: "调用 {外部系统} 超时（>{N 秒}）或返回 5xx 时，业务必须走 {明确的降级分支}（如：写入本地待处理队列 + 返回用户友好提示 code=DEPENDENCY_DEGRADED），禁止让调用方感知 NPE/timeout 栈"
+          verification: "Mock 外部系统返回 timeout / 5xx / 空响应三种场景；断言接口返回 200+code=DEPENDENCY_DEGRADED、本地队列有 1 条待处理记录、响应时间 < 超时阈值"
+      - scenario: "外部系统返回异常字段（null / 非法枚举 / 超量）"
+        bad_se: "校验外部系统返回值"
+        good_se:
+          description: "外部返回的 {关键字段} 为 null 或不在 {允许枚举集} 时，拒绝写入主流程，记录原始响应到审计表并告警，不允许用默认值静默替代"
+          verification: "Mock 外部返回 {null, INVALID_ENUM, 负数/超大数} 三类异常数据；断言主表无新增记录、audit_log 表有原始响应、告警计数 +3"
 
   # ===== java-ddd-tmf 特定维度 =====
 

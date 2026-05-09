@@ -49,6 +49,7 @@ def load_se_checklist(
                 "name": dim["name"],
                 "optional": dim.get("optional", False),
                 "questions": dim.get("questions", []),
+                "se_examples": dim.get("se_examples", []),
             }
         )
 
@@ -69,10 +70,28 @@ def format_checklist_prompt(dimensions: list[dict[str, Any]]) -> str:
         lines.append(f"### {dim['name']}{tag}")
         for q in dim["questions"]:
             lines.append(f"- {q}")
+        examples = dim.get("se_examples") or []
+        if examples:
+            lines.append("")
+            lines.append("**示例对照（生成 SE 时必须参照下列写法强度）：**")
+            for ex in examples:
+                scenario = ex.get("scenario", "")
+                bad = ex.get("bad_se", "")
+                good = ex.get("good_se") or {}
+                good_desc = good.get("description", "") if isinstance(good, dict) else str(good)
+                good_verify = good.get("verification", "") if isinstance(good, dict) else ""
+                lines.append(f"- 场景：{scenario}")
+                if bad:
+                    lines.append(f"  - ✗ 不可验证写法：{bad}")
+                if good_desc:
+                    lines.append(f"  - ✓ 可验证 SE：{good_desc}")
+                if good_verify:
+                    lines.append(f"  - ✓ 判定依据：{good_verify}")
         lines.append("")
 
     lines.append("**规则**：每个维度至少扫描一遍。无发现时跳过，不要强行生成 SE。")
     lines.append("有发现时，SE 必须绑定到具体 REQ/BR，且有可验证的判定依据。")
+    lines.append("**写法强度**：生成的 SE 描述和判定依据必须达到上述 ✓ 示例的具体化程度，仅凭描述可直接写出单测。")
 
     return "\n".join(lines)
 
@@ -100,39 +119,101 @@ def _load_yaml(path: Path) -> dict[str, Any] | None:
 
 
 def _parse_yaml_simple(path: Path) -> dict[str, Any] | None:
-    """简易 YAML 解析（不依赖 PyYAML），只支持 se_checklist 的固定结构。"""
+    """简易 YAML 解析（不依赖 PyYAML），支持 se_checklist 结构含嵌套 se_examples。
+
+    支持字段：
+      - 维度顶层：id / name / optional / applies_when / activation / questions / se_examples
+      - se_examples 每项：scenario / bad_se / good_se (嵌套 description / verification)
+    """
     text = path.read_text(encoding="utf-8")
     dimensions: list[dict[str, Any]] = []
     current: dict[str, Any] | None = None
     in_questions = False
+    in_examples = False
+    current_example: dict[str, Any] | None = None
+    current_good: dict[str, Any] | None = None
 
-    for line in text.split("\n"):
-        stripped = line.strip()
+    def _indent(raw: str) -> int:
+        return len(raw) - len(raw.lstrip(" "))
+
+    def _flush_example() -> None:
+        nonlocal current_example, current_good
+        if current_example is not None and current is not None:
+            current.setdefault("se_examples", []).append(current_example)
+        current_example = None
+        current_good = None
+
+    def _flush_dim() -> None:
+        nonlocal current
+        _flush_example()
+        if current:
+            dimensions.append(current)
+        current = None
+
+    for raw_line in text.split("\n"):
+        stripped = raw_line.strip()
         if not stripped or stripped.startswith("#"):
             continue
+        indent = _indent(raw_line)
 
-        if stripped.startswith("- id:"):
-            if current:
-                dimensions.append(current)
+        # 顶层新维度
+        if indent == 2 and stripped.startswith("- id:"):
+            _flush_dim()
             current = {"id": stripped.split(":", 1)[1].strip(), "questions": []}
             in_questions = False
-        elif current is not None:
-            if stripped.startswith("name:"):
-                current["name"] = stripped.split(":", 1)[1].strip().strip('"')
-            elif stripped.startswith("optional:"):
-                current["optional"] = stripped.split(":", 1)[1].strip().lower() == "true"
-            elif stripped.startswith("applies_when:"):
-                current["applies_when"] = stripped.split(":", 1)[1].strip().strip('"')
-            elif stripped.startswith("activation:"):
-                current["activation"] = stripped.split(":", 1)[1].strip().strip('"')
-            elif stripped == "questions:":
-                in_questions = True
-            elif in_questions and stripped.startswith("- "):
-                current["questions"].append(stripped[2:].strip().strip('"'))
-            else:
-                in_questions = False
+            in_examples = False
+            continue
 
-    if current:
-        dimensions.append(current)
+        if current is None:
+            continue
+
+        # 进入 se_examples 的新元素：缩进 6 的 "- scenario:"
+        if in_examples and stripped.startswith("- scenario:"):
+            _flush_example()
+            current_example = {"scenario": stripped.split(":", 1)[1].strip().strip('"')}
+            current_good = None
+            in_questions = False
+            continue
+
+        # se_examples 项内部字段
+        if in_examples and current_example is not None:
+            if stripped.startswith("bad_se:"):
+                current_example["bad_se"] = stripped.split(":", 1)[1].strip().strip('"')
+                current_good = None
+                continue
+            if stripped == "good_se:":
+                current_good = {}
+                current_example["good_se"] = current_good
+                continue
+            if current_good is not None:
+                if stripped.startswith("description:"):
+                    current_good["description"] = stripped.split(":", 1)[1].strip().strip('"')
+                    continue
+                if stripped.startswith("verification:"):
+                    current_good["verification"] = stripped.split(":", 1)[1].strip().strip('"')
+                    continue
+
+        # 维度顶层字段
+        if stripped.startswith("name:"):
+            current["name"] = stripped.split(":", 1)[1].strip().strip('"')
+            in_questions = False
+            in_examples = False
+        elif stripped.startswith("optional:"):
+            current["optional"] = stripped.split(":", 1)[1].strip().lower() == "true"
+        elif stripped.startswith("applies_when:"):
+            current["applies_when"] = stripped.split(":", 1)[1].strip().strip('"')
+        elif stripped.startswith("activation:"):
+            current["activation"] = stripped.split(":", 1)[1].strip().strip('"')
+        elif stripped == "questions:":
+            in_questions = True
+            in_examples = False
+        elif stripped == "se_examples:":
+            _flush_example()
+            in_questions = False
+            in_examples = True
+        elif in_questions and stripped.startswith("- "):
+            current["questions"].append(stripped[2:].strip().strip('"'))
+
+    _flush_dim()
 
     return {"dimensions": dimensions} if dimensions else None
