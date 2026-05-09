@@ -1,5 +1,93 @@
 # ISSUE.md — 变更记录
 
+## 2026-05-09 — 系统健康报告可执行任务（T1–T12）
+
+来源：`docs/system-health-reports/2026-05-09.md` 第六节。
+
+**状态二维定义**（避免"代码 done"与"验收 done"混为一谈）：
+- `code`：实现落地（模块/脚本/配置到位），跑得通
+- `verified`：**代码 done + 拿到重跑数据，验收标准全部命中**（DoD "上线后"维度，见 §本周失败量快照）
+- `todo` / `doing`：未开始 / 进行中
+
+### 任务清单
+
+| ID | 任务 | 档位 | 周数 | Owner | 交付物 | 依赖 | 代码 | 验收 |
+|----|------|------|------|-------|-------|------|------|------|
+| T1 | Q03 failure_modes schema + prompt 必填清单 | P0 | 0.5 | zhangyiqian3 | schema 修正 + Q03 skill prompt 必填表 | — | code | todo |
+| T2 | Q06 findings schema + prompt 必填清单 | P0 | 0.5 | zhangyiqian3 | `skills/unit-test-audit/references/phase_c_structured.schema.json` + Q06 skill 必填表 | — | code | todo |
+| T3 | Q05→Q06 EUT ID 子集硬约束 | P0 | 0.5 | zhangyiqian3 | `cross_phase_check.validate_eut_id_subset` | — | code | todo |
+| T4 | 失败案例库 lesson 补齐 + case_category 五类 | P0 | 1 | zhangyiqian3 | `case_category.py`、`lesson_inference` 扩展、`scripts/backfill_failure_case_lessons.py`（全库 `--apply` 完成） | — | code | todo |
+| T5 | Q05 剩余结构合规 validator（mock_wrong / mock_phantom_method / eut_missing_se / wrong_directory；compile_fail 由 `test_execution_gate` 兜底） | P0 | 2 | zhangyiqian3 | `q05_structure_checks.py` + 接入 `finalize_checks` | T4 | code | todo |
+| T6 | Q05 生成范式三步改造 + Guardrail 分支覆盖 | P1 | 3 | zhangyiqian3 | `references/q05-three-step-paradigm.md` + SKILL 三步节 + `Q05BranchCoverageGuardrail` | T5 | code | **todo**（见下方 §回写要求） |
+| T7 | 统一枚举源 EnumSource + prompt 注入 | P1 | 0.5 | zhangyiqian3 | `context/enum_contract.py`；`resolve_worker_prompt` / `generate_worker_prompt` 注入 | — | code | todo |
+| T8 | Schema↔Prompt 一致性 CI | P1 | 1 | zhangyiqian3 | `scripts/check_schema_prompt_sync.py` + `.pre-commit-config.yaml` hook | T7 | code | todo |
+| T9 | Guard 精度仪表盘 | P1 | 1.5 | zhangyiqian3 | `reporting/guard_precision_report.py` + `observe guard-precision` 命令 + `docs/.../guard_precision.md` | T1–T5 有一周稳定运行数据 | code | todo |
+| T10 | Failure → Reflector 自动回流 | P2 | 1 | zhangyiqian3 | `scripts/reflect_case.py` + 采集钩子 | T4 | code | todo |
+| T11 | RationalizationProbe 字段级 | P2 | 2 | zhangyiqian3 | `PhaseGuardrail::RationalizationProbe` | — | code | todo |
+| T12 | Q05 生产 bug 回归实验 | P2 | 2 | zhangyiqian3（需业务方提供 bug 列表） | 3 项目 × 10 条历史 bug 重跑报告（路径：`observability/reports/q05-bug-regression/{project}.md`） | T6 | **todo** | **todo**（见下方 §回写要求） |
+
+### 依赖图
+
+实现前应该先有这张图，这次补上作为下次立项的标准动作。
+
+```
+T1 ─┐
+T2 ─┤ (并行 P0 首周收尾，三条独立)
+T3 ─┘
+
+T4 ──┬──► T5 (Q05 结构合规五 validator)
+     │
+     └──► T10 (Reflector 需 T4 的 case_category 语料)
+
+T5 ──► T6 (Q05 范式改造复用 T5 的校验基座)
+       │
+       └──► T12 (bug 回归只能测新范式)
+
+T7 ──► T8 (CI 的 required 字段来自 EnumSource)
+
+T1–T5 稳定一周 ──► T9 (精度仪表盘要有样本才有数)
+
+T11 独立（RationalizationProbe 字段级护栏）
+```
+
+### DoD（"上线后"维度）
+
+代码落地不等于目标达成。每项任务的"验收"必须附带下面两类证据之一：
+
+1. **重跑数据**：对应失败类型在 N 个历史项目上重跑后的新发案例数，对照 §量化目标（报告 §6.3）
+2. **观测数据**：该任务上线后 ≥7 天的 `observability/reports/` 日报里对应 Phase 的 `validation_error_count` / `failure_rate`
+
+**没有这两类证据，状态只能停在 `code`，不能标 `verified`。** 这是这次 review 最关键的一条改进。
+
+### 回写要求（T6 / T12 阻塞 `verified`）
+
+- **T6**：需提供 3 个项目（finance-model、shuangzhou-v4、store-ops）重跑后的 `no-exception-test` 新发数、关键方法异常分支 EUT 覆盖率。未回写前状态保持 `code`
+- **T12**：需提供 `observability/reports/q05-bug-regression/{project}.md` 三份报告，包含"能复现 bug 的 EUT 占比"。低于 20% 触发止损线（报告 §6.3），需升级决策
+
+### 本周失败量快照
+
+基线统计口径：`regression/failure-library/cases/{Phase}/*/case.json` 的 `created_at` 字段聚合。
+
+| Phase | 三周累计（至 05-09） | 最后新增日期 | 最后单日新增 | 5 月起累计 | 备注 |
+|-------|---------------------|--------------|--------------|------------|------|
+| Q01 | 92 | 2026-05-06 | 86 | 86 | bitable 解析问题集中涌现（T1+T5 治理） |
+| Q03 | 969 | 2026-04-27 | — | 0 | 4-27 后无新增（需确认是"止血"还是"没跑"） |
+| Q04 | 11 | 2026-04-28 | — | 0 | 4-28 后无新增 |
+| Q05 | 225 | 2026-04-29 | — | 0 | 4-29 后无新增（同上，待 T12 回归实验验证） |
+| Q06 | 352 | 2026-05-07 | 19 | 19 | shuangzhou-v4 findings 缺字段问题（T2 治理） |
+| Q07 | 127 | 2026-04-24 | — | 0 | 4-24 后无新增 |
+
+**重要免责声明**：5 月之后新增案例稀少有两种可能——(a) P0 阶段 guard 上线后真止血；(b) 窗口内没有规模化跑批，所以没有新失败机会。需要结合 `observability/reports/daily/` 的项目运行频次判断，不能直接归因为治理生效。
+
+### 下一步（回到立项标准动作）
+
+1. **本周内**：T6 / T12 回写重跑数据，把状态从 `code` 推进到 `verified`
+2. **每周例会**：把上面的"本周失败量快照"表更新一次，对照报告 §6.3 量化目标，看曲线是否按 +4 周 / +8 周 / +12 周节奏下降
+3. **下一轮立项**：依赖图和 DoD 在任务清单建好时就画（而非做完后补），Owner 直接写实名
+
+---
+
+
 ## 2026-04-02
 
 ### 新增能力
@@ -40,4 +128,5 @@
 
 ### 2026-05-08
 
-- **缺少 phase_c_structured.schema.json** — Q06 产物格式（EUT 逐条 vs SE-based）没有显式 schema 文档，导致执行时容易误用 SE-based 汇总模式。需补充 `skills/unit-test-audit/references/phase_c_structured.schema.json`（或 schema 说明文档），明确每条 audit_item 必须对应一个 eut_id，禁止按 SE 汇总。同理 Q05 的 phase_b_structured.json 也需要对应 schema 文档。
+- ~~**缺少 phase_c_structured.schema.json**~~ — 已于 2026-05-09 补充：`skills/unit-test-audit/references/phase_c_structured.schema.json`。
+- **缺少 phase_b_structured.schema.json（Q05）** — 原备注把它挂在 T5 范围下不准确（T5 是 validator，不是 schema 文档）。独立为 **T13（P1，0.5 周）**：补一份 Q05 输出层 schema 文档，配合 T7 EnumSource 做硬约束。
