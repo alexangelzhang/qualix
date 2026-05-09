@@ -173,6 +173,28 @@
 - 告警噪声治理（误报率、阈值自适配）  
 - 周报到治理动作的闭环（负责人、修复 SLA）
 
+待启动（长期规划，等合适时机）：
+
+- **Prompt 部署流程（LangSmith-style deployment）** — 当前 `prompt_versions`
+  表是 passive 的（被动记录历史），若未来需要 active 管控（生产 prompt 在
+  线切换 / 灰度 / 回滚），需要做：
+  - `prompt_versions` 表加 label 字段（production / staging / canary），
+    或新建 `prompt_labels` 关联表
+  - `skill_loader` 加"active version 解析层"：Agent 运行时按 label 查
+    当前生产版本，而不是硬编码 skill 文件
+  - CLI 命令 `dqg-run observe prompt-promote --hash HASH --label production`
+    用于切换生产版本
+  - 审计日志：谁在何时把哪个版本设为 production
+  - **启动条件**：出现真实的 prompt 生产故障且需要快速回滚（目前 skill
+    文件 git revert 已够用）；或 Prompt 数量规模化（>50 个独立 prompt，
+    手工文件管理成本 > 系统化成本）
+  - **工作量预估**：schema 改造 0.5 周 + skill_loader 改造 1 周 + CLI +
+    UI 0.5 周。不包括历史数据迁移。
+  - **跳过条件**：DQG 的 prompt 是 skill 文件 + 工程化注入
+    （EnumSource / Evidence Pack / Gene/Crystal），和 LangSmith
+    "一段字符串" prompt 不是一回事，强上 deployment 可能和现有 skill
+    加载链打架。这条不做决策时的默认状态是"不启动"。
+
 2026-04-25 新增（RDT-Inspired Review Optimization）：
 
 - P1 ACT 审查深度自适应（`constants.py` REVIEW_DEPTH_CONFIG + `adaptive_loop.py` risk_tier 查表）— blast_radius risk_tier 驱动 max_iterations/force_secondary/skip_critique，LOW tier 省 ~60-70% token
