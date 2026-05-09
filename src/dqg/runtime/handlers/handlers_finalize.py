@@ -69,6 +69,7 @@ def handle_quality_tracking(ctx: ExecutionContext, result: PhaseResult) -> None:
 def handle_memory_index(ctx: ExecutionContext, result: PhaseResult) -> None:
     """结构化事实索引 + 版本追踪."""
     from dqg.memory.memory_layer import MemoryLayer
+    from dqg.memory.sidecar_l1 import after_memory_index
 
     memory = MemoryLayer(ctx.output_dir)
     index_result = memory.index_phase(ctx.project_id, ctx.phase_id)
@@ -80,6 +81,7 @@ def handle_memory_index(ctx: ExecutionContext, result: PhaseResult) -> None:
             facts=index_result["facts"],
         )
         _async_write_json(ctx.internal_dir / "_memory_index.json", index_result)
+    after_memory_index(ctx, index_result)
 
 
 def handle_golden_sample(ctx: ExecutionContext, result: PhaseResult) -> None:
@@ -339,6 +341,10 @@ def register_finalize_handlers() -> None:
         ("report_quality_checks", handle_report_quality_checks, 55),
     ]:
         register_handler(name, fn, stage="finalize", order=order)
+
+    from .handlers_memory_finalize import register_memory_garden_handler
+
+    register_memory_garden_handler()
 
     # 异构检测层（注册在 handlers_detection 内部）
     from .handlers_detection import register_detection_handlers

@@ -215,6 +215,7 @@ class MemoryLayer:
             counts["version_changes"] = state.get("version_changes", 0)
             counts["summary_generated"] = 0
             counts["version_diff"] = None
+            counts["signature"] = current_signature
             return counts
 
         counts["reindexed"] = 1
@@ -225,6 +226,7 @@ class MemoryLayer:
 
         # 构建业务域 hyperedge（多实体关联）
         from dqg.memory.knowledge_network import build_business_hyperedges
+
         counts["hyperedges"] = build_business_hyperedges(self.output_dir, project_id, phase_id)
 
         json_file = STRUCTURED_JSON_MAP.get(phase_id)
@@ -256,6 +258,7 @@ class MemoryLayer:
                 "version_changes": counts["version_changes"],
             },
         )
+        counts["signature"] = current_signature
         return counts
 
     def build_links(self) -> int:
