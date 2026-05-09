@@ -107,6 +107,37 @@ class TestDynamicRubric:
         enriched = enrich_rubric_with_dynamic_dimensions(rubric, dynamic)
         assert len(enriched["dimensions"]) == 1  # no duplicate
 
+    def test_classify_new_q01_domains(self):
+        """新增 3 个 Q01 业务语义域：数据一致性/外部依赖/异常恢复."""
+        from dqg.quality.dynamic_rubric import classify_se_domains
+
+        se_list = [
+            {"description": "金刚位和投诉单两个入口提交的数据同步一致性"},
+            {"description": "BPM 审批中台不可用时的降级策略"},
+            {"description": "保存失败后前端回滚到提交前值"},
+            {"description": "撤销已提交的审批单"},
+        ]
+        domains = classify_se_domains(se_list)
+        assert domains.get("数据一致性", 0) >= 1
+        assert domains.get("外部依赖", 0) >= 1
+        assert domains.get("异常恢复", 0) >= 2
+
+    def test_all_templates_have_fail_threshold(self):
+        """所有 9 个模板必须有 fail_threshold 字段（支撑维度门限机制）."""
+        from dqg.quality.dynamic_rubric import _DYNAMIC_DIMENSION_TEMPLATES
+
+        for domain, tpl in _DYNAMIC_DIMENSION_TEMPLATES.items():
+            assert "fail_threshold" in tpl, f"{domain} template missing fail_threshold"
+            assert isinstance(tpl["fail_threshold"], int)
+            assert 1 <= tpl["fail_threshold"] <= 5
+
+    def test_ddd_aggregate_not_in_templates(self):
+        """DDD 聚合边界维度已被移出 Q01 层（属于 Q02/Q03 技术方案评审）."""
+        from dqg.quality.dynamic_rubric import _DYNAMIC_DIMENSION_TEMPLATES, _SE_DOMAIN_PATTERNS
+
+        assert "DDD 聚合边界" not in _DYNAMIC_DIMENSION_TEMPLATES
+        assert "DDD 聚合边界" not in _SE_DOMAIN_PATTERNS
+
 
 # ---------------------------------------------------------------------------
 # compile_check 测试

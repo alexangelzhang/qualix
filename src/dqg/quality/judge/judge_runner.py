@@ -39,6 +39,7 @@ class JudgeResult:
     model: str = ""
     duration: float = 0
     token_usage: dict[str, int] = field(default_factory=dict)
+    failing_dimensions: list[str] = field(default_factory=list)  # 触发 fail_threshold 的维度 ID
     _schema_version: int = 1
 
 
@@ -46,14 +47,22 @@ class JudgeRunner:
     """Unified Judge execution with primary→fallback model chain."""
 
     @staticmethod
-    def normalize(raw: dict[str, Any], raw_output: str = "") -> JudgeResult:
+    def normalize(
+        raw: dict[str, Any],
+        raw_output: str = "",
+        rubric_dims: list[dict[str, Any]] | None = None,
+    ) -> JudgeResult:
         """Normalize any Judge output variant to canonical schema.
 
         Handles:
         - overall vs overall_score
         - scores dict → dimensions list conversion
         - Empty/invalid → INFRA_FAILURE
-        Wire-compatible: existing consumers can read without changes.
+        - fail_threshold 门限：当 rubric_dims 提供且某维度 score < 其 fail_threshold
+          时，整体 verdict 被强制降级为 FAIL，不受加权平均稀释。
+          触发的维度 ID 记录在 result.failing_dimensions。
+
+        Wire-compatible: existing consumers可不传 rubric_dims，行为保持不变。
         """
         if not raw or (not raw.get("overall") and not raw.get("overall_score")):
             return JudgeResult(
@@ -73,14 +82,31 @@ class JudgeRunner:
             dimensions = [{"id": k, "name": k, "score": v, "weight": 0, "issues": []} for k, v in raw["scores"].items()]
 
         all_issues = list(raw.get("issues", []))
+        verdict = raw.get("verdict", "FAIL")
+
+        # 维度门限检查：任一维度 score < 其 fail_threshold 直接降级为 FAIL
+        failing_dims: list[str] = []
+        if rubric_dims:
+            thresholds = {d["id"]: d["fail_threshold"] for d in rubric_dims if "fail_threshold" in d}
+            if thresholds:
+                scores_map = {d["id"]: d.get("score", 0) for d in dimensions}
+                if not scores_map and isinstance(raw.get("scores"), dict):
+                    scores_map = dict(raw["scores"])
+                for dim_id, threshold in thresholds.items():
+                    score = scores_map.get(dim_id)
+                    if score is not None and score < threshold:
+                        failing_dims.append(dim_id)
+                if failing_dims:
+                    verdict = "FAIL"
 
         return JudgeResult(
             overall_score=float(overall),
-            verdict=raw.get("verdict", "FAIL"),
+            verdict=verdict,
             dimensions=dimensions,
             issues=all_issues,
             raw_output=raw_output,
             health="HEALTHY",
+            failing_dimensions=failing_dims,
         )
 
     def run(

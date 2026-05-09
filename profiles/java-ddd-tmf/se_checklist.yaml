@@ -124,15 +124,6 @@ dimensions:
 
   # ===== java-ddd-tmf 特定维度 =====
 
-  - id: ddd_aggregate
-    name: DDD 聚合边界
-    optional: false
-    applies_when: "always"
-    questions:
-      - "核心业务对象的聚合根是什么？聚合边界在哪？"
-      - "跨聚合的操作是否通过领域事件解耦？"
-      - "聚合内的不变量（invariant）是否在领域层校验？"
-
   - id: tmf_extension
     name: TMF 扩展点
     optional: true

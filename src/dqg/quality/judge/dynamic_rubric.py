@@ -27,16 +27,21 @@ _SE_DOMAIN_PATTERNS: Final = MappingProxyType(
         "权限隔离": ["权限", "隔离", "越权", "鉴权", "角色"],
         "超时补偿": ["超时", "重试", "降级", "熔断", "补偿"],
         "回调通知": ["回调", "通知", "消息", "推送", "事件"],
+        "数据一致性": ["一致性", "多入口", "同步", "对齐", "冗余", "口径"],
+        "外部依赖": ["外部", "中台", "第三方", "BPM"],
+        "异常恢复": ["失败", "回滚", "撤销", "异常", "兜底", "回退"],
     }
 )
 
 # 每个业务域对应的动态评分维度模板
+# fail_threshold: 维度得分低于此值时整体 verdict 被降为 FAIL（不受加权平均稀释）
 _DYNAMIC_DIMENSION_TEMPLATES: Final[dict[str, dict[str, Any]]] = {
     "金额精度": {
         "id": "dyn_amount_precision",
         "name": "金额精度验证",
         "description": "涉及金额计算的 SE 是否都有精度校验（BigDecimal、setScale、舍入模式）",
         "weight": 0.15,
+        "fail_threshold": 2,
         "rubric": {
             5: "所有金额类 SE 都有精确到分的验证，舍入模式明确",
             4: "90%+ 金额 SE 有精度验证",
@@ -50,6 +55,7 @@ _DYNAMIC_DIMENSION_TEMPLATES: Final[dict[str, dict[str, Any]]] = {
         "name": "并发安全覆盖",
         "description": "涉及并发/幂等的 SE 是否都有对应的保护机制验证",
         "weight": 0.15,
+        "fail_threshold": 2,
         "rubric": {
             5: "所有并发类 SE 都有锁/幂等/事务隔离的验证",
             4: "90%+ 并发 SE 有保护机制验证",
@@ -63,6 +69,7 @@ _DYNAMIC_DIMENSION_TEMPLATES: Final[dict[str, dict[str, Any]]] = {
         "name": "状态机完整性",
         "description": "状态流转的合法性、非法跳转拦截是否都被验证",
         "weight": 0.15,
+        "fail_threshold": 2,
         "rubric": {
             5: "所有状态迁移路径（含非法路径）都有验证",
             4: "正向流转全覆盖，仅遗漏 1-2 个非法跳转",
@@ -76,6 +83,7 @@ _DYNAMIC_DIMENSION_TEMPLATES: Final[dict[str, dict[str, Any]]] = {
         "name": "权限隔离验证",
         "description": "越权访问、角色隔离是否都有对应的测试/审计",
         "weight": 0.15,
+        "fail_threshold": 2,
         "rubric": {
             5: "所有权限类 SE 都有越权测试和角色隔离验证",
             4: "90%+ 权限 SE 有验证",
@@ -89,6 +97,7 @@ _DYNAMIC_DIMENSION_TEMPLATES: Final[dict[str, dict[str, Any]]] = {
         "name": "超时补偿机制",
         "description": "超时/重试/降级场景是否都有对应的验证",
         "weight": 0.15,
+        "fail_threshold": 2,
         "rubric": {
             5: "所有超时类 SE 都有降级行为和重试次数验证",
             4: "90%+ 超时 SE 有验证",
@@ -102,12 +111,55 @@ _DYNAMIC_DIMENSION_TEMPLATES: Final[dict[str, dict[str, Any]]] = {
         "name": "回调通知验证",
         "description": "回调/通知/事件发布是否都有调用验证（verify times）",
         "weight": 0.15,
+        "fail_threshold": 2,
         "rubric": {
             5: "所有回调类 SE 都有 verify(times(1)) 或等价验证",
             4: "90%+ 回调 SE 有验证",
             3: "主要回调已验证，但异步通知未验证",
             2: "回调验证不足",
             1: "几乎未验证回调通知",
+        },
+    },
+    "数据一致性": {
+        "id": "dyn_data_consistency",
+        "name": "数据一致性口径",
+        "description": "多入口/多表/异步数据的一致性口径是否明确且可验证",
+        "weight": 0.15,
+        "fail_threshold": 2,
+        "rubric": {
+            5: "所有跨入口/跨表/跨系统 SE 都有字段级一致性口径（如 A 入口 vs B 入口的字段对齐规则）和可执行验证",
+            4: "90%+ 一致性 SE 有明确口径和验证方法",
+            3: "主要一致性场景有口径，但部分跨系统/异步一致性未明确",
+            2: "一致性口径模糊，缺少字段级对齐规则",
+            1: "几乎未明确一致性口径",
+        },
+    },
+    "外部依赖": {
+        "id": "dyn_external_dependency",
+        "name": "外部依赖降级策略",
+        "description": "PRD 涉及外部系统/中台/第三方时是否有业务级降级策略（用户看到什么、本地数据怎么处理）",
+        "weight": 0.15,
+        "fail_threshold": 2,
+        "rubric": {
+            5: "所有外部依赖 SE 都明确了业务级降级：错误码/用户提示/本地兜底流",
+            4: "90%+ 外部依赖 SE 有降级策略",
+            3: "主要外部依赖有降级，但部分场景未定义超时行为",
+            2: "降级策略不完整，用户可能看到技术错误栈",
+            1: "几乎未定义外部依赖降级",
+        },
+    },
+    "异常恢复": {
+        "id": "dyn_error_recovery",
+        "name": "异常恢复业务规则",
+        "description": "失败/回滚/撤销场景下的业务规则是否明确（数据留/删、状态回退到哪、用户可否重试）",
+        "weight": 0.15,
+        "fail_threshold": 2,
+        "rubric": {
+            5: "所有失败/回滚/撤销 SE 都有明确业务规则（数据去向、状态回退目标、用户可否重试）",
+            4: "90%+ 异常恢复 SE 有明确业务规则",
+            3: "主要异常场景有规则，但部分失败后数据状态未定义",
+            2: "异常恢复规则不完整，可能产生数据孤岛",
+            1: "几乎未定义异常恢复规则",
         },
     },
 }
