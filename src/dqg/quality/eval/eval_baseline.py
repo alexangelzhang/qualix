@@ -10,11 +10,12 @@
 
 from __future__ import annotations
 
+import json
 from datetime import datetime
 from types import MappingProxyType
 from typing import TYPE_CHECKING, Any, Final
 
-from dqg.json_utils import load_json, save_json
+from dqg.json_utils import dump_jsonl, load_json, save_json
 from dqg.log import get_logger
 
 if TYPE_CHECKING:
@@ -24,6 +25,11 @@ log = get_logger(__name__)
 
 # 指标退化阈值：超过此值触发 WARNING
 REGRESSION_THRESHOLD = 0.05  # 5% 退化
+
+# P1: 基于历史逐步变化的实证分位数 — 降低小样本噪声误报
+EVAL_METRIC_RUNS_FILENAME = "_eval_metric_runs.jsonl"
+EVAL_REGRESSION_MIN_DELTA_SAMPLES = 10
+EVAL_REGRESSION_EMPIRICAL_ALPHA = 0.05  # 当前 step delta 处于历史最差 alpha 分位以下才判回归
 
 # ---------------------------------------------------------------------------
 # Phase 指标定义
@@ -200,6 +206,65 @@ def compute_eval_metrics(
     }
 
 
+def _eval_metric_runs_path(output_dir: Path, project_id: str) -> Path:
+    return output_dir / project_id / EVAL_METRIC_RUNS_FILENAME
+
+
+def _load_metric_series(output_dir: Path, project_id: str, phase_id: str, metric_id: str) -> list[float]:
+    """按时间顺序读取某指标历史值（不含当前尚未 append 的行）."""
+    path = _eval_metric_runs_path(output_dir, project_id)
+    if not path.exists():
+        return []
+    series: list[float] = []
+    for line in path.read_text(encoding="utf-8").strip().split("\n"):
+        if not line.strip():
+            continue
+        try:
+            obj = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if obj.get("phase_id") != phase_id:
+            continue
+        m = obj.get("metrics") or {}
+        if metric_id not in m:
+            continue
+        try:
+            series.append(float(m[metric_id]))
+        except (TypeError, ValueError):
+            continue
+    return series
+
+
+def _pairwise_deltas(values: list[float]) -> list[float]:
+    if len(values) < 2:
+        return []
+    return [values[i + 1] - values[i] for i in range(len(values) - 1)]
+
+
+def _empirical_regression_tail(historical_values: list[float], delta_now: float) -> tuple[bool, float | None]:
+    """历史逐步 delta 的实证尾部检验（越小越差）；样本不足时放行固定阈值。
+
+    Returns:
+        (empirical_confirms_regression, tail_fraction or None)
+        empirical_confirms_regression=True 表示与固定阈值同时满足时才应判 REGRESSION。
+    """
+    deltas_hist = _pairwise_deltas(historical_values)
+    if len(deltas_hist) < EVAL_REGRESSION_MIN_DELTA_SAMPLES:
+        return True, None
+    rank_count = sum(1 for d in deltas_hist if d <= delta_now)
+    frac = rank_count / len(deltas_hist)
+    return frac <= EVAL_REGRESSION_EMPIRICAL_ALPHA, round(frac, 4)
+
+
+def append_eval_metric_run(output_dir: Path, project_id: str, phase_id: str, metrics: dict[str, float]) -> None:
+    """追加一条 Phase 指标快照（供下一次回归比较的实证分布）."""
+    path = _eval_metric_runs_path(output_dir, project_id)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    row = {"phase_id": phase_id, "timestamp": datetime.now().isoformat(), "metrics": dict(metrics)}
+    with path.open("a", encoding="utf-8") as f:
+        f.write(dump_jsonl(row))
+
+
 def compare_with_baseline(
     output_dir: Path,
     project_id: str,
@@ -239,7 +304,10 @@ def compare_with_baseline(
                 or "owner" in metric_id
                 or "risk" in metric_id
             )
-            is_regression = (delta < -REGRESSION_THRESHOLD) if is_rate else False
+            fixed_bad = (delta < -REGRESSION_THRESHOLD) if is_rate else False
+            hist = _load_metric_series(output_dir, project_id, phase_id, metric_id) if is_rate else []
+            empirical_confirms, tail_frac = _empirical_regression_tail(hist, delta) if is_rate else (True, None)
+            is_regression = fixed_bad and empirical_confirms
 
             status = "REGRESSION" if is_regression else "IMPROVED" if delta > REGRESSION_THRESHOLD else "STABLE"
             comparisons.append(
@@ -249,10 +317,15 @@ def compare_with_baseline(
                     "baseline": round(baseline_value, 4),
                     "delta": round(delta, 4),
                     "status": status,
+                    "empirical_tail_fraction": tail_frac,
+                    "empirical_gated": bool(is_rate and tail_frac is not None),
                 }
             )
             if is_regression:
-                regressions.append(f"{metric_id}: {baseline_value:.2%} → {current_value:.2%} (delta={delta:+.2%})")
+                msg = f"{metric_id}: {baseline_value:.2%} → {current_value:.2%} (delta={delta:+.2%})"
+                if tail_frac is not None:
+                    msg += f" [empirical_tail_frac={tail_frac}]"
+                regressions.append(msg)
         else:
             comparisons.append(
                 {
@@ -286,6 +359,8 @@ def write_eval_metrics(
         return None
 
     comparison = compare_with_baseline(output_dir, project_id, phase_id, metrics)
+
+    append_eval_metric_run(output_dir, project_id, phase_id, metrics["metrics"])
 
     # 写入当前指标
     from dqg.constants import PHASE_DIR_MAP
