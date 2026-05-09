@@ -358,6 +358,15 @@ def runtime_finalize(ctx: ExecutionContext) -> PhaseResult:
         log.error("GateVerdict build failed for %s", ctx.phase_id, exc_info=True)
         result.add_warning(f"GateVerdict build failed for {ctx.phase_id} — approve may require manual review")
 
+    # Guard 精度周报：finalize 后自动聚合 output 下各项目 _guardrail_results（失败不阻断 finalize）
+    try:
+        from dqg.reporting.guard_precision_report import write_guard_precision_report
+
+        gp_path = write_guard_precision_report(ctx.output_dir)
+        log.info("Guard precision report refreshed: %s", gp_path)
+    except Exception:
+        log.warning("Guard precision report refresh skipped", exc_info=True)
+
     result.add_event(
         EventType.FINALIZE_COMPLETED,
         f"Phase {ctx.phase_id} finalized",

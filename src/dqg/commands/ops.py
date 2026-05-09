@@ -39,6 +39,16 @@ def cmd_observe(args: argparse.Namespace, output_dir: Path) -> int:
 
     if action == "daily":
         return int(_cmd_daily(args))
+    if action == "guard-precision":
+        from pathlib import Path
+
+        from dqg.reporting.guard_precision_report import write_guard_precision_report
+
+        base = Path(getattr(args, "base_dir", ".") or ".").resolve()
+        out_dir = base / "output"
+        dest = write_guard_precision_report(out_dir)
+        print(f"  Guard 精度周报已写入: {dest}")
+        return 0
     return int(_cmd_report(args))
 
 

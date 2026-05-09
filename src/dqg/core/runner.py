@@ -169,7 +169,12 @@ def _build_parser() -> argparse.ArgumentParser:
 
     # observe
     p_observe = sub.add_parser("observe", help="可观测性报告/告警（原 dqg-observe）")
-    p_observe.add_argument("observe_action", nargs="?", default="report", choices=["report", "daily"])
+    p_observe.add_argument(
+        "observe_action",
+        nargs="?",
+        default="report",
+        choices=["report", "daily", "guard-precision"],
+    )
     p_observe.add_argument("--period", choices=["daily", "weekly"], default="daily")
     p_observe.add_argument("--date", default=None, help="锚点日期 YYYY-MM-DD")
     p_observe.add_argument("--project", default=None, help="项目过滤")
