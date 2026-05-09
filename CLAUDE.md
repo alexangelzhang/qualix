@@ -66,5 +66,6 @@ then 字段必须包含具体断言方法和期望值（如 assertEquals(200, re
 - 手动模式下 DQG Phase 执行不要用 agent 方式跑，直接在主会话执行，避免 context 丢失和产出不一致
 - Q04（覆盖度审计）、Q06（单测覆盖审计）等需要深度推理的 Phase，启动 prompt 加 `ultrathink` 可激活更强推理模式，效果优于直接执行
 - **Q05/Q06 必须 EUT 逐条模式**：phase_b_structured.json（Q05）和 phase_c_structured.json（Q06）的 audit_items 必须每条对应一个 eut_id，绝不允许按 SE 汇总（SE-based 模式）。SE-based 模式粒度粗，会掩盖单个测试方法的骨架/弱断言问题，导致覆盖率虚高或虚低
+- **Sub-agent 产出必须 sanity check**：general-purpose agent 的"分析报告"经常把原始数据抄错或过度发挥。拿到报告后主会话直接 `json.load` 原始数据核对 1-2 条关键结论（原始描述、字段是否存在、行为预测是否匹配 schema），再决定采信。本 session 正是这样查出 SemanticExpectation schema 缺 verification 字段的——sub-agent 报告里说"verification 字段缺失"，主会话核对发现**字段压根不存在**（不是空字符串），才有 Phase 1.5 的 schema 补字段动作
 
-*最后更新：2026-05-08*
+*最后更新：2026-05-10*
