@@ -57,9 +57,11 @@ SKILL_FILE_MAP: Final = MappingProxyType(
     {
         "Q01": "skills/requirement-structuring/SKILL.md",
         "Q02": "skills/tech-design-generation/SKILL.md",
-        "Q04": "skills/tech-coverage-audit/SKILL.md",
         "Q03": "skills/tech-quality-review/SKILL.md",
+        "Q04": "skills/tech-coverage-audit/SKILL.md",
+        "Q05": "skills/unit-test-generation/SKILL.md",
         "Q06": "skills/unit-test-audit/SKILL.md",
+        "Q07": "skills/code-review/SKILL.md",
     }
 )
 

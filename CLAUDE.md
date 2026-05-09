@@ -25,7 +25,8 @@
 - 逐步交互：多步输入时每次只展示一个问题，等待用户回复后再展示下一个
 - 控制权交还：Phase 产出后进入 finalize 流程，不自动建议下一步
 - Phase 任务必须读取对应 skill 文件执行，禁止脱离 skill 自由发挥
-- 状态管理必须通过 `dqg-run` CLI，禁止手动编辑 `state.json`
+- **Phase 执行前必须先跑 `dqg-run <pid> spec --phase Q0X --json` 取契约事实**：从 `json_schema`（Pydantic 导出）读字段必填/取值约束，从 `contract.hard_checks` 读门禁，从 `phase_registry.depends_on/required_inputs` 读依赖；再读 SKILL.md 拿具体步骤。**spec 和 SKILL.md 冲突时一律以 spec 为准**（spec 源自代码实时导出，SKILL.md 是人写文档会漂移——本 session 发现的 severity 字段必填 vs 取值建议歧义就是典型）
+- 状态管理必须通过 `dqg-run` CLI，禁止手动编辑 `state.json`；所有主会话调用 `dqg-run` 一律加 `--json`（status/next/detail/log/execute/finalize/approve/skip/startup/spec 全部支持），让输出可被可靠解析，避免被 prose 格式漂移坑到
 - 收尾四步：产出检测 → finalize → approve → 刷新菜单；finalize 前必须对照 gate checklist 逐项自检，不能只依赖 hook 拦截
 - 代码变更后必须同步指令文件 — `completion_gate.py` 会自动检测并阻断，映射规则见 `AGENTS.md > 文档同步铁律`
 
@@ -57,6 +58,8 @@ then 字段必须包含具体断言方法和期望值（如 assertEquals(200, re
 4. **SubAgent 报告"测试通过"了吗？** → 不信，在主会话重新跑 mvn test 验证
 5. **dqg_starter.md 和 CLAUDE.md 冲突了吗？** → CLAUDE.md 优先级更高
 6. **Q05/Q06 产物用了 SE-based 模式（按 SE 汇总）吗？** → 禁止。Q05 和 Q06 必须使用 EUT 逐条模式，每条 audit_item 对应一个 eut_id，绝不允许按 SE 汇总
+7. **我要启动 Phase 但还没跑 `dqg-run <pid> spec --phase Q0X --json` 吗？** → 先跑 spec 拿契约事实（字段必填/hard_checks/依赖），再读 SKILL.md 拿步骤；两边冲突以 spec 为准
+8. **我要调 `dqg-run` 但忘了加 `--json` 吗？** → 加上，让输出可被稳定解析；status/next/detail/execute/finalize/approve 等全支持
 
 > 铁律守卫 hook（`ironlaw_guard.py`）会在 Agent/Grep/Bash 调用时自动检查，但 hook 只能拦截明显违规。上述自检覆盖 hook 无法检测的语义场景。
 

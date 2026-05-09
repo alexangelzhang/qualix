@@ -14,26 +14,17 @@ from __future__ import annotations
 import hashlib
 from datetime import datetime
 from pathlib import Path
-from types import MappingProxyType
-from typing import Any, Final
+from typing import Any
 
-from dqg.constants import BUG_CASE_RELEVANCE_SEED_LIMIT
+from dqg.constants import BUG_CASE_RELEVANCE_SEED_LIMIT, SKILL_FILE_MAP
 from dqg.core.state_machine import PHASE_DEFS
 from dqg.json_utils import load_json
 from dqg.services.phase_service import read_relevance_excerpt
 from dqg.store import get_experiment_summary, insert_experiment, query_experiments
 from dqg.tracking.case_selector import render_relevant_cases_for_prompt
 
-# Phase → skill 文件映射
-_PHASE_SKILL_MAP: Final = MappingProxyType(
-    {
-        "Q01": "skills/requirement-structuring/SKILL.md",
-        "Q04": "skills/tech-coverage-audit/SKILL.md",
-        "Q03": "skills/tech-quality-review/SKILL.md",
-        "Q06": "skills/unit-test-audit/SKILL.md",
-        "Q07": "skills/code-review/SKILL.md",
-    }
-)
+# Phase → skill 文件映射（统一用 constants.SKILL_FILE_MAP 作为 source of truth）
+_PHASE_SKILL_MAP = SKILL_FILE_MAP
 
 
 def _hash_content(content: str) -> str:
