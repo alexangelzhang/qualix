@@ -41,6 +41,14 @@ _TITLE_PATTERNS: Final[list[tuple[str, str]]] = [
     (r"pydantic", "Pydantic 校验失败，结构化输出的字段类型与 schema 定义不一致"),
     (r"string_type", "字符串字段传入了非字符串值"),
     (r"missing", "必填字段缺失"),
+    (
+        r"failure_modes?\[\d+\]",
+        "Failure Mode 矩阵条目缺字段：按 schema 补全 business_path、failure_scenario、has_exception_handling、status",
+    ),
+    (r"issues\.\d+\.issue_id", "issues 条目 issue_id 或 severity 不符合 schema，禁止自造枚举词"),
+    (r"findings?\[\d+\]|finding", "findings 条目缺 id/severity 等必填字段，与 phase_c 契约对齐"),
+    (r"eut_id|phantom|不存在.*eut", "EUT 编号须来自 Q05 phase_b_structured.json，禁止按测试代码臆造编号"),
+    (r"then|弱断言|vague", "EUT then 须写具体断言与期望值，禁止「验证成功」等模糊描述"),
 ]
 
 # error_type + root_cause 组合 → 通用 lesson
@@ -116,15 +124,16 @@ def infer_all_lessons() -> dict[str, Any]:
 
     inferred_lessons: list[dict[str, str]] = []
     for case in cases:
-        lesson = infer_lesson(case)
-        if lesson:
-            inferred_lessons.append(
-                {
-                    "case_id": case.get("case_id", ""),
-                    "phase": case.get("phase", ""),
-                    "inferred_lesson": lesson,
-                }
-            )
+        if case.get("lesson", "").strip():
+            continue
+        lesson = infer_lesson_with_fallback(case)
+        inferred_lessons.append(
+            {
+                "case_id": case.get("case_id", ""),
+                "phase": case.get("phase", ""),
+                "inferred_lesson": lesson,
+            }
+        )
 
     inferred_count = len(inferred_lessons)
     still_missing = total - already_has - inferred_count
@@ -140,6 +149,16 @@ def infer_all_lessons() -> dict[str, Any]:
     }
 
 
+def infer_lesson_with_fallback(case: dict[str, Any]) -> str:
+    """推断 lesson；无法匹配模式时用 root_cause 兜底（T4 批量补齐用）."""
+    from dqg.tracking.case_category import fallback_lesson_for_root_cause
+
+    base = infer_lesson(case)
+    if base:
+        return base
+    return fallback_lesson_for_root_cause(str(case.get("root_cause", "")))
+
+
 def get_case_with_inferred_lesson(case: dict[str, Any]) -> dict[str, Any]:
     """返回 case 的副本，如果 lesson 为空则填入推断值.
 
@@ -148,11 +167,11 @@ def get_case_with_inferred_lesson(case: dict[str, Any]) -> dict[str, Any]:
     if case.get("lesson", "").strip():
         return case
 
-    lesson = infer_lesson(case)
-    if lesson:
-        enriched = dict(case)
-        enriched["lesson"] = lesson
-        enriched["_lesson_inferred"] = True
-        return enriched
+    from dqg.tracking.case_category import fallback_lesson_for_root_cause
 
-    return case
+    direct = infer_lesson(case)
+    lesson = direct if direct else fallback_lesson_for_root_cause(str(case.get("root_cause", "")))
+    enriched = dict(case)
+    enriched["lesson"] = lesson
+    enriched["_lesson_inferred"] = not bool(direct)
+    return enriched

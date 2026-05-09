@@ -12,6 +12,7 @@ from dqg.constants import CASES_DIR, KNOWLEDGE_FILE_MAP, PHASE_DIR_MAP, SKILL_FI
 from dqg.core.state_machine import PHASE_DEFS
 from dqg.json_utils import dump_json_str, load_json
 from dqg.log import get_logger
+from dqg.tracking.case_category import CASE_CATEGORIES
 
 log = get_logger(__name__)
 
@@ -214,6 +215,10 @@ def validate_case_schema(case: dict[str, Any]) -> list[str]:
     has_lesson = bool(case.get("lesson", "").strip())
     if not signs_present and not has_signs and not has_lesson:
         errors.append("Case has neither lesson nor Signs fields (trigger_pattern/wrong_action/why_failed)")
+
+    cat = case.get("case_category", "")
+    if cat and str(cat).strip() and str(cat) not in CASE_CATEGORIES:
+        errors.append(f"Invalid case_category: {cat!r} (expected one of {CASE_CATEGORIES})")
 
     return errors
 

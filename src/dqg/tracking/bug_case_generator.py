@@ -10,6 +10,7 @@ from typing import Any, Final
 
 from dqg.constants import CASES_DIR, PHASE_DIR_MAP, SKILL_FILE_MAP
 from dqg.json_utils import save_json
+from dqg.tracking.case_reflect import apply_reflect_metadata
 
 # Judge 维度 → error_type 映射
 _JUDGE_DIM_TO_ERROR_TYPE: Final = MappingProxyType(
@@ -77,6 +78,8 @@ def auto_generate_bug_case(
             "actual": {"content": error},
             "lesson": "",
         }
+
+        case = apply_reflect_metadata(case)
 
         case_dir = base / phase_dir / case_id
         case_dir.mkdir(parents=True, exist_ok=True)
@@ -212,6 +215,8 @@ def extract_judge_cases(
                 "actual": {"content": description},
                 "lesson": description,
             }
+
+            case = apply_reflect_metadata(case)
 
             case_dir = base / phase_dir / case_id
             case_dir.mkdir(parents=True, exist_ok=True)
