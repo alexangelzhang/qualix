@@ -16,7 +16,9 @@
 
 from __future__ import annotations
 
+import inspect
 import time
+import uuid
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
@@ -176,6 +178,7 @@ class AdaptiveLoop:
                 "judge_models": judge_models,
             },
         )
+        trace_run_id = uuid.uuid4().hex[:12]
 
         for i in range(max_iterations):
             record, passed, iter_llm_calls = self._execute_iteration(
@@ -197,6 +200,9 @@ class AdaptiveLoop:
                 upstream_path=_upstream_path if _anchor_available else None,
                 skill_path=_skill_path,
                 protocol=_protocol,
+                project_id=project_id,
+                phase_id=phase_id,
+                trace_run_id=trace_run_id,
             )
             iterations.append(record)
             all_llm_calls.extend(iter_llm_calls)
@@ -339,13 +345,58 @@ class AdaptiveLoop:
         upstream_path: Path | None = None,
         skill_path: Path | None = None,
         protocol: PhaseProtocol | None = None,
+        project_id: str = "",
+        phase_id: str = "",
+        trace_run_id: str = "",
     ) -> tuple[IterationRecord, bool, list[dict[str, Any]]]:
         """执行单轮迭代：Worker → Judge → Critique，返回 (record, passed, llm_calls)."""
+        from dqg.reporting.trace_spans import enrich_llm_call_span
         from dqg.runtime.task_store import add_task_event, save_checkpoint
 
         iter_start = time.time()
         record = IterationRecord(iteration=i + 1)
         iter_llm_calls: list[dict[str, Any]] = []
+        span_iter = i + 1
+        _span_idx = 0
+
+        def _attach(call: dict[str, Any], agent_step: str) -> dict[str, Any]:
+            nonlocal _span_idx
+            out = enrich_llm_call_span(
+                call,
+                project_id=project_id,
+                phase_id=phase_id,
+                iteration=span_iter,
+                agent_step=agent_step,
+                trace_run_id=trace_run_id,
+                llm_index=_span_idx,
+            )
+            _span_idx += 1
+            return out
+
+        def _agent_run(
+            agent: Agent,
+            user_msg: str,
+            *,
+            context_files: list[Any] | None,
+            dynamic: list[Any] | None = None,
+            span_kw: dict[str, Any],
+        ) -> Any:
+            try:
+                sig = inspect.signature(agent.run)
+            except (TypeError, ValueError):
+                if dynamic is not None:
+                    return agent.run(user_msg, context_files, dynamic)
+                return agent.run(user_msg, context_files)
+            if "telemetry_span" in sig.parameters:
+                return agent.run(
+                    user_msg,
+                    context_files,
+                    dynamic_context_files=dynamic,
+                    telemetry_span=span_kw,
+                )
+            if dynamic is not None:
+                return agent.run(user_msg, context_files, dynamic)
+            return agent.run(user_msg, context_files)
 
         no_tool_prefix = (
             "【重要约束】\n"
@@ -362,9 +413,12 @@ class AdaptiveLoop:
                 model=LLMConfig(primary=worker_model, fallback=fallback),
                 output_dir=self.output_dir,
             )
-            record.worker_result = worker.run(
+            _ts = {"trace_run_id": trace_run_id, "phase_id": phase_id, "project_id": project_id, "iteration": span_iter}
+            record.worker_result = _agent_run(
+                worker,
                 "基于提供的上下文，执行 Phase 任务，直接输出结构化报告。",
                 context_files=context_files,
+                span_kw=_ts,
             )
             if record.worker_result.status != "failed":
                 report_path.write_text(record.worker_result.content, encoding="utf-8")
@@ -394,10 +448,13 @@ class AdaptiveLoop:
             _fixer_dynamic = [handoff_path, report_path]
             if upstream_path and upstream_path.exists():
                 _fixer_dynamic.append(upstream_path)
-            record.worker_result = fixer.run(
+            _ts = {"trace_run_id": trace_run_id, "phase_id": phase_id, "project_id": project_id, "iteration": span_iter}
+            record.worker_result = _agent_run(
+                fixer,
                 f"基于交接文档中的评审反馈修正报告（第 {i + 1} 轮），保持原有格式和结构。",
                 context_files=context_files,
-                dynamic_context_files=_fixer_dynamic,
+                dynamic=_fixer_dynamic,
+                span_kw=_ts,
             )
             if record.worker_result.status != "failed":
                 report_path.write_text(record.worker_result.content, encoding="utf-8")
@@ -405,7 +462,12 @@ class AdaptiveLoop:
 
         # Collect worker LLM call telemetry
         if record.worker_result:
-            iter_llm_calls.append(extract_llm_call(record.worker_result))
+            iter_llm_calls.append(
+                _attach(
+                    extract_llm_call(record.worker_result),
+                    "worker" if i == 0 else "fixer",
+                )
+            )
 
         record.judge_result = multi_judge_vote(
             self.output_dir,
@@ -426,19 +488,22 @@ class AdaptiveLoop:
         for vote in record.judge_result.votes:
             if vote.token_usage:
                 iter_llm_calls.append(
-                    {
-                        "agent_name": f"judge-{vote.model}",
-                        "agent_role": "judge",
-                        "model_id": vote.model,
-                        "prompt_hash": "",
-                        "input_tokens": vote.token_usage.get("input_tokens", 0),
-                        "output_tokens": vote.token_usage.get("output_tokens", 0),
-                        "cache_creation_input_tokens": vote.token_usage.get("cache_creation_input_tokens", 0),
-                        "cache_read_input_tokens": vote.token_usage.get("cache_read_input_tokens", 0),
-                        "cache_hit": False,
-                        "duration_seconds": round(vote.duration, 2),
-                        "status": "success" if vote.health == "HEALTHY" else vote.health,
-                    }
+                    _attach(
+                        {
+                            "agent_name": f"judge-{vote.model}",
+                            "agent_role": "judge",
+                            "model_id": vote.model,
+                            "prompt_hash": "",
+                            "input_tokens": vote.token_usage.get("input_tokens", 0),
+                            "output_tokens": vote.token_usage.get("output_tokens", 0),
+                            "cache_creation_input_tokens": vote.token_usage.get("cache_creation_input_tokens", 0),
+                            "cache_read_input_tokens": vote.token_usage.get("cache_read_input_tokens", 0),
+                            "cache_hit": False,
+                            "duration_seconds": round(vote.duration, 2),
+                            "status": "success" if vote.health == "HEALTHY" else vote.health,
+                        },
+                        f"judge:{vote.model}",
+                    )
                 )
 
         judge_log = pd / f"_judge_iter{i + 1}.json"
@@ -532,14 +597,17 @@ class AdaptiveLoop:
                 model=LLMConfig(primary=fallback, fallback=fallback),
                 output_dir=self.output_dir,
             )
-            record.critique_result = critique.run(
+            _ts = {"trace_run_id": trace_run_id, "phase_id": phase_id, "project_id": project_id, "iteration": span_iter}
+            record.critique_result = _agent_run(
+                critique,
                 critique_user_msg,
                 context_files=critique_context,
+                span_kw=_ts,
             )
 
             # Collect critique LLM call telemetry
             if record.critique_result:
-                iter_llm_calls.append(extract_llm_call(record.critique_result))
+                iter_llm_calls.append(_attach(extract_llm_call(record.critique_result), "critique"))
 
         return record, passed, iter_llm_calls
 
