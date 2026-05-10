@@ -150,6 +150,49 @@ Step 8: 修正（根据 Step 7 发现的问题修正报告，重新执行 Step 6
 9. **评审结论** — PASS / PASS_WITH_RISKS / FAIL
 10. **自我评审记录** — Judge + Critique
 
+### `phase_a5_structured.json` 格式（必须严格遵守）
+
+```json
+{
+  "project_id": "项目ID",
+  "req_coverage": [
+    {"req_id": "REQ-001", "status": "COVERED", "notes": "DOC-001第四章完整设计"}
+  ],
+  "br_coverage": [
+    {"br_id": "BR-001", "status": "COVERED", "notes": "DOC-001§4.4展示条件"}
+  ],
+  "se_coverage": [
+    {
+      "se_id": "SE-001",
+      "status": "MISSING",
+      "failure_impact": "最坏后果：非法状态跳转导致数据不一致；影响范围：核心流转",
+      "notes": "技术方案未提及"
+    }
+  ],
+  "gap_closure": [
+    {"gap_id": "GAP-001", "status": "未闭环"}
+  ],
+  "open_closure": [
+    {"open_id": "OPEN-001", "status": "部分闭环"}
+  ],
+  "coverage_summary": [
+    {"dimension": "REQ", "total": 8, "covered": 5, "partial": 3, "missing": 0, "implicit": 0, "coverage_rate": 1.0},
+    {"dimension": "BR", "total": 42, "covered": 32, "partial": 8, "missing": 0, "implicit": 2, "coverage_rate": 0.95},
+    {"dimension": "SE", "total": 18, "covered": 11, "partial": 5, "missing": 2, "implicit": 0, "coverage_rate": 0.889}
+  ],
+  "conclusion": "PASS_WITH_RISKS: REQ覆盖率100%, SE覆盖率88.9%"
+}
+```
+
+**字段约束（严格遵守，否则 Schema 校验 BLOCKED）：**
+- `req_coverage[].req_id`：格式 `REQ-\d+`
+- `br_coverage[].br_id`：格式 `BR-\d+`（**不是 `req_id`，不是其他字段名**）
+- `se_coverage[].se_id`：格式 `SE-\d+`
+- `gap_closure[].gap_id`：格式 `GAP-\d+`
+- `open_closure[].open_id`：格式 `OPEN-\d+`
+- `coverage_summary`：**必须是 list**，每项含 `dimension/total/covered/partial/missing/implicit/coverage_rate`
+- `gap_closure[].status` / `open_closure[].status`：枚举值为 `已闭环` / `部分闭环` / `未闭环`
+
 ## 通过标准
 
 1. REQ 覆盖率 = 100%（允许 IMPLICIT 须附依据）
