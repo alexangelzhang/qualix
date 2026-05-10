@@ -313,3 +313,50 @@ def test_guardrail_coverage_evidence_catches_real_inflation():
     results = guardrail._check_coverage_evidence(ctx)
     assert results, "expected warning when evidence truly lacks file:line"
     assert "COVERED" in results[0].message
+
+
+def test_mock_strip_meta_sections_removes_discussion_lines():
+    """_strip_meta_sections 应同时剥离 # 元章节和讨论性行（含「未扫描到/例如/风险」等）."""
+    from dqg.runtime.handlers.handlers_detection import _strip_meta_sections
+
+    report = (
+        "# 审计明细\n"
+        "mock.when(..).thenReturn(new UserDO())\n"  # 事实行, 应保留
+        "## 自我评审\n"
+        "mock.returnValue=null\n"  # 评审章节, 剥离
+        "## 改进建议\n"
+        "建议避免 mock 返回 null\n"  # 改进建议 + 建议关键词
+        "## 明细\n"
+        "未扫描到 mock return null 等 smell\n"  # 讨论性修饰词
+    )
+    stripped = _strip_meta_sections(report)
+    assert "mock.when(..).thenReturn(new UserDO())" in stripped
+    assert "returnValue=null" not in stripped
+    assert "mock return null 等 smell" not in stripped
+    assert "建议避免" not in stripped
+
+
+def test_fabrication_fallback_across_phases(tmp_path, monkeypatch):
+    """_get_code_repos 在当前 Phase 无 _inputs.json 时回退其他 Phase."""
+    from dqg.core.state_machine import PHASE_DEFS, internal_dir
+    from dqg.json_utils import save_json
+    from dqg.quality.guardrail import GuardrailContext
+    from dqg.quality.guardrail.fabrication_detector import FabricationDetectorGuardrail
+
+    # 在 Q05 目录下种 _inputs.json，Q06 无
+    q05_dir = internal_dir(tmp_path, "demo", PHASE_DEFS["Q05"])
+    q05_dir.mkdir(parents=True, exist_ok=True)
+    fake_repo = tmp_path / "fake_repo"
+    fake_repo.mkdir()
+    save_json(q05_dir / "_inputs.json", {"code_repos": [str(fake_repo)]})
+
+    ctx = GuardrailContext(
+        output_dir=tmp_path,
+        project_id="demo",
+        phase_id="Q06",
+        phase_dir=tmp_path,
+    )
+    fd = FabricationDetectorGuardrail()
+    repos = fd._get_code_repos(ctx)
+    assert len(repos) == 1
+    assert repos[0] == fake_repo.resolve() or repos[0] == fake_repo

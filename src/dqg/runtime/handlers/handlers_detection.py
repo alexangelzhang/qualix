@@ -95,6 +95,43 @@ def _collect_test_code_text(phase_root) -> str:
     return "\n".join(parts)
 
 
+def _strip_meta_sections(text: str) -> str:
+    """剥离报告中的元章节（自我评审 / Judge / Critique / 反模式 / 改进建议 / 审计结论等）
+    以及"讨论性"行（含否定/假设/举例修饰词，说明是在谈问题模式而非展示真实代码）.
+
+    这些章节是对问题模式的"讨论"，而非代码本身；正则扫描若包含它们会把 "mock 返回 null 是问题"
+    这类讨论误判为"真的写了 mock 巧合"。仅扫正文事实性段落降低误报。
+    """
+    import re
+
+    meta_heading = re.compile(
+        r"^#{1,6}\s*(自我评审|Judge|Critique|反模式|Anti[\s-]?Pattern|改进建议|"
+        r"审计结论|评审结论|Self[\s-]?Review|Recommendation|Findings?\s*描述|"
+        r"错误模式|讨论|备注)\b",
+        re.IGNORECASE,
+    )
+    # 讨论性修饰词：整行含这些就说明是谈概念/举例，非真实代码实例
+    discussion_marker = re.compile(
+        r"(未扫描到|没有扫描到|例如|比如|如：|比如：|假设|如果|可能|风险|建议补|"
+        r"应该|不应该|禁止|防止|避免|smell|Anti[\s-]?Pattern)",
+        re.IGNORECASE,
+    )
+
+    lines = text.splitlines()
+    kept: list[str] = []
+    skipping = False
+    for line in lines:
+        stripped = line.lstrip()
+        if stripped.startswith("#"):
+            skipping = bool(meta_heading.match(stripped))
+        if skipping:
+            continue
+        if discussion_marker.search(line):
+            continue
+        kept.append(line)
+    return "\n".join(kept)
+
+
 def handle_mock_coincidence_check(ctx: ExecutionContext, result: PhaseResult) -> None:
     """Mock 巧合正确检测：检测 Mock 返回值与真实 API 行为的偏差模式."""
     import re
@@ -115,15 +152,19 @@ def handle_mock_coincidence_check(ctx: ExecutionContext, result: PhaseResult) ->
             return
         report = report_path.read_text(encoding="utf-8")
 
-    reality_found = sum(1 for kw in MOCK_REALITY_KEYWORDS if kw.lower() in report.lower() or kw in report)
+    # 剥离评审 / 反模式 / 改进建议等元章节：那些地方在"讨论"mock 返回 null 是问题，
+    # 不是真的写了巧合 mock，不应触发告警。
+    scan_text = _strip_meta_sections(report)
+
+    reality_found = sum(1 for kw in MOCK_REALITY_KEYWORDS if kw.lower() in scan_text.lower() or kw in scan_text)
 
     coincidence_hits: list[str] = []
     for pattern in MOCK_COINCIDENCE_KEYWORDS:
-        if re.search(pattern, report, re.IGNORECASE):
+        if re.search(pattern, scan_text, re.IGNORECASE):
             coincidence_hits.append(pattern)
 
-    has_mock = bool(re.search(r"\bmock\b", report, re.IGNORECASE))
-    has_real_data = bool(re.search(r"(真实数据|生产数据|线上数据|实际.*返回|real.*data)", report, re.IGNORECASE))
+    has_mock = bool(re.search(r"\bmock\b", scan_text, re.IGNORECASE))
+    has_real_data = bool(re.search(r"(真实数据|生产数据|线上数据|实际.*返回|real.*data)", scan_text, re.IGNORECASE))
     mock_without_real = has_mock and not has_real_data
 
     issues: list[str] = []

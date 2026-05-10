@@ -97,22 +97,45 @@ def _check_symbols_in_db(output_dir: Path, identifiers: dict[str, set[str]]) -> 
 
 
 def _grep_fallback(code_repo: Path, names: set[str]) -> set[str]:
-    """在代码仓库中 grep 查找标识符（fallback）."""
+    """在代码仓库中 grep 查找标识符（fallback）.
+
+    用 subprocess grep -rl 全量扫描，比 rglob+read_text 快一个数量级，
+    避免 rglob[:200] 在大型 monorepo 中错过目标类。
+    """
+    import shutil
+    import subprocess
+
     found: set[str] = set()
-    if not code_repo.exists():
+    if not code_repo.exists() or not names:
         return found
 
-    java_files = list(code_repo.rglob("*.java"))[:200]
+    grep_bin = shutil.which("grep")
+    if not grep_bin:
+        # 没有 grep（极少见），退回 rglob 有限扫描
+        for f in list(code_repo.rglob("*.java"))[:200]:
+            try:
+                content = f.read_text(encoding="utf-8", errors="ignore")
+                for name in list(names):
+                    if name in content:
+                        found.add(name)
+                        names.discard(name)
+                if not names:
+                    break
+            except Exception:
+                continue
+        return found
 
-    for f in java_files:
+    for name in list(names):
         try:
-            content = f.read_text(encoding="utf-8", errors="ignore").lower()
-            for name in list(names):
-                if name.lower() in content:
-                    found.add(name)
-                    names.discard(name)
-            if not names:
-                break
+            res = subprocess.run(
+                [grep_bin, "-r", "-l", "--include=*.java", "-F", name, str(code_repo)],
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
+            if res.returncode == 0 and res.stdout.strip():
+                found.add(name)
+                names.discard(name)
         except Exception:
             continue
 
@@ -235,28 +258,48 @@ class FabricationDetectorGuardrail(PhaseGuardrail):
         ]
 
     def _get_code_repos(self, ctx: GuardrailContext) -> list[Path]:
-        """从 _inputs.json 获取 code_repo 路径列表（支持多 repo）."""
+        """从本 Phase 的 _inputs.json 获取 code_repo 路径列表；
+        若当前 Phase 没有，则回退扫所有已有 Phase 的 _inputs.json 取并集。
+
+        场景：用户可能只在 Q01/Q05 传过 --code-repo，到 Q06 execute 忘了传，
+        但 code_repos 对整个 project 都是同一组——应该能被复用而不是因缺失而跳过校验。
+        """
         try:
             from dqg.core.state_machine import PHASE_DEFS, internal_dir
             from dqg.json_utils import load_json
 
-            phase_def = PHASE_DEFS.get(ctx.phase_id)
-            if not phase_def:
-                return []
-            int_dir = internal_dir(ctx.output_dir, ctx.project_id, phase_def)
-            inputs_path = int_dir / "_inputs.json"
-            if inputs_path.exists():
+            def _read(phase_id: str) -> list[str]:
+                phase_def = PHASE_DEFS.get(phase_id)
+                if not phase_def:
+                    return []
+                int_dir = internal_dir(ctx.output_dir, ctx.project_id, phase_def)
+                inputs_path = int_dir / "_inputs.json"
+                if not inputs_path.exists():
+                    return []
                 data = load_json(inputs_path)
-                if data:
-                    repos: list[Path] = []
-                    code_repos = data.get("code_repos", [])
-                    if not code_repos and data.get("code_repo"):
-                        code_repos = [data["code_repo"]]
-                    for r in code_repos:
-                        repo = Path(r)
-                        if repo.exists():
-                            repos.append(repo)
-                    return repos
+                if not data:
+                    return []
+                code_repos = data.get("code_repos", [])
+                if not code_repos and data.get("code_repo"):
+                    code_repos = [data["code_repo"]]
+                return code_repos
+
+            collected: list[str] = _read(ctx.phase_id)
+            if not collected:
+                for pid in PHASE_DEFS:
+                    if pid == ctx.phase_id:
+                        continue
+                    found = _read(pid)
+                    if found:
+                        collected = found
+                        break
+
+            repos: list[Path] = []
+            for r in collected:
+                repo = Path(r)
+                if repo.exists() and repo not in repos:
+                    repos.append(repo)
+            return repos
         except Exception:
             log.debug("inputs.json 读取失败", exc_info=True)
         return []
