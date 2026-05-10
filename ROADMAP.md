@@ -161,6 +161,14 @@
 - Adaptive loop schema 反馈回路 AC 3 收尾（`agents/adaptive_loop.py::_write_summary` + `runtime/phase_runtime.py::runtime_finalize`）— `_adaptive_summary.json` 新增 `adaptive_loop_schema_unresolved` + `adaptive_loop_last_schema_errors` 字段，finalize 读取后若最后一轮仍有 schema 错误，追加 warning + emit `VALIDATION_COMPLETED` 事件，明确区分"adaptive loop 跑完仍未修复"与"手工提交产物首次校验失败"
 - 新增 2 条单测覆盖（`tests/test_adaptive_schema_feedback_t14.py`）：最后一轮有 errors → unresolved=True；早期轮有 errors 但最后一轮清空 → unresolved=False
 
+2026-05-10 新增（Anti-Rationalization Guard 结构化 telemetry）：
+
+- Guard telemetry 落盘（`quality/judge/guard_telemetry.py`）— `log_guard_event` 把 LAYER1_HIT / REJUDGE_PASSED / GUARD_EXHAUSTED 事件 append 到 `_internal/_rationalization_guard.jsonl`；`save_guard_pair` 把 block 触发的 before/after Judge `raw_output` 存为独立 pair JSON（`_internal/_rationalization_pairs/`），作为后续 precision 评估原料
+- `multi_judge_vote` guard 块抽出（`agents/judge_vote_guards.py`）— `apply_rationalization_guard` / `apply_overcorrection_guard` 封装重审预算、telemetry 调用和 HARD_BLOCK 终态，`judge_vote.py` 回到 400 行内
+- Guard 精度周报扩容（`reporting/guard_precision_report.py`）— 除原有 `_guardrail_results.json` 聚合外，新扫 `_rationalization_guard.jsonl` 并按 `rationalization_guard` / `overcorrection_guard` 分桶，表格新增 `triggered` 列
+- 测试：`tests/test_guard_telemetry.py` 7 条（含并发 append + 失败静默 + roundtrip）+ `tests/test_guard_precision_report.py` 新增 3 条（事件聚合 / 损坏 jsonl 容错 / markdown 新列）
+- **精度闭环待推进**：见本节"仍需推进（P1）"的 Anti-Rationalization Guard 精度评估三层规划
+
 2026-04-27 新增（Evidence Pack Compaction 基线遥测）：
 
 - Judge token usage 链路打通（`judge_runner.py` → `judge_vote.py` → `adaptive_loop.py`）— JudgeResult/JudgeVote 新增 `token_usage` 字段，adaptive loop 每轮 judge 投票后提取 token 数据到 `iter_llm_calls`，修复 telemetry `llm_calls` 始终为空的问题
@@ -177,6 +185,12 @@
 - 审计命中率、修复闭环时长口径  
 - 告警噪声治理（误报率、阈值自适配）  
 - 周报到治理动作的闭环（负责人、修复 SLA）
+- **Anti-Rationalization Guard 精度评估**（2026-05-10 立项）— 当前 Guard telemetry 已落盘（LAYER1_HIT / REJUDGE_PASSED / GUARD_EXHAUSTED + before/after pair），但还缺把原料变成数字的闭环。分三层落：
+  - **Should P1a — Ground truth 标注集**：从历史 `_rationalization_pairs/*.json` 挑 30–50 条 pair，主会话人工判定 CONFIRMED vs FALSE_POSITIVE 作为基准集；基于基准集计算当前 `RATIONALIZATION_PATTERNS` / `OVERCORRECTION_PATTERNS` 的 precision / recall。**启动条件**：`guard_event_files_read` ≥ 20（telemetry 样本量够）
+  - **Should P1b — 历史 failure-library 反事实回放**：对已知 leniency failure case 做"如果当时跑 guard 会不会拦住"的回放；输出每个 pattern 的命中率与拦截贡献。**依赖** P1a 的标注规范
+  - **Nice P2 — A/B 对照实验**：同一批 Judge 输入跑 guard on/off 各一遍，对比最终 consensus 和 leniency 率差异。**成本**：holdout suite 双跑 N 条 Phase；**触发条件**：P1a + P1b 暴露的 precision 足够稳定，需要衡量净效益才启动
+  - **验证指标**：guard precision ≥ 0.7、recall ≥ 0.8（先以 P1a 为基准校准阈值）
+  - **实施笔记**：P1a/P1b 工作量合计约 1 周；P2 看 holdout 成本，单独立项
 
 待启动（长期规划，等合适时机）：
 
