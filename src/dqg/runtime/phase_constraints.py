@@ -76,6 +76,14 @@ PHASE_CONSTRAINTS: Final = MappingProxyType(
                 "block_if_fail": True,
                 "label": "SE 覆盖率 ≥ 80%",
             },
+            {
+                "metric": "br_coverage_rate",
+                "op": ">=",
+                "threshold": 0.8,
+                "source": "phase_a5_structured.json:coverage_summary[dimension=BR]",
+                "block_if_fail": False,
+                "label": "BR 覆盖率 ≥ 80%",
+            },
         ],
         "Q05": [
             {
@@ -112,7 +120,7 @@ PHASE_CONSTRAINTS: Final = MappingProxyType(
 
 # Risk-tier threshold multipliers: how much to relax/tighten coverage thresholds
 # Only coverage-type metrics are adjusted; count-based constraints stay fixed
-_COVERAGE_METRICS = {"req_coverage_rate", "se_coverage_rate"}
+_COVERAGE_METRICS = {"req_coverage_rate", "se_coverage_rate", "br_coverage_rate"}
 _TIER_MULTIPLIERS: Final = MappingProxyType(
     {
         "LOW": 0.75,  # 80% → 60%
@@ -202,6 +210,17 @@ def _resolve_metric(output_dir: Path, project_id: str, phase_id: str, metric: st
         if items:
             covered = sum(1 for i in items if i.get("status") == "COVERED")
             return covered / len(items)
+    if metric == "br_coverage_rate":
+        summary = data.get("coverage_summary", [])
+        if isinstance(summary, list):
+            for row in summary:
+                if isinstance(row, dict) and row.get("dimension") in ("BR", "br"):
+                    return float(row.get("coverage_rate", 0))
+        # fallback: compute from br_coverage list
+        br_items = data.get("br_coverage", [])
+        if br_items:
+            covered = sum(1 for b in br_items if b.get("status") in ("COVERED", "IMPLICIT"))
+            return covered / len(br_items)
     return None
 
 
