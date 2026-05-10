@@ -27,24 +27,37 @@ _VAGUE_THEN_PATTERNS: list[re.Pattern[str]] = [
         r"^执行成功$",
         r"^功能正常$",
         r"^断言通过$",
+        # 空气断言：常量比较，无业务语义
+        r"assertEquals\s*\(\s*\d+\s*,\s*\d+\s*\)",  # assertEquals(1, 1)
+        r"assertTrue\s*\(\s*true\s*\)",  # assertTrue(true)
+        r"assertFalse\s*\(\s*false\s*\)",  # assertFalse(false)
+        # 过弱断言：只验证非空/非null，没有业务值（后面没有其他断言）
+        r"^assertNotNull\s*\([^;；]+\)\s*[;；]?\s*$",  # 只有 assertNotNull，无后续断言（行末）
+        r"^assertNull\s*\([^;；]+\)\s*[;；]?\s*$",  # 只有 assertNull，无后续断言（行末）
+        r"^assertTrue\s*\(result\s*!=\s*null\)\s*[;；]?\s*$",  # assertTrue(result != null) 单独一行
     ]
 ]
 
 # EUT then 字段具体性白名单（至少匹配一个才算具体）
+# 要求断言包含业务语义值：枚举/状态码/具体字段/异常类型/调用次数
 _CONCRETE_THEN_PATTERNS: list[re.Pattern[str]] = [
     re.compile(p, re.IGNORECASE)
     for p in [
-        r"assert\w+",  # assertEquals, assertThrows, ...
+        r"assertEquals\s*\([^,)]+,\s*[^)]+\)",  # assertEquals(expected, actual) — 有两个参数
+        r"assertThrows\s*\([A-Za-z]+Exception",  # assertThrows(XxxException.class, ...)
         r"verify\s*\(",  # Mockito.verify
         r"(等于|==|!=|>=|<=|>|<)",  # 比较操作
         r"(返回|return).*\d",  # 返回具体值
-        r"(状态|status).*[A-Z_]{2,}",  # 状态枚举
+        r"(状态|status).*[A-Z_]{2,}",  # 状态枚举（如 APPROVED, WAIT_APPROVE）
         r"(抛出|throw).*Exception",  # 具体异常
         r"(为|是)\s*(null|空|0|false|true)",  # 具体值
-        r"\d+(\.\d+)?",  # 包含数字
+        r"\b[A-Z_]{3,}\b",  # 业务枚举常量（如 APPROVED, BLOCKED）
         r"(次|times|never|once)",  # 调用次数
         r"(包含|contains|不包含)",  # 集合断言
         r"(大小|size|长度|length)\s*[=><]",  # 集合大小
+        r"errorCode\s*[=!]=",  # 错误码断言
+        r"getMessage\(\).*含",  # 异常消息断言
+        r"assertDoesNotThrow.*;\s*.+assert",  # assertDoesNotThrow + 后续业务断言
     ]
 ]
 
