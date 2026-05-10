@@ -104,6 +104,7 @@
 - `dqg-run execute Q06 --coverage-report /path/to/jacoco.xml` 参数贯通（`core/runner.py` 新增 argparse 项 → `ExecutionContext.coverage_report` 字段 → `handle_persist_inputs` 写入 `_inputs.json`），finalize 阶段 `check_phase_c_coverage` 直接消费
 - 底层 `coverage_gate.parse_jacoco_xml` / `find_jacoco_report` / `compute_incremental_coverage` 已早于 2026-04-17 就绪，本次补齐"CLI → _inputs.json → finalize"链路最后一公里
 - 多仓库场景 `--code-repo /a,/b,/c` + 单 `--coverage-report` 即可跑通；若需要每仓独立 jacoco.xml，后续可扩展为逗号分隔
+- Guardrail `ReportSemanticGuardrail._check_coverage_evidence` 修复：`phase_runtime.py` 构造 `GuardrailContext` 时加载 `phase_{b,c,...}_structured.json` 注入 `structured_data`，让 JSON 路径优先于 markdown 报告路径——解决"audit 明细表 evidence 列被 120 字符截断 → 行号丢失 → 20 条 COVERED 无证据"的误报
 
 2026-04-22 新增：
 

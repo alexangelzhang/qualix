@@ -310,6 +310,7 @@ def runtime_finalize(ctx: ExecutionContext) -> PhaseResult:
     get_registry().run_handlers("finalize", ctx, result)
 
     # 统一 Guardrail 门控（并发执行，结果持久化）
+    from dqg.constants import STRUCTURED_JSON_MAP
     from dqg.quality.guardrail import GuardrailContext, GuardrailLevel, run_guardrails
     from dqg.quality.guardrail_impl import get_guardrails
     from dqg.quality.rule_checks import read_report
@@ -317,12 +318,20 @@ def runtime_finalize(ctx: ExecutionContext) -> PhaseResult:
     g_out: list[dict] = []
     try:
         report_content = read_report(ctx.phase_root, ctx.phase_id) if ctx.phase_root else ""
+        structured_data: dict = {}
+        if ctx.phase_root:
+            json_name = STRUCTURED_JSON_MAP.get(ctx.phase_id)
+            if json_name:
+                json_path = ctx.phase_root / json_name
+                if json_path.exists():
+                    structured_data = load_json(json_path) or {}
         g_ctx = GuardrailContext(
             output_dir=ctx.output_dir,
             project_id=ctx.project_id,
             phase_id=ctx.phase_id,
             phase_dir=ctx.phase_root,
             report_content=report_content,
+            structured_data=structured_data,
         )
         guardrails = get_guardrails(ctx.phase_id)
         g_results = run_guardrails(guardrails, g_ctx)

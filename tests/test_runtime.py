@@ -250,3 +250,66 @@ def test_persist_inputs_omits_coverage_report_when_none(tmp_path):
 
     data = load_json(internal / "_inputs.json")
     assert "coverage_report" not in data
+
+
+def test_guardrail_coverage_evidence_trusts_structured_data():
+    """ReportSemanticGuardrail 在 structured_data 存在时优先用 JSON，避免 markdown 表格截断误报."""
+    from dqg.quality.guardrail import GuardrailContext
+    from dqg.quality.guardrail.semantic_guardrail import ReportSemanticGuardrail
+
+    # structured_data 里 evidence 含 [文件:行号] → 合格；report 表格里被截断只剩 "COVERED EUT-001 applyXxx" → 没行号
+    structured_data = {
+        "audit_items": [
+            {
+                "id": "AUDIT-001",
+                "eut_id": "EUT-001",
+                "status": "COVERED",
+                "evidence": "applyXxx_shouldSucceed() [MrOrderMainServiceTest.java:100]",
+            }
+        ]
+    }
+    truncated_report = (
+        "| AUDIT-001 | EUT-001 | SE-001 | Happy | COVERED | MrOrderMainService.applyXxx | applyXxx_shouldSucc"
+    )
+
+    ctx = GuardrailContext(
+        output_dir=Path("/tmp"),
+        project_id="demo",
+        phase_id="Q06",
+        phase_dir=Path("/tmp"),
+        report_content=truncated_report,
+        structured_data=structured_data,
+    )
+    guardrail = ReportSemanticGuardrail()
+    results = guardrail._check_coverage_evidence(ctx)
+    # structured_data 路径生效 → 找到合格 evidence → 无虚高告警
+    assert not results, f"expected no coverage-inflation warning, got {[r.message for r in results]}"
+
+
+def test_guardrail_coverage_evidence_catches_real_inflation():
+    """structured_data 中 COVERED 但 evidence 真的缺行号 → 正确告警."""
+    from dqg.quality.guardrail import GuardrailContext
+    from dqg.quality.guardrail.semantic_guardrail import ReportSemanticGuardrail
+
+    structured_data = {
+        "audit_items": [
+            {
+                "id": "AUDIT-001",
+                "eut_id": "EUT-001",
+                "status": "COVERED",
+                "evidence": "该方法已覆盖",  # 无行号
+            }
+        ]
+    }
+    ctx = GuardrailContext(
+        output_dir=Path("/tmp"),
+        project_id="demo",
+        phase_id="Q06",
+        phase_dir=Path("/tmp"),
+        report_content="",
+        structured_data=structured_data,
+    )
+    guardrail = ReportSemanticGuardrail()
+    results = guardrail._check_coverage_evidence(ctx)
+    assert results, "expected warning when evidence truly lacks file:line"
+    assert "COVERED" in results[0].message
