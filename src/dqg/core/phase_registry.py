@@ -176,6 +176,7 @@ PHASE_DEFS: Final = MappingProxyType(
             ],
             "required_report_sections": [
                 {"canonical": "覆盖度分析", "aliases": ["Coverage Analysis", "覆盖率"]},
+                {"canonical": "BR 覆盖度", "aliases": ["BR Coverage", "BR覆盖", "分支需求覆盖"]},
                 {"canonical": "缺失项", "aliases": ["Missing Items", "遗漏"]},
             ],
         },

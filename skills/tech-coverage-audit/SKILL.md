@@ -142,13 +142,14 @@ Step 8: 修正（根据 Step 7 发现的问题修正报告，重新执行 Step 6
 1. **PROFILE_CONTEXT** — 技术栈基线
 2. **审计范围** — 需求基线（REQ/BR/SE/GAP/OPEN 数量）+ 技术方案来源
 3. **REQ 覆盖度** — 表格（ID/描述/状态/映射证据/置信度）
-4. **SE 覆盖度** — 表格（ID/描述/状态/映射证据/置信度）
-5. **GAP 闭环** — 表格（ID/描述/状态/置信度）
-6. **OPEN 闭环** — 表格（ID/描述/状态/置信度）
-7. **反向审计** — NEW_DESIGN / NOT_IN_SCOPE 表格
-8. **覆盖度统计** — 表格（维度/总数/COVERED/PARTIAL/MISSING/覆盖率）
-9. **评审结论** — PASS / PASS_WITH_RISKS / FAIL
-10. **自我评审记录** — Judge + Critique
+4. **BR 覆盖度** — 表格（ID/父REQ/状态/映射证据/置信度），按模块分组
+5. **SE 覆盖度** — 表格（ID/描述/状态/映射证据/Failure Impact/置信度）
+6. **GAP 闭环** — 表格（ID/描述/状态/置信度）
+7. **OPEN 闭环** — 表格（ID/描述/状态/置信度）
+8. **反向审计** — NEW_DESIGN / NOT_IN_SCOPE 表格
+9. **覆盖度统计** — 表格（维度/总数/COVERED/PARTIAL/MISSING/覆盖率），必须包含 REQ/BR/SE 三行
+10. **评审结论** — PASS / PASS_WITH_RISKS / FAIL
+11. **自我评审记录** — Judge + Critique
 
 ### `phase_a5_structured.json` 格式（必须严格遵守）
 
