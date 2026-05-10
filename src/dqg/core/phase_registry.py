@@ -105,7 +105,7 @@ PHASE_DEFS: Final = MappingProxyType(
             "recommended_model": "strong",
             "reasoning_profile": {"planning": "high", "execution": "standard", "verification": "high"},
             "depends_on": ["Q02"],
-            "parallel_with": [],
+            "parallel_with": ["Q04"],
             "required_inputs": [
                 {
                     "key": "tech_design",
@@ -117,13 +117,13 @@ PHASE_DEFS: Final = MappingProxyType(
             "optional_inputs": [
                 {
                     "key": "code_repo",
-                    "label": "代码仓库(feature分支)",
+                    "label": "代码仓库(master/main分支)",
                     "prompt": "代码仓库路径，多个用逗号分隔（没有直接回车跳过）",
                 },
                 {
-                    "key": "feature_branch",
-                    "label": "feature 分支名",
-                    "prompt": "要分析的 feature 分支名（没有直接回车跳过）",
+                    "key": "knowledge_base",
+                    "label": "知识库",
+                    "prompt": "架构规范或知识库路径（没有直接回车跳过）",
                 },
             ],
             "deliverables": [
@@ -147,8 +147,8 @@ PHASE_DEFS: Final = MappingProxyType(
             "skill": "skills/tech-coverage-audit/SKILL.md",
             "recommended_model": "standard",
             "reasoning_profile": {"planning": "standard", "execution": "standard", "verification": "high"},
-            "depends_on": ["Q03"],
-            "parallel_with": [],
+            "depends_on": ["Q02"],
+            "parallel_with": ["Q03"],
             "required_inputs": [
                 {
                     "key": "tech_design",

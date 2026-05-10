@@ -171,9 +171,9 @@ class TestGetAvailablePhases:
         state.phases["Q01"].status = PhaseStatus.APPROVED
         state.phases["Q02"].status = PhaseStatus.SKIPPED
         available = get_available_phases(state)
-        # A.6 unlocked when A.3 is skipped
+        # Q03 and Q04 both unlocked when Q02 is skipped (parallel_with each other)
         assert "Q03" in available
-        assert "Q04" not in available
+        assert "Q04" in available
 
     def test_after_a6_approved(self):
         state = ProjectState(project_id="TEST")
@@ -191,15 +191,15 @@ class TestGetAvailablePhases:
 
 
 class TestGetParallelGroups:
-    def test_a6_before_a5_sequential(self):
+    def test_q03_q04_parallel_after_q02_skipped(self):
         state = ProjectState(project_id="TEST")
         state.phases["Q01"].status = PhaseStatus.APPROVED
         state.phases["Q02"].status = PhaseStatus.SKIPPED
         groups = get_parallel_groups(state)
-        # A.6 should appear before A.5 (sequential, not parallel)
-        phase_ids_in_order = [g[0] for g in groups if len(g) == 1]
-        assert "Q03" in phase_ids_in_order
-        assert "Q04" not in phase_ids_in_order  # A.5 locked until A.6 done
+        # Q03 and Q04 should be in the same parallel group
+        parallel_group = next((g for g in groups if len(g) > 1), None)
+        assert parallel_group is not None
+        assert set(parallel_group) == {"Q03", "Q04"}
 
     def test_initial_no_parallel(self):
         state = ProjectState(project_id="TEST")
