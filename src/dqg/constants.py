@@ -322,6 +322,10 @@ RATIONALIZATION_PATTERNS: list[str] = [
 DEFAULT_RATIONALIZATION_CONFIRM_MODEL = "claude-haiku-4-5-20251001"
 RATIONALIZATION_MAX_REJUDGE = 1
 
+# Guard telemetry（结构化事件 + before/after pair 存档，供 guard_precision_report 聚合）
+GUARD_EVENT_FILENAME = "_rationalization_guard.jsonl"
+GUARD_PAIR_DIRNAME = "_rationalization_pairs"
+
 # Overcorrection patterns: Judge 过严误报信号（与 RATIONALIZATION_PATTERNS 方向相反）
 OVERCORRECTION_PATTERNS: list[str] = [
     r"虽然.{0,20}(逻辑正确|实现正确|功能正常).{0,20}但.{0,20}(不符合|未遵循|建议)",

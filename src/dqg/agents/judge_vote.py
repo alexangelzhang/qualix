@@ -185,6 +185,7 @@ def multi_judge_vote(
     2. 如果 primary 分数在边界区间（pass_threshold ± 0.5），启动 secondary 验证
     3. 如果 primary 分数明确 PASS 或 FAIL，直接采纳，不浪费 secondary 调用
     """
+    from dqg.agents.judge_vote_guards import apply_overcorrection_guard, apply_rationalization_guard
     from dqg.constants import JUDGE_PASS_THRESHOLD, JUDGE_PASS_WITH_CONCERNS_DELTA
 
     unique_models = list(dict.fromkeys(models))
@@ -193,6 +194,13 @@ def multi_judge_vote(
 
     primary_model = unique_models[0]
     secondary_models = unique_models[1:]
+
+    # Guard telemetry 目标路径（与 phase 内部 _guardrail_results.json 同位）
+    try:
+        _tel_phase_id = report_path.parent.name
+    except (AttributeError, IndexError):
+        _tel_phase_id = ""
+    _tel_internal_dir = output_dir / "_internal"
 
     primary_vote = _run_single_judge(output_dir, report_path, rubric, primary_model, fallback)
     if primary_vote is None:
@@ -208,57 +216,35 @@ def multi_judge_vote(
         )
 
     # Guard: Anti-Rationalization check on primary vote
-    if primary_vote.raw_output:
-        from dqg.quality.rationalization_guard import RationalizationGuard, format_rejudge_warning
-
-        guard = RationalizationGuard()
-        guard_result = guard.check(primary_vote.raw_output)
-
-        if not guard_result.passed:
-            log.warning("Guard detected rationalization in primary judge, re-judging")
-            warning_text = format_rejudge_warning(guard_result)
-            rejudged = _run_single_judge(
-                output_dir,
-                report_path,
-                rubric,
-                primary_model,
-                fallback,
-                warning_override=warning_text,
-            )
-            if rejudged is not None:
-                guard_result_2 = guard.check(rejudged.raw_output)
-                if not guard_result_2.passed:
-                    log.warning("Guard HARD_BLOCK: rationalization persists after re-judge")
-                    rejudged.health = "GUARD_EXHAUSTED"
-                    rejudged.verdict = "HARD_BLOCK"
-                    _write_hard_block_result(output_dir, rejudged, guard_result_2)
-                    return None
-                primary_vote = rejudged
+    rat_result = apply_rationalization_guard(
+        primary_vote=primary_vote,
+        run_single_judge=_run_single_judge,
+        write_hard_block_result=_write_hard_block_result,
+        output_dir=output_dir,
+        report_path=report_path,
+        rubric=rubric,
+        primary_model=primary_model,
+        fallback=fallback,
+        internal_dir=_tel_internal_dir,
+        phase_id=_tel_phase_id,
+    )
+    if rat_result is None:
+        # HARD_BLOCK: _write_hard_block_result already persisted the block payload
+        return None
+    primary_vote = rat_result
 
     # Guard: Anti-Overcorrection check on primary vote
-    if primary_vote and primary_vote.raw_output:
-        from dqg.quality.rationalization_guard import OvercorrectionGuard, format_overcorrection_warning
-
-        oc_guard = OvercorrectionGuard()
-        oc_result = oc_guard.check(primary_vote.raw_output)
-
-        if oc_result.has_overcorrection:
-            log.warning(
-                "Overcorrection detected: %d patterns, %d FAIL without evidence",
-                len(oc_result.confirmed_overcorrections),
-                len(oc_result.fail_without_evidence),
-            )
-            warning_text = format_overcorrection_warning(oc_result)
-            rejudged = _run_single_judge(
-                output_dir,
-                report_path,
-                rubric,
-                primary_model,
-                fallback,
-                warning_override=warning_text,
-            )
-            if rejudged is not None:
-                primary_vote = rejudged
+    primary_vote = apply_overcorrection_guard(
+        primary_vote=primary_vote,
+        run_single_judge=_run_single_judge,
+        output_dir=output_dir,
+        report_path=report_path,
+        rubric=rubric,
+        primary_model=primary_model,
+        fallback=fallback,
+        internal_dir=_tel_internal_dir,
+        phase_id=_tel_phase_id,
+    )
 
     if primary_vote is None:
         log.warning("Primary judge excluded, falling back to secondary models")
