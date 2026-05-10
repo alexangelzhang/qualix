@@ -108,6 +108,7 @@
 - `fabrication_detector._grep_fallback` 从 `rglob("*.java")[:200]`（前 200 文件就截断）改为 `subprocess grep -rl -F`（全量扫描），修复 szV4 等大型 monorepo 里 AdminClaimProviderImpl 等真实类被误判"编造"
 - `fabrication_detector._get_code_repos` 增加跨 Phase 兜底：当前 Phase `_inputs.json` 缺失时扫其他 Phase（code_repos 对整个 project 通用），避免"用户 Q05 传过 --code-repo 但 Q06 忘传 → fabrication guardrail 整段跳过"
 - `handle_mock_coincidence_check` 新增 `_strip_meta_sections` 过滤元章节（自我评审/Judge/Critique/反模式/改进建议/审计结论）和讨论性行（含「未扫描到/例如/风险/建议/smell」等修饰词），避免把"讨论 mock 返回 null 是问题"误判为"真的写了 mock 巧合代码"
+- `reset_phase` 完整字段清理修复：原实现只清 status/started_at/finished_at/validation_errors/comment，残留 approved_at/judge_score/judge_dimensions/judge_passed/judged_at/duration_seconds/run_status 会导致下轮 execute 被 `check_gate` 判定"已经 approved"而拒绝执行。同步修复"已经 not_started 就 early return"误判——status 虽是 not_started 但其它字段脏的场景应真正 reset。`tests/test_state_machine.py` 新增 `TestResetPhase` 4 个单测覆盖
 
 2026-04-22 新增：
 

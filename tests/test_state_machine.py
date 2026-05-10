@@ -205,3 +205,73 @@ class TestGetParallelGroups:
         state = ProjectState(project_id="TEST")
         groups = get_parallel_groups(state)
         assert groups == [["Q01"]]
+
+
+class TestResetPhase:
+    def test_reset_from_approved_clears_all_fields(self):
+        """reset 必须清所有执行/评审/审批字段，否则会残留污染下轮 execute."""
+        from dqg.core.state_machine import reset_phase
+
+        state = ProjectState(project_id="TEST")
+        ps = state.phases["Q06"]
+        ps.status = PhaseStatus.APPROVED
+        ps.run_status = "ok"
+        ps.started_at = "2026-01-01T00:00:00"
+        ps.finished_at = "2026-01-01T00:05:00"
+        ps.approved_at = "2026-01-01T00:10:00"
+        ps.duration_seconds = 300.0
+        ps.comment = "审批通过"
+        ps.validation_errors = ["legacy error"]
+        ps.judge_score = 4.5
+        ps.judge_dimensions = {"overall_quality": 4.0}
+        ps.judge_passed = True
+        ps.judged_at = "2026-01-01T00:08:00"
+
+        errors = reset_phase(state, "Q06")
+
+        assert errors == []
+        ps = state.phases["Q06"]
+        assert ps.status == PhaseStatus.NOT_STARTED
+        assert ps.run_status is None
+        assert ps.started_at is None
+        assert ps.finished_at is None
+        assert ps.approved_at is None
+        assert ps.duration_seconds is None
+        assert ps.comment is None
+        assert ps.validation_errors == []
+        assert ps.judge_score is None
+        assert ps.judge_dimensions == {}
+        assert ps.judge_passed is None
+        assert ps.judged_at is None
+
+    def test_reset_already_clean_returns_info(self):
+        """真正的 not_started（字段全默认）应返回 info，且不改动 state."""
+        from dqg.core.state_machine import reset_phase
+
+        state = ProjectState(project_id="TEST")
+        errors = reset_phase(state, "Q06")
+        assert errors == ["Phase Q06 已经是 not_started 状态"]
+
+    def test_reset_not_started_but_dirty_fields_still_resets(self):
+        """status 是 not_started 但残留了其他字段（比如部分 reset 过）仍需真正 reset."""
+        from dqg.core.state_machine import reset_phase
+
+        state = ProjectState(project_id="TEST")
+        ps = state.phases["Q06"]
+        # status 是 not_started 但 approved_at 残留 —— 这是老 bug 的典型场景
+        ps.status = PhaseStatus.NOT_STARTED
+        ps.approved_at = "2026-01-01T00:10:00"
+        ps.judge_score = 4.5
+
+        errors = reset_phase(state, "Q06")
+
+        assert errors == []
+        assert state.phases["Q06"].approved_at is None
+        assert state.phases["Q06"].judge_score is None
+
+    def test_reset_unknown_phase(self):
+        from dqg.core.state_machine import reset_phase
+
+        state = ProjectState(project_id="TEST")
+        errors = reset_phase(state, "QXX")
+        assert errors == ["未知的 Phase: QXX"]

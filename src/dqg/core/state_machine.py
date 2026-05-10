@@ -249,6 +249,8 @@ def skip_phase(state: ProjectState, phase_id: str, comment: str = "") -> list[st
 def reset_phase(state: ProjectState, phase_id: str) -> list[str]:
     """重置 Phase 到 not_started 状态（允许重新执行）.
 
+    清空所有执行/评审/审批字段，避免残留数据干扰下一轮 execute / gate 检查。
+
     Returns:
         []: 成功
         ["error1", ...]: 失败原因
@@ -256,14 +258,37 @@ def reset_phase(state: ProjectState, phase_id: str) -> list[str]:
     phase_state = state.phases.get(phase_id)
     if not phase_state:
         return [f"未知的 Phase: {phase_id}"]
-    if phase_state.status == PhaseStatus.NOT_STARTED:
+
+    # 判断是否真的处于干净的 not_started（所有字段均默认值），避免误判而跳过 save_state
+    already_clean = (
+        phase_state.status == PhaseStatus.NOT_STARTED
+        and phase_state.run_status is None
+        and phase_state.started_at is None
+        and phase_state.finished_at is None
+        and phase_state.approved_at is None
+        and phase_state.judge_score is None
+        and not phase_state.judge_dimensions
+        and phase_state.judge_passed is None
+        and phase_state.judged_at is None
+        and phase_state.duration_seconds is None
+        and not phase_state.validation_errors
+        and not phase_state.comment
+    )
+    if already_clean:
         return [f"Phase {phase_id} 已经是 not_started 状态"]
 
     phase_state.status = PhaseStatus.NOT_STARTED
+    phase_state.run_status = None
     phase_state.started_at = None
     phase_state.finished_at = None
+    phase_state.approved_at = None
+    phase_state.duration_seconds = None
+    phase_state.comment = None
     phase_state.validation_errors = []
-    phase_state.comment = ""
+    phase_state.judge_score = None
+    phase_state.judge_dimensions = {}
+    phase_state.judge_passed = None
+    phase_state.judged_at = None
     return []
 
 
