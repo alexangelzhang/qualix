@@ -64,6 +64,30 @@ pip install dev-quality-gate
 - `dqg-run path skills` 等 CLI 帮用户查资源位置（只读，不鼓励进入）
 - 版本号从 `0.1.0` 升到 `0.2.0`（破坏性布局变更）
 
+### L1 备选 — `install.sh` + `~/.dqg/` 模式（借鉴 VAF，低成本先行）
+
+如果暂时不想发 PyPI，可以先用 VAF 验证过的 `install.sh` 模式拿到同样的物理边界效果：
+
+```bash
+# DQG 仓库根目录执行一次
+./install.sh
+# 把 skills/ references/ profiles/ core/rules/ 拷贝到 ~/.dqg/
+# 用户项目里 dqg-run 从 ~/.dqg/ 读资源，从 .dqg/（项目目录）读用户定制
+```
+
+**价值**：
+- 成本 ~0.5 天（vs PyPI 改造 3-5 天）
+- 用户 cwd 没有 DQG 源码，Claude "改源码"的默认行为已经被堵住
+- 保留 `pyproject.toml` + `pip install -e .` 给 DQG **开发者**用
+- 发 PyPI 可作后续演进，不阻塞本次规模化需求
+
+**跟 VAF 的差异**：
+- VAF 是纯文件拷贝（skills 是 markdown + yaml）
+- DQG 有 Python 代码需要 import，`install.sh` 需要同时跑 `pip install --user .` 把包装到 site-packages，并把资源目录拷到 `~/.dqg/`
+- 用户定制目录建议放在用户项目下 `.dqg/`（而非家目录 `~/.dqg/`）—— 项目级配置随项目走
+
+**另一条参考**：VAF 有一个独立 `VERSION` 文件（`2.3.1-rc.20260304`），不和 `pyproject.toml` 耦合。DQG 可以加一个 `VERSION` 文件让版本号真正流转起来（当前 `pyproject.toml` 卡在 `0.1.0` 没动），`install.sh` 读 VERSION 贴 label。
+
 ### L2 — `dqg-run init` 分离用户工作区
 
 ```bash
