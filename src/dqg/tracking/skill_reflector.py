@@ -59,15 +59,18 @@ class ReflectResult:
 
 @dataclass
 class WriteResult:
-    mode: str  # AUTO_APPLY | HUMAN_REVIEW
+    mode: str  # AUTO_APPLY | HUMAN_REVIEW | REVERTED | NOOP_DEDUPED
     path: str = ""
     changes: list[str] = field(default_factory=list)
     target_files: list[str] = field(default_factory=list)
+    skipped_duplicates: list[str] = field(default_factory=list)
+    inserted_entries: list[str] = field(default_factory=list)
+    rendered_diff: str = ""
 
 
 @dataclass
 class EvolutionOutcome:
-    action: str  # SKIP | HUMAN_REVIEW | AUTO_MERGED | REVERTED
+    action: str  # SKIP | HUMAN_REVIEW | AUTO_MERGED | REVERTED | NOOP_DEDUPED
     reason: str = ""
     suggestion_path: str = ""
     changes: list[str] = field(default_factory=list)
@@ -227,8 +230,18 @@ class SkillReflector:
 
             # Auto-merge: snapshot → apply → holdout verify → revert if overfitting
             snapshot = self.snapshot_targets([skill_path])
-            applied = apply_to_skill_file(skill_path, reflect_result.suggested_changes)
-            if not applied:
+            apply_result = apply_to_skill_file(skill_path, reflect_result.suggested_changes)
+            if not apply_result.applied:
+                # 全部被幂等检查跳过（或无效输入） → NOOP_DEDUPED，不跑 holdout
+                if apply_result.skipped_duplicates and not apply_result.inserted_entries:
+                    return WriteResult(
+                        mode="NOOP_DEDUPED",
+                        path=skill_path,
+                        changes=reflect_result.suggested_changes,
+                        target_files=[skill_path],
+                        skipped_duplicates=list(apply_result.skipped_duplicates),
+                        rendered_diff=apply_result.rendered_diff,
+                    )
                 self.rollback(snapshot)
                 suggestion_path = _suggestion()
                 return WriteResult(mode="HUMAN_REVIEW", path=suggestion_path)
@@ -243,6 +256,9 @@ class SkillReflector:
                     path=suggestion_path,
                     changes=reflect_result.suggested_changes,
                     target_files=[skill_path],
+                    skipped_duplicates=list(apply_result.skipped_duplicates),
+                    inserted_entries=list(apply_result.inserted_entries),
+                    rendered_diff=apply_result.rendered_diff,
                 )
 
             log.info("Auto-merged skill rules for %s (support=%d)", self.phase, support_count)
@@ -251,6 +267,9 @@ class SkillReflector:
                 path=skill_path,
                 changes=reflect_result.suggested_changes,
                 target_files=[skill_path],
+                skipped_duplicates=list(apply_result.skipped_duplicates),
+                inserted_entries=list(apply_result.inserted_entries),
+                rendered_diff=apply_result.rendered_diff,
             )
 
         suggestion_path = _suggestion()
@@ -345,6 +364,8 @@ class SkillReflector:
             action = "AUTO_MERGED"
         elif write_result.mode == "REVERTED":
             action = "REVERTED"
+        elif write_result.mode == "NOOP_DEDUPED":
+            action = "NOOP_DEDUPED"
         else:
             action = "HUMAN_REVIEW"
         outcome = EvolutionOutcome(
@@ -406,6 +427,21 @@ class SkillReflector:
             lines.append("- 变更内容:")
             for c in write_result.changes:
                 lines.append(f"  - {c}")
+
+        if write_result.skipped_duplicates:
+            lines.append("- 幂等跳过（已存在的规则）:")
+            for s in write_result.skipped_duplicates:
+                lines.append(f"  - {s}")
+
+        if write_result.rendered_diff:
+            lines += [
+                "",
+                "### Apply Diff",
+                "",
+                "```",
+                write_result.rendered_diff,
+                "```",
+            ]
 
         lines += [
             "",

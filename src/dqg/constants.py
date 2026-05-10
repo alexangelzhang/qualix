@@ -182,6 +182,12 @@ WEAK_ASSERT_HIGH_RISK_BLOCK = 1  # Q05 弱断言 gate: high-risk ≥ 此值触�
 WEAK_ASSERT_RATIO_BLOCK = 0.0  # Q05 弱断言 gate: 不按比例 block（用 high-risk 计数）
 SKILL_AUTO_MERGE_ENABLED = True  # Skill Evolution: 高置信度规则自动合入 SKILL.md
 SKILL_AUTO_MERGE_OVERFITTING_THRESHOLD = 0.5  # holdout coverage_gap 超此值自动 revert
+
+# Skill Evolution absorb 闭环：holdout 分布对比硬门槛（2026-05-10）
+SKILL_EVO_HOLDOUT_MIN_CASES = 3  # holdout 至少 N 条 case 才足够做判定（不足则拒绝 auto-merge）
+SKILL_EVO_HOLDOUT_MIN_WITH_LESSON = 2  # 带 lesson 的 holdout 至少 N 条才算 holdout_ready
+SKILL_EVO_DIST_DIVERGENCE_THRESHOLD = 0.3  # training vs holdout root_cause 分布 L1 差上限
+SKILL_EVO_HIT_RATE_MIN = 0.3  # holdout cases 被 suggestion 覆盖命中率下限
 MOCK_COINCIDENCE_KEYWORDS: list[str] = [  # Mock 巧合正确检测关键词
     "固定返回",
     "硬编码",

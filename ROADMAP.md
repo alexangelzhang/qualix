@@ -169,6 +169,16 @@
 - 测试：`tests/test_guard_telemetry.py` 7 条（含并发 append + 失败静默 + roundtrip）+ `tests/test_guard_precision_report.py` 新增 3 条（事件聚合 / 损坏 jsonl 容错 / markdown 新列）
 - **精度闭环待推进**：见本节"仍需推进（P1）"的 Anti-Rationalization Guard 精度评估三层规划
 
+2026-05-10 新增（Skill Evolution absorb 闭环补强）：
+
+- `apply_to_skill_file` 重写（`tracking/skill_auto_merge.py`）— 引入 `MarkdownSectionEditor` regex-based heading 扫描（跳过围栏代码块）+ `ApplyResult` 数据类（applied/inserted/skipped/rendered_diff）+ 幂等检查 + `dry_run` 模式 + 去掉 `rule_text[:60]` 截断 bug
+- `verify_with_holdout` 关 fail-open — 异常 / `holdout_ready=False` 默认拒绝 merge（之前任何异常都返回 True 放行）；保留 `allow_fail_open=True` 作为 holdout 基础设施未就绪时的 escape hatch
+- `validate_against_holdout` 增强（`quality/eval/eval_holdout.py`）— 新增 `holdout_ready` / `holdout_hit_rate` / `distribution_divergence` / `decision_reason` 字段；overfitting_signal 三条件触发（coverage_gap / root_cause L1 分布差 / hit_rate）
+- `SkillReflector.write()` 接新 `ApplyResult` 契约 — `WriteResult` 新增 `skipped_duplicates` / `inserted_entries` / `rendered_diff`；新增 `NOOP_DEDUPED` 模式（全部建议被幂等检查跳过时不触发 holdout 节省）；`_write_evolution_trace` 展示幂等跳过列表和 diff
+- 4 个新阈值常量（`constants.py`）：`SKILL_EVO_HOLDOUT_MIN_CASES=3` / `MIN_WITH_LESSON=2` / `DIST_DIVERGENCE_THRESHOLD=0.3` / `HIT_RATE_MIN=0.3`
+- 测试：`tests/test_skill_auto_merge.py` 18 条（Editor / 幂等 / dry_run / 长规则 / fail-open 开关）+ `tests/test_eval_holdout.py` 9 条（三触发条件各一条 + 分布 L1 差基础用例 + holdout_ready 边界）+ `tests/test_skill_reflector.py` 新增 4 条（NOOP_DEDUPED / REVERTED / AUTO_APPLY diff 字段 / end-to-end reflect_and_write 映射）
+- **真正的 Phase Pipeline 回放 ReplayExecutor 仍是 gap**：见本节"仍需推进（P1）"新增条目
+
 2026-04-27 新增（Evidence Pack Compaction 基线遥测）：
 
 - Judge token usage 链路打通（`judge_runner.py` → `judge_vote.py` → `adaptive_loop.py`）— JudgeResult/JudgeVote 新增 `token_usage` 字段，adaptive loop 每轮 judge 投票后提取 token 数据到 `iter_llm_calls`，修复 telemetry `llm_calls` 始终为空的问题
@@ -191,6 +201,14 @@
   - **Nice P2 — A/B 对照实验**：同一批 Judge 输入跑 guard on/off 各一遍，对比最终 consensus 和 leniency 率差异。**成本**：holdout suite 双跑 N 条 Phase；**触发条件**：P1a + P1b 暴露的 precision 足够稳定，需要衡量净效益才启动
   - **验证指标**：guard precision ≥ 0.7、recall ≥ 0.8（先以 P1a 为基准校准阈值）
   - **实施笔记**：P1a/P1b 工作量合计约 1 周；P2 看 holdout 成本，单独立项
+- **Skill Evolution 真正的 Phase Pipeline 回放（ReplayExecutor）**（2026-05-10 补，替代当前基于分布对比的打折版本）— 目前 `validate_against_holdout` 只对比 bug case 的 root_cause 分布 + suggestion 文本覆盖，**不实际执行 Phase**。距 2026-04-15 spec 的 ReplayExecutor 还有 ~80% 落差。P2 触发条件：
+  - `regression/holdout/` 目录收集到至少 3-5 条可回放 case（完整输入 + 期望输出 snapshot + quality_baseline）
+  - 出现 auto-merge 误放过的真实 overfitting 事件（当前分布对比漏判）
+  - 预估工作量：~1 周（isolated output_dir + safe-finalize whitelist + JudgeRunner 对比 quality_baseline）
+- **Bug Case compress 侧**（HL absorb+compress 对偶缺的另一半）— 当前 Bug Case Library 单调累加（2286 条），无淘汰 / 时间衰减 / 规则适用范围收窄机制。P2 触发条件：
+  - Bug Case 数量 >5000，或出现"旧 case 污染新项目 suggestion"的具体失败案例
+  - 与 `memory/confidence_decay.py`（已有 Correction/Preference/Fact 三级半衰期）口径统一
+  - 预估工作量：0.5-1 周（衰减字段 + 查询时过滤 + 冲突规则收窄提案流程）
 
 待启动（长期规划，等合适时机）：
 
