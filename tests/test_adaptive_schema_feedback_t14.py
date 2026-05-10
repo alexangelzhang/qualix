@@ -148,3 +148,47 @@ def test_truncate_schema_errors_for_summary_caps_items_and_chars() -> None:
     assert len(out) == _SUMMARY_SCHEMA_ERROR_MAX_ITEMS + 1
     assert all(len(e) <= _SUMMARY_SCHEMA_ERROR_MAX_CHARS for e in out[:-1])
     assert out[-1].startswith("…(+5 more")
+
+
+def test_write_summary_marks_unresolved_when_last_iter_has_schema_errors(tmp_path: Path) -> None:
+    """AC 3：最后一轮仍有 schema_errors → adaptive_loop_schema_unresolved=True。"""
+    import json
+
+    from dqg.agents.adaptive_loop import AdaptiveLoop, AdaptiveResult
+
+    loop = AdaptiveLoop(tmp_path / "output")
+    iters = [
+        IterationRecord(iteration=1, schema_errors=["findings.0.severity: Field required"]),
+        IterationRecord(iteration=2, schema_errors=["findings.0.severity: Field required"]),
+    ]
+    result = AdaptiveResult(project_id="p1", phase_id="Q06", iterations=iters, final_verdict="FAIL")
+    pd = tmp_path / "pd"
+    pd.mkdir()
+
+    loop._write_summary(pd, result)
+
+    summary = json.loads((pd / "_adaptive_summary.json").read_text(encoding="utf-8"))
+    assert summary["adaptive_loop_schema_unresolved"] is True
+    assert summary["adaptive_loop_last_schema_errors"] == ["findings.0.severity: Field required"]
+
+
+def test_write_summary_clears_unresolved_when_last_iter_fixed_errors(tmp_path: Path) -> None:
+    """AC 3：早期轮有 schema_errors 但最后一轮清空 → unresolved=False。"""
+    import json
+
+    from dqg.agents.adaptive_loop import AdaptiveLoop, AdaptiveResult
+
+    loop = AdaptiveLoop(tmp_path / "output")
+    iters = [
+        IterationRecord(iteration=1, schema_errors=["findings.0.severity: Field required"]),
+        IterationRecord(iteration=2, schema_errors=[]),  # 修复
+    ]
+    result = AdaptiveResult(project_id="p1", phase_id="Q06", iterations=iters, final_verdict="PASS")
+    pd = tmp_path / "pd"
+    pd.mkdir()
+
+    loop._write_summary(pd, result)
+
+    summary = json.loads((pd / "_adaptive_summary.json").read_text(encoding="utf-8"))
+    assert summary["adaptive_loop_schema_unresolved"] is False
+    assert summary["adaptive_loop_last_schema_errors"] == []

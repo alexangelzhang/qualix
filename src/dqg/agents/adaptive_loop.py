@@ -358,6 +358,9 @@ class AdaptiveLoop:
         """Write adaptive loop summary JSON."""
         from dqg.json_utils import save_json
 
+        # 最后一轮仍有 schema_errors = adaptive loop 未修复 schema 问题（AC 3 诊断信号）
+        last_schema_errors = result.iterations[-1].schema_errors if result.iterations else []
+
         summary_path = pd / "_adaptive_summary.json"
         save_json(
             summary_path,
@@ -371,6 +374,8 @@ class AdaptiveLoop:
                 "models_used": result.models_used,
                 "health_summary": result.health_summary,
                 "llm_calls": result.llm_calls,
+                "adaptive_loop_schema_unresolved": bool(last_schema_errors),
+                "adaptive_loop_last_schema_errors": _truncate_schema_errors_for_summary(last_schema_errors),
                 "issue_tracker": {
                     "total": issue_tracker.total,
                     "resolved": issue_tracker.resolved_count,

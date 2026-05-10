@@ -156,6 +156,11 @@
 - T11 — `RationalizationProbeGuardrail`（`quality/guardrail/rationalization_probe.py`）字段级拦截合理化话术，挂入 Q03/Q06 的 `get_phase_guardrails`
 - 状态跟踪见 `ISSUE.md §2026-05-09`：T1-T11 代码 done、验收 todo；T6/T12 阻塞 verified 待回写重跑数据
 
+2026-05-10 新增（T14 AC 3 finalize 诊断收尾）：
+
+- Adaptive loop schema 反馈回路 AC 3 收尾（`agents/adaptive_loop.py::_write_summary` + `runtime/phase_runtime.py::runtime_finalize`）— `_adaptive_summary.json` 新增 `adaptive_loop_schema_unresolved` + `adaptive_loop_last_schema_errors` 字段，finalize 读取后若最后一轮仍有 schema 错误，追加 warning + emit `VALIDATION_COMPLETED` 事件，明确区分"adaptive loop 跑完仍未修复"与"手工提交产物首次校验失败"
+- 新增 2 条单测覆盖（`tests/test_adaptive_schema_feedback_t14.py`）：最后一轮有 errors → unresolved=True；早期轮有 errors 但最后一轮清空 → unresolved=False
+
 2026-04-27 新增（Evidence Pack Compaction 基线遥测）：
 
 - Judge token usage 链路打通（`judge_runner.py` → `judge_vote.py` → `adaptive_loop.py`）— JudgeResult/JudgeVote 新增 `token_usage` 字段，adaptive loop 每轮 judge 投票后提取 token 数据到 `iter_llm_calls`，修复 telemetry `llm_calls` 始终为空的问题

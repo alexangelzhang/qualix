@@ -259,6 +259,32 @@ def runtime_finalize(ctx: ExecutionContext) -> PhaseResult:
             if _summary:
                 llm_calls = _summary.get("llm_calls", [])
 
+                # AC 3: adaptive loop 跑完但 schema 仍未修复 → 明确报告（区别于手工提交产物首次校验失败）
+                if _summary.get("adaptive_loop_schema_unresolved") and validation_errors:
+                    last_errs = _summary.get("adaptive_loop_last_schema_errors") or []
+                    total_iters = _summary.get("total_iterations", 0)
+                    diag_msg = (
+                        f"adaptive loop 未修复 schema 错误（跑完 {total_iters} 轮仍失败）"
+                        f"，最后一轮遗留 {len(last_errs)} 条"
+                    )
+                    result.add_warning(diag_msg)
+                    result.add_event(
+                        EventType.VALIDATION_COMPLETED,
+                        diag_msg,
+                        adaptive_loop_schema_unresolved=True,
+                        last_schema_errors=last_errs,
+                        total_iterations=total_iters,
+                    )
+                    _emit(
+                        ctx,
+                        EventType.VALIDATION_COMPLETED,
+                        diag_msg,
+                        action="finalize",
+                        adaptive_loop_schema_unresolved=True,
+                        last_error_count=len(last_errs),
+                        total_iterations=total_iters,
+                    )
+
     append_record(
         ctx.output_dir,
         PhaseRunRecord(
