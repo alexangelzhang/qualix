@@ -49,6 +49,11 @@ def build_handoff_document(
     parts.append("")
 
     parts.append("## Issues（必须修正的问题，按严重程度排序）")
+    if prev.schema_errors:
+        parts.append("### 结构化输出 / Schema（finalize 同源 Pydantic 校验失败，必须优先修复）")
+        for idx, err in enumerate(prev.schema_errors, 1):
+            parts.append(f"S-{idx}. [schema] {err}")
+        parts.append("")
     if prev.judge_result:
         issue_idx = 0
         for vote in prev.judge_result.votes:

@@ -44,6 +44,8 @@ class IterationRecord:
     critique_result: Any | None = None
     fix_applied: bool = False
     duration: float = 0
+    #: Pydantic / finalize 同源校验（validate_phase_output），供 Judge rubric 与下轮 handoff 消费（T14）
+    schema_errors: list[str] = field(default_factory=list)
 
 
 def _write_hard_block_result(output_dir: Path, vote: JudgeVote, guard_result: Any) -> None:

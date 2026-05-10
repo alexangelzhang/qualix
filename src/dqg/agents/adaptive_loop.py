@@ -32,10 +32,34 @@ from dqg.agents.judge_vote import (
 )
 from dqg.agents.llm_backends import LLMConfig
 from dqg.agents.loop_health import LoopHealthMonitor
-from dqg.constants import DEFAULT_ADAPTIVE_JUDGE_MODELS
+from dqg.agents.pipeline_io import (
+    extract_and_save_json,
+    format_deterministic_report,
+    render_report_from_json,
+)
+from dqg.constants import DEFAULT_ADAPTIVE_JUDGE_MODELS, STRUCTURED_JSON_MAP
 from dqg.log import get_logger
+from dqg.schemas import validate_phase_output
 
 log = get_logger(__name__)
+
+# _adaptive_summary.json 里 schema_errors 的上限，防止 Pydantic 长错误污染 summary
+_SUMMARY_SCHEMA_ERROR_MAX_ITEMS = 20
+_SUMMARY_SCHEMA_ERROR_MAX_CHARS = 300
+
+
+def _truncate_schema_errors_for_summary(errors: list[str]) -> list[str]:
+    """summary 写盘前对 schema_errors 做体积控制：每条 ≤300 字符，最多 20 条."""
+    if not errors:
+        return []
+    trimmed = [
+        e if len(e) <= _SUMMARY_SCHEMA_ERROR_MAX_CHARS else e[: _SUMMARY_SCHEMA_ERROR_MAX_CHARS - 1] + "…"
+        for e in errors[:_SUMMARY_SCHEMA_ERROR_MAX_ITEMS]
+    ]
+    if len(errors) > _SUMMARY_SCHEMA_ERROR_MAX_ITEMS:
+        trimmed.append(f"…(+{len(errors) - _SUMMARY_SCHEMA_ERROR_MAX_ITEMS} more)")
+    return trimmed
+
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -286,6 +310,50 @@ class AdaptiveLoop:
         self._write_summary(pd, result, issue_tracker)
         return result
 
+    def _schema_errors_after_worker(
+        self,
+        *,
+        project_id: str,
+        phase_id: str,
+        pd: Path,
+        worker_content: str,
+        worker_ok: bool,
+    ) -> list[str]:
+        """从本轮 Worker 输出提取 JSON 并跑 validate_phase_output（与 finalize 同源）.
+
+        契约：
+        - phase_id 未在 STRUCTURED_JSON_MAP 注册 → 返回 []（视为本轮无需校验，
+          finalize 阶段 validate_phase_output 仍会兜底报 "未知的 Phase ID"）。
+        - worker_ok=False → 返回 []（Worker 已失败，跑 schema 校验无意义，由上层处理）。
+        - 本轮 Worker 未产出 JSON 块但 phase_dir 有残留 JSON → 清空残留再校验，
+          避免把上一轮 JSON 当本轮结果。
+        """
+        json_file = STRUCTURED_JSON_MAP.get(phase_id)
+        if not json_file or not worker_ok:
+            return []
+
+        json_path = pd / json_file
+        extracted = extract_and_save_json(worker_content, pd, phase_id, project_id)
+        if extracted is None and json_path.exists():
+            # 避免用上一轮残留 JSON 做误判：本轮未能解析出 JSON 时清空旧文件再校验
+            try:
+                json_path.unlink()
+            except OSError:
+                log.debug("Could not remove stale structured JSON: %s", json_path, exc_info=True)
+
+        errors = validate_phase_output(self.output_dir, project_id, phase_id)
+        out = list(errors) if errors else []
+
+        if extracted is not None:
+            try:
+                render_report_from_json(extracted, pd, phase_id)
+            except Exception:
+                log.debug("render_report_from_json failed after adaptive worker", exc_info=True)
+
+        if out:
+            log.info("Adaptive T14: schema_errors count=%d (phase=%s)", len(out), phase_id)
+        return out
+
     def _write_summary(self, pd: Path, result: AdaptiveResult, issue_tracker: IssueTracker | None = None) -> None:
         """Write adaptive loop summary JSON."""
         from dqg.json_utils import save_json
@@ -319,6 +387,7 @@ class AdaptiveLoop:
                         "judge_avg_score": round(r.judge_result.avg_score, 2) if r.judge_result else 0,
                         "fix_applied": r.fix_applied,
                         "duration": round(r.duration, 1),
+                        "schema_errors": _truncate_schema_errors_for_summary(r.schema_errors),
                     }
                     for r in result.iterations
                 ],
@@ -469,10 +538,24 @@ class AdaptiveLoop:
                 )
             )
 
+        # T14: finalize 同源 schema 校验回流到本轮 Judge + 下轮 handoff（与 phase_runtime 一致）
+        record.schema_errors = self._schema_errors_after_worker(
+            project_id=project_id,
+            phase_id=phase_id,
+            pd=pd,
+            worker_content=record.worker_result.content if record.worker_result else "",
+            worker_ok=record.worker_result is not None and record.worker_result.status != "failed",
+        )
+
+        # judge_rubric 保持入参原值，本轮拼接的 deterministic report 不会跨迭代累积
+        judge_rubric_iter = judge_rubric
+        if record.schema_errors:
+            judge_rubric_iter = judge_rubric + "\n\n" + format_deterministic_report(record.schema_errors, phase_id)
+
         record.judge_result = multi_judge_vote(
             self.output_dir,
             report_path,
-            judge_rubric,
+            judge_rubric_iter,
             judge_models,
             fallback,
             force_secondary=force_secondary,
@@ -657,6 +740,8 @@ class AdaptiveLoop:
             judge_info = f"consensus={j.consensus}, avg={j.avg_score:.1f}" if j else ""
             if j and j.disagreements:
                 judge_info += f", 分歧={len(j.disagreements)}"
+            if r.schema_errors:
+                judge_info += f", schema_errors={len(r.schema_errors)}"
             lines.append(
                 f"    Iter {r.iteration}: {judge_info}{' [已修正]' if r.fix_applied else ''} ({r.duration:.1f}s)"
             )

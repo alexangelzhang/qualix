@@ -43,6 +43,7 @@ def _adaptive_result_dict(result: Any) -> dict[str, Any]:
                 "fix_applied": r.fix_applied,
                 "duration": r.duration,
                 "judge": judge_block,
+                "schema_errors": list(getattr(r, "schema_errors", []) or []),
             }
         )
     return {
