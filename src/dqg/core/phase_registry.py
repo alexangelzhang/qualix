@@ -50,6 +50,7 @@ PHASE_DEFS: Final = MappingProxyType(
                 {"canonical": "SE 列表", "aliases": ["SE 关键语义清单", "关键语义", "SE List"]},
                 {"canonical": "业务规则", "aliases": ["BR 业务规则", "Business Rules"]},
                 {"canonical": "Gap 分析", "aliases": ["GAP 缺口清单", "缺口分析", "Gap Analysis"]},
+                {"canonical": "评审结论", "aliases": ["结论", "Conclusion", "审查结论"]},
             ],
         },
         "Q02": {

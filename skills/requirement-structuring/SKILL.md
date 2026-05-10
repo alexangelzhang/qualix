@@ -250,6 +250,7 @@ python -m dqg.quality.checks.report_quality_checks output/<project_id> <project_
 11. **范围外发现**
 12. **自我评审记录** — Judge + Critique
 13. **统计** — REQ/BR/SE/GAP/OPEN 数量表格
+14. **评审结论** — 有条件通过 / 通过 / 不通过，说明主要风险和待确认项
 
 详见 [references/output-templates.md](references/output-templates.md)。
 
