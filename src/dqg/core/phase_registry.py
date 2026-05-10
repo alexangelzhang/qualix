@@ -97,6 +97,7 @@ PHASE_DEFS: Final = MappingProxyType(
                 {"canonical": "技术方案概述", "aliases": ["方案概述", "Technical Overview"]},
                 {"canonical": "接口设计", "aliases": ["API Design", "接口协议"]},
                 {"canonical": "数据模型", "aliases": ["Data Model", "DDL", "表结构"]},
+                {"canonical": "阻断项", "aliases": ["Blockers", "阻断", "技术阻断"]},
             ],
         },
         "Q03": {
