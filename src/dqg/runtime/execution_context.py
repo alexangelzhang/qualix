@@ -24,6 +24,7 @@ class ExecutionContext:
     code_repos: list[str] = field(default_factory=list)
     base_branch: str = "master"
     feature_branch: str = "HEAD"
+    coverage_report: str | None = None
 
     # 运行时填充
     phase_def: dict[str, Any] = field(default_factory=dict)

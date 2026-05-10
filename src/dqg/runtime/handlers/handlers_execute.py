@@ -26,6 +26,8 @@ def handle_persist_inputs(ctx: ExecutionContext, result: PhaseResult) -> None:
         inputs["base_branch"] = ctx.base_branch
     if ctx.feature_branch != "HEAD":
         inputs["feature_branch"] = ctx.feature_branch
+    if ctx.coverage_report:
+        inputs["coverage_report"] = ctx.coverage_report
 
     if inputs:
         ctx.internal_dir.mkdir(parents=True, exist_ok=True)

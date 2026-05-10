@@ -97,6 +97,7 @@ def cmd_execute(args, output_dir: Path) -> int:
         code_repos=code_repos,
         base_branch=getattr(args, "base_branch", "master"),
         feature_branch=getattr(args, "feature_branch", "HEAD"),
+        coverage_report=getattr(args, "coverage_report", None),
     )
 
     result = runtime_execute(ctx)

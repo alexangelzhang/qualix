@@ -50,6 +50,11 @@ def _build_parser() -> argparse.ArgumentParser:
     p_exec.add_argument("--code-repo", default=None, help="代码仓库路径，多个用逗号分隔（如 /path/a,/path/b）")
     p_exec.add_argument("--base-branch", default="master", help="基线分支（默认 master）")
     p_exec.add_argument("--feature-branch", default="HEAD", help="特性分支（默认 HEAD）")
+    p_exec.add_argument(
+        "--coverage-report",
+        default=None,
+        help="JaCoCo XML 报告路径（Q06 用，如 /path/to/jacoco.xml）",
+    )
 
     # finalize
     p_fin = sub.add_parser("finalize", help="校验产物并提交 review")

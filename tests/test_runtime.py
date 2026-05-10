@@ -204,3 +204,49 @@ class TestGlobalRegistration:
         a_handlers = {h.name for h in reg.get_handlers("execute", "Q01")}
         assert "coverage_matrix" in a5_handlers
         assert "coverage_matrix" not in a_handlers
+
+
+def test_persist_inputs_writes_coverage_report(tmp_path):
+    """handle_persist_inputs 应把 ctx.coverage_report 写入 _inputs.json."""
+    from dqg.json_utils import load_json
+    from dqg.runtime.handlers.handlers_execute import handle_persist_inputs
+
+    internal = tmp_path / "_internal"
+    ctx = ExecutionContext(
+        output_dir=tmp_path,
+        project_id="demo",
+        phase_id="Q06",
+        code_repo="/tmp/repo",
+        coverage_report="/tmp/jacoco.xml",
+    )
+    ctx.internal_dir = internal
+    result = PhaseResult(phase_id="Q06", action="execute")
+
+    handle_persist_inputs(ctx, result)
+
+    inputs_path = internal / "_inputs.json"
+    assert inputs_path.exists()
+    data = load_json(inputs_path)
+    assert data["coverage_report"] == "/tmp/jacoco.xml"
+    assert data["code_repo"] == "/tmp/repo"
+
+
+def test_persist_inputs_omits_coverage_report_when_none(tmp_path):
+    """coverage_report=None 时不写字段，保持向后兼容."""
+    from dqg.json_utils import load_json
+    from dqg.runtime.handlers.handlers_execute import handle_persist_inputs
+
+    internal = tmp_path / "_internal"
+    ctx = ExecutionContext(
+        output_dir=tmp_path,
+        project_id="demo",
+        phase_id="Q06",
+        code_repo="/tmp/repo",
+    )
+    ctx.internal_dir = internal
+    result = PhaseResult(phase_id="Q06", action="execute")
+
+    handle_persist_inputs(ctx, result)
+
+    data = load_json(internal / "_inputs.json")
+    assert "coverage_report" not in data

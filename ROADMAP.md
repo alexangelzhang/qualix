@@ -99,6 +99,12 @@
 - Dashboard 打通：observe 告警入 SQLite，总览页合并展示，新增"可观测性"页面
 - finalize 后自动触发 observe 日报更新，保持 dashboard 数据实时
 
+2026-05-11 新增（Q06 JaCoCo CLI 接入）：
+
+- `dqg-run execute Q06 --coverage-report /path/to/jacoco.xml` 参数贯通（`core/runner.py` 新增 argparse 项 → `ExecutionContext.coverage_report` 字段 → `handle_persist_inputs` 写入 `_inputs.json`），finalize 阶段 `check_phase_c_coverage` 直接消费
+- 底层 `coverage_gate.parse_jacoco_xml` / `find_jacoco_report` / `compute_incremental_coverage` 已早于 2026-04-17 就绪，本次补齐"CLI → _inputs.json → finalize"链路最后一公里
+- 多仓库场景 `--code-repo /a,/b,/c` + 单 `--coverage-report` 即可跑通；若需要每仓独立 jacoco.xml，后续可扩展为逗号分隔
+
 2026-04-22 新增：
 
 - 铁律三层强制执行机制：
