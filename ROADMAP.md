@@ -514,7 +514,7 @@
 - 多凭证轮转（`credential_pool.py`，多 API key 配置 + 429 自动轮转 + least_used 策略 + 冷却机制）
 - Preflight 增强（`preflight.py`，adaptive/dag 每轮预检：checkpoint 恢复 + 产物完整性 + 依赖检查 + contract 存在性）
 - Harness Ablation Matrix（`harness_ablation.py`，24 个组件注册表 + compact/full/review-heavy 三种 profile + 成本估算 + ablation 报告）
-- DeepEval 评分校准层（`score_calibration.py`，Judge 评分一致性检测：DQG Judge vs DeepEval GEval 独立打分，drift > 1.0 触发告警；评分趋势监控：通胀/通缩检测）
+- DeepEval 评分校准层（`score_calibration.py`，Judge 评分一致性检测：DQG Judge vs DeepEval GEval 独立打分，drift > 1.0 触发告警；评分趋势监控：通胀/通缩检测）— **2026-05-10 更新**：`_run_deepeval_scoring` 已置为 no-op（`return None`），趋势检测保留。禁用原因：当时 GEval 绑 GPT-4/OpenAI，与 DQG 多 provider 策略冲突；且 Multi-Judge 投票 + Critique + Anti-Rat Guard 评审链已提供足够信号。**复活触发条件**见 §P2 DeepEval 集成条目
 - 断线修复：DAG scheduler 接入 runtime（execute/finalize handler 在 dag 模式下正常触发）
 - 断线修复：score_calibration 注册为 finalize handler（order=95，自动触发一致性检测+趋势监控）
 - 断线修复：session_startup 接入 CLI startup 命令（orientation 输出到 stderr，不影响 JSON stdout）
@@ -588,7 +588,11 @@
 
 - **Harness/Domain 分层 Phase 1** — 定义 `HarnessApp` 协议（provider/hooks/task_runner/output_protocol/session_resume），Domain 层通过注册而非 import 接入 Harness
 - **Harness/Domain 分层 Phase 2** — `context_loader.py` 的 phase-specific 分支改为 Domain 层注册的 context_policy；`multi_agent.py` 的 prompt 模板改为 Domain 层提供；`row_to_dict` 的 JSON 字段列表改为 schema 驱动
-- **DeepEval 集成** — ~~引入 DeepEval 作为自动化评分引擎，替代 prompt-based judge~~ → 已完成：作为评分校准层（一致性检测 + 趋势监控），不替代 Judge
+- **DeepEval 集成** — ~~引入 DeepEval 作为自动化评分引擎，替代 prompt-based judge~~ → **2026-05-10 修正为"代码保留但禁用"**。当前 `score_calibration.py::_run_deepeval_scoring` 是 no-op，趋势检测保留。2025 年起 DeepEval 已支持 Anthropic / Gemini / Bedrock / Ollama（当年绑 GPT-4 的限制已解除），但本项目已有 Multi-Judge 投票 + Critique + Anti-Rat/Overcorrection Guard 评审链，再加一层独立打分的信号增量不明显 & token 成本翻倍。**复活触发条件**（任一满足）：
+  - Anti-Rationalization Guard 精度评估（见 P1 三层规划）暴露"Multi-Judge 三模型共识即便 PASS 也有大量实际 leniency"的系统偏差
+  - 出现"同一报告跨 provider（Claude / DeepSeek / Qwen）评分严重分歧无法裁决"的具体 case
+  - 需要定期对 golden 报告做第四方仲裁打分（避免 Judge 陷入自我校准循环）
+  - 复活成本：写 `DeepEvalBaseLLM` 适配器套到 `LLMConfig`（~2h）+ 填 `_run_deepeval_scoring` 实现（~1h）+ 重新校准 `SCORE_DRIFT_THRESHOLD=1.0` 阈值（依赖真实数据，不是拍脑袋）
 - ~~代码 Embedding + 语义搜索（替代 FTS5 n-gram）~~ → 已完成：`code_semantic_search.py` 基于 FTS5 + 概念映射 + 调用链实现，零新依赖
 - 指标正式入库（Prometheus/ClickHouse）
 - Dashboard 分层（管理视图/研发视图）
