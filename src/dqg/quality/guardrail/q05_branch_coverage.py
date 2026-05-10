@@ -1,4 +1,4 @@
-"""Q05: 分支清单 vs Exception 类 EUT 覆盖（T6 配套 Guardrail）."""
+"""Q05: 分支清单 vs Exception/Boundary 类 EUT 覆盖（T6 配套 Guardrail）."""
 
 from __future__ import annotations
 
@@ -14,7 +14,7 @@ from dqg.quality.guardrail.guardrail import (
 
 
 class Q05BranchCoverageGuardrail(PhaseGuardrail):
-    """若存在 `_internal/_q05_branch_inventory.json` 且含异常类分支，则要求至少一条 Exception EUT."""
+    """若存在 `_internal/_q05_branch_inventory.json` 且含异常/边界类分支，则要求有对应 EUT."""
 
     name = "q05_branch_coverage"
     level = GuardrailLevel.BLOCKED
@@ -43,13 +43,15 @@ class Q05BranchCoverageGuardrail(PhaseGuardrail):
             ]
 
         exc_branches = _count_exception_branches(inv)
-        if exc_branches == 0:
+        boundary_branches = _count_boundary_branches(inv)
+
+        if exc_branches == 0 and boundary_branches == 0:
             return [
                 GuardrailResult(
                     guardrail_name=self.name,
                     passed=True,
                     level=GuardrailLevel.INFO,
-                    message="分支清单中无异常类分支，跳过高阶校验",
+                    message="分支清单中无异常/边界类分支，跳过高阶校验",
                 )
             ]
 
@@ -61,33 +63,76 @@ class Q05BranchCoverageGuardrail(PhaseGuardrail):
                     guardrail_name=self.name,
                     passed=False,
                     level=GuardrailLevel.BLOCKED,
-                    message="存在异常分支清单但缺少 phase_b_structured.json",
+                    message="存在异常/边界分支清单但缺少 phase_b_structured.json",
                 )
             ]
 
-        exception_euts = _count_exception_euts(data)
-        if exception_euts < 1:
-            return [
+        results = []
+
+        # 检查 Exception 分支覆盖
+        if exc_branches > 0:
+            exception_euts = _count_exception_euts(data)
+            if exception_euts < 1:
+                results.append(
+                    GuardrailResult(
+                        guardrail_name=self.name,
+                        passed=False,
+                        level=GuardrailLevel.BLOCKED,
+                        message=(
+                            f"分支清单登记 {exc_branches} 条异常类分支，但 EUT 中无 route_type=Exception 条目。"
+                            "请按三步范式 Step C 补充异常路径 EUT。"
+                        ),
+                        details=[f"exception_branches={exc_branches}", f"exception_euts={exception_euts}"],
+                    )
+                )
+            else:
+                results.append(
+                    GuardrailResult(
+                        guardrail_name=self.name,
+                        passed=True,
+                        level=GuardrailLevel.INFO,
+                        message=f"异常分支 {exc_branches} 条，Exception EUT {exception_euts} 条",
+                    )
+                )
+
+        # 检查 Boundary 分支覆盖
+        if boundary_branches > 0:
+            boundary_euts = _count_boundary_euts(data)
+            if boundary_euts < 1:
+                results.append(
+                    GuardrailResult(
+                        guardrail_name=self.name,
+                        passed=False,
+                        level=GuardrailLevel.BLOCKED,
+                        message=(
+                            f"分支清单登记 {boundary_branches} 条边界类分支，但 EUT 中无 route_type=Boundary 条目。"
+                            "请按三步范式 Step C 补充边界路径 EUT（null/空集合/0值/负数/超大值/off-by-one）。"
+                        ),
+                        details=[f"boundary_branches={boundary_branches}", f"boundary_euts={boundary_euts}"],
+                    )
+                )
+            else:
+                results.append(
+                    GuardrailResult(
+                        guardrail_name=self.name,
+                        passed=True,
+                        level=GuardrailLevel.INFO,
+                        message=f"边界分支 {boundary_branches} 条，Boundary EUT {boundary_euts} 条",
+                    )
+                )
+
+        return (
+            results
+            if results
+            else [
                 GuardrailResult(
                     guardrail_name=self.name,
-                    passed=False,
-                    level=GuardrailLevel.BLOCKED,
-                    message=(
-                        f"分支清单登记 {exc_branches} 条异常类分支，但 EUT 中无 route_type=Exception 条目。"
-                        "请按三步范式 Step C 补充异常路径 EUT。"
-                    ),
-                    details=[f"exception_branches={exc_branches}", f"exception_euts={exception_euts}"],
+                    passed=True,
+                    level=GuardrailLevel.INFO,
+                    message=f"异常分支 {exc_branches} 条，边界分支 {boundary_branches} 条，均有对应 EUT",
                 )
             ]
-
-        return [
-            GuardrailResult(
-                guardrail_name=self.name,
-                passed=True,
-                level=GuardrailLevel.INFO,
-                message=f"异常分支 {exc_branches} 条，Exception EUT {exception_euts} 条",
-            )
-        ]
+        )
 
 
 def _count_exception_branches(inv: dict[str, Any]) -> int:
@@ -110,6 +155,26 @@ def _count_exception_branches(inv: dict[str, Any]) -> int:
     return n
 
 
+def _count_boundary_branches(inv: dict[str, Any]) -> int:
+    n = 0
+    targets = inv.get("targets")
+    if not isinstance(targets, list):
+        return 0
+    for t in targets:
+        if not isinstance(t, dict):
+            continue
+        branches = t.get("branches")
+        if not isinstance(branches, list):
+            continue
+        for b in branches:
+            if not isinstance(b, dict):
+                continue
+            kind = str(b.get("kind", "")).lower()
+            if kind in ("boundary", "edge", "null", "empty", "zero", "negative", "overflow"):
+                n += 1
+    return n
+
+
 def _count_exception_euts(data: dict[str, Any]) -> int:
     items = data.get("eut_items") or []
     if not isinstance(items, list):
@@ -120,5 +185,19 @@ def _count_exception_euts(data: dict[str, Any]) -> int:
             continue
         rt = str(it.get("route_type", "")).strip()
         if rt == "Exception":
+            c += 1
+    return c
+
+
+def _count_boundary_euts(data: dict[str, Any]) -> int:
+    items = data.get("eut_items") or []
+    if not isinstance(items, list):
+        return 0
+    c = 0
+    for it in items:
+        if not isinstance(it, dict):
+            continue
+        rt = str(it.get("route_type", "")).strip()
+        if rt == "Boundary":
             c += 1
     return c
