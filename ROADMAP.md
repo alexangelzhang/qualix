@@ -371,6 +371,44 @@
 
 ---
 
+## F. 规模化分发边界（P0，规模化前置条件）
+
+**定位**：解决"DQG 与用户项目代码边界模糊导致的 AI Agent 误改工具源码"问题。
+
+**当前状态**：`规划中（P0，2026-05-10 立项，从 P1 中提升）`
+
+> 详细症状诊断 + 三层修复路径见 [`docs/distribution-gap.md`](docs/distribution-gap.md)
+
+### 触发现象
+
+2026-05 第一个外部用户接入时观察到：用户的 Claude 在 DQG repo 里跑，发现 DQG 有 bug 后**直接修改 `src/dqg/` 源码**，而不是报 issue 给维护者。根因是现在 DQG 只能 `git clone` 使用，用户 cwd = DQG repo，工具和用户项目边界不存在。
+
+### 为什么是 P0（不是 P1）
+
+在没有分发边界之前，其他 P1 工作（CI/PR 门禁、团队看板、飞书 Bot）**都在放大同一个问题**：每新增一个接入方，都会产生新的"Claude 改 DQG 代码"事件，用户的 patch 随下次升级全废。
+
+### 修复路径（三层）
+
+- **L1 — PyPI 发布** `pip install dev-quality-gate`，用户目录看不到源码。Claude 默认读不到源码 → 遇到错误只能汇报而非直接修
+- **L2 — `dqg-run init` 分离工作区**：用户项目下建 `.dqg/`（profile / SKILL overrides / output），工具本体用 `dqg-run path` 查询但不鼓励进入
+- **L3 — CLAUDE.md guardrail 样板**：`dqg-run init` 同时往用户项目的 `CLAUDE.md` 追加一段 "DQG 是 pip 装的工具，不要改它的源码；遇到错误执行 `dqg-run doctor` 收集信息 + 报告"
+
+### 验收标准
+
+- 用户 cwd 里 `ls` 看不到 DQG 源码
+- `dqg-run doctor` 产出可上报的 issue bundle（错误 stack + 输入摘要 + 版本 + 相关 _internal/）
+- 新用户接入时，Claude Agent 默认行为是"读配置 + 跑 CLI"，而非"读源码 + 改源码"
+
+### 工作量与依赖
+
+- `pyproject.toml` 资源声明 + 所有路径推导改 `importlib.resources`
+- `dqg-run init` 命令 + `.dqg/` 目录约定
+- 发 PyPI（version bump，当前是 0.1.0）
+- 迁移文档 + 升级指南
+- 预估：3-5 工作日，建议单独 session
+
+---
+
 ## 4. 里程碑路线（统一）
 
 ### P0（已完成/可用）
@@ -578,7 +616,7 @@
 - 误报/漏报/命中率/闭环时长四类运营口径完善
 - `--strict-profile-context` 灰度上线
 - 团队聚合看板（跨项目 Phase 通过率、GAP 闭环率趋势）
-- PyPI 发布（`pip install dev-quality-gate`）
+- PyPI 发布 → 已提升为规模化 P0，见 §3.F（独立章节）
 - 断点续跑（Phase 失败后从断点继续）
 - LSP 集成（代码智能，jedi/Java LSP）
 - FTS5 自定义 tokenizer（让 SQLite 原生使用 jieba 分词，当前是应用层分词后写入）
