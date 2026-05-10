@@ -297,6 +297,34 @@ Step 7: 检查是否所有入口都经过了这些保护点
 | 无 BLOCKER 未修复 | 结构化 JSON 中无 severity=BLOCKER 的 open finding | 人工确认 |
 | 影响范围已分析 | `_blast_radius.md` 存在（有 code_repo 时） | 人工确认 |
 
+### `phase_d_structured.json` 格式（必须严格遵守）
+
+```json
+{
+  "project_id": "项目ID",
+  "findings": [
+    {
+      "finding_id": "FIND-001",
+      "file_path": "car-mrs-domain/src/main/java/com/xiaomi/cnzone/car/mrs/domain/service/MrOrderMainService.java",
+      "description": "applyEarlyDeliveryAuthStore 无分布式锁，幂等检查与 BPM 创建之间存在竞态窗口",
+      "severity": "BLOCKER",
+      "related_req": "SE-002",
+      "suggestion": "在 applyEarlyDeliveryAuthStore 入口加分布式锁（以 mrNo 为 key），锁范围覆盖幂等检查到 BPM 创建"
+    }
+  ],
+  "conclusion": "PASS|PASS_WITH_RISKS|FAIL"
+}
+```
+
+**字段约束（严格遵守，否则 Schema 校验 BLOCKED）：**
+- `finding_id`：必填，非空字符串（如 `FIND-001`）
+- `severity`：必填，枚举 `BLOCKER` / `MAJOR` / `MINOR` / `INFO`
+- `description`：必填，非空字符串
+- `file_path`：可选，指向具体文件路径
+- `related_req`：可选，关联的 REQ/BR/SE ID
+- `suggestion`：可选，修复建议
+- `conclusion`：可选，整体结论
+
 ## 禁止事项
 
 1. 禁止调用 gh、codex、open、Greptile API 等外部平台工具。

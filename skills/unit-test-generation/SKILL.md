@@ -284,9 +284,56 @@ Step 1.1 + 1.2 的结果必须输出为结构化 JSON：
 
 ### `phase_b_structured.json` 格式（必须严格遵守）
 
+**主字段：`eut_items`（EUT 设计矩阵，必填）**
+
 ```json
 {
   "project_id": "项目ID",
+  "eut_items": [
+    {
+      "eut_id": "EUT-001",
+      "bound_se": "SE-002",
+      "se_refs": ["SE-002", "SE-003"],
+      "route_type": "Happy Path",
+      "given": "同一 workOrderId，无已有审批中申请，授权店，工单状态=待申请结算",
+      "when": "调用 applyEarlyDeliveryAuthStore(stNo, applyReason, mid)",
+      "then": "返回非空 processInstanceId；verify(subProcessGateway).insert(any()) 调用 1 次；verify(mrApprovalLogGateway).insert(any()) 调用 1 次",
+      "risk_tier": "T1",
+      "repo": "car-mrs"
+    },
+    {
+      "eut_id": "EUT-002",
+      "bound_se": "SE-002",
+      "se_refs": ["SE-002"],
+      "route_type": "Exception",
+      "given": "同一 workOrderId，DB 中已有 status=IN_REVIEW 的提前交车申请",
+      "when": "调用 applyEarlyDeliveryAuthStore(stNo, applyReason, mid)",
+      "then": "assertThrows(BusinessException.class, ...)；exception.getMessage() 含 '请勿重复提交'",
+      "risk_tier": "T1",
+      "repo": "car-mrs"
+    }
+  ],
+  "test_cases": []
+}
+```
+
+**字段约束（严格遵守，否则 Schema 校验 BLOCKED）：**
+- `eut_id`：格式 `EUT-\d+`
+- `bound_se`：**单个字符串**，主绑定 SE ID（如 `"SE-002"`），**不是 list**
+- `se_refs`：list，关联的所有 SE ID（可包含多个）
+- `route_type`：枚举 `Happy Path` / `Exception` / `Boundary` / `Concurrency`
+- `given`：前置条件（系统状态、Mock 设置）
+- `when`：触发动作（调用哪个方法，传什么参数）
+- `then`：**必须包含具体断言**（assertEquals/assertThrows/verify 等），禁止模糊描述如"验证成功"
+- `risk_tier`：`T1`（核心路径）或 `T2`（普通路径）
+- `repo`：归属仓库名（多仓库场景必填）
+
+**兼容字段：`test_cases`（已有单测映射，可选）**
+
+```json
+{
+  "project_id": "项目ID",
+  "eut_items": [...],
   "test_cases": [
     {
       "id": "TC-001",
@@ -298,35 +345,11 @@ Step 1.1 + 1.2 的结果必须输出为结构化 JSON：
       "method": "applyEarlyDelivery",
       "class_under_test": "MrOrderMainService",
       "requirement": "BR-001",
-      "priority": "P0",
-      "test_location": {
-        "file": "com/xiaomi/service/MrOrderMainServiceTest.java",
-        "line_start": 45,
-        "line_end": 72,
-        "class_name": "MrOrderMainServiceTest",
-        "method_name": "testApplyEarlyDelivery_success",
-        "repo": "car-mrs"
-      },
-      "production_location": {
-        "file": "com/xiaomi/service/MrOrderMainService.java",
-        "line_start": 120,
-        "line_end": 145,
-        "class_name": "MrOrderMainService",
-        "method_name": "applyEarlyDelivery",
-        "repo": "car-mrs"
-      }
+      "priority": "P0"
     }
   ]
 }
 ```
-
-**字段约束：**
-- `id`: 必填，格式 `TC-xxx`
-- `repo`: 必填，归属仓库名
-- `se_refs`: 必填，至少包含一个 SE ID
-- `status`: COVERED / MISSING / PARTIAL
-- `covered_by`: COVERED 时必填，格式 `TestClass#testMethod`
-- `test_location`: COVERED 时强烈建议填写，`line_start` 指向断言所在行
 - `production_location`: 填写被测方法的实现起始行
 
 产物必须包含以下标准章节（缺一不可）：
