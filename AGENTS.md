@@ -24,6 +24,7 @@ dqg-run <project_id>             # 项目命令
 ├── ops:     metrics / observe / regression
 ├── tools:   wiki-compile / wiki-lint / orchestrate / cache
 ├── agent:   agent-run / adaptive
+├── lab:     render (HTML 可视化, PoC: Q05)
 └── setup:   init / doctor / update / version
 ```
 

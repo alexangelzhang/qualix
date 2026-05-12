@@ -10,6 +10,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
+from dqg.core.resource_resolver import ResourceResolver
 from dqg.json_utils import dump_json_str, load_json_strict
 
 _LANGUAGE_ID_RE = re.compile(r"^[a-z][a-z0-9_-]*$")
@@ -24,6 +25,7 @@ _REQUIRED_PROFILE_FIELDS = {
     "risk_catalog_path",
     "quality_thresholds",
 }
+_resolver = ResourceResolver()
 
 
 @dataclass(frozen=True)
@@ -39,11 +41,15 @@ class DqgProfile:
 
 
 def _profiles_root() -> Path:
-    return Path(__file__).resolve().parents[3] / "profiles"
+    return _resolver.resolve_dir("profiles")
 
 
 def _repo_root() -> Path:
-    return Path(__file__).resolve().parents[3]
+    """Root containing regression/ and knowledge/ — base for profile relative paths."""
+    try:
+        return _resolver.resolve_dir("regression").parent
+    except FileNotFoundError:
+        return _resolver.global_root
 
 
 def _load_profile(path: Path) -> DqgProfile:
@@ -199,9 +205,7 @@ def render_profile_context_markdown(profile: DqgProfile) -> str:
     return "\n".join(lines) + "\n"
 
 
-# ---------------------------------------------------------------------------
 # Rule Hash：按 Markdown 标题拆分规则块，计算 SHA256 指纹
-# ---------------------------------------------------------------------------
 
 
 def _split_md_rules(text: str) -> dict[str, str]:
@@ -247,9 +251,7 @@ def compute_rule_hash(profile_id: str) -> dict[str, str]:
     return hashes
 
 
-# ---------------------------------------------------------------------------
 # L0 压缩：把 baseline + risk catalog 压缩为结构化元规则
-# ---------------------------------------------------------------------------
 
 _L0_CACHE: dict[str, str] = {}
 

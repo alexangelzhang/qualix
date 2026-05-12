@@ -171,7 +171,12 @@ def _start_dashboard(port: int = _DASHBOARD_PORT) -> bool:
         print(f"   看板已在运行 (PID: {pid}, http://localhost:{port})")
         return True
 
-    dashboard_path = Path(__file__).parents[1] / "reporting" / "dashboard" / "__init__.py"
+    try:
+        from dqg.reporting import dashboard as _dashboard_mod
+
+        dashboard_path = Path(_dashboard_mod.__file__)
+    except ImportError:
+        dashboard_path = Path(__file__).parents[1] / "reporting" / "dashboard" / "__init__.py"
     if not dashboard_path.exists():
         print("   dashboard 包不存在")
         return False

@@ -61,3 +61,10 @@ def dump_json_compact(data: Any) -> str:
 def dump_jsonl(data: Any) -> str:
     """序列化为单行 JSONL 格式（无 indent，带换行）."""
     return json.dumps(data, ensure_ascii=False) + "\n"
+
+
+def parse_json_str(text: str | bytes) -> Any:
+    """解析 JSON 字符串或字节（用于 HTTP 响应等非文件场景）."""
+    if isinstance(text, bytes):
+        text = text.decode("utf-8")
+    return json.loads(text)

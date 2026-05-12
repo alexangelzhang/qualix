@@ -8,6 +8,7 @@
 from __future__ import annotations
 
 import hashlib
+import importlib.util
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -94,8 +95,10 @@ def _build_context_hash(
             signatures.append("skill:" + _file_signature(skill_path))
 
     # judge rubric 模块签名（rubric 定义变更 → 缓存失效）
-    judge_module = Path(__file__).parent.parent / "quality" / "judge.py"
-    if judge_module.exists():
+    # Use importlib to locate the module file without importing it (avoids circular import).
+    _spec = importlib.util.find_spec("dqg.quality.judge.judge")
+    judge_module = Path(_spec.origin) if _spec and _spec.origin else None
+    if judge_module and judge_module.exists():
         signatures.append("rubric:" + _file_signature(judge_module))
 
     if not signatures or all(s == "missing" for s in signatures):

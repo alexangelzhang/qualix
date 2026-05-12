@@ -17,6 +17,8 @@ Phase ID: Q01-Q07（旧 ID A/A.3/A.5/A.6/B/C/D 仍兼容）
 from __future__ import annotations
 
 import argparse
+import contextlib
+import io
 import subprocess
 import sys
 from pathlib import Path
@@ -202,6 +204,12 @@ def _build_parser() -> argparse.ArgumentParser:
     p_spec = sub.add_parser("spec", help="输出 Phase 规范（JSON Schema + phase_contract），供 Agent 解析")
     p_spec.add_argument("--phase", required=True, help="Phase ID (Q01-Q07)")
 
+    # render：渲染 Phase 产物为交互式 HTML（lab, PoC: 仅 Q05）
+    p_render = sub.add_parser("render", help="渲染 Phase 产物为交互式 HTML（PoC: 仅 Q05）")
+    p_render.add_argument("--phase", required=True, help="Phase ID (目前仅 Q05)")
+    p_render.add_argument("--output", default=None, help="输出 HTML 路径（默认 output/<pid>/Q05/eut_matrix.html）")
+    p_render.add_argument("--open", action="store_true", help="生成后在浏览器打开")
+
     _inject_json_flag_on_all_subparsers(parser)
 
     return parser
@@ -284,6 +292,11 @@ def _dispatch(cmd: str) -> callable:
 
         return cmd_spec
 
+    if cmd == "render":
+        from dqg.commands.render import cmd_render
+
+        return cmd_render
+
     return None
 
 
@@ -334,18 +347,223 @@ def _resolve_output_dir(base_dir: str, *, quiet: bool = False) -> Path:
                 return target
     except (FileNotFoundError, ValueError):
         pass
+    # 优先使用 .dqg/output/（dqg-run init 创建的工作区布局）
+    dqg_output = base / ".dqg" / "output"
+    if dqg_output.exists():
+        return dqg_output
     return base / "output"
 
 
+def _check_version_drift_on_startup(project_root: Path) -> None:
+    """Print a warning to stderr if settings.yaml pins a different DQG version than installed."""
+    from importlib.metadata import version as _v
+
+    from dqg.core.settings import check_version_drift
+
+    try:
+        installed = _v("dev-quality-gate")
+    except Exception:
+        return  # can't compare without installed version
+    drift = check_version_drift(project_root, installed)
+    if drift is None:
+        return
+    pinned, running = drift
+    print(
+        f"\n⚠️  版本漂移: .dqg/settings.yaml pin 的 {pinned} 与安装的 {running} 不一致\n"
+        f"   建议运行: dqg-run init --force 同步（注意会清空 code_repos）\n"
+        f"   或手动修改 .dqg/settings.yaml 的 dqg_version 字段\n",
+        file=sys.stderr,
+    )
+
+
+def _handle_workspace_init(argv: list[str]) -> int:
+    """workspace-level `dqg-run init`（不需要 project_id）.
+
+    与现有 per-project `dqg-run <pid> init`（setup.py::cmd_init）不同：
+    - 本命令在用户项目根目录创建 .dqg/ 工作区（settings.yaml / output/ / guardrail）
+    - setup.py 的 cmd_init 在 output/<pid>/ 下初始化单个项目的 Phase 目录结构
+    """
+    sub = argparse.ArgumentParser(prog="dqg-run init", description="在当前目录初始化 .dqg/ 工作区")
+    sub.add_argument("--profile", default=None, help="profile（不指定则自动识别技术栈）")
+    sub.add_argument("--force", action="store_true", help="删除已有 .dqg/ 重建")
+    ns = sub.parse_args(argv)
+
+    _check_version_drift_on_startup(Path.cwd())
+
+    from dqg.commands.init import run_init
+
+    return run_init(project_root=Path.cwd(), profile=ns.profile, force=ns.force)
+
+
+def _handle_workspace_path(argv: list[str]) -> int:
+    """workspace-level `dqg-run path <category>`（不需要 project_id）."""
+    sub = argparse.ArgumentParser(
+        prog="dqg-run path",
+        description="打印内置资源目录的绝对路径（只读）",
+    )
+    sub.add_argument(
+        "category",
+        choices=sorted(["skills", "references", "profiles", "regression"]),
+        help="资源类别",
+    )
+    ns = sub.parse_args(argv)
+
+    from dqg.commands.path_cmd import run_path
+
+    return run_path(ns.category)
+
+
+def _handle_workspace_doctor(argv: list[str]) -> int:
+    """workspace-level `dqg-run doctor`（不需要 project_id）.
+
+    生成 doctor bundle（脱敏 + 最近产出的 _internal + 版本一致性），
+    并可选通过 glab 自动上传为 GitLab issue；glab 缺失/未认证时回退为
+    打印 bundle 路径与 issue URL，让用户手动上传。
+    """
+    from dqg.commands.doctor import run_doctor
+
+    sub = argparse.ArgumentParser(
+        prog="dqg-run doctor",
+        description="生成 doctor bundle 并（可选）自动上传到 GitLab issue",
+    )
+    sub.add_argument("--output", default=None, help="bundle 输出路径")
+    sub.add_argument(
+        "--redact",
+        action="store_true",
+        default=True,
+        help="脱敏路径与 token（默认开启）",
+    )
+    sub.add_argument(
+        "--no-redact",
+        dest="redact",
+        action="store_false",
+        help="跳过脱敏（不可与上传组合）",
+    )
+    sub.add_argument(
+        "--include-internal",
+        action="store_true",
+        default=True,
+        help="包含最近 phase 的 _internal/（默认开启）",
+    )
+    sub.add_argument(
+        "--no-include-internal",
+        dest="include_internal",
+        action="store_false",
+    )
+    sub.add_argument("--no-upload", action="store_true", help="只生成 bundle 不上传")
+    sub.add_argument("--title", default=None, help="issue 标题（非 TTY 自动兜底）")
+    ns = sub.parse_args(argv)
+
+    return run_doctor(
+        project_root=Path.cwd(),
+        output=Path(ns.output) if ns.output else None,
+        redact=ns.redact,
+        include_internal=ns.include_internal,
+        no_upload=ns.no_upload,
+        title=ns.title,
+    )
+
+
+def _handle_workspace_contribute(argv: list[str]) -> int:
+    """workspace-level `dqg-run contribute`（不需要 project_id）."""
+    sub = argparse.ArgumentParser(
+        prog="dqg-run contribute",
+        description="把本地新积累的 failure-library 案例贡献回 DQG repo",
+    )
+    sub.add_argument("--title", default=None, help="MR 标题（不指定则自动生成）")
+    sub.add_argument("--no-upload", action="store_true", help="只扫描不上传")
+    ns = sub.parse_args(argv)
+
+    from dqg.commands.contribute import run_contribute
+
+    rc, _ = run_contribute(title=ns.title, no_upload=ns.no_upload)
+    return rc
+
+
+def _handle_workspace_auth(argv: list[str]) -> int:
+    """workspace-level `dqg-run auth status`."""
+    sub = argparse.ArgumentParser(prog="dqg-run auth", description="DQG 飞书认证状态")
+    sub.add_argument("action", choices=["status"], help="status: 查看飞书认证状态")
+    sub.parse_args(argv)
+
+    from dqg.commands.auth import run_auth_status
+
+    return run_auth_status()
+
+
+class _TeeWriter(io.TextIOBase):
+    """Write to both the original stream and an in-memory buffer (for stderr_tail)."""
+
+    def __init__(self, original: io.TextIOBase) -> None:
+        self._original = original
+        self._buf = io.StringIO()
+
+    def write(self, s: str) -> int:
+        self._original.write(s)
+        self._buf.write(s)
+        return len(s)
+
+    def flush(self) -> None:
+        self._original.flush()
+
+    def getvalue(self) -> str:
+        return self._buf.getvalue()
+
+
 def main() -> int:
-    parser = _build_parser()
-    args = parser.parse_args()
-    quiet_env = bool(getattr(args, "json", False))
-    output_dir = _resolve_output_dir(args.base_dir, quiet=quiet_env)
+    from dqg.core.last_run import write_last_run
 
-    handler = _dispatch(args.command)
-    if not handler:
-        print(f"未知命令: {args.command}", file=sys.stderr)
-        return 1
+    exit_code = 0
+    tee = _TeeWriter(sys.stderr)
+    sys.stderr = tee  # type: ignore[assignment]
+    try:
+        # workspace-level init 走独立路径（不需要 project_id）
+        # 与 subparser 注册的 per-project `dqg-run <pid> init` 并存，靠 argv 位置区分
+        if len(sys.argv) >= 2 and sys.argv[1] == "init":
+            exit_code = _handle_workspace_init(sys.argv[2:])
+            return exit_code
 
-    return handler(args, output_dir)
+        if len(sys.argv) >= 2 and sys.argv[1] == "path":
+            exit_code = _handle_workspace_path(sys.argv[2:])
+            return exit_code
+
+        if len(sys.argv) >= 2 and sys.argv[1] == "doctor":
+            exit_code = _handle_workspace_doctor(sys.argv[2:])
+            return exit_code
+
+        if len(sys.argv) >= 2 and sys.argv[1] == "contribute":
+            exit_code = _handle_workspace_contribute(sys.argv[2:])
+            return exit_code
+
+        if len(sys.argv) >= 2 and sys.argv[1] == "auth":
+            exit_code = _handle_workspace_auth(sys.argv[2:])
+            return exit_code
+
+        parser = _build_parser()
+        args = parser.parse_args()
+        quiet_env = bool(getattr(args, "json", False))
+        output_dir = _resolve_output_dir(args.base_dir, quiet=quiet_env)
+
+        # Deprecation check: warn if running from inside the DQG repo layout
+        from dqg.core.resource_resolver import ResourceResolver
+
+        ResourceResolver(project_root=Path.cwd()).check_legacy_layout()
+        _check_version_drift_on_startup(Path.cwd())
+
+        handler = _dispatch(args.command)
+        if not handler:
+            print(f"未知命令: {args.command}", file=sys.stderr)
+            exit_code = 1
+            return exit_code
+
+        exit_code = handler(args, output_dir)
+        return exit_code
+    finally:
+        sys.stderr = tee._original  # type: ignore[assignment]
+        with contextlib.suppress(Exception):
+            write_last_run(
+                project_root=Path.cwd(),
+                cmd=sys.argv,
+                exit_code=int(exit_code or 0),
+                stderr_tail=tee.getvalue(),
+            )

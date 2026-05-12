@@ -82,9 +82,38 @@ Q01 ──→ Q02(可选) ──→ Q03 ──→ Q04 ──→ Q07
 
 ## 安装
 
+### 普通用户（推荐）
+
 ```bash
-pip install -e ".[dev]"
+git clone https://git.n.xiaomi.com/nr-car-service/dev-quality-gate.git
+cd dev-quality-gate
+./install.sh
 ```
+
+`install.sh` 把 `skills/ references/ profiles/ regression/` 拷到 `~/.dqg/`，并通过 `pip install --user` 把 Python 包装到 site-packages。用户项目 cwd 下看不到 DQG 源码，Claude 读不到就不会改。
+
+在你的项目目录初始化工作区：
+
+```bash
+cd <你的项目>
+dqg-run init          # 建 .dqg/output/ + settings.yaml + 注入 CLAUDE.md guardrail
+dqg-run auth status   # 查看飞书认证状态（团队数据上报依赖 larkkit 登录）
+dqg-run path skills   # 查看内置资源路径（只读）
+dqg-run doctor        # 遇到工具 bug 时生成 issue bundle 并自动上报（需 glab）
+dqg-run contribute    # 把本地新积累的 failure-library 案例贡献回 DQG repo
+```
+
+> 团队数据上报依赖飞书认证，请先执行 `uvx larkkit auth login` 完成一次性登录。
+
+老用户从 0.1 升级见 [`docs/migration-from-0.1.md`](docs/migration-from-0.1.md)。
+
+### DQG 维护者
+
+```bash
+./install.sh --dev    # ~/.dqg/* 用 symlink 指回 repo；pip install -e . 可编辑安装
+```
+
+源码改动立即生效，无需重装。
 
 ## 使用方式
 

@@ -3,7 +3,7 @@
 启动: streamlit run src/dqg/reporting/dashboard_app.py
 
 页面: 总览 / 评分总览 / 流程 DAG / Token 消耗 / 执行瀑布图 / 质量评分
-      / 事件追踪 / Bug 案例库 / 质量趋势 / Phase 评分趋势 / 可观测性 / 数据管理
+      / 事件追踪 / Bug 案例库 / 质量趋势 / Phase 评分趋势 / 可观测性 / 数据管理 / 团队视图
 性能: 查询结果缓存 60s，避免重复 SQLite I/O
 """
 
@@ -18,6 +18,7 @@ from .observability import _page_observability
 from .overview import _page_overview
 from .scores import _page_scores
 from .scoring import _page_scoring_overview
+from .team import _page_team
 from .trend import _page_phase_score_trend, _page_quality_trend
 
 
@@ -31,6 +32,7 @@ def main():
         "页面",
         [
             "总览",
+            "团队视图",
             "评分总览",
             "流程 DAG",
             "Token 消耗",
@@ -47,6 +49,7 @@ def main():
 
     pages = {
         "总览": _page_overview,
+        "团队视图": _page_team,
         "评分总览": _page_scoring_overview,
         "流程 DAG": _page_dag,
         "Token 消耗": _page_token,

@@ -33,11 +33,18 @@ def _repo_root() -> Path:
 
 
 def _cases_root() -> Path:
-    return _repo_root() / "regression" / "cases"
+    """读取 regression/cases：走 ResourceResolver 四层回退（~/.dqg/ → 包内 → repo root）."""
+    from dqg.core.resource_resolver import ResourceResolver
+
+    try:
+        return ResourceResolver().resolve_dir("regression") / "cases"
+    except FileNotFoundError:
+        return _repo_root() / "regression" / "cases"
 
 
 def _failure_library_root() -> Path:
-    root = _repo_root() / "regression" / FAILURE_LIBRARY
+    """failure-library 写入 ~/.dqg/regression/failure-library/（用户可写）."""
+    root = Path.home() / ".dqg" / "regression" / FAILURE_LIBRARY
     root.mkdir(parents=True, exist_ok=True)
     return root
 

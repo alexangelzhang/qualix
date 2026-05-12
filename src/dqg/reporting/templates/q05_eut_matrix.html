@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EUT Matrix — {{PROJECT_ID}}</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#fafbfc;--surface:#ffffff;--border:#e5e7eb;--border-strong:#d1d5db;
+  --text:#1f2937;--text-sub:#4b5563;--muted:#9ca3af;
+  --accent:#2563eb;--accent-soft:#eff6ff;
+  --covered:#10b981;--covered-soft:#ecfdf5;
+  --new:#ef4444;--new-soft:#fef2f2;
+  --missing:#d946ef;--missing-soft:#fdf4ff;
+  --partial:#f59e0b;--partial-soft:#fffbeb;
+  --wrong:#f97316;--wrong-soft:#fff7ed;
+  --radius:6px;--radius-lg:10px;--gap:14px;
+  --shadow-sm:0 1px 2px rgba(16,24,40,.04);
+  --shadow:0 2px 6px rgba(16,24,40,.06);
+}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Helvetica Neue",Roboto,sans-serif;background:var(--bg);color:var(--text);padding:24px;line-height:1.5;font-size:14px}
+.header{margin-bottom:18px}
+h1{font-size:1.25rem;font-weight:600;letter-spacing:-.01em}
+.meta{color:var(--muted);font-size:.78rem;margin-top:2px}
+
+.summary{display:flex;gap:0;flex-wrap:wrap;margin-bottom:18px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-sm)}
+.stat{flex:1;min-width:110px;padding:12px 16px;border-right:1px solid var(--border);display:flex;flex-direction:column;justify-content:center}
+.stat:last-child{border-right:none}
+.stat .num{font-size:1.4rem;font-weight:600;letter-spacing:-.02em;line-height:1.2}
+.stat .label{font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;margin-top:2px}
+.stat.covered .num{color:var(--covered)}
+.stat.new .num{color:var(--new)}
+.stat.missing .num{color:var(--missing)}
+.stat.partial .num{color:var(--partial)}
+.stat.wrong .num{color:var(--wrong)}
+
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.search{flex:1;min-width:220px;padding:7px 12px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);color:var(--text);font-size:.85rem;transition:border-color .15s,box-shadow .15s}
+.search::placeholder{color:var(--muted)}
+.search:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{padding:4px 10px;border-radius:12px;font-size:.72rem;cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--text-sub);transition:all .12s;user-select:none}
+.chip:hover{border-color:var(--border-strong)}
+.chip.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.page-size{padding:6px 10px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);color:var(--text-sub);font-size:.78rem;cursor:pointer}
+
+.board{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:var(--gap);align-items:start}
+.column{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);display:flex;flex-direction:column;max-height:calc(100vh - 280px);min-height:280px;box-shadow:var(--shadow-sm)}
+.col-header{display:flex;justify-content:space-between;align-items:center;padding:12px 14px 10px;border-bottom:1px solid var(--border)}
+.col-title-group{display:flex;align-items:center;gap:8px}
+.col-dot{width:7px;height:7px;border-radius:50%}
+.col-title{font-weight:600;font-size:.78rem;text-transform:uppercase;letter-spacing:.04em;color:var(--text-sub)}
+.col-count{background:#f3f4f6;color:var(--text-sub);border-radius:10px;padding:2px 8px;font-size:.7rem;font-weight:500}
+.col-covered .col-dot{background:var(--covered)}
+.col-new .col-dot{background:var(--new)}
+.col-missing .col-dot{background:var(--missing)}
+.col-partial .col-dot{background:var(--partial)}
+.col-wrong .col-dot{background:var(--wrong)}
+.col-body{padding:10px;overflow-y:auto;flex:1;min-height:60px}
+.col-body::-webkit-scrollbar{width:6px;height:6px}
+.col-body::-webkit-scrollbar-thumb{background:#e0e4ea;border-radius:3px}
+.col-body::-webkit-scrollbar-thumb:hover{background:var(--border-strong)}
+
+.col-footer{padding:8px 12px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;font-size:.72rem;color:var(--muted)}
+.pager{display:flex;gap:4px}
+.pager-btn{padding:3px 8px;border:1px solid var(--border);border-radius:4px;background:var(--surface);color:var(--text-sub);font-size:.7rem;cursor:pointer;min-width:24px;text-align:center}
+.pager-btn:hover:not(:disabled){border-color:var(--border-strong);color:var(--text)}
+.pager-btn:disabled{opacity:.4;cursor:not-allowed}
+.pager-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.pager-ellipsis{padding:3px 4px;color:var(--muted);font-size:.7rem}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;margin-bottom:8px;cursor:pointer;transition:border-color .12s,box-shadow .12s;border-left:3px solid var(--border)}
+.card:hover{border-color:var(--border-strong);box-shadow:var(--shadow)}
+.card:last-child{margin-bottom:0}
+.card.covered{border-left-color:var(--covered)}
+.card.new{border-left-color:var(--new)}
+.card.missing{border-left-color:var(--missing)}
+.card.partial{border-left-color:var(--partial)}
+.card.wrong{border-left-color:var(--wrong)}
+.card-head{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:4px}
+.card-id{font-size:.7rem;color:var(--muted);font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-weight:500}
+.card-scenario{font-size:.82rem;font-weight:500;color:var(--text);margin-bottom:4px;line-height:1.4}
+.card-class{font-size:.72rem;color:var(--muted);font-family:ui-monospace,SFMono-Regular,Menlo,monospace;word-break:break-all;line-height:1.4}
+.badge{display:inline-flex;align-items:center;padding:1px 6px;border-radius:3px;font-size:.65rem;font-weight:600;letter-spacing:.02em}
+.badge-p0{background:var(--new-soft);color:#b91c1c}
+.badge-p1{background:var(--partial-soft);color:#b45309}
+.badge-p2{background:var(--accent-soft);color:#1d4ed8}
+.badge-p3{background:#f3f4f6;color:var(--text-sub)}
+.card-detail{display:none;margin-top:8px;padding-top:8px;border-top:1px dashed var(--border);font-size:.72rem;color:var(--text-sub)}
+.card-detail dt{font-weight:600;color:var(--text);margin-top:4px;font-size:.68rem;text-transform:uppercase;letter-spacing:.03em}
+.card-detail dd{margin-left:0;margin-top:1px;word-break:break-all;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.card.expanded .card-detail{display:block}
+.empty-col{text-align:center;color:var(--muted);font-size:.78rem;padding:24px 0}
+
+@media (max-width:640px){
+  body{padding:14px}
+  .stat{min-width:80px;padding:10px 12px}
+  .stat .num{font-size:1.2rem}
+  .column{max-height:none}
+}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1 id="title"></h1>
+  <p class="meta" id="meta"></p>
+</div>
+
+<div class="summary" id="summary"></div>
+
+<div class="toolbar">
+  <input class="search" id="search" type="text" placeholder="搜索：场景 / 被测类 / 方法 / SE 编号...">
+  <div class="chips" id="chips"></div>
+  <select class="page-size" id="page-size">
+    <option value="10">每页 10</option>
+    <option value="20" selected>每页 20</option>
+    <option value="50">每页 50</option>
+    <option value="999">全部</option>
+  </select>
+</div>
+
+<div class="board" id="board"></div>
+
+<script id="dqg-data" type="application/json">{{DATA_JSON}}</script>
+<script>
+(function(){
+  const raw = JSON.parse(document.getElementById('dqg-data').textContent);
+  const PROJECT_ID = raw.project_id || '';
+  const GENERATED_AT = raw._generated_at || '';
+  const testCases = raw.test_cases || [];
+  const STATUSES = ['COVERED','NEW','MISSING','PARTIAL','WRONG_TARGET'];
+  const STATUS_CLASS = {COVERED:'covered',NEW:'new',MISSING:'missing',PARTIAL:'partial',WRONG_TARGET:'wrong'};
+  const STATUS_LABEL = {
+    COVERED: '已覆盖',
+    NEW: '待编写',
+    MISSING: '未覆盖',
+    PARTIAL: '部分覆盖',
+    WRONG_TARGET: '无效覆盖',
+  };
+
+  const state = {
+    filters: {priority: null, repo: null},
+    search: '',
+    pageSize: 20,
+    pages: {},
+  };
+  STATUSES.forEach(s => state.pages[s] = 1);
+
+  function el(tag, className){ const e = document.createElement(tag); if(className) e.className = className; return e; }
+  function txt(tag, className, text){ const e = el(tag, className); if(text != null) e.textContent = String(text); return e; }
+
+  document.getElementById('title').textContent = 'EUT 矩阵 · ' + PROJECT_ID;
+  document.getElementById('meta').textContent = '生成时间 ' + GENERATED_AT + '  ·  Phase Q05  ·  html-effectiveness lab';
+
+  function buildSummary(){
+    const host = document.getElementById('summary');
+    host.textContent = '';
+    const total = testCases.length;
+    const counts = {};
+    STATUSES.forEach(s => counts[s] = 0);
+    testCases.forEach(tc => { if(counts[tc.status] !== undefined) counts[tc.status]++; });
+    const covPct = total ? Math.round(counts.COVERED / total * 100) : 0;
+    const items = [
+      ['总数', total, ''],
+      ['覆盖率', covPct + '%', 'covered'],
+    ];
+    STATUSES.forEach(s => items.push([STATUS_LABEL[s], counts[s], STATUS_CLASS[s]]));
+    items.forEach(([label, num, cls]) => {
+      const box = el('div', 'stat' + (cls ? ' ' + cls : ''));
+      box.appendChild(txt('div', 'num', num));
+      box.appendChild(txt('div', 'label', label));
+      host.appendChild(box);
+    });
+  }
+
+  function buildChips(){
+    const host = document.getElementById('chips');
+    host.textContent = '';
+    const priorities = [...new Set(testCases.map(tc => tc.priority).filter(Boolean))].sort();
+    const repos = [...new Set(testCases.map(tc => tc.repo).filter(Boolean))];
+    const chips = [];
+    priorities.forEach(p => chips.push(['priority', p]));
+    if(repos.length > 1) repos.forEach(r => chips.push(['repo', r]));
+    chips.forEach(([type, val]) => {
+      const c = txt('span', 'chip', val);
+      c.dataset.type = type;
+      c.dataset.value = val;
+      c.addEventListener('click', () => {
+        if(state.filters[type] === val){
+          state.filters[type] = null;
+          c.classList.remove('active');
+        } else {
+          host.querySelectorAll('.chip[data-type="' + type + '"]').forEach(x => x.classList.remove('active'));
+          state.filters[type] = val;
+          c.classList.add('active');
+        }
+        resetPages();
+        renderBoard();
+      });
+      host.appendChild(c);
+    });
+  }
+
+  function resetPages(){ STATUSES.forEach(s => state.pages[s] = 1); }
+
+  function matchesFilter(tc){
+    if(state.filters.priority && tc.priority !== state.filters.priority) return false;
+    if(state.filters.repo && tc.repo !== state.filters.repo) return false;
+    if(state.search){
+      const q = state.search.toLowerCase();
+      const hay = [tc.scenario, tc.class_under_test, tc.method, ...(tc.se_refs||[]), tc.covered_by||'', tc.id].join(' ').toLowerCase();
+      if(!hay.includes(q)) return false;
+    }
+    return true;
+  }
+
+  function makeCard(tc){
+    const cls = STATUS_CLASS[tc.status] || '';
+    const card = el('div', 'card ' + cls);
+    card.dataset.id = tc.id;
+
+    const head = el('div', 'card-head');
+    head.appendChild(txt('span', 'card-id', tc.id || ''));
+    if(tc.priority){
+      head.appendChild(txt('span', 'badge badge-' + tc.priority.toLowerCase(), tc.priority));
+    }
+    card.appendChild(head);
+
+    card.appendChild(txt('div', 'card-scenario', tc.scenario || ''));
+    card.appendChild(txt('div', 'card-class', (tc.class_under_test || '—') + '#' + (tc.method || '—')));
+
+    const dl = el('dl', 'card-detail');
+    const rows = [
+      ['测试方法', tc.covered_by || '—'],
+      ['SE 编号', (tc.se_refs || []).join(', ') || '—'],
+      ['需求编号', tc.requirement || '—'],
+      ['代码仓库', tc.repo || '—'],
+    ];
+    rows.forEach(([k, v]) => {
+      dl.appendChild(txt('dt', null, k));
+      dl.appendChild(txt('dd', null, v));
+    });
+    card.appendChild(dl);
+    card.addEventListener('click', () => card.classList.toggle('expanded'));
+    return card;
+  }
+
+  function makePager(status, total){
+    const pages = Math.max(1, Math.ceil(total / state.pageSize));
+    const cur = Math.min(state.pages[status], pages);
+    state.pages[status] = cur;
+
+    const foot = el('div', 'col-footer');
+    const info = txt('span', null, total ? `${(cur-1)*state.pageSize+1}–${Math.min(cur*state.pageSize,total)} / ${total}` : '0');
+    foot.appendChild(info);
+
+    const pager = el('div', 'pager');
+    const prev = el('button', 'pager-btn'); prev.textContent = '‹'; prev.disabled = cur <= 1;
+    prev.addEventListener('click', e => { e.stopPropagation(); state.pages[status] = cur-1; renderBoard(); });
+    pager.appendChild(prev);
+
+    // 页码：首页、当前页 ±1、末页；断档用 …
+    const nums = new Set([1, pages, cur, cur-1, cur+1]);
+    const sorted = [...nums].filter(n => n >= 1 && n <= pages).sort((a,b)=>a-b);
+    let last = 0;
+    sorted.forEach(n => {
+      if(n - last > 1){ pager.appendChild(txt('span', 'pager-ellipsis', '…')); }
+      const btn = txt('button', 'pager-btn' + (n===cur?' active':''), String(n));
+      btn.addEventListener('click', e => { e.stopPropagation(); state.pages[status] = n; renderBoard(); });
+      pager.appendChild(btn);
+      last = n;
+    });
+
+    const next = el('button', 'pager-btn'); next.textContent = '›'; next.disabled = cur >= pages;
+    next.addEventListener('click', e => { e.stopPropagation(); state.pages[status] = cur+1; renderBoard(); });
+    pager.appendChild(next);
+    foot.appendChild(pager);
+    return foot;
+  }
+
+  function renderBoard(){
+    const board = document.getElementById('board');
+    board.textContent = '';
+    const filtered = testCases.filter(matchesFilter);
+    const grouped = {};
+    STATUSES.forEach(s => grouped[s] = []);
+    filtered.forEach(tc => { if(grouped[tc.status]) grouped[tc.status].push(tc); });
+
+    STATUSES.forEach(s => {
+      const col = el('div', 'column col-' + STATUS_CLASS[s]);
+
+      const hdr = el('div', 'col-header');
+      const titleGroup = el('div', 'col-title-group');
+      titleGroup.appendChild(el('span', 'col-dot'));
+      titleGroup.appendChild(txt('span', 'col-title', STATUS_LABEL[s]));
+      hdr.appendChild(titleGroup);
+      hdr.appendChild(txt('span', 'col-count', grouped[s].length));
+      col.appendChild(hdr);
+
+      const body = el('div', 'col-body');
+      const total = grouped[s].length;
+      if(total){
+        const start = (state.pages[s] - 1) * state.pageSize;
+        const slice = grouped[s].slice(start, start + state.pageSize);
+        slice.forEach(tc => body.appendChild(makeCard(tc)));
+      } else {
+        body.appendChild(txt('div', 'empty-col', '暂无数据'));
+      }
+      col.appendChild(body);
+
+      if(total > 0){ col.appendChild(makePager(s, total)); }
+
+      board.appendChild(col);
+    });
+  }
+
+  document.getElementById('search').addEventListener('input', e => {
+    state.search = e.target.value;
+    resetPages();
+    renderBoard();
+  });
+  document.getElementById('page-size').addEventListener('change', e => {
+    state.pageSize = parseInt(e.target.value, 10) || 20;
+    resetPages();
+    renderBoard();
+  });
+
+  buildSummary();
+  buildChips();
+  renderBoard();
+})();
+</script>
+</body>
+</html>

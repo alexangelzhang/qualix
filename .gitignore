@@ -42,3 +42,4 @@ observability/
 
 # macOS
 .DS_Store
+.dqg/output/

@@ -386,9 +386,19 @@
 
 **定位**：解决"DQG 与用户项目代码边界模糊导致的 AI Agent 误改工具源码"问题。
 
-**当前状态**：`规划中（P0，2026-05-10 立项，从 P1 中提升）`
+**当前状态**：`已完成（P0，2026-05-11 交付 L1 备选 + L2 + L3 全部三层，走 install.sh 路线不发 PyPI）`
 
 > 详细症状诊断 + 三层修复路径见 [`docs/distribution-gap.md`](docs/distribution-gap.md)
+> 设计 + 实施细节见 [`docs/superpowers/specs/2026-05-11-dqg-tool-distribution-design.md`](docs/superpowers/specs/2026-05-11-dqg-tool-distribution-design.md) 和 [`docs/superpowers/plans/2026-05-11-dqg-tool-distribution.md`](docs/superpowers/plans/2026-05-11-dqg-tool-distribution.md)
+> 老用户迁移见 [`docs/migration-from-0.1.md`](docs/migration-from-0.1.md)
+
+### 交付汇总（2026-05-11）
+
+- L1 备选：`install.sh` + `~/.dqg/` + `site-packages`（--dev/--dry-run/--skip-pip）
+- L2：`dqg-run init` 建 `.dqg/output/ + settings.yaml`，`dqg-run path <category>` 只读查看内置资源
+- L3：CLAUDE.md guardrail 章节（marker 包裹、幂等替换）
+- 补强：`VERSION` 文件 + pyproject dynamic version、`ResourceResolver` 三层查找 + Layer-4 fallback、老路径 deprecation warning、版本漂移启动 warning、`dqg-run doctor` bundle 生成 + 脱敏 + glab 自动上传 + fallback 手动
+- 测试：848 passed / 0 新回归（22 新增测试全绿）
 
 ### 触发现象
 
@@ -735,6 +745,7 @@ VAF（`~/git_dev/vibe-agentic-flow`）没发 PyPI 但通过 `install.sh + ~/.vcb
 | 6 | **跨模型泛化验证** | 回答「在模型 A 上调的 harness 在模型 B 是否仍有效」，支撑 `model_registry` primary/fallback | 多模型 **已支持**，**缺** 系统性 held-out 矩阵与报告落盘 | P1（流程可先半手动） |
 | 7 | **data_patterns sidecar** | 按 Phase 过滤案例、保留 top N **lesson 原文**，降噪增效 | `tracking/data_patterns.py` 当前 **固定从 Q06** 提取注入各 Phase | P1 |
 | 8 | **ironlaw_guard 规则外置** | 规则与案例库/配置同源，改规则少改代码 | Hook 偏 **写死**；动态全自动聚合有 **误杀与审计** 风险 | 规划-only：分阶段外置（见下表），**不预设自动从全库生效** |
+| 9 | **Iteration 级 Checkpoint（断点续传）** | adaptive loop 中途崩溃/schema 失败时从**步骤级**恢复，只重调失败的 LLM step，不重跑整个 iteration | 当前只有 pipeline 级 `state.json` + iteration **结束态**产物（`_judge_iter*` / `_handoff_iter*`）；**iteration 内部步骤无可恢复状态** | P1（观察 Q04 E 类失败频次后再定档） |
 
 #### 分阶段路线图（建议执行顺序）
 
@@ -749,6 +760,7 @@ VAF（`~/git_dev/vibe-agentic-flow`）没发 PyPI 但通过 `install.sh + ~/.vcb
 1. **#2 Evolution**：为 lesson/建议条目增加时间元数据（`first_seen` / `last_reinforced`）；评分乘 **指数衰减**（可与 ARClaw 式 `exp(-age·ln2/τ)` 对齐）并实施 **90 天硬过滤**；与 `confidence_decay` 文档口径统一。
 2. **#5 反射输入契约**：Skill Reflector / evolution 输入显式引用 adaptive、judge 原始片段（设 token 上限），禁止「仅摘要无出处」。
 3. **#6 跨模型验证**：定义 golden / failure-library 子集 × 多 held-out 模型 × 少量指标的 **runbook**，产出进 `observability/reports/`（可先脚本化半手动）。
+4. **#9 Iteration Checkpoint**：观察 Q04/Q06 adaptive loop 的 **E 类失败（schema errors）频次**，若 ≥20% 且单次重跑代价 ≥2k tokens 则落地。落地形态：`output/<pid>/Q0X/_iter{N}_checkpoint.json` 记录 step 级完成状态（`worker_output` / `judge_vote` / `critique` 三步的 `done` + 产物路径 + `last_error`）；Phase 启动时自动检测未完成 checkpoint，从第一个 `done: false` 步骤续跑，已完成步骤直接读产物跳过 LLM 调用。与 **#1 版本化** 的区别：**#1 为成功迭代的历史快照**（supports 回溯/对比），**#9 为失败步骤的续传状态**（supports 省钱/省时）。
 
 **长期 / 研究**
 
@@ -760,9 +772,10 @@ VAF（`~/git_dev/vibe-agentic-flow`）没发 PyPI 但通过 `install.sh + ~/.vcb
 - **#1**：磁盘增长；需「当前指针」与索引/工具链约定，避免多版本并行时读错。
 - **#3**：「强制 PROCEED」必须配套 **WARNING / GateVerdict**，避免误读为质量绿灯。
 - **#2 与记忆衰减**：同一文档中区分「Evolution lesson 衰减」与 `confidence_decay` 的 **Preference 90 天** 各自适用场景。
+- **#9 Iteration Checkpoint**：(1) **幂等性**——重跑同一 iteration 时已 `done: true` 步骤必须跳过 LLM 调用，只从首个 `done: false` 处续跑；(2) **产物归属**——`_iter{N}_checkpoint.json` 需进入 gate checklist 与 `finalize` detect，否则会被判定为未识别产物；(3) **state 语义**——iteration 内多一维状态（in_progress/completed/failed），`reset_phase` / `reset --cascade` 的清理逻辑需覆盖；(4) **触发收益门槛**——不要先于 Q04 E 类失败频次量化数据就开工，避免为 <5% 场景承担 schema/state 复杂度债。
 - **#8**：外置规则需 **版本与审计**，防止不可复盘的行为漂移。
 
-*最后更新：2026-04-25；本节规划增补：2026-05-09*
+*最后更新：2026-04-25；本节规划增补：2026-05-09；#9 Iteration Checkpoint 补入：2026-05-11*
 
 ---
 

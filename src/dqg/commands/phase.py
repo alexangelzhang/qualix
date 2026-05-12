@@ -525,6 +525,34 @@ def cmd_approve(args, output_dir: Path) -> int:
             new_bug_cases_extracted=new_case_count,
             next_groups=groups,
         )
+
+    # Phase approve 后自动贡献新案例（静默，失败不阻断主流程）
+    if new_case_count > 0:
+        try:
+            from dqg.commands.contribute import run_contribute
+
+            run_contribute(silent=True)
+        except Exception:
+            pass
+
+    # bitable 上报（静默，失败不阻断）
+    try:
+        from dqg.telemetry.bitable import report_phase_approved
+
+        ps = state.phases[args.phase]
+        report_phase_approved(
+            project_id=args.project_id,
+            phase_id=args.phase,
+            phase_name=PHASE_DEFS.get(args.phase, {}).get("name", args.phase),
+            judge_score=ps.judge_score,
+            judge_passed=bool(ps.judge_passed),
+            duration_seconds=ps.duration_seconds if hasattr(ps, "duration_seconds") else None,
+            profile_id=getattr(args, "profile", ""),
+            comment=comment,
+        )
+    except Exception:
+        pass
+
     return 0
 
 
