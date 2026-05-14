@@ -203,6 +203,18 @@ def write_bootstrap_context(
         except OSError:
             pass
 
+    # 6. 代码调用链深度分析（由 handle_se_code_mapping 生成）
+    #    暴露 Domain 层方法的实现和参数传递路径，防止漏看隐藏复杂度
+    #    （如 prev2Start 回溯、slot0/slot1/slot2 聚合等只在读实现代码时才能发现的行为）
+    call_chain_path = internal_dir / "_code_call_chain.md"
+    if call_chain_path.exists():
+        try:
+            call_chain_content = call_chain_path.read_text(encoding="utf-8")
+            if call_chain_content.strip():
+                sections += [call_chain_content, ""]
+        except OSError:
+            pass
+
     content = "\n".join(sections)
     path = internal_dir / "_bootstrap_context.md"
     path.write_text(content, encoding="utf-8")

@@ -148,6 +148,14 @@ def write_se_code_mapping(
     md_path = int_dir / "_se_code_mapping.md"
     md_path.write_text(_render_mapping_md(mapping), encoding="utf-8")
 
+    # 调用链深度分析：自动读取 Domain/App 层方法实现，暴露隐藏参数传递路径
+    try:
+        from dqg.context.analysis.call_chain import write_call_chain_analysis
+
+        write_call_chain_analysis(output_dir, project_id, repo_path, phase_id, mapping)
+    except Exception as exc:
+        log.debug("call_chain analysis skipped: %s", exc)
+
     found = sum(1 for m in mapping if m["coverage"] == "FOUND")
     log.info("SE→Code mapping: %d/%d SE found code matches", found, len(mapping))
     return json_path
