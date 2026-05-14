@@ -24,8 +24,10 @@ RE_SOURCE_BASE = re.compile(r"\[来源[:：]\s*.+?\]|\[Source:\s*.+?\]", re.IGNO
 
 # 每个 Phase 允许的额外来源形式（叠加在基线之上）
 PHASE_SOURCE_EXTRA: dict[str, re.Pattern[str]] = {
-    # Q01: PRD 阶段，不允许用需求 ID 自证来源，必须 [来源: xxx]
-    "Q01": re.compile(r"(?!)"),  # 永不匹配
+    # Q01: PRD 阶段，不允许用需求 ID（REQ/BR/SE/GAP）自证来源（循环引用），
+    # 但允许 PRD 原文裸引用（plain_text.txt:行号 / blocks.raw.json:行号）——
+    # 这类引用等价于 [来源: plain_text.txt:行号]，只是表格列里省去了括号格式。
+    "Q01": re.compile(r"plain_text\.txt:\d+|blocks\.raw\.json:\d+|comments\.md:\d+"),
     # Q02: 技术方案生成类——来源是 tech_design 原文或架构/接口/数据/异常/性能 ID，以及代码行号
     # 不允许用 REQ/BR/SE/GAP 做"来源"，那是追溯覆盖，归 R-TRACEABILITY 管
     "Q02": re.compile(r"tech_design\.md|ARCH-\d+|API-\d+|DATA-\d+|EXC-\d+|PERF-\d+|\.java:\d+"),
