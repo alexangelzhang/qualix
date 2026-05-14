@@ -192,6 +192,17 @@ def write_bootstrap_context(
     if blast_summary:
         sections += [blast_summary, ""]
 
+    # 5. 结构化 JSON 字段约束（由 handle_phase_contract 生成）
+    #    让 AI 在写 structured JSON 之前看到必填字段，避免"先写再查 spec"导致反复重跑
+    schema_fields_path = internal_dir / "_schema_fields.md"
+    if schema_fields_path.exists():
+        try:
+            schema_content = schema_fields_path.read_text(encoding="utf-8")
+            if schema_content.strip():
+                sections += [schema_content, ""]
+        except OSError:
+            pass
+
     content = "\n".join(sections)
     path = internal_dir / "_bootstrap_context.md"
     path.write_text(content, encoding="utf-8")

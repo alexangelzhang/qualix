@@ -78,6 +78,12 @@ def generate_phase_contract(
     contract_path = int_dir / "_phase_contract.json"
     save_json(contract_path, contract)
 
+    # 额外生成人类可读的 schema 字段指南，让 AI 在写 JSON 前就能看到必填字段
+    schema_guide = _render_schema_fields_guide(phase_id, hard_checks)
+    if schema_guide:
+        schema_path = int_dir / "_schema_fields.md"
+        schema_path.write_text(schema_guide, encoding="utf-8")
+
     log.info(
         "Phase contract: %s — %d done criteria, %d verification targets, %d hard checks",
         phase_id,
@@ -383,6 +389,100 @@ def check_report_structure(report_content: str, phase: str) -> dict[str, Any]:
     from dqg.runtime.phase_constraints import check_report_structure as _check
 
     return _check(report_content, phase)
+
+
+def _render_schema_fields_guide(phase_id: str, hard_checks: list[dict]) -> str | None:
+    """从 Pydantic schema 生成人类可读的字段约束指南，写入 _schema_fields.md。
+
+    解决"先写产物再查 spec"问题：execute 阶段自动生成此文件，bootstrap context
+    引用它，让 AI 在写 structured JSON 之前就能看到必填字段和枚举约束。
+    """
+    try:
+        from dqg.schemas.schema_export import json_schema_for_phase
+        from dqg.text_utils import STRUCTURED_JSON_MAP
+    except ImportError:
+        return None
+
+    schema = json_schema_for_phase(phase_id)
+    if not schema:
+        return None
+
+    filename = STRUCTURED_JSON_MAP.get(phase_id, "structured.json")
+    lines: list[str] = [
+        f"# 结构化产物字段约束 — {phase_id}",
+        "",
+        f"> 产物文件：`{filename}`  |  自动从 Pydantic schema 生成，以代码为准",
+        "",
+    ]
+
+    defs = schema.get("$defs", {})
+    props = schema.get("properties", {})
+    required = set(schema.get("required", []))
+
+    # 必填字段
+    if required:
+        lines += ["## ✅ 必填字段", ""]
+        for field in sorted(required):
+            info = props.get(field, {})
+            ftype = info.get("type", "object")
+            desc = info.get("description", "")
+            pattern = info.get("pattern", "")
+            line = f"- **`{field}`** (`{ftype}`)"
+            if desc:
+                line += f" — {desc}"
+            if pattern:
+                line += f"  ⚠️ 格式约束：`{pattern}`"
+            lines.append(line)
+        lines.append("")
+
+    # 可选字段（含枚举/格式约束）
+    constrained = {
+        k: v for k, v in props.items() if k not in required and ("pattern" in v or "enum" in v or "$ref" in v)
+    }
+    if constrained:
+        lines += ["## ⚙️ 可选字段（含枚举/格式约束）", ""]
+        for field, info in constrained.items():
+            ftype = info.get("type", "")
+            pattern = info.get("pattern", "")
+            enum = info.get("enum", [])
+            ref = info.get("$ref", "")
+            line = f"- `{field}`"
+            if pattern:
+                line += f" — 格式：`{pattern}`"
+            if enum:
+                line += f" — 枚举：{enum}"
+            if ref:
+                ref_name = ref.split("/")[-1]
+                ref_schema = defs.get(ref_name, {})
+                ref_req = ref_schema.get("required", [])
+                if ref_req:
+                    line += f" → `{ref_name}` 必填子字段：{ref_req}"
+            lines.append(line)
+        lines.append("")
+
+    # $defs 中的子模型必填字段
+    if defs:
+        lines += ["## 📦 子模型必填字段", ""]
+        for model_name, model_schema in defs.items():
+            sub_required = model_schema.get("required", [])
+            if sub_required:
+                lines.append(f"**`{model_name}`**：必填 {sub_required}")
+                # 枚举约束
+                for field in sub_required:
+                    field_info = model_schema.get("properties", {}).get(field, {})
+                    pattern = field_info.get("pattern", "")
+                    if pattern:
+                        lines.append(f"  - `{field}` 格式：`{pattern}`")
+        lines.append("")
+
+    # 硬性门禁
+    if hard_checks:
+        lines += ["## 🚫 硬性门禁（违反则 finalize BLOCKED）", ""]
+        for check in hard_checks:
+            lines.append(f"- [{check.get('level', '?')}] {check.get('name', '')}")
+        lines.append("")
+
+    return "\n".join(lines)
 
 
 # ---------------------------------------------------------------------------
