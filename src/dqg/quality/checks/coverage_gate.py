@@ -10,6 +10,7 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Any
 
+from dqg.json_utils import load_json
 from dqg.log import get_logger
 
 log = get_logger(__name__)
@@ -261,30 +262,71 @@ def _is_mock_shadowed(
     return any(t.startswith(class_name) and "Test" in t for t in test_basenames)
 
 
-def find_jacoco_report(code_repo: Path) -> Path | None:
-    """在代码仓库中查找 JaCoCo XML 报告.
+def parse_istanbul_json(report_path: Path) -> dict[str, Any] | None:
+    """解析 Istanbul/c8 的 coverage-summary.json，转为与 parse_jacoco_xml 一致的结构.
 
-    常见路径：
-    - target/site/jacoco/jacoco.xml (Maven)
-    - build/reports/jacoco/test/jacocoTestReport.xml (Gradle)
+    Istanbul 格式:
+    {"total": {"lines": {"total": 100, "covered": 80, "pct": 80}, "branches": {...}, ...}}
     """
-    candidates = [
+    if not report_path.exists():
+        return None
+    data = load_json(report_path)
+    if not isinstance(data, dict):
+        log.warning("Failed to parse Istanbul JSON %s: not a dict", report_path)
+        return None
+
+    total = data.get("total", {})
+    if not total:
+        return None
+
+    def _section(key: str) -> dict[str, Any]:
+        s = total.get(key, {})
+        pct = s.get("pct")
+        covered = s.get("covered", 0)
+        tot = s.get("total", 0)
+        rate = round(float(pct) / 100.0, 4) if pct is not None else (round(covered / tot, 4) if tot else 0.0)
+        return {"covered": covered, "missed": tot - covered, "total": tot, "rate": rate}
+
+    return {
+        "line": _section("lines"),
+        "branch": _section("branches"),
+        "instruction": _section("statements"),
+        "method": _section("functions"),
+    }
+
+
+def find_coverage_report(code_repo: Path) -> Path | None:
+    """在代码仓库中查找覆盖率报告（JaCoCo XML 或 Istanbul JSON）."""
+    jacoco_candidates = [
         "target/site/jacoco/jacoco.xml",
         "target/jacoco.xml",
         "build/reports/jacoco/test/jacocoTestReport.xml",
         "build/reports/jacoco/jacocoTestReport.xml",
     ]
-    for candidate in candidates:
+    for candidate in jacoco_candidates:
         path = code_repo / candidate
         if path.exists():
             return path
 
-    # 递归搜索（最多 3 层）
+    istanbul_candidates = [
+        "coverage/coverage-summary.json",
+        "coverage-summary.json",
+        ".nyc_output/coverage-summary.json",
+    ]
+    for candidate in istanbul_candidates:
+        path = code_repo / candidate
+        if path.exists():
+            return path
+
     for xml_path in code_repo.rglob("jacoco*.xml"):
-        if xml_path.stat().st_size > 100:  # 排除空文件
+        if xml_path.stat().st_size > 100:
             return xml_path
 
     return None
+
+
+# 向后兼容别名
+find_jacoco_report = find_coverage_report
 
 
 def check_phase_c_coverage(
@@ -314,12 +356,16 @@ def check_phase_c_coverage(
             return [f"WARNING: 指定的覆盖率报告不存在: {report_path}"]
     elif code_repo:
         repo_path = Path(code_repo).expanduser().resolve()
-        report_path = find_jacoco_report(repo_path)
+        report_path = find_coverage_report(repo_path)
 
     if not report_path:
         return []  # 无覆盖率报告，跳过检查（不阻断）
 
-    coverage = parse_jacoco_xml(report_path)
+    # 按文件类型路由解析器
+    if report_path.suffix == ".json":
+        coverage = parse_istanbul_json(report_path)
+    else:
+        coverage = parse_jacoco_xml(report_path)
     if not coverage:
         return [f"WARNING: 无法解析覆盖率报告: {report_path}"]
 

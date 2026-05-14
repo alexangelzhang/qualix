@@ -90,7 +90,7 @@ def _collect_test_code_text(phase_root) -> str:
         return ""
     parts: list[str] = []
     for f in sorted(test_dir.iterdir()):
-        if f.is_file() and f.suffix in (".patch", ".java", ".kt", ".go", ".py"):
+        if f.is_file() and f.suffix in (".patch", ".java", ".kt", ".go", ".py", ".ts", ".tsx"):
             parts.append(f.read_text(encoding="utf-8", errors="replace"))
     return "\n".join(parts)
 
@@ -263,14 +263,21 @@ def handle_weak_assert_scan_q05(ctx: ExecutionContext, result: PhaseResult) -> N
             primary_repo = repo_path
         if use_cut_fallback:
             for cls in classes_under_test:
+                # Java/Kotlin
                 for match in repo.rglob(f"{cls}*Test*.java"):
                     if "/test/" in str(match):
                         rel = str(match.relative_to(repo))
                         if rel not in test_files:
                             test_files.append(rel)
+                # TypeScript
+                for ts_pattern in (f"{cls}*.test.ts", f"{cls}*.spec.ts", f"{cls}*.test.tsx", f"{cls}*.spec.tsx"):
+                    for match in repo.rglob(ts_pattern):
+                        rel = str(match.relative_to(repo))
+                        if rel not in test_files:
+                            test_files.append(rel)
         else:
             for cls in test_classes:
-                for suffix in (".java", ".kt"):
+                for suffix in (".java", ".kt", ".ts", ".tsx"):
                     matches = list(repo.rglob(f"{cls}{suffix}"))
                     for m in matches:
                         rel = str(m.relative_to(repo))

@@ -34,11 +34,18 @@ _PHANTOM_METHOD = re.compile(
 )
 
 
-def _collect_supplemental_java(phase_root: Path) -> list[Path]:
+_SUPPLEMENTAL_SUFFIXES = frozenset((".java", ".kt", ".ts", ".tsx", ".patch"))
+
+
+def _collect_supplemental_files(phase_root: Path) -> list[Path]:
     d = phase_root / "supplemental_tests"
     if not d.is_dir():
         return []
-    return sorted(p for p in d.rglob("*") if p.is_file() and p.suffix in (".java", ".patch"))
+    return sorted(p for p in d.rglob("*") if p.is_file() and p.suffix in _SUPPLEMENTAL_SUFFIXES)
+
+
+# 向后兼容别名
+_collect_supplemental_java = _collect_supplemental_files
 
 
 def _check_eut_missing_se(data: dict[str, Any]) -> list[str]:
@@ -61,11 +68,22 @@ def _check_wrong_directory(data: dict[str, Any]) -> list[str]:
         loc = tc.get("test_location") or {}
         if not isinstance(loc, dict):
             continue
-        f = str(loc.get("file") or "").replace("\\", "/").lower()
-        if "src/main/" in f and ("test" in f.lower() or f.endswith(".java")):
+        f = str(loc.get("file") or "").replace("\\", "/")
+        fl = f.lower()
+        # Java/Kotlin: 测试文件不应放在 src/main/
+        if "src/main/" in fl and ("test" in fl or fl.endswith(".java") or fl.endswith(".kt")):
             errors.append(
                 f"BLOCKED: Q05 wrong_directory — test_cases[{i}] test_location 指向 src/main: {loc.get('file')}"
             )
+        # TypeScript: 测试文件不应放在 src/ 根目录下（应在 __tests__/ 或同文件 *.test.ts）
+        # 判断：路径在 src/ 下，但既不含 __tests__ 也不是 .test.ts/.spec.ts
+        elif fl.endswith((".ts", ".tsx")) and "src/" in fl:
+            name = Path(f).name.lower()
+            is_test_file = ".test." in name or ".spec." in name or "__tests__" in fl
+            if not is_test_file:
+                errors.append(
+                    f"BLOCKED: Q05 wrong_directory — test_cases[{i}] test_location 指向非测试 TS 文件: {loc.get('file')}"
+                )
     return errors
 
 

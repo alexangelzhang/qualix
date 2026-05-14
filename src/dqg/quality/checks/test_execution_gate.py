@@ -43,7 +43,10 @@ def _discover_new_test_classes(code_repo: Path) -> list[dict[str, str]]:
     test_files: list[dict[str, str]] = []
     for line in lines:
         line = line.strip()
-        if not line.endswith("Test.java") or "src/test/" not in line:
+        is_java_test = line.endswith("Test.java") and "src/test/" in line
+        is_kotlin_test = line.endswith("Test.kt") and "src/test/" in line
+        is_ts_test = any(line.endswith(ext) for ext in (".test.ts", ".spec.ts", ".test.tsx", ".spec.tsx"))
+        if not (is_java_test or is_kotlin_test or is_ts_test):
             continue
         class_name = Path(line).stem
         module = line.split("/src/test/")[0] if "/src/test/" in line else ""
@@ -52,6 +55,7 @@ def _discover_new_test_classes(code_repo: Path) -> list[dict[str, str]]:
                 "class_name": class_name,
                 "module": module,
                 "path": line,
+                "language": "typescript" if is_ts_test else "java",
             }
         )
     return test_files
@@ -70,13 +74,20 @@ def run_test_check(
     code_repo: Path,
     test_classes: list[str],
     module: str | None = None,
+    language: str = "java",
 ) -> dict[str, Any]:
-    """编译+运行指定测试类.
+    """编译+运行指定测试类，支持 Java（Maven）和 TypeScript（Jest/Vitest）.
 
     Returns:
         {passed, phase, build_tool, test_classes, error_summary}
     """
     build_tool = detect_build_tool(code_repo)
+
+    # TypeScript 路径
+    if language == "typescript":
+        return _run_ts_test_check(code_repo, test_classes)
+
+    # Java/Maven 路径（原有逻辑）
     if not build_tool or build_tool != "maven":
         return {
             "passed": True,
@@ -127,6 +138,41 @@ def run_test_check(
         "phase": "test",
         "build_tool": build_tool,
         "test_classes": test_classes,
+        "error_summary": "",
+    }
+
+
+def _run_ts_test_check(code_repo: Path, test_files: list[str]) -> dict[str, Any]:
+    """TypeScript 测试执行：用 TypeScriptProvider.run_tests()."""
+    from dqg.languages.typescript.provider import TypeScriptProvider
+
+    provider = TypeScriptProvider()
+
+    # 无 package.json / tsconfig.json → skip（不 BLOCK）
+    if not (code_repo / "package.json").exists() and not (code_repo / "tsconfig.json").exists():
+        return {
+            "passed": True,
+            "phase": "skip",
+            "build_tool": "npm",
+            "test_classes": test_files,
+            "error_summary": "无 package.json / tsconfig.json，跳过 TS 测试验证",
+        }
+
+    result = provider.run_tests(code_repo)
+    if not result["success"]:
+        summary = _extract_errors(result["stdout"] + result["stderr"])
+        return {
+            "passed": False,
+            "phase": "test",
+            "build_tool": "npm",
+            "test_classes": test_files,
+            "error_summary": summary or result["stderr"][:500] or "TS 测试失败",
+        }
+    return {
+        "passed": True,
+        "phase": "test",
+        "build_tool": "npm",
+        "test_classes": test_files,
         "error_summary": "",
     }
 
@@ -192,7 +238,21 @@ def check_q05_test_execution(
             log.info("仓库 %s 无新增测试文件，跳过", repo_path.name)
             continue
 
-        by_module = _group_by_module(test_files)
+        # 按语言分组：TS 文件整批执行，Java 文件按 Maven 模块分组
+        ts_files = [tf for tf in test_files if tf.get("language") == "typescript"]
+        java_files = [tf for tf in test_files if tf.get("language") != "typescript"]
+
+        if ts_files:
+            ts_paths = [tf["path"] for tf in ts_files]
+            log.info("测试验证(TS): %s — %d 个测试文件", repo_path.name, len(ts_paths))
+            result = run_test_check(repo_path, ts_paths, language="typescript")
+            total_tested += len(ts_paths)
+            if not result["passed"]:
+                errors.append(f"BLOCKED: {repo_path.name} TS 测试失败 ({len(ts_paths)} 个文件)")
+                if result["error_summary"]:
+                    errors.append(f"  错误摘要:\n{result['error_summary']}")
+
+        by_module = _group_by_module(java_files)
         for module, classes in by_module.items():
             mod_arg = module if module else None
             log.info(

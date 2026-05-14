@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from dqg.context.code_skeleton import SkeletonResult
+    from dqg.languages.base import CoverageResult
 
 from dqg.json_utils import load_json
 from dqg.languages.base import (
@@ -136,6 +137,59 @@ class TypeScriptProvider(LanguageProvider):
             return CompileResult(
                 passed=False, build_tool="tsc", command=cmd, stderr=str(exc), error_summary=f"编译执行异常: {exc}"
             )
+
+    def run_tests(self, repo_root: Path, test_pattern: str = "") -> dict:
+        """执行 Jest/Vitest 测试，返回 {success, stdout, stderr, returncode}."""
+        fw = self.detect_test_framework(repo_root)
+        runner = fw.name if fw else "jest"
+        cmd_parts = ["npx", runner, "--passWithNoTests"]
+        if runner == "jest":
+            cmd_parts += ["--forceExit"]
+        if test_pattern:
+            cmd_parts += ["--testPathPattern", test_pattern]
+        cmd = " ".join(cmd_parts)
+        log.info("测试执行: %s (cwd=%s)", cmd, repo_root)
+        try:
+            result = subprocess.run(
+                cmd,
+                cwd=str(repo_root),
+                capture_output=True,
+                text=True,
+                timeout=300,
+                shell=True,
+            )
+            return {
+                "success": result.returncode == 0,
+                "stdout": result.stdout[-4000:],
+                "stderr": result.stderr[-2000:],
+                "returncode": result.returncode,
+            }
+        except subprocess.TimeoutExpired:
+            return {"success": False, "stdout": "", "stderr": "测试执行超时（>300s）", "returncode": -1}
+        except Exception as exc:
+            return {"success": False, "stdout": "", "stderr": str(exc), "returncode": -1}
+
+    def run_coverage(self, repo_root: Path) -> CoverageResult | None:
+        """运行 Jest --coverage，解析 Istanbul coverage-summary.json。"""
+
+        fw = self.detect_test_framework(repo_root)
+        runner = fw.name if fw else "jest"
+        cmd = f"npx {runner} --coverage --passWithNoTests --forceExit --coverageReporters json-summary"
+        log.info("覆盖率收集: %s (cwd=%s)", cmd, repo_root)
+        try:
+            subprocess.run(cmd, cwd=str(repo_root), capture_output=True, text=True, timeout=300, shell=True)
+        except Exception:
+            return None
+
+        candidates = [
+            repo_root / "coverage" / "coverage-summary.json",
+            repo_root / "coverage-summary.json",
+            repo_root / ".nyc_output" / "coverage-summary.json",
+        ]
+        report_path = next((p for p in candidates if p.exists()), None)
+        if not report_path:
+            return None
+        return _parse_istanbul_json(report_path)
 
     # ── AST 分析 ──
 
@@ -341,3 +395,42 @@ class TypeScriptProvider(LanguageProvider):
             tail = [line.strip() for line in lines[-10:] if line.strip()]
             errors = tail[-3:]
         return "\n".join(errors)
+
+
+def _parse_istanbul_json(report_path: Path) -> CoverageResult | None:
+    """解析 Istanbul/c8 的 coverage-summary.json，返回 CoverageResult。
+
+    Istanbul 格式示例：
+    {
+      "total": {
+        "lines":      {"total": 100, "covered": 80, "skipped": 0, "pct": 80},
+        "branches":   {"total":  40, "covered": 30, "skipped": 0, "pct": 75},
+        "statements": {"total": 120, "covered": 96, "skipped": 0, "pct": 80},
+        ...
+      }
+    }
+    """
+    from dqg.languages.base import CoverageResult
+
+    data = load_json(report_path)
+    if not data or not isinstance(data, dict):
+        return None
+    total = data.get("total", {})
+    if not total:
+        return None
+
+    def _rate(key: str) -> float:
+        section = total.get(key, {})
+        pct = section.get("pct")
+        if pct is not None:
+            return round(float(pct) / 100.0, 4)
+        covered = section.get("covered", 0)
+        tot = section.get("total", 0)
+        return round(covered / tot, 4) if tot else 0.0
+
+    return CoverageResult(
+        line_coverage=_rate("lines"),
+        branch_coverage=_rate("branches"),
+        statement_coverage=_rate("statements"),
+        raw_report=total,
+    )
