@@ -26,7 +26,9 @@ def _check_reasoning_log(int_dir: Path, phase_dir: Path) -> dict[str, str]:
         reasoning_log = phase_dir / "_reasoning_log.md"
     if reasoning_log.exists():
         content = reasoning_log.read_text(encoding="utf-8", errors="ignore")
-        step_count = content.count("## Step")
+        import re as _re
+
+        step_count = len(_re.findall(r"#{2,3}\s+Step", content))
         return {
             "name": "reasoning_log",
             "status": "PASS" if step_count >= 2 else "WARNING",

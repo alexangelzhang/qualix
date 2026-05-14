@@ -45,8 +45,8 @@ _INVALID_ID_PATTERN = re.compile(
 # 风险等级: P0/P1/P2 或 高/中/低
 _RISK_LEVEL_PATTERN = re.compile(r"\bP[012]\b|[高中低]")
 
-# 置信度: High/Medium/Low
-_CONFIDENCE_PATTERN = re.compile(r"\b(High|Medium|Low)\b", re.IGNORECASE)
+# 置信度: High/Medium/Low 或中文 高/中/低
+_CONFIDENCE_PATTERN = re.compile(r"\b(High|Medium|Low)\b|[高中低]", re.IGNORECASE)
 
 # 推理日志步骤标记: Step 0, Step 1, ... 或 ## Step
 _STEP_PATTERN = re.compile(r"(?:^|\n)\s*#{1,3}\s*Step\s+\d", re.IGNORECASE)

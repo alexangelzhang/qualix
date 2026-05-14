@@ -71,13 +71,17 @@ def read_report(pd: Path, phase_id: str) -> str:
 
 
 def _check_reasoning_log(pd: Path, report: str, phase_id: str) -> tuple[bool, str]:
-    log = pd / "_reasoning_log.md"
+    # 优先查 _internal/ 子目录（finalize hard gate 写入位置），再回退到 phase root
+    log = pd / "_internal" / "_reasoning_log.md"
+    if not log.exists():
+        log = pd / "_reasoning_log.md"
     if not log.exists():
         return False, "文件不存在"
     content = log.read_text(encoding="utf-8")
     if len(content) < 100:
         return False, f"内容过少（{len(content)} 字符）"
-    step_count = content.count("## Step")
+    # 兼容 ## Step（H2）和 ### Step（H3）两种标题格式
+    step_count = len(re.findall(r"#{2,3}\s+Step", content))
     if step_count < 2:
         return False, f"仅记录 {step_count} 个 Step，不完整"
     return True, f"{step_count} 个 Step 已记录"

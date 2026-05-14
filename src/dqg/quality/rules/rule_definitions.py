@@ -12,16 +12,24 @@ from typing import Any
 # 预编译正则：避免在检查函数内重复编译
 # ---------------------------------------------------------------------------
 
-RE_CONFIDENCE = re.compile(r"\[置信度[:：]\s*(High|Medium|Low)\]|置信度[:：]\s*(High|Medium|Low)|`(High|Medium|Low)`")
+RE_CONFIDENCE = re.compile(
+    r"\[置信度[:：]\s*(High|Medium|Low|高|中|低)\]"  # [置信度: High] 格式
+    r"|置信度[:：]\s*(High|Medium|Low|高|中|低)"  # 置信度：High 格式
+    r"|`(High|Medium|Low)`"  # `High` 格式
+    r"|\|\s*(High|Medium|Low)\s*[\|（]"  # 表格单元格 | High |
+    r"|\|\s*([高中低])\s*[\|（]"  # 表格单元格 | 高 |（中文）
+)
 RE_CONFIDENCE_D = re.compile(
-    r"\[置信度[:：]\s*(High|Medium|Low)\]|置信度[:：]\s*(High|Medium|Low)"
+    r"\[置信度[:：]\s*(High|Medium|Low|高|中|低)\]|置信度[:：]\s*(High|Medium|Low|高|中|低)"
     r'|`(High|Medium|Low)`|"confidence":\s*"(High|Medium|Low)"|BLOCKER|MAJOR|MINOR'
 )
 RE_UT_EUT = re.compile(r"\bUT-\d+|EUT-\d+|\bUT\b.*测试用例")
 RE_GAP_TABLE_LINE = re.compile(r"\s*\|\s*GAP-\d+")
 RE_GAP_DEF_LINE = re.compile(r"\s*GAP-\d+")
-RE_GAP_LEVEL = re.compile(r"P[012]|风险等级")
-RE_OPEN_TABLE_LINE = re.compile(r"\s*\|.*OPEN-\d+")
+# 风险等级：P0/P1/P2 或表格单元格中的中文 高/中/低（限定 | 上下文，避免匹配"中间件"等词内字符）
+RE_GAP_LEVEL = re.compile(r"P[012]|风险等级|\|\s*[高中低]\s*\|")
+# 仅匹配 OPEN-ID 在首列的表格行，避免误匹配 SE/BR 等行中对 OPEN 的引用
+RE_OPEN_TABLE_LINE = re.compile(r"\s*\|\s*OPEN-\d+")
 RE_OPEN_DEF_LINE = re.compile(r"\s*OPEN-\d+")
 RE_OPEN_OWNER = re.compile(r"决策方|产品|研发|业务|PM")
 RE_SE_LINE = re.compile(r".*SE-\d+")
