@@ -65,8 +65,14 @@ _CONCLUSION_PATTERN = re.compile(
 # 合法 ID 格式（用于判断表格行是否有实质内容）
 _VALID_ID_PATTERN = re.compile(r"\b(REQ|BR|SE|GAP|OPEN)-\d{1,4}\b")
 
-# 自我评审章节起止
-_SELF_REVIEW_HEADING = re.compile(r"^#{1,3}\s*(自我评审|Judge|Critique|Step\s+\d)")
+# 豁免章节：自我评审 + 叙述性章节（边界约定/评审结论/范围外发现等）
+# 支持带序号标题（如 "## 11. 自我评审记录"）
+_SELF_REVIEW_HEADING = re.compile(
+    r"^#{1,3}\s*(\d+\.\s*)?"
+    r"(自我评审|Judge|Critique|Step\s+\d"
+    r"|边界约定|评审结论|范围外发现|统计|自检|修正|评审范围)",
+    re.IGNORECASE,
+)
 
 
 def iter_conclusion_lines(text: str) -> Iterator[tuple[int, str]]:

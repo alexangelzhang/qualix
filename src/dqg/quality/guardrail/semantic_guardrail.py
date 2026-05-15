@@ -70,8 +70,18 @@ class ReportSemanticGuardrail(PhaseGuardrail):
                 continue
 
             desc = str(req.get("description", ""))
-            details = str(req.get("details", ""))
-            full_text = f"{desc} {details}"
+            # details 字段在 PhaseAOutput schema 中不存在，扫描所有业务字段
+            full_text = " ".join(
+                filter(
+                    None,
+                    [
+                        desc,
+                        str(req.get("behavior_change", "")),
+                        str(req.get("acceptance_criteria", "")),
+                        str(req.get("trigger", "")),
+                    ],
+                )
+            )
 
             if len(full_text) < 30 or not self._BR_DETAIL_KEYWORDS.search(full_text):
                 results.append(

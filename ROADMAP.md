@@ -114,7 +114,7 @@
 
 - 铁律三层强制执行机制：
   - 第一层：确定性检测（`report_quality_checks.py`，finalize handler order=55）— 来源标注/ID 格式/GAP 风险等级/OPEN 决策方/置信度/推理日志质量 6 项正则检测
-  - 第二层：语义 guardrail（`semantic_guardrail.py`，`ReportSemanticGuardrail`）— BR 概括性描述/覆盖度虚高/跨 Phase 越权/P0 未闭环 4 项语义检测
+  - 第二层：语义 guardrail（`semantic_guardrail.py`，`ReportSemanticGuardrail`）— BR 概括性描述/覆盖度虚高/跨 Phase 越权/P0 未闭环 4 项语义检测（BR detail check 已修复：`full_text` 从 `description+details` 扩展为 `description+behavior_change+acceptance_criteria+trigger`，消除短标题 BR 的误报）
   - 第三层：行为 hook（`git_safety_guard.py`，PreToolUse）— git push/force push/--no-verify 拦截
 - 文档同步自动化（`doc_sync_check.py` + `completion_gate.py` 集成）— 按变更范围精准映射需要更新的文档
 - RunStatus 5 值枚举（`runtime/result.py`）— ok/timeout/adapter_crashed/parse_failed/tainted，区分 infra failure 和 logic failure，infra failure 不计入 Judge 质量评分
