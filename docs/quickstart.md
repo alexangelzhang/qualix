@@ -35,8 +35,7 @@ dqg-run any-project doctor
 确认输出全部 ✓ 或只有 ⚠（警告不阻断）。
 
 **可选增强**（不装不影响基础流程）：
-- 高精度 OCR 兜底：`pip install surya-ocr`（~500MB）
-- VLM 图片深度解析：配置环境变量 `ANTHROPIC_API_KEY` / `OPENAI_API_KEY` / `DASHSCOPE_API_KEY` / `OPENROUTER_API_KEY`
+- VLM 图片深度解析：配置环境变量 `ANTHROPIC_API_KEY` / `DASHSCOPE_API_KEY`
 
 ## Step 3: 初始化项目
 

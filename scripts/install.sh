@@ -62,39 +62,7 @@ pip install -e . -q && ok "dqg (pip install -e .)" || { fail "pip install -e . �
 pip install larkkit -q 2>/dev/null && ok "larkkit" || warn "larkkit 安装失败（飞书摄入不可用）"
 
 # ---------------------------------------------------------------------------
-# 3. Tesseract OCR
-# ---------------------------------------------------------------------------
-echo ""
-echo "安装 OCR 引擎..."
-if command -v tesseract &>/dev/null; then
-    ok "tesseract 已安装"
-else
-    if [[ "$OSTYPE" == "darwin"* ]]; then
-        if command -v brew &>/dev/null; then
-            echo "    $ brew install tesseract tesseract-lang"
-            brew install tesseract tesseract-lang 2>/dev/null && ok "tesseract + 中文语言包" || warn "tesseract 安装失败（图片 OCR 不可用）"
-        else
-            warn "需要 Homebrew 安装 tesseract (https://brew.sh)"
-        fi
-    elif [[ "$OSTYPE" == "linux"* ]]; then
-        echo "    $ sudo apt-get install -y tesseract-ocr tesseract-ocr-chi-sim"
-        sudo apt-get install -y tesseract-ocr tesseract-ocr-chi-sim 2>/dev/null && ok "tesseract + 中文语言包" || warn "tesseract 安装失败"
-    else
-        warn "请手动安装 tesseract: https://github.com/tesseract-ocr/tesseract"
-    fi
-fi
-
-# 验证中文语言包
-if command -v tesseract &>/dev/null; then
-    if tesseract --list-langs 2>/dev/null | grep -q "chi_sim"; then
-        ok "tesseract 中文语言包 (chi_sim)"
-    else
-        warn "tesseract 缺少中文语言包"
-    fi
-fi
-
-# ---------------------------------------------------------------------------
-# 4. Node.js + agent-browser
+# 3. Node.js + agent-browser
 # ---------------------------------------------------------------------------
 echo ""
 echo "安装 agent-browser..."
@@ -116,7 +84,7 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-# 5. Playwright（board 截图兜底）
+# 4. Playwright（画板截图兜底）
 # ---------------------------------------------------------------------------
 echo ""
 echo "安装 Playwright..."
@@ -130,7 +98,7 @@ if python3 -m playwright --version &>/dev/null 2>&1; then
 fi
 
 # ---------------------------------------------------------------------------
-# 6. 配置 AI IDE MCP
+# 5. 配置 AI IDE MCP
 # ---------------------------------------------------------------------------
 echo ""
 echo "配置 AI IDE..."
@@ -180,7 +148,7 @@ if command -v codex &>/dev/null; then
 fi
 
 # ---------------------------------------------------------------------------
-# 7. 验证
+# 6. 验证
 # ---------------------------------------------------------------------------
 echo ""
 echo "=========================================="
