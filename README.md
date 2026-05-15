@@ -87,10 +87,10 @@ Q01 ──→ Q02(可选) ──→ Q03 ──→ Q04 ──→ Q07
 ```bash
 git clone https://git.n.xiaomi.com/nr-car-service/dev-quality-gate.git
 cd dev-quality-gate
-./install.sh
+./scripts/install.sh
 ```
 
-`install.sh` 把 `skills/ references/ profiles/ regression/` 拷到 `~/.dqg/`，并通过 `pip install --user` 把 Python 包装到 site-packages。用户项目 cwd 下看不到 DQG 源码，Claude 读不到就不会改。
+`scripts/install.sh` 一键完成：DQG 包安装、larkkit（飞书摄入）、agent-browser + playwright（画板截图）、AI IDE MCP 配置，并自动运行 doctor 验收。完成后用户项目 cwd 下看不到 DQG 源码，Claude 读不到就不会改。
 
 在你的项目目录初始化工作区：
 
