@@ -1,1 +1,0 @@
-"""Local OCR engine abstraction."""

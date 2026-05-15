@@ -18,7 +18,6 @@ cd dev-quality-gate
 
 一键脚本会自动完成：
 - 安装 Python 依赖（DQG + larkkit）
-- 安装 OCR 引擎（tesseract + 中文语言包）
 - 安装浏览器自动化（agent-browser）
 - 检测并配置 AI IDE（Claude Code / Cursor / Windsurf）
 - 运行环境检查（doctor）

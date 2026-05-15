@@ -163,9 +163,6 @@ def _build_parser() -> argparse.ArgumentParser:
     # doctor
     sub.add_parser("doctor", help="环境健康检查（Python/依赖/脚本/profiles/飞书 token）")
 
-    # setup-ocr
-    sub.add_parser("setup-ocr", help="一键安装 OCR 依赖（tesseract + 中文语言包）")
-
     # update
     sub.add_parser("update", help="更新 DQG 到最新版本（git pull + version.json 同步）")
 
@@ -276,11 +273,6 @@ def _dispatch(cmd: str) -> callable:
         from dqg.commands.setup import cmd_doctor, cmd_init, cmd_update, cmd_version
 
         return {"init": cmd_init, "doctor": cmd_doctor, "update": cmd_update, "version": cmd_version}[cmd]
-
-    if cmd == "setup-ocr":
-        from dqg.commands.setup_ocr import cmd_setup_ocr
-
-        return cmd_setup_ocr
 
     if cmd in ("metrics", "observe", "regression"):
         from dqg.commands.ops import cmd_metrics, cmd_observe, cmd_regression

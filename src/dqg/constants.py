@@ -407,9 +407,4 @@ IMAGE_SIZE_LIGHT_THRESHOLD = 50_000  # 50KB
 # 需要精读的图片类型关键词（流程图/状态机/架构图）
 IMAGE_DEEP_READ_KEYWORDS = ("流程", "状态", "架构", "时序", "ER", "拓扑", "flowchart", "state", "sequence")
 
-# OCR 质量阈值：低于此值时 fallback 到 VLM
-OCR_QUALITY_THRESHOLD = 0.6
-# OCR 默认语言（tesseract 格式）
-OCR_DEFAULT_LANGS = "chi_sim+eng"
-
 # 枚举单一真源（T7）: `EnumSource` / `render_enum_contract_prefix` → `dqg.context.enum_contract`

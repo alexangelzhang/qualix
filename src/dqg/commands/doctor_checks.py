@@ -108,25 +108,6 @@ def run_doctor_checks(base_dir: Path) -> tuple[list[str], list[str], dict[str, A
         signals["git_repo"] = False
         issues.append("git 未安装")
 
-    tesseract_path = shutil.which("tesseract")
-    surya_path = shutil.which("surya_ocr")
-    signals["tesseract_path"] = tesseract_path
-    signals["surya_ocr_path"] = surya_path
-    if tesseract_path:
-        try:
-            ver = subprocess.run([tesseract_path, "--version"], capture_output=True, text=True, timeout=5)
-            signals["tesseract_version_line"] = ver.stdout.splitlines()[0] if ver.stdout else "unknown"
-            lang_result = subprocess.run([tesseract_path, "--list-langs"], capture_output=True, text=True, timeout=5)
-            has_chi = "chi_sim" in lang_result.stdout
-            signals["tesseract_chi_sim"] = has_chi
-            if not has_chi:
-                warnings.append("tesseract 缺少中文语言包 chi_sim")
-        except (subprocess.TimeoutExpired, FileNotFoundError):
-            signals["tesseract_chi_sim"] = False
-            warnings.append("tesseract 版本检测失败")
-    else:
-        warnings.append("tesseract 未安装（图片 OCR 不可用）")
-
     vlm_keys = {
         "ANTHROPIC_API_KEY": "Anthropic Claude",
         "OPENAI_API_KEY": "OpenAI GPT-4V",
@@ -209,21 +190,6 @@ def print_doctor_human(base_dir: Path, issues: list[str], warnings: list[str], s
         print("  ✓ git 仓库")
     else:
         print("  ⚠ 当前目录不是 git 仓库")
-
-    tp = signals.get("tesseract_path")
-    if tp:
-        print(f"  ✓ tesseract ({signals.get('tesseract_version_line', '')})")
-        if signals.get("tesseract_chi_sim"):
-            print("  ✓ tesseract 中文语言包 (chi_sim)")
-        else:
-            print("  ⚠ tesseract 缺少中文语言包 (brew install tesseract-lang)")
-    else:
-        print("  ⚠ tesseract 未安装 (brew install tesseract tesseract-lang)")
-
-    if signals.get("surya_ocr_path"):
-        print("  ✓ surya_ocr (高精度 OCR 兜底)")
-    else:
-        print("  - surya_ocr 未安装 (可选，pip install surya-ocr)")
 
     vlm_keys = {
         "ANTHROPIC_API_KEY": "Anthropic Claude",

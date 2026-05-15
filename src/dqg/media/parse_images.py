@@ -236,15 +236,8 @@ def _analyze_single(
 ) -> dict[str, Any]:
     """解析单张图片（线程安全，供并发调用）.
 
-    三层 fallback 链路：
-    1. 本地 OCR（tesseract → surya）+ 语义分析
-    2. VLM Provider（quality_score < 阈值时）
-    3. manual_review_required
-
     vlm_provider: VlmProvider 实例或旧版 dashscope 模块（向后兼容）。
     """
-    from dqg.constants import OCR_DEFAULT_LANGS, OCR_QUALITY_THRESHOLD
-
     image_path = Path(asset["path"])
     token = asset.get("token", "")
     tier = _classify_image_tier(asset)
@@ -266,37 +259,7 @@ def _analyze_single(
         "file_size": asset.get("file_size") or 0,
     }
 
-    # Layer 1: 本地 OCR（deep tier 跳过，流程图/状态机需要 VLM 理解关系）
-    ocr_done = False
-    if tier != "deep":
-        try:
-            from dqg.media.ocr.engine import is_ocr_available, ocr_extract
-
-            if is_ocr_available():
-                ocr_result = ocr_extract(image_path, langs=OCR_DEFAULT_LANGS)
-                if ocr_result.text.strip():
-                    from dqg.media.ocr.analyzer import analyze_ocr_result
-
-                    analysis = analyze_ocr_result(
-                        ocr_result=ocr_result,
-                        asset=asset,
-                        quality_threshold=OCR_QUALITY_THRESHOLD,
-                    )
-                    if not analysis.needs_vlm:
-                        row["status"] = "ok"
-                        row["backend"] = f"ocr:{ocr_result.engine}"
-                        row["analysis"] = analysis.analysis
-                        row["summary"] = analysis.summary
-                        ocr_done = True
-                    else:
-                        row["_ocr_partial"] = analysis.analysis
-        except Exception:
-            pass
-
-    if ocr_done:
-        return row
-
-    # Layer 2: VLM Provider
+    # VLM Provider
     if vlm_provider is not None:
         backend_name = getattr(vlm_provider, "backend_name", "dashscope")
         effective_prompt = LIGHT_PROMPT if tier == "light" else prompt
