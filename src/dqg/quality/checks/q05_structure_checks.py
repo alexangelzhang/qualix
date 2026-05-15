@@ -1,16 +1,22 @@
 """Q05 结构合规补充校验（T5）：eut_missing_se / wrong_directory / mock 类启发式.
 
 与 schema、weak_assert_gate、test_execution_gate 互补；不重复编译运行逻辑（compile_fail 见 test_execution_gate）。
+
+新增检查（并发/幂等/锁强管控）：
+- concurrent_se_no_eut：SE 描述含并发/幂等/分布式锁关键词时，必须有非占位 EUT（不允许全部为 TODO）
+- lock_annotation_not_in_scope：代码仓库中 @DistributedLocked 等注解的持有类未出现在 EUT 目标中
 """
 
 from __future__ import annotations
 
 import re
+import subprocess
 from pathlib import Path
 from typing import Any
 
 from dqg.constants import STRUCTURED_JSON_MAP
 from dqg.core.phase_registry import PHASE_DEFS
+from dqg.core.state_machine import internal_dir as _internal_dir
 from dqg.core.state_machine import phase_dir as _phase_dir
 from dqg.json_utils import load_json
 from dqg.log import get_logger
@@ -112,6 +118,188 @@ def _check_mock_patterns(java_paths: list[Path]) -> list[str]:
     return errors
 
 
+# ── 并发/幂等/锁 SE 强管控 ────────────────────────────────────────────────────
+
+# SE 描述中触发并发强检查的关键词（中英文兼顾）
+_CONCURRENT_SE_KEYWORDS: frozenset[str] = frozenset(
+    [
+        "并发",
+        "幂等",
+        "分布式锁",
+        "重复提交",
+        "重复请求",
+        "乐观锁",
+        "悲观锁",
+        "concurrent",
+        "idempotent",
+        "distributed lock",
+        "race condition",
+        "mutex",
+        "duplicate submit",
+    ]
+)
+
+# EUT then 字段被认定为"占位符/TODO"的模式
+_TODO_THEN_PATTERN = re.compile(
+    r"^\s*(TODO|待补充|待实现|N/?A|不适用|集成测试|integration\s+test|需要集成|暂不覆盖)\s*$",
+    re.IGNORECASE,
+)
+
+# 需要在单测中明确追踪的代码注解（分布式锁/事务/幂等）
+_LOCK_ANNOTATIONS: tuple[str, ...] = (
+    "@DistributedLocked",
+    "@Idempotent",
+)
+
+
+def _se_is_concurrent(se_desc: str) -> bool:
+    """判断 SE 描述是否含并发/幂等/锁语义关键词."""
+    desc_lower = se_desc.lower()
+    return any(kw in desc_lower for kw in _CONCURRENT_SE_KEYWORDS)
+
+
+def _check_concurrent_se_no_eut(
+    q05_data: dict[str, Any],
+    q01_data: dict[str, Any] | None,
+) -> list[str]:
+    """SE 描述含并发/幂等/锁语义时，必须有至少一个非占位 EUT.
+
+    规则：
+    - 找出所有描述含并发关键词的 SE（来自 Q01 phase_a_structured.json）
+    - 对每个并发 SE，检查 phase_b_structured.json 中是否有 bound_se 匹配
+      且 then 字段不是纯 TODO 占位的 EUT
+    - 没有任何 EUT → BLOCKED
+    - 只有 TODO 占位 EUT → BLOCKED（TODO 不算有效覆盖）
+
+    设计原则：并发/幂等保护（@DistributedLocked 等）在 Mockito 单测中
+    AOP 不生效，但注解验证（反射）可以在单测中覆盖。不允许以"需要集成测试"
+    为由跳过所有单测级别的覆盖。
+    """
+    errors: list[str] = []
+
+    # 从 Q01 产物识别并发 SE
+    ses: list[dict[str, Any]] = []
+    if q01_data and isinstance(q01_data, dict):
+        ses = q01_data.get("semantic_expectations") or []
+
+    # 构建 bound_se → EUT 列表的映射
+    eut_map: dict[str, list[dict[str, Any]]] = {}
+    for eut in q05_data.get("eut_items") or []:
+        if not isinstance(eut, dict):
+            continue
+        bs = (eut.get("bound_se") or "").strip()
+        if bs:
+            eut_map.setdefault(bs, []).append(eut)
+
+    for se in ses:
+        if not isinstance(se, dict):
+            continue
+        se_id = (se.get("se_id") or "").strip()
+        desc = se.get("description") or se.get("behavior") or se.get("desc") or ""
+        if not se_id or not _se_is_concurrent(str(desc)):
+            continue
+
+        matched_euts = eut_map.get(se_id, [])
+
+        if not matched_euts:
+            errors.append(
+                f"BLOCKED: Q05 concurrent_se_no_eut — {se_id}（描述含并发/幂等/锁语义）"
+                f" 没有任何 EUT 绑定。"
+                f" 即使 AOP 无法在单测中验证锁行为，也必须用反射验证注解存在性或设计注解守护测试。"
+                f" SE 描述：{str(desc)[:60]}"
+            )
+        else:
+            # 所有 EUT 的 then 都是 TODO 占位
+            non_todo = [e for e in matched_euts if not _TODO_THEN_PATTERN.match(str(e.get("then") or ""))]
+            if not non_todo:
+                eut_ids = [e.get("eut_id", "?") for e in matched_euts]
+                errors.append(
+                    f"BLOCKED: Q05 concurrent_se_todo_only — {se_id}（并发/幂等/锁语义）"
+                    f" 的所有 EUT {eut_ids} then 字段均为 TODO 占位，不算有效覆盖。"
+                    f" 至少需要一个注解验证或防回归守护测试。"
+                )
+
+    return errors
+
+
+def _check_lock_annotation_not_in_scope(
+    q05_data: dict[str, Any],
+    code_repos: list[str],
+) -> list[str]:
+    """代码仓库中含 @DistributedLocked/@Idempotent 注解的类未出现在 EUT 目标中时 WARN.
+
+    扫描每个 code_repo 的 git diff 变更文件，找出含锁注解的类，
+    检查这些类名是否出现在 phase_b_structured.json 的 EUT given/when/then 或
+    test_cases 的 class_under_test 中。
+
+    失败级别：WARNING（不阻断 finalize），但记录到 soft_blocked 供 approve 判断。
+    """
+    warnings: list[str] = []
+    if not code_repos:
+        return warnings
+
+    # 提取 EUT 和 test_cases 中已提及的类名（粗粒度：取最后一段 SimpleClassName）
+    mentioned_classes: set[str] = set()
+    for eut in q05_data.get("eut_items") or []:
+        if not isinstance(eut, dict):
+            continue
+        for field in ("given", "when", "then"):
+            text = str(eut.get(field) or "")
+            # 简单类名：大写字母开头的驼峰单词
+            mentioned_classes.update(re.findall(r"\b[A-Z][a-zA-Z0-9]+\b", text))
+    for tc in q05_data.get("test_cases") or []:
+        if not isinstance(tc, dict):
+            continue
+        cut = str(tc.get("class_under_test") or "")
+        if cut:
+            mentioned_classes.add(cut.split(".")[-1])
+
+    for repo in code_repos:
+        repo_path = Path(repo)
+        if not repo_path.is_dir():
+            continue
+        try:
+            # 只扫描 git diff 变更文件（避免全仓库扫描耗时）
+            result = subprocess.run(
+                ["git", "diff", "--name-only", "origin/master...HEAD"],
+                cwd=repo_path,
+                capture_output=True,
+                text=True,
+                timeout=15,
+            )
+            changed_files = [repo_path / f.strip() for f in result.stdout.splitlines() if f.strip().endswith(".java")]
+        except Exception:
+            continue
+
+        for java_file in changed_files:
+            if not java_file.is_file():
+                continue
+            try:
+                src = java_file.read_text(encoding="utf-8", errors="replace")
+            except OSError:
+                continue
+
+            has_lock = any(ann in src for ann in _LOCK_ANNOTATIONS)
+            if not has_lock:
+                continue
+
+            # 提取类名（public class/interface/enum Xxx）
+            class_names = re.findall(
+                r"\b(?:public|protected)\s+(?:class|interface|enum)\s+([A-Z][a-zA-Z0-9]+)",
+                src,
+            )
+            for cls in class_names:
+                if cls not in mentioned_classes:
+                    warnings.append(
+                        f"WARNING: Q05 lock_annotation_not_in_scope — "
+                        f"{java_file.name} 中 {cls} 含锁注解（{'/'.join(_LOCK_ANNOTATIONS)}）"
+                        f"，但未出现在任何 EUT 的 given/when/then 或 class_under_test 中。"
+                        f" 请确认是否需要补充注解验证测试（参考 SE-006 处理模式）。"
+                    )
+
+    return warnings
+
+
 def run_q05_structure_checks(output_dir: Path, project_id: str) -> list[str]:
     """对 Q05 phase_b_structured + supplemental_tests 做结构类校验."""
     phase_def = PHASE_DEFS.get("Q05")
@@ -132,6 +320,33 @@ def run_q05_structure_checks(output_dir: Path, project_id: str) -> list[str]:
     errors.extend(_check_eut_missing_se(data))
     errors.extend(_check_wrong_directory(data))
     errors.extend(_check_mock_patterns(_collect_supplemental_java(pd)))
+
+    # ── 并发/幂等/锁强管控 ────────────────────────────────────────────────────
+    # 加载 Q01 产物（获取 SE 描述，用于关键词匹配）
+    q01_def = PHASE_DEFS.get("Q01")
+    q01_data: dict[str, Any] | None = None
+    if q01_def:
+        q01_json = STRUCTURED_JSON_MAP.get("Q01")
+        if q01_json:
+            q01_path = _phase_dir(output_dir, project_id, q01_def) / q01_json
+            q01_data = load_json(q01_path) if q01_path.is_file() else None
+
+    errors.extend(_check_concurrent_se_no_eut(data, q01_data))
+
+    # 加载 code_repos（来自 _inputs.json）
+    int_dir = _internal_dir(output_dir, project_id, phase_def)
+    inputs_data = load_json(int_dir / "_inputs.json") if (int_dir / "_inputs.json").is_file() else {}
+    code_repos: list[str] = []
+    if inputs_data and isinstance(inputs_data, dict):
+        code_repos = inputs_data.get("code_repos") or []
+        if not code_repos and inputs_data.get("code_repo"):
+            code_repos = [inputs_data["code_repo"]]
+
+    # lock_annotation_not_in_scope 是 WARNING 级别（不阻断 finalize）
+    lock_warnings = _check_lock_annotation_not_in_scope(data, code_repos)
+    if lock_warnings:
+        log.warning("Q05 lock_annotation_not_in_scope: %d warning(s)", len(lock_warnings))
+        errors.extend(lock_warnings)  # WARNING 前缀，approve guardrail 会区分
 
     if errors:
         log.info("Q05 structure checks: %d issue(s)", len(errors))

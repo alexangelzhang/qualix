@@ -160,7 +160,7 @@
 2026-05-09 新增（系统健康报告 T1–T12 落地）：
 
 - T3 — `validate_eut_id_subset`（`quality/checks/cross_phase_check.py`）拦截 Q06 审计 Q05 不存在的 EUT 编号（phantom EUT），接入 `finalize_checks`
-- T5 — Q05 结构合规 validator（`quality/checks/q05_structure_checks.py`）覆盖 mock_wrong / mock_phantom_method / eut_missing_se / wrong_directory 四类失败，compile_fail 仍由 `test_execution_gate` 兜底
+- T5 — Q05 结构合规 validator（`quality/checks/q05_structure_checks.py`）覆盖 mock_wrong / mock_phantom_method / eut_missing_se / wrong_directory 四类失败，compile_fail 仍由 `test_execution_gate` 兜底；新增并发/幂等/锁强管控：`concurrent_se_no_eut`（SE 描述含并发关键词时必须有非占位 EUT，BLOCKED）+ `lock_annotation_not_in_scope`（@DistributedLocked 等注解持有类未出现在 EUT scope 中，WARNING）
 - T6 — Q05 生成范式三步改造（`references/q05-three-step-paradigm.md` + SKILL 三步节）+ `Q05BranchCoverageGuardrail`（`quality/guardrail/q05_branch_coverage.py`），分支覆盖校验挂入 `get_phase_guardrails("Q05")`
 - T7 — EnumSource 统一枚举源（`context/enum_contract.py::render_enum_contract_prefix`），在 `skill_loader.load_skill_progressive` 和 `agents/multi_agent.py` prompt 装配时自动注入 `ENUM_CONTRACT` 前缀节，与 schema 同源
 - T8 — Schema↔Prompt 一致性 CI（`scripts/check_schema_prompt_sync.py`），挂入 `.pre-commit-config.yaml` 的 pre-commit hook
