@@ -1,0 +1,28 @@
+{
+  "case_id": "AUTO-Q06-20260515145312-05",
+  "phase": "Q06",
+  "error_type": "WRONG",
+  "severity": "medium",
+  "title": "Field required [type=missing, input_value={}, input_type=dict]",
+  "root_cause": "SCHEMA",
+  "fix_target": "src/dqg/schemas/phase_q06.py",
+  "tags": [
+    "auto-generated",
+    "project:policy-rights"
+  ],
+  "created_at": "2026-05-15",
+  "status": "open",
+  "source": {
+    "project_id": "policy-rights",
+    "auto_generated": true,
+    "validation_error": "Field required [type=missing, input_value={}, input_type=dict]"
+  },
+  "expected": {
+    "content": "（需人工确认）"
+  },
+  "actual": {
+    "content": "Field required [type=missing, input_value={}, input_type=dict]"
+  },
+  "lesson": "必填字段缺失",
+  "case_category": "STRUCTURED_SCHEMA"
+}

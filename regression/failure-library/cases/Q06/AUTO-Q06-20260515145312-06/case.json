@@ -1,0 +1,28 @@
+{
+  "case_id": "AUTO-Q06-20260515145312-06",
+  "phase": "Q06",
+  "error_type": "FN",
+  "severity": "medium",
+  "title": "For further information visit https://errors.pydantic.dev/2.12/v/missing",
+  "root_cause": "SKILL_RULE",
+  "fix_target": "skills/unit-test-audit/SKILL.md",
+  "tags": [
+    "auto-generated",
+    "project:policy-rights"
+  ],
+  "created_at": "2026-05-15",
+  "status": "open",
+  "source": {
+    "project_id": "policy-rights",
+    "auto_generated": true,
+    "validation_error": "For further information visit https://errors.pydantic.dev/2.12/v/missing"
+  },
+  "expected": {
+    "content": "（需人工确认）"
+  },
+  "actual": {
+    "content": "For further information visit https://errors.pydantic.dev/2.12/v/missing"
+  },
+  "lesson": "Pydantic 校验失败，结构化输出的字段类型与 schema 定义不一致",
+  "case_category": "STRUCTURED_SCHEMA"
+}

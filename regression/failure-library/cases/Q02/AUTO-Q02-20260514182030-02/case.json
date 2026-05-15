@@ -1,0 +1,28 @@
+{
+  "case_id": "AUTO-Q02-20260514182030-02",
+  "phase": "Q02",
+  "error_type": "WRONG",
+  "severity": "medium",
+  "title": "Field required [type=missing, input_value={'project_id': 'dispatch-... 'conclusion': '通过'}, input_ty",
+  "root_cause": "SCHEMA",
+  "fix_target": "src/dqg/schemas/phase_q02.py",
+  "tags": [
+    "auto-generated",
+    "project:dispatch-v3"
+  ],
+  "created_at": "2026-05-14",
+  "status": "open",
+  "source": {
+    "project_id": "dispatch-v3",
+    "auto_generated": true,
+    "validation_error": "Field required [type=missing, input_value={'project_id': 'dispatch-... 'conclusion': '通过'}, input_type=dict]"
+  },
+  "expected": {
+    "content": "（需人工确认）"
+  },
+  "actual": {
+    "content": "Field required [type=missing, input_value={'project_id': 'dispatch-... 'conclusion': '通过'}, input_type=dict]"
+  },
+  "lesson": "必填字段缺失",
+  "case_category": "STRUCTURED_SCHEMA"
+}
