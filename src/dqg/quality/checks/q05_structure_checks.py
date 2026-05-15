@@ -166,6 +166,40 @@ _LOCK_ANNOTATIONS: tuple[str, ...] = (
     "@Synchronized",
 )
 
+# 代码级并发/锁模式（不依赖注解，直接识别并发原语使用）
+# 每条：(pattern, label)，pattern 匹配到即认为该类含并发语义
+_CONCURRENT_CODE_PATTERNS: tuple[tuple[re.Pattern[str], str], ...] = tuple(
+    (re.compile(p), label)
+    for p, label in (
+        # JUC 显式锁
+        (r"\bReentrantLock\b", "ReentrantLock"),
+        (r"\bReadWriteLock\b", "ReadWriteLock"),
+        (r"\bStampedLock\b", "StampedLock"),
+        (r"\bLockSupport\b", "LockSupport"),
+        # 同步关键字（方法或块）
+        (r"\bsynchronized\s*[\({]", "synchronized"),
+        # 原子类
+        (r"\bAtomic(?:Integer|Long|Boolean|Reference|Stamped|IntegerArray|LongArray|ReferenceArray)\b", "Atomic*"),
+        # 并发集合
+        (r"\bConcurrentHashMap\b", "ConcurrentHashMap"),
+        (r"\bCopyOnWriteArrayList\b", "CopyOnWriteArrayList"),
+        (r"\bBlockingQueue\b", "BlockingQueue"),
+        (r"\bLinkedBlockingQueue\b", "LinkedBlockingQueue"),
+        # 协调工具
+        (r"\bCountDownLatch\b", "CountDownLatch"),
+        (r"\bCyclicBarrier\b", "CyclicBarrier"),
+        (r"\bSemaphore\b", "Semaphore"),
+        (r"\bPhaser\b", "Phaser"),
+        # 线程池 / 异步
+        (r"\bExecutorService\b", "ExecutorService"),
+        (r"\bThreadPoolExecutor\b", "ThreadPoolExecutor"),
+        (r"\bCompletableFuture\b", "CompletableFuture"),
+        (r"\b@Async\b", "@Async"),
+        # volatile 字段（并发可见性）
+        (r"\bvolatile\b", "volatile"),
+    )
+)
+
 
 def _se_is_concurrent(se_desc: str) -> bool:
     """判断 SE 描述是否含并发/幂等/锁语义关键词."""
@@ -237,30 +271,41 @@ def _check_concurrent_se_no_eut(
     return errors
 
 
-def _check_lock_annotation_not_in_scope(
+def _detect_concurrent_signals(src: str) -> list[str]:
+    """从 Java 源码中检测并发/锁信号，返回命中的信号标签列表."""
+    signals: list[str] = []
+    # 注解命中
+    signals.extend(ann.lstrip("@") for ann in _LOCK_ANNOTATIONS if ann in src)
+    # 代码级并发原语命中
+    signals.extend(label for pat, label in _CONCURRENT_CODE_PATTERNS if pat.search(src))
+    return signals
+
+
+def _check_concurrent_scope(
     q05_data: dict[str, Any],
     code_repos: list[str],
 ) -> list[str]:
-    """代码仓库中含 @DistributedLocked/@Idempotent 注解的类未出现在 EUT 目标中时 WARN.
+    """变更文件中含并发/锁注解或并发代码原语的类，若未出现在 EUT scope 中则 WARN.
 
-    扫描每个 code_repo 的 git diff 变更文件，找出含锁注解的类，
-    检查这些类名是否出现在 phase_b_structured.json 的 EUT given/when/then 或
-    test_cases 的 class_under_test 中。
+    检测范围：
+    - 注解：@DistributedLocked / @RedisLock / @GlobalTransactional 等（见 _LOCK_ANNOTATIONS）
+    - 代码原语：ReentrantLock / synchronized / AtomicXxx / CountDownLatch /
+                ThreadPoolExecutor / CompletableFuture / ConcurrentHashMap /
+                volatile / Semaphore / CyclicBarrier 等（见 _CONCURRENT_CODE_PATTERNS）
 
-    失败级别：WARNING（不阻断 finalize），但记录到 soft_blocked 供 approve 判断。
+    失败级别：WARNING（不阻断 finalize），但进入 soft_blocked 供 approve 判断。
     """
     warnings: list[str] = []
     if not code_repos:
         return warnings
 
-    # 提取 EUT 和 test_cases 中已提及的类名（粗粒度：取最后一段 SimpleClassName）
+    # 提取 EUT 和 test_cases 中已提及的简单类名
     mentioned_classes: set[str] = set()
     for eut in q05_data.get("eut_items") or []:
         if not isinstance(eut, dict):
             continue
         for field in ("given", "when", "then"):
             text = str(eut.get(field) or "")
-            # 简单类名：大写字母开头的驼峰单词
             mentioned_classes.update(re.findall(r"\b[A-Z][a-zA-Z0-9]+\b", text))
     for tc in q05_data.get("test_cases") or []:
         if not isinstance(tc, dict):
@@ -274,7 +319,6 @@ def _check_lock_annotation_not_in_scope(
         if not repo_path.is_dir():
             continue
         try:
-            # 只扫描 git diff 变更文件（避免全仓库扫描耗时）
             result = subprocess.run(
                 ["git", "diff", "--name-only", "origin/master...HEAD"],
                 cwd=repo_path,
@@ -294,22 +338,23 @@ def _check_lock_annotation_not_in_scope(
             except OSError:
                 continue
 
-            has_lock = any(ann in src for ann in _LOCK_ANNOTATIONS)
-            if not has_lock:
+            signals = _detect_concurrent_signals(src)
+            if not signals:
                 continue
 
-            # 提取类名（public class/interface/enum Xxx）
+            # 提取类名（public/protected class/interface/enum Xxx）
             class_names = re.findall(
                 r"\b(?:public|protected)\s+(?:class|interface|enum)\s+([A-Z][a-zA-Z0-9]+)",
                 src,
             )
             for cls in class_names:
                 if cls not in mentioned_classes:
+                    signal_str = ", ".join(dict.fromkeys(signals))  # 去重保序
                     warnings.append(
-                        f"WARNING: Q05 lock_annotation_not_in_scope — "
-                        f"{java_file.name} 中 {cls} 含锁注解（{'/'.join(_LOCK_ANNOTATIONS)}）"
+                        f"WARNING: Q05 concurrent_scope — "
+                        f"{java_file.name} 中 {cls} 含并发/锁信号（{signal_str}）"
                         f"，但未出现在任何 EUT 的 given/when/then 或 class_under_test 中。"
-                        f" 请确认是否需要补充注解验证测试（参考 SE-006 处理模式）。"
+                        f" 请确认是否需要补充注解验证或并发场景测试（参考 SE-006 处理模式）。"
                     )
 
     return warnings
@@ -357,11 +402,12 @@ def run_q05_structure_checks(output_dir: Path, project_id: str) -> list[str]:
         if not code_repos and inputs_data.get("code_repo"):
             code_repos = [inputs_data["code_repo"]]
 
-    # lock_annotation_not_in_scope 是 WARNING 级别（不阻断 finalize）
-    lock_warnings = _check_lock_annotation_not_in_scope(data, code_repos)
-    if lock_warnings:
-        log.warning("Q05 lock_annotation_not_in_scope: %d warning(s)", len(lock_warnings))
-        errors.extend(lock_warnings)  # WARNING 前缀，approve guardrail 会区分
+    # concurrent_scope 是 WARNING 级别（不阻断 finalize）
+    # 同时检测注解（@DistributedLocked 等）和代码级并发原语（ReentrantLock/synchronized/Atomic* 等）
+    concurrent_warnings = _check_concurrent_scope(data, code_repos)
+    if concurrent_warnings:
+        log.warning("Q05 concurrent_scope: %d warning(s)", len(concurrent_warnings))
+        errors.extend(concurrent_warnings)  # WARNING 前缀，approve guardrail 会区分
 
     if errors:
         log.info("Q05 structure checks: %d issue(s)", len(errors))
