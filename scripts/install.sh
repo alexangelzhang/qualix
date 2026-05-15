@@ -58,8 +58,8 @@ fi
 echo ""
 echo "安装 Python 依赖..."
 cd "$PROJECT_DIR"
-pip install -e . -q && ok "dqg (pip install -e .)" || { fail "pip install -e . 失败"; ERRORS=$((ERRORS + 1)); }
-pip install larkkit -q 2>/dev/null && ok "larkkit" || warn "larkkit 安装失败（飞书摄入不可用）"
+python3 -m pip install -e . -q && ok "dqg (pip install -e .)" || { fail "pip install -e . 失败"; ERRORS=$((ERRORS + 1)); }
+python3 -m pip install larkkit -q && ok "larkkit" || warn "larkkit 安装失败（飞书摄入不可用）"
 
 # ---------------------------------------------------------------------------
 # 3. Node.js + agent-browser
@@ -88,10 +88,10 @@ fi
 # ---------------------------------------------------------------------------
 echo ""
 echo "安装 Playwright..."
-if pip show playwright &>/dev/null 2>&1; then
+if python3 -m pip show playwright &>/dev/null 2>&1; then
     ok "playwright 已安装"
 else
-    pip install playwright -q && ok "playwright" || warn "playwright 安装失败（画板截图兜底不可用）"
+    python3 -m pip install playwright -q && ok "playwright" || warn "playwright 安装失败（画板截图兜底不可用）"
 fi
 if python3 -m playwright --version &>/dev/null 2>&1; then
     python3 -m playwright install chromium 2>/dev/null && ok "playwright chromium" || warn "playwright chromium 安装失败"
