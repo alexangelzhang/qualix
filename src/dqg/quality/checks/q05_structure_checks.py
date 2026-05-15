@@ -145,10 +145,25 @@ _TODO_THEN_PATTERN = re.compile(
     re.IGNORECASE,
 )
 
-# 需要在单测中明确追踪的代码注解（分布式锁/事务/幂等）
+# 需要在单测中明确追踪的代码注解（分布式锁/幂等/防重复提交）
+# 排除 @Transactional：几乎所有 Service 方法都有，误报率极高，噪音大于价值。
 _LOCK_ANNOTATIONS: tuple[str, ...] = (
+    # 分布式锁
     "@DistributedLocked",
+    "@RedisLock",
+    "@DistributedLock",
+    # Seata 分布式事务
+    "@GlobalTransactional",
+    # 幂等
     "@Idempotent",
+    # 防重复提交（国内企业应用高频）
+    "@RepeatSubmit",
+    "@PreventRepeatSubmit",
+    "@NoRepeatSubmit",
+    # JPA/Hibernate 悲观锁
+    "@Lock",
+    # 自定义同步
+    "@Synchronized",
 )
 
 
