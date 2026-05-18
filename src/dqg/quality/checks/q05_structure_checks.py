@@ -452,6 +452,178 @@ def _check_concurrent_scope(
     return warnings
 
 
+# Step 0.5 / uncovered_reasons 相关常量
+_INJECT_MOCKS_PATTERN = re.compile(r"@InjectMocks\s+(\w+)", re.IGNORECASE)
+_IMPORT_CLASS_PATTERN = re.compile(r"import\s+(?:[\w.]+\.)?(\w+)\s*;")
+_BACKEND_KWS: frozenset[str] = frozenset(
+    {
+        "接口",
+        "Service",
+        "数据库",
+        "缓存",
+        "校验",
+        "验证",
+        "validate",
+        "domain",
+        "Manager",
+        "Mapper",
+        "Gateway",
+        "Repository",
+        "save",
+        "insert",
+        "update",
+        "delete",
+        "query",
+        "select",
+        "事务",
+        "transaction",
+    }
+)
+_FRONTEND_EXCUSES: frozenset[str] = frozenset(
+    {"前端逻辑", "前端", "UI", "BPM", "页面", "展示", "界面", "H5", "小程序", "配置项", "不在代码范围"}
+)
+
+
+def _check_target_modules_json(
+    output_dir: Path,
+    project_id: str,
+    phase_def: dict,
+    code_repos: list[str],
+    test_files: list[Path],
+    q01_data: dict | None,
+) -> list[str]:
+    """Step 0.5 核心 gate：三层驱动产物必须存在、完整、与测试代码交叉验证.
+
+    三层防御：
+    1. 基础：文件存在且覆盖全部 SE
+    2. 中层：git_diff_files 非空（证明执行了 git diff）
+    3. 深层：se_mappings 里的 impl_class 必须出现在新增测试文件中（交叉验证）
+    """
+    int_dir = _internal_dir(output_dir, project_id, phase_def)
+    target_path = int_dir / "_q05_target_modules.json"
+
+    if not target_path.exists():
+        return [
+            "BLOCKED: Q05 missing_target_modules — "
+            "_internal/_q05_target_modules.json 不存在。"
+            "SKILL.md Step 0.5e 要求：三层驱动（REQ/BR→类 + SE→类 + git diff）完成后"
+            "必须输出此文件，否则无法证明 Step 0.5 被真正执行。"
+        ]
+
+    data = load_json(target_path)
+    if not data or not isinstance(data, dict):
+        return ["BLOCKED: Q05 target_modules_empty — _q05_target_modules.json 为空或格式错误"]
+
+    errors: list[str] = []
+
+    # ── 层 1：SE 覆盖完整性 ─────────────────────────────────────────────────
+    if q01_data:
+        all_se_ids = {s["se_id"] for s in q01_data.get("semantic_expectations", [])}
+        se_mappings = data.get("se_mappings", [])
+        mapped_se_ids = {m.get("se_id", "") for m in se_mappings if isinstance(m, dict)}
+        missing_se = sorted(all_se_ids - mapped_se_ids)
+        if missing_se:
+            errors.append(
+                f"BLOCKED: Q05 target_modules_incomplete — "
+                f"_q05_target_modules.json 缺少以下 SE 的类映射: {', '.join(missing_se)}。"
+                "请在 Step 0.5b 中为每条 SE 搜索对应实现类（未找到填 found=false + gap_reason）。"
+            )
+
+    # ── 层 2：git_diff_files 非空（证明执行了 git diff） ─────────────────────
+    diff_files = data.get("git_diff_files", [])
+    if not diff_files and code_repos:
+        errors.append(
+            "BLOCKED: Q05 target_modules_no_diff — "
+            "_q05_target_modules.json 的 git_diff_files 为空，"
+            "说明 Step 0.5c 未执行 git diff。请执行 git diff --name-only 获取变更文件列表。"
+        )
+
+    # ── 层 3：交叉验证——impl_class 必须出现在新增测试文件中 ──────────────────
+    se_mappings = data.get("se_mappings", [])
+    found_classes = {
+        m["impl_class"] for m in se_mappings if isinstance(m, dict) and m.get("found") and m.get("impl_class")
+    }
+    if found_classes and test_files:
+        # 收集所有新增测试文件里出现的类名（@InjectMocks + import）
+        tested_classes: set[str] = set()
+        for path in test_files:
+            if path.suffix != ".java":
+                continue
+            try:
+                text = path.read_text(encoding="utf-8", errors="replace")
+                tested_classes.update(m.group(1) for m in _INJECT_MOCKS_PATTERN.finditer(text))
+                tested_classes.update(m.group(1) for m in _IMPORT_CLASS_PATTERN.finditer(text))
+            except OSError:
+                continue
+
+        # 在映射里声明了 found=true 但测试文件里完全没有用到的类
+        not_tested = sorted(found_classes - tested_classes)
+        if not_tested and len(not_tested) / max(len(found_classes), 1) > 0.5:
+            errors.append(
+                f"WARNING: Q05 target_modules_not_tested — "
+                f"se_mappings 声明的 {len(not_tested)}/{len(found_classes)} 个实现类"
+                f"未出现在新增测试文件的 @InjectMocks/import 中: {', '.join(not_tested[:5])}。"
+                "可能是 Step 0.5 的映射表与实际生成的测试代码不一致（映射了但未写测试）。"
+            )
+
+    return errors
+
+
+def _check_uncovered_br_reasons(
+    output_dir: Path,
+    project_id: str,
+    phase_def: dict,
+    q01_data: dict | None,
+) -> list[str]:
+    """uncovered BR 理由合理性：reason 含"前端"但 BR 描述含后端语义 → WARNING."""
+    if not q01_data:
+        return []
+
+    # 查找设计矩阵
+    pd = _phase_dir(output_dir, project_id, phase_def)
+    int_dir = _internal_dir(output_dir, project_id, phase_def)
+    matrix = None
+    for candidate in [pd / "_test_design_matrix.json", int_dir / "_test_design_matrix.json"]:
+        matrix = load_json(candidate) if candidate.exists() else None
+        if matrix:
+            break
+    if not matrix:
+        return []
+
+    br_descs = {
+        r["req_id"]: r.get("description", "")
+        for r in q01_data.get("requirements", [])
+        if str(r.get("req_id", "")).startswith("BR")
+    }
+    req_coverage = matrix.get("req_coverage", [])
+    suspicious: list[str] = []
+
+    for entry in req_coverage:
+        if not isinstance(entry, dict):
+            continue
+        uncovered_brs = entry.get("uncovered_brs", []) or []
+        reasons = entry.get("uncovered_reasons", []) or []
+        if not uncovered_brs:
+            continue
+        reason_text = " ".join(str(r) for r in reasons)
+        is_frontend_excuse = any(kw in reason_text for kw in _FRONTEND_EXCUSES)
+        if not is_frontend_excuse:
+            continue
+        for br_id in uncovered_brs:
+            desc = br_descs.get(br_id, "")
+            if any(kw in desc for kw in _BACKEND_KWS):
+                suspicious.append(f"{br_id}（reason='{reason_text[:30]}'）")
+
+    if suspicious:
+        return [
+            f"WARNING: Q05 uncovered_reason_mismatch — "
+            f"{len(suspicious)} 个 BR 标注为前端/配置原因，但描述含后端语义（Service/接口/数据库等），"
+            f"疑似错误排除: {', '.join(suspicious[:4])}。"
+            "请确认这些 BR 确实无后端实现，否则应生成对应单测。"
+        ]
+    return []
+
+
 # Fix-3: SE/EUT 追溯标注检测
 _TRACEABILITY_PATTERN = re.compile(r"(SE-\d+|EUT-\d+)", re.IGNORECASE)
 # Fix-5: 并发测试多线程模式检测
@@ -698,6 +870,12 @@ def run_q05_structure_checks(output_dir: Path, project_id: str) -> list[str]:
             q01_data = load_json(q01_path) if q01_path.is_file() else None
 
     errors.extend(_check_concurrent_se_no_eut(data, q01_data))
+
+    # Step 0.5 三层驱动产物验证（BLOCKED + 交叉验证）
+    errors.extend(_check_target_modules_json(output_dir, project_id, phase_def, code_repos, test_files, q01_data))
+
+    # uncovered BR 理由合理性（WARNING）
+    errors.extend(_check_uncovered_br_reasons(output_dir, project_id, phase_def, q01_data))
 
     # Fix-5: 并发测试 CountDownLatch 多线程验证（BLOCKED）
     errors.extend(_check_concurrency_eut_multithread(data, test_files, q01_data))

@@ -109,6 +109,29 @@ IRON LAW: 不写 assertTrue(true) 占位符。写不了的测试标记 TODO 并�
 
 > 三层驱动的关系：REQ/BR 回答"哪些功能需要测试"，SE 回答"哪些业务规则需要验证"，git diff 回答"哪些代码被修改了"。只有三者合并才是完整的目标模块。
 
+**0.5e: 必须输出 `_internal/_q05_target_modules.json`（finalize BLOCKED gate）**
+
+Step 0.5 完成后，必须将三层驱动的结果写入此文件，否则 finalize 直接 BLOCKED：
+
+```json
+{
+  "target_repos": ["maf-srv-service"],
+  "git_diff_files": ["maf-srv-service/src/main/java/com/mi/maf/srv/manager/srv/LogisticExchangeIdentifyManager.java"],
+  "se_mappings": [
+    {"se_id": "SE-001", "impl_class": "LogisticExchangeIdentifyManager", "impl_method": "identifyByPrecheckAndFulfillment", "repo": "maf-srv-service", "found": true, "gap_reason": null},
+    {"se_id": "SE-005", "impl_class": null, "impl_method": null, "repo": null, "found": false, "gap_reason": "实现类在前端，后端无对应逻辑"}
+  ],
+  "br_mappings": [
+    {"br_id": "BR-001", "impl_class": "LogisticExchangeIdentifyManager", "repo": "maf-srv-service", "found": true, "gap_reason": null}
+  ]
+}
+```
+
+规则：
+- `se_mappings` 必须覆盖 Q01 的所有 SE（未找到的填 `found: false` + `gap_reason`）
+- `git_diff_files` 必须非空（证明执行了 `git diff`，不能是 LLM 凭记忆填写）
+- `found: false` 的条目必须填写 `gap_reason`，说明为何无法找到对应实现
+
 ### Step 1: 单测设计（先算清楚需要什么，再写代码）
 
 **在写任何测试代码之前，必须先完成单测设计矩阵（`_test_design_matrix.json`）。这是 finalize 的硬性 gate——没有设计矩阵不能 finalize。**
@@ -435,6 +458,8 @@ Step 1.1 + 1.2 的结果必须输出为结构化 JSON：
 | 并发测试多线程 | q05_structure_checks: Concurrency EUT 必须有 CountDownLatch/Thread | BLOCKED |
 | 分支清单存在 | Q05BranchCoverageGuardrail: 无 Step A 清单 → WARNING | WARNING |
 | 设计矩阵 branch 真实性 | q05_structure_checks: branch 文件名必须在 git diff 变更文件里 | WARNING |
+| Step 0.5 三层驱动产物 | q05_structure_checks: _internal/_q05_target_modules.json 必须存在且覆盖全部 SE | BLOCKED |
+| uncovered BR 理由合理性 | q05_structure_checks: 标注前端原因但描述含后端语义 → WARNING | WARNING |
 
 ## 关键约束
 

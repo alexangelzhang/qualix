@@ -14,6 +14,13 @@ def q05_layout(tmp_path: Path) -> tuple[Path, str]:
     pid = "P1"
     q05 = out / pid / "Q05"
     q05.mkdir(parents=True)
+    # 创建最小 _q05_target_modules.json，避免 missing_target_modules gate 干扰其他测试断言
+    internal = q05 / "_internal"
+    internal.mkdir(parents=True)
+    (internal / "_q05_target_modules.json").write_text(
+        json.dumps({"se_mappings": [], "br_mappings": [], "git_diff_files": ["Dummy.java"], "target_repos": []}),
+        encoding="utf-8",
+    )
     return out, pid
 
 
