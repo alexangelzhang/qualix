@@ -191,6 +191,18 @@ def get_rules(phase_id: str) -> list[dict[str, Any]]:
                 "category": "质量",
                 "check": "_check_never_verify",
             },
+            {
+                "id": "R-RISK-TIER",
+                "name": "强语义 SE 的 EUT risk_tier 必须含 T1",
+                "category": "反幻觉",
+                "check": "_check_risk_tier_consistency",
+            },
+            {
+                "id": "R-BOUND-SE-VALID",
+                "name": "EUT bound_se 必须是 Q01 真实存在的 SE ID",
+                "category": "反幻觉",
+                "check": "_check_bound_se_validity",
+            },
         ],
         "Q06": [
             {"id": "R-C-SE-COVERAGE", "name": "①SE覆盖率（≥80%）", "category": "质量", "check": "_check_c_se_coverage"},

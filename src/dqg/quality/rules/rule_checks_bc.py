@@ -564,6 +564,115 @@ def _check_never_verify(pd: Path, report: str, phase_id: str) -> tuple[bool, str
     return True, "「不应调用」SE 对应 EUT 均有 never()/times(0) 验证"
 
 
+# ---------------------------------------------------------------------------
+# C3: risk_tier 从 Q01 语义派生验证
+# C6: bound_se 有效性验证
+# ---------------------------------------------------------------------------
+
+_T1_SEMANTICS_KWS: frozenset[str] = frozenset(
+    {
+        "强校验",
+        "幂等",
+        "状态迁移",
+        "精确",
+        "核心业务",
+        "重复提交",
+        "分布式锁",
+        "并发",
+        "强制",
+        "不得",
+        "必须",
+        "校验失败",
+        "禁止",
+        "阻断",
+    }
+)
+
+
+def _check_risk_tier_consistency(pd: Path, report: str, phase_id: str) -> tuple[bool, str]:
+    """C3: risk_tier 应由 Q01 SE 语义派生，而非由 LLM 自报.
+
+    SE 描述含强语义关键词（强校验/幂等/状态迁移等）时，对应 EUT 必须至少有一个 T1。
+    防止 LLM 把所有 EUT 降级为 T2 来绕过 R-T1-THREE-PATHS 检查。
+    """
+    from collections import defaultdict
+
+    from dqg.constants import STRUCTURED_JSON_MAP
+    from dqg.json_utils import load_json
+
+    json_path = pd / STRUCTURED_JSON_MAP.get("Q05", "phase_b_structured.json")
+    data = load_json(json_path)
+    if not data:
+        return True, "phase_b_structured.json 不存在，跳过 risk_tier 一致性检查"
+
+    q01_json = STRUCTURED_JSON_MAP.get("Q01", "phase_a_structured.json")
+    q01_data = load_json(pd.parent / "Q01" / q01_json) or {}
+    ses = q01_data.get("semantic_expectations", [])
+
+    # 找出应该是 T1 的 SE（含强语义关键词）
+    expected_t1_ses = {s["se_id"] for s in ses if any(kw in s.get("description", "") for kw in _T1_SEMANTICS_KWS)}
+    if not expected_t1_ses:
+        return True, "无强语义 SE，跳过 risk_tier 一致性检查"
+
+    # 检查每个期望 T1 的 SE，其 EUT 是否至少有一个 T1
+    euts = data.get("eut_items", [])
+    se_tiers: dict[str, set[str]] = defaultdict(set)
+    for e in euts:
+        se_id = str(e.get("bound_se", "") or "")
+        tier = str(e.get("risk_tier", "T2"))
+        if se_id:
+            se_tiers[se_id].add(tier)
+
+    downgraded: list[str] = []
+    for se_id in expected_t1_ses:
+        tiers = se_tiers.get(se_id, set())
+        if tiers and "T1" not in tiers:
+            downgraded.append(se_id)
+
+    if downgraded:
+        return False, (
+            f"C3 risk_tier 不一致：{len(downgraded)} 个强语义 SE 的所有 EUT 均为 T2，"
+            f"疑似人为降级以规避 R-T1-THREE-PATHS 检查: {', '.join(downgraded[:5])}。"
+            "强语义 SE（含强校验/幂等/状态迁移）必须有至少一个 T1 EUT。"
+        )
+    covered = len(expected_t1_ses) - len(downgraded)
+    return True, f"risk_tier 一致（{covered}/{len(expected_t1_ses)} 个强语义 SE 有 T1 EUT）"
+
+
+def _check_bound_se_validity(pd: Path, report: str, phase_id: str) -> tuple[bool, str]:
+    """C6: EUT 的 bound_se 必须是 Q01 里真实存在的 SE ID.
+
+    防止 LLM 填写 SE-999 等幽灵 SE ID 来假装绑定了某个 SE。
+    """
+    from dqg.constants import STRUCTURED_JSON_MAP
+    from dqg.json_utils import load_json
+
+    json_path = pd / STRUCTURED_JSON_MAP.get("Q05", "phase_b_structured.json")
+    data = load_json(json_path)
+    if not data:
+        return True, "phase_b_structured.json 不存在，跳过 bound_se 有效性检查"
+
+    q01_json = STRUCTURED_JSON_MAP.get("Q01", "phase_a_structured.json")
+    q01_data = load_json(pd.parent / "Q01" / q01_json) or {}
+    valid_se_ids = {s["se_id"] for s in q01_data.get("semantic_expectations", [])}
+    if not valid_se_ids:
+        return True, "Q01 SE 列表不可用，跳过 bound_se 有效性检查"
+
+    euts = data.get("eut_items", [])
+    ghost_bindings: list[str] = []
+    for e in euts:
+        bound_se = str(e.get("bound_se", "") or "")
+        if bound_se and bound_se not in valid_se_ids:
+            ghost_bindings.append(f"{e.get('eut_id', '?')}→{bound_se}")
+
+    if ghost_bindings:
+        return False, (
+            f"C6 bound_se 无效：{len(ghost_bindings)} 个 EUT 绑定了 Q01 中不存在的 SE ID: "
+            f"{', '.join(ghost_bindings[:5])}。请确认 bound_se 字段使用正确的 SE 编号。"
+        )
+    return True, f"所有 EUT 的 bound_se 均是 Q01 有效 SE ID（共 {len(euts)} 条）"
+
+
 # Q06 检查函数从独立模块导入
 from .rule_checks_q06 import (
     _check_c_assert_strength,
@@ -593,6 +702,8 @@ BC_CHECK_FUNCS: Final = MappingProxyType(
         "_check_design_matrix_consistency": _check_design_matrix_consistency,
         "_check_t1_se_three_paths": _check_t1_se_three_paths,
         "_check_never_verify": _check_never_verify,
+        "_check_risk_tier_consistency": _check_risk_tier_consistency,
+        "_check_bound_se_validity": _check_bound_se_validity,
         "_check_c_se_coverage": _check_c_se_coverage,
         "_check_c_path_balance": _check_c_path_balance,
         "_check_c_assert_strength": _check_c_assert_strength,
