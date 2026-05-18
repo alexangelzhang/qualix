@@ -60,6 +60,21 @@ def check_reasoning_log(output_dir: Path, project_id: str, phase_id: str) -> lis
                 f"推理日志必须记录每个 Step 的决策过程、依据、发现。"
             )
 
+    # B: 手动模式 Step 0.5 守卫——检查 _bootstrap_context.md 是否已读取
+    # adaptive 模式有 _adaptive_summary.json（framework 自动注入 context），跳过此检查
+    if not errors:
+        adaptive_summary = pd / "_adaptive_summary.json"
+        if not adaptive_summary.exists():
+            sentinel = int_dir / ".bootstrap_context_read"
+            if not sentinel.exists():
+                errors.append(
+                    f"BLOCKED: Step 0.5 未完成——未发现 _bootstrap_context.md 已读取的证据。"
+                    f"手动模式执行 {phase_id} 前必须先读取 {int_dir}/_bootstrap_context.md，"
+                    f"以确保产物包含所有必填内容（PROFILE_CONTEXT/decision_owner/GAP P级等）。"
+                    f"读取后 sentinel 自动创建（~/.claude/scripts/bootstrap_context_sentinel.py），"
+                    f"再重新生成产物并 finalize。"
+                )
+
     return errors
 
 
