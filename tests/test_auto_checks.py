@@ -7,12 +7,22 @@ from pathlib import Path
 from dqg.quality.auto_checks import auto_derive_checks
 
 
-def _setup_phase_a(tmpdir: Path, data: dict) -> Path:
-    """创建 Phase A 的产物目录和 JSON."""
+def _setup_phase_a(tmpdir: Path, data: dict, with_prd: bool = True) -> Path:
+    """创建 Phase A 的产物目录和 JSON.
+
+    with_prd=True：创建 plain_text.txt（Change 1 要求 SE 有 source 时必须存在）
+    """
     phase_dir = tmpdir / "test-proj" / "Q01"
     phase_dir.mkdir(parents=True)
     json_path = phase_dir / "phase_a_structured.json"
     json_path.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
+    if with_prd:
+        # 创建最小 PRD 原文（包含足够内容供 source 行号验证使用）
+        prd_content = "\n".join(
+            f"第{i}行：幂等性校验是指相同请求重复提交时系统只处理一次" if i == 5 else f"第{i}行：占位内容"
+            for i in range(1, 20)
+        )
+        (phase_dir / "plain_text.txt").write_text(prd_content, encoding="utf-8")
     return tmpdir
 
 
@@ -37,6 +47,8 @@ VALID_PHASE_A = {
             "description": "幂等性校验",
             "verification": "POST 同一 requestId 两次；断言第二次返回 HTTP 200 + errorCode=DUPLICATE",
             "bound_reqs": ["REQ-001", "BR-001"],
+            # Change 1: source 必须填写（第 5 行包含"幂等性校验"关键词）
+            "source": "plain_text.txt:5",
         },
     ],
     "gaps": [

@@ -108,12 +108,16 @@ def auto_derive_checks(
                 errors.extend(_check_se_verification_quality(validated, phase_id))
                 errors.extend(_check_se_bound_reqs_nonempty(validated, phase_id))
                 errors.extend(_check_gap_semantic_quality(validated, phase_id))
+                # --- Change 3: Q01 summary 派生字段一致性 ---
+                errors.extend(_check_q01_summary_derivation(validated, phase_id))
                 # --- G8: Q06 findings.severity 分布合理性（需要 validated 对象）---
                 errors.extend(_check_findings_severity_distribution(validated, phase_id))
 
         # --- Q01-1: SE/BR source 行号内容交叉验证（L1↔L0，最强反幻觉）---
         if phase_id == "Q01":
             errors.extend(_check_source_line_reality(output_dir, project_id, phase_id))
+            # --- Change 2: SE.source evidence 快照（每条 SE 的行号和内容哈希存档）---
+            _save_se_source_evidence(output_dir, project_id, phase_id)
             # --- Q01-2: SE/BR 描述中代码标识符反推检测 ---
             errors.extend(_check_code_identifier_leakage(output_dir, project_id, phase_id))
             # --- Q01-4: BR 数量与 PRD 信息密度合理性检查 ---
@@ -249,31 +253,30 @@ def _check_se_verification_quality(validated: BaseModel, phase_id: str) -> list[
 
 
 def _check_coverage_gate_consistency(output_dir: Path, project_id: str, phase_id: str) -> list[str]:
-    """G2: coverage_gate.line_coverage（LLM 自报）与 JaCoCo 实际结果交叉验证.
+    """Change 3: coverage_gate.line_coverage（LLM 自报）与 JaCoCo 实际结果交叉验证，升级为 BLOCKED.
 
-    finalize 时 JaCoCo 结果会写入 _internal/_incremental_coverage.json 或 _coverage.json。
-    若 LLM 自报的数字与 JaCoCo 实际数字偏差 >15% → WARNING（虚报覆盖率）。
+    Summary 是派生字段——从数组重算，自报与实际不一致 → BLOCKED（原为 WARNING）。
     """
     from dqg.core.state_machine import internal_dir as _internal_dir
     from dqg.core.state_machine import phase_dir as _pd
 
     phase_def = PHASE_DEFS.get(phase_id)
     if not phase_def:
-        return []
+        return ["NOT_APPLICABLE: Q06 phase_def not found"]
     pd = _pd(output_dir, project_id, phase_def)
     int_dir = _internal_dir(output_dir, project_id, phase_def)
 
-    # 读 LLM 自报的覆盖率
     json_file = STRUCTURED_JSON_MAP.get(phase_id)
     if not json_file:
-        return []
+        return ["NOT_APPLICABLE: Q06 structured JSON not configured"]
     data = load_json(pd / json_file)
     if not data:
-        return []
+        return ["NOT_APPLICABLE: Q06 structured JSON not found"]
+
     gate = data.get("coverage_gate", {}) or {}
     reported_line = gate.get("line_coverage")
     if reported_line is None:
-        return []
+        return ["NOT_APPLICABLE: coverage_gate.line_coverage not set (LLM did not report a number)"]
 
     # 读 JaCoCo 实际结果（finalize 写入 _internal）
     for candidate in ["_incremental_coverage.json", "_coverage.json"]:
@@ -281,18 +284,52 @@ def _check_coverage_gate_consistency(output_dir: Path, project_id: str, phase_id
         if cov:
             actual_line = cov.get("line_coverage") or cov.get("overall_line_rate")
             if actual_line is not None:
-                # 统一到 0-100 范围
                 if actual_line <= 1.0:
                     actual_line *= 100
                 diff = abs(float(reported_line) - float(actual_line))
                 if diff > 15:
                     return [
-                        f"WARNING: Q06 coverage_gate_mismatch — phase_c_structured.json 自报覆盖率"
+                        f"BLOCKED: Q06 coverage_gate_mismatch — phase_c_structured.json 自报覆盖率"
                         f" {reported_line:.1f}% 与 JaCoCo 实际 {actual_line:.1f}% 偏差 {diff:.1f}%（阈值 15%）。"
-                        "请确认 coverage_gate 字段数据来自 JaCoCo 报告而非手动估算。"
+                        "coverage_gate 是派生字段，必须从 JaCoCo 报告派生，禁止手动填写。"
                     ]
                 return []
-    return []
+    return ["NOT_APPLICABLE: JaCoCo coverage data not yet available in _internal/"]
+
+
+def _check_q01_summary_derivation(validated: Any, phase_id: str) -> list[str]:
+    """Change 3: Q01 summary.counts 派生字段校验——从数组重算，自报与实际不一致 → FAIL.
+
+    防止 LLM 在 summary 里填虚高的数字（如 total_se=10 但实际只有 8 条 SE）。
+    """
+    if phase_id != "Q01":
+        return []
+    ses = getattr(validated, "semantic_expectations", [])
+    reqs = getattr(validated, "requirements", [])
+    gaps = getattr(validated, "gaps", [])
+    opens = getattr(validated, "open_items", [])
+
+    # 尝试读取 summary 字段（如果 schema 有的话）
+    summary = getattr(validated, "summary", None) or {}
+    if not isinstance(summary, dict) or not summary:
+        return []  # 无 summary 字段，不检查
+
+    errors: list[str] = []
+    checks = [
+        ("total_se", len(ses), "semantic_expectations"),
+        ("total_req", sum(1 for r in reqs if str(r.req_id).startswith("REQ")), "requirements[REQ]"),
+        ("total_br", sum(1 for r in reqs if str(r.req_id).startswith("BR")), "requirements[BR]"),
+        ("total_gap", len(gaps), "gaps"),
+        ("total_open", len(opens), "open_items"),
+    ]
+    for key, actual, label in checks:
+        reported = summary.get(key)
+        if reported is not None and int(reported) != actual:
+            errors.append(
+                f"FAIL: Q01 summary.{key}={reported} 与 {label} 数组实际长度 {actual} 不一致。"
+                f"summary 是派生字段，必须与数组一致，不允许手动填写。"
+            )
+    return errors
 
 
 def _check_audit_items_count(output_dir: Path, project_id: str, phase_id: str) -> list[str]:
@@ -431,6 +468,96 @@ def _check_findings_severity_distribution(validated: Any, phase_id: str) -> list
 
 
 _SOURCE_LINE_RE = re.compile(r":(\d+)$")
+
+
+def _save_se_source_evidence(output_dir: Path, project_id: str, phase_id: str) -> None:
+    """Change 2: Q01 finalize 时将每条 SE.source 的行内容和 context_hash 存档.
+
+    产物：_internal/_se_source_evidence.json
+    Schema: [{se_id, source_file, source_line, line_text, context_hash, verified_at}]
+
+    下游 Phase（Q05/Q06）引用 SE 时可通过 se_id → evidence 查到原始 PRD 依据，
+    而不依赖自由文本 source 字段（自由文本可以被随意修改）。
+    """
+    import hashlib
+    from datetime import datetime
+
+    from dqg.core.state_machine import internal_dir as _internal_dir
+    from dqg.core.state_machine import phase_dir as _pd
+    from dqg.json_utils import load_json, save_json
+
+    phase_def = PHASE_DEFS.get(phase_id)
+    if not phase_def:
+        return
+    pd = _pd(output_dir, project_id, phase_def)
+    plain_text_path = pd / "plain_text.txt"
+    if not plain_text_path.exists():
+        return
+
+    try:
+        prd_lines = plain_text_path.read_text(encoding="utf-8", errors="replace").splitlines()
+    except OSError:
+        return
+
+    json_file = STRUCTURED_JSON_MAP.get(phase_id)
+    if not json_file:
+        return
+    data = load_json(pd / json_file)
+    if not data:
+        return
+
+    evidence_list = []
+    now = datetime.utcnow().isoformat()
+    for se in data.get("semantic_expectations", []):
+        se_id = se.get("se_id", "")
+        source = se.get("source", "") or ""
+        m = _SOURCE_LINE_RE.search(source)
+        if not m:
+            evidence_list.append(
+                {
+                    "se_id": se_id,
+                    "source_file": None,
+                    "source_line": None,
+                    "line_text": None,
+                    "context_hash": None,
+                    "verified_at": now,
+                }
+            )
+            continue
+        line_no = int(m.group(1))
+        if line_no < 1 or line_no > len(prd_lines):
+            evidence_list.append(
+                {
+                    "se_id": se_id,
+                    "source_file": "plain_text.txt",
+                    "source_line": line_no,
+                    "line_text": None,
+                    "context_hash": None,
+                    "verified_at": now,
+                }
+            )
+            continue
+        line_text = prd_lines[line_no - 1]
+        ctx = "\n".join(prd_lines[max(0, line_no - 3) : line_no + 3])
+        ctx_hash = hashlib.sha256(ctx.encode()).hexdigest()[:16]
+        evidence_list.append(
+            {
+                "se_id": se_id,
+                "source_file": source.split(":")[0],
+                "source_line": line_no,
+                "line_text": line_text[:200],  # 截断长行
+                "context_hash": ctx_hash,
+                "verified_at": now,
+            }
+        )
+
+    if evidence_list:
+        int_dir = _internal_dir(output_dir, project_id, phase_def)
+        int_dir.mkdir(parents=True, exist_ok=True)
+        save_json(int_dir / "_se_source_evidence.json", evidence_list)
+        log.info("Q01: saved SE source evidence for %d SE items", len(evidence_list))
+
+
 _MIN_KEYWORD_MATCH = 1  # 至少匹配 1 个关键词才算来源有效
 
 
@@ -480,29 +607,53 @@ def _extract_keywords(text: str) -> list[str]:
 
 
 def _check_source_line_reality(output_dir: Path, project_id: str, phase_id: str) -> list[str]:
-    """Q01-1+Q01-4: SE/BR 的 source 行号内容与 plain_text.txt 交叉验证.
+    """Q01-1+Q01-4: SE/BR source 行号内容验证（Change 1: SE→BLOCKED, plain_text缺失→BLOCKED）.
 
-    L1（SE/BR 声明）↔ L0（PRD 原文）：
-    - SE.source = "plain_text.txt:79" → 读第 79 行及附近 ±3 行
-    - 检查描述关键词是否出现在该上下文里
-    - 行号超出文件长度 → WARNING（幽灵行号）
-    - 关键词完全不出现 → WARNING（声明与原文不符）
+    阻断级别：SE 比 BR 严格（SE 是需求推理核心，必须硬阻断）：
+    - plain_text.txt 缺失且有 SE → BLOCKED
+    - SE.source 为空 → BLOCKED
+    - SE.source 行号超出文件 → BLOCKED（幽灵行号）
+    - SE.source 关键词不匹配 → BLOCKED（声明与原文不符）
+    - BR source 问题 → WARNING（宽松一级）
+    - 无 SE 且无 plain_text → NOT_APPLICABLE
     """
     from dqg.core.state_machine import phase_dir as _pd
     from dqg.json_utils import load_json
 
     phase_def = PHASE_DEFS.get(phase_id)
     if not phase_def:
-        return []
+        return ["NOT_APPLICABLE: Q01 phase_def not found"]
     pd = _pd(output_dir, project_id, phase_def)
+
+    json_file = STRUCTURED_JSON_MAP.get(phase_id)
+    if not json_file:
+        return ["NOT_APPLICABLE: Q01 structured JSON file not configured"]
+    data = load_json(pd / json_file)
+    if not data:
+        return ["NOT_APPLICABLE: Q01 structured JSON not found or empty"]
+
     plain_text_path = pd / "plain_text.txt"
+    ses = data.get("semantic_expectations", [])
+
     if not plain_text_path.exists():
-        return []  # 无 PRD 原文，跳过（飞书未 ingest 的场景）
+        # 有 SE 且 SE 声称有来源但文件不存在 → BLOCKED（无法验证）
+        ses_with_source = [s for s in ses if (s.get("source") or "").strip()]
+        if ses_with_source:
+            return [
+                f"BLOCKED: Q01 source_prd_missing — plain_text.txt 不存在，"
+                f"无法验证 {len(ses_with_source)} 条 SE.source 的真实性。"
+                "SE 是需求推理的核心，必须有可追溯的 PRD 原文。"
+                "请确认飞书文档已正确 ingest（运行 feishu_direct_ingest）。"
+            ]
+        # SE 无 source 字段（source 为空的情况在后续逐条检查里 BLOCKED）
+        if ses:
+            return ["NOT_APPLICABLE: plain_text.txt not found; SE.source empty check will run separately"]
+        return ["NOT_APPLICABLE: plain_text.txt not found (no SE to validate)"]
 
     try:
-        lines = plain_text_path.read_text(encoding="utf-8", errors="replace").splitlines()
+        prd_lines = plain_text_path.read_text(encoding="utf-8", errors="replace").splitlines()
     except OSError:
-        return []
+        return ["INFRA_FAILURE: plain_text.txt 存在但读取失败"]
 
     json_file = STRUCTURED_JSON_MAP.get(phase_id)
     if not json_file:
@@ -513,37 +664,51 @@ def _check_source_line_reality(output_dir: Path, project_id: str, phase_id: str)
 
     errors: list[str] = []
 
-    def _check_item(item_id: str, description: str, source: str) -> None:
-        if not source:
+    def _check_se(se_id: str, description: str, source: str) -> None:
+        """SE: 无 source 或行号错误均 BLOCKED。"""
+        if not source.strip():
+            errors.append(f"BLOCKED: Q01 {se_id} source 为空——SE 必须填写 PRD 来源（plain_text.txt:行号）。")
+            return
+        m = _SOURCE_LINE_RE.search(source)
+        if not m:
+            errors.append(f"BLOCKED: Q01 {se_id} source 格式无效: '{source}'（要求 plain_text.txt:行号）。")
+            return
+        line_no = int(m.group(1))
+        if line_no < 1 or line_no > len(prd_lines):
+            errors.append(
+                f"BLOCKED: Q01 {se_id} source 行号 {line_no} 超出 plain_text.txt 总行数 {len(prd_lines)}，幽灵行号。"
+            )
+            return
+        context = "\n".join(prd_lines[max(0, line_no - 4) : line_no + 3])
+        keywords = _extract_keywords(description)
+        if keywords and not any(kw in context for kw in keywords):
+            errors.append(
+                f"BLOCKED: Q01 {se_id} source 行号 {line_no} 附近不含描述关键词"
+                f"（{keywords[:3]}），疑似 source 虚报或 SE 从代码反推。"
+            )
+
+    def _check_br(br_id: str, description: str, source: str) -> None:
+        """BR: 宽松一级，问题报 WARNING。"""
+        if not source.strip():
             return
         m = _SOURCE_LINE_RE.search(source)
         if not m:
             return
         line_no = int(m.group(1))
-        if line_no < 1 or line_no > len(lines):
-            errors.append(
-                f"WARNING: Q01 {item_id} source 行号 {line_no} 超出 plain_text.txt 总行数 {len(lines)}，疑似幽灵行号。"
-            )
+        if line_no < 1 or line_no > len(prd_lines):
+            errors.append(f"WARNING: Q01 {br_id} source 行号 {line_no} 超出文件总行数 {len(prd_lines)}。")
             return
-        # 取 ±3 行上下文
-        context = "\n".join(lines[max(0, line_no - 4) : line_no + 3])
+        context = "\n".join(prd_lines[max(0, line_no - 4) : line_no + 3])
         keywords = _extract_keywords(description)
-        matched = [kw for kw in keywords if kw in context]
-        if keywords and len(matched) < _MIN_KEYWORD_MATCH:
-            errors.append(
-                f"WARNING: Q01 {item_id} source 行号 {line_no} 附近内容"
-                f"不含描述关键词（{keywords[:3]}），疑似 source 行号虚报。"
-                "请核实来源是否正确。"
-            )
+        if keywords and not any(kw in context for kw in keywords):
+            errors.append(f"WARNING: Q01 {br_id} source 行号 {line_no} 附近不含描述关键词（{keywords[:3]}）。")
 
-    # 验证 SE.source
-    for se in data.get("semantic_expectations", []):
-        _check_item(se.get("se_id", "SE-?"), se.get("description", ""), se.get("source", ""))
+    for se in ses:
+        _check_se(se.get("se_id", "SE-?"), se.get("description", ""), se.get("source", ""))
 
-    # 验证 BR.source（Q01-4，对称）
     for req in data.get("requirements", []):
         if str(req.get("req_id", "")).startswith("BR"):
-            _check_item(req.get("req_id", "BR-?"), req.get("description", ""), req.get("source", ""))
+            _check_br(req.get("req_id", "BR-?"), req.get("description", ""), req.get("source", ""))
 
     return errors
 

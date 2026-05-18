@@ -415,6 +415,34 @@ def cmd_approve(args, output_dir: Path) -> int:
 
     ps_pre = state.phases.get(args.phase)
     force = getattr(args, "force", False)
+
+    # Change 5: auto-synthesized Judge/Critique 降权——不能单独作为正式评审闭环
+    _allow_synthetic = getattr(args, "allow_synthetic_review", False)
+    _is_synthetic = bool(
+        judge_result.get("auto_synthesized")
+        or judge_result.get("synthesis_source")
+        or judge_result.get("synthetic", False)
+    )
+    if _is_synthetic and not _allow_synthetic and not force:
+        if not cli_json_mode(args):
+            print(
+                "\n  ⚠️  Judge/Critique 由系统自动合成（auto-synthesized），不作为正式评审闭环。",
+                file=sys.stderr,
+            )
+            print(
+                "  approve 需要真实的人工或独立模型评审。",
+                file=sys.stderr,
+            )
+            print(
+                "  如确认接受自动评审结果，请加 --allow-synthetic-review 参数。",
+                file=sys.stderr,
+            )
+        return _approve_out(
+            False,
+            1,
+            error="synthetic_review_not_allowed",
+            judge_result=judge_result,
+        )
     if ps_pre and ps_pre.judge_score is not None and not ps_pre.judge_passed and not force:
         if not cli_json_mode(args):
             print(f"\n  ⚠️  Judge 评分 {ps_pre.judge_score:.1f}/5 未达标（阈值 {phase_threshold}）", file=sys.stderr)
