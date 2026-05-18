@@ -40,14 +40,61 @@ _PHANTOM_METHOD = re.compile(
 )
 
 
-_SUPPLEMENTAL_SUFFIXES = frozenset((".java", ".kt", ".ts", ".tsx", ".patch"))
+_TEST_FILE_SUFFIXES = frozenset((".java", ".kt", ".ts", ".tsx"))
+
+
+def _collect_new_test_files_from_repos(code_repos: list[str]) -> list[Path]:
+    """从业务仓库用 git status 收集新增/修改的测试文件（含 untracked）.
+
+    SKILL.md 要求测试代码直接写到业务仓库的 src/test/java，不使用
+    supplemental_tests/ 中转目录。
+    """
+    test_paths: list[Path] = []
+    for repo_str in code_repos:
+        repo = Path(repo_str).expanduser().resolve()
+        if not repo.is_dir():
+            continue
+        try:
+            r = subprocess.run(
+                ["git", "status", "--porcelain"],
+                cwd=str(repo),
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
+            if r.returncode != 0:
+                continue
+            for line in r.stdout.splitlines():
+                path_str = line[3:].strip()
+                p = repo / path_str
+                if not p.is_file() or p.suffix not in _TEST_FILE_SUFFIXES:
+                    continue
+                norm = path_str.replace("\\", "/")
+                name = p.name.lower()
+                is_test = (
+                    "src/test/" in norm
+                    or name.endswith("test.java")
+                    or name.endswith("test.kt")
+                    or ".test." in name
+                    or ".spec." in name
+                )
+                if is_test:
+                    test_paths.append(p)
+        except (subprocess.TimeoutExpired, OSError):
+            continue
+    return test_paths
 
 
 def _collect_supplemental_files(phase_root: Path) -> list[Path]:
+    """向后兼容：扫描 supplemental_tests/ 目录.
+
+    生产环境下应通过 code_repos + git status 扫描（_collect_new_test_files_from_repos）。
+    无 code_repos 时（如单元测试场景）回落到此目录。
+    """
     d = phase_root / "supplemental_tests"
     if not d.is_dir():
         return []
-    return sorted(p for p in d.rglob("*") if p.is_file() and p.suffix in _SUPPLEMENTAL_SUFFIXES)
+    return sorted(p for p in d.rglob("*") if p.is_file() and p.suffix in _TEST_FILE_SUFFIXES)
 
 
 # 向后兼容别名
@@ -376,10 +423,22 @@ def run_q05_structure_checks(output_dir: Path, project_id: str) -> list[str]:
     if not data or not isinstance(data, dict):
         return []
 
+    # 提前加载 code_repos（同时供 mock patterns 检查和并发 scope 检查使用）
+    int_dir = _internal_dir(output_dir, project_id, phase_def)
+    inputs_data = load_json(int_dir / "_inputs.json") if (int_dir / "_inputs.json").is_file() else {}
+    code_repos: list[str] = []
+    if inputs_data and isinstance(inputs_data, dict):
+        code_repos = inputs_data.get("code_repos") or []
+        if not code_repos and inputs_data.get("code_repo"):
+            code_repos = [inputs_data["code_repo"]]
+
     errors: list[str] = []
     errors.extend(_check_eut_missing_se(data))
     errors.extend(_check_wrong_directory(data))
-    errors.extend(_check_mock_patterns(_collect_supplemental_java(pd)))
+
+    # mock 拼写/幽灵方法检查：有 code_repos 就扫业务仓库新增测试文件，否则 fallback 旧目录
+    test_files = _collect_new_test_files_from_repos(code_repos) if code_repos else _collect_supplemental_files(pd)
+    errors.extend(_check_mock_patterns(test_files))
 
     # ── 并发/幂等/锁强管控 ────────────────────────────────────────────────────
     # 加载 Q01 产物（获取 SE 描述，用于关键词匹配）
@@ -392,15 +451,6 @@ def run_q05_structure_checks(output_dir: Path, project_id: str) -> list[str]:
             q01_data = load_json(q01_path) if q01_path.is_file() else None
 
     errors.extend(_check_concurrent_se_no_eut(data, q01_data))
-
-    # 加载 code_repos（来自 _inputs.json）
-    int_dir = _internal_dir(output_dir, project_id, phase_def)
-    inputs_data = load_json(int_dir / "_inputs.json") if (int_dir / "_inputs.json").is_file() else {}
-    code_repos: list[str] = []
-    if inputs_data and isinstance(inputs_data, dict):
-        code_repos = inputs_data.get("code_repos") or []
-        if not code_repos and inputs_data.get("code_repo"):
-            code_repos = [inputs_data["code_repo"]]
 
     # concurrent_scope 是 WARNING 级别（不阻断 finalize）
     # 同时检测注解（@DistributedLocked 等）和代码级并发原语（ReentrantLock/synchronized/Atomic* 等）

@@ -17,28 +17,44 @@ _TEST_TIMEOUT = 300
 
 
 def _discover_new_test_classes(code_repo: Path) -> list[dict[str, str]]:
-    """从 git diff 发现新增/修改的测试文件，返回 [{class_name, module, path}]."""
+    """从 git diff + git status 发现新增/修改的测试文件（含 untracked），返回 [{class_name, module, path}].
+
+    git diff --name-only HEAD 只包含已提交/staged 文件；新增 untracked 文件（SKILL.md
+    要求直接写到业务仓库 src/test/java）需额外通过 git status --porcelain 发现。
+    """
+    all_paths: set[str] = set()
     try:
-        result = subprocess.run(
+        # staged + modified（相对 HEAD）
+        r_diff = subprocess.run(
             ["git", "diff", "--name-only", "HEAD"],
             cwd=str(code_repo),
             capture_output=True,
             text=True,
             timeout=10,
         )
-        if result.returncode != 0:
-            result = subprocess.run(
-                ["git", "status", "--porcelain"],
-                cwd=str(code_repo),
-                capture_output=True,
-                text=True,
-                timeout=10,
-            )
-            lines = [line[3:].strip() for line in result.stdout.splitlines() if line.strip()]
-        else:
-            lines = result.stdout.strip().splitlines()
+        if r_diff.returncode == 0:
+            all_paths.update(p.strip() for p in r_diff.stdout.splitlines() if p.strip())
+
+        # untracked 新文件（?? 状态）和已 staged 新文件（A 状态）
+        r_status = subprocess.run(
+            ["git", "status", "--porcelain"],
+            cwd=str(code_repo),
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+        if r_status.returncode == 0:
+            for line in r_status.stdout.splitlines():
+                if len(line) < 4:
+                    continue
+                status = line[:2].strip()
+                path_str = line[3:].strip()
+                if status in ("??", "A", "AM", "M", "MM") and path_str:
+                    all_paths.add(path_str)
     except (subprocess.TimeoutExpired, OSError):
         return []
+
+    lines = list(all_paths)
 
     test_files: list[dict[str, str]] = []
     for line in lines:
