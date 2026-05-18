@@ -9,6 +9,7 @@
 
 from __future__ import annotations
 
+import re
 from types import MappingProxyType
 from typing import TYPE_CHECKING, Any, Final
 
@@ -104,8 +105,14 @@ def auto_derive_checks(
                 errors.extend(_check_severity_annotations(validated, phase_id))
                 # --- 5. Location 覆盖校验（Q06 COVERED 必须有 test_location）---
                 errors.extend(_check_location_coverage(validated, phase_id))
-                # --- 6. SE verification 质量校验（Q01 WARN 级，不阻断）---
+                # --- 6. Q01 SE verification / bound_reqs / GAP 语义质量校验 ---
                 errors.extend(_check_se_verification_quality(validated, phase_id))
+                errors.extend(_check_se_bound_reqs_nonempty(validated, phase_id))
+                errors.extend(_check_gap_semantic_quality(validated, phase_id))
+
+        # --- Q01-1: SE/BR source 行号内容交叉验证（L1↔L0，最强反幻觉）---
+        if phase_id == "Q01":
+            errors.extend(_check_source_line_reality(output_dir, project_id, phase_id))
 
     # --- 5. RSM 覆盖率校验（跨 Phase，在 A.5/B/D finalize 时触发）---
     if phase_id in {"Q04", "Q05", "Q06", "Q07"}:
@@ -195,28 +202,149 @@ _VERIFICATION_STRONG_ANCHORS: Final = (
 
 
 def _check_se_verification_quality(validated: BaseModel, phase_id: str) -> list[str]:
-    """Q01 SE 的 verification 字段质量 WARN 级检查（不阻断，仅提醒）。
+    """Q01-2: SE.verification 字段质量升级为 FAIL 级（对标 Q05 then_must_be_concrete）.
 
-    只在 verification **非空且明显弱**时报 WARN。弱写法：
-    - 长度 < 20 字符
-    - 或不含任何强锚点词（断言/assert/SELECT/HTTP/errorCode/Mock/CountDownLatch/参数化 等）
-
-    verification 为空（历史产物）不报——schema 允许 default=""，兼容存量数据。
+    - 空字符串 → FAIL（不再向后兼容，每条 SE 必须有可执行验证步骤）
+    - 非空但弱（<20字 且无强锚点词）→ FAIL
+    强锚点词：断言/assert/SELECT/HTTP/errorCode/Mock/verify/CountDownLatch 等
     """
     if phase_id != "Q01":
         return []
     errors: list[str] = []
     for se in getattr(validated, "semantic_expectations", []):
-        verification = getattr(se, "verification", "")
+        se_id = getattr(se, "se_id", "SE-?")
+        verification = (getattr(se, "verification", "") or "").strip()
         if not verification:
-            continue  # 空字段视为未提供，不报
+            errors.append(
+                f"FAIL: Q01 {se_id} verification 为空。"
+                "每条 SE 必须填写可执行验证步骤（如：调用接口 + 断言 HTTP 状态码/errorCode/DB 字段）。"
+            )
+            continue
         weak = len(verification) < 20 or not any(anchor in verification for anchor in _VERIFICATION_STRONG_ANCHORS)
         if weak:
-            se_id = getattr(se, "se_id", "SE-?")
             errors.append(
-                f"WARN: {se_id} verification 写法弱（长度={len(verification)}，"
-                "无断言/SQL/HTTP 等强锚点），建议补至 se_checklist ✓ 示例强度"
+                f"FAIL: Q01 {se_id} verification 写法弱（长度={len(verification)}，"
+                "无断言/SQL/HTTP/errorCode/Mock 等强锚点）。"
+                "请补至可执行步骤（参考 se_checklist ✓ 示例）。"
             )
+    return errors
+
+
+_SOURCE_LINE_RE = re.compile(r":(\d+)$")
+_MIN_KEYWORD_MATCH = 1  # 至少匹配 1 个关键词才算来源有效
+
+
+_GAP_SEMANTIC_KWS: frozenset[str] = frozenset(
+    {"缺少", "不明确", "未定义", "需要", "待确认", "缺乏", "缺失", "没有说明", "未说明", "不清楚", "没有明确"}
+)
+
+
+def _check_gap_semantic_quality(validated: BaseModel, phase_id: str) -> list[str]:
+    """Q01-5: GAP 描述必须含缺口语义词，防止 LLM 虚构假 GAP."""
+    if phase_id != "Q01":
+        return []
+    errors: list[str] = []
+    for gap in getattr(validated, "gaps", []):
+        gap_id = getattr(gap, "gap_id", "GAP-?")
+        desc = getattr(gap, "description", "") or ""
+        if desc and not any(kw in desc for kw in _GAP_SEMANTIC_KWS):
+            errors.append(
+                f"WARNING: Q01 {gap_id} 描述不含缺口语义词（缺少/不明确/未定义等），"
+                "疑似非真实 GAP。GAP 应描述 PRD 里明显缺失的信息。"
+            )
+    return errors
+
+
+def _check_se_bound_reqs_nonempty(validated: BaseModel, phase_id: str) -> list[str]:
+    """Q01-3: 每条 SE 必须绑定至少一个 REQ 或 BR（bound_reqs 非空）."""
+    if phase_id != "Q01":
+        return []
+    errors: list[str] = []
+    for se in getattr(validated, "semantic_expectations", []):
+        se_id = getattr(se, "se_id", "SE-?")
+        bound_reqs = getattr(se, "bound_reqs", []) or []
+        if not bound_reqs:
+            errors.append(
+                f"FAIL: Q01 {se_id} bound_reqs 为空。每条 SE 必须绑定至少一个 REQ 或 BR，否则 Q05 BR 覆盖率链路断裂。"
+            )
+    return errors
+
+
+def _extract_keywords(text: str) -> list[str]:
+    """从描述文本提取关键词（4字以上的中文词组 或 英文单词）."""
+    import re as _re
+
+    cn_words = _re.findall(r"[一-鿿]{3,}", text)
+    en_words = _re.findall(r"[A-Za-z]{4,}", text)
+    return (cn_words + en_words)[:6]  # 最多取 6 个
+
+
+def _check_source_line_reality(output_dir: Path, project_id: str, phase_id: str) -> list[str]:
+    """Q01-1+Q01-4: SE/BR 的 source 行号内容与 plain_text.txt 交叉验证.
+
+    L1（SE/BR 声明）↔ L0（PRD 原文）：
+    - SE.source = "plain_text.txt:79" → 读第 79 行及附近 ±3 行
+    - 检查描述关键词是否出现在该上下文里
+    - 行号超出文件长度 → WARNING（幽灵行号）
+    - 关键词完全不出现 → WARNING（声明与原文不符）
+    """
+    from dqg.core.state_machine import phase_dir as _pd
+    from dqg.json_utils import load_json
+
+    phase_def = PHASE_DEFS.get(phase_id)
+    if not phase_def:
+        return []
+    pd = _pd(output_dir, project_id, phase_def)
+    plain_text_path = pd / "plain_text.txt"
+    if not plain_text_path.exists():
+        return []  # 无 PRD 原文，跳过（飞书未 ingest 的场景）
+
+    try:
+        lines = plain_text_path.read_text(encoding="utf-8", errors="replace").splitlines()
+    except OSError:
+        return []
+
+    json_file = STRUCTURED_JSON_MAP.get(phase_id)
+    if not json_file:
+        return []
+    data = load_json(pd / json_file)
+    if not data:
+        return []
+
+    errors: list[str] = []
+
+    def _check_item(item_id: str, description: str, source: str) -> None:
+        if not source:
+            return
+        m = _SOURCE_LINE_RE.search(source)
+        if not m:
+            return
+        line_no = int(m.group(1))
+        if line_no < 1 or line_no > len(lines):
+            errors.append(
+                f"WARNING: Q01 {item_id} source 行号 {line_no} 超出 plain_text.txt 总行数 {len(lines)}，疑似幽灵行号。"
+            )
+            return
+        # 取 ±3 行上下文
+        context = "\n".join(lines[max(0, line_no - 4) : line_no + 3])
+        keywords = _extract_keywords(description)
+        matched = [kw for kw in keywords if kw in context]
+        if keywords and len(matched) < _MIN_KEYWORD_MATCH:
+            errors.append(
+                f"WARNING: Q01 {item_id} source 行号 {line_no} 附近内容"
+                f"不含描述关键词（{keywords[:3]}），疑似 source 行号虚报。"
+                "请核实来源是否正确。"
+            )
+
+    # 验证 SE.source
+    for se in data.get("semantic_expectations", []):
+        _check_item(se.get("se_id", "SE-?"), se.get("description", ""), se.get("source", ""))
+
+    # 验证 BR.source（Q01-4，对称）
+    for req in data.get("requirements", []):
+        if str(req.get("req_id", "")).startswith("BR"):
+            _check_item(req.get("req_id", "BR-?"), req.get("description", ""), req.get("source", ""))
+
     return errors
 
 

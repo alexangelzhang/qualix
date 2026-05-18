@@ -32,13 +32,18 @@ VALID_PHASE_A = {
         {"req_id": "BR-001", "parent_id": "REQ-001", "description": "工单创建需要校验幂等性"},
     ],
     "semantic_expectations": [
-        {"se_id": "SE-001", "description": "幂等性校验"},
+        {
+            "se_id": "SE-001",
+            "description": "幂等性校验",
+            "verification": "POST 同一 requestId 两次；断言第二次返回 HTTP 200 + errorCode=DUPLICATE",
+            "bound_reqs": ["REQ-001", "BR-001"],
+        },
     ],
     "gaps": [
         {
             "gap_id": "GAP-001",
             "related_ids": ["REQ-001"],
-            "description": "并发场景未定义",
+            "description": "并发场景未定义，缺少边界行为说明",
             "required_clarification": "需要明确并发策略",
         },
     ],
@@ -121,28 +126,34 @@ class TestAutoChecksPhaseA:
             errors = auto_derive_checks(output_dir, "test-proj", "Q01")
             assert any("SCHEMA" in e for e in errors)
 
-    def test_verification_empty_not_warned(self):
-        """verification 字段空字符串不报 WARN（兼容历史产物）."""
-        with tempfile.TemporaryDirectory() as tmpdir:
-            output_dir = _setup_phase_a(Path(tmpdir), VALID_PHASE_A)
-            errors = auto_derive_checks(output_dir, "test-proj", "Q01")
-            assert not any("WARN:" in e for e in errors)
-
-    def test_verification_weak_triggers_warn(self):
-        """verification 非空但弱（<20 字符 且 无强锚点）应该报 WARN."""
+    def test_verification_empty_fails(self):
+        """Q01-2: verification 为空 → FAIL（不再兼容历史产物）."""
         data = {
             **VALID_PHASE_A,
             "semantic_expectations": [
-                {"se_id": "SE-001", "description": "幂等校验", "verification": "防止重复"},
+                {"se_id": "SE-001", "description": "幂等校验", "bound_reqs": ["REQ-001"]},
             ],
         }
         with tempfile.TemporaryDirectory() as tmpdir:
             output_dir = _setup_phase_a(Path(tmpdir), data)
             errors = auto_derive_checks(output_dir, "test-proj", "Q01")
-            assert any("WARN:" in e and "SE-001" in e for e in errors)
+            assert any("FAIL:" in e and "SE-001" in e and "verification" in e for e in errors)
 
-    def test_verification_strong_not_warned(self):
-        """verification 含强锚点词（断言/SELECT/HTTP 等）不报 WARN."""
+    def test_verification_weak_fails(self):
+        """Q01-2: verification 非空但弱（<20 字符 且 无强锚点）→ FAIL."""
+        data = {
+            **VALID_PHASE_A,
+            "semantic_expectations": [
+                {"se_id": "SE-001", "description": "幂等校验", "verification": "防止重复", "bound_reqs": ["REQ-001"]},
+            ],
+        }
+        with tempfile.TemporaryDirectory() as tmpdir:
+            output_dir = _setup_phase_a(Path(tmpdir), data)
+            errors = auto_derive_checks(output_dir, "test-proj", "Q01")
+            assert any("FAIL:" in e and "SE-001" in e for e in errors)
+
+    def test_verification_strong_passes(self):
+        """Q01-2: verification 含强锚点词（断言/SELECT/HTTP 等）通过."""
         data = {
             **VALID_PHASE_A,
             "semantic_expectations": [
@@ -150,13 +161,14 @@ class TestAutoChecksPhaseA:
                     "se_id": "SE-001",
                     "description": "幂等校验",
                     "verification": "CountDownLatch 10 并发 POST；断言 1 次 2xx + 9 次 409+errorCode=DUP",
+                    "bound_reqs": ["REQ-001"],
                 },
             ],
         }
         with tempfile.TemporaryDirectory() as tmpdir:
             output_dir = _setup_phase_a(Path(tmpdir), data)
             errors = auto_derive_checks(output_dir, "test-proj", "Q01")
-            assert not any("WARN:" in e for e in errors)
+            assert not any("FAIL:" in e and "SE-001" in e for e in errors)
 
 
 class TestAutoChecksPhaseA6:
