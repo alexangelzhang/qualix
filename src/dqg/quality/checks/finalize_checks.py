@@ -202,6 +202,12 @@ def run_finalize_checks(output_dir: Path, project_id: str, phase_id: str) -> lis
 
         errors.extend(check_q05_test_execution(output_dir, project_id))
 
+    # Phase C: 结构合规（COVERED断言强度 / sidecar利用 / WRONG_TARGET验证）
+    if phase_id == "Q06":
+        from .q06_structure_checks import run_q06_structure_checks
+
+        errors.extend(run_q06_structure_checks(output_dir, project_id))
+
     # Phase C: 覆盖率门禁（解析 JaCoCo XML，支持多 repo）
     if phase_id == "Q06":
         from .coverage_gate import check_phase_c_coverage

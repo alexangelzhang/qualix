@@ -11,11 +11,9 @@ from __future__ import annotations
 
 import contextlib
 import re
+from pathlib import Path
 from types import MappingProxyType
 from typing import TYPE_CHECKING, Any, Final
-
-if TYPE_CHECKING:
-    from pathlib import Path
 
 if TYPE_CHECKING:
     from pydantic import BaseModel
@@ -110,6 +108,8 @@ def auto_derive_checks(
                 errors.extend(_check_se_verification_quality(validated, phase_id))
                 errors.extend(_check_se_bound_reqs_nonempty(validated, phase_id))
                 errors.extend(_check_gap_semantic_quality(validated, phase_id))
+                # --- G8: Q06 findings.severity 分布合理性（需要 validated 对象）---
+                errors.extend(_check_findings_severity_distribution(validated, phase_id))
 
         # --- Q01-1: SE/BR source 行号内容交叉验证（L1↔L0，最强反幻觉）---
         if phase_id == "Q01":
@@ -118,6 +118,14 @@ def auto_derive_checks(
             errors.extend(_check_code_identifier_leakage(output_dir, project_id, phase_id))
             # --- Q01-4: BR 数量与 PRD 信息密度合理性检查 ---
             errors.extend(_check_br_density_ratio(output_dir, project_id, phase_id))
+
+        # --- Q06: coverage_gate 自报 ↔ JaCoCo 一致性 (G2) ---
+        if phase_id == "Q06":
+            errors.extend(_check_coverage_gate_consistency(output_dir, project_id, phase_id))
+            # --- Q06: audit_items 数量 ≥ Q05 EUT 数量 (G7) ---
+            errors.extend(_check_audit_items_count(output_dir, project_id, phase_id))
+            # --- Q06: evidence 行号内容验证 (G5) ---
+            errors.extend(_check_evidence_line_reality(output_dir, project_id, phase_id))
 
     # --- 5. RSM 覆盖率校验（跨 Phase，在 A.5/B/D finalize 时触发）---
     if phase_id in {"Q04", "Q05", "Q06", "Q07"}:
@@ -233,6 +241,193 @@ def _check_se_verification_quality(validated: BaseModel, phase_id: str) -> list[
                 "请补至可执行步骤（参考 se_checklist ✓ 示例）。"
             )
     return errors
+
+
+# ---------------------------------------------------------------------------
+# Q06 专项检查函数
+# ---------------------------------------------------------------------------
+
+
+def _check_coverage_gate_consistency(output_dir: Path, project_id: str, phase_id: str) -> list[str]:
+    """G2: coverage_gate.line_coverage（LLM 自报）与 JaCoCo 实际结果交叉验证.
+
+    finalize 时 JaCoCo 结果会写入 _internal/_incremental_coverage.json 或 _coverage.json。
+    若 LLM 自报的数字与 JaCoCo 实际数字偏差 >15% → WARNING（虚报覆盖率）。
+    """
+    from dqg.core.state_machine import internal_dir as _internal_dir
+    from dqg.core.state_machine import phase_dir as _pd
+
+    phase_def = PHASE_DEFS.get(phase_id)
+    if not phase_def:
+        return []
+    pd = _pd(output_dir, project_id, phase_def)
+    int_dir = _internal_dir(output_dir, project_id, phase_def)
+
+    # 读 LLM 自报的覆盖率
+    json_file = STRUCTURED_JSON_MAP.get(phase_id)
+    if not json_file:
+        return []
+    data = load_json(pd / json_file)
+    if not data:
+        return []
+    gate = data.get("coverage_gate", {}) or {}
+    reported_line = gate.get("line_coverage")
+    if reported_line is None:
+        return []
+
+    # 读 JaCoCo 实际结果（finalize 写入 _internal）
+    for candidate in ["_incremental_coverage.json", "_coverage.json"]:
+        cov = load_json(int_dir / candidate)
+        if cov:
+            actual_line = cov.get("line_coverage") or cov.get("overall_line_rate")
+            if actual_line is not None:
+                # 统一到 0-100 范围
+                if actual_line <= 1.0:
+                    actual_line *= 100
+                diff = abs(float(reported_line) - float(actual_line))
+                if diff > 15:
+                    return [
+                        f"WARNING: Q06 coverage_gate_mismatch — phase_c_structured.json 自报覆盖率"
+                        f" {reported_line:.1f}% 与 JaCoCo 实际 {actual_line:.1f}% 偏差 {diff:.1f}%（阈值 15%）。"
+                        "请确认 coverage_gate 字段数据来自 JaCoCo 报告而非手动估算。"
+                    ]
+                return []
+    return []
+
+
+def _check_audit_items_count(output_dir: Path, project_id: str, phase_id: str) -> list[str]:
+    """G7: Q06 audit_items 数量应 ≥ Q05 eut_items 数量（允许 ≤10% 的漏审）.
+
+    防止 LLM 只审计部分 EUT，跳过质量最差的测试使覆盖率数字虚高。
+    """
+    from dqg.constants import PHASE_DIR_MAP
+    from dqg.core.state_machine import phase_dir as _pd
+
+    phase_def = PHASE_DEFS.get(phase_id)
+    if not phase_def:
+        return []
+    pd = _pd(output_dir, project_id, phase_def)
+    json_file = STRUCTURED_JSON_MAP.get(phase_id)
+    if not json_file:
+        return []
+    data = load_json(pd / json_file)
+    if not data:
+        return []
+
+    q06_count = len(data.get("audit_items", []))
+
+    # 读 Q05 EUT 数量
+    q05_json = STRUCTURED_JSON_MAP.get("Q05")
+    q05_dir = PHASE_DIR_MAP.get("Q05")
+    if not q05_json or not q05_dir:
+        return []
+    phase_b = load_json(output_dir / project_id / q05_dir / q05_json)
+    if not phase_b:
+        return []
+    q05_count = len(phase_b.get("eut_items", []))
+    if q05_count == 0:
+        return []
+
+    if q06_count < q05_count * 0.9:
+        return [
+            f"FAIL: Q06 audit_items_insufficient — Q06 审计了 {q06_count} 条 EUT，"
+            f"但 Q05 共有 {q05_count} 条（覆盖率 {q06_count * 100 // q05_count}%，要求 ≥90%）。"
+            "Q06 必须覆盖 Q05 绝大多数 EUT，不能跳过质量差的测试。"
+        ]
+    return []
+
+
+def _check_evidence_line_reality(output_dir: Path, project_id: str, phase_id: str) -> list[str]:
+    """G5: audit_items.evidence 行号内容验证（对标 Q01-1 SE.source 验证）.
+
+    COVERED 条目的 evidence = "[file:line]" → 验证该行附近确有断言关键词。
+    """
+    from dqg.core.state_machine import phase_dir as _pd
+
+    phase_def = PHASE_DEFS.get(phase_id)
+    if not phase_def:
+        return []
+    pd = _pd(output_dir, project_id, phase_def)
+    json_file = STRUCTURED_JSON_MAP.get(phase_id)
+    if not json_file:
+        return []
+    data = load_json(pd / json_file)
+    if not data:
+        return []
+
+    # 读 code_repos
+    from dqg.core.state_machine import internal_dir as _internal_dir
+
+    int_dir = _internal_dir(output_dir, project_id, phase_def)
+    inputs = load_json(int_dir / "_inputs.json") or {}
+    code_repos: list[str] = inputs.get("code_repos") or []
+    if not code_repos and inputs.get("code_repo"):
+        code_repos = [inputs["code_repo"]]
+
+    _ASSERT_KW = re.compile(r"\bassert\w+\s*\(|\bverify\s*\(", re.IGNORECASE)
+    _EV_RE = re.compile(r"\[?([^:\[\]]+\.java):(\d+)\]?")
+
+    suspicious: list[str] = []
+    for item in data.get("audit_items", []):
+        if not isinstance(item, dict) or str(item.get("status", "")).upper() != "COVERED":
+            continue
+        evidence = str(item.get("evidence", "") or "")
+        m = _EV_RE.search(evidence)
+        if not m:
+            continue
+        fname, lineno = m.group(1), int(m.group(2))
+
+        found = False
+        for repo_str in code_repos:
+            repo = Path(repo_str).expanduser().resolve()
+            # 在 src/test/ 下递归找该文件
+            for candidate in repo.rglob(f"*{Path(fname).name}"):
+                try:
+                    lines = candidate.read_text(encoding="utf-8", errors="replace").splitlines()
+                    ctx = "\n".join(lines[max(0, lineno - 4) : lineno + 3])
+                    if _ASSERT_KW.search(ctx):
+                        found = True
+                except OSError:
+                    pass
+                if found:
+                    break
+            if found:
+                break
+
+        if not found:
+            eut_id = item.get("eut_id", "?")
+            suspicious.append(f"{eut_id}({fname}:{lineno})")
+
+    if suspicious:
+        return [
+            f"WARNING: Q06 evidence_line_no_assert — {len(suspicious)} 个 COVERED 条目的"
+            f" evidence 行号附近无断言关键词，疑似虚报来源: {', '.join(suspicious[:4])}。"
+        ]
+    return []
+
+
+def _check_findings_severity_distribution(validated: Any, phase_id: str) -> list[str]:
+    """G8: Q06 findings.severity 分布合理性检查.
+
+    防止 LLM 系统性低报问题（全标 LOW）让审计看起来"几乎无问题"。
+    """
+    if phase_id != "Q06":
+        return []
+    findings = getattr(validated, "findings", [])
+    if len(findings) < 3:
+        return []
+
+    severities = [str(f.severity).upper() for f in findings if hasattr(f, "severity")]
+    if not severities:
+        return []
+
+    low_count = sum(1 for s in severities if s in ("LOW", "INFO", "MINOR"))
+    if low_count / len(severities) >= 0.9:
+        return [
+            f"WARNING: Q06 severity_all_low — {low_count}/{len(severities)} 个 finding 均为 LOW/INFO，"
+            "疑似系统性低报问题严重性。如果存在 MISSING/WRONG_TARGET 条目，至少应有 MEDIUM 以上 finding。"
+        ]
+    return []
 
 
 _SOURCE_LINE_RE = re.compile(r":(\d+)$")
