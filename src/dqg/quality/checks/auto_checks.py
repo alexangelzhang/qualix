@@ -9,6 +9,7 @@
 
 from __future__ import annotations
 
+import contextlib
 import re
 from types import MappingProxyType
 from typing import TYPE_CHECKING, Any, Final
@@ -113,6 +114,10 @@ def auto_derive_checks(
         # --- Q01-1: SE/BR source 行号内容交叉验证（L1↔L0，最强反幻觉）---
         if phase_id == "Q01":
             errors.extend(_check_source_line_reality(output_dir, project_id, phase_id))
+            # --- Q01-2: SE/BR 描述中代码标识符反推检测 ---
+            errors.extend(_check_code_identifier_leakage(output_dir, project_id, phase_id))
+            # --- Q01-4: BR 数量与 PRD 信息密度合理性检查 ---
+            errors.extend(_check_br_density_ratio(output_dir, project_id, phase_id))
 
     # --- 5. RSM 覆盖率校验（跨 Phase，在 A.5/B/D finalize 时触发）---
     if phase_id in {"Q04", "Q05", "Q06", "Q07"}:
@@ -345,6 +350,156 @@ def _check_source_line_reality(output_dir: Path, project_id: str, phase_id: str)
         if str(req.get("req_id", "")).startswith("BR"):
             _check_item(req.get("req_id", "BR-?"), req.get("description", ""), req.get("source", ""))
 
+    return errors
+
+
+# Q1-2: 代码标识符泄漏检测
+# 强代码标识符：驼峰方法名（≥3个大写字母段）、@注解、下划线常量
+_CODE_IDENT_PATTERN = re.compile(
+    r"\b([a-z][a-zA-Z0-9]{4,}[A-Z][a-zA-Z0-9]{3,})\b"  # camelCase 方法/类名
+    r"|(@[A-Z][a-zA-Z]{3,})"  # @Annotation
+    r"|\b([A-Z_]{4,})\b"  # SNAKE_CASE 常量
+)
+# 过滤掉的通用词（不是代码标识符）
+_CODE_WHITELIST = frozenset(
+    {
+        "HTTP",
+        "HTTPS",
+        "JSON",
+        "XML",
+        "SQL",
+        "API",
+        "URL",
+        "SDK",
+        "LLM",
+        "NULL",
+        "TRUE",
+        "FALSE",
+        "POST",
+        "GET",
+        "PUT",
+        "OPEN",
+    }
+)
+
+
+def _check_code_identifier_leakage(
+    output_dir: Path,
+    project_id: str,
+    phase_id: str,
+) -> list[str]:
+    """Q1-2: 检测 SE/BR 描述中是否混入了代码反推的标识符.
+
+    如果 SE/BR 描述里出现了驼峰方法名/类名/注解（如 identifyByPrecheckAndFulfillment、
+    @DistributedLocked），但这些词在 PRD 原文里不存在，高度疑似 LLM 从代码反推。
+    业务需求语言不应该包含代码实现标识符。
+    """
+    from dqg.core.state_machine import phase_dir as _pd
+    from dqg.json_utils import load_json
+
+    phase_def = PHASE_DEFS.get(phase_id)
+    if not phase_def:
+        return []
+    pd = _pd(output_dir, project_id, phase_def)
+    plain_text_path = pd / "plain_text.txt"
+
+    prd_text = ""
+    if plain_text_path.exists():
+        with contextlib.suppress(OSError):
+            prd_text = plain_text_path.read_text(encoding="utf-8", errors="replace")
+
+    json_file = STRUCTURED_JSON_MAP.get(phase_id)
+    if not json_file:
+        return []
+    data = load_json(pd / json_file)
+    if not data:
+        return []
+
+    suspicious: list[str] = []
+
+    def _scan(item_id: str, text: str) -> None:
+        for m in _CODE_IDENT_PATTERN.finditer(text):
+            ident = next(g for g in m.groups() if g)
+            ident_clean = ident.lstrip("@")
+            if ident_clean in _CODE_WHITELIST:
+                continue
+            # 标识符在 PRD 原文里不存在 → 疑似代码反推
+            if prd_text and ident_clean not in prd_text:
+                suspicious.append(f"{item_id}('{ident}'不在PRD原文)")
+
+    for se in data.get("semantic_expectations", []):
+        _scan(se.get("se_id", "SE-?"), se.get("description", "") or "")
+    for req in data.get("requirements", []):
+        req_id = str(req.get("req_id", ""))
+        if req_id.startswith("BR"):
+            _scan(req_id, req.get("description", "") or "")
+
+    if suspicious:
+        unique = sorted(set(suspicious))
+        return [
+            f"WARNING: Q01 code_identifier_leakage — {len(unique)} 处 SE/BR 描述包含 PRD 原文不存在的"
+            f"代码标识符，疑似从代码反推而非 PRD 推理: {', '.join(unique[:5])}。"
+            "业务需求描述不应出现驼峰类名/方法名/@注解，请改用业务语言描述。"
+        ]
+    return []
+
+
+def _check_br_density_ratio(
+    output_dir: Path,
+    project_id: str,
+    phase_id: str,
+) -> list[str]:
+    """Q1-4: BR 数量与 PRD 信息密度合理性检查.
+
+    合理比例：每 20~300 行 PRD 对应 1 条 BR。
+    - < 10 行/BR（膨胀）：LLM 把一个场景拆成太多 BR，虚增覆盖感
+    - > 300 行/BR（压缩）：LLM 把多个场景合并，降低后续测试工作量
+    """
+    from dqg.core.state_machine import phase_dir as _pd
+    from dqg.json_utils import load_json
+
+    phase_def = PHASE_DEFS.get(phase_id)
+    if not phase_def:
+        return []
+    pd = _pd(output_dir, project_id, phase_def)
+    plain_text_path = pd / "plain_text.txt"
+    if not plain_text_path.exists():
+        return []
+
+    try:
+        prd_lines = len(plain_text_path.read_text(encoding="utf-8", errors="replace").splitlines())
+    except OSError:
+        return []
+
+    if prd_lines < 20:
+        return []  # PRD 太短，不做密度检查
+
+    json_file = STRUCTURED_JSON_MAP.get(phase_id)
+    if not json_file:
+        return []
+    data = load_json(pd / json_file)
+    if not data:
+        return []
+
+    br_count = sum(1 for r in data.get("requirements", []) if str(r.get("req_id", "")).startswith("BR"))
+    if br_count == 0:
+        return []
+
+    lines_per_br = prd_lines / br_count
+    errors: list[str] = []
+
+    if lines_per_br < 10:
+        errors.append(
+            f"WARNING: Q01 br_density_inflated — PRD {prd_lines} 行产生了 {br_count} 条 BR"
+            f"（每 {lines_per_br:.1f} 行/BR），密度过高（阈值 ≥10）。"
+            "疑似 LLM 将一个场景拆分为过多 BR，虚增覆盖感。"
+        )
+    elif lines_per_br > 300:
+        errors.append(
+            f"WARNING: Q01 br_density_insufficient — PRD {prd_lines} 行仅产生了 {br_count} 条 BR"
+            f"（每 {lines_per_br:.0f} 行/BR），密度过低（阈值 ≤300）。"
+            "疑似 LLM 将多个场景合并或跳过了关键分支需求。"
+        )
     return errors
 
 
