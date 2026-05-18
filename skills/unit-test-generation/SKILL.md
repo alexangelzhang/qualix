@@ -209,7 +209,7 @@ Step 1.1 + 1.2 的结果必须输出为结构化 JSON：
 > - 代码中存在 check-then-act 模式：`synchronized`、`@Transactional` + 状态检查、分布式锁（`RedissonClient`/`@DistributedLock`）、`SELECT ... FOR UPDATE`
 > - 即使 Q01 未识别并发 SE，读代码时发现上述模式也必须生成并发测试
 | 变更文件覆盖率 | P0 100% / P1 ≥ 80% | WARNING |
-| 代码分支覆盖率 | ≥ 70% | WARNING |
+| 代码分支覆盖率 | **100%**（有矩阵读矩阵，无矩阵用分支清单+EUT类型推断） | FAIL |
 
 > **设计矩阵是 Phase Q06 审计的基准**——Phase Q06 对照设计矩阵检查"设计了但没实现"和"实现了但没设计"。
 
@@ -410,15 +410,31 @@ Step 1.1 + 1.2 的结果必须输出为结构化 JSON：
 
 ## 验证标准（Verification）
 
+> 注：所有 BLOCKED/FAIL 项均为自动 gate，finalize 阶段强制执行，已无"人工确认"项。
+
 | 验证项 | 检查方式 | 阻断级别 |
 |--------|---------|---------|
 | 推理日志存在 | finalize_checks: `_reasoning_log.md` 存在且 > 100 字符 | BLOCKED |
 | 编译通过 | test_execution_gate: 对每个仓库 `mvn test-compile` | BLOCKED |
 | 测试运行通过 | test_execution_gate: 对每个仓库 `mvn test -Dtest=<新增类>` | BLOCKED |
+| 多仓库完整性 | test_execution_gate: 每个 code_repo 都必须有新增测试文件 | BLOCKED |
 | 产物数量不回退 | finalize_checks: 对比 `_prev_counts.json` | REGRESSION |
 | Schema 校验 | schemas/phase_b.py 验证 `phase_b_structured.json` | BLOCKED |
-| EUT 覆盖 SE | 每条 SE 至少有一个 bound_se 匹配的 EUT | 人工确认 |
-| 路径类型均衡 | Happy/Exception/Boundary 三种类型都有 | 人工确认 |
+| Exception 后置断言 | phase_q05 schema: Exception EUT then 必须有 assertThrows + 状态/副作用验证 | BLOCKED |
+| EUT 覆盖 SE | R-SE-BOUND: 每条 SE 逐条验证有对应 bound_se EUT（100%） | FAIL |
+| 路径覆盖率 | R-HAPPY-EXCEPTION: SE+BR+REQ+代码四维度（Happy≥80%/Exception=100%/Boundary=100%） | FAIL |
+| EUT 数量 | R-EUT-COUNT: ≥ Q01 的 REQ+BR+SE 总数（动态，无上限） | FAIL |
+| BR 覆盖率 | R-BR-COVERAGE: 100%（通过 SE 链路验证） | FAIL |
+| 代码分支覆盖率 | R-CODE-BRANCH: **100%**（有矩阵读矩阵，无矩阵读分支清单） | FAIL |
+| 设计矩阵存在 | R-DESIGN-MATRIX: `_test_design_matrix.json` 必须存在 | FAIL |
+| 设计矩阵一致性 | R-MATRIX-CONSISTENCY: summary 数字不能虚报（与数组实际内容交叉验证） | FAIL |
+| T1 SE 三路径 | R-T1-THREE-PATHS: T1 SE 必须有 Happy+Exception+Boundary 各≥1 EUT | FAIL |
+| 不应调用 never | R-NEVER-VERIFY: 含"不应调用"语义的 SE 对应 EUT 必须有 verify(never()) | FAIL |
+| 方法级断言强度 | q05_structure_checks: >40% @Test 仅有弱断言 → BLOCKED | BLOCKED |
+| 追溯标注 | q05_structure_checks: <60% @Test 方法有 SE/EUT 注释 → WARNING | WARNING |
+| 并发测试多线程 | q05_structure_checks: Concurrency EUT 必须有 CountDownLatch/Thread | BLOCKED |
+| 分支清单存在 | Q05BranchCoverageGuardrail: 无 Step A 清单 → WARNING | WARNING |
+| 设计矩阵 branch 真实性 | q05_structure_checks: branch 文件名必须在 git diff 变更文件里 | WARNING |
 
 ## 关键约束
 

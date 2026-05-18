@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 from enum import StrEnum
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 from dqg.schemas.location import SourceLocation
 
@@ -113,6 +113,31 @@ class EutItem(BaseModel):
                 "请改为具体类（如 MafSrvAftersaleException.class、BusinessException.class）。"
             )
         return v
+
+    @model_validator(mode="after")
+    def exception_eut_must_have_postcondition(self) -> EutItem:
+        """Fix-2: Exception EUT 在 assertThrows 之外还必须有后置状态/副作用断言.
+
+        SKILL.md 3.3：异常后必须补充业务效果断言（状态未变更、数据未写入、事务已回滚）。
+        若 then 只有 assertThrows 而无 verify/assertEquals/状态检查，视为不完整异常测试。
+        """
+        if self.route_type != RouteType.EXCEPTION:
+            return self
+        then = (self.then or "").strip()
+        _HAS_THROWS = re.compile(r"assertThrows\s*\(", re.IGNORECASE)
+        _HAS_POSTCOND = re.compile(
+            r"\b(verify\s*\(|assertEquals\s*\(|assertThat\s*\(|assertSame\s*\(|assertNull\s*\(|assertFalse\s*\(|状态未变|数据未写|未调用|never\s*\(|times\s*\(\s*0)",
+            re.IGNORECASE,
+        )
+        if _HAS_THROWS.search(then) and not _HAS_POSTCOND.search(then):
+            raise ValueError(
+                f"Exception EUT then 字段缺少后置状态断言: '{then[:80]}'。\n"
+                "SKILL.md 3.3 要求：assertThrows 后必须补充业务效果断言，例如：\n"
+                "  verify(mock, never()).save(any()) — 数据未写入\n"
+                "  assertEquals(INIT, state.getStatus()) — 状态未变更\n"
+                "  verify(srvServiceExtendManager, never()).delete(...) — 副作用未执行"
+            )
+        return self
 
 
 class TCItem(BaseModel):

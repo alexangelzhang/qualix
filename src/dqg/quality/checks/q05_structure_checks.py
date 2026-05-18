@@ -452,6 +452,202 @@ def _check_concurrent_scope(
     return warnings
 
 
+# Fix-3: SE/EUT 追溯标注检测
+_TRACEABILITY_PATTERN = re.compile(r"(SE-\d+|EUT-\d+)", re.IGNORECASE)
+# Fix-5: 并发测试多线程模式检测
+_CONCURRENT_EUT_KWS = frozenset({"并发", "幂等", "CountDownLatch", "多线程", "concurren", "同时"})
+_MULTITHREAD_PATTERN = re.compile(
+    r"\b(CountDownLatch|CyclicBarrier|Thread\s*\(|ExecutorService|CompletableFuture"
+    r"|@Async|AtomicInteger|synchronized\s*\()",
+    re.IGNORECASE,
+)
+
+
+def _collect_git_diff_basenames(code_repos: list[str]) -> set[str]:
+    """收集所有仓库 git diff 变更文件的 basename（不含路径）."""
+    basenames: set[str] = set()
+    for repo_str in code_repos:
+        repo = Path(repo_str).expanduser().resolve()
+        if not repo.is_dir():
+            continue
+        for cmd in [
+            ["git", "diff", "--name-only", "origin/master...HEAD"],
+            ["git", "diff", "--name-only", "origin/main...HEAD"],
+            ["git", "status", "--porcelain"],
+        ]:
+            try:
+                r = subprocess.run(cmd, cwd=str(repo), capture_output=True, text=True, timeout=10)
+                if r.returncode != 0 or not r.stdout.strip():
+                    continue
+                for line in r.stdout.splitlines():
+                    name = line[3:].strip() if cmd[0] == "git" and "status" in cmd else line.strip()
+                    if name.endswith(".java"):
+                        basenames.add(Path(name).name)
+                if basenames:
+                    break
+            except (subprocess.TimeoutExpired, OSError):
+                continue
+    return basenames
+
+
+def _check_se_traceability(test_files: list[Path]) -> list[str]:
+    """Fix-3: @Test 方法必须有 SE/EUT 追溯注释（检查比例）.
+
+    SKILL.md Step 3.4：每个 @Test 方法必须标注关联的 SE/EUT ID。
+    <60% 的方法有追溯标注 → WARNING。
+    """
+    if not test_files:
+        return []
+    total_methods = 0
+    traced_methods = 0
+    for path in test_files:
+        if path.suffix != ".java":
+            continue
+        try:
+            text = path.read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            continue
+        blocks = _TEST_METHOD_SPLIT.split(text)
+        test_blocks = [b for b in blocks if re.match(r"\s*@(?:Test|ParameterizedTest|RepeatedTest)\b", b)]
+        for block in test_blocks:
+            total_methods += 1
+            # 检查方法的前3行是否有 SE/EUT 注释，或方法名本身含 SE/EUT 编号
+            first_lines = "\n".join(block.splitlines()[:6])
+            if _TRACEABILITY_PATTERN.search(first_lines):
+                traced_methods += 1
+
+    if total_methods == 0:
+        return []
+    rate = traced_methods / total_methods
+    if rate < 0.6:
+        return [
+            f"WARNING: Q05 traceability — {traced_methods}/{total_methods} 个 @Test 方法有 SE/EUT 追溯标注"
+            f"（{rate:.0%}，要求 ≥60%）。请在方法注释或名称中加入 SE-xxx/EUT-xxx 标识。"
+        ]
+    return []
+
+
+def _check_multi_repo_coverage(code_repos: list[str], test_files: list[Path]) -> list[str]:
+    """Fix-4: 多仓库完整性 gate — 每个 code_repo 都必须有新增测试文件.
+
+    SKILL.md Step 3.5：禁止默默跳过某个仓库的测试生成。
+    """
+    if len(code_repos) <= 1:
+        return []
+    errors: list[str] = []
+    for repo_str in code_repos:
+        repo = Path(repo_str).expanduser().resolve()
+        # 检查该仓库下是否有新增测试文件
+        repo_has_tests = any(str(f).startswith(str(repo)) or str(f.parent).startswith(str(repo)) for f in test_files)
+        if not repo_has_tests:
+            errors.append(
+                f"BLOCKED: Q05 multi_repo_coverage — 仓库 {repo.name} 无新增测试文件。"
+                "SKILL.md Step 3.5：每个 code_repo 都必须有对应的测试生成，禁止静默跳过。"
+            )
+    return errors
+
+
+def _check_concurrency_eut_multithread(
+    data: dict[str, Any],
+    test_files: list[Path],
+    q01_data: dict[str, Any] | None,
+) -> list[str]:
+    """Fix-5: Concurrency EUT 必须有 CountDownLatch 等多线程验证.
+
+    SKILL.md：并发测试必须使用 CountDownLatch 模式，仅 assertThrows 不算并发测试。
+    """
+    euts = data.get("eut_items", [])
+    has_concurrency_eut = any(
+        str(e.get("route_type", "")).lower() == "concurrency"
+        or any(kw in str(e.get("then", "") or "") for kw in _CONCURRENT_EUT_KWS)
+        or any(kw in str(e.get("given", "") or "") for kw in _CONCURRENT_EUT_KWS)
+        for e in euts
+    )
+
+    # 也检查 Q01 中并发 SE
+    if not has_concurrency_eut and q01_data:
+        ses = q01_data.get("semantic_expectations", [])
+        has_concurrency_eut = any(_se_is_concurrent(s.get("description", "")) for s in ses)
+
+    if not has_concurrency_eut:
+        return []
+
+    # 有并发场景需求，检查测试文件是否有多线程模式
+    java_files = [f for f in test_files if f.suffix == ".java"]
+    if not java_files:
+        return [
+            "BLOCKED: Q05 concurrent_no_multithread — 存在并发/幂等 SE 但无新增测试文件，"
+            "无法验证并发测试是否使用 CountDownLatch 多线程模式。"
+        ]
+
+    multithread_found = False
+    for path in java_files:
+        try:
+            text = path.read_text(encoding="utf-8", errors="replace")
+            if _MULTITHREAD_PATTERN.search(text):
+                multithread_found = True
+                break
+        except OSError:
+            continue
+
+    if not multithread_found:
+        return [
+            "BLOCKED: Q05 concurrent_no_multithread — 存在并发/幂等 SE，但所有新增测试文件均未使用"
+            " CountDownLatch/Thread/ExecutorService 等多线程模式。"
+            " SKILL.md：仅 assertThrows 验证重复提交不算并发测试，必须多线程同时触发。"
+        ]
+    return []
+
+
+def _check_branch_file_reality(
+    output_dir: Path,
+    project_id: str,
+    phase_def: dict[str, Any],
+    code_repos: list[str],
+) -> list[str]:
+    """Fix-6: 设计矩阵 code_branch_coverage[].file 必须在 git diff 变更文件里.
+
+    防止 LLM 在设计矩阵里虚构不存在的文件名。
+    """
+    int_dir = _internal_dir(output_dir, project_id, phase_def)
+    matrix_path = (
+        int_dir / "_test_design_matrix.json"
+        if (int_dir / "_test_design_matrix.json").exists()
+        else (_phase_dir(output_dir, project_id, phase_def) / "_test_design_matrix.json")
+    )
+    matrix = load_json(matrix_path) if matrix_path.exists() else None
+    if not matrix:
+        return []
+
+    branch_coverage = matrix.get("code_branch_coverage", [])
+    if not branch_coverage or not code_repos:
+        return []
+
+    diff_basenames = _collect_git_diff_basenames(code_repos)
+    if not diff_basenames:
+        return []  # git diff 失败，不误报
+
+    ghost_files: list[str] = []
+    for entry in branch_coverage:
+        if not isinstance(entry, dict):
+            continue
+        fname = str(entry.get("file", "") or "")
+        if not fname:
+            continue
+        basename = Path(fname).name
+        if basename and basename not in diff_basenames:
+            ghost_files.append(basename)
+
+    if ghost_files:
+        unique_ghosts = sorted(set(ghost_files))
+        return [
+            f"WARNING: Q05 ghost_branch_file — 设计矩阵 code_branch_coverage 中 {len(unique_ghosts)} 个文件"
+            f"不在 git diff 变更列表里，疑似虚构：{', '.join(unique_ghosts[:5])}。"
+            "请确认分支清单对应的文件是本次实际变更的文件。"
+        ]
+    return []
+
+
 def run_q05_structure_checks(output_dir: Path, project_id: str) -> list[str]:
     """对 Q05 phase_b_structured + supplemental_tests 做结构类校验."""
     phase_def = PHASE_DEFS.get("Q05")
@@ -485,6 +681,12 @@ def run_q05_structure_checks(output_dir: Path, project_id: str) -> list[str]:
     test_files = _collect_new_test_files_from_repos(code_repos) if code_repos else _collect_supplemental_files(pd)
     errors.extend(_check_mock_patterns(test_files))
 
+    # Fix-3: SE/EUT 追溯标注（WARNING）
+    errors.extend(_check_se_traceability(test_files))
+
+    # Fix-4: 多仓库完整性
+    errors.extend(_check_multi_repo_coverage(code_repos, test_files))
+
     # ── 并发/幂等/锁强管控 ────────────────────────────────────────────────────
     # 加载 Q01 产物（获取 SE 描述，用于关键词匹配）
     q01_def = PHASE_DEFS.get("Q01")
@@ -496,6 +698,12 @@ def run_q05_structure_checks(output_dir: Path, project_id: str) -> list[str]:
             q01_data = load_json(q01_path) if q01_path.is_file() else None
 
     errors.extend(_check_concurrent_se_no_eut(data, q01_data))
+
+    # Fix-5: 并发测试 CountDownLatch 多线程验证（BLOCKED）
+    errors.extend(_check_concurrency_eut_multithread(data, test_files, q01_data))
+
+    # Fix-6: 设计矩阵 branch 文件真实性（WARNING）
+    errors.extend(_check_branch_file_reality(output_dir, project_id, phase_def, code_repos))
 
     # concurrent_scope 是 WARNING 级别（不阻断 finalize）
     # 同时检测注解（@DistributedLocked 等）和代码级并发原语（ReentrantLock/synchronized/Atomic* 等）
