@@ -292,11 +292,18 @@ def _dispatch(cmd: str) -> callable:
     return None
 
 
-def _resolve_output_dir(base_dir: str, *, quiet: bool = False) -> Path:
+def _resolve_output_dir(
+    base_dir: str,
+    *,
+    project_id: str | None = None,
+    quiet: bool = False,
+) -> Path:
     """解析 output 目录，worktree 环境自动回退到主仓库.
 
     Args:
         base_dir: 项目根目录
+        project_id: 项目 ID。提供时优先检查项目 state.json 实际所在路径，
+                    避免 .dqg/output/ 目录存在时全局切换导致旧项目失联。
         quiet: True 时压制 worktree 重定向 stderr 提示（--json 模式下启用，
                避免污染 stdout 单条 JSON 契约；Agent 侧如果 stderr 合并捕获
                会破坏解析）
@@ -339,11 +346,18 @@ def _resolve_output_dir(base_dir: str, *, quiet: bool = False) -> Path:
                 return target
     except (FileNotFoundError, ValueError):
         pass
-    # 优先使用 .dqg/output/（dqg-run init 创建的工作区布局）
+    legacy_output = base / "output"
     dqg_output = base / ".dqg" / "output"
+    # 有 project_id 时：state.json 在哪里项目就在哪里，新项目才考虑工作区布局
+    if project_id:
+        if (legacy_output / project_id / "state.json").exists():
+            return legacy_output
+        if (dqg_output / project_id / "state.json").exists():
+            return dqg_output
+    # 无 project_id 或新项目：优先 .dqg/output/（已初始化的工作区），否则 output/
     if dqg_output.exists():
         return dqg_output
-    return base / "output"
+    return legacy_output
 
 
 def _check_version_drift_on_startup(project_root: Path) -> None:
@@ -534,7 +548,11 @@ def main() -> int:
         parser = _build_parser()
         args = parser.parse_args()
         quiet_env = bool(getattr(args, "json", False))
-        output_dir = _resolve_output_dir(args.base_dir, quiet=quiet_env)
+        output_dir = _resolve_output_dir(
+            args.base_dir,
+            project_id=getattr(args, "project_id", None),
+            quiet=quiet_env,
+        )
 
         # Deprecation check: warn if running from inside the DQG repo layout
         from dqg.core.resource_resolver import ResourceResolver
