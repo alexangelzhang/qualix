@@ -164,8 +164,12 @@ def handle_profile_context_check(ctx: ExecutionContext, result: PhaseResult) -> 
         result.add_warning(f"Missing profile context: {profile_ctx_path}")
 
     report_path = ctx.phase_root / report_file
-    if report_path.exists() and "## PROFILE_CONTEXT" not in report_path.read_text(encoding="utf-8"):
-        result.add_warning("Report missing PROFILE_CONTEXT section")
+    if report_path.exists():
+        import re as _re
+
+        _PROFILE_CTX_RE = _re.compile(r"^#{1,3}\s*(\d+\.\s*)?PROFILE_CONTEXT", _re.MULTILINE)
+        if not _PROFILE_CTX_RE.search(report_path.read_text(encoding="utf-8")):
+            result.add_warning("Report missing PROFILE_CONTEXT section")
 
 
 def handle_progress_file(ctx: ExecutionContext, result: PhaseResult) -> None:

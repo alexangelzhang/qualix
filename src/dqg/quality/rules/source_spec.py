@@ -122,6 +122,9 @@ def iter_conclusion_lines(text: str) -> Iterator[tuple[int, str]]:
         # 统计行：表格里没有具体 ID
         if stripped.startswith("|") and not _VALID_ID_PATTERN.search(stripped):
             continue
+        # GAP/OPEN 定义行：结构化声明，来源已在 JSON source 字段，不要求行内标注
+        if stripped.startswith("|") and re.match(r"\|\s*(GAP|OPEN)-\d+", stripped):
+            continue
 
         yield i + 1, stripped
 
