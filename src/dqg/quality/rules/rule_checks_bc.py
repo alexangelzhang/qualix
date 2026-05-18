@@ -90,61 +90,187 @@ def _check_code_branch_coverage(pd: Path, report: str, phase_id: str) -> tuple[b
     return False, "设计矩阵缺失，代码分支覆盖率无法验证（需要 _test_design_matrix.json 中的 code_branch_coverage 数据）"
 
 
+def _load_q01_counts(pd: Path) -> tuple[int, int, int]:
+    """从 Q01 产物读取 REQ/BR/SE 数量，返回 (req_count, br_count, se_count)."""
+    from dqg.constants import STRUCTURED_JSON_MAP
+    from dqg.json_utils import load_json
+
+    q01_json = STRUCTURED_JSON_MAP.get("Q01", "phase_a_structured.json")
+    q01_data = load_json(pd.parent / "Q01" / q01_json) or {}
+    reqs = q01_data.get("requirements", [])
+    ses = q01_data.get("semantic_expectations", [])
+    req_count = sum(1 for r in reqs if str(r.get("req_id", "")).startswith("REQ"))
+    br_count = sum(1 for r in reqs if str(r.get("req_id", "")).startswith("BR"))
+    return req_count, br_count, len(ses)
+
+
 def _check_eut_count(pd: Path, report: str, phase_id: str) -> tuple[bool, str]:
-    """检查 EUT 数量."""
+    """检查 EUT 数量 ≥ Q01 的 REQ+BR+SE 总数（动态门槛，无上限）."""
+    from dqg.constants import STRUCTURED_JSON_MAP
+    from dqg.json_utils import load_json
+
+    req_count, br_count, se_count = _load_q01_counts(pd)
+    min_euts = max(10, req_count + br_count + se_count)
+    threshold_desc = f"REQ({req_count})+BR({br_count})+SE({se_count})={min_euts}"
+
+    json_path = pd / STRUCTURED_JSON_MAP.get("Q05", "phase_b_structured.json")
+    data = load_json(json_path)
+    if data:
+        euts = data.get("eut_items", data.get("eut_matrix", data.get("test_cases", [])))
+        count = len(euts)
+        if count >= min_euts:
+            return True, f"{count} 个 EUT ≥ 门槛 {threshold_desc}"
+        return False, f"仅 {count} 个 EUT，要求 ≥{threshold_desc}"
+    count = report.count("EUT-")
+    if count >= min_euts:
+        return True, f"~{count} 个 EUT 引用（≥{threshold_desc}）"
+    return False, f"仅 ~{count} 个 EUT 引用，要求 ≥{threshold_desc}"
+
+
+_EXCEPTION_KWS: frozenset[str] = frozenset(
+    {
+        "校验",
+        "不允许",
+        "禁止",
+        "短路",
+        "不发起",
+        "不生成",
+        "不回退",
+        "拒绝",
+        "失败",
+        "异常",
+        "错误",
+        "阻断",
+        "强制",
+        "不得",
+        "不能",
+    }
+)
+_BOUNDARY_KWS: frozenset[str] = frozenset(
+    {
+        "精确",
+        "边界",
+        "为空",
+        "null",
+        "缺一不可",
+        "1:1",
+        "完单后精确",
+        "恰好",
+        "必须包含",
+        "全部必传",
+        "字段完整",
+        "不得缺失",
+    }
+)
+
+
+def _check_path_balance(pd: Path, report: str, phase_id: str) -> tuple[bool, str]:
+    """检查路径覆盖率：Happy Path ≥ 80%，Exception = 100%，Boundary = 100%.
+
+    以 SE 为粒度逐条验证：
+    - 含异常语义的 SE 必须有 route_type=Exception 的 EUT
+    - 含边界语义的 SE 必须有 route_type=Boundary 的 EUT
+    - 所有 SE 中 ≥80% 须有 route_type=Happy Path 的 EUT
+    """
+    from collections import defaultdict
+
     from dqg.constants import STRUCTURED_JSON_MAP
     from dqg.json_utils import load_json
 
     json_path = pd / STRUCTURED_JSON_MAP.get("Q05", "phase_b_structured.json")
     data = load_json(json_path)
-    if data:
-        euts = data.get("eut_matrix", data.get("eut_items", data.get("test_cases", [])))
-        count = len(euts)
-        if count >= 10:
-            return True, f"{count} 个 EUT"
-        return False, f"仅 {count} 个 EUT（要求 ≥10）"
-    count = report.count("EUT-")
-    if count >= 10:
-        return True, f"~{count} 个 EUT 引用"
-    return False, f"仅 ~{count} 个 EUT 引用（要求 ≥10）"
+    if not data:
+        return False, "phase_b_structured.json 不存在，路径覆盖无法验证"
 
+    euts = data.get("eut_items", data.get("eut_matrix", data.get("test_cases", [])))
+    if not euts:
+        return False, "eut_items 为空"
 
-def _check_path_balance(pd: Path, report: str, phase_id: str) -> tuple[bool, str]:
-    """检查 Happy/Exception 路径均衡."""
-    from dqg.json_utils import load_json
+    # 按 bound_se 分组，记录每条 SE 覆盖了哪些路径类型
+    se_routes: dict[str, set[str]] = defaultdict(set)
+    for e in euts:
+        bound_se = str(e.get("bound_se", "") or "")
+        route = e.get("route_type", "")
+        if bound_se:
+            se_routes[bound_se].add(route)
 
-    json_path = pd.parent / "phase_b_structured.json"
-    data = load_json(json_path)
-    if data:
-        summary = data.get("summary", {})
-        happy = summary.get("happy_path", 0)
-        exception = summary.get("exception_path", 0)
-        if happy > 0 and exception > 0:
-            return True, f"Happy={happy}, Exception={exception}"
-        return False, f"Happy={happy}, Exception={exception}（需要两种路径都有）"
-    happy = report.lower().count("happy") + report.count("正常")
-    exception = report.lower().count("exception") + report.count("异常") + report.count("抛异常")
-    if happy > 0 and exception > 0:
-        return True, f"Happy~{happy}, Exception~{exception}"
-    return False, "未检测到 Happy/Exception 路径均衡"
+    # 从 Q01 获取 SE 列表，识别需要 Exception/Boundary 覆盖的 SE
+    q01_json = STRUCTURED_JSON_MAP.get("Q01", "phase_a_structured.json")
+    q01_data = load_json(pd.parent / "Q01" / q01_json) or {}
+    ses = q01_data.get("semantic_expectations", [])
+    all_se_ids = [s["se_id"] for s in ses]
+
+    se_need_exc = [s["se_id"] for s in ses if any(kw in s.get("description", "") for kw in _EXCEPTION_KWS)]
+    se_need_bnd = [s["se_id"] for s in ses if any(kw in s.get("description", "") for kw in _BOUNDARY_KWS)]
+
+    errors: list[str] = []
+
+    # Exception = 100%
+    missing_exc = [sid for sid in se_need_exc if "Exception" not in se_routes.get(sid, set())]
+    exc_total = len(se_need_exc)
+    if exc_total > 0:
+        exc_covered = exc_total - len(missing_exc)
+        if missing_exc:
+            errors.append(f"Exception 覆盖 {exc_covered}/{exc_total}，要求 100%，缺失: {', '.join(missing_exc)}")
+
+    # Boundary = 100%
+    missing_bnd = [sid for sid in se_need_bnd if "Boundary" not in se_routes.get(sid, set())]
+    bnd_total = len(se_need_bnd)
+    if bnd_total > 0:
+        bnd_covered = bnd_total - len(missing_bnd)
+        if missing_bnd:
+            errors.append(f"Boundary 覆盖 {bnd_covered}/{bnd_total}，要求 100%，缺失: {', '.join(missing_bnd)}")
+
+    # Happy Path ≥ 80%（以 SE 数量为分母）
+    if all_se_ids:
+        happy_covered = [sid for sid in all_se_ids if "Happy Path" in se_routes.get(sid, set())]
+        happy_rate = len(happy_covered) / len(all_se_ids)
+        if happy_rate < 0.8:
+            errors.append(f"Happy Path 覆盖 {len(happy_covered)}/{len(all_se_ids)} = {happy_rate:.0%}，要求 ≥80%")
+    else:
+        # Q01 不可用时退化为计数检查
+        from collections import Counter
+
+        route_counts = Counter(e.get("route_type", "") for e in euts)
+        if route_counts.get("Happy Path", 0) == 0:
+            errors.append("无 Happy Path EUT")
+
+    if errors:
+        return False, "; ".join(errors)
+
+    exc_str = f"{exc_total - len(missing_exc)}/{exc_total}" if exc_total else "N/A"
+    bnd_str = f"{bnd_total - len(missing_bnd)}/{bnd_total}" if bnd_total else "N/A"
+    hp_str = f"{len(happy_covered)}/{len(all_se_ids)}={happy_rate:.0%}" if all_se_ids else "N/A"
+    return True, f"路径覆盖达标 | Happy≥80%({hp_str}), Exception=100%({exc_str}), Boundary=100%({bnd_str})"
 
 
 def _check_se_bound(pd: Path, report: str, phase_id: str) -> tuple[bool, str]:
-    """检查 SE 绑定覆盖."""
+    """检查每条 SE 都有至少一个 bound_se 匹配的 EUT（逐条验证，100% 覆盖）."""
+    from dqg.constants import STRUCTURED_JSON_MAP
     from dqg.json_utils import load_json
 
-    json_path = pd.parent / "phase_b_structured.json"
+    json_path = pd / STRUCTURED_JSON_MAP.get("Q05", "phase_b_structured.json")
     data = load_json(json_path)
-    if data:
-        summary = data.get("summary", {})
-        se_covered = summary.get("se_covered", [])
-        if len(se_covered) >= 3:
-            return True, f"{len(se_covered)} 个 SE 绑定: {', '.join(se_covered[:5])}"
-        return False, f"仅 {len(se_covered)} 个 SE 绑定（要求 ≥3）"
+
+    # 从 Q01 获取全量 SE ID
+    q01_json = STRUCTURED_JSON_MAP.get("Q01", "phase_a_structured.json")
+    q01_data = load_json(pd.parent / "Q01" / q01_json) or {}
+    all_se_ids = {s["se_id"] for s in q01_data.get("semantic_expectations", [])}
+
+    if data and all_se_ids:
+        euts = data.get("eut_items", data.get("eut_matrix", data.get("test_cases", [])))
+        covered_se = {str(e.get("bound_se", "") or "") for e in euts if e.get("bound_se")}
+        missing = sorted(all_se_ids - covered_se)
+        covered_count = len(all_se_ids) - len(missing)
+        if not missing:
+            return True, f"全部 {len(all_se_ids)} 条 SE 均有 bound_se 对应的 EUT"
+        return False, (f"SE 覆盖 {covered_count}/{len(all_se_ids)}，缺失 EUT 绑定: {', '.join(missing)}")
+
+    # fallback：仅靠文本计数
     se_refs = len(RE_SE_ID.findall(report))
     if se_refs >= 3:
-        return True, f"{se_refs} 处 SE 引用"
-    return False, f"仅 {se_refs} 处 SE 引用（要求 ≥3）"
+        return True, f"{se_refs} 处 SE 引用（Q01 不可用，无法精确验证）"
+    return False, f"仅 {se_refs} 处 SE 引用（要求每条 SE 有对应 EUT）"
 
 
 def _check_strong_assert(pd: Path, report: str, phase_id: str) -> tuple[bool, str]:
@@ -164,110 +290,17 @@ def _check_strong_assert(pd: Path, report: str, phase_id: str) -> tuple[bool, st
     return True, "断言检查需编译验证"
 
 
-# ---------------------------------------------------------------------------
-# Phase Q06 检查（7 维度审计标准）
-# ---------------------------------------------------------------------------
-
-
-def _check_c_se_coverage(pd: Path, report: str, phase_id: str) -> tuple[bool, str]:
-    """SE 覆盖率：审计报告是否评估了 SE 覆盖情况."""
-    se_refs = len(RE_SE_ID.findall(report))
-    has_coverage_table = "SE 覆盖" in report or "se_coverage" in report or "SE.*覆盖率" in report
-    if se_refs >= 5 or has_coverage_table:
-        return True, f"{se_refs} 处 SE 引用，有覆盖评估"
-    return False, f"仅 {se_refs} 处 SE 引用（要求审计报告评估 SE 覆盖率）"
-
-
-def _check_c_path_balance(pd: Path, report: str, phase_id: str) -> tuple[bool, str]:
-    """路径覆盖：是否评估了 Happy/Exception/Boundary 三种路径."""
-    has_happy = "Happy" in report or "正常" in report or "happy" in report.lower()
-    has_exception = "Exception" in report or "异常" in report or "exception" in report.lower()
-    has_boundary = "Boundary" in report or "边界" in report or "boundary" in report.lower()
-    covered = sum([has_happy, has_exception, has_boundary])
-    if covered >= 2:
-        types = []
-        if has_happy:
-            types.append("Happy")
-        if has_exception:
-            types.append("Exception")
-        if has_boundary:
-            types.append("Boundary")
-        return True, f"覆盖 {'/'.join(types)}"
-    return False, f"仅覆盖 {covered}/3 种路径类型"
-
-
-def _check_c_assert_strength(pd: Path, report: str, phase_id: str) -> tuple[bool, str]:
-    """断言强度：是否评估了断言质量."""
-    keywords = [
-        "断言强度",
-        "assertEquals",
-        "assertThrows",
-        "assertNotNull",
-        "弱断言",
-        "强断言",
-        "ArgumentCaptor",
-        "verify",
-    ]
-    found = sum(1 for kw in keywords if kw in report)
-    if found >= 3:
-        return True, f"断言分析充分（{found} 个关键词）"
-    return False, f"断言分析不足（仅 {found} 个关键词）"
-
-
-def _check_c_mock_reality(pd: Path, report: str, phase_id: str) -> tuple[bool, str]:
-    """Mock 真实性：是否评估了 Mock 数据质量."""
-    keywords = ["Mock 真实", "mock.*真实", "BigDecimal", "email", "RpcContext", "Mock 数据", "贴近业务"]
-    found = sum(1 for kw in keywords if kw.lower() in report.lower() or kw in report)
-    if found >= 2:
-        return True, "Mock 真实性已评估"
-    if "Mock" in report or "mock" in report:
-        return True, "有 Mock 相关分析"
-    return False, "未评估 Mock 数据真实性"
-
-
-def _check_c_state_machine(pd: Path, report: str, phase_id: str) -> tuple[bool, str]:
-    """状态机覆盖：是否评估了状态迁移测试."""
-    keywords = ["状态机", "状态迁移", "状态流转", "StatusTransition", "stateDiagram"]
-    found = sum(1 for kw in keywords if kw in report)
-    if found >= 1:
-        return True, "状态机覆盖已评估"
-    return True, "未涉及状态机（跳过）"
-
-
-def _check_c_maintainability(pd: Path, report: str, phase_id: str) -> tuple[bool, str]:
-    """可维护性：是否评估了测试结构."""
-    keywords = ["可维护", "Nested", "DisplayName", "测试结构", "命名", "工具方法"]
-    found = sum(1 for kw in keywords if kw in report)
-    if found >= 2:
-        return True, f"可维护性已评估（{found} 个维度）"
-    if found >= 1:
-        return True, "有可维护性分析"
-    return False, "未评估测试可维护性"
-
-
-def _check_c_boundary(pd: Path, report: str, phase_id: str) -> tuple[bool, str]:
-    """边界场景：是否评估了边界测试覆盖."""
-    keywords = ["边界", "Boundary", "空值", "不存在", "越界", "null", "empty", "除零", "溢出", "并发"]
-    found = sum(1 for kw in keywords if kw in report)
-    if found >= 3:
-        return True, f"边界场景分析充分（{found} 个关键词）"
-    if found >= 1:
-        return True, f"有边界分析（{found} 个关键词）"
-    return False, "未评估边界场景覆盖"
-
-
-def _check_c_defensive(pd: Path, report: str, phase_id: str) -> tuple[bool, str]:
-    """防御性测试：是否评估了系统不崩溃的防御性测试."""
-    keywords = ["防御", "NPE", "null入参", "空参数", "分页越界", "系统不崩溃", "defensive", "不抛异常", "兜底", "降级"]
-    found = sum(1 for kw in keywords if kw.lower() in report.lower())
-    if found >= 2:
-        return True, f"防御性测试已评估（{found} 个关键词）"
-    if found >= 1:
-        return True, f"有防御性分析（{found} 个关键词）"
-    if "assertNotNull" in report or "NullPointer" in report:
-        return True, "有 NPE 防御相关分析"
-    return False, "未评估防御性测试（系统不崩溃）"
-
+# Q06 检查函数从独立模块导入
+from .rule_checks_q06 import (
+    _check_c_assert_strength,
+    _check_c_boundary,
+    _check_c_defensive,
+    _check_c_maintainability,
+    _check_c_mock_reality,
+    _check_c_path_balance,
+    _check_c_se_coverage,
+    _check_c_state_machine,
+)
 
 # ---------------------------------------------------------------------------
 # Phase B/C 检查函数映射表
