@@ -876,7 +876,9 @@ _ASSERT_FROM_THEN = re.compile(
     re.IGNORECASE,
 )
 # C4: never() pattern in .java files
-_NEVER_IN_CODE = re.compile(r"verify\s*\([^)]+\)\s*,\s*never\s*\(\)|times\s*\(\s*0\s*\)", re.IGNORECASE)
+# Mockito: verify(mock, never()).method() 或 verify(mock, times(0)).method()
+# 简单匹配 ", never()" 即可覆盖嵌套括号场景（[^)]+ 无法正确处理 verify(mock, never())）
+_NEVER_IN_CODE = re.compile(r",\s*never\s*\(\)|times\s*\(\s*0\s*\)", re.IGNORECASE)
 # C7: test_location file existence helper
 _REPO_PATH_CACHE: dict[str, Path] = {}
 
