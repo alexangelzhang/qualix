@@ -44,17 +44,32 @@ _TEST_FILE_SUFFIXES = frozenset((".java", ".kt", ".ts", ".tsx"))
 
 
 def _collect_new_test_files_from_repos(code_repos: list[str]) -> list[Path]:
-    """从业务仓库用 git status 收集新增/修改的测试文件（含 untracked）.
+    """从业务仓库收集新增/修改的测试文件.
 
-    SKILL.md 要求测试代码直接写到业务仓库的 src/test/java，不使用
-    supplemental_tests/ 中转目录。
+    两路来源（取并集）：
+    1. git status --porcelain：未提交的新增/修改文件（含 untracked）
+    2. git diff origin/master...HEAD --name-only：已提交但相对 master 新增的文件
+
+    SKILL.md 要求测试代码直接写到业务仓库的 src/test/java。
     """
+
+    def _is_test_path(norm: str, name: str) -> bool:
+        return (
+            "src/test/" in norm
+            or name.endswith("test.java")
+            or name.endswith("test.kt")
+            or ".test." in name
+            or ".spec." in name
+        )
+
     test_paths: list[Path] = []
     for repo_str in code_repos:
         repo = Path(repo_str).expanduser().resolve()
         if not repo.is_dir():
             continue
+        candidate_paths: set[str] = set()
         try:
+            # 路径 1：未提交变更（含 untracked）
             r = subprocess.run(
                 ["git", "status", "--porcelain"],
                 cwd=str(repo),
@@ -62,26 +77,34 @@ def _collect_new_test_files_from_repos(code_repos: list[str]) -> list[Path]:
                 text=True,
                 timeout=10,
             )
-            if r.returncode != 0:
-                continue
-            for line in r.stdout.splitlines():
-                path_str = line[3:].strip()
-                p = repo / path_str
-                if not p.is_file() or p.suffix not in _TEST_FILE_SUFFIXES:
-                    continue
-                norm = path_str.replace("\\", "/")
-                name = p.name.lower()
-                is_test = (
-                    "src/test/" in norm
-                    or name.endswith("test.java")
-                    or name.endswith("test.kt")
-                    or ".test." in name
-                    or ".spec." in name
-                )
-                if is_test:
-                    test_paths.append(p)
+            if r.returncode == 0:
+                for line in r.stdout.splitlines():
+                    candidate_paths.add(line[3:].strip())
+
+            # 路径 2：已提交但相对 origin/master 新增的文件
+            r2 = subprocess.run(
+                ["git", "diff", "origin/master...HEAD", "--name-only", "--diff-filter=AM"],
+                cwd=str(repo),
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
+            if r2.returncode == 0:
+                for line in r2.stdout.splitlines():
+                    candidate_paths.add(line.strip())
         except (subprocess.TimeoutExpired, OSError):
             continue
+
+        for path_str in candidate_paths:
+            if not path_str:
+                continue
+            p = repo / path_str
+            if not p.is_file() or p.suffix not in _TEST_FILE_SUFFIXES:
+                continue
+            norm = path_str.replace("\\", "/")
+            if _is_test_path(norm, p.name.lower()):
+                test_paths.append(p)
+
     return test_paths
 
 
