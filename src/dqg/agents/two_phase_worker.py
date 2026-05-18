@@ -9,6 +9,7 @@ Writer 的 context 更干净（不含原始文档），产出质量更高。
 
 from __future__ import annotations
 
+import re
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
@@ -18,6 +19,8 @@ from dqg.json_utils import load_json, save_json
 from dqg.log import get_logger
 
 log = get_logger(__name__)
+
+_RE_JSON_BLOCK = re.compile(r"```json\s*\n([\s\S]*?)\n```")
 
 
 def run_two_phase_worker(
@@ -179,10 +182,9 @@ def _load_contract(int_dir: Path) -> dict[str, Any]:
 def _parse_evidence_pack(content: str) -> dict[str, Any]:
     """从 Collector 输出中解析证据包."""
     import json
-    import re
 
     # 尝试提取 JSON 块
-    json_match = re.search(r"```json\s*\n([\s\S]*?)\n```", content)
+    json_match = _RE_JSON_BLOCK.search(content)
     if json_match:
         try:
             return json.loads(json_match.group(1))

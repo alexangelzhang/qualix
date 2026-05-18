@@ -145,8 +145,11 @@ def discover_from_dir(assets_dir: Path) -> list[dict[str, Any]]:
     return assets
 
 
+_RE_UNSAFE_FILENAME = re.compile(r"[^A-Za-z0-9._-]+")
+
+
 def sanitize_filename(raw: str) -> str:
-    value = re.sub(r"[^A-Za-z0-9._-]+", "_", raw).strip("._")
+    value = _RE_UNSAFE_FILENAME.sub("_", raw).strip("._")
     return value or "asset"
 
 

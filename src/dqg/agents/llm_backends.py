@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Any, ClassVar
@@ -14,12 +15,12 @@ from dqg.json_utils import dump_json_str
 # Helpers
 # ---------------------------------------------------------------------------
 
+_RE_JSON_BLOCK = re.compile(r"```json\s*\n([\s\S]*?)\n```")
+
 
 def _extract_json(text: str) -> dict[str, Any] | None:
     """Extract JSON object from text. Returns None if no valid JSON found."""
-    import re as _re
-
-    m = _re.search(r"```json\s*\n([\s\S]*?)\n```", text)
+    m = _RE_JSON_BLOCK.search(text)
     if m:
         try:
             return json.loads(m.group(1))

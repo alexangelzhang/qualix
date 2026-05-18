@@ -9,10 +9,12 @@ from dqg.log import get_logger
 
 log = get_logger(__name__)
 
+_RE_JSON_BLOCK = re.compile(r"```json\s*\n([\s\S]*?)\n```")
+
 
 def _extract_json_block(content: str) -> str | None:
     """从文本中提取 JSON 块（```json 或裸 JSON）."""
-    json_match = re.search(r"```json\s*\n([\s\S]*?)\n```", content)
+    json_match = _RE_JSON_BLOCK.search(content)
     if json_match:
         return json_match.group(1)
     start = content.find("{")
