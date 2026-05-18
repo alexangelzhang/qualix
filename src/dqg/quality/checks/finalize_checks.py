@@ -226,19 +226,12 @@ def run_finalize_checks(output_dir: Path, project_id: str, phase_id: str) -> lis
                         code_repos = [inputs_data["code_repo"]]
                     coverage_report = inputs_data.get("coverage_report")
 
-            # Change 4: 有 code_repos 或 Q05 已生成测试时，coverage report 缺失 → BLOCKED
-            if code_repos:
-                # 检查是否真的有 coverage 数据可用
-                _any_coverage = False
-                if coverage_report:
-                    _any_coverage = True
-                else:
-                    for _repo in code_repos:
-                        _repo_path = Path(_repo).expanduser().resolve()
-                        if _repo_path.is_dir() and find_coverage_report(_repo_path):
-                            _any_coverage = True
-                            break
-
+            if not code_repos:
+                errors.append("NOT_APPLICABLE: Q06 coverage gate skipped — no code_repo configured in _inputs.json")
+            else:
+                _any_coverage = bool(coverage_report) or any(
+                    (p := Path(r).expanduser().resolve()).is_dir() and find_coverage_report(p) for r in code_repos
+                )
                 if not _any_coverage:
                     errors.append(
                         "BLOCKED: Q06 coverage_evidence_missing — 配置了代码仓库但找不到 JaCoCo/Istanbul 覆盖率报告。"
@@ -248,8 +241,5 @@ def run_finalize_checks(output_dir: Path, project_id: str, phase_id: str) -> lis
                 else:
                     for repo in code_repos:
                         errors.extend(check_phase_c_coverage(output_dir, project_id, repo, coverage_report))
-            else:
-                # 无 code_repo 配置：NOT_APPLICABLE（无法验证覆盖率，但不阻断）
-                errors.append("NOT_APPLICABLE: Q06 coverage gate skipped — no code_repo configured in _inputs.json")
 
     return errors

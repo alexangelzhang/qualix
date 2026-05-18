@@ -10,7 +10,9 @@
 from __future__ import annotations
 
 import contextlib
+import hashlib
 import re
+from datetime import datetime
 from pathlib import Path
 from types import MappingProxyType
 from typing import TYPE_CHECKING, Any, Final
@@ -21,8 +23,9 @@ if TYPE_CHECKING:
 from pydantic import ValidationError
 
 from dqg.core.phase_registry import PHASE_DEFS
+from dqg.core.state_machine import internal_dir as _internal_dir
 from dqg.core.state_machine import phase_dir as _phase_dir
-from dqg.json_utils import load_json
+from dqg.json_utils import load_json, save_json
 from dqg.log import get_logger
 from dqg.text_utils import STRUCTURED_JSON_MAP
 
@@ -257,13 +260,10 @@ def _check_coverage_gate_consistency(output_dir: Path, project_id: str, phase_id
 
     Summary 是派生字段——从数组重算，自报与实际不一致 → BLOCKED（原为 WARNING）。
     """
-    from dqg.core.state_machine import internal_dir as _internal_dir
-    from dqg.core.state_machine import phase_dir as _pd
-
     phase_def = PHASE_DEFS.get(phase_id)
     if not phase_def:
         return ["NOT_APPLICABLE: Q06 phase_def not found"]
-    pd = _pd(output_dir, project_id, phase_def)
+    pd = _phase_dir(output_dir, project_id, phase_def)
     int_dir = _internal_dir(output_dir, project_id, phase_def)
 
     json_file = STRUCTURED_JSON_MAP.get(phase_id)
@@ -479,17 +479,10 @@ def _save_se_source_evidence(output_dir: Path, project_id: str, phase_id: str) -
     下游 Phase（Q05/Q06）引用 SE 时可通过 se_id → evidence 查到原始 PRD 依据，
     而不依赖自由文本 source 字段（自由文本可以被随意修改）。
     """
-    import hashlib
-    from datetime import datetime
-
-    from dqg.core.state_machine import internal_dir as _internal_dir
-    from dqg.core.state_machine import phase_dir as _pd
-    from dqg.json_utils import load_json, save_json
-
     phase_def = PHASE_DEFS.get(phase_id)
     if not phase_def:
         return
-    pd = _pd(output_dir, project_id, phase_def)
+    pd = _phase_dir(output_dir, project_id, phase_def)
     plain_text_path = pd / "plain_text.txt"
     if not plain_text_path.exists():
         return
@@ -545,7 +538,7 @@ def _save_se_source_evidence(output_dir: Path, project_id: str, phase_id: str) -
                 "se_id": se_id,
                 "source_file": source.split(":")[0],
                 "source_line": line_no,
-                "line_text": line_text[:200],  # 截断长行
+                "line_text": line_text[:200],
                 "context_hash": ctx_hash,
                 "verified_at": now,
             }
@@ -617,13 +610,10 @@ def _check_source_line_reality(output_dir: Path, project_id: str, phase_id: str)
     - BR source 问题 → WARNING（宽松一级）
     - 无 SE 且无 plain_text → NOT_APPLICABLE
     """
-    from dqg.core.state_machine import phase_dir as _pd
-    from dqg.json_utils import load_json
-
     phase_def = PHASE_DEFS.get(phase_id)
     if not phase_def:
         return ["NOT_APPLICABLE: Q01 phase_def not found"]
-    pd = _pd(output_dir, project_id, phase_def)
+    pd = _phase_dir(output_dir, project_id, phase_def)
 
     json_file = STRUCTURED_JSON_MAP.get(phase_id)
     if not json_file:
@@ -636,7 +626,6 @@ def _check_source_line_reality(output_dir: Path, project_id: str, phase_id: str)
     ses = data.get("semantic_expectations", [])
 
     if not plain_text_path.exists():
-        # 有 SE 且 SE 声称有来源但文件不存在 → BLOCKED（无法验证）
         ses_with_source = [s for s in ses if (s.get("source") or "").strip()]
         if ses_with_source:
             return [
@@ -645,7 +634,6 @@ def _check_source_line_reality(output_dir: Path, project_id: str, phase_id: str)
                 "SE 是需求推理的核心，必须有可追溯的 PRD 原文。"
                 "请确认飞书文档已正确 ingest（运行 feishu_direct_ingest）。"
             ]
-        # SE 无 source 字段（source 为空的情况在后续逐条检查里 BLOCKED）
         if ses:
             return ["NOT_APPLICABLE: plain_text.txt not found; SE.source empty check will run separately"]
         return ["NOT_APPLICABLE: plain_text.txt not found (no SE to validate)"]
@@ -655,60 +643,39 @@ def _check_source_line_reality(output_dir: Path, project_id: str, phase_id: str)
     except OSError:
         return ["INFRA_FAILURE: plain_text.txt 存在但读取失败"]
 
-    json_file = STRUCTURED_JSON_MAP.get(phase_id)
-    if not json_file:
-        return []
-    data = load_json(pd / json_file)
-    if not data:
-        return []
-
     errors: list[str] = []
 
-    def _check_se(se_id: str, description: str, source: str) -> None:
-        """SE: 无 source 或行号错误均 BLOCKED。"""
+    def _check_source_ref(item_id: str, description: str, source: str, *, strict: bool) -> None:
+        """统一的 source 行号校验：strict=True → BLOCKED（SE），strict=False → WARNING（BR）。"""
+        level = "BLOCKED" if strict else "WARNING"
         if not source.strip():
-            errors.append(f"BLOCKED: Q01 {se_id} source 为空——SE 必须填写 PRD 来源（plain_text.txt:行号）。")
+            if strict:
+                errors.append(f"BLOCKED: Q01 {item_id} source 为空——SE 必须填写 PRD 来源（plain_text.txt:行号）。")
             return
         m = _SOURCE_LINE_RE.search(source)
         if not m:
-            errors.append(f"BLOCKED: Q01 {se_id} source 格式无效: '{source}'（要求 plain_text.txt:行号）。")
+            if strict:
+                errors.append(f"BLOCKED: Q01 {item_id} source 格式无效: '{source}'（要求 plain_text.txt:行号）。")
             return
         line_no = int(m.group(1))
         if line_no < 1 or line_no > len(prd_lines):
-            errors.append(
-                f"BLOCKED: Q01 {se_id} source 行号 {line_no} 超出 plain_text.txt 总行数 {len(prd_lines)}，幽灵行号。"
-            )
+            suffix = "，幽灵行号。" if strict else "。"
+            errors.append(f"{level}: Q01 {item_id} source 行号 {line_no} 超出文件总行数 {len(prd_lines)}{suffix}")
             return
         context = "\n".join(prd_lines[max(0, line_no - 4) : line_no + 3])
         keywords = _extract_keywords(description)
         if keywords and not any(kw in context for kw in keywords):
-            errors.append(
-                f"BLOCKED: Q01 {se_id} source 行号 {line_no} 附近不含描述关键词"
-                f"（{keywords[:3]}），疑似 source 虚报或 SE 从代码反推。"
-            )
-
-    def _check_br(br_id: str, description: str, source: str) -> None:
-        """BR: 宽松一级，问题报 WARNING。"""
-        if not source.strip():
-            return
-        m = _SOURCE_LINE_RE.search(source)
-        if not m:
-            return
-        line_no = int(m.group(1))
-        if line_no < 1 or line_no > len(prd_lines):
-            errors.append(f"WARNING: Q01 {br_id} source 行号 {line_no} 超出文件总行数 {len(prd_lines)}。")
-            return
-        context = "\n".join(prd_lines[max(0, line_no - 4) : line_no + 3])
-        keywords = _extract_keywords(description)
-        if keywords and not any(kw in context for kw in keywords):
-            errors.append(f"WARNING: Q01 {br_id} source 行号 {line_no} 附近不含描述关键词（{keywords[:3]}）。")
+            tail = "，疑似 source 虚报或 SE 从代码反推。" if strict else "。"
+            errors.append(f"{level}: Q01 {item_id} source 行号 {line_no} 附近不含描述关键词（{keywords[:3]}）{tail}")
 
     for se in ses:
-        _check_se(se.get("se_id", "SE-?"), se.get("description", ""), se.get("source", ""))
+        _check_source_ref(se.get("se_id", "SE-?"), se.get("description", ""), se.get("source", ""), strict=True)
 
     for req in data.get("requirements", []):
         if str(req.get("req_id", "")).startswith("BR"):
-            _check_br(req.get("req_id", "BR-?"), req.get("description", ""), req.get("source", ""))
+            _check_source_ref(
+                req.get("req_id", "BR-?"), req.get("description", ""), req.get("source", ""), strict=False
+            )
 
     return errors
 
