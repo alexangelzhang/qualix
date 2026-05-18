@@ -1,7 +1,6 @@
 """Multi-Agent Phase 2: 模型无关的真 Multi-Agent 框架.
 
-支持多模型后端（Claude/OpenAI/DeepSeek/本地模型），
-国内环境 Claude 被墙时自动切换备用模型。
+支持多模型后端（Claude/OpenAI/Qwen/Kimi 等）。
 
 架构:
   Agent → LLMBackend（抽象层）→ 具体模型 API
@@ -13,7 +12,7 @@
     worker = Agent(
         name="worker",
         system_prompt="...",
-        model=LLMConfig(primary="claude-opus-4-6", fallback="deepseek-chat"),
+        model=LLMConfig(primary="claude-opus-4-6"),
     )
     result = worker.run("分析这个 PRD...")
 

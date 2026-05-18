@@ -145,12 +145,9 @@ AGENT_EVIDENCE_TOTAL_LIMIT = 12_000
 # ---------------------------------------------------------------------------
 
 DEFAULT_PRIMARY_MODEL = "claude-opus-4-6"
-DEFAULT_FALLBACK_MODEL = "deepseek-chat"
-DEFAULT_JUDGE_MODEL = "deepseek-chat"
-DEFAULT_ADAPTIVE_JUDGE_MODELS: tuple[str, ...] = (
-    "deepseek-chat",
-    "deepseek-chat",
-)
+DEFAULT_FALLBACK_MODEL = None
+DEFAULT_JUDGE_MODEL = "claude-sonnet-4-6"
+DEFAULT_ADAPTIVE_JUDGE_MODELS: tuple[str, ...] = ("claude-sonnet-4-6",)
 
 # 模型等级映射：Phase 的 recommended_model 字段 → 实际模型名
 MODEL_TIER: Final = MappingProxyType(

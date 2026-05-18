@@ -46,7 +46,7 @@ class LLMConfig:
     """模型配置，支持主模型+备用模型."""
 
     primary: str = "claude-opus-4-6"
-    fallback: str | None = "deepseek-chat"
+    fallback: str | None = None
     temperature: float = 0.0
     max_tokens: int = 8192
     timeout: int = 120
@@ -62,7 +62,6 @@ class LLMConfig:
         "o3": "OPENAI_API_KEY",
         "o4": "OPENAI_API_KEY",
         "codex": "OPENAI_API_KEY",
-        "deepseek": "DEEPSEEK_API_KEY",
         "qwen": "DASHSCOPE_API_KEY",
         "gemini": "GOOGLE_API_KEY",
         "kimi": "MOONSHOT_API_KEY",
@@ -244,11 +243,10 @@ class AnthropicBackend(LLMBackend):
 
 
 class OpenAICompatibleBackend(LLMBackend):
-    """OpenAI 兼容 API 后端（支持 GPT/Codex/DeepSeek/Qwen/Kimi/Moonshot）."""
+    """OpenAI 兼容 API 后端（支持 GPT/Codex/Qwen/Kimi/Moonshot）."""
 
     # 模型 → 默认 base_url
     _BASE_URLS: ClassVar[dict[str, str]] = {
-        "deepseek": "https://api.deepseek.com/v1",
         "qwen": "https://dashscope.aliyuncs.com/compatible-mode/v1",
         "kimi": "https://api.moonshot.cn/v1",
         "moonshot": "https://api.moonshot.cn/v1",
@@ -419,5 +417,5 @@ def create_backend(model: str, api_key: str) -> LLMBackend:
     elif "gemini" in ml:
         return GeminiBackend(model, api_key)
     else:
-        # GPT/Codex/DeepSeek/Qwen/Kimi 都走 OpenAI 兼容
+        # GPT/Codex/Qwen/Kimi 都走 OpenAI 兼容
         return OpenAICompatibleBackend(model, api_key)

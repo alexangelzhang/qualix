@@ -10,7 +10,7 @@
     result = loop.run("damage-assessment", "Q01",
         worker_prompt="...", judge_rubric="...",
         max_iterations=3,
-        judge_models=["claude-sonnet-4-6", "deepseek-chat"],
+        judge_models=["claude-sonnet-4-6"],
     )
 """
 
@@ -98,7 +98,7 @@ class AdaptiveLoop:
         pass_threshold: float = 3.5,
         worker_model: str = "claude-opus-4-6",
         judge_models: list[str] | None = None,
-        fallback: str = "deepseek-chat",
+        fallback: str | None = None,
     ) -> AdaptiveResult:
         """执行自适应循环."""
         if judge_models is None:

@@ -176,7 +176,7 @@ def multi_judge_vote(
     report_path: Path,
     rubric: str,
     models: list[str],
-    fallback: str = "deepseek-chat",
+    fallback: str | None = None,
     force_secondary: bool = False,
 ) -> VoteResult:
     """Primary Judge + Secondary Validation 策略.

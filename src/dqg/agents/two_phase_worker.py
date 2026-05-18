@@ -30,7 +30,7 @@ def run_two_phase_worker(
     skill_content: str,
     context_files: list[Path] | None = None,
     worker_model: str = "claude-opus-4-6",
-    fallback: str = "deepseek-chat",
+    fallback: str | None = None,
 ) -> dict[str, Any]:
     """两阶段 Worker 执行：Collector → Writer.
 

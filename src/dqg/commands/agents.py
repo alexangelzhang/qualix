@@ -304,7 +304,7 @@ def cmd_dag(args, output_dir: Path) -> int:
         mode=mode,
         max_parallel=max_parallel,
         primary_model=getattr(args, "primary", "claude-opus-4-6"),
-        fallback_model=getattr(args, "fallback", "deepseek-chat"),
+        fallback_model=getattr(args, "fallback", None),
     )
     exit_code = 0 if result.phases_failed == 0 else 1
     if cli_json_mode(args):
