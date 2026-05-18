@@ -569,30 +569,42 @@ def _check_q05_req_br_se_coverage(
         rt_str = rt.value if hasattr(rt, "value") else str(rt)
         coverage.setdefault(item_id, set()).add(rt_str)
 
+    # SE → bound_reqs 反向映射：支持间接覆盖判断
+    # 若 BR-003 在 SE-001.bound_reqs 中，且 SE-001 有对应路径的 EUT，则 BR-003 间接覆盖
+    req_covered_by_se: dict[str, set[str]] = {}
+    for se_data in q01_data.get("semantic_expectations", []):
+        se_id = se_data.get("se_id", "")
+        for br_id in se_data.get("bound_reqs", []):
+            req_covered_by_se.setdefault(br_id, set()).add(se_id)
+
+    def _has_route_coverage(item_id: str, route: str) -> bool:
+        """直接覆盖 OR 通过 SE.bound_reqs 间接覆盖."""
+        if route in coverage.get(item_id, set()):
+            return True
+        return any(route in coverage.get(se_id, set()) for se_id in req_covered_by_se.get(item_id, set()))
+
     errors: list[str] = []
     happy_covered = 0
     total = len(all_items)
 
     for item_id, desc in all_items.items():
-        item_routes = coverage.get(item_id, set())
-
-        # Happy Path（统计全局覆盖率，逐条记录缺失）
-        if "Happy Path" in item_routes:
+        # Happy Path（直接 or 间接，统计全局覆盖率）
+        if _has_route_coverage(item_id, "Happy Path"):
             happy_covered += 1
         else:
             errors.append(
-                f"FAIL: Q05 {item_id} 缺少 Happy Path EUT。每条 REQ/BR/SE 必须有正向路径测试（代码主成功流）。"
+                f"FAIL: Q05 {item_id} 缺少 Happy Path EUT（直接 bound_item 或通过 SE.bound_reqs 间接覆盖均可）。"
             )
 
-        # Exception（100%）
-        if "Exception" not in item_routes:
+        # Exception（100%，直接 or 间接）
+        if not _has_route_coverage(item_id, "Exception"):
             errors.append(
                 f"FAIL: Q05 {item_id} 缺少 Exception EUT（要求 100%）。必须覆盖该条目实现代码的所有异常/错误分支。"
             )
 
-        # Boundary（有边界语义时 100%）
+        # Boundary（有边界语义时 100%，直接 or 间接）
         has_boundary = any(kw in desc for kw in _BOUNDARY_KEYWORDS)
-        if has_boundary and "Boundary" not in item_routes:
+        if has_boundary and not _has_route_coverage(item_id, "Boundary"):
             errors.append(f"FAIL: Q05 {item_id} 描述含边界语义但缺少 Boundary EUT（要求 100%）。")
 
         # 并发/幂等/多线程（有相关语义时必须有并发测试）
