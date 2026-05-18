@@ -33,8 +33,9 @@ PHASE_SOURCE_EXTRA: dict[str, re.Pattern[str]] = {
     "Q02": re.compile(r"tech_design\.md|ARCH-\d+|API-\d+|DATA-\d+|EXC-\d+|PERF-\d+|\.java:\d+"),
     # Q03: 技术方案五维度
     "Q03": re.compile(r"tech_design\.md|ARCH-\d+|API-\d+|DATA-\d+|EXC-\d+|PERF-\d+"),
-    # Q04: 覆盖度审计，需求 + 技术方案 + 代码都可能是来源
-    "Q04": re.compile(r"REQ-\d+|BR-\d+|SE-\d+|GAP-\d+|tech_design\.md|\.java:\d+"),
+    # Q04: 覆盖度审计，来源是技术方案原文或代码坐标
+    # REQ/BR/SE/GAP 是被审计的主语，不是结论的出处，不能作为来源
+    "Q04": re.compile(r"tech_design\.md|HLD|\.java(?::\d+)?|ARCH-\d+|API-\d+"),
     # Q05: 单测设计
     "Q05": re.compile(r"SE-\d+|EUT-\d+|target_class|target_method"),
     # Q06: 单测实现审计（剔除 assertEquals/assertThrows/A组/B组，那是断言方法不是来源）
@@ -57,13 +58,19 @@ def is_source_annotated(line: str, phase_id: str) -> bool:
 # ---------------------------------------------------------------------------
 
 # 判定性词汇：出现这些词的行视为"结论行"，需要挂来源
+# "建议" 替换为更精确的复合词，避免将日常叙述性建议误识别为需要来源的结论
 _CONCLUSION_PATTERN = re.compile(
-    r"(缺失|遗漏|未覆盖|不完整|风险|问题|建议|BLOCKER|CRITICAL|WARNING"
+    r"(缺失|遗漏|未覆盖|不完整"
+    r"|存在风险|高风险|安全风险|合规风险|性能风险"
+    r"|建议补充|建议修复|建议增加|建议移除|建议重构"
+    r"|BLOCKER|CRITICAL|WARNING"
     r"|COVERED|NOT_COVERED|PARTIAL|WRONG_TARGET|CONFLICT)",
 )
 
-# 合法 ID 格式（用于判断表格行是否有实质内容）
-_VALID_ID_PATTERN = re.compile(r"\b(REQ|BR|SE|GAP|OPEN)-\d{1,4}\b")
+# 合法 ID 格式（用于判断表格行是否有实质内容，覆盖所有 Phase 特有 ID）
+_VALID_ID_PATTERN = re.compile(
+    r"\b(REQ|BR|SE|GAP|OPEN|EUT|ARCH|API|DATA|EXC|PERF|D)-\d{1,4}\b"
+)
 
 # 豁免章节：自我评审 + 叙述性章节（边界约定/评审结论/范围外发现等）
 # 支持带序号标题（如 "## 11. 自我评审记录"）

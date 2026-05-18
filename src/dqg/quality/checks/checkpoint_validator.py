@@ -138,8 +138,8 @@ def _check_source_annotations(content: str) -> dict[str, Any]:
     try:
         data = _json.loads(content)
     except (ValueError, TypeError):
-        # Plain text — check for source patterns
-        has_source = bool(re.search(r"[来源:|source:|文件名:\d+]", content))
+        # Plain text — check for source patterns (alternation, not character class)
+        has_source = bool(re.search(r"来源[:：]|source:|文件名:\d+", content))
         return {"name": "source_annotations", "passed": has_source, "detail": "Plain text source check"}
 
     evidences = data.get("evidences", [])
