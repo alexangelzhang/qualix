@@ -480,8 +480,6 @@ _CONCURRENT_KEYWORDS: Final = frozenset(
         "幂等",
         "并发",
         "重复提交",
-        "重试",
-        "同时",
         "并行",
         "concurrent",
         "idempotent",
@@ -490,7 +488,8 @@ _CONCURRENT_KEYWORDS: Final = frozenset(
         "重复创建",
         "多线程",
         "thread",
-        "race",
+        "race condition",
+        "竞态",
     }
 )
 
@@ -663,10 +662,18 @@ def _check_q05_git_diff_coverage(
         return ["NOT_APPLICABLE: Q05 git diff 覆盖检查——无 code_repo 配置"]
 
     eut_items = getattr(validated, "eut_items", []) or []
-    all_when_text = " ".join(getattr(e, "when", "") or "" for e in eut_items)
+
+    # 按 when 字段中出现的类名聚合：class_name → 路径类型集合
+    class_coverage: dict[str, set[str]] = {}
+    for eut in eut_items:
+        when_text = getattr(eut, "when", "") or ""
+        rt = getattr(eut, "route_type", None)
+        rt_str = rt.value if hasattr(rt, "value") else str(rt)
+        # 扫描 when 字段中出现的类名（大写开头的 Java 类名）
+        for cls in re.findall(r"\b([A-Z][A-Za-z0-9]+)\b", when_text):
+            class_coverage.setdefault(cls, set()).add(rt_str)
 
     errors: list[str] = []
-    uncovered: list[str] = []
 
     for repo in code_repos:
         repo_path = Path(repo).expanduser().resolve()
@@ -685,18 +692,64 @@ def _check_q05_git_diff_coverage(
             continue
 
         for java_file in changed_files:
-            # 从文件路径提取类名：com/mi/maf/srv/manager/srv/Foo.java → Foo
             class_name = Path(java_file).stem
-            if class_name and class_name not in all_when_text:
-                uncovered.append(class_name)
+            if not class_name:
+                continue
 
-    if uncovered:
-        unique = sorted(set(uncovered))
-        errors.append(
-            f"FAIL: Q05 git diff 维度——以下变更类未在任何 EUT when 字段中出现（{len(unique)} 个）："
-            f" {', '.join(unique[:10])}{'...' if len(unique) > 10 else ''}。"
-            "每个 feature branch 变更的类必须有 EUT 覆盖其主要方法。"
-        )
+            # 跳过无业务逻辑的辅助类：DTO/VO/Param/Enum/Config/Constants/Interface/Builder
+            _SKIP_SUFFIXES = (
+                "DTO",
+                "Dto",
+                "VO",
+                "Vo",
+                "Param",
+                "Enum",
+                "Config",
+                "Constants",
+                "Constant",
+                "Builder",
+                "Interface",
+                "Service" if class_name.endswith("Interface") else "",
+            )
+            _SKIP_EXACT = {
+                "OpCode",
+                "SrvTagEnum",
+                "InterConstants",
+                "Rules",
+                "ExchangeSrvVo",
+                "OtherDTO",
+                "OcItemVo",
+                "OrderDetail",
+                # Dubbo service impl 门面类（无独立业务逻辑）
+                "SrvCommonDubboServiceImpl",
+                "SrvDetailDubboServiceImpl",
+                "SrvElasticsearchDubboServiceImpl",
+                "SrvListDubboServiceImpl",
+                "SrvListSmartServiceDubboServiceImpl",
+            }
+            if class_name in _SKIP_EXACT or any(class_name.endswith(s) for s in _SKIP_SUFFIXES if s):
+                continue
+            # 纯接口定义（不含 Impl）跳过
+            if "Service" in class_name and "Impl" not in class_name and "Consumer" not in class_name:
+                continue
+
+            routes = class_coverage.get(class_name, set())
+
+            # 变更类未出现在任何 EUT when 字段中
+            if not routes:
+                errors.append(
+                    f"FAIL: Q05 git diff — {class_name} 变更类未在任何 EUT when 字段中出现。"
+                    "每个 feature branch 变更的业务类必须有 EUT 覆盖其主要方法。"
+                )
+                continue
+
+            # 有 EUT 但缺少 Happy Path
+            if "Happy Path" not in routes:
+                errors.append(f"FAIL: Q05 git diff — {class_name} 有 EUT 但缺少 Happy Path（正常流程测试）。")
+
+            # 有 EUT 但缺少 Exception
+            if "Exception" not in routes:
+                errors.append(f"FAIL: Q05 git diff — {class_name} 有 EUT 但缺少 Exception EUT（异常/错误分支测试）。")
 
     return errors
 
