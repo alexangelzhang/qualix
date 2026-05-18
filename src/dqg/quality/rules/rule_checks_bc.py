@@ -442,6 +442,128 @@ def _check_strong_assert(pd: Path, report: str, phase_id: str) -> tuple[bool, st
     return True, "断言检查需要 code_repo 配置"
 
 
+# ---------------------------------------------------------------------------
+# P0-3: 设计矩阵 summary 与实际 req_coverage 数组的一致性校验
+# ---------------------------------------------------------------------------
+
+_NON_INVOCATION_KWS: frozenset[str] = frozenset(
+    {"不发起", "不调用", "不生成", "不回退", "短路", "不传", "不应调用", "禁止调用"}
+)
+_NEVER_PATTERN = re.compile(r"verify.*never\s*\(|times\s*\(\s*0\s*\)|never\s*\(\)", re.IGNORECASE)
+
+
+def _check_design_matrix_consistency(pd: Path, report: str, phase_id: str) -> tuple[bool, str]:
+    """P0-3: 验证设计矩阵 summary 数字与 req_coverage 数组实际内容一致.
+
+    防止 LLM 在 summary 里自填虚高的覆盖率数字。
+    """
+    from dqg.json_utils import load_json
+
+    for candidate in [pd.parent / "_test_design_matrix.json", pd / "_test_design_matrix.json"]:
+        data = load_json(candidate)
+        if not data:
+            continue
+        summary = data.get("summary", {})
+        req_cov = data.get("req_coverage", [])
+        if not summary or not req_cov:
+            return True, "设计矩阵 summary 一致性：无 req_coverage 数组，跳过"
+
+        # 校验 total_req：summary 声称的 total 是否与 req_coverage 条目数一致
+        claimed_total = summary.get("total_req", 0)
+        actual_total = len(req_cov)
+        if claimed_total > 0 and actual_total > 0 and abs(claimed_total - actual_total) > 1:
+            return False, (
+                f"设计矩阵 summary.total_req={claimed_total} 与 req_coverage 数组长度={actual_total} 不一致，"
+                "疑似 summary 数字与实际矩阵内容不对应"
+            )
+
+        # 校验 covered_req：实际统计 req_coverage 中 test_cases 非空的条目数
+        actual_covered = sum(1 for r in req_cov if isinstance(r, dict) and r.get("test_cases"))
+        claimed_covered = summary.get("covered_req", 0)
+        if claimed_covered > actual_covered + 1:  # 允许 ±1 的误差
+            return False, (
+                f"设计矩阵 summary.covered_req={claimed_covered} 大于 req_coverage 中实际有用例的条目数={actual_covered}，"
+                "疑似覆盖率数字虚报"
+            )
+        return True, f"设计矩阵 summary 一致（total={actual_total}, covered≈{actual_covered}）"
+    return True, "无设计矩阵，跳过一致性校验"
+
+
+def _check_t1_se_three_paths(pd: Path, report: str, phase_id: str) -> tuple[bool, str]:
+    """P1-2: T1 级别的 SE 必须有 Happy + Exception + Boundary 三条路径各至少 1 个 EUT."""
+    from collections import defaultdict
+
+    from dqg.constants import STRUCTURED_JSON_MAP
+    from dqg.json_utils import load_json
+
+    json_path = pd / STRUCTURED_JSON_MAP.get("Q05", "phase_b_structured.json")
+    data = load_json(json_path)
+    if not data:
+        return True, "phase_b_structured.json 不存在，跳过 T1 SE 检查"
+
+    euts = data.get("eut_items", [])
+
+    # 统计每条 SE 的 T1 路径类型
+    se_t1_routes: dict[str, set[str]] = defaultdict(set)
+    for e in euts:
+        if str(e.get("risk_tier", "T2")) != "T1":
+            continue
+        se_id = str(e.get("bound_se", "") or "")
+        route = e.get("route_type", "")
+        if se_id and route:
+            se_t1_routes[se_id].add(route)
+
+    # 找出 T1 SE 缺少三路径的条目
+    required = {"Happy Path", "Exception", "Boundary"}
+    gaps: list[str] = []
+    for se_id, routes in se_t1_routes.items():
+        missing = required - routes
+        if missing:
+            gaps.append(f"{se_id} 缺 {'/'.join(sorted(missing))}")
+
+    if gaps:
+        return False, f"T1 SE 未满足 Happy+Exception+Boundary 三路径各 1 个 EUT: {'; '.join(gaps[:5])}"
+    if se_t1_routes:
+        return True, f"{len(se_t1_routes)} 条 T1 SE 均有三路径覆盖"
+    return True, "无 T1 EUT，跳过检查"
+
+
+def _check_never_verify(pd: Path, report: str, phase_id: str) -> tuple[bool, str]:
+    """P1-3: SE 含「不应调用」语义时，对应 EUT 的 then 字段必须包含 verify.*never 或 times(0)."""
+    from dqg.constants import STRUCTURED_JSON_MAP
+    from dqg.json_utils import load_json
+
+    json_path = pd / STRUCTURED_JSON_MAP.get("Q05", "phase_b_structured.json")
+    data = load_json(json_path)
+    if not data:
+        return True, "phase_b_structured.json 不存在，跳过 never() 检查"
+
+    q01_json = STRUCTURED_JSON_MAP.get("Q01", "phase_a_structured.json")
+    q01_data = load_json(pd.parent / "Q01" / q01_json) or {}
+    ses = q01_data.get("semantic_expectations", [])
+
+    # 找出含"不应调用"语义的 SE
+    non_invoke_ses = {s["se_id"] for s in ses if any(kw in s.get("description", "") for kw in _NON_INVOCATION_KWS)}
+    if not non_invoke_ses:
+        return True, "无「不应调用」语义 SE，跳过 never() 检查"
+
+    euts = data.get("eut_items", [])
+    missing_never: list[str] = []
+    for eut in euts:
+        se_id = str(eut.get("bound_se", "") or "")
+        if se_id not in non_invoke_ses:
+            continue
+        then = str(eut.get("then", "") or "")
+        if not _NEVER_PATTERN.search(then):
+            missing_never.append(f"{eut.get('eut_id', '?')}({se_id})")
+
+    if missing_never:
+        return False, (
+            f"含「不应调用」语义的 SE 对应 EUT 缺少 verify(mock, never())/times(0) 验证: {', '.join(missing_never[:5])}"
+        )
+    return True, "「不应调用」SE 对应 EUT 均有 never()/times(0) 验证"
+
+
 # Q06 检查函数从独立模块导入
 from .rule_checks_q06 import (
     _check_c_assert_strength,
@@ -468,6 +590,9 @@ BC_CHECK_FUNCS: Final = MappingProxyType(
         "_check_path_balance": _check_path_balance,
         "_check_se_bound": _check_se_bound,
         "_check_strong_assert": _check_strong_assert,
+        "_check_design_matrix_consistency": _check_design_matrix_consistency,
+        "_check_t1_se_three_paths": _check_t1_se_three_paths,
+        "_check_never_verify": _check_never_verify,
         "_check_c_se_coverage": _check_c_se_coverage,
         "_check_c_path_balance": _check_c_path_balance,
         "_check_c_assert_strength": _check_c_assert_strength,

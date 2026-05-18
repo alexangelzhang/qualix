@@ -173,6 +173,24 @@ def get_rules(phase_id: str) -> list[dict[str, Any]]:
                 "check": "_check_strong_assert",
             },
             {"id": "R-CODE-BRANCH", "name": "代码分支覆盖", "category": "质量", "check": "_check_code_branch_coverage"},
+            {
+                "id": "R-MATRIX-CONSISTENCY",
+                "name": "设计矩阵 summary 与数组一致",
+                "category": "反幻觉",
+                "check": "_check_design_matrix_consistency",
+            },
+            {
+                "id": "R-T1-THREE-PATHS",
+                "name": "T1 SE 三路径各至少 1 EUT",
+                "category": "质量",
+                "check": "_check_t1_se_three_paths",
+            },
+            {
+                "id": "R-NEVER-VERIFY",
+                "name": "不应调用的 SE 有 never()/times(0) 验证",
+                "category": "质量",
+                "check": "_check_never_verify",
+            },
         ],
         "Q06": [
             {"id": "R-C-SE-COVERAGE", "name": "①SE覆盖率（≥80%）", "category": "质量", "check": "_check_c_se_coverage"},

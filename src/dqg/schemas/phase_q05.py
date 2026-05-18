@@ -39,25 +39,28 @@ _VAGUE_THEN_PATTERNS: list[re.Pattern[str]] = [
 ]
 
 # EUT then 字段具体性白名单（至少匹配一个才算具体）
-# 要求断言包含业务语义值：枚举/状态码/具体字段/异常类型/调用次数
+# 要求包含可验证的业务断言：具体值/业务枚举/异常类型/调用次数
+# 已收窄：纯比较运算符（trivially true）升级为"比较 + 具体值"
 _CONCRETE_THEN_PATTERNS: list[re.Pattern[str]] = [
     re.compile(p, re.IGNORECASE)
     for p in [
-        r"assertEquals\s*\([^,)]+,\s*[^)]+\)",  # assertEquals(expected, actual) — 有两个参数
-        r"assertThrows\s*\([A-Za-z]+Exception",  # assertThrows(XxxException.class, ...)
-        r"verify\s*\(",  # Mockito.verify
-        r"(等于|==|!=|>=|<=|>|<)",  # 比较操作
-        r"(返回|return).*\d",  # 返回具体值
-        r"(状态|status).*[A-Z_]{2,}",  # 状态枚举（如 APPROVED, WAIT_APPROVE）
-        r"(抛出|throw).*Exception",  # 具体异常
-        r"(为|是)\s*(null|空|0|false|true)",  # 具体值
-        r"\b[A-Z_]{3,}\b",  # 业务枚举常量（如 APPROVED, BLOCKED）
-        r"(次|times|never|once)",  # 调用次数
-        r"(包含|contains|不包含)",  # 集合断言
-        r"(大小|size|长度|length)\s*[=><]",  # 集合大小
-        r"errorCode\s*[=!]=",  # 错误码断言
-        r"getMessage\(\).*含",  # 异常消息断言
-        r"assertDoesNotThrow.*;\s*.+assert",  # assertDoesNotThrow + 后续业务断言
+        r"assertEquals\s*\([^,)]+,\s*[^)]+\)",  # assertEquals(expected, actual)
+        r"assertThrows\s*\([A-Za-z]{4,}Exception",  # assertThrows(具体异常类) — 排除 Exception.class
+        r"verify\s*\(",  # Mockito.verify（含 times/never 的形态）
+        r"(状态|status|state)\s*.{0,10}\b[A-Z_]{3,}\b",  # 状态枚举（需有"状态/status"上下文）
+        r"(等于|==|!=|>=|<=|>|<)\s*\w+",  # 比较后必须有操作数（去掉裸运算符）
+        r"(返回|return).{0,20}\d{1,}",  # 返回 + 具体数字（如 code 200）
+        r"(抛出|throw|throws|抛异常).{0,20}Exception",  # 抛出 + 异常类
+        r"(为|是|==)\s*(null|空|false|true|0)\b",  # 确定性布尔/null/零
+        r"\b[A-Z][A-Z_]{2,}\b",  # 业务枚举（≥3字符全大写）
+        r"(次|times|never|once)\b",  # 调用次数语义
+        r"(包含|contains|containsExactly|不包含|isEmpty\s*\(\))",  # 集合内容
+        r"(大小|size\s*\(\)|长度|length\s*\(\))\s*[=><]=?\s*\d",  # 集合大小与数字
+        r"errorCode\s*[=!]=",  # 错误码
+        r"getMessage\(\).{0,20}含",  # 异常消息包含
+        r"assertThat\s*\(.+\)\s*\.is",  # AssertJ 链式
+        r"assertIterableEquals|assertArrayEquals",  # 集合/数组比较
+        r"\.(get[A-Z]\w+|is[A-Z]\w+)\s*\(\)\s*[=!]=\s*\S",  # getter 对比
     ]
 ]
 
@@ -101,6 +104,13 @@ class EutItem(BaseModel):
         if not any(pat.search(stripped) for pat in _CONCRETE_THEN_PATTERNS):
             raise ValueError(
                 f"EUT then 字段缺少具体性: '{stripped}'。需包含断言方法、具体值、状态码、异常类型等可验证内容。"
+            )
+        # P0-2: assertThrows 必须是具体业务异常类，不能是基类 Exception/RuntimeException
+        _BASE_EXC = re.compile(r"assertThrows\s*\(\s*(Exception|RuntimeException|Throwable)\.class", re.IGNORECASE)
+        if _BASE_EXC.search(stripped):
+            raise ValueError(
+                f"assertThrows 必须指定具体业务异常类，不能用 Exception/RuntimeException/Throwable: '{stripped}'。"
+                "请改为具体类（如 MafSrvAftersaleException.class、BusinessException.class）。"
             )
         return v
 

@@ -140,6 +140,15 @@ def _check_wrong_directory(data: dict[str, Any]) -> list[str]:
     return errors
 
 
+# P0-1: 方法级断言强度检测用到的正则
+_TEST_METHOD_SPLIT = re.compile(r"(?=\s*@(?:Test|ParameterizedTest|RepeatedTest)\b)")
+_STRONG_IN_METHOD = re.compile(
+    r"\b(assertEquals|assertNotEquals|assertSame|assertThrows|assertThat|assertIterableEquals"
+    r"|assertArrayEquals|verify\s*\(|ArgumentCaptor)\b"
+)
+_ANY_ASSERT_IN_METHOD = re.compile(r"\bassert\w+\s*\(|verify\s*\(")
+
+
 def _check_mock_patterns(java_paths: list[Path]) -> list[str]:
     errors: list[str] = []
     for path in java_paths:
@@ -162,7 +171,43 @@ def _check_mock_patterns(java_paths: list[Path]) -> list[str]:
                     "请确认是否为臆造方法名"
                 )
                 break
+
+        # P0-1: 方法级断言强度检查
+        errors.extend(_check_method_level_assert_strength(path, text))
     return errors
+
+
+def _check_method_level_assert_strength(path: Path, text: str) -> list[str]:
+    """P0-1: 逐个 @Test 方法检查断言强度，统计弱断言方法比例.
+
+    弱断言方法 = 有 assert 调用但无强断言（assertEquals/assertThrows/verify 等）。
+    比例超过阈值（>40%）时报 BLOCKED。
+    """
+    # 按 @Test 注解分割方法块（简单启发式）
+    blocks = _TEST_METHOD_SPLIT.split(text)
+    # 过滤掉没有 @Test 的开头块
+    test_blocks = [b for b in blocks if re.match(r"\s*@(?:Test|ParameterizedTest|RepeatedTest)\b", b)]
+    if not test_blocks:
+        return []
+
+    weak_methods: list[str] = []
+    for block in test_blocks:
+        has_any_assert = bool(_ANY_ASSERT_IN_METHOD.search(block))
+        has_strong = bool(_STRONG_IN_METHOD.search(block))
+        if has_any_assert and not has_strong:
+            # 提取方法名
+            m = re.search(r"(?:public|protected|void)\s+(\w+)\s*\(", block)
+            name = m.group(1) if m else "?"
+            weak_methods.append(name)
+
+    total = len(test_blocks)
+    weak_count = len(weak_methods)
+    if total > 0 and weak_count / total > 0.4:
+        return [
+            f"BLOCKED: Q05 weak_assert_method — {path.name} {weak_count}/{total} 个 @Test 方法仅有弱断言"
+            f"（assertNotNull 等），缺少 assertEquals/assertThrows/verify：{', '.join(weak_methods[:4])}"
+        ]
+    return []
 
 
 # ── 并发/幂等/锁 SE 强管控 ────────────────────────────────────────────────────
