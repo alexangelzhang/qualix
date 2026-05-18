@@ -235,12 +235,13 @@ class FabricationDetectorGuardrail(PhaseGuardrail):
         total = len(all_names)
         not_found_ratio = len(not_found) / max(total, 1)
 
-        # 如果 code_symbols 表为空（未索引），不告警
+        # code_symbols 表为空（业务仓库未索引）：避免误报，静默跳过
         if not found_in_db and not_found_ratio > 0.8:
-            return []  # 可能是未索引，跳过
+            return []
 
-        # 超过 30% 未找到才告警
-        if not_found_ratio < 0.3:
+        # DB 有数据时阈值收紧到 20%（减少漏报）；无索引数据时保持 30% 兜底
+        threshold = 0.2 if found_in_db else 0.3
+        if not_found_ratio < threshold:
             return []
 
         samples = sorted(not_found)[:10]

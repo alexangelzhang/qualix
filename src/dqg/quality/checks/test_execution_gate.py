@@ -212,17 +212,19 @@ def check_q05_test_execution(
     int_dir = _internal_dir(output_dir, project_id, phase_def)
     inputs_path = int_dir / "_inputs.json"
     if not inputs_path.exists():
-        return []
+        # _inputs.json 缺失意味着 Phase 未通过 dqg-run execute 启动（手动模式）
+        # 无法确认测试已编译通过，返回 WARNING 而非静默跳过
+        return ["WARNING: _inputs.json 不存在，测试执行 gate 已跳过（请确认单测代码已通过编译）"]
 
     inputs_data = load_json(inputs_path)
     if not inputs_data:
-        return []
+        return ["WARNING: _inputs.json 为空，测试执行 gate 已跳过"]
 
     code_repos: list[str] = inputs_data.get("code_repos", [])
     if not code_repos and inputs_data.get("code_repo"):
         code_repos = [inputs_data["code_repo"]]
     if not code_repos:
-        return []
+        return ["WARNING: _inputs.json 中未配置 code_repo，测试执行 gate 已跳过"]
 
     errors: list[str] = []
     total_tested = 0

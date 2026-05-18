@@ -31,9 +31,7 @@ def _check_design_matrix(pd: Path, report: str, phase_id: str) -> tuple[bool, st
             total = data["summary"].get("total_test_cases", 0)
             return True, f"设计矩阵存在（{total} 个用例）"
         return True, "设计矩阵存在"
-    if "test_design_matrix" in report or "req_coverage" in report or "设计矩阵" in report:
-        return True, "有设计矩阵内容"
-    return False, "单测设计矩阵（_test_design_matrix.json）不存在"
+    return False, "单测设计矩阵（_test_design_matrix.json）不存在（报告文本提及不等同于矩阵存在）"
 
 
 def _check_req_coverage(pd: Path, report: str, phase_id: str) -> tuple[bool, str]:
@@ -51,9 +49,7 @@ def _check_req_coverage(pd: Path, report: str, phase_id: str) -> tuple[bool, str
                     return True, f"REQ 覆盖率 {covered}/{total} (100%)"
                 return False, f"REQ 覆盖率 {covered}/{total} ({rate * 100:.0f}%，要求 100%)"
     req_refs = len(RE_REQ_ID.findall(report))
-    if req_refs >= 5:
-        return True, f"{req_refs} 处 REQ 引用"
-    return False, f"仅 {req_refs} 处 REQ 引用（无法验证 REQ 覆盖率）"
+    return False, f"设计矩阵缺失，REQ 覆盖率无法验证（报告有 {req_refs} 处 REQ 引用，但需要结构化矩阵）"
 
 
 def _check_br_coverage(pd: Path, report: str, phase_id: str) -> tuple[bool, str]:
@@ -74,9 +70,7 @@ def _check_br_coverage(pd: Path, report: str, phase_id: str) -> tuple[bool, str]
                     return True, f"BR 覆盖率 {covered}/{total} ({rate * 100:.0f}%)"
                 return False, f"BR 覆盖率 {covered}/{total} ({rate * 100:.0f}%，要求 ≥80%)"
     br_refs = len(RE_BR_ID.findall(report))
-    if br_refs >= 10:
-        return True, f"{br_refs} 处 BR 引用"
-    return False, f"仅 {br_refs} 处 BR 引用（无法验证 BR 覆盖率）"
+    return False, f"设计矩阵缺失，BR 覆盖率无法验证（报告有 {br_refs} 处 BR 引用，但需要结构化矩阵）"
 
 
 def _check_code_branch_coverage(pd: Path, report: str, phase_id: str) -> tuple[bool, str]:
@@ -93,11 +87,7 @@ def _check_code_branch_coverage(pd: Path, report: str, phase_id: str) -> tuple[b
                 if rate >= 0.7:
                     return True, f"分支覆盖率 {covered}/{total} ({rate * 100:.0f}%)"
                 return False, f"分支覆盖率 {covered}/{total} ({rate * 100:.0f}%，要求 ≥70%)"
-    keywords = ["分支", "branch", "if.*null", "try.*catch", "switch", "default", "降级", "防御"]
-    found = sum(1 for kw in keywords if kw.lower() in report.lower())
-    if found >= 3:
-        return True, f"有分支覆盖分析（{found} 个关键词）"
-    return True, "分支覆盖需编译验证"
+    return False, "设计矩阵缺失，代码分支覆盖率无法验证（需要 _test_design_matrix.json 中的 code_branch_coverage 数据）"
 
 
 def _check_eut_count(pd: Path, report: str, phase_id: str) -> tuple[bool, str]:
