@@ -5,6 +5,7 @@
 
 from __future__ import annotations
 
+import re
 from types import MappingProxyType
 from typing import TYPE_CHECKING, Final
 
@@ -273,21 +274,56 @@ def _check_se_bound(pd: Path, report: str, phase_id: str) -> tuple[bool, str]:
     return False, f"仅 {se_refs} 处 SE 引用（要求每条 SE 有对应 EUT）"
 
 
-def _check_strong_assert(pd: Path, report: str, phase_id: str) -> tuple[bool, str]:
-    """检查是否使用强断言."""
-    from dqg.json_utils import load_json
+_STRONG_ASSERT_PATTERN = re.compile(r"\b(assertEquals|assertThrows|assertThat|verify|assertSame|assertArrayEquals)\b")
+_WEAK_ONLY_PATTERN = re.compile(r"\bassertNotNull\b")
 
-    json_path = pd.parent / "phase_b_structured.json"
-    data = load_json(json_path)
-    if data:
-        test_files = data.get("test_files", [])
-        if test_files:
-            return True, f"{len(test_files)} 个测试文件（断言检查需编译验证）"
-    if "assertEquals" in report or "assertThrows" in report:
-        return True, "使用了强断言"
+
+def _check_strong_assert(pd: Path, report: str, phase_id: str) -> tuple[bool, str]:
+    """检查测试代码断言强度：扫描业务仓库新增 .java 文件，检测弱断言比例.
+
+    强断言：assertEquals / assertThrows / assertThat / verify / assertSame
+    弱断言（仅有）：assertNotNull 但无任何强断言方法
+    """
+    from dqg.json_utils import load_json
+    from dqg.quality.checks.q05_structure_checks import _collect_new_test_files_from_repos
+
+    # 读 code_repos（来自 _inputs.json）
+    inputs_data = load_json(pd / "_internal" / "_inputs.json") or {}
+    code_repos: list[str] = inputs_data.get("code_repos") or []
+    if not code_repos and inputs_data.get("code_repo"):
+        code_repos = [inputs_data["code_repo"]]
+
+    if code_repos:
+        java_files = [f for f in _collect_new_test_files_from_repos(code_repos) if f.suffix == ".java"]
+        if java_files:
+            weak_files, strong_files = [], []
+            for path in java_files:
+                try:
+                    text = path.read_text(encoding="utf-8", errors="replace")
+                except OSError:
+                    continue
+                has_strong = bool(_STRONG_ASSERT_PATTERN.search(text))
+                has_weak = bool(_WEAK_ONLY_PATTERN.search(text))
+                if has_strong:
+                    strong_files.append(path.name)
+                elif has_weak:
+                    weak_files.append(path.name)
+            total = len(java_files)
+            if weak_files and not strong_files:
+                return False, (
+                    f"{len(weak_files)}/{total} 个测试文件仅含 assertNotNull 弱断言，"
+                    f"缺少 assertEquals/assertThrows/verify: {', '.join(weak_files[:3])}"
+                )
+            if strong_files:
+                return True, f"{len(strong_files)}/{total} 个测试文件含强断言（assertEquals/assertThrows/verify）"
+        return True, "未发现新增 .java 测试文件，断言检查已跳过"
+
+    # fallback：报告文字检查（无 code_repos 时）
+    if "assertEquals" in report or "assertThrows" in report or "verify(" in report:
+        return True, "使用了强断言（报告文字）"
     if "assertNotNull" in report and "assertEquals" not in report:
-        return False, "仅使用 assertNotNull（弱断言）"
-    return True, "断言检查需编译验证"
+        return False, "仅检测到 assertNotNull（弱断言），缺少 assertEquals/assertThrows/verify"
+    return True, "断言检查需要 code_repo 配置"
 
 
 # Q06 检查函数从独立模块导入

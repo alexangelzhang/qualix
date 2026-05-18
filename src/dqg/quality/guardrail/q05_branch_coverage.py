@@ -25,9 +25,9 @@ class Q05BranchCoverageGuardrail(PhaseGuardrail):
             return [
                 GuardrailResult(
                     guardrail_name=self.name,
-                    passed=True,
-                    level=GuardrailLevel.INFO,
-                    message="未找到分支清单 _internal/_q05_branch_inventory.json，跳过分支覆盖门禁（建议执行 Q05 三步范式 Step A）",
+                    passed=False,
+                    level=GuardrailLevel.WARNING,
+                    message="未执行 Q05 三步范式 Step A，分支清单缺失，异常/边界路径覆盖无法验证（_internal/_q05_branch_inventory.json）",
                 )
             ]
 

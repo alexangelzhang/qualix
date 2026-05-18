@@ -185,6 +185,23 @@ def cmd_finalize(args, output_dir: Path) -> int:
     from dqg.runtime.phase_runtime import runtime_finalize
     from dqg.skill_tracker import format_quality_report
 
+    # 手动模式支持：--code-repo 传入时，若 _inputs.json 不存在则补写
+    code_repo_arg = getattr(args, "code_repo", None)
+    if code_repo_arg:
+        from dqg.core.phase_registry import PHASE_DEFS
+        from dqg.core.state_machine import internal_dir as _internal_dir
+        from dqg.json_utils import load_json, save_json
+
+        phase_def = PHASE_DEFS.get(args.phase)
+        if phase_def:
+            int_dir = _internal_dir(output_dir, args.project_id, phase_def)
+            inputs_path = int_dir / "_inputs.json"
+            if not inputs_path.exists():
+                repos = [r.strip() for r in code_repo_arg.split(",") if r.strip()]
+                int_dir.mkdir(parents=True, exist_ok=True)
+                save_json(inputs_path, {"code_repos": repos, "code_repo": repos[0] if repos else ""})
+                log.info("手动模式：已写入 _inputs.json（%d 个仓库）", len(repos))
+
     ctx = ExecutionContext(
         output_dir=output_dir,
         project_id=args.project_id,

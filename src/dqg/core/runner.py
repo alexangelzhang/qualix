@@ -61,6 +61,11 @@ def _build_parser() -> argparse.ArgumentParser:
     # finalize
     p_fin = sub.add_parser("finalize", help="校验产物并提交 review")
     p_fin.add_argument("phase", help="Phase ID")
+    p_fin.add_argument(
+        "--code-repo",
+        default=None,
+        help="代码仓库路径，多个用逗号分隔（手动模式下用于写入 _inputs.json，启用编译/测试 gate）",
+    )
 
     # approve
     p_app = sub.add_parser("approve", help="人工确认通过")

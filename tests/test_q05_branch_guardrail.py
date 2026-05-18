@@ -17,8 +17,8 @@ def test_skips_when_no_inventory(tmp_path: Path) -> None:
         phase_dir=q5,
     )
     r = Q05BranchCoverageGuardrail().check(ctx)[0]
-    assert r.passed
-    assert "跳过" in r.message
+    assert not r.passed  # 无分支清单 = WARNING，不能当作 pass
+    assert "Step A" in r.message or "分支清单" in r.message
 
 
 def test_blocks_when_exception_branch_but_no_exception_eut(tmp_path: Path) -> None:
