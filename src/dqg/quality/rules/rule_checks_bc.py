@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING, Final
 if TYPE_CHECKING:
     from pathlib import Path
 
-from .rule_definitions import RE_BR_ID, RE_REQ_ID, RE_SE_ID
+from .rule_definitions import RE_REQ_ID, RE_SE_ID
 
 # ---------------------------------------------------------------------------
 # Phase Q05 检查
@@ -54,41 +54,104 @@ def _check_req_coverage(pd: Path, report: str, phase_id: str) -> tuple[bool, str
 
 
 def _check_br_coverage(pd: Path, report: str, phase_id: str) -> tuple[bool, str]:
-    """检查 BR 覆盖率."""
+    """检查 BR 覆盖率 = 100%（有无设计矩阵均验证）.
+
+    有矩阵时：读 summary.backend_covered_br/total_br。
+    无矩阵时：通过 SE.bound_reqs 链路间接验证（EUT→SE→BR）。
+    """
+    from dqg.constants import STRUCTURED_JSON_MAP
     from dqg.json_utils import load_json
 
+    # 优先用设计矩阵
     for candidate in [pd.parent / "_test_design_matrix.json", pd / "_test_design_matrix.json"]:
         data = load_json(candidate)
         if data and data.get("summary"):
-            total = data["summary"].get("backend_total_br", 0)
-            covered = data["summary"].get("backend_covered_br", 0)
-            if total == 0:
-                total = data["summary"].get("total_br", 0)
-                covered = data["summary"].get("covered_br", 0)
+            total = data["summary"].get("backend_total_br", 0) or data["summary"].get("total_br", 0)
+            covered = data["summary"].get("backend_covered_br", 0) or data["summary"].get("covered_br", 0)
             if total > 0:
-                rate = covered / total
-                if rate >= 0.8:
-                    return True, f"BR 覆盖率 {covered}/{total} ({rate * 100:.0f}%)"
-                return False, f"BR 覆盖率 {covered}/{total} ({rate * 100:.0f}%，要求 ≥80%)"
-    br_refs = len(RE_BR_ID.findall(report))
-    return False, f"设计矩阵缺失，BR 覆盖率无法验证（报告有 {br_refs} 处 BR 引用，但需要结构化矩阵）"
+                if covered >= total:
+                    return True, f"BR 覆盖率 100%（{covered}/{total}）"
+                return False, f"BR 覆盖率 {covered}/{total} ({covered * 100 // total}%，要求 100%)"
+
+    # 无矩阵：通过 Q01 SE.bound_reqs 链路间接验证
+
+    q01_json = STRUCTURED_JSON_MAP.get("Q01", "phase_a_structured.json")
+    q01_data = load_json(pd.parent / "Q01" / q01_json) or {}
+    reqs = q01_data.get("requirements", [])
+    ses = q01_data.get("semantic_expectations", [])
+    all_br_ids = {str(r.get("req_id", "")) for r in reqs if str(r.get("req_id", "")).startswith("BR")}
+    if not all_br_ids:
+        return False, "无法验证 BR 覆盖率（Q01 产物不可用）"
+
+    # SE → BR/REQ 映射
+    se_bound_reqs: dict[str, set[str]] = {s["se_id"]: set(s.get("bound_reqs", []) or []) for s in ses}
+
+    # EUT → SE → BR
+    eut_data = load_json(pd / STRUCTURED_JSON_MAP.get("Q05", "phase_b_structured.json")) or {}
+    euts = eut_data.get("eut_items", eut_data.get("test_cases", []))
+    covered_brs: set[str] = set()
+    for eut in euts:
+        se_refs = list(eut.get("se_refs", []) or [])
+        bound_se = str(eut.get("bound_se", "") or "")
+        if bound_se and bound_se not in se_refs:
+            se_refs = [bound_se, *se_refs]
+        for se_id in se_refs:
+            covered_brs.update(se_bound_reqs.get(se_id, set()) & all_br_ids)
+
+    missing = sorted(all_br_ids - covered_brs)
+    covered_count = len(all_br_ids) - len(missing)
+    if missing:
+        return False, (f"BR 覆盖 {covered_count}/{len(all_br_ids)}，要求 100%，缺失: {', '.join(missing[:6])}")
+    return True, f"BR 100% 覆盖（{len(all_br_ids)} 条，通过 SE 链路验证）"
 
 
 def _check_code_branch_coverage(pd: Path, report: str, phase_id: str) -> tuple[bool, str]:
-    """检查代码分支覆盖."""
+    """检查代码分支覆盖 = 100%（有无设计矩阵均验证）.
+
+    有矩阵时：读 summary.covered_branches/total_branches。
+    无矩阵时：从分支清单（_internal/_q05_branch_inventory.json）+ EUT 类型推断。
+    两者均无：FAIL。
+    """
+    from dqg.constants import STRUCTURED_JSON_MAP
     from dqg.json_utils import load_json
 
+    # 优先用设计矩阵
     for candidate in [pd.parent / "_test_design_matrix.json", pd / "_test_design_matrix.json"]:
         data = load_json(candidate)
         if data and data.get("summary"):
             total = data["summary"].get("total_branches", 0)
             covered = data["summary"].get("covered_branches", 0)
             if total > 0:
-                rate = covered / total
-                if rate >= 0.7:
-                    return True, f"分支覆盖率 {covered}/{total} ({rate * 100:.0f}%)"
-                return False, f"分支覆盖率 {covered}/{total} ({rate * 100:.0f}%，要求 ≥70%)"
-    return False, "设计矩阵缺失，代码分支覆盖率无法验证（需要 _test_design_matrix.json 中的 code_branch_coverage 数据）"
+                if covered >= total:
+                    return True, f"代码分支覆盖 100%（{covered}/{total}）"
+                return False, f"代码分支覆盖 {covered}/{total} ({covered * 100 // total}%，要求 100%)"
+
+    # 无矩阵：从分支清单 + EUT 类型推断
+    inv_path = pd / "_internal" / "_q05_branch_inventory.json"
+    inv = load_json(inv_path) if inv_path.exists() else None
+    if inv is not None:
+        from dqg.quality.guardrail.q05_branch_coverage import (
+            _count_boundary_branches,
+            _count_boundary_euts,
+            _count_exception_branches,
+            _count_exception_euts,
+        )
+
+        b5d = load_json(pd / STRUCTURED_JSON_MAP.get("Q05", "phase_b_structured.json")) or {}
+        exc_br = _count_exception_branches(inv)
+        bnd_br = _count_boundary_branches(inv)
+        exc_eut = _count_exception_euts(b5d)
+        bnd_eut = _count_boundary_euts(b5d)
+        errors: list[str] = []
+        if exc_br > 0 and exc_eut < exc_br:
+            errors.append(f"Exception 分支 {exc_eut}/{exc_br}（要求 100%）")
+        if bnd_br > 0 and bnd_eut < bnd_br:
+            errors.append(f"Boundary 分支 {bnd_eut}/{bnd_br}（要求 100%）")
+        if errors:
+            return False, f"代码分支覆盖不足 100%: {'; '.join(errors)}"
+        return True, (f"代码分支 100% 覆盖（Exception={exc_eut}/{exc_br}, Boundary={bnd_eut}/{bnd_br}）")
+
+    return False, "无设计矩阵且无分支清单，代码分支覆盖无法验证（需执行三步范式 Step A）"
 
 
 def _load_q01_counts(pd: Path) -> tuple[int, int, int]:
@@ -166,14 +229,15 @@ _BOUNDARY_KWS: frozenset[str] = frozenset(
 
 
 def _check_path_balance(pd: Path, report: str, phase_id: str) -> tuple[bool, str]:
-    """检查路径覆盖率：Happy Path ≥ 80%，Exception = 100%，Boundary = 100%.
+    """检查路径覆盖率：Happy ≥ 80%，Exception = 100%，Boundary = 100%.
 
-    以 SE 为粒度逐条验证：
-    - 含异常语义的 SE 必须有 route_type=Exception 的 EUT
-    - 含边界语义的 SE 必须有 route_type=Boundary 的 EUT
-    - 所有 SE 中 ≥80% 须有 route_type=Happy Path 的 EUT
+    验证维度（REQ + BR + SE + 代码分支清单）：
+    - SE 逐条：含异常/边界语义的每条 SE 必须有对应类型的 EUT，≥80% SE 有 Happy EUT
+    - BR 逐条：含异常/边界语义的每条 BR 必须通过 SE 链路覆盖到对应类型的 EUT
+    - REQ 逐条：≥80% REQ 通过 SE 链路覆盖到 Happy Path EUT
+    - 代码维度：分支清单中异常/边界分支必须全部有对应类型 EUT（100%）
     """
-    from collections import defaultdict
+    from collections import Counter, defaultdict
 
     from dqg.constants import STRUCTURED_JSON_MAP
     from dqg.json_utils import load_json
@@ -187,62 +251,114 @@ def _check_path_balance(pd: Path, report: str, phase_id: str) -> tuple[bool, str
     if not euts:
         return False, "eut_items 为空"
 
-    # 按 bound_se 分组，记录每条 SE 覆盖了哪些路径类型
-    se_routes: dict[str, set[str]] = defaultdict(set)
-    for e in euts:
-        bound_se = str(e.get("bound_se", "") or "")
-        route = e.get("route_type", "")
-        if bound_se:
-            se_routes[bound_se].add(route)
-
-    # 从 Q01 获取 SE 列表，识别需要 Exception/Boundary 覆盖的 SE
+    # ── 从 Q01 加载 SE/BR/REQ 列表 ──────────────────────────────────────────
     q01_json = STRUCTURED_JSON_MAP.get("Q01", "phase_a_structured.json")
     q01_data = load_json(pd.parent / "Q01" / q01_json) or {}
     ses = q01_data.get("semantic_expectations", [])
-    all_se_ids = [s["se_id"] for s in ses]
+    reqs_list = q01_data.get("requirements", [])
 
-    se_need_exc = [s["se_id"] for s in ses if any(kw in s.get("description", "") for kw in _EXCEPTION_KWS)]
-    se_need_bnd = [s["se_id"] for s in ses if any(kw in s.get("description", "") for kw in _BOUNDARY_KWS)]
+    # SE → 它覆盖的 BR/REQ（via bound_reqs）
+    se_bound_reqs: dict[str, set[str]] = {s["se_id"]: set(s.get("bound_reqs", []) or []) for s in ses}
+
+    # ── 按 bound_se 记录每条 SE 的路径类型 ──────────────────────────────────
+    se_routes: dict[str, set[str]] = defaultdict(set)
+    # 同时构建 BR/REQ → 路径类型（间接覆盖）
+    req_routes: dict[str, set[str]] = defaultdict(set)
+    for e in euts:
+        route = e.get("route_type", "")
+        se_ref_list = list(e.get("se_refs", []) or [])
+        bound_se = str(e.get("bound_se", "") or "")
+        if bound_se and bound_se not in se_ref_list:
+            se_ref_list = [bound_se, *se_ref_list]
+        for se_id in se_ref_list:
+            se_routes[se_id].add(route)
+            for req_id in se_bound_reqs.get(se_id, set()):
+                req_routes[req_id].add(route)
 
     errors: list[str] = []
 
-    # Exception = 100%
-    missing_exc = [sid for sid in se_need_exc if "Exception" not in se_routes.get(sid, set())]
-    exc_total = len(se_need_exc)
-    if exc_total > 0:
-        exc_covered = exc_total - len(missing_exc)
-        if missing_exc:
-            errors.append(f"Exception 覆盖 {exc_covered}/{exc_total}，要求 100%，缺失: {', '.join(missing_exc)}")
+    # ── SE 维度 ──────────────────────────────────────────────────────────────
+    all_se_ids = [s["se_id"] for s in ses]
+    se_need_exc = [s["se_id"] for s in ses if any(kw in s.get("description", "") for kw in _EXCEPTION_KWS)]
+    se_need_bnd = [s["se_id"] for s in ses if any(kw in s.get("description", "") for kw in _BOUNDARY_KWS)]
 
-    # Boundary = 100%
-    missing_bnd = [sid for sid in se_need_bnd if "Boundary" not in se_routes.get(sid, set())]
-    bnd_total = len(se_need_bnd)
-    if bnd_total > 0:
-        bnd_covered = bnd_total - len(missing_bnd)
-        if missing_bnd:
-            errors.append(f"Boundary 覆盖 {bnd_covered}/{bnd_total}，要求 100%，缺失: {', '.join(missing_bnd)}")
+    missing_se_exc = [sid for sid in se_need_exc if "Exception" not in se_routes.get(sid, set())]
+    if se_need_exc and missing_se_exc:
+        errors.append(
+            f"[SE] Exception {len(se_need_exc) - len(missing_se_exc)}/{len(se_need_exc)} 100%，缺失: {', '.join(missing_se_exc)}"
+        )
 
-    # Happy Path ≥ 80%（以 SE 数量为分母）
+    missing_se_bnd = [sid for sid in se_need_bnd if "Boundary" not in se_routes.get(sid, set())]
+    if se_need_bnd and missing_se_bnd:
+        errors.append(
+            f"[SE] Boundary {len(se_need_bnd) - len(missing_se_bnd)}/{len(se_need_bnd)} 100%，缺失: {', '.join(missing_se_bnd)}"
+        )
+
     if all_se_ids:
-        happy_covered = [sid for sid in all_se_ids if "Happy Path" in se_routes.get(sid, set())]
-        happy_rate = len(happy_covered) / len(all_se_ids)
-        if happy_rate < 0.8:
-            errors.append(f"Happy Path 覆盖 {len(happy_covered)}/{len(all_se_ids)} = {happy_rate:.0%}，要求 ≥80%")
-    else:
-        # Q01 不可用时退化为计数检查
-        from collections import Counter
+        se_happy = [sid for sid in all_se_ids if "Happy Path" in se_routes.get(sid, set())]
+        se_happy_rate = len(se_happy) / len(all_se_ids)
+        if se_happy_rate < 0.8:
+            errors.append(f"[SE] Happy {len(se_happy)}/{len(all_se_ids)}={se_happy_rate:.0%}，要求 ≥80%")
 
-        route_counts = Counter(e.get("route_type", "") for e in euts)
-        if route_counts.get("Happy Path", 0) == 0:
-            errors.append("无 Happy Path EUT")
+    # ── BR 维度（通过 SE 链路间接验证） ─────────────────────────────────────
+    br_list = [r for r in reqs_list if str(r.get("req_id", "")).startswith("BR")]
+    br_descs = {r["req_id"]: r.get("description", "") for r in br_list}
+    br_need_exc = [r["req_id"] for r in br_list if any(kw in br_descs.get(r["req_id"], "") for kw in _EXCEPTION_KWS)]
+    br_need_bnd = [r["req_id"] for r in br_list if any(kw in br_descs.get(r["req_id"], "") for kw in _BOUNDARY_KWS)]
+
+    missing_br_exc = [bid for bid in br_need_exc if "Exception" not in req_routes.get(bid, set())]
+    if br_need_exc and missing_br_exc:
+        errors.append(
+            f"[BR] Exception {len(br_need_exc) - len(missing_br_exc)}/{len(br_need_exc)} 100%，缺失: {', '.join(missing_br_exc[:5])}"
+        )
+
+    missing_br_bnd = [bid for bid in br_need_bnd if "Boundary" not in req_routes.get(bid, set())]
+    if br_need_bnd and missing_br_bnd:
+        errors.append(
+            f"[BR] Boundary {len(br_need_bnd) - len(missing_br_bnd)}/{len(br_need_bnd)} 100%，缺失: {', '.join(missing_br_bnd[:5])}"
+        )
+
+    # ── REQ 维度（Happy Path ≥ 80%） ────────────────────────────────────────
+    req_ids = [r["req_id"] for r in reqs_list if str(r.get("req_id", "")).startswith("REQ")]
+    if req_ids:
+        req_happy = [rid for rid in req_ids if "Happy Path" in req_routes.get(rid, set())]
+        req_happy_rate = len(req_happy) / len(req_ids)
+        if req_happy_rate < 0.8:
+            errors.append(f"[REQ] Happy {len(req_happy)}/{len(req_ids)}={req_happy_rate:.0%}，要求 ≥80%")
+
+    # ── 代码维度（分支清单） ─────────────────────────────────────────────────
+    inv_path = pd / "_internal" / "_q05_branch_inventory.json"
+    inv = load_json(inv_path) if inv_path.exists() else None
+    if inv is not None:
+        from dqg.quality.guardrail.q05_branch_coverage import (
+            _count_boundary_branches,
+            _count_boundary_euts,
+            _count_exception_branches,
+            _count_exception_euts,
+        )
+
+        exc_br = _count_exception_branches(inv)
+        bnd_br = _count_boundary_branches(inv)
+        exc_eut = _count_exception_euts(data)
+        bnd_eut = _count_boundary_euts(data)
+        if exc_br > 0 and exc_eut < exc_br:
+            errors.append(f"[代码] Exception 分支 {exc_eut}/{exc_br}，要求 100%")
+        if bnd_br > 0 and bnd_eut < bnd_br:
+            errors.append(f"[代码] Boundary 分支 {bnd_eut}/{bnd_br}，要求 100%")
 
     if errors:
         return False, "; ".join(errors)
 
-    exc_str = f"{exc_total - len(missing_exc)}/{exc_total}" if exc_total else "N/A"
-    bnd_str = f"{bnd_total - len(missing_bnd)}/{bnd_total}" if bnd_total else "N/A"
-    hp_str = f"{len(happy_covered)}/{len(all_se_ids)}={happy_rate:.0%}" if all_se_ids else "N/A"
-    return True, f"路径覆盖达标 | Happy≥80%({hp_str}), Exception=100%({exc_str}), Boundary=100%({bnd_str})"
+    # fallback（Q01 不可用时）
+    if not all_se_ids:
+        route_counts = Counter(e.get("route_type", "") for e in euts)
+        if route_counts.get("Happy Path", 0) == 0:
+            return False, "无 Happy Path EUT"
+
+    return True, (
+        "路径覆盖达标 | SE[Happy≥80%/Exception=100%/Boundary=100%]"
+        " BR[Exception=100%/Boundary=100%] REQ[Happy≥80%]" + (" 代码维度[100%]" if inv is not None else "")
+    )
 
 
 def _check_se_bound(pd: Path, report: str, phase_id: str) -> tuple[bool, str]:

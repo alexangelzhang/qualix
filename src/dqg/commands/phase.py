@@ -402,11 +402,14 @@ def cmd_approve(args, output_dir: Path) -> int:
         for d in judge_result.get("dimensions", [])
         if "id" in d and "score" in d
     }
+    # 读取 per-phase 阈值（PHASE_DEFS 未配置时默认 3.5）
+    phase_threshold = PHASE_DEFS.get(args.phase, {}).get("judge_pass_threshold", 3.5)
     record_judge_score(
         state,
         args.phase,
         overall_score=judge_result.get("overall_score", 0.0),
         dimension_scores=dim_scores,
+        pass_threshold=phase_threshold,
         judged_at=judge_result.get("judged_at"),
     )
 
@@ -414,7 +417,7 @@ def cmd_approve(args, output_dir: Path) -> int:
     force = getattr(args, "force", False)
     if ps_pre and ps_pre.judge_score is not None and not ps_pre.judge_passed and not force:
         if not cli_json_mode(args):
-            print(f"\n  ⚠️  Judge 评分 {ps_pre.judge_score:.1f}/5 未达标（阈值 3.5）", file=sys.stderr)
+            print(f"\n  ⚠️  Judge 评分 {ps_pre.judge_score:.1f}/5 未达标（阈值 {phase_threshold}）", file=sys.stderr)
             top_issues = judge_result.get("top_issues", []) if judge_result else []
             for issue in top_issues[:3]:
                 print(f"    - {issue}", file=sys.stderr)

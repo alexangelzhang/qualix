@@ -219,6 +219,7 @@ PHASE_DEFS: Final = MappingProxyType(
                 {"canonical": "测试用例清单", "aliases": ["单测用例", "Test Cases", "EUT Matrix"]},
                 {"canonical": "覆盖率矩阵", "aliases": ["Coverage Matrix", "覆盖率"]},
             ],
+            "judge_pass_threshold": 4.7,  # 单测生成质量要求高，高于其他 Phase 默认 3.5
         },
         "Q06": {
             "name": "单测覆盖审计",
