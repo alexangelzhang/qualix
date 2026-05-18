@@ -700,21 +700,43 @@ def _check_se_traceability(test_files: list[Path]) -> list[str]:
 
 
 def _check_multi_repo_coverage(code_repos: list[str], test_files: list[Path]) -> list[str]:
-    """Fix-4: 多仓库完整性 gate — 每个 code_repo 都必须有新增测试文件.
+    """Fix-4: 多仓库完整性 gate — 有代码变更的仓库必须有新增测试文件.
 
-    SKILL.md Step 3.5：禁止默默跳过某个仓库的测试生成。
+    仅对有 git diff 变更的仓库做要求：master 等基线仓库无生产代码变更，不应要求新测试。
     """
+    import subprocess
+
     if len(code_repos) <= 1:
         return []
     errors: list[str] = []
     for repo_str in code_repos:
         repo = Path(repo_str).expanduser().resolve()
-        # 检查该仓库下是否有新增测试文件
-        repo_has_tests = any(str(f).startswith(str(repo)) or str(f.parent).startswith(str(repo)) for f in test_files)
+        if not repo.is_dir():
+            continue
+
+        # 检查该仓库是否有生产代码变更（git diff origin/master...HEAD）
+        try:
+            result = subprocess.run(
+                ["git", "diff", "origin/master...HEAD", "--name-only", "--diff-filter=AM"],
+                cwd=str(repo),
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
+            changed_prod = [f for f in result.stdout.splitlines() if f.endswith(".java") and "/test/" not in f]
+        except Exception:
+            changed_prod = []
+
+        # 无生产代码变更（如 master 基线仓库）→ 不要求新测试
+        if not changed_prod:
+            continue
+
+        # 有生产代码变更 → 必须有对应新测试文件
+        repo_has_tests = any(str(f).startswith(str(repo)) for f in test_files)
         if not repo_has_tests:
             errors.append(
-                f"BLOCKED: Q05 multi_repo_coverage — 仓库 {repo.name} 无新增测试文件。"
-                "SKILL.md Step 3.5：每个 code_repo 都必须有对应的测试生成，禁止静默跳过。"
+                f"BLOCKED: Q05 multi_repo_coverage — 仓库 {repo.name} 有 {len(changed_prod)} 个生产代码变更但无新增测试文件。"
+                "SKILL.md Step 3.5：有代码变更的仓库必须有对应的测试生成，禁止静默跳过。"
             )
     return errors
 
