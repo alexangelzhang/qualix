@@ -19,9 +19,50 @@ allowed-tools:
 
 # Phase Q05: 单测生成
 
+**DQG 核心价值观：质量！质量！质量！**
+
+> DQG 的测试不是为了"凑覆盖率"，也不是为了"验证业务语义 SE"这种有限目标——测试是为了保证软件质量，防止线上 bug，让代码可信赖。REQ+BR+SE 是质量的需求来源，代码路径（Happy/Exception/Boundary/并发幂等）是质量的验证维度，两者叉积才是完整的质量证据。
+
 IRON LAW: 不写 assertTrue(true) 占位符。写不了的测试标记 TODO 并说明原因，不要用占位符假装覆盖。
 
-从 Phase Q01 的结构化需求驱动单测设计，而非从代码反推。
+---
+
+## EUT 矩阵设计核心原则（不可违反）
+
+**两个维度必须同时满足：**
+
+**维度 A（覆盖源）：REQ+BR+SE + git diff 全覆盖**
+- 每条 REQ 必须有对应 EUT（`bound_item = "REQ-XXX"`）
+- 每条 BR 必须有对应 EUT（`bound_item = "BR-XXX"`）
+- 每条 SE 必须有对应 EUT（`bound_item = "SE-XXX"`）
+- git diff 变更的每个类/方法必须在某条 EUT 的 `when` 字段里出现
+
+**维度 B（代码路径）：从实现代码视角分解执行路径**
+> **重要：Happy / Exception / Boundary 是代码实现视角的路径分类，不是需求分类。**
+> 对同一条 REQ/BR/SE，要分析其实现代码，识别出哪些是正常执行路径（Happy）、哪些是异常处理路径（Exception）、哪些是边界条件（Boundary），每种路径都要有对应 EUT。
+
+| 路径类型 | 含义 | 来源 | 要求 |
+|---------|------|------|------|
+| Happy Path | 代码主成功路径（正常输入→正确输出）| 代码 if 主干、正常 return | 每条 REQ/BR/SE ≥1 个，全局 ≥80% |
+| Exception | 代码异常/错误分支（catch、if-else 的拒绝路径）| throw/catch、条件拒绝、降级 | 每条 REQ/BR/SE 100% 覆盖 |
+| Boundary | 代码边界条件（null/空/最大值/最小值）| null 检查、空集合、数值上下限 | 有边界语义的条目 100% |
+| Concurrent | 并发/幂等/多线程竞态（CountDownLatch 多线程验证）| 幂等键、锁、check-then-act | 有并发/幂等语义时 100% |
+
+**叉积示例（SE-001 品类短路）：**
+```
+SE-001 × Happy Path  → EUT-002: 品类在白名单+商品允许 → assertEquals(true, result)
+SE-001 × Exception   → EUT-001: 品类不在白名单 → assertEquals(false, result); verify(fulfillment, never())
+SE-001 × Boundary    → EUT-021: 批量商品含黑名单 → assertEquals(false, result)
+```
+
+**错误示范（SE 视角≠REQ/BR 视角）：**
+```
+✗ 只写 SE-001 到 SE-011 的 EUT，BR-001 到 BR-024 无任何测试
+✗ "品类白名单配置"(BR-001) 的配置操作逻辑完全没有测试
+✗ "1仓/7仓不支持"(BR-006) 的代码分支没有 Exception EUT
+```
+
+---
 
 ## 前置依赖
 
@@ -138,20 +179,21 @@ Step 0.5 完成后，必须将三层驱动的结果写入此文件，否则 fina
 
 **1.1 需求→用例设计（无代码也能做）**
 
-逐条 REQ/BR 设计测试用例：
+逐条 REQ/BR/SE 设计测试用例（REQ/BR 是主体，SE 是补充验证）：
 
-| REQ/BR | 用例 ID | 用例描述 | 路径类型 | 绑定 SE | 被测类.方法 | 仓库 |
-|--------|---------|---------|---------|---------|-----------|------|
+| bound_item | 用例 ID | 用例描述 | 路径类型 | 被测类.方法 | 仓库 |
+|-----------|---------|---------|---------|-----------|------|
 
 规则：
-- 每条 REQ 至少 1 个 Happy Path 用例
-- 每条 BR 中包含"校验/限制/必须/不能"关键词的，必须有 Exception 用例
-- 每条 SE 至少 1 个用例（Happy 或 Exception），**绑定 SE 列必填，不允许留空**
-- 涉及金额/状态/枚举的 BR，必须有 Boundary 用例
+- **REQ/BR 是测试设计的主体，SE 是补充验证**——先覆盖每条 REQ 和 BR，再用 SE 验证语义精度
+- 每条 REQ 必须有 ≥1 个 Happy Path EUT（`bound_item = "REQ-XXX"`）
+- 每条 BR 必须有 ≥1 个 Happy Path EUT + ≥1 个 Exception EUT（`bound_item = "BR-XXX"`）
+- 涉及金额/状态/枚举/边界的 BR，必须有 Boundary EUT
+- SE 对应的 EUT 是对 REQ/BR EUT 的语义精度补充，不能用 SE EUT 替代 BR EUT
 - 未覆盖的 REQ/BR 必须标注原因（前端逻辑/BPM 配置/不在代码范围）
 - **每条用例必须标注归属仓库名**
-- **每条 SE/BR MUST 有直接 EUT，禁止仅靠"间接覆盖"标记为 COVERED**：直接 EUT 指测试方法直接调用被测 SE/BR 对应的方法并断言其业务结果；"间接覆盖"（例如 SE-018 仅因 EUT-034 在测试其它逻辑时顺带触发了 SE-018 的代码路径）Q06 审计时会降级为 `PARTIAL`
-- **通用方法测试 MUST NOT 替代特定 BR 测试**：BR-026（如 VIN 半隐藏）必须有绑定 BR-026 的专用 EUT，不允许用 `testCommonFormat()` 这类通用方法覆盖；每条 BR 必须在用例表里看到至少一行 `绑定 SE/BR` 列 = 该 BR 的记录
+- **每条 REQ/BR/SE MUST 有直接 EUT，`bound_item` 必填，不允许留空，禁止仅靠"间接覆盖"**：直接 EUT 指测试方法直接调用被测条目对应的方法并断言其业务结果；间接覆盖在 Q06 审计时降级为 `PARTIAL`
+- **通用方法测试 MUST NOT 替代特定 BR 测试**：每条 BR 必须在 `eut_items` 中找到至少一行 `bound_item = "BR-XXX"` 的记录
 - **分层职责边界：集成测试范围内的 domain 层 MUST 仍有单测**：即使外层用集成测试（如 Spec/Step 层）覆盖了端到端流程，domain 层的状态变更、领域规则、聚合根不变式 MUST 有独立的 domain 层单测；禁止用"反正集成测试会覆盖"跳过 domain 层（Q06 cases #3/#4/#7 的反模式）
 - **状态机每条迁移路径 MUST 有直接 EUT**：`状态 A → 状态 B` 的每条迁移边，必须有一个 EUT 直接断言 `targetState == B`；仅靠"间接被触发"不算覆盖（例：主状态机的 `WAIT_APPROVE → REJECTED` MUST 有 EUT 显式 `assertEquals(REJECTED, actual.getState())`，不能依赖其它 EUT 测试回退路径时顺带验证）
 

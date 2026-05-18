@@ -81,7 +81,15 @@ class EutItem(BaseModel):
     """EUT 条目."""
 
     eut_id: str = Field(pattern=r"^EUT-\d+$")
-    bound_se: str = Field(min_length=1, description="绑定的 SE ID，如 SE-001。必填。")
+    bound_item: str = Field(
+        min_length=1,
+        description="绑定的需求条目 ID，支持 REQ-001/BR-007/SE-003 三种格式。必填。",
+    )
+    # 向后兼容字段——自动与 bound_item 双向同步，新代码请用 bound_item
+    bound_se: str = Field(
+        default="",
+        description="[已废弃] 请使用 bound_item。向后兼容保留。",
+    )
     route_type: RouteType
     given: str = Field(min_length=1)
     when: str = Field(min_length=1)
@@ -89,6 +97,28 @@ class EutItem(BaseModel):
     risk_tier: RiskTier = RiskTier.T2
     repo: str = Field(default="", description="归属仓库名，多仓库场景必填")
     se_refs: list[str] = Field(default_factory=list, description="关联的 SE ID 列表")
+
+    @model_validator(mode="before")
+    @classmethod
+    def sync_bound_item_and_bound_se(cls, values: dict) -> dict:
+        """双向迁移：旧格式 bound_se → bound_item；新格式 bound_item → 填充 bound_se 供旧代码读取."""
+        bi = values.get("bound_item", "")
+        bs = values.get("bound_se", "")
+        if not bi and bs:
+            values["bound_item"] = bs
+        if bi and not bs:
+            values["bound_se"] = bi
+        return values
+
+    @field_validator("bound_item")
+    @classmethod
+    def validate_bound_item_format(cls, v: str) -> str:
+        """bound_item 必须是 REQ-NNN / BR-NNN / SE-NNN 格式."""
+        if not re.match(r"^(REQ|BR|SE)-\d+$", v.strip()):
+            raise ValueError(
+                f"bound_item '{v}' 格式无效。须为 REQ-001 / BR-007 / SE-003 格式，对应 Q01 产出的 REQ/BR/SE 条目 ID。"
+            )
+        return v
 
     @field_validator("then")
     @classmethod

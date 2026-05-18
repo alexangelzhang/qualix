@@ -126,6 +126,10 @@ def auto_derive_checks(
             # --- Q01-4: BR 数量与 PRD 信息密度合理性检查 ---
             errors.extend(_check_br_density_ratio(output_dir, project_id, phase_id))
 
+        # --- Q05: REQ+BR+SE × 代码路径完整性（Happy/Exception/Boundary/并发幂等）---
+        if phase_id == "Q05":
+            errors.extend(_check_q05_req_br_se_coverage(validated, phase_id, output_dir, project_id))
+
         # --- Q06: coverage_gate 自报 ↔ JaCoCo 一致性 (G2) ---
         if phase_id == "Q06":
             errors.extend(_check_coverage_gate_consistency(output_dir, project_id, phase_id))
@@ -465,6 +469,158 @@ def _check_findings_severity_distribution(validated: Any, phase_id: str) -> list
             "疑似系统性低报问题严重性。如果存在 MISSING/WRONG_TARGET 条目，至少应有 MEDIUM 以上 finding。"
         ]
     return []
+
+
+# ---------------------------------------------------------------------------
+# Q05: REQ+BR+SE × 代码路径完整性检查
+# ---------------------------------------------------------------------------
+
+_CONCURRENT_KEYWORDS: Final = frozenset(
+    {
+        "幂等",
+        "并发",
+        "重复提交",
+        "重试",
+        "同时",
+        "并行",
+        "concurrent",
+        "idempotent",
+        "CountDownLatch",
+        "重复建单",
+        "重复创建",
+        "多线程",
+        "thread",
+        "race",
+    }
+)
+
+_CONCURRENT_THEN_PATTERNS: Final = [
+    re.compile(p, re.IGNORECASE)
+    for p in [
+        r"CountDownLatch",
+        r"ExecutorService",
+        r"Thread\s*\.",
+        r"AtomicInteger|AtomicLong",
+        r"concurrent",
+        r"\d+\s*线程|线程\s*\d+",
+        r"times\s*\(\s*1\s*\).*countDown|countDown.*times\s*\(\s*1\s*\)",
+    ]
+]
+
+_BOUNDARY_KEYWORDS: Final = frozenset(
+    {"null", "空", "最大", "最小", "边界", "上限", "下限", "0条", "空集", "为空", "为零", "empty", "boundary"}
+)
+
+
+def _check_q05_req_br_se_coverage(
+    validated: Any,
+    phase_id: str,
+    output_dir: Path,
+    project_id: str,
+) -> list[str]:
+    """Q05 核心覆盖完整性：REQ+BR+SE × 代码路径（Happy/Exception/Boundary/并发幂等）.
+
+    原则（不可违反）：
+    - 每条 REQ/BR/SE 必须有 Exception EUT（100%）
+    - 每条 REQ/BR/SE 必须有 Happy Path EUT（全局 ≥80%）
+    - 有边界语义的条目必须有 Boundary EUT（100%）
+    - 有并发/幂等语义的 SE 必须有并发测试（CountDownLatch/ExecutorService 等）
+    """
+    if phase_id != "Q05":
+        return []
+
+    # 读 Q01 upstream JSON 获取 REQ/BR/SE 完整列表
+    q01_def = PHASE_DEFS.get("Q01")
+    if not q01_def:
+        return ["NOT_APPLICABLE: Q01 phase_def not found，无法验证 REQ+BR+SE 覆盖完整性"]
+
+    q01_pd = _phase_dir(output_dir, project_id, q01_def)
+    q01_json_file = STRUCTURED_JSON_MAP.get("Q01")
+    if not q01_json_file:
+        return ["NOT_APPLICABLE: Q01 structured JSON not configured"]
+
+    q01_data = load_json(q01_pd / q01_json_file)
+    if not q01_data:
+        return ["NOT_APPLICABLE: Q01 structured JSON not found，无法验证覆盖完整性"]
+
+    # 构建 Q01 所有条目: item_id → 描述文本（用于检测并发/幂等语义）
+    all_items: dict[str, str] = {}
+    for req in q01_data.get("requirements", []):
+        item_id = req.get("req_id", "")
+        if item_id:
+            all_items[item_id] = req.get("description", "")
+    for se in q01_data.get("semantic_expectations", []):
+        se_id = se.get("se_id", "")
+        if se_id:
+            all_items[se_id] = se.get("description", "") + " " + se.get("verification", "")
+
+    if not all_items:
+        return ["NOT_APPLICABLE: Q01 中无 REQ/BR/SE 条目"]
+
+    eut_items = getattr(validated, "eut_items", []) or []
+
+    # 按 bound_item/bound_se 聚合：item_id → 已有的路径类型集合
+    coverage: dict[str, set[str]] = {}
+    for eut in eut_items:
+        item_id = getattr(eut, "bound_item", "") or getattr(eut, "bound_se", "")
+        if not item_id:
+            continue
+        rt = getattr(eut, "route_type", None)
+        rt_str = rt.value if hasattr(rt, "value") else str(rt)
+        coverage.setdefault(item_id, set()).add(rt_str)
+
+    errors: list[str] = []
+    happy_covered = 0
+    total = len(all_items)
+
+    for item_id, desc in all_items.items():
+        item_routes = coverage.get(item_id, set())
+
+        # Happy Path（统计全局覆盖率，逐条记录缺失）
+        if "Happy Path" in item_routes:
+            happy_covered += 1
+        else:
+            errors.append(
+                f"FAIL: Q05 {item_id} 缺少 Happy Path EUT。每条 REQ/BR/SE 必须有正向路径测试（代码主成功流）。"
+            )
+
+        # Exception（100%）
+        if "Exception" not in item_routes:
+            errors.append(
+                f"FAIL: Q05 {item_id} 缺少 Exception EUT（要求 100%）。必须覆盖该条目实现代码的所有异常/错误分支。"
+            )
+
+        # Boundary（有边界语义时 100%）
+        has_boundary = any(kw in desc for kw in _BOUNDARY_KEYWORDS)
+        if has_boundary and "Boundary" not in item_routes:
+            errors.append(f"FAIL: Q05 {item_id} 描述含边界语义但缺少 Boundary EUT（要求 100%）。")
+
+        # 并发/幂等/多线程（有相关语义时必须有并发测试）
+        concurrent_kw = next((kw for kw in _CONCURRENT_KEYWORDS if kw in desc), None)
+        if concurrent_kw:
+            item_euts = [
+                e for e in eut_items if (getattr(e, "bound_item", "") or getattr(e, "bound_se", "")) == item_id
+            ]
+            has_concurrent = any(
+                any(pat.search(getattr(e, "then", "") or "") for pat in _CONCURRENT_THEN_PATTERNS) for e in item_euts
+            )
+            if not has_concurrent:
+                errors.append(
+                    f"FAIL: Q05 {item_id} 有并发/幂等语义（含关键词「{concurrent_kw}」）"
+                    "但缺少并发测试（then 须含 CountDownLatch/ExecutorService/AtomicInteger 等强并发断言）。"
+                )
+
+    # 全局 Happy Path 覆盖率门禁（≥80%）
+    happy_rate = happy_covered / total if total > 0 else 0.0
+    if happy_rate < 0.8:
+        errors.insert(
+            0,
+            f"BLOCKED: Q05 REQ+BR+SE Happy Path 覆盖率 {happy_rate:.0%} < 80%"
+            f"（已覆盖 {happy_covered}/{total} 条）。"
+            "每条 REQ/BR/SE 的实现代码必须有正向路径测试。",
+        )
+
+    return errors
 
 
 _SOURCE_LINE_RE = re.compile(r":(\d+)$")
