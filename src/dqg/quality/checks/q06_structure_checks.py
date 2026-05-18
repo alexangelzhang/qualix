@@ -249,6 +249,60 @@ def run_q06_structure_checks(output_dir: Path, project_id: str) -> list[str]:
     # G6: WRONG_TARGET 代码端验证
     errors.extend(_check_wrong_target_code_validation(data, code_repos))
 
+    # G9: test_class 磁盘存在性（对标 Q05 C7）
+    errors.extend(_check_test_class_method_exists(data, code_repos))
+
     if errors:
         log.info("Q06 structure checks: %d issue(s)", len(errors))
     return errors
+
+
+def _check_test_class_method_exists(
+    data: dict[str, Any],
+    code_repos: list[str],
+) -> list[str]:
+    """G9: audit_items 里声明的 test_class 必须在业务仓库磁盘上真实存在.
+
+    防止 LLM 填写不存在的测试类名（等价于 Q05 C7 test_location 文件存在性验证）。
+    test_class 必须能在 code_repo 的 src/test/java 下找到对应 .java 文件。
+    """
+    if not code_repos:
+        return []
+
+    audit_items = [
+        i
+        for i in data.get("audit_items", [])
+        if isinstance(i, dict) and i.get("test_class") and str(i.get("status", "")) not in ("MISSING", "")
+    ]
+    if not audit_items:
+        return []
+
+    # 收集所有测试文件的 stem（类名）
+    existing_classes: set[str] = set()
+    for repo_str in code_repos:
+        repo = Path(repo_str).expanduser().resolve()
+        if not repo.is_dir():
+            continue
+        for java_file in repo.rglob("*Test.java"):
+            existing_classes.add(java_file.stem)
+
+    if not existing_classes:
+        return []  # 找不到测试文件，可能是仓库路径问题，不误报
+
+    ghost_classes: list[str] = []
+    for item in audit_items:
+        test_class = str(item.get("test_class", "") or "")
+        eut_id = item.get("eut_id", "?")
+        class_stem = Path(test_class).stem if test_class else test_class
+        if class_stem and class_stem not in existing_classes:
+            ghost_classes.append(f"{eut_id}({class_stem})")
+
+    # 只在较高比例时报（>30%），避免因包名别名差异误报
+    if ghost_classes and len(ghost_classes) / max(len(audit_items), 1) > 0.3:
+        unique = sorted(set(ghost_classes))
+        return [
+            f"WARNING: Q06 ghost_test_class — {len(unique)} 个 audit_item 的 test_class"
+            f" 在业务仓库 src/test/java 中未找到对应文件: {', '.join(unique[:4])}。"
+            "请核实 test_class 字段是否填写了真实存在的测试类名。"
+        ]
+    return []
