@@ -31,11 +31,17 @@ IRON LAW: 不写 assertTrue(true) 占位符。写不了的测试标记 TODO 并�
 
 **两个维度必须同时满足：**
 
-**维度 A（覆盖源）：REQ+BR+SE + git diff 全覆盖**
+**维度 A（覆盖源）：需求维度 + 代码维度，缺一不可**
+
+需求维度（Q01 产物）：
 - 每条 REQ 必须有对应 EUT（`bound_item = "REQ-XXX"`）
 - 每条 BR 必须有对应 EUT（`bound_item = "BR-XXX"`）
-- 每条 SE 必须有对应 EUT（`bound_item = "SE-XXX"`）
-- git diff 变更的每个类/方法必须在某条 EUT 的 `when` 字段里出现
+- 每条 SE 必须有对应 EUT（`bound_item = "SE-XXX"`）——SE 是 REQ/BR 的语义补充
+
+代码维度（git diff 变更事实）：
+- feature branch 相对 master 新增/修改的每个 Java 类，必须在某条 EUT 的 `when` 字段里出现
+- git diff 中未被 REQ/BR/SE 引用的变更方法，也必须有 EUT——代码改了就必须证明它是对的
+- gate 检查：`_check_q05_git_diff_coverage` 自动扫描 code_repo 的 `git diff origin/master...HEAD`
 
 **维度 B（代码路径）：从实现代码视角分解执行路径**
 > **重要：Happy / Exception / Boundary 是代码实现视角的路径分类，不是需求分类。**

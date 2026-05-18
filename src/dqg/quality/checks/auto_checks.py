@@ -620,6 +620,72 @@ def _check_q05_req_br_se_coverage(
             "每条 REQ/BR/SE 的实现代码必须有正向路径测试。",
         )
 
+    # --- git diff 维度：变更的类/方法必须出现在某条 EUT 的 when 字段中 ---
+    errors.extend(_check_q05_git_diff_coverage(validated, output_dir, project_id))
+
+    return errors
+
+
+def _check_q05_git_diff_coverage(
+    validated: Any,
+    output_dir: Path,
+    project_id: str,
+) -> list[str]:
+    """Q05 代码维度覆盖：git diff 变更的类/方法必须在 EUT when 字段中出现.
+
+    覆盖源 = REQ+BR+SE（需求维度）+ git diff 变更方法（代码维度），两者等权。
+    每个在 feature branch 新增/修改的 public 方法，必须有对应 EUT 的 when 字段引用它。
+    """
+    import subprocess
+
+    q05_def = PHASE_DEFS.get("Q05")
+    if not q05_def:
+        return []
+
+    int_dir = _internal_dir(output_dir, project_id, q05_def)
+    inputs_data = load_json(int_dir / "_inputs.json") or {}
+    code_repos: list[str] = inputs_data.get("code_repos", [])
+    if not code_repos and inputs_data.get("code_repo"):
+        code_repos = [inputs_data["code_repo"]]
+    if not code_repos:
+        return ["NOT_APPLICABLE: Q05 git diff 覆盖检查——无 code_repo 配置"]
+
+    eut_items = getattr(validated, "eut_items", []) or []
+    all_when_text = " ".join(getattr(e, "when", "") or "" for e in eut_items)
+
+    errors: list[str] = []
+    uncovered: list[str] = []
+
+    for repo in code_repos:
+        repo_path = Path(repo).expanduser().resolve()
+        if not repo_path.is_dir():
+            continue
+        try:
+            result = subprocess.run(
+                ["git", "diff", "origin/master...HEAD", "--name-only", "--diff-filter=AM"],
+                cwd=str(repo_path),
+                capture_output=True,
+                text=True,
+                timeout=15,
+            )
+            changed_files = [f for f in result.stdout.splitlines() if f.endswith(".java") and "/test/" not in f]
+        except Exception:
+            continue
+
+        for java_file in changed_files:
+            # 从文件路径提取类名：com/mi/maf/srv/manager/srv/Foo.java → Foo
+            class_name = Path(java_file).stem
+            if class_name and class_name not in all_when_text:
+                uncovered.append(class_name)
+
+    if uncovered:
+        unique = sorted(set(uncovered))
+        errors.append(
+            f"FAIL: Q05 git diff 维度——以下变更类未在任何 EUT when 字段中出现（{len(unique)} 个）："
+            f" {', '.join(unique[:10])}{'...' if len(unique) > 10 else ''}。"
+            "每个 feature branch 变更的类必须有 EUT 覆盖其主要方法。"
+        )
+
     return errors
 
 
