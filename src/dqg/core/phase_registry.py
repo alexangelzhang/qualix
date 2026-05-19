@@ -221,13 +221,85 @@ PHASE_DEFS: Final = MappingProxyType(
             ],
             "judge_pass_threshold": 4.7,  # 单测生成质量要求高，高于其他 Phase 默认 3.5
         },
+        "Q05a": {
+            "name": "EUT 矩阵设计",
+            "dir_suffix": "Q05a",
+            "skill": "skills/unit-test-design/SKILL.md",
+            "recommended_model": "strong",
+            "reasoning_profile": {"planning": "high", "execution": "standard", "verification": "high"},
+            "depends_on": ["Q01"],
+            "parallel_with": [],
+            "required_inputs": [
+                {
+                    "key": "code_repo",
+                    "label": "代码仓库",
+                    "prompt": "代码仓库路径，多个用逗号分隔（本地路径或 Git URL）",
+                    "required": True,
+                },
+                {
+                    "key": "target_modules",
+                    "label": "目标模块",
+                    "prompt": "要生成单测的模块/类路径（多个用逗号分隔）",
+                    "required": True,
+                },
+            ],
+            "optional_inputs": [],
+            "deliverables": [
+                "eut_matrix.md — EUT 测试大纲（人工 approve 后锁定为 Q05b 规格）",
+                "phase_b_structured.json — 结构化 EUT 矩阵",
+            ],
+            "approve_checklist": [
+                "三层驱动目标模块完整（se_mappings + br_mappings + git_diff_files 全部非空）",
+                "每条 REQ/BR/SE 都有对应 EUT（bound_item 非空，100% 覆盖）",
+                "git diff 每个实现类都出现在某条 EUT 的 when 字段（C10 无 BLOCKED）",
+                "then 字段包含具体断言（非模糊描述）",
+            ],
+            "required_report_sections": [
+                {"canonical": "测试用例清单", "aliases": ["单测用例", "Test Cases", "EUT Matrix"]},
+                {"canonical": "目标模块", "aliases": ["Target Modules", "三层驱动"]},
+            ],
+            "judge_pass_threshold": 4.7,
+        },
+        "Q05b": {
+            "name": "单测代码生成",
+            "dir_suffix": "Q05b",
+            "skill": "skills/unit-test-codegen/SKILL.md",
+            "recommended_model": "standard",
+            "reasoning_profile": {"planning": "standard", "execution": "standard", "verification": "high"},
+            "depends_on": ["Q05a"],
+            "parallel_with": [],
+            "required_inputs": [
+                {
+                    "key": "code_repo",
+                    "label": "代码仓库",
+                    "prompt": "代码仓库路径，多个用逗号分隔（含单测代码目录）",
+                    "required": True,
+                },
+            ],
+            "optional_inputs": [],
+            "deliverables": [
+                "生成的单测代码文件（每条 EUT 对应独立 @Test 方法，含 // EUT-xxx 追溯注释）",
+                "codegen_progress.md — 生成进度报告",
+                "phase_b_code_status.json — EUT 实现状态追踪（Ralph prd.json 等价）",
+            ],
+            "approve_checklist": [
+                "C9: 所有 EUT 都有对应 @Test 方法（精确模式：EUT-xxx 追溯注释）",
+                "C10: git diff 实现类全部有 EUT 覆盖（无 BLOCKED: Q05 git_diff_not_covered）",
+                "编译通过（mvn test-compile），无幻觉方法名",
+                "断言强度达标（无 try/catch 仅防 NPE 的弱断言）",
+            ],
+            "required_report_sections": [
+                {"canonical": "生成进度", "aliases": ["EUT 实现状态", "Codegen Progress"]},
+                {"canonical": "未覆盖 EUT", "aliases": ["MISSING", "待补充"]},
+            ],
+        },
         "Q06": {
             "name": "单测覆盖审计",
             "dir_suffix": "Q06",
             "skill": "skills/unit-test-audit/SKILL.md",
             "recommended_model": "standard",
             "reasoning_profile": {"planning": "standard", "execution": "standard", "verification": "high"},
-            "depends_on": ["Q05"],
+            "depends_on": ["Q05b"],
             "parallel_with": [],
             "required_inputs": [
                 {
@@ -290,4 +362,4 @@ PHASE_DEFS: Final = MappingProxyType(
 )
 
 # Phase 执行顺序
-PHASE_ORDER: Final = ("Q01", "Q02", "Q03", "Q04", "Q05", "Q06", "Q07")
+PHASE_ORDER: Final = ("Q01", "Q02", "Q03", "Q04", "Q05", "Q05a", "Q05b", "Q06", "Q07")
