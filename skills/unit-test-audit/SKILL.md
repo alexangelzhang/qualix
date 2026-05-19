@@ -1,12 +1,12 @@
 ---
 name: unit-test-audit
-description: "Phase Q06: 需求驱动的单测覆盖审计，验证测试与需求真实匹配，而非仅追求覆盖率数字。当用户要求审计单测覆盖质量，或 Phase Q05 完成后进入时触发。"
+description: "Phase Q06: 需求驱动的单测覆盖审计，验证测试与需求真实匹配，而非仅追求覆盖率数字。当用户要求审计单测覆盖质量，或 Phase Q05b 完成后进入时触发。"
 license: MIT
 compatibility:
   claude: ">=3"
 metadata:
   phase: Q06
-  depends_on: [Q01, Q05]
+  depends_on: [Q01, Q05b]
   outputs: [phase_c_structured.json, phase_c_report.md, _reasoning_log.md]
 allowed-tools:
   - Bash
