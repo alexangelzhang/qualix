@@ -6,6 +6,7 @@ commands 层变成薄壳：解析参数 → 调用 runtime → 格式化输出�
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from dqg.core.state_machine import (
@@ -96,6 +97,10 @@ def runtime_execute(ctx: ExecutionContext) -> PhaseResult:
     ctx.phase_def = phase_def
     ctx.phase_root = _phase_dir(ctx.output_dir, ctx.project_id, phase_def)
     ctx.internal_dir = _internal_dir(ctx.output_dir, ctx.project_id, phase_def)
+
+    # 自动创建 _reasoning_log.md 模板（仅当文件不存在时）
+    # 防止手动模式下忘记创建推理日志导致 finalize BLOCKED
+    _ensure_reasoning_log_template(ctx.phase_root, ctx.internal_dir, ctx.phase_id)
 
     append_record(
         ctx.output_dir,
@@ -416,3 +421,31 @@ def runtime_finalize(ctx: ExecutionContext) -> PhaseResult:
     )
     _flush()
     return result
+
+
+def _ensure_reasoning_log_template(phase_root: Path, internal_dir: Path, phase_id: str) -> None:
+    """在 execute 时自动创建 _reasoning_log.md 最小模板（幂等，文件已存在则跳过）.
+
+    防止手动模式下忘记创建推理日志，导致 finalize 被 BLOCKED。
+    Adaptive Loop 模式下 Agent 会覆盖此模板，不影响正常流程。
+    """
+    import contextlib
+
+    candidate_paths = [internal_dir / "_reasoning_log.md", phase_root / "_reasoning_log.md"]
+    if any(p.exists() for p in candidate_paths):
+        return
+
+    template = (
+        f"# {phase_id} 推理日志\n\n"
+        "## Step 0: 上下文确认\n\n"
+        "> 本文件由 DQG execute 自动创建的最小模板。\n"
+        "> 请在执行过程中更新此文件，记录每个 Step 的决策依据、关键发现和执行结果。\n\n"
+        "## 执行过程\n\n"
+        "（待填写）\n\n"
+        "## 结论\n\n"
+        "（待填写）\n"
+    )
+    with contextlib.suppress(Exception):
+        internal_dir.mkdir(parents=True, exist_ok=True)
+        (internal_dir / "_reasoning_log.md").write_text(template, encoding="utf-8")
+        log.debug("Auto-created _reasoning_log.md template for %s", phase_id)

@@ -204,15 +204,23 @@ class TestParseIstanbulJson:
         assert result is None
 
     def test_coverage_gate_pass(self, tmp_path: Path):
-        """line 85%, branch 82% → 通过 80% 门禁。"""
-        path = self._write_summary(tmp_path, lines_pct=85.0, branches_pct=82.0)
+        """line 100%, branch 100% → 通过 100% 门禁（公司硬性指标）。"""
+        path = self._write_summary(tmp_path, lines_pct=100.0, branches_pct=100.0)
         coverage = parse_istanbul_json(path)
         errors = check_coverage_gate(coverage)  # type: ignore[arg-type]
         assert errors == []
 
+    def test_coverage_gate_pass_custom_threshold(self, tmp_path: Path):
+        """line 85%, branch 82% → 通过自定义 80% 门禁（向下兼容）。"""
+        path = self._write_summary(tmp_path, lines_pct=85.0, branches_pct=82.0)
+        errors = check_coverage_gate(  # type: ignore[arg-type]
+            parse_istanbul_json(path), line_threshold=0.80, branch_threshold=0.80
+        )
+        assert errors == []
+
     def test_coverage_gate_blocked(self, tmp_path: Path):
-        """line 60% < 80% → BLOCKED。"""
-        path = self._write_summary(tmp_path, lines_pct=60.0, branches_pct=60.0)
+        """line 85% < 100% → BLOCKED（公司硬性指标）。"""
+        path = self._write_summary(tmp_path, lines_pct=85.0, branches_pct=82.0)
         coverage = parse_istanbul_json(path)
         errors = check_coverage_gate(coverage)  # type: ignore[arg-type]
         assert any("BLOCKED" in e for e in errors)
