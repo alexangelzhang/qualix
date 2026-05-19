@@ -160,14 +160,19 @@ def migrate_project(output_dir: Path, project_id: str, dry_run: bool) -> None:
         phases["Q05a"] = {}
     phases["Q05a"].update(
         {
+            # 与 PhaseState.model_dump() 完全对齐，确保格式兼容
             "status": "approved",
-            "approved_at": approved_at,
+            "run_status": None,
             "started_at": q05_state.get("started_at"),
             "finished_at": q05_state.get("finished_at"),
+            "approved_at": approved_at,
             "duration_seconds": q05_state.get("duration_seconds"),
-            "judge_score": q05_state.get("judge_score"),
             "comment": "migrated from Q05",
             "validation_errors": [],
+            "judge_score": q05_state.get("judge_score"),
+            "judge_dimensions": q05_state.get("judge_dimensions") or {},
+            "judge_passed": q05_state.get("judge_passed"),
+            "judged_at": q05_state.get("judged_at"),
         }
     )
 
@@ -256,14 +261,19 @@ def migrate_project(output_dir: Path, project_id: str, dry_run: bool) -> None:
         phases["Q05b"] = {}
     phases["Q05b"].update(
         {
+            # 与 PhaseState.model_dump() 完全对齐，确保格式兼容
             "status": q05b_status,
+            "run_status": None,
             "started_at": approved_at,
             "finished_at": approved_at if q05b_status == "approved" else None,
             "approved_at": approved_at if q05b_status == "approved" else None,
             "duration_seconds": None,
-            "judge_score": None,
             "comment": f"migrated from Q05: {done}/{total} EUT covered",
             "validation_errors": [],
+            "judge_score": None,
+            "judge_dimensions": {},
+            "judge_passed": None,
+            "judged_at": None,
         }
     )
 
