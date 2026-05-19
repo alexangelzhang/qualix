@@ -1,0 +1,9 @@
+# 自动生成的 Bug Case
+
+- 项目: home-replace-renewal
+- Phase: Q05a
+- 时间: 2026-05-20T03:11:40.892768
+
+## Validation Error
+
+Value error, assertThrows 必须指定具体业务异常类，不能用 Exception/RuntimeException/Throwable: 'assertThrows(RuntimeException.class, () -> service.logisticExchangeMark("SVC001", ""))'。请改为具体类（如 MafSrvAftersaleException.class、BusinessException.class）。 [type=value_error, input_value='assertThrows(RuntimeExce...angeMark("SVC001", ""))', input_type=str]
