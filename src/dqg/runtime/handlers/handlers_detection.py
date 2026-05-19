@@ -396,14 +396,14 @@ def register_detection_handlers() -> None:
         "weak_assert_scan_q05",
         handle_weak_assert_scan_q05,
         stage="finalize",
-        phases={"Q05"},
+        phases={"Q05", "Q05b"},
         order=55,
     )
     register_handler(
         "weak_assert_gate",
         handle_weak_assert_gate,
         stage="finalize",
-        phases={"Q05", "Q06"},
+        phases={"Q05", "Q05b", "Q06"},
         order=56,
         depends_on=["weak_assert_scan_q05"],
     )
@@ -411,7 +411,7 @@ def register_detection_handlers() -> None:
         "mock_coincidence_check",
         handle_mock_coincidence_check,
         stage="finalize",
-        phases={"Q05", "Q06"},
+        phases={"Q05", "Q05b", "Q06"},
         order=57,
     )
     register_handler("ai_origin_detection", handle_ai_origin_detection, stage="finalize", order=58)
@@ -422,6 +422,6 @@ def register_detection_handlers() -> None:
         "superset_gate",
         handle_superset_gate,
         stage="finalize",
-        phases={"Q05"},
+        phases={"Q05", "Q05b"},
         order=59,
     )

@@ -200,7 +200,9 @@ def multi_judge_vote(
         _tel_phase_id = report_path.parent.name
     except (AttributeError, IndexError):
         _tel_phase_id = ""
-    _tel_internal_dir = output_dir / "_internal"
+    from pathlib import Path as _Path
+
+    _tel_internal_dir = _Path(output_dir) / "_internal"
 
     primary_vote = _run_single_judge(output_dir, report_path, rubric, primary_model, fallback)
     if primary_vote is None:

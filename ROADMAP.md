@@ -99,6 +99,28 @@
 - Dashboard 打通：observe 告警入 SQLite，总览页合并展示，新增"可观测性"页面
 - finalize 后自动触发 observe 日报更新，保持 dashboard 数据实时
 
+2026-05-19 完成（6 项结构性 gate 升级）：
+
+- Change 1：Q01 SE.source 缺失/行号错误/关键词不匹配从 WARNING 升级为 BLOCKED；plain_text.txt 缺失且 SE 有 source 时 BLOCKED；BR 保持 WARNING 宽松级别
+- Change 2：Q01 finalize 时为每条 SE.source 保存外部证据快照（`_internal/_se_source_evidence.json`：se_id、source_file、source_line、line_text、context_hash、verified_at），供下游 Phase 追溯 PRD 原始依据
+- Change 3：Q01 `summary.counts`/`pass_rate` 改为派生字段，finalize 时从数组重算，与自报数字不一致 → BLOCKED；Q06 `coverage_gate.line_coverage` 与 JaCoCo 实际偏差 >15% 从 WARNING 升级为 BLOCKED
+- Change 4：Q06 有 `code_repos` 配置时 coverage report 缺失不再静默返回 `[]`，改为 `BLOCKED: coverage_evidence_missing`；无 code_repo 配置时返回 `NOT_APPLICABLE`
+- Change 5：`auto-synthesized` Judge/Critique 降权——`approve` 时若 judge_result 标记为 auto-synthesized 则返回 `synthetic_review_not_allowed` 错误，须显式传 `--allow-synthetic-review` 才能通过
+- Change 6：所有 fallback 语义统一为 `BLOCKED`/`FAIL`/`WARNING`/`NOT_APPLICABLE`/`INFRA_FAILURE` 前缀，禁止"返回空列表 = 通过"隐式语义
+
+2026-05-19 规划（统一 claim/evidence/verifier/gate 防幻觉架构）：
+
+- 背景：Q01/Q05/Q06 已形成对称防幻觉链路，但检查规则仍分散在 schema、auto checks、structure checks、cross-phase checks、guardrail 和 finalize handler 中；下一阶段目标是把散点规则收束为统一事实验证架构。评估详见 [`docs/anti-hallucination-framework-evaluation.md`](docs/anti-hallucination-framework-evaluation.md)
+- 架构目标：所有 LLM 或工具产出的 `SE`、`EUT`、`AUDIT_COVERED`、`COVERAGE_RATE`、`FINDING` 都先登记为 claim，再绑定 evidence，由 verifier 输出结构化 CheckItem，最终由 gate 统一裁决 HARD/SOFT/INFO/NOT_APPLICABLE/INFRA_FAILURE
+- P0：统一失败语义。新增 `GateSeverity` / structured `CheckItem` 作为唯一严重级别载体，把现有 `BLOCKED:` / `FAIL:` / `WARNING:` 前缀映射到 HARD/SOFT/INFO，并逐步移除 approve/finalize 对字符串前缀的依赖
+- P0：Evidence Contract 硬化。Q01 `SE.source` 必须命中真实 PRD 行号；Q05 `EUT.impl_class` / `when` / `then` 必须能反查测试代码和目标类；Q06 `COVERED` 必须有断言强度、测试行号和 coverage evidence 支撑
+- P0：fail-closed 口径。存在 `code_repo` 或 Q05 测试产物时，Q06 缺 coverage report 不再静默跳过，应落为 `MISSING_EVIDENCE` 并按 HARD/SOFT 策略进入 GateVerdict
+- P1：Claim Registry。统一 claim 字段：`id`、`type`、`phase`、`source_claims`、`evidence_refs`、`status`、`confidence`，支持跨 Phase 从 SE 追溯到 EUT、测试方法、审计项和代码评审发现
+- P1：Evidence Registry / Evidence Graph。统一证据类型：`PRD_LINE`、`CODE_LOCATION`、`TEST_METHOD`、`COVERAGE_REPORT`、`COMPILE_RESULT`、`TEST_RUN`、`HUMAN_DECISION`，证据必须带路径、行号或 hash，避免证据漂移后旧结论继续有效
+- P1：Verifier Registry。沉淀 `source_line_verifier`、`cross_phase_ref_verifier`、`test_assertion_verifier`、`compile_verifier`、`coverage_verifier`、`summary_derivation_verifier`，让新增 Phase 通过注册 verifier 接入同一套 gate
+- P2：审计查询与 UX。提供 `SE → EUT → Test → Audit → Finding` 链路查询、missing-evidence dashboard、按 claim type 聚合的误报/漏报趋势
+- 验收口径：虚拟或越界的 `SE.source` 阻断 Q01；有代码仓和测试产物但无 coverage evidence 时 Q06 输出 `MISSING_EVIDENCE`；现有核心检查全部能产出结构化 `CheckItem`；Evidence Graph 能回答“哪些 SE 没有 EUT / 哪些 COVERED 没有断言 / 哪些 finding 没有代码证据”三类问题
+
 2026-05-11 新增（Q06 JaCoCo CLI 接入）：
 
 - `dqg-run execute Q06 --coverage-report /path/to/jacoco.xml` 参数贯通（`core/runner.py` 新增 argparse 项 → `ExecutionContext.coverage_report` 字段 → `handle_persist_inputs` 写入 `_inputs.json`），finalize 阶段 `check_phase_c_coverage` 直接消费
@@ -492,7 +514,7 @@ VAF（`~/git_dev/vibe-agentic-flow`）没发 PyPI 但通过 `install.sh + ~/.vcb
 
 2026-04-08 新增：
 
-- Phase 顺序重构：Q01 → Q02(可选) → Q03 → Q04 → Q05 → Q06 → Q07（先生成方案，再评审质量，最后审覆盖度）
+- Phase 顺序重构：Q01 → Q02(可选) → Q03 → Q04 → Q05a → Q05b → Q06 → Q07（先生成方案，再评审质量，最后审覆盖度）
 - Phase Q02 技术方案生成（资深架构师 Agent，含 HLD+LLD+DTO+流程图+伪代码）
 - 技术方案 AI 亲和性原则（完整到 AI 可直接编码和写单测）
 - 技术方案完整性标准（参考飞书模板：接口协议清单+外部依赖+部署灰度+影响范围+可观测性）

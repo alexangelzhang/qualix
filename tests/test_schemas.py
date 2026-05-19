@@ -286,5 +286,5 @@ class TestValidatePhaseOutput:
         output_dir = tmp_path / "output"
         output_dir.mkdir()
         result = validate_phase_output(output_dir, "PROJ1", "Z")
-        assert result is not None
-        assert any("未知" in e for e in result)
+        # 未注册 Phase 返回 None（不支持校验），而非报错
+        assert result is None

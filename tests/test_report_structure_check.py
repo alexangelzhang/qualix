@@ -21,6 +21,10 @@ BR-001: 密码复杂度
 ## Gap 分析
 
 GAP-001: 未定义超时策略
+
+## 评审结论
+
+通过
 """
     result = check_report_structure(report, "Q01")
     assert result["passed"] is True
@@ -61,6 +65,10 @@ content
 ## GAP 缺口清单
 
 content
+
+## 结论
+
+通过
 """
     result = check_report_structure(report, "Q01")
     assert result["passed"] is True

@@ -95,7 +95,7 @@ dqg-run <project_id> status --profile go-service
 
 ```
 Q01 → Q02 → Q03 → Q04 → Q07
-Q01 → Q05 → Q06
+Q01 → Q05a → Q05b → Q06
 ```
 
 找到最近的未完成 Phase，先完成它。

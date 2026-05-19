@@ -169,8 +169,9 @@ class TestCrossPhaseRefs:
             },
         )
         errors, hashes = check_cross_phase_refs(output_dir, "PROJ")
-        assert len(errors) == 1
-        assert "EUT-999" in errors[0]
+        # G3 新增：Q05 EUT-001 未被 Q06 审计也会触发错误，故 errors >= 1
+        assert len(errors) >= 1
+        assert any("EUT-999" in e for e in errors)
 
     def test_c_refs_when_phase_b_file_missing(self, tmp_path: Path):
         """Q06 引用 EUT 但 Q05 产物不存在时须报错（phantom / 无法对齐子集）。"""

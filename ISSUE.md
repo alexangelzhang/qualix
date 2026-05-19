@@ -172,3 +172,25 @@ T11 独立（RationalizationProbe 字段级护栏）
 **依赖**：本 session 已完成的 Q05/Q06 SKILL.md 规则侧改进（contract 提前、severity 歧义消除、Q05 补 4 条覆盖判定规则），形成"规则+反馈"闭环。
 
 **验收**：Q06 iteration 1 缺 `findings[0].severity` 时，iteration 2 的 worker prompt 必须看到该错误且大概率补齐；finalize 阶段 `validate_phase_output` 作为最后防线不变。
+
+## 2026-05-19 — simplify 时跳过的低优先级技术债（T15–T16）
+
+### T15：Q01 finalize 跨函数双读 plain_text.txt（P2，0.5 周）
+
+**现状**：`auto_derive_checks` 对 Q01 依次调用 `_save_se_source_evidence` 和 `_check_source_line_reality`，两个函数各自独立读取 `plain_text.txt` 和 `phase_a_structured.json`，导致同一 finalize 流程中两文件被读 2 次。
+
+**原因跳过**：finalize 是一次性操作，文件通常 <1MB，非热路径，当前无可观测性能影响。
+
+**修复思路**：提取 `_Q01Context(pd, phase_id)` 数据类，一次加载 `prd_lines` 和 `data`，作为参数传入两个函数。预估 30-50 行改动，零逻辑变更。
+
+**验收**：`plain_text.txt` 在单次 `auto_derive_checks` 调用中只读一次（可用 `unittest.mock.patch` 断言调用次数）。
+
+### T16：phase.py 三键 synthetic 检测收束（P2，0.5 周）
+
+**现状**：`cmd_approve` 检查 judge_result 是否自动合成时查三个 key：`auto_synthesized`、`synthesis_source`、`synthetic`，历史扩张导致消费侧分散。
+
+**原因跳过**：消费侧收束到单 key 需先改 `judge_runner.py` 写入侧，确保新旧产物向后兼容，超出本次 scope。
+
+**修复思路**：`judge_runner.py` 写入时统一输出 `auto_synthesized: bool`，废弃 `synthesis_source` 和 `synthetic` 字段；`cmd_approve` 改为只读 `auto_synthesized`；加迁移期兼容（读不到 `auto_synthesized` 时 fallback 读旧字段）。
+
+**验收**：`judge_runner.py` 产出的 judge_result 只含 `auto_synthesized`；`cmd_approve` 只读一个 key；旧格式 judge_result 不触发误报。

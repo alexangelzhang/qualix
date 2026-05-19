@@ -257,19 +257,32 @@ class TestCoverageGate:
     def test_check_coverage_gate_pass(self):
         from dqg.quality.coverage_gate import check_coverage_gate
 
+        # 公司硬性指标：行/分支覆盖率均 100% 才算通过
+        coverage = {
+            "line": {"covered": 1000, "missed": 0, "rate": 1.0},
+            "branch": {"covered": 800, "missed": 0, "rate": 1.0},
+        }
+        errors = check_coverage_gate(coverage)
+        assert errors == []
+
+    def test_check_coverage_gate_pass_custom_threshold(self):
+        from dqg.quality.coverage_gate import check_coverage_gate
+
+        # 允许自定义阈值（向下兼容旧场景）
         coverage = {
             "line": {"covered": 850, "missed": 150, "rate": 0.85},
             "branch": {"covered": 820, "missed": 180, "rate": 0.82},
         }
-        errors = check_coverage_gate(coverage)
+        errors = check_coverage_gate(coverage, line_threshold=0.80, branch_threshold=0.80)
         assert errors == []
 
     def test_check_coverage_gate_fail(self):
         from dqg.quality.coverage_gate import check_coverage_gate
 
+        # 85%/82% 在 100% 阈值下应 FAIL
         coverage = {
-            "line": {"covered": 700, "missed": 300, "rate": 0.70},
-            "branch": {"covered": 500, "missed": 500, "rate": 0.50},
+            "line": {"covered": 850, "missed": 150, "rate": 0.85},
+            "branch": {"covered": 820, "missed": 180, "rate": 0.82},
         }
         errors = check_coverage_gate(coverage)
         assert len(errors) == 2

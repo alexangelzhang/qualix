@@ -57,7 +57,7 @@ then 字段必须包含具体断言方法和期望值（如 assertEquals(200, re
 3. **我要用 Explore agent 探索代码吗？** → 先用 code_index_lookup，失败再 fallback
 4. **SubAgent 报告"测试通过"了吗？** → 不信，在主会话重新跑 mvn test 验证
 5. **dqg_starter.md 和 CLAUDE.md 冲突了吗？** → CLAUDE.md 优先级更高
-6. **Q05/Q06 产物用了 SE-based 模式（按 SE 汇总）吗？** → 禁止。Q05 和 Q06 必须使用 EUT 逐条模式，每条 audit_item 对应一个 eut_id，绝不允许按 SE 汇总
+6. **Q05/Q05a/Q05b/Q06 产物用了 SE-based 模式（按 SE 汇总）吗？** → 禁止。Q05a（EUT矩阵设计）、Q05b（单测代码生成）和 Q06 必须使用 EUT 逐条模式，每条 audit_item 对应一个 eut_id，绝不允许按 SE 汇总
 7. **我要启动 Phase 但还没跑 `dqg-run <pid> spec --phase Q0X --json` 吗？** → 先跑 spec 拿契约事实（字段必填/hard_checks/依赖），再读 SKILL.md 拿步骤；两边冲突以 spec 为准
 8. **我要调 `dqg-run` 但忘了加 `--json` 吗？** → 加上，让输出可被稳定解析；status/next/detail/execute/finalize/approve 等全支持
 
@@ -68,7 +68,7 @@ then 字段必须包含具体断言方法和期望值（如 assertEquals(200, re
 - SE ID 格式必须与上游 Phase 保持一致（Q01 用 `SE-001` 则下游必须用 `SE-001`，不能用 `SE-1`），否则 RSM 覆盖率计算会归零
 - 手动模式下 DQG Phase 执行不要用 agent 方式跑，直接在主会话执行，避免 context 丢失和产出不一致
 - Q04（覆盖度审计）、Q06（单测覆盖审计）等需要深度推理的 Phase，启动 prompt 加 `ultrathink` 可激活更强推理模式，效果优于直接执行
-- **Q05/Q06 必须 EUT 逐条模式**：phase_b_structured.json（Q05）和 phase_c_structured.json（Q06）的 audit_items 必须每条对应一个 eut_id，绝不允许按 SE 汇总（SE-based 模式）。SE-based 模式粒度粗，会掩盖单个测试方法的骨架/弱断言问题，导致覆盖率虚高或虚低
+- **Q05a/Q05b/Q06 必须 EUT 逐条模式**：phase_b_structured.json（Q05a EUT矩阵）和 phase_c_structured.json（Q06）的 audit_items 必须每条对应一个 eut_id，绝不允许按 SE 汇总（SE-based 模式）。SE-based 模式粒度粗，会掩盖单个测试方法的骨架/弱断言问题，导致覆盖率虚高或虚低
 - **Sub-agent 产出必须 sanity check**：general-purpose agent 的"分析报告"经常把原始数据抄错或过度发挥。拿到报告后主会话直接 `json.load` 原始数据核对 1-2 条关键结论（原始描述、字段是否存在、行为预测是否匹配 schema），再决定采信。本 session 正是这样查出 SemanticExpectation schema 缺 verification 字段的——sub-agent 报告里说"verification 字段缺失"，主会话核对发现**字段压根不存在**（不是空字符串），才有 Phase 1.5 的 schema 补字段动作
 
 *最后更新：2026-05-10*

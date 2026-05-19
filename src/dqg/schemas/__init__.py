@@ -18,7 +18,7 @@ from dqg.schemas.phase_q01 import PhaseAOutput
 from dqg.schemas.phase_q02 import PhaseA3Output
 from dqg.schemas.phase_q03 import PhaseA6Output
 from dqg.schemas.phase_q04 import PhaseA5Output
-from dqg.schemas.phase_q05 import PhaseBOutput
+from dqg.schemas.phase_q05 import PhaseBCodeStatusOutput, PhaseBOutput
 from dqg.schemas.phase_q06 import PhaseCOutput
 from dqg.schemas.phase_q07 import PhaseDOutput
 
@@ -34,7 +34,7 @@ __all__ = [
     "validate_phase_output",
 ]
 
-# Phase schema class 映射
+# Phase schema class 映射（None 表示有产物但无 Pydantic schema，跳过结构校验）
 _SCHEMA_CLASS_MAP: Final = MappingProxyType(
     {
         "Q01": PhaseAOutput,
@@ -42,6 +42,8 @@ _SCHEMA_CLASS_MAP: Final = MappingProxyType(
         "Q03": PhaseA6Output,
         "Q04": PhaseA5Output,
         "Q05": PhaseBOutput,
+        "Q05a": PhaseBOutput,  # EUT 矩阵设计，同 Q05 产物格式
+        "Q05b": PhaseBCodeStatusOutput,
         "Q06": PhaseCOutput,
         "Q07": PhaseDOutput,
     }
@@ -67,7 +69,7 @@ def validate_phase_output(
     """
     registry = _PHASE_REGISTRY.get(phase_id)
     if registry is None:
-        return [f"未知的 Phase ID: {phase_id}"]
+        return None  # Phase 未注册，跳过校验（docstring 约定）
 
     dir_suffix, json_file, schema_cls = registry
 
@@ -91,11 +93,12 @@ def validate_phase_output(
     except (json.JSONDecodeError, OSError) as e:
         return [f"JSON 解析失败: {e}"]
 
-    try:
-        schema_cls.model_validate(data)
-    except Exception as e:
-        for err_line in str(e).split("\n"):
-            if err_line.strip():
-                errors.append(err_line.strip())
+    if schema_cls is not None:
+        try:
+            schema_cls.model_validate(data)
+        except Exception as e:
+            for err_line in str(e).split("\n"):
+                if err_line.strip():
+                    errors.append(err_line.strip())
 
     return errors

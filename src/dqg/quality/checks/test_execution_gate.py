@@ -19,12 +19,25 @@ _TEST_TIMEOUT = 300
 def _discover_new_test_classes(code_repo: Path) -> list[dict[str, str]]:
     """从 git diff + git status 发现新增/修改的测试文件（含 untracked），返回 [{class_name, module, path}].
 
-    git diff --name-only HEAD 只包含已提交/staged 文件；新增 untracked 文件（SKILL.md
-    要求直接写到业务仓库 src/test/java）需额外通过 git status --porcelain 发现。
+    三路来源取并集（兼容已提交和未提交两种场景）：
+    1. git diff origin/master...HEAD：已提交但相对 master 新增（feature branch 主场景）
+    2. git diff --name-only HEAD：staged 但未提交的修改
+    3. git status --porcelain：untracked 新文件
     """
     all_paths: set[str] = set()
     try:
-        # staged + modified（相对 HEAD）
+        # 路径 1：已提交相对 origin/master 的新增文件（feature branch 提交后的主要来源）
+        r_branch = subprocess.run(
+            ["git", "diff", "origin/master...HEAD", "--name-only", "--diff-filter=AM"],
+            cwd=str(code_repo),
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+        if r_branch.returncode == 0:
+            all_paths.update(p.strip() for p in r_branch.stdout.splitlines() if p.strip())
+
+        # 路径 2：staged + modified（相对 HEAD，含未提交的修改）
         r_diff = subprocess.run(
             ["git", "diff", "--name-only", "HEAD"],
             cwd=str(code_repo),
@@ -35,7 +48,7 @@ def _discover_new_test_classes(code_repo: Path) -> list[dict[str, str]]:
         if r_diff.returncode == 0:
             all_paths.update(p.strip() for p in r_diff.stdout.splitlines() if p.strip())
 
-        # untracked 新文件（?? 状态）和已 staged 新文件（A 状态）
+        # 路径 3：untracked 新文件（?? 状态）和已 staged 新文件（A 状态）
         r_status = subprocess.run(
             ["git", "status", "--porcelain"],
             cwd=str(code_repo),
@@ -116,7 +129,7 @@ def run_test_check(
     env = _build_env_for_java(code_repo)
 
     test_pattern = ",".join(test_classes)
-    cmd = f"mvn test -q --batch-mode -Dtest={test_pattern} -Dsurefire.useFile=false -Dsurefire.failIfNoSpecifiedTests=false"
+    cmd = f"mvn test -q --batch-mode -o -Dtest={test_pattern} -Dsurefire.useFile=false -Dsurefire.failIfNoSpecifiedTests=false"
     if module:
         cmd += f" -pl {module} -am"
 

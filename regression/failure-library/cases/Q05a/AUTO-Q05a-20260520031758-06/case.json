@@ -1,0 +1,28 @@
+{
+  "case_id": "AUTO-Q05a-20260520031758-06",
+  "phase": "Q05a",
+  "error_type": "FN",
+  "severity": "medium",
+  "title": "Phase Q06 审计了 EUT-074，但 Phase Q05 中不存在",
+  "root_cause": "SKILL_RULE",
+  "fix_target": "skills/unit-test-design/SKILL.md",
+  "tags": [
+    "auto-generated",
+    "project:home-replace-renewal"
+  ],
+  "created_at": "2026-05-20",
+  "status": "open",
+  "source": {
+    "project_id": "home-replace-renewal",
+    "auto_generated": true,
+    "validation_error": "Phase Q06 审计了 EUT-074，但 Phase Q05 中不存在"
+  },
+  "expected": {
+    "content": "（需人工确认）"
+  },
+  "actual": {
+    "content": "Phase Q06 审计了 EUT-074，但 Phase Q05 中不存在"
+  },
+  "lesson": "Skill 规则未覆盖此失败场景，需要补充检查项",
+  "case_category": "CROSS_PHASE_IDS"
+}

@@ -124,8 +124,12 @@ def check_cross_phase_refs(output_dir: Path, project_id: str) -> tuple[list[str]
                 errors.append(f"Phase Q04 引用了 {ref_id}，但 Phase Q01 中不存在")
 
     # 校验 Phase B：EUT 绑定的 SE 是否存在
-    phase_b_path = output_dir / project_id / PHASE_DIR_MAP["Q05"] / STRUCTURED_JSON_MAP["Q05"]
-    phase_b = load_json(phase_b_path)
+    # 优先读 Q05a（新拆分流程），Q05 作为向后兼容 fallback（旧项目迁移完成后可删）
+    for _phase_key in ("Q05a", "Q05"):
+        phase_b_path = output_dir / project_id / PHASE_DIR_MAP[_phase_key] / STRUCTURED_JSON_MAP[_phase_key]
+        phase_b = load_json(phase_b_path)
+        if phase_b is not None:
+            break
 
     if phase_b:
         _record_hash(phase_b_path)
@@ -141,5 +145,41 @@ def check_cross_phase_refs(output_dir: Path, project_id: str) -> tuple[list[str]
     if phase_c:
         _record_hash(phase_c_path)
         errors.extend(validate_eut_id_subset(phase_b, phase_c))
+        # G3: 反向完整性——Q05 所有 EUT 都必须被 Q06 审计（不能跳过质量差的测试）
+        errors.extend(_validate_q05_eut_full_coverage(phase_b, phase_c))
 
     return errors, upstream_hashes
+
+
+def _validate_q05_eut_full_coverage(phase_b: dict | None, phase_c: dict | None) -> list[str]:
+    """G3: Q05 全量 EUT 反向完整性——Q06 audit_items 必须覆盖 Q05 所有 eut_items.
+
+    validate_eut_id_subset 验证"Q06 审计的 eut_id 是 Q05 的子集"（防幽灵）。
+    本函数补充反向验证："Q05 所有 eut_id 都在 Q06 里被审计了"（防漏审）。
+    """
+    if not phase_b or not phase_c:
+        return []
+
+    q05_eut_ids = _extract_ids(phase_b, "eut_items", "eut_id")
+    if not q05_eut_ids:
+        return []
+
+    q06_audited: set[str] = set()
+    for item in phase_c.get("audit_items", []):
+        if isinstance(item, dict) and item.get("eut_id"):
+            q06_audited.update(expand_eut_ids(item["eut_id"]))
+
+    missing = q05_eut_ids - q06_audited
+    if not missing:
+        return []
+
+    ratio = len(missing) / max(len(q05_eut_ids), 1)
+    if ratio <= 0.10:  # 允许 ≤10% 的漏审
+        return []
+
+    samples = sorted(missing)[:6]
+    return [
+        f"BLOCKED: Q06 eut_coverage_incomplete — Q05 中 {len(missing)}/{len(q05_eut_ids)} 个 EUT"
+        f" 未出现在 Q06 audit_items 中: {', '.join(samples)}。"
+        "Q06 必须审计 Q05 所有 EUT，漏审会导致覆盖率虚高。"
+    ]

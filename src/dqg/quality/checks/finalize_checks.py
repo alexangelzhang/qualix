@@ -49,7 +49,7 @@ def check_reasoning_log(output_dir: Path, project_id: str, phase_id: str) -> lis
         errors.append(
             f"BLOCKED: _reasoning_log.md 不存在。"
             f"推理日志是必须交付物，记录每步决策过程。"
-            f"请在 {int_dir}/_reasoning_log.md 中记录执行过程后重新 finalize。"
+            f"请在 {int_dir}/_reasoning_log.md 或 {pd}/_reasoning_log.md 中记录执行过程后重新 finalize。"
         )
     else:
         # 检查内容不为空且有实质内容
@@ -59,6 +59,21 @@ def check_reasoning_log(output_dir: Path, project_id: str, phase_id: str) -> lis
                 f"BLOCKED: _reasoning_log.md 内容过少（{len(content)} 字符）。"
                 f"推理日志必须记录每个 Step 的决策过程、依据、发现。"
             )
+
+    # B: 手动模式 Step 0.5 守卫——检查 _bootstrap_context.md 是否已读取
+    # adaptive 模式有 _adaptive_summary.json（framework 自动注入 context），跳过此检查
+    if not errors:
+        adaptive_summary = pd / "_adaptive_summary.json"
+        if not adaptive_summary.exists():
+            sentinel = int_dir / ".bootstrap_context_read"
+            if not sentinel.exists():
+                errors.append(
+                    f"BLOCKED: Step 0.5 未完成——未发现 _bootstrap_context.md 已读取的证据。"
+                    f"手动模式执行 {phase_id} 前必须先读取 {int_dir}/_bootstrap_context.md，"
+                    f"以确保产物包含所有必填内容（PROFILE_CONTEXT/decision_owner/GAP P级等）。"
+                    f"读取后 sentinel 自动创建（~/.claude/scripts/bootstrap_context_sentinel.py），"
+                    f"再重新生成产物并 finalize。"
+                )
 
     return errors
 
@@ -177,10 +192,41 @@ def run_finalize_checks(output_dir: Path, project_id: str, phase_id: str) -> lis
     errors.extend(auto_derive_checks(output_dir, project_id, phase_id))
 
     # Phase B: 结构合规（EUT/路径/Mock 启发式）先于编译执行
-    if phase_id == "Q05":
+    if phase_id in ("Q05", "Q05a"):
         from .q05_structure_checks import run_q05_structure_checks
 
         errors.extend(run_q05_structure_checks(output_dir, project_id))
+
+    # Phase Q05b: C1+C2 then 字段对齐检查
+    # Q05b Ralph Loop 只跑 C9+编译，不跑 C1+C2（then 关键词对齐）。
+    # 补在 finalize gate 里：EUT then 描述的断言方法名/关键词必须出现在对应 @Test 方法体内。
+    # 读 Q05a 的 EUT 矩阵（规格），检查 Q05b 生成的测试代码。
+    if phase_id == "Q05b":
+        from .q05_structure_checks import (
+            _collect_new_test_files_from_repos,
+            check_eut_method_alignment,
+        )
+
+        phase_def_q05a = PHASE_DEFS.get("Q05a")
+        phase_def_q05b = PHASE_DEFS.get("Q05b")
+        if phase_def_q05a and phase_def_q05b:
+            from dqg.constants import STRUCTURED_JSON_MAP as _SJM
+
+            eut_matrix_path = _phase_dir(output_dir, project_id, phase_def_q05a) / _SJM["Q05a"]
+            eut_data = load_json(eut_matrix_path) if eut_matrix_path.is_file() else {}
+
+            int_dir_q05b = _internal_dir(output_dir, project_id, phase_def_q05b)
+            inputs_data_q05b = load_json(int_dir_q05b / "_inputs.json") or {}
+            code_repos_q05b: list[str] = inputs_data_q05b.get("code_repos", [])
+            if not code_repos_q05b and inputs_data_q05b.get("code_repo"):
+                code_repos_q05b = [inputs_data_q05b["code_repo"]]
+
+            if eut_data and code_repos_q05b:
+                test_files = _collect_new_test_files_from_repos(code_repos_q05b)
+                # 方法级 C1+C2：每个 // EUT-xxx 标注的 @Test 方法体必须含 then 业务关键词
+                c12_errors = check_eut_method_alignment(eut_data, test_files)
+                if c12_errors:
+                    errors.extend(c12_errors)
 
     # Phase B: 单测编译 gate（从 _inputs.json 读 code_repos，逐仓库检查）
     if phase_id == "Q05":
@@ -202,9 +248,15 @@ def run_finalize_checks(output_dir: Path, project_id: str, phase_id: str) -> lis
 
         errors.extend(check_q05_test_execution(output_dir, project_id))
 
-    # Phase C: 覆盖率门禁（解析 JaCoCo XML，支持多 repo）
+    # Phase C: 结构合规（COVERED断言强度 / sidecar利用 / WRONG_TARGET验证）
     if phase_id == "Q06":
-        from .coverage_gate import check_phase_c_coverage
+        from .q06_structure_checks import run_q06_structure_checks
+
+        errors.extend(run_q06_structure_checks(output_dir, project_id))
+
+    # Phase C: 覆盖率门禁（Change 4: coverage evidence 缺失时 BLOCKED，不再静默通过）
+    if phase_id == "Q06":
+        from .coverage_gate import check_phase_c_coverage, find_coverage_report
 
         phase_def = PHASE_DEFS.get(phase_id)
         if phase_def:
@@ -219,9 +271,35 @@ def run_finalize_checks(output_dir: Path, project_id: str, phase_id: str) -> lis
                     if not code_repos and inputs_data.get("code_repo"):
                         code_repos = [inputs_data["code_repo"]]
                     coverage_report = inputs_data.get("coverage_report")
-            for repo in code_repos:
-                errors.extend(check_phase_c_coverage(output_dir, project_id, repo, coverage_report))
+
             if not code_repos:
-                errors.extend(check_phase_c_coverage(output_dir, project_id, None, coverage_report))
+                errors.append("NOT_APPLICABLE: Q06 coverage gate skipped — no code_repo configured in _inputs.json")
+            else:
+                _any_coverage = bool(coverage_report) or any(
+                    (p := Path(r).expanduser().resolve()).is_dir() and find_coverage_report(p) for r in code_repos
+                )
+                if not _any_coverage:
+                    errors.append(
+                        "BLOCKED: Q06 coverage_evidence_missing — 配置了代码仓库但找不到 JaCoCo/Istanbul 覆盖率报告。"
+                        "请先运行测试并生成覆盖率报告（mvn test jacoco:report 或 jest --coverage），"
+                        "或通过 --coverage-report 参数指定报告路径。"
+                    )
+                else:
+                    coverage_errors: list[str] = []
+                    for repo in code_repos:
+                        coverage_errors.extend(check_phase_c_coverage(output_dir, project_id, repo, coverage_report))
+
+                    # 若 Q06 审计结论已是 FAIL，coverage BLOCKED → WARNING
+                    # （FAIL IS the coverage gate result；已记录在 phase_c_structured.json，无需再阻断）
+                    _conclusion = ""
+                    if phase_def:
+                        _json_file = STRUCTURED_JSON_MAP.get("Q06", "phase_c_structured.json")
+                        _json_path = _phase_dir(output_dir, project_id, phase_def) / _json_file
+                        if _json_path.is_file():
+                            _c_data = load_json(_json_path) or {}
+                            _conclusion = _c_data.get("conclusion", "") or _c_data.get("verdict", "")
+                    if _conclusion == "FAIL":
+                        coverage_errors = [e.replace("BLOCKED:", "WARNING(FAIL-expected):", 1) for e in coverage_errors]
+                    errors.extend(coverage_errors)
 
     return errors

@@ -72,6 +72,11 @@ def _build_parser() -> argparse.ArgumentParser:
     p_app.add_argument("phase", help="Phase ID")
     p_app.add_argument("--comment", "-c", default="", help="审批备注")
     p_app.add_argument("--force", action="store_true", help="Judge 评分不达标时强制通过")
+    p_app.add_argument(
+        "--allow-synthetic-review",
+        action="store_true",
+        help="允许将 auto-synthesized Judge/Critique 视为有效评审闭环（默认：auto-synthesized 只能辅助，不能作为正式 approve 依据）",
+    )
 
     # skip
     p_skip = sub.add_parser("skip", help="跳过 Phase")

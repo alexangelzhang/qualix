@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 from enum import StrEnum
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 from dqg.schemas.location import SourceLocation
 
@@ -39,25 +39,28 @@ _VAGUE_THEN_PATTERNS: list[re.Pattern[str]] = [
 ]
 
 # EUT then 字段具体性白名单（至少匹配一个才算具体）
-# 要求断言包含业务语义值：枚举/状态码/具体字段/异常类型/调用次数
+# 要求包含可验证的业务断言：具体值/业务枚举/异常类型/调用次数
+# 已收窄：纯比较运算符（trivially true）升级为"比较 + 具体值"
 _CONCRETE_THEN_PATTERNS: list[re.Pattern[str]] = [
     re.compile(p, re.IGNORECASE)
     for p in [
-        r"assertEquals\s*\([^,)]+,\s*[^)]+\)",  # assertEquals(expected, actual) — 有两个参数
-        r"assertThrows\s*\([A-Za-z]+Exception",  # assertThrows(XxxException.class, ...)
-        r"verify\s*\(",  # Mockito.verify
-        r"(等于|==|!=|>=|<=|>|<)",  # 比较操作
-        r"(返回|return).*\d",  # 返回具体值
-        r"(状态|status).*[A-Z_]{2,}",  # 状态枚举（如 APPROVED, WAIT_APPROVE）
-        r"(抛出|throw).*Exception",  # 具体异常
-        r"(为|是)\s*(null|空|0|false|true)",  # 具体值
-        r"\b[A-Z_]{3,}\b",  # 业务枚举常量（如 APPROVED, BLOCKED）
-        r"(次|times|never|once)",  # 调用次数
-        r"(包含|contains|不包含)",  # 集合断言
-        r"(大小|size|长度|length)\s*[=><]",  # 集合大小
-        r"errorCode\s*[=!]=",  # 错误码断言
-        r"getMessage\(\).*含",  # 异常消息断言
-        r"assertDoesNotThrow.*;\s*.+assert",  # assertDoesNotThrow + 后续业务断言
+        r"assertEquals\s*\([^,)]+,\s*[^)]+\)",  # assertEquals(expected, actual)
+        r"assertThrows\s*\([A-Za-z]{4,}Exception",  # assertThrows(具体异常类) — 排除 Exception.class
+        r"verify\s*\(",  # Mockito.verify（含 times/never 的形态）
+        r"(状态|status|state)\s*.{0,10}\b[A-Z_]{3,}\b",  # 状态枚举（需有"状态/status"上下文）
+        r"(等于|==|!=|>=|<=|>|<)\s*\w+",  # 比较后必须有操作数（去掉裸运算符）
+        r"(返回|return).{0,20}\d{1,}",  # 返回 + 具体数字（如 code 200）
+        r"(抛出|throw|throws|抛异常).{0,20}Exception",  # 抛出 + 异常类
+        r"(为|是|==)\s*(null|空|false|true|0)\b",  # 确定性布尔/null/零
+        r"\b[A-Z][A-Z_]{2,}\b",  # 业务枚举（≥3字符全大写）
+        r"(次|times|never|once)\b",  # 调用次数语义
+        r"(包含|contains|containsExactly|不包含|isEmpty\s*\(\))",  # 集合内容
+        r"(大小|size\s*\(\)|长度|length\s*\(\))\s*[=><]=?\s*\d",  # 集合大小与数字
+        r"errorCode\s*[=!]=",  # 错误码
+        r"getMessage\(\).{0,20}含",  # 异常消息包含
+        r"assertThat\s*\(.+\)\s*\.is",  # AssertJ 链式
+        r"assertIterableEquals|assertArrayEquals",  # 集合/数组比较
+        r"\.(get[A-Z]\w+|is[A-Z]\w+)\s*\(\)\s*[=!]=\s*\S",  # getter 对比
     ]
 ]
 
@@ -78,7 +81,15 @@ class EutItem(BaseModel):
     """EUT 条目."""
 
     eut_id: str = Field(pattern=r"^EUT-\d+$")
-    bound_se: str = Field(min_length=1, description="绑定的 SE ID，如 SE-001。必填。")
+    bound_item: str = Field(
+        min_length=1,
+        description="绑定的需求条目 ID，支持 REQ-001/BR-007/SE-003 三种格式。必填。",
+    )
+    # 向后兼容字段——自动与 bound_item 双向同步，新代码请用 bound_item
+    bound_se: str = Field(
+        default="",
+        description="[已废弃] 请使用 bound_item。向后兼容保留。",
+    )
     route_type: RouteType
     given: str = Field(min_length=1)
     when: str = Field(min_length=1)
@@ -86,6 +97,28 @@ class EutItem(BaseModel):
     risk_tier: RiskTier = RiskTier.T2
     repo: str = Field(default="", description="归属仓库名，多仓库场景必填")
     se_refs: list[str] = Field(default_factory=list, description="关联的 SE ID 列表")
+
+    @model_validator(mode="before")
+    @classmethod
+    def sync_bound_item_and_bound_se(cls, values: dict) -> dict:
+        """双向迁移：旧格式 bound_se → bound_item；新格式 bound_item → 填充 bound_se 供旧代码读取."""
+        bi = values.get("bound_item", "")
+        bs = values.get("bound_se", "")
+        if not bi and bs:
+            values["bound_item"] = bs
+        if bi and not bs:
+            values["bound_se"] = bi
+        return values
+
+    @field_validator("bound_item")
+    @classmethod
+    def validate_bound_item_format(cls, v: str) -> str:
+        """bound_item 必须是 REQ-NNN / BR-NNN / SE-NNN 格式."""
+        if not re.match(r"^(REQ|BR|SE)-\d+$", v.strip()):
+            raise ValueError(
+                f"bound_item '{v}' 格式无效。须为 REQ-001 / BR-007 / SE-003 格式，对应 Q01 产出的 REQ/BR/SE 条目 ID。"
+            )
+        return v
 
     @field_validator("then")
     @classmethod
@@ -102,7 +135,39 @@ class EutItem(BaseModel):
             raise ValueError(
                 f"EUT then 字段缺少具体性: '{stripped}'。需包含断言方法、具体值、状态码、异常类型等可验证内容。"
             )
+        # P0-2: assertThrows 必须是具体业务异常类，不能是基类 Exception/RuntimeException
+        _BASE_EXC = re.compile(r"assertThrows\s*\(\s*(Exception|RuntimeException|Throwable)\.class", re.IGNORECASE)
+        if _BASE_EXC.search(stripped):
+            raise ValueError(
+                f"assertThrows 必须指定具体业务异常类，不能用 Exception/RuntimeException/Throwable: '{stripped}'。"
+                "请改为具体类（如 MafSrvAftersaleException.class、BusinessException.class）。"
+            )
         return v
+
+    @model_validator(mode="after")
+    def exception_eut_must_have_postcondition(self) -> EutItem:
+        """Fix-2: Exception EUT 在 assertThrows 之外还必须有后置状态/副作用断言.
+
+        SKILL.md 3.3：异常后必须补充业务效果断言（状态未变更、数据未写入、事务已回滚）。
+        若 then 只有 assertThrows 而无 verify/assertEquals/状态检查，视为不完整异常测试。
+        """
+        if self.route_type != RouteType.EXCEPTION:
+            return self
+        then = (self.then or "").strip()
+        _HAS_THROWS = re.compile(r"assertThrows\s*\(", re.IGNORECASE)
+        _HAS_POSTCOND = re.compile(
+            r"\b(verify\s*\(|assertEquals\s*\(|assertThat\s*\(|assertSame\s*\(|assertNull\s*\(|assertFalse\s*\(|状态未变|数据未写|未调用|never\s*\(|times\s*\(\s*0)",
+            re.IGNORECASE,
+        )
+        if _HAS_THROWS.search(then) and not _HAS_POSTCOND.search(then):
+            raise ValueError(
+                f"Exception EUT then 字段缺少后置状态断言: '{then[:80]}'。\n"
+                "SKILL.md 3.3 要求：assertThrows 后必须补充业务效果断言，例如：\n"
+                "  verify(mock, never()).save(any()) — 数据未写入\n"
+                "  assertEquals(INIT, state.getStatus()) — 状态未变更\n"
+                "  verify(srvServiceExtendManager, never()).delete(...) — 副作用未执行"
+            )
+        return self
 
 
 class TCItem(BaseModel):
@@ -133,3 +198,24 @@ class PhaseBOutput(BaseModel):
     project_id: str = Field(min_length=1)
     eut_items: list[EutItem] = Field(default_factory=list)
     test_cases: list[TCItem] = Field(default_factory=list, description="兼容 LLM 实际输出的 TC 列表")
+
+
+class EutTaskItem(BaseModel):
+    """Q05b Ralph Loop 单条 EUT 实现状态."""
+
+    eut_id: str = Field(pattern=r"^EUT-\d+$")
+    class_name: str = Field(default="", alias="class")
+    passes: bool = False
+    test_file: str | None = None
+    test_method: str | None = None
+    failure_reason: str | None = None
+
+    model_config = {"populate_by_name": True}
+
+
+class PhaseBCodeStatusOutput(BaseModel):
+    """Q05b phase_b_code_status.json — Ralph Loop EUT 实现进度追踪."""
+
+    total: int = Field(ge=0)
+    done: int = Field(ge=0)
+    tasks: list[EutTaskItem] = Field(default_factory=list)
