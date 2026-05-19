@@ -1343,7 +1343,9 @@ def check_eut_method_alignment(
     # 提取 then 中的业务方法名（非通用断言词）
     _THEN_BUSINESS = _re.compile(r"\b([a-z][a-zA-Z]{4,})\s*\(")
 
-    mismatches: list[str] = []
+    # 跟踪已通过的 EUT（任一窗口通过即算通过，不因另一窗口失败而误报）
+    passed_euts: set[str] = set()
+    failed_euts: dict[str, str] = {}  # eid → 失败描述
 
     for tf in test_files:
         if tf.suffix != ".java":
@@ -1355,7 +1357,7 @@ def check_eut_method_alignment(
 
         # 按 @Test 边界分割，每块是一个测试方法
         blocks = _TEST_METHOD_SPLIT.split(src)
-        for block in blocks[1:]:
+        for idx, block in enumerate(blocks[1:], 1):
             # 找块内所有 EUT-xxx 引用
             eut_refs = {m.upper() for m in _re.findall(r"\bEUT-(\d+)\b", block)}
             if not eut_refs:
@@ -1371,38 +1373,58 @@ def check_eut_method_alignment(
                 # 先找非通用断言（如 createOrder、doDelivery）
                 then_biz_methods = set(_THEN_BUSINESS.findall(then))
                 _GENERIC = {
-                    "assertEquals",
+                    # 全部小写，与 m.lower() 比较
+                    "assertequals",
+                    "assertnotequals",
+                    "assertsame",
                     "assertthrows",
                     "assertthat",
-                    "verify",
+                    "assertiterablee",
                     "assertnull",
                     "assertfalse",
+                    "asserttrue",
                     "assertnotnull",
+                    "verify",
                     "times",
                     "never",
                     "any",
                     "eq",
                     "anystring",
                     "anylong",
-                    "argThat",
+                    "anyint",
+                    "anyobject",
+                    "argthat",
+                    "contains",
+                    "startswith",
+                    "valueof",  # JDK 方法，非生产代码方法
                 }
                 biz_specific = {m for m in then_biz_methods if m.lower() not in _GENERIC and len(m) > 5}
 
                 if biz_specific:
-                    # 检查业务方法名是否在该方法块中
-                    missing_biz = [m for m in biz_specific if m not in block]
+                    # _TEST_METHOD_SPLIT lookahead 产生多个空 block，实际方法体可能在 10 个 block 后。
+                    # 用向后 10 个 block 的窗口覆盖。EUT 在多处出现时，任一窗口通过即算通过。
+                    window_end = min(idx + 10, len(blocks))
+                    search_scope = "".join(blocks[idx:window_end])
+                    missing_biz = [m for m in biz_specific if m not in search_scope]
                     if len(missing_biz) == len(biz_specific):
-                        # 所有业务方法名都不在方法体里
-                        sample = list(biz_specific)[:2]
-                        mismatches.append(f"{eid}(then 要求调用 {'/'.join(sample)} 但 @Test 方法体内未出现)")
+                        # 本窗口未找到，但其他窗口可能已通过，先记录失败
+                        if eid not in passed_euts:
+                            sample = list(biz_specific)[:2]
+                            failed_euts[eid] = f"{eid}(then 要求调用 {'/'.join(sample)} 但 @Test 方法体内未出现)"
+                    else:
+                        # 本窗口通过，清除失败记录
+                        passed_euts.add(eid)
+                        failed_euts.pop(eid, None)
 
-    if not mismatches:
+    # 只报在所有窗口里都未通过的 EUT
+    final_mismatches = [v for k, v in failed_euts.items() if k not in passed_euts]
+    if not final_mismatches:
         return []
 
     return [
-        f"BLOCKED: Q05b eut_method_then_mismatch — {len(mismatches)} 个 EUT 的 @Test 方法体"
+        f"BLOCKED: Q05b eut_method_then_mismatch — {len(final_mismatches)} 个 EUT 的 @Test 方法体"
         f"与 EUT then 字段设计不一致（实现了早返回而非业务主链路）: "
-        f"{', '.join(mismatches[:5])}{'...' if len(mismatches) > 5 else ''}。"
+        f"{', '.join(final_mismatches[:5])}{'...' if len(final_mismatches) > 5 else ''}。"
         "必须重写这些 @Test 方法，mock 完整的业务对象使主链路得以执行，才能 finalize。"
     ]
 
