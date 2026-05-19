@@ -258,7 +258,7 @@ PHASE_DEFS: Final = MappingProxyType(
                 {"canonical": "测试用例清单", "aliases": ["单测用例", "Test Cases", "EUT Matrix"]},
                 {"canonical": "目标模块", "aliases": ["Target Modules", "三层驱动"]},
             ],
-            "judge_pass_threshold": 4.7,
+            "judge_required": False,  # 退出条件是 C9/C10 确定性 gate，无 LLM judge rubric
         },
         "Q05b": {
             "name": "单测代码生成",
