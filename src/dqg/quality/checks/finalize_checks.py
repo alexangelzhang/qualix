@@ -192,7 +192,6 @@ def run_finalize_checks(output_dir: Path, project_id: str, phase_id: str) -> lis
     errors.extend(auto_derive_checks(output_dir, project_id, phase_id))
 
     # Phase B: 结构合规（EUT/路径/Mock 启发式）先于编译执行
-    # Q05a 是 EUT 矩阵设计阶段，同样需要结构检查（三层驱动/then 强断言/C10）
     if phase_id in ("Q05", "Q05a"):
         from .q05_structure_checks import run_q05_structure_checks
 
