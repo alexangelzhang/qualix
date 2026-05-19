@@ -448,23 +448,36 @@ def _infer_false_branch(
     if any(sig.returns_false_for(method) for sig in test_sigs):
         return True
 
+    # 1b. 复合 AND 条件 `A && B → false`：拆解子条件，任一子条件 false 即可
+    # 例：`currentServiceType != HH && currentServiceType != DWHJ → false`
+    # false 侧 = type IS HH or DWHJ，检查测试里是否有传入 HH/DWHJ 类型
+    if " && " in branch.condition or " || " in branch.condition:
+        # 提取条件里提到的枚举/常量关键词（如 HH、DWHJ、WX 等）
+        enum_keywords = re.findall(r"ServiceType\.(\w+)|ServiceStatusEnum\.(\w+)", branch.condition)
+        for pair in enum_keywords:
+            kw = (pair[0] or pair[1]).lower()
+            if any(kw in sig.method_name.lower() for sig in test_sigs):
+                return True
+        # 复合条件的 false 路径 ← 有任何测试 mock 了其中任一子条件的方法
+        sub_methods = re.findall(r"\.(\w+)\s*\(", branch.condition)
+        for sm in sub_methods:
+            if any(sig.returns_false_for(sm) or sig.mocks_method(sm) for sig in test_sigs):
+                return True
+
     # 2. null 检查：X == null → false ← X 来源方法被 mock 返回非 null
     if branch.is_null_check and branch.null_checked_var:
         source_method = _get_source_method(branch.null_checked_var, var_sources)
         if source_method and any(sig.returns_non_null_for(source_method) for sig in test_sigs):
             return True
-        # mock 了 X 的来源方法，且返回非 null
         if any(sig.returns_non_null_for(method) for sig in test_sigs):
             return True
-        # 有任何非 null mock 的测试（宽松：测试提供了有效对象）
         if any(sig.any_non_null_mock() for sig in test_sigs):
             return True
 
-    # 3. blank/empty 检查：false 侧 = 非空 ← 有测试用非空字符串/集合
+    # 3. blank/empty 检查：false 侧 = 非空
     if branch.is_blank_check or branch.is_empty_check:
         if any(sig.has_non_empty_collection or sig.returns_non_null_for(method) for sig in test_sigs):
             return True
-        # 测试名包含非空语义
         if any(
             re.search(r"有效|非空|非blank|valid|nonempty|notblank", sig.method_name, re.IGNORECASE) for sig in test_sigs
         ):
@@ -475,6 +488,20 @@ def _infer_false_branch(
         source_method = _get_source_method(branch.condition.strip(), var_sources)
         if source_method and any(sig.returns_false_for(source_method) for sig in test_sigs):
             return True
+        # bool 变量 false 路径：测试名含"不"、"否"、"false"、"未"等否定词
+        if any(
+            re.search(r"false|不|否|未|无|never|not|early|返回false|非", sig.method_name, re.IGNORECASE)
+            for sig in test_sigs
+        ):
+            return True
+
+    # 4b. 枚举比较 `X != ServiceType.HH → false`（X == HH），检查测试名是否含 HH
+    if "servicetype" in cond_l or "servicestatuse" in cond_l:
+        enum_vals = re.findall(r"ServiceType\.(\w+)|ServiceStatusEnum\.(\w+)", branch.condition)
+        for pair in enum_vals:
+            kw = (pair[0] or pair[1]).lower()
+            if any(kw in sig.method_name.lower() for sig in test_sigs):
+                return True
 
     # 5. isBlank/isEmpty false 路径 ← 测试名含正常语义
     if ("isblank" in cond_l or "isempty" in cond_l or "isnotempty" in cond_l or "isnotblank" in cond_l) and any(
