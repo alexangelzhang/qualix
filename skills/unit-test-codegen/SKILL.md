@@ -153,8 +153,8 @@ mvn org.jacoco:jacoco-maven-plugin:0.8.12:report -pl <module> -o -q
 ```
 
 解析 `target/site/jacoco/jacoco.xml`，对 git diff 变更的被测类汇总：
-- **增量行覆盖率 ≥ 80%**
-- **增量分支覆盖率 ≥ 80%**
+- **增量行覆盖率 = 100%**（公司硬性指标）
+- **增量分支覆盖率 = 100%**（公司硬性指标）
 
 若覆盖率不达标：
 1. 识别 JaCoCo 报告中哪些方法/分支未被覆盖（missed > 0）
@@ -204,8 +204,8 @@ mvn org.jacoco:jacoco-maven-plugin:0.8.12:report -pl <module> -o -q
 | C9: 所有 EUT 有对应 @Test 方法（EUT-xxx 注释） | BLOCKED | 标注存在性 |
 | **C1+C2: EUT then 字段关键词必须出现在 @Test 方法体内** | **WARNING** | **实现和设计一致性** |
 | C10: git diff 实现类全部有 EUT 覆盖 | BLOCKED | 无漏网之鱼 |
-| **增量行覆盖率 ≥ 80%** | **BLOCKED** | **JaCoCo 实测值** |
-| **增量分支覆盖率 ≥ 80%** | **BLOCKED** | **JaCoCo 实测值** |
+| **增量行覆盖率 = 100%**（公司硬性指标） | **BLOCKED** | **JaCoCo 实测值** |
+| **增量分支覆盖率 = 100%**（公司硬性指标） | **BLOCKED** | **JaCoCo 实测值** |
 | 编译通过（mvn test-compile） | BLOCKED | 无幻觉方法名 |
 | 推理日志存在 | BLOCKED | 执行记录 |
 | 弱断言检测（try/catch 仅防 NPE） | WARNING | 断言强度 |

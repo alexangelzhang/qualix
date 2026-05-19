@@ -16,8 +16,8 @@ from dqg.log import get_logger
 log = get_logger(__name__)
 
 # 默认覆盖率阈值
-DEFAULT_LINE_THRESHOLD = 0.80
-DEFAULT_BRANCH_THRESHOLD = 0.80
+DEFAULT_LINE_THRESHOLD = 1.0  # 公司硬性指标：增量行覆盖率必须 100%
+DEFAULT_BRANCH_THRESHOLD = 1.0  # 公司硬性指标：增量分支覆盖率必须 100%
 
 
 def parse_jacoco_xml(report_path: Path) -> dict[str, Any] | None:
@@ -250,8 +250,9 @@ def parse_jacoco_per_line(report_path: Path) -> dict[str, dict[int, dict[str, in
     """解析 JaCoCo XML，提取每个 sourcefile 的逐行覆盖数据.
 
     Returns:
-        {"com/example/MyClass.java": {265: {"ci": 1, "mi": 0}, ...}}
-    只包含可执行行（ci+mi>0）。
+        {"com/example/MyClass.java": {265: {"ci": 1, "mi": 0, "cb": 1, "mb": 0}, ...}}
+    只包含可执行行（ci+mi>0 或 cb+mb>0）。
+    cb/mb 为该行的分支覆盖数（JaCoCo <line cb="N" mb="N"/>）。
     """
     if not report_path.exists():
         return None
@@ -272,8 +273,10 @@ def parse_jacoco_per_line(report_path: Path) -> dict[str, dict[int, dict[str, in
                 nr = int(line.get("nr", 0))
                 ci = int(line.get("ci", 0))
                 mi = int(line.get("mi", 0))
-                if ci > 0 or mi > 0:
-                    lines[nr] = {"ci": ci, "mi": mi}
+                cb = int(line.get("cb", 0))
+                mb = int(line.get("mb", 0))
+                if ci > 0 or mi > 0 or cb > 0 or mb > 0:
+                    lines[nr] = {"ci": ci, "mi": mi, "cb": cb, "mb": mb}
             if lines:
                 result[qualified] = lines
     return result if result else None
@@ -350,6 +353,8 @@ def compute_incremental_coverage_linelevel(
 
     line_covered = 0
     line_missed = 0
+    branch_covered = 0
+    branch_missed = 0
     matched: list[str] = []
 
     for qualified, line_data in per_line.items():
@@ -373,23 +378,39 @@ def compute_incremental_coverage_linelevel(
 
         changed_nrs = diff_lines[diff_key]
         fc = fm = 0
+        bc = bm = 0
         for nr, ctr in line_data.items():
             if nr in changed_nrs:
                 if ctr["ci"] > 0:
                     fc += 1
                 else:
                     fm += 1
+                # branch data per line (cb/mb from JaCoCo <line cb="N" mb="N"/>)
+                bc += ctr.get("cb", 0)
+                bm += ctr.get("mb", 0)
         if fc + fm > 0:
             matched.append(qualified)
             line_covered += fc
             line_missed += fm
+            branch_covered += bc
+            branch_missed += bm
 
-    total = line_covered + line_missed
-    rate = round(line_covered / total, 4) if total > 0 else 0.0
+    line_total = line_covered + line_missed
+    branch_total = branch_covered + branch_missed
     return {
         "incremental": {
-            "line": {"covered": line_covered, "missed": line_missed, "total": total, "rate": rate},
-            "branch": {"covered": 0, "missed": 0, "total": 0, "rate": 0.0},
+            "line": {
+                "covered": line_covered,
+                "missed": line_missed,
+                "total": line_total,
+                "rate": round(line_covered / line_total, 4) if line_total > 0 else 0.0,
+            },
+            "branch": {
+                "covered": branch_covered,
+                "missed": branch_missed,
+                "total": branch_total,
+                "rate": round(branch_covered / branch_total, 4) if branch_total > 0 else 0.0,
+            },
         },
         "matched_files": matched,
         "unmatched_files_count": 0,
@@ -551,8 +572,7 @@ def check_phase_c_coverage(
         mode_label = "（行级增量）" if mode == "line_level" else f"（blast radius 内 {len(matched)} 文件）"
         if inc_line < DEFAULT_LINE_THRESHOLD and matched:
             errors.append(f"BLOCKED: 增量行覆盖率 {inc_line:.1%}{mode_label}低于阈值 {DEFAULT_LINE_THRESHOLD:.0%}")
-        # 行级模式下 branch 数据不可用，跳过 branch 门禁
-        if inc_branch < DEFAULT_BRANCH_THRESHOLD and matched and mode != "line_level":
+        if inc_branch < DEFAULT_BRANCH_THRESHOLD and matched:
             errors.append(
                 f"BLOCKED: 增量分支覆盖率 {inc_branch:.1%}{mode_label}低于阈值 {DEFAULT_BRANCH_THRESHOLD:.0%}"
             )
