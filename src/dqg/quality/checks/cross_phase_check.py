@@ -124,7 +124,10 @@ def check_cross_phase_refs(output_dir: Path, project_id: str) -> tuple[list[str]
                 errors.append(f"Phase Q04 引用了 {ref_id}，但 Phase Q01 中不存在")
 
     # 校验 Phase B：EUT 绑定的 SE 是否存在
-    phase_b_path = output_dir / project_id / PHASE_DIR_MAP["Q05"] / STRUCTURED_JSON_MAP["Q05"]
+    # Q05a/Q05b 拆分流程：优先读 Q05a（EUT 矩阵），fallback 到旧版 Q05
+    phase_b_path = output_dir / project_id / PHASE_DIR_MAP["Q05a"] / STRUCTURED_JSON_MAP["Q05a"]
+    if not phase_b_path.exists():
+        phase_b_path = output_dir / project_id / PHASE_DIR_MAP["Q05"] / STRUCTURED_JSON_MAP["Q05"]
     phase_b = load_json(phase_b_path)
 
     if phase_b:

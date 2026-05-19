@@ -38,8 +38,10 @@ Phase ID 统一使用 Q01-Q07（旧 ID A/A.3/A.5/A.6/B/C/D 仍兼容）。
 | Q02 | 技术方案生成 | `skills/tech-design-generation/SKILL.md` | Q01 | 可选，已有技术方案时 skip |
 | Q03 | 技术方案质量评审 | `skills/tech-quality-review/SKILL.md` | Q02 | 先评审质量 |
 | Q04 | 技术方案覆盖度审计 | `skills/tech-coverage-audit/SKILL.md` | Q03 | 再审覆盖度 |
-| Q05 | 单测生成 | `skills/unit-test-generation/SKILL.md` | Q01 | |
-| Q06 | 单测覆盖审计 | `skills/unit-test-audit/SKILL.md` | Q01 | |
+| Q05 | 单测生成（旧版，向后兼容）| `skills/unit-test-generation/SKILL.md` | Q01 | 新项目推荐用 Q05a+Q05b |
+| Q05a | EUT 矩阵设计 | `skills/unit-test-design/SKILL.md` | Q01 | 三层驱动，approve 后锁定规格 |
+| Q05b | 单测代码生成 | `skills/unit-test-codegen/SKILL.md` | Q05a | Ralph Loop，C9+编译确定性退出 |
+| Q06 | 单测覆盖审计 | `skills/unit-test-audit/SKILL.md` | Q05b | |
 | Q07 | 代码评审 | `skills/code-review/SKILL.md` | Q01 | |
 
 ## Phase DAG
