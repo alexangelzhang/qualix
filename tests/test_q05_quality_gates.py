@@ -451,3 +451,73 @@ class TestEutImplementationCompleteness:
         """eut_items 为空时直接返回空列表."""
         errors = self._call({"eut_items": []}, [])
         assert errors == []
+
+
+# ---------------------------------------------------------------------------
+# C10: git diff 变更实现类必须有 EUT 覆盖
+# ---------------------------------------------------------------------------
+
+
+class TestGitDiffCoverage:
+    """C10: _check_q05_git_diff_coverage."""
+
+    def _call(self, eut_items: list, diff_files: list) -> list[str]:
+        from dqg.quality.checks.q05_structure_checks import _check_q05_git_diff_coverage
+
+        data = {"eut_items": eut_items}
+        target_modules_data = {"git_diff_files": diff_files}
+        return _check_q05_git_diff_coverage(data, target_modules_data)
+
+    def _eut(self, when: str) -> dict:
+        return {"eut_id": "EUT-001", "when": when, "given": ""}
+
+    def test_covered_class_no_warning(self):
+        """EUT when 字段提到了变更类 → 无 WARNING."""
+        errors = self._call(
+            [self._eut("OrderService.create 被调用")],
+            ["maf-srv-service/src/main/java/com/mi/maf/srv/service/OrderService.java"],
+        )
+        assert errors == []
+
+    def test_uncovered_impl_class_warns(self):
+        """变更的 Service 类未出现在任何 EUT → WARNING git_diff_not_covered."""
+        errors = self._call(
+            [self._eut("OtherService.doSomething 被调用")],
+            ["maf-srv-service/src/main/java/com/mi/maf/srv/service/process/DetectionProcessSrvService.java"],
+        )
+        assert any("git_diff_not_covered" in e for e in errors)
+        assert any("DetectionProcessSrvService" in e for e in errors)
+        assert all("WARNING" in e for e in errors)
+
+    def test_skip_interface_module(self):
+        """maf-interface/ 模块的接口定义 → 跳过不检查."""
+        errors = self._call(
+            [self._eut("OtherService.doSomething")],
+            ["maf-interface/src/main/java/com/mi/maf/inter/service/FooService.java"],
+        )
+        assert errors == []
+
+    def test_skip_constant_class(self):
+        """常量/枚举类（OpCode.java、SrvTagEnum.java）→ 跳过不检查."""
+        errors = self._call(
+            [self._eut("SomeService.method 调用")],
+            [
+                "maf-core/src/main/java/com/mi/maf/core/constant/OpCode.java",
+                "maf-core/src/main/java/com/mi/maf/core/constant/SrvTagEnum.java",
+            ],
+        )
+        assert errors == []
+
+    def test_skip_non_impl_suffix(self):
+        """VO/DTO/Builder 等无业务逻辑类 → 跳过不检查."""
+        errors = self._call(
+            [self._eut("SomeService.method 调用")],
+            ["maf-srv-service/src/main/java/com/mi/maf/srv/vo/ExchangeSrvVo.java"],
+        )
+        assert errors == []
+
+    def test_no_target_modules_data_noop(self):
+        """target_modules_data 为 None → 直接返回空."""
+        from dqg.quality.checks.q05_structure_checks import _check_q05_git_diff_coverage
+
+        assert _check_q05_git_diff_coverage({"eut_items": []}, None) == []

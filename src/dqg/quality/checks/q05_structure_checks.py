@@ -1190,6 +1190,9 @@ def run_q05_structure_checks(output_dir: Path, project_id: str) -> list[str]:
     # C9: EUT 矩阵实现完整性——每条 EUT 的被测类必须有对应 @Test 文件（BLOCKED）
     errors.extend(_check_eut_implementation_completeness(data, test_files))
 
+    # C10: git diff 变更的实现类必须有对应 EUT（WARNING）
+    errors.extend(_check_q05_git_diff_coverage(data, target_modules_data))
+
     # concurrent_scope 是 WARNING 级别（不阻断 finalize）
     # 同时检测注解（@DistributedLocked 等）和代码级并发原语（ReentrantLock/synchronized/Atomic* 等）
     concurrent_warnings = _check_concurrent_scope(data, code_repos)
@@ -1294,5 +1297,104 @@ def _check_eut_implementation_completeness(
                     f"但 {cls}Test.java 只有 {test_method_count} 个 @Test 方法。"
                     "每条 EUT 应有独立 @Test 方法（建议同时添加 // EUT-xxx 追溯注释）。"
                 )
+
+    return errors
+
+
+# ── 实现 SKILL.md 第 44 行文档化但缺失的 gate ────────────────────────────────
+# SKILL.md §Step 0.5：feature branch 每个新增/修改的 Java 实现类，
+# 必须在某条 EUT 的 when/given 字段里出现。
+_IMPL_SUFFIXES: frozenset[str] = frozenset(
+    ("Service", "Manager", "Ext", "Consumer", "Handler", "Processor", "Executor", "Impl")
+)
+_SKIP_CLASS_PATTERNS: frozenset[str] = frozenset(
+    (
+        "Config",
+        "Configuration",
+        "Enum",
+        "Constant",
+        "VO",
+        "Vo",
+        "Dto",
+        "DTO",
+        "Entity",
+        "Builder",
+        "Param",
+        "Request",
+        "Response",
+        "Abstract",
+        "Base",
+    )
+)
+# 这些模块路径里的类是接口/常量定义，不需要测试
+_SKIP_MODULE_PREFIXES: tuple[str, ...] = (
+    "maf-interface/",
+    "maf-core/src/main/java/com/mi/maf/core/constant/",
+    "maf-core/src/main/java/com/mi/maf/core/enums/",
+)
+
+
+def _check_q05_git_diff_coverage(
+    data: dict[str, Any],
+    target_modules_data: dict[str, Any] | None,
+) -> list[str]:
+    """C10: git diff 变更的实现类必须有对应 EUT when/given 字段引用.
+
+    实现 SKILL.md Step 0.5 中文档化但未落地的 gate：
+    'feature branch 新增/修改的每个 Java 类，必须在某条 EUT 的 when 字段里出现'
+
+    只检查实现类（Service/Manager/Ext/Consumer/Impl 等后缀），
+    排除接口定义模块、常量包、DTO/VO/Builder 等无业务逻辑类。
+    级别：WARNING（允许 finalize，但标记盲区供开发者补充 EUT）
+    """
+    if not target_modules_data:
+        return []
+
+    diff_files: list[str] = target_modules_data.get("git_diff_files", [])
+    if not diff_files:
+        return []
+
+    euts = data.get("eut_items", [])
+    if not euts:
+        return []
+
+    # 从所有 EUT 的 when + given 字段提取被提及的类名
+    _CLS = re.compile(r"\b([A-Z][a-zA-Z0-9]{3,})\b")
+    eut_mentioned: set[str] = set()
+    for e in euts:
+        for field in ("when", "given"):
+            text = str(e.get(field, "") or "")
+            eut_mentioned.update(_CLS.findall(text))
+
+    missing: list[tuple[str, str]] = []
+    for f in diff_files:
+        if not f.endswith(".java"):
+            continue
+        if "src/test/" in f:
+            continue
+        if any(f.startswith(skip) for skip in _SKIP_MODULE_PREFIXES):
+            continue
+
+        class_name = f.split("/")[-1].replace(".java", "")
+
+        if not any(class_name.endswith(s) for s in _IMPL_SUFFIXES):
+            continue
+        if any(pat in class_name for pat in _SKIP_CLASS_PATTERNS):
+            continue
+
+        if class_name not in eut_mentioned:
+            missing.append((class_name, f))
+
+    if not missing:
+        return []
+
+    errors: list[str] = []
+    for cls, path in missing:
+        short_path = "/".join(path.split("/")[-3:])
+        errors.append(
+            f"WARNING: Q05 git_diff_not_covered — {cls} 在 git diff 中有变更"
+            f"（{short_path}）但未出现在任何 EUT 的 when/given 字段。"
+            "请确认是否需要补充对应 EUT，或在 Q01 中添加对应的 SE/BR/REQ。"
+        )
 
     return errors
