@@ -49,7 +49,7 @@ def check_reasoning_log(output_dir: Path, project_id: str, phase_id: str) -> lis
         errors.append(
             f"BLOCKED: _reasoning_log.md 不存在。"
             f"推理日志是必须交付物，记录每步决策过程。"
-            f"请在 {int_dir}/_reasoning_log.md 中记录执行过程后重新 finalize。"
+            f"请在 {int_dir}/_reasoning_log.md 或 {pd}/_reasoning_log.md 中记录执行过程后重新 finalize。"
         )
     else:
         # 检查内容不为空且有实质内容
