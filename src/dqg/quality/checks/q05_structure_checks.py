@@ -1206,15 +1206,13 @@ def _check_eut_implementation_completeness(
     data: dict[str, Any],
     test_files: list[Path],
 ) -> list[str]:
-    """C9: EUT 矩阵实现完整性——每条 EUT 的被测类必须有对应 @Test 实现文件.
+    """C9: EUT 矩阵实现完整性——每条 EUT 必须有对应的 @Test 方法实现.
 
-    核心原则：EUT 矩阵是测试设计规格，代码是实现。
-    无对应测试文件意味着该 EUT 停留在"纸上设计"，未真正实现。
-
-    检查逻辑：
-    1. 从每条 EUT 的 when 字段提取被测类名（Java 类名模式：大写开头 + .method）
-    2. 检查是否存在 {ClassName}Test.java（或 {ClassName}Tests.java）
-    3. 无对应测试文件 → BLOCKED（必须实现才能 finalize）
+    两层检查：
+    1. 文件级（旧逻辑）：被测类必须有 {ClassName}Test.java → 无则 BLOCKED
+    2. 方法级（新增）：测试文件内的 @Test 方法数量/覆盖必须匹配 EUT 条数
+       - 精确模式：@Test 方法体内有 EUT-xxx 追溯注释 → 逐条验证每个 eut_id 有对应方法
+       - 代理模式：无追溯注释 → @Test 方法数 ≥ EUT 条数（下界检查）
     """
     import re as _re
     from collections import defaultdict
@@ -1223,18 +1221,18 @@ def _check_eut_implementation_completeness(
     if not euts:
         return []
 
-    # 从测试文件路径提取被测类名（去掉 Test/Tests 后缀）
-    test_class_names: set[str] = set()
+    # 从测试文件路径建立 被测类名 → 文件路径 的映射
+    test_file_by_class: dict[str, Path] = {}
     for tf in test_files:
         stem = tf.stem
         if stem.endswith("Tests"):
-            test_class_names.add(stem[:-5])
+            test_file_by_class[stem[:-5]] = tf
         elif stem.endswith("Test"):
-            test_class_names.add(stem[:-4])
+            test_file_by_class[stem[:-4]] = tf
         else:
-            test_class_names.add(stem)
+            test_file_by_class[stem] = tf
 
-    # 从 EUT when 字段提取被测类名（格式：ClassName.methodName）
+    # 从 EUT when 字段提取被测类名，统计每类 EUT 条数
     _CLASS_PATTERN = _re.compile(r"\b([A-Z][a-zA-Z0-9]{3,})\.[a-z]")
     class_to_euts: dict[str, list[str]] = defaultdict(list)
     for e in euts:
@@ -1245,8 +1243,11 @@ def _check_eut_implementation_completeness(
 
     errors: list[str] = []
     for cls in sorted(class_to_euts):
-        if cls not in test_class_names:
-            eut_ids = class_to_euts[cls]
+        eut_ids = class_to_euts[cls]
+        tf = test_file_by_class.get(cls)
+
+        # 层 1：文件不存在
+        if tf is None:
             sample = ", ".join(eut_ids[:3])
             suffix = "..." if len(eut_ids) > 3 else ""
             errors.append(
@@ -1254,4 +1255,44 @@ def _check_eut_implementation_completeness(
                 f"（{sample}{suffix}）但无对应测试文件（{cls}Test.java）。"
                 "EUT 矩阵必须全部实现为 @Test 方法后才能 finalize。"
             )
+            continue
+
+        # 层 2：方法级检查
+        try:
+            src = tf.read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            continue
+
+        # 按 @Test/@ParameterizedTest/@RepeatedTest 边界分割，每块对应一个测试方法
+        method_blocks = _TEST_METHOD_SPLIT.split(src)
+        test_method_count = max(0, len(method_blocks) - 1)
+
+        # 收集所有 @Test 方法体中出现的 EUT-xxx 追溯引用
+        covered_eut_ids: set[str] = set()
+        for block in method_blocks[1:]:
+            for ref in _TRACEABILITY_PATTERN.findall(block):
+                if ref.upper().startswith("EUT-"):
+                    covered_eut_ids.add(ref.upper())
+
+        if covered_eut_ids:
+            # 精确模式：有追溯注释，逐条验证
+            missing = [eid for eid in eut_ids if eid.upper() not in covered_eut_ids]
+            if missing:
+                sample = ", ".join(missing[:5])
+                suffix = "..." if len(missing) > 5 else ""
+                errors.append(
+                    f"BLOCKED: Q05 eut_method_missing — {cls}Test.java 有 {test_method_count} 个"
+                    f" @Test 方法，但以下 {len(missing)} 条 EUT 没有对应实现"
+                    f"（按 EUT-xxx 追溯）：{sample}{suffix}。"
+                    "请为每条 EUT 添加独立 @Test 方法并标注追溯注释（// EUT-xxx）。"
+                )
+        else:
+            # 代理模式：无追溯注释，用方法数作下界
+            if test_method_count < len(eut_ids):
+                errors.append(
+                    f"BLOCKED: Q05 eut_method_count — {cls} 有 {len(eut_ids)} 条 EUT 设计，"
+                    f"但 {cls}Test.java 只有 {test_method_count} 个 @Test 方法。"
+                    "每条 EUT 应有独立 @Test 方法（建议同时添加 // EUT-xxx 追溯注释）。"
+                )
+
     return errors

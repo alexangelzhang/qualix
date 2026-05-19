@@ -342,3 +342,112 @@ class OrderServiceTest {
         handle_weak_assert_scan_q05(ctx, result)
 
         assert not (internal_dir / "_weak_assert_context.json").exists()
+
+
+# ---------------------------------------------------------------------------
+# C9: EUT 矩阵实现完整性——方法级检查
+# ---------------------------------------------------------------------------
+
+
+class TestEutImplementationCompleteness:
+    """C9: 升级后的方法级实现完整性检查."""
+
+    def _call(self, data: dict, test_files: list) -> list[str]:
+        from dqg.quality.checks.q05_structure_checks import _check_eut_implementation_completeness
+
+        return _check_eut_implementation_completeness(data, test_files)
+
+    def _eut(self, eut_id: str, when: str) -> dict:
+        return {"eut_id": eut_id, "when": when}
+
+    # ── 层 1：文件不存在 ────────────────────────────────────────────────────
+
+    def test_no_test_file_blocked(self, tmp_path: Path):
+        """被测类无对应测试文件 → BLOCKED eut_not_implemented."""
+        data = {"eut_items": [self._eut("EUT-001", "OrderService.createOrder 被调用时")]}
+        errors = self._call(data, [])
+        assert any("eut_not_implemented" in e for e in errors)
+        assert any("BLOCKED" in e for e in errors)
+
+    # ── 层 2a：精确模式——有 EUT-xxx 追溯注释，全覆盖 ────────────────────────
+
+    def test_precise_mode_all_covered(self, tmp_path: Path):
+        """@Test 方法有 EUT-xxx 注释且全部覆盖 → 无错误."""
+        tf = tmp_path / "OrderServiceTest.java"
+        tf.write_text(
+            "@Test\nvoid test1() { // EUT-001\n  assertEquals(1,1);\n}\n"
+            "@Test\nvoid test2() { // EUT-002\n  assertEquals(1,1);\n}\n",
+            encoding="utf-8",
+        )
+        data = {
+            "eut_items": [
+                self._eut("EUT-001", "OrderService.createOrder 正常路径"),
+                self._eut("EUT-002", "OrderService.createOrder 异常路径"),
+            ]
+        }
+        errors = self._call(data, [tf])
+        assert errors == []
+
+    # ── 层 2b：精确模式——部分 EUT 无对应 @Test ─────────────────────────────
+
+    def test_precise_mode_missing_eut_blocked(self, tmp_path: Path):
+        """有追溯注释但 EUT-002 没有对应 @Test → BLOCKED eut_method_missing."""
+        tf = tmp_path / "OrderServiceTest.java"
+        tf.write_text(
+            "@Test\nvoid test1() { // EUT-001\n  assertEquals(1,1);\n}\n",
+            encoding="utf-8",
+        )
+        data = {
+            "eut_items": [
+                self._eut("EUT-001", "OrderService.createOrder 正常路径"),
+                self._eut("EUT-002", "OrderService.createOrder 异常路径"),
+            ]
+        }
+        errors = self._call(data, [tf])
+        assert any("eut_method_missing" in e for e in errors)
+        assert any("EUT-002" in e for e in errors)
+
+    # ── 层 2c：代理模式——无追溯注释，方法数充足 ───────────────────────────
+
+    def test_proxy_mode_enough_methods(self, tmp_path: Path):
+        """无 EUT-xxx 注释，@Test 数 ≥ EUT 数 → 无错误."""
+        tf = tmp_path / "OrderServiceTest.java"
+        tf.write_text(
+            "@Test\nvoid test1() { assertEquals(1,1); }\n@Test\nvoid test2() { assertEquals(2,2); }\n",
+            encoding="utf-8",
+        )
+        data = {
+            "eut_items": [
+                self._eut("EUT-001", "OrderService.createOrder 路径一"),
+                self._eut("EUT-002", "OrderService.createOrder 路径二"),
+            ]
+        }
+        errors = self._call(data, [tf])
+        assert errors == []
+
+    # ── 层 2d：代理模式——方法数不足 ────────────────────────────────────────
+
+    def test_proxy_mode_insufficient_methods_blocked(self, tmp_path: Path):
+        """无追溯注释，@Test 数 < EUT 数 → BLOCKED eut_method_count."""
+        tf = tmp_path / "OrderServiceTest.java"
+        tf.write_text(
+            "@Test\nvoid test1() { assertEquals(1,1); }\n",
+            encoding="utf-8",
+        )
+        data = {
+            "eut_items": [
+                self._eut("EUT-001", "OrderService.createOrder 路径一"),
+                self._eut("EUT-002", "OrderService.createOrder 路径二"),
+                self._eut("EUT-003", "OrderService.createOrder 路径三"),
+            ]
+        }
+        errors = self._call(data, [tf])
+        assert any("eut_method_count" in e for e in errors)
+        assert any("BLOCKED" in e for e in errors)
+
+    # ── 边界：空 eut_items → 无错误 ─────────────────────────────────────────
+
+    def test_empty_euts_noop(self, tmp_path: Path):
+        """eut_items 为空时直接返回空列表."""
+        errors = self._call({"eut_items": []}, [])
+        assert errors == []
