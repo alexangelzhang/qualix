@@ -575,3 +575,62 @@ class TestEutMethodAlignment:
         from dqg.quality.checks.q05_structure_checks import check_eut_method_alignment
 
         assert check_eut_method_alignment({"eut_items": []}, []) == []
+
+
+# ---------------------------------------------------------------------------
+# C11: Q05a EUT then 字段幻觉方法名检测
+# ---------------------------------------------------------------------------
+
+
+class TestEutThenPhantomMethods:
+    """C11: check_eut_then_phantom_methods——then 字段不允许幻觉方法名."""
+
+    def _eut(self, eid: str, then: str) -> dict:
+        return {"eut_id": eid, "when": "OrderService.doSomething", "then": then}
+
+    def _call(self, eut_items: list, prod_methods: list, tmp_path) -> list[str]:
+        from dqg.quality.checks.q05_structure_checks import (
+            check_eut_then_phantom_methods,
+        )
+
+        # 构造一个伪生产代码目录
+        repo = tmp_path / "repo" / "maf-srv" / "src" / "main" / "java"
+        repo.mkdir(parents=True)
+        src = "\n".join(f"public void {m}() {{}}" for m in prod_methods)
+        (repo / "SomeService.java").write_text(src, encoding="utf-8")
+        return check_eut_then_phantom_methods({"eut_items": eut_items}, [str(tmp_path / "repo")])
+
+    def test_real_method_no_blocked(self, tmp_path):
+        """then 中的方法存在于生产代码 → 无 BLOCKED."""
+        errors = self._call(
+            [self._eut("EUT-001", "verify(orderService, times(1)).createOrder(any())")],
+            ["createOrder"],
+            tmp_path,
+        )
+        assert errors == []
+
+    def test_phantom_method_blocked(self, tmp_path):
+        """then 中的方法不在任何生产文件 → BLOCKED eut_then_phantom_method."""
+        errors = self._call(
+            [self._eut("EUT-001", "verify(orderService, times(1)).ghostMethod(any())")],
+            ["createOrder", "updateStatus"],  # ghostMethod 不在生产代码
+            tmp_path,
+        )
+        assert any("eut_then_phantom_method" in e for e in errors)
+        assert any("ghostMethod" in e for e in errors)
+        assert all("BLOCKED" in e for e in errors)
+
+    def test_assertion_methods_skipped(self, tmp_path):
+        """assertEquals/verify 等通用断言词跳过检查."""
+        errors = self._call(
+            [self._eut("EUT-001", "assertEquals(2, result.size()); verify(repo, never()).save(any())")],
+            ["createOrder"],  # assertEquals/verify 不在生产代码，但应跳过
+            tmp_path,
+        )
+        assert errors == []
+
+    def test_empty_code_repos_noop(self, tmp_path):
+        """code_repos 为空 → 直接返回空."""
+        from dqg.quality.checks.q05_structure_checks import check_eut_then_phantom_methods
+
+        assert check_eut_then_phantom_methods({"eut_items": []}, []) == []
