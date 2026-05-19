@@ -226,10 +226,13 @@ def _extract_compile_errors(output: str, build_tool: str) -> str:
     for line in lines:
         line_stripped = line.strip()
         if build_tool in ("maven", "gradle"):
-            # Java 编译错误格式: [ERROR] /path/File.java:[line,col] error: ...
-            if ("[ERROR]" in line_stripped and ".java:" in line_stripped) or (
+            is_offline_miss = "offline mode" in line_stripped.lower() or (
+                "[ERROR]" in line_stripped and "Cannot access" in line_stripped
+            )
+            is_java_error = ("[ERROR]" in line_stripped and ".java:" in line_stripped) or (
                 "error:" in line_stripped.lower() and ".java" in line_stripped
-            ):
+            )
+            if is_offline_miss or is_java_error:
                 errors.append(line_stripped)
         elif (
             build_tool == "go"
