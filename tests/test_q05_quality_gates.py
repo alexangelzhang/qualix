@@ -559,7 +559,7 @@ class TestEutMethodAlignment:
         )
         assert any("eut_method_then_mismatch" in e for e in errors)
         assert any("EUT-001" in e for e in errors)
-        assert all("WARNING" in e for e in errors)
+        assert all("BLOCKED" in e for e in errors)
 
     def test_no_eut_annotation_skipped(self, tmp_path):
         """@Test 方法体无 EUT-xxx 注释 → 跳过，无 WARNING."""

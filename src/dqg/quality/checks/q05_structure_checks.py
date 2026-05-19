@@ -1395,10 +1395,10 @@ def check_eut_method_alignment(
         return []
 
     return [
-        f"WARNING: Q05b eut_method_then_mismatch — {len(mismatches)} 个 EUT 的 @Test 方法体"
+        f"BLOCKED: Q05b eut_method_then_mismatch — {len(mismatches)} 个 EUT 的 @Test 方法体"
         f"与 EUT then 字段设计不一致（实现了早返回而非业务主链路）: "
         f"{', '.join(mismatches[:5])}{'...' if len(mismatches) > 5 else ''}。"
-        "建议重写这些 @Test 方法，mock 完整的业务对象使主链路得以执行。"
+        "必须重写这些 @Test 方法，mock 完整的业务对象使主链路得以执行，才能 finalize。"
     ]
 
 
