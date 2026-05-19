@@ -143,6 +143,25 @@ errors = _check_eut_implementation_completeness(phase_b_data, [test_file_path])
 mvn test-compile -pl <module> -am -o -q
 ```
 
+**3.3 覆盖率验证（所有 EUT passes:true 后执行一次）**
+
+当 `phase_b_code_status.json` 中所有 EUT `passes: true` 时，运行 JaCoCo 并验证覆盖率：
+
+```bash
+mvn test -pl <module> -am -o -Dmaven.test.failure.ignore=true
+mvn org.jacoco:jacoco-maven-plugin:0.8.12:report -pl <module> -o -q
+```
+
+解析 `target/site/jacoco/jacoco.xml`，对 git diff 变更的被测类汇总：
+- **增量行覆盖率 ≥ 80%**
+- **增量分支覆盖率 ≥ 80%**
+
+若覆盖率不达标：
+1. 识别 JaCoCo 报告中哪些方法/分支未被覆盖（missed > 0）
+2. 针对每个未覆盖分支，在 `phase_b_code_status.json` 追加新 EUT 条目（`passes: false`）
+3. 回到 Step 1，继续 Ralph Loop 补充覆盖
+4. 直到覆盖率 ≥ 80% 且所有 passes:true
+
 ### Step 4: 更新进度
 
 验证通过后：
@@ -152,7 +171,11 @@ mvn test-compile -pl <module> -am -o -q
 
 ### Step 5: 完成条件
 
-**所有 EUT `passes: true`** → Q05b 完成，可 finalize。
+**两个条件同时满足** → Q05b 完成，可 finalize：
+1. 所有 EUT `passes: true`
+2. **增量行覆盖率 ≥ 80% AND 增量分支覆盖率 ≥ 80%**（Step 3.3 验证通过）
+
+若只满足条件 1 但覆盖率不足：按 Step 3.3 补充 EUT → 继续 Ralph Loop。
 
 输出 `codegen_progress.md`：
 
@@ -181,6 +204,8 @@ mvn test-compile -pl <module> -am -o -q
 | C9: 所有 EUT 有对应 @Test 方法（EUT-xxx 注释） | BLOCKED | 标注存在性 |
 | **C1+C2: EUT then 字段关键词必须出现在 @Test 方法体内** | **WARNING** | **实现和设计一致性** |
 | C10: git diff 实现类全部有 EUT 覆盖 | BLOCKED | 无漏网之鱼 |
+| **增量行覆盖率 ≥ 80%** | **BLOCKED** | **JaCoCo 实测值** |
+| **增量分支覆盖率 ≥ 80%** | **BLOCKED** | **JaCoCo 实测值** |
 | 编译通过（mvn test-compile） | BLOCKED | 无幻觉方法名 |
 | 推理日志存在 | BLOCKED | 执行记录 |
 | 弱断言检测（try/catch 仅防 NPE） | WARNING | 断言强度 |
