@@ -285,7 +285,21 @@ def run_finalize_checks(output_dir: Path, project_id: str, phase_id: str) -> lis
                         "或通过 --coverage-report 参数指定报告路径。"
                     )
                 else:
+                    coverage_errors: list[str] = []
                     for repo in code_repos:
-                        errors.extend(check_phase_c_coverage(output_dir, project_id, repo, coverage_report))
+                        coverage_errors.extend(check_phase_c_coverage(output_dir, project_id, repo, coverage_report))
+
+                    # 若 Q06 审计结论已是 FAIL，coverage BLOCKED → WARNING
+                    # （FAIL IS the coverage gate result；已记录在 phase_c_structured.json，无需再阻断）
+                    _conclusion = ""
+                    if phase_def:
+                        _json_file = STRUCTURED_JSON_MAP.get("Q06", "phase_c_structured.json")
+                        _json_path = _phase_dir(output_dir, project_id, phase_def) / _json_file
+                        if _json_path.is_file():
+                            _c_data = load_json(_json_path) or {}
+                            _conclusion = _c_data.get("conclusion", "") or _c_data.get("verdict", "")
+                    if _conclusion == "FAIL":
+                        coverage_errors = [e.replace("BLOCKED:", "WARNING(FAIL-expected):", 1) for e in coverage_errors]
+                    errors.extend(coverage_errors)
 
     return errors
