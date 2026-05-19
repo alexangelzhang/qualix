@@ -1392,9 +1392,9 @@ def _check_q05_git_diff_coverage(
     for cls, path in missing:
         short_path = "/".join(path.split("/")[-3:])
         errors.append(
-            f"WARNING: Q05 git_diff_not_covered — {cls} 在 git diff 中有变更"
+            f"BLOCKED: Q05 git_diff_not_covered — {cls} 在 git diff 中有变更"
             f"（{short_path}）但未出现在任何 EUT 的 when/given 字段。"
-            "请确认是否需要补充对应 EUT，或在 Q01 中添加对应的 SE/BR/REQ。"
+            "变更的实现类必须有对应 EUT，请补充到 EUT 矩阵后重新 finalize。"
         )
 
     return errors

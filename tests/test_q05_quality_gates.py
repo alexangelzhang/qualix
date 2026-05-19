@@ -479,15 +479,15 @@ class TestGitDiffCoverage:
         )
         assert errors == []
 
-    def test_uncovered_impl_class_warns(self):
-        """变更的 Service 类未出现在任何 EUT → WARNING git_diff_not_covered."""
+    def test_uncovered_impl_class_blocked(self):
+        """变更的 Service 类未出现在任何 EUT → BLOCKED git_diff_not_covered."""
         errors = self._call(
             [self._eut("OtherService.doSomething 被调用")],
             ["maf-srv-service/src/main/java/com/mi/maf/srv/service/process/DetectionProcessSrvService.java"],
         )
         assert any("git_diff_not_covered" in e for e in errors)
         assert any("DetectionProcessSrvService" in e for e in errors)
-        assert all("WARNING" in e for e in errors)
+        assert all("BLOCKED" in e for e in errors)
 
     def test_skip_interface_module(self):
         """maf-interface/ 模块的接口定义 → 跳过不检查."""
