@@ -197,6 +197,37 @@ def run_finalize_checks(output_dir: Path, project_id: str, phase_id: str) -> lis
 
         errors.extend(run_q05_structure_checks(output_dir, project_id))
 
+    # Phase Q05b: C1+C2 then 字段对齐检查
+    # Q05b Ralph Loop 只跑 C9+编译，不跑 C1+C2（then 关键词对齐）。
+    # 补在 finalize gate 里：EUT then 描述的断言方法名/关键词必须出现在对应 @Test 方法体内。
+    # 读 Q05a 的 EUT 矩阵（规格），检查 Q05b 生成的测试代码。
+    if phase_id == "Q05b":
+        from .q05_structure_checks import (
+            _collect_new_test_files_from_repos,
+            check_eut_method_alignment,
+        )
+
+        phase_def_q05a = PHASE_DEFS.get("Q05a")
+        phase_def_q05b = PHASE_DEFS.get("Q05b")
+        if phase_def_q05a and phase_def_q05b:
+            from dqg.constants import STRUCTURED_JSON_MAP as _SJM
+
+            eut_matrix_path = _phase_dir(output_dir, project_id, phase_def_q05a) / _SJM["Q05a"]
+            eut_data = load_json(eut_matrix_path) if eut_matrix_path.is_file() else {}
+
+            int_dir_q05b = _internal_dir(output_dir, project_id, phase_def_q05b)
+            inputs_data_q05b = load_json(int_dir_q05b / "_inputs.json") or {}
+            code_repos_q05b: list[str] = inputs_data_q05b.get("code_repos", [])
+            if not code_repos_q05b and inputs_data_q05b.get("code_repo"):
+                code_repos_q05b = [inputs_data_q05b["code_repo"]]
+
+            if eut_data and code_repos_q05b:
+                test_files = _collect_new_test_files_from_repos(code_repos_q05b)
+                # 方法级 C1+C2：每个 // EUT-xxx 标注的 @Test 方法体必须含 then 业务关键词
+                c12_errors = check_eut_method_alignment(eut_data, test_files)
+                if c12_errors:
+                    errors.extend(c12_errors)
+
     # Phase B: 单测编译 gate（从 _inputs.json 读 code_repos，逐仓库检查）
     if phase_id == "Q05":
         from .compile_check import check_phase_b_compilation

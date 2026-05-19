@@ -1301,6 +1301,107 @@ def _check_eut_implementation_completeness(
     return errors
 
 
+def check_eut_method_alignment(
+    data: dict[str, Any],
+    test_files: list[Path],
+) -> list[str]:
+    """C1+C2 方法级升级版：对每个 // EUT-xxx 标注的 @Test 方法体，
+    检查是否包含该 EUT then 字段的断言关键词。
+
+    文件级 C1+C2 的不足：all_code 包含所有测试，只要文件里有 assertEquals 就通过，
+    即使 EUT-012 的 @Test 方法体只有 assertNull(result)。
+
+    本函数在方法级做精确对齐：
+    - 找到 @Test 方法块中的 // EUT-xxx 引用
+    - 在该方法块内提取 then 字段的关键词
+    - 若关键词不在该方法块中 → WARNING（实现和设计不一致）
+    """
+    import re as _re
+
+    euts = data.get("eut_items", [])
+    if not euts or not test_files:
+        return []
+
+    # 构建 eut_id → then 字段映射
+    eut_then: dict[str, str] = {}
+    for e in euts:
+        eid = e.get("eut_id", "?")
+        then = str(e.get("then", "") or "")
+        if then:
+            eut_then[eid.upper()] = then
+
+    # 从 then 提取关键断言词（方法名）
+    _THEN_METHOD = _re.compile(
+        r"\b(assertEquals|assertThrows|assertThat|verify|assertNull|assertFalse|assertNotNull|never\s*\(\)|times\s*\(\s*\d+\s*\))\s*[(\.]",
+        _re.IGNORECASE,
+    )
+    # 提取 then 中的业务方法名（非通用断言词）
+    _THEN_BUSINESS = _re.compile(r"\b([a-z][a-zA-Z]{4,})\s*\(")
+
+    mismatches: list[str] = []
+
+    for tf in test_files:
+        if tf.suffix != ".java":
+            continue
+        try:
+            src = tf.read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            continue
+
+        # 按 @Test 边界分割，每块是一个测试方法
+        blocks = _TEST_METHOD_SPLIT.split(src)
+        for block in blocks[1:]:
+            # 找块内所有 EUT-xxx 引用
+            eut_refs = {m.upper() for m in _re.findall(r"\bEUT-(\d+)\b", block)}
+            if not eut_refs:
+                continue
+
+            for num in eut_refs:
+                eid = f"EUT-{num.zfill(3)}"
+                then = eut_then.get(eid.upper())
+                if not then:
+                    continue
+
+                # 提取 then 里的断言方法名（业务特征词）
+                # 先找非通用断言（如 createOrder、doDelivery）
+                then_biz_methods = set(_THEN_BUSINESS.findall(then))
+                _GENERIC = {
+                    "assertEquals",
+                    "assertthrows",
+                    "assertthat",
+                    "verify",
+                    "assertnull",
+                    "assertfalse",
+                    "assertnotnull",
+                    "times",
+                    "never",
+                    "any",
+                    "eq",
+                    "anystring",
+                    "anylong",
+                    "argThat",
+                }
+                biz_specific = {m for m in then_biz_methods if m.lower() not in _GENERIC and len(m) > 5}
+
+                if biz_specific:
+                    # 检查业务方法名是否在该方法块中
+                    missing_biz = [m for m in biz_specific if m not in block]
+                    if len(missing_biz) == len(biz_specific):
+                        # 所有业务方法名都不在方法体里
+                        sample = list(biz_specific)[:2]
+                        mismatches.append(f"{eid}(then 要求调用 {'/'.join(sample)} 但 @Test 方法体内未出现)")
+
+    if not mismatches:
+        return []
+
+    return [
+        f"WARNING: Q05b eut_method_then_mismatch — {len(mismatches)} 个 EUT 的 @Test 方法体"
+        f"与 EUT then 字段设计不一致（实现了早返回而非业务主链路）: "
+        f"{', '.join(mismatches[:5])}{'...' if len(mismatches) > 5 else ''}。"
+        "建议重写这些 @Test 方法，mock 完整的业务对象使主链路得以执行。"
+    ]
+
+
 # ── 实现 SKILL.md 第 44 行文档化但缺失的 gate ────────────────────────────────
 # SKILL.md §Step 0.5：feature branch 每个新增/修改的 Java 实现类，
 # 必须在某条 EUT 的 when/given 字段里出现。

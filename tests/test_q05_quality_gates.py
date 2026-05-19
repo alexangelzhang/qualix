@@ -521,3 +521,57 @@ class TestGitDiffCoverage:
         from dqg.quality.checks.q05_structure_checks import _check_q05_git_diff_coverage
 
         assert _check_q05_git_diff_coverage({"eut_items": []}, None) == []
+
+
+# ---------------------------------------------------------------------------
+# check_eut_method_alignment：方法级 C1+C2
+# ---------------------------------------------------------------------------
+
+
+class TestEutMethodAlignment:
+    """check_eut_method_alignment: @Test 方法体必须含 EUT then 业务关键词."""
+
+    def _call(self, eut_items: list, java_src: str, tmp_path) -> list[str]:
+        from dqg.quality.checks.q05_structure_checks import check_eut_method_alignment
+
+        tf = tmp_path / "FooServiceTest.java"
+        tf.write_text(java_src, encoding="utf-8")
+        return check_eut_method_alignment({"eut_items": eut_items}, [tf])
+
+    def _eut(self, eid: str, then: str) -> dict:
+        return {"eut_id": eid, "when": "FooService.doSomething 被调用", "then": then}
+
+    def test_method_body_matches_then_no_warning(self, tmp_path):
+        """@Test 方法体含 then 的业务方法名 → 无 WARNING."""
+        errors = self._call(
+            [self._eut("EUT-001", "assertEquals(2, result.size()); verify(orderService, times(1)).createOrder(any())")],
+            "@Test\nvoid test1() {\n  // EUT-001\n  List<X> result = service.doSomething();\n  assertEquals(2, result.size());\n  verify(orderService, times(1)).createOrder(any());\n}\n",
+            tmp_path,
+        )
+        assert errors == []
+
+    def test_method_body_misses_then_business_method_warns(self, tmp_path):
+        """@Test 方法体只有 assertNull，then 要求 createOrder → WARNING."""
+        errors = self._call(
+            [self._eut("EUT-001", "assertEquals(2, result.size()); verify(orderService, times(1)).createOrder(any())")],
+            "@Test\nvoid test1() {\n  // EUT-001\n  Map<String,String> result = service.doSomething(null, 10000L);\n  assertNull(result);\n}\n",
+            tmp_path,
+        )
+        assert any("eut_method_then_mismatch" in e for e in errors)
+        assert any("EUT-001" in e for e in errors)
+        assert all("WARNING" in e for e in errors)
+
+    def test_no_eut_annotation_skipped(self, tmp_path):
+        """@Test 方法体无 EUT-xxx 注释 → 跳过，无 WARNING."""
+        errors = self._call(
+            [self._eut("EUT-001", "verify(orderService).createOrder(any())")],
+            "@Test\nvoid test1() {\n  assertNull(service.doSomething(null));\n}\n",
+            tmp_path,
+        )
+        assert errors == []
+
+    def test_empty_euts_noop(self, tmp_path):
+        """空 eut_items → 直接返回空."""
+        from dqg.quality.checks.q05_structure_checks import check_eut_method_alignment
+
+        assert check_eut_method_alignment({"eut_items": []}, []) == []

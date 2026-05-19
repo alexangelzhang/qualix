@@ -176,13 +176,19 @@ mvn test-compile -pl <module> -am -o -q
 
 ## 关键门禁（finalize）
 
-| 检查 | 级别 |
-|------|------|
-| C9: 所有 EUT 有对应 @Test 方法（EUT-xxx 注释） | BLOCKED |
-| C10: git diff 实现类全部有 EUT 覆盖 | BLOCKED |
-| 编译通过（mvn test-compile） | BLOCKED |
-| 推理日志存在 | BLOCKED |
-| 弱断言检测（try/catch 仅防 NPE） | WARNING |
+| 检查 | 级别 | 说明 |
+|------|------|------|
+| C9: 所有 EUT 有对应 @Test 方法（EUT-xxx 注释） | BLOCKED | 标注存在性 |
+| **C1+C2: EUT then 字段关键词必须出现在 @Test 方法体内** | **WARNING** | **实现和设计一致性** |
+| C10: git diff 实现类全部有 EUT 覆盖 | BLOCKED | 无漏网之鱼 |
+| 编译通过（mvn test-compile） | BLOCKED | 无幻觉方法名 |
+| 推理日志存在 | BLOCKED | 执行记录 |
+| 弱断言检测（try/catch 仅防 NPE） | WARNING | 断言强度 |
+
+**C1+C2 的意义**：C9 只验证"有没有"，C1+C2 验证"对不对"。
+EUT-012 的 then 说 `verify(orderService, times(1)).createOrder(any())`，
+如果对应 @Test 只做 `assertNull(result)`，C9 通过但 C1+C2 会标记 WARNING。
+这确保测试代码实现的是 EUT 矩阵设计的业务语义，而不是退化为防御性空壳测试。
 
 ---
 
