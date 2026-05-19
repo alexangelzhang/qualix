@@ -148,9 +148,12 @@ mvn test-compile -pl <module> -am -o -q
 当 `phase_b_code_status.json` 中所有 EUT `passes: true` 时，运行 JaCoCo 并验证覆盖率：
 
 ```bash
-mvn test -pl <module> -am -o -Dmaven.test.failure.ignore=true
-mvn org.jacoco:jacoco-maven-plugin:0.8.12:report -pl <module> -o -q
+# 全模块运行，所有有变更的子模块都必须覆盖
+mvn test -am -o -Dmaven.test.failure.ignore=true
+mvn org.jacoco:jacoco-maven-plugin:0.8.12:report -am -o -q
 ```
+
+> **注意**：不能只跑单个模块（如 `-pl maf-srv-service`），需要覆盖所有有变更的模块（包括 maf-service-provider、maf-srv-aftersale 等）。
 
 解析 `target/site/jacoco/jacoco.xml`，对 git diff 变更的被测类汇总：
 - **增量行覆盖率 = 100%**（公司硬性指标）
