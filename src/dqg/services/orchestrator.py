@@ -24,26 +24,19 @@ from types import MappingProxyType
 from typing import Final
 
 from dqg.constants import PHASE_DIR_MAP, REPORT_MAP
+from dqg.core.state_machine import PHASE_DEFS
 
-# 从 PHASE_DEFS 常量派生，仅补充 orchestrator 专用字段（command / description / inputs）
+# orchestrator 专用字段（command / description），依赖关系从 PHASE_DEFS.depends_on 读取
 _ORCH_EXTRA: Final = MappingProxyType(
     {
-        "Q01": {"command": "/dev-quality-gate", "description": "PRD → 需求点/关键语义/缺口/待确认项", "inputs": []},
-        "Q04": {"command": "/tech-coverage-audit", "description": "验证技术方案有没有漏掉需求", "inputs": ["Q01"]},
-        "Q03": {"command": "/tech-quality-review", "description": "审架构/接口/数据/异常/性能", "inputs": ["Q01"]},
-        "Q05": {"command": "/ut-generator", "description": "从需求生成测试大纲和单测代码", "inputs": ["Q01"]},
-        "Q05a": {
-            "command": "/ut-design",
-            "description": "设计 EUT 矩阵（三层驱动），approve 后锁定为 Q05b 规格",
-            "inputs": ["Q01"],
-        },
-        "Q05b": {
-            "command": "/ut-codegen",
-            "description": "按 EUT 矩阵逐条生成 @Test 代码，Ralph Loop 直到 C9 全通过",
-            "inputs": ["Q05a"],
-        },
-        "Q06": {"command": "/ut-audit-zh", "description": "验证单测是否真正测对了业务场景", "inputs": ["Q05b"]},
-        "Q07": {"command": "/review-zh", "description": "验证代码是否与需求和设计一致", "inputs": ["Q01"]},
+        "Q01": {"command": "/dev-quality-gate", "description": "PRD → 需求点/关键语义/缺口/待确认项"},
+        "Q04": {"command": "/tech-coverage-audit", "description": "验证技术方案有没有漏掉需求"},
+        "Q03": {"command": "/tech-quality-review", "description": "审架构/接口/数据/异常/性能"},
+        "Q05": {"command": "/ut-generator", "description": "从需求生成测试大纲和单测代码"},
+        "Q05a": {"command": "/ut-design", "description": "设计 EUT 矩阵（三层驱动），approve 后锁定为 Q05b 规格"},
+        "Q05b": {"command": "/ut-codegen", "description": "按 EUT 矩阵逐条生成 @Test 代码，Ralph Loop 直到 C9 全通过"},
+        "Q06": {"command": "/ut-audit-zh", "description": "验证单测是否真正测对了业务场景"},
+        "Q07": {"command": "/review-zh", "description": "验证代码是否与需求和设计一致"},
     }
 )
 
@@ -195,6 +188,9 @@ def print_status_dashboard(statuses: list[PhaseStatus], skip_phases: list[str]):
     print("=" * 64)
 
 
+_tracked_ids: frozenset[str] = frozenset(p["id"] for p in PHASES)
+
+
 def find_next_phase(statuses: list[PhaseStatus], skip_phases: list[str]) -> dict | None:
     """找到下一个应该执行的阶段。"""
     completed_ids = {s.phase_id for s in statuses if s.completed}
@@ -205,9 +201,10 @@ def find_next_phase(statuses: list[PhaseStatus], skip_phases: list[str]) -> dict
             continue
         if phase["id"] in skip_phases:
             continue
-        # 检查前置依赖是否满足
-        deps_met = all(dep in completed_ids for dep in phase["inputs"])
-        if deps_met:
+        # 从 PHASE_DEFS 读取依赖（权威来源）。
+        # 不在 PHASES 里的 Phase（如 Q02 可选阶段）视为已满足，让下游 Phase 可用。
+        deps = PHASE_DEFS.get(phase["id"], {}).get("depends_on", [])
+        if all(dep in completed_ids or dep not in _tracked_ids for dep in deps):
             return phase
 
     return None
@@ -215,9 +212,9 @@ def find_next_phase(statuses: list[PhaseStatus], skip_phases: list[str]) -> dict
 
 def build_next_command(phase: dict, statuses: list[PhaseStatus], project_id: str) -> str:
     """构建下一阶段的执行提示。"""
-    # 收集输入文件路径
+    deps = PHASE_DEFS.get(phase["id"], {}).get("depends_on", [])
     input_files = []
-    for dep_id in phase["inputs"]:
+    for dep_id in deps:
         for s in statuses:
             if s.phase_id == dep_id and s.key_file_path:
                 input_files.append(s.key_file_path)
