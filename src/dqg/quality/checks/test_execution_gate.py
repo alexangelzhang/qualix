@@ -129,7 +129,7 @@ def run_test_check(
     env = _build_env_for_java(code_repo)
 
     test_pattern = ",".join(test_classes)
-    cmd = f"mvn test -q --batch-mode -Dtest={test_pattern} -Dsurefire.useFile=false -Dsurefire.failIfNoSpecifiedTests=false"
+    cmd = f"mvn test -q --batch-mode -o -Dtest={test_pattern} -Dsurefire.useFile=false -Dsurefire.failIfNoSpecifiedTests=false"
     if module:
         cmd += f" -pl {module} -am"
 

@@ -206,7 +206,7 @@ def run_compile_check(
 def _build_compile_command(build_tool: str, module: str | None) -> str:
     """构建编译命令."""
     if build_tool == "maven":
-        base = "mvn compile -q --batch-mode"
+        base = "mvn compile -q --batch-mode -o"
         if module:
             return f"{base} -pl {module} -am"
         return base
