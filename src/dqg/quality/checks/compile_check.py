@@ -292,6 +292,12 @@ def check_phase_b_compilation(
         log.info("编译检查跳过（%s 无生产代码变更）", repo_path.name)
         return []
 
+    # 计算变更涉及的 Maven 模块（取变更文件路径的第一段）
+    # 只编译变更模块而非整个项目，避免不相关模块的未缓存依赖失败
+    changed_modules: list[str] = sorted({f.split("/")[0] for f in changed_prod if "/" in f})
+    if changed_modules:
+        log.info("编译检查仅覆盖变更模块: %s", changed_modules)
+
     # 优先使用 Provider
     if language_provider is not None:
         cr = language_provider.compile_check(repo_path)
@@ -308,8 +314,9 @@ def check_phase_b_compilation(
             errors.append(f"编译错误摘要:\n{cr.error_summary}")
         return errors
 
-    # Fallback: 原有逻辑
-    result = run_compile_check(repo_path)
+    # Fallback: 只编译变更模块（多模块项目）或全项目（单模块）
+    module_arg = ",".join(changed_modules) if changed_modules else None
+    result = run_compile_check(repo_path, module=module_arg)
     if result["passed"]:
         log.info("编译检查通过: %s", result["build_tool"])
         return []
