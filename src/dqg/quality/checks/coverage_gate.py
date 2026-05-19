@@ -246,6 +246,157 @@ def compute_incremental_coverage(
     return result
 
 
+def parse_jacoco_per_line(report_path: Path) -> dict[str, dict[int, dict[str, int]]] | None:
+    """解析 JaCoCo XML，提取每个 sourcefile 的逐行覆盖数据.
+
+    Returns:
+        {"com/example/MyClass.java": {265: {"ci": 1, "mi": 0}, ...}}
+    只包含可执行行（ci+mi>0）。
+    """
+    if not report_path.exists():
+        return None
+    try:
+        tree = ET.parse(report_path)
+    except ET.ParseError as exc:
+        log.warning("Failed to parse JaCoCo XML for line data %s: %s", report_path, exc)
+        return None
+    root = tree.getroot()
+    result: dict[str, dict[int, dict[str, int]]] = {}
+    for package in root.findall(".//package"):
+        pkg_name = package.get("name", "")
+        for sourcefile in package.findall("sourcefile"):
+            sf_name = sourcefile.get("name", "")
+            qualified = f"{pkg_name}/{sf_name}" if pkg_name else sf_name
+            lines: dict[int, dict[str, int]] = {}
+            for line in sourcefile.findall("line"):
+                nr = int(line.get("nr", 0))
+                ci = int(line.get("ci", 0))
+                mi = int(line.get("mi", 0))
+                if ci > 0 or mi > 0:
+                    lines[nr] = {"ci": ci, "mi": mi}
+            if lines:
+                result[qualified] = lines
+    return result if result else None
+
+
+def parse_git_diff_changed_lines(repo_path: Path, base_ref: str = "origin/master") -> dict[str, set[int]]:
+    """通过 git diff 获取本次改动中每个 Java 源文件的变更行号集合.
+
+    Returns:
+        {"com/mi/maf/srv/Foo.java": {265, 266, ...}}
+    只包含新增/修改的行（+行），不含删除行。
+    """
+    import re
+    import subprocess
+
+    result: dict[str, set[int]] = {}
+    try:
+        proc = subprocess.run(
+            ["git", "diff", "--unified=0", f"{base_ref}...HEAD", "--", "*.java"],
+            capture_output=True,
+            text=True,
+            cwd=str(repo_path),
+            timeout=30,
+        )
+        if not proc.stdout:
+            return result
+    except Exception as exc:
+        log.debug("git diff failed in %s: %s", repo_path, exc)
+        return result
+
+    current_file: str | None = None
+    for raw_line in proc.stdout.splitlines():
+        if raw_line.startswith("+++ b/"):
+            path = raw_line[6:]
+            parts = path.split("/")
+            for i, p in enumerate(parts):
+                if p in ("java", "kotlin", "scala"):
+                    current_file = "/".join(parts[i + 1 :])
+                    result.setdefault(current_file, set())
+                    break
+            else:
+                current_file = None
+        elif raw_line.startswith("@@ ") and current_file is not None:
+            m = re.search(r"\+(\d+)(?:,(\d+))?", raw_line)
+            if m:
+                start = int(m.group(1))
+                count = int(m.group(2)) if m.group(2) is not None else 1
+                for nr in range(start, start + count):
+                    result[current_file].add(nr)
+    return result
+
+
+def compute_incremental_coverage_linelevel(
+    per_line: dict[str, dict[int, dict[str, int]]],
+    diff_lines: dict[str, set[int]],
+    blast_radius: dict[str, Any],
+) -> dict[str, Any]:
+    """行级增量覆盖率：只统计 git diff 变更行的覆盖情况.
+
+    分母 = diff 中的可执行变更行数（ci+mi>0 的行）
+    分子 = 其中 ci>0 的行数
+
+    Returns 与 compute_incremental_coverage 结构兼容，result["mode"]="line_level" 标识来源。
+    """
+    affected_sources: set[str] = set()
+    for f in blast_radius.get("changed_files", []):
+        parts = f.split("/")
+        for i, p in enumerate(parts):
+            if p in ("java", "kotlin", "scala"):
+                affected_sources.add("/".join(parts[i + 1 :]))
+                break
+        else:
+            affected_sources.add(parts[-1])
+
+    line_covered = 0
+    line_missed = 0
+    matched: list[str] = []
+
+    for qualified, line_data in per_line.items():
+        filename = qualified.rsplit("/", 1)[-1]
+        is_affected = (
+            qualified in affected_sources
+            or filename in affected_sources
+            or any(qualified.endswith(s) for s in affected_sources if "/" in s)
+        )
+        if not is_affected:
+            continue
+
+        diff_key: str | None = None
+        for dk in diff_lines:
+            dk_fn = dk.rsplit("/", 1)[-1]
+            if dk_fn == filename or qualified.endswith(dk) or dk.endswith(qualified):
+                diff_key = dk
+                break
+        if diff_key is None:
+            continue
+
+        changed_nrs = diff_lines[diff_key]
+        fc = fm = 0
+        for nr, ctr in line_data.items():
+            if nr in changed_nrs:
+                if ctr["ci"] > 0:
+                    fc += 1
+                else:
+                    fm += 1
+        if fc + fm > 0:
+            matched.append(qualified)
+            line_covered += fc
+            line_missed += fm
+
+    total = line_covered + line_missed
+    rate = round(line_covered / total, 4) if total > 0 else 0.0
+    return {
+        "incremental": {
+            "line": {"covered": line_covered, "missed": line_missed, "total": total, "rate": rate},
+            "branch": {"covered": 0, "missed": 0, "total": 0, "rate": 0.0},
+        },
+        "matched_files": matched,
+        "unmatched_files_count": 0,
+        "mode": "line_level",
+    }
+
+
 def _is_mock_shadowed(
     filename: str,
     counters: dict[str, Any],
@@ -382,8 +533,8 @@ def check_phase_c_coverage(
     for e in full_errors:
         errors.append(e.replace("BLOCKED:", "WARNING:"))
 
-    # 尝试增量覆盖率分析
-    incremental_result = _try_incremental_coverage(output_dir, project_id, report_path)
+    # 尝试增量覆盖率分析（优先行级，fallback 文件级）
+    incremental_result = _try_incremental_coverage(output_dir, project_id, report_path, code_repo=code_repo)
     if incremental_result:
         inc = incremental_result["incremental"]
         inc_line = inc.get("line", {}).get("rate", 0)
@@ -395,16 +546,15 @@ def check_phase_c_coverage(
             inc_line * 100,
             inc_branch * 100,
         )
-        # 增量覆盖率低于阈值时 BLOCKED（本次改动的文件必须达标）
+        # 增量覆盖率低于阈值时 BLOCKED（本次改动的文件/行必须达标）
+        mode = incremental_result.get("mode", "file_level")
+        mode_label = "（行级增量）" if mode == "line_level" else f"（blast radius 内 {len(matched)} 文件）"
         if inc_line < DEFAULT_LINE_THRESHOLD and matched:
+            errors.append(f"BLOCKED: 增量行覆盖率 {inc_line:.1%}{mode_label}低于阈值 {DEFAULT_LINE_THRESHOLD:.0%}")
+        # 行级模式下 branch 数据不可用，跳过 branch 门禁
+        if inc_branch < DEFAULT_BRANCH_THRESHOLD and matched and mode != "line_level":
             errors.append(
-                f"BLOCKED: 增量行覆盖率 {inc_line:.1%}（blast radius 内 {len(matched)} 文件）"
-                f"低于阈值 {DEFAULT_LINE_THRESHOLD:.0%}"
-            )
-        if inc_branch < DEFAULT_BRANCH_THRESHOLD and matched:
-            errors.append(
-                f"BLOCKED: 增量分支覆盖率 {inc_branch:.1%}（blast radius 内 {len(matched)} 文件）"
-                f"低于阈值 {DEFAULT_BRANCH_THRESHOLD:.0%}"
+                f"BLOCKED: 增量分支覆盖率 {inc_branch:.1%}{mode_label}低于阈值 {DEFAULT_BRANCH_THRESHOLD:.0%}"
             )
         # 写入增量结果供 verification_bundle 消费
         _write_incremental_result(output_dir, project_id, incremental_result)
@@ -416,25 +566,46 @@ def _try_incremental_coverage(
     output_dir: Path,
     project_id: str,
     report_path: Path,
+    code_repo: str | None = None,
 ) -> dict[str, Any] | None:
-    """尝试加载 blast_radius 并计算增量覆盖率."""
+    """尝试加载 blast_radius 并计算增量覆盖率.
+
+    优先使用行级增量（git diff 变更行 × JaCoCo 行级数据），
+    若无法获取 diff 数据则 fallback 到文件级增量。
+    """
     from dqg.constants import PHASE_DIR_MAP
+    from dqg.json_utils import load_json
 
     dir_suffix = PHASE_DIR_MAP.get("Q06", "phaseC")
     blast_path = output_dir / project_id / dir_suffix / "_internal" / "_blast_radius.json"
     if not blast_path.exists():
         return None
 
-    from dqg.json_utils import load_json
-
     blast_data = load_json(blast_path)
     if not blast_data or not blast_data.get("changed_files"):
         return None
 
+    # 优先尝试行级增量
+    if code_repo:
+        repo_path = Path(code_repo).expanduser().resolve()
+        if repo_path.is_dir():
+            diff_lines = parse_git_diff_changed_lines(repo_path)
+            if diff_lines:
+                per_line = parse_jacoco_per_line(report_path)
+                if per_line:
+                    result = compute_incremental_coverage_linelevel(per_line, diff_lines, blast_data)
+                    if result["incremental"]["line"]["total"] > 0:
+                        log.info(
+                            "Coverage (line-level incremental, %d changed lines): line=%.1f%%",
+                            result["incremental"]["line"]["total"],
+                            result["incremental"]["line"]["rate"] * 100,
+                        )
+                        return result
+
+    # Fallback: 文件级增量
     per_file = parse_jacoco_per_file(report_path)
     if not per_file:
         return None
-
     return compute_incremental_coverage(per_file, blast_data)
 
 
