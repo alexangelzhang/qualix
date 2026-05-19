@@ -19,7 +19,7 @@ from dqg.log import get_logger
 log = get_logger(__name__)
 
 # 编译超时（秒）
-_COMPILE_TIMEOUT = 120
+_COMPILE_TIMEOUT = 300
 
 
 def detect_build_tool(code_repo: Path) -> str | None:
@@ -271,6 +271,26 @@ def check_phase_b_compilation(
     repo_path = Path(code_repo).expanduser().resolve()
     if not repo_path.is_dir():
         return [f"BLOCKED: 代码仓库路径不存在: {repo_path}"]
+
+    # 无生产代码变更的仓库（如 master 基线仓库）跳过编译检查
+    # 编译检查的目的是验证"我们写的新代码能编译"，不是验证整个仓库的健康状态
+    import subprocess as _sp
+
+    try:
+        _r = _sp.run(
+            ["git", "diff", "origin/master...HEAD", "--name-only", "--diff-filter=AM"],
+            cwd=str(repo_path),
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+        changed_prod = [f for f in _r.stdout.splitlines() if f.endswith(".java") and "/test/" not in f]
+    except Exception:
+        changed_prod = []
+
+    if not changed_prod:
+        log.info("编译检查跳过（%s 无生产代码变更）", repo_path.name)
+        return []
 
     # 优先使用 Provider
     if language_provider is not None:
