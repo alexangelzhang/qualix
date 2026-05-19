@@ -380,6 +380,7 @@ def cmd_approve(args, output_dir: Path) -> int:
 
     if not _judge_required:
         # 直接走 gate verdict 检查，不需要 judge 评分
+        judge_result = None  # judge_required=False 时无 judge 评审结果
         ps_pre = state.phases.get(args.phase)
         force = getattr(args, "force", False)
     else:
