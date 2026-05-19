@@ -570,7 +570,7 @@ class AdaptiveLoop:
         if record.judge_result is None:
             log.warning("Judge returned None (HARD_BLOCK), stopping adaptive loop")
             record.duration = time.time() - iter_start
-            return record, False
+            return record, False, iter_llm_calls
 
         # Collect judge LLM call telemetry
         for vote in record.judge_result.votes:
