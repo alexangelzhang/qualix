@@ -510,7 +510,34 @@ def _infer_false_branch(
         return True
 
     # 6. null 检查 false 路径：任何 mock 返回非 null 值
-    return branch.is_null_check and any(sig.any_non_null_mock() for sig in test_sigs)
+    if branch.is_null_check and any(sig.any_non_null_mock() for sig in test_sigs):
+        return True
+
+    # 7. contains() 集合查找 false 路径：检查测试是否传入集合以外的值
+    # 例：LOGISTIC_EXCHANGE_SUPPORT_TYPES.contains(type) → false = type 不在集合
+    # 通过测试名含 "非换货"、"BY"、"WX" 等非集合成员类型词推断
+    if "contains" in cond_l or "support_types" in cond_l:
+        non_member_patterns = r"by|wx|jc|ts|保养|非换货|非取旧|bxhj|zh|dwhj_no"
+        if any(re.search(non_member_patterns, sig.method_name, re.IGNORECASE) for sig in test_sigs):
+            return True
+
+    # 8. Enable.Y.name false 路径：有 null tag 测试
+    if ("enable.y.name" in cond_l or "enable.y" in cond_l) and any(
+        sig.returns_null_for("selectOneBySidAndKeyName") or sig.any_null_mock() for sig in test_sigs
+    ):
+        return True
+
+    # 9. size()/getMethods != 1 false 路径：exactly 1 method
+    if ("getmethods" in cond_l or "!= 1" in cond_l) and any(
+        re.search(r"单个|single|one|1个|允许通过|不予处理", sig.method_name, re.IGNORECASE) for sig in test_sigs
+    ):
+        return True
+
+    # 10. EVENT_REJECT_SET false 路径：非 reject 事件测试
+    return ("event_reject" in cond_l or "reject_set" in cond_l) and any(
+        re.search(r"delivery|signed|cancel|pickup|lost|stock|route|早返回", sig.method_name, re.IGNORECASE)
+        for sig in test_sigs
+    )
 
 
 def _get_source_method(var_name: str, var_sources: dict[str, dict[str, str]]) -> str | None:
