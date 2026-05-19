@@ -18,7 +18,7 @@ from dqg.schemas.phase_q01 import PhaseAOutput
 from dqg.schemas.phase_q02 import PhaseA3Output
 from dqg.schemas.phase_q03 import PhaseA6Output
 from dqg.schemas.phase_q04 import PhaseA5Output
-from dqg.schemas.phase_q05 import PhaseBOutput
+from dqg.schemas.phase_q05 import PhaseBCodeStatusOutput, PhaseBOutput
 from dqg.schemas.phase_q06 import PhaseCOutput
 from dqg.schemas.phase_q07 import PhaseDOutput
 
@@ -43,7 +43,7 @@ _SCHEMA_CLASS_MAP: Final = MappingProxyType(
         "Q04": PhaseA5Output,
         "Q05": PhaseBOutput,
         "Q05a": PhaseBOutput,  # EUT 矩阵设计，同 Q05 产物格式
-        "Q05b": None,  # 代码生成进度追踪，无 Pydantic schema
+        "Q05b": PhaseBCodeStatusOutput,
         "Q06": PhaseCOutput,
         "Q07": PhaseDOutput,
     }

@@ -198,3 +198,24 @@ class PhaseBOutput(BaseModel):
     project_id: str = Field(min_length=1)
     eut_items: list[EutItem] = Field(default_factory=list)
     test_cases: list[TCItem] = Field(default_factory=list, description="兼容 LLM 实际输出的 TC 列表")
+
+
+class EutTaskItem(BaseModel):
+    """Q05b Ralph Loop 单条 EUT 实现状态."""
+
+    eut_id: str = Field(pattern=r"^EUT-\d+$")
+    class_name: str = Field(default="", alias="class")
+    passes: bool = False
+    test_file: str | None = None
+    test_method: str | None = None
+    failure_reason: str | None = None
+
+    model_config = {"populate_by_name": True}
+
+
+class PhaseBCodeStatusOutput(BaseModel):
+    """Q05b phase_b_code_status.json — Ralph Loop EUT 实现进度追踪."""
+
+    total: int = Field(ge=0)
+    done: int = Field(ge=0)
+    tasks: list[EutTaskItem] = Field(default_factory=list)

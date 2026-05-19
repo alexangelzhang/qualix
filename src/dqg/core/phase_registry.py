@@ -267,6 +267,7 @@ PHASE_DEFS: Final = MappingProxyType(
             "recommended_model": "standard",
             "reasoning_profile": {"planning": "standard", "execution": "standard", "verification": "high"},
             "depends_on": ["Q05a"],
+            "judge_required": False,  # 退出条件是 C9+编译（确定性），不需要 LLM judge 评分
             "parallel_with": [],
             "required_inputs": [
                 {

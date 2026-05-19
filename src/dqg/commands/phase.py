@@ -374,76 +374,85 @@ def cmd_approve(args, output_dir: Path) -> int:
             )
         return code
 
-    judge_result = load_judge_result(output_dir, args.project_id, args.phase)
-    if not judge_result:
-        if not cli_json_mode(args):
-            print(
-                f"\n  ❌ 未找到 Phase {args.phase} 的 Judge 评审结果。\n"
-                f"  请先执行 finalize 生成评审结果后再 approve。\n"
-                f"  命令: dqg-run {args.project_id} finalize {args.phase}",
-                file=sys.stderr,
-            )
-        return _approve_out(False, 1, error="missing_judge_result")
+    # judge_required=False 的 Phase（如 Q05b）使用确定性 gate 退出，跳过整个 judge 检查链
+    _phase_def = PHASE_DEFS.get(args.phase, {})
+    _judge_required = _phase_def.get("judge_required", True)
 
-    if judge_result.get("verdict") == "HARD_BLOCK" or judge_result.get("hard_blocked"):
-        if not cli_json_mode(args):
-            print(
-                f"\n  🚫 Judge 评审被 Anti-Rationalization Guard 硬拦截。\n"
-                f"  原因: {judge_result.get('block_reason', '放水行为确认')}\n"
-                f"  检测到的放水内容:\n"
-                + "\n".join(f"    - {r}" for r in judge_result.get("confirmed_rationalizations", []))
-                + "\n\n  请重新执行 finalize 触发 Judge 重新评审。",
-                file=sys.stderr,
-            )
-        return _approve_out(False, 1, error="hard_block", judge_result=judge_result)
+    if not _judge_required:
+        # 直接走 gate verdict 检查，不需要 judge 评分
+        ps_pre = state.phases.get(args.phase)
+        force = getattr(args, "force", False)
+    else:
+        judge_result = load_judge_result(output_dir, args.project_id, args.phase)
+        if not judge_result:
+            if not cli_json_mode(args):
+                print(
+                    f"\n  ❌ 未找到 Phase {args.phase} 的 Judge 评审结果。\n"
+                    f"  请先执行 finalize 生成评审结果后再 approve。\n"
+                    f"  命令: dqg-run {args.project_id} finalize {args.phase}",
+                    file=sys.stderr,
+                )
+            return _approve_out(False, 1, error="missing_judge_result")
 
-    dim_scores = {
-        d["id"]: d["score"] / d.get("max_score", 5) * 5
-        for d in judge_result.get("dimensions", [])
-        if "id" in d and "score" in d
-    }
-    # 读取 per-phase 阈值（PHASE_DEFS 未配置时默认 3.5）
-    phase_threshold = PHASE_DEFS.get(args.phase, {}).get("judge_pass_threshold", 3.5)
-    record_judge_score(
-        state,
-        args.phase,
-        overall_score=judge_result.get("overall_score", 0.0),
-        dimension_scores=dim_scores,
-        pass_threshold=phase_threshold,
-        judged_at=judge_result.get("judged_at"),
-    )
+        if judge_result.get("verdict") == "HARD_BLOCK" or judge_result.get("hard_blocked"):
+            if not cli_json_mode(args):
+                print(
+                    f"\n  🚫 Judge 评审被 Anti-Rationalization Guard 硬拦截。\n"
+                    f"  原因: {judge_result.get('block_reason', '放水行为确认')}\n"
+                    f"  检测到的放水内容:\n"
+                    + "\n".join(f"    - {r}" for r in judge_result.get("confirmed_rationalizations", []))
+                    + "\n\n  请重新执行 finalize 触发 Judge 重新评审。",
+                    file=sys.stderr,
+                )
+            return _approve_out(False, 1, error="hard_block", judge_result=judge_result)
 
-    ps_pre = state.phases.get(args.phase)
-    force = getattr(args, "force", False)
-
-    # Change 5: auto-synthesized Judge/Critique 降权——不能单独作为正式评审闭环
-    _allow_synthetic = getattr(args, "allow_synthetic_review", False)
-    _is_synthetic = bool(
-        judge_result.get("auto_synthesized")
-        or judge_result.get("synthesis_source")
-        or judge_result.get("synthetic", False)
-    )
-    if _is_synthetic and not _allow_synthetic and not force:
-        if not cli_json_mode(args):
-            print(
-                "\n  ⚠️  Judge/Critique 由系统自动合成（auto-synthesized），不作为正式评审闭环。",
-                file=sys.stderr,
-            )
-            print(
-                "  approve 需要真实的人工或独立模型评审。",
-                file=sys.stderr,
-            )
-            print(
-                "  如确认接受自动评审结果，请加 --allow-synthetic-review 参数。",
-                file=sys.stderr,
-            )
-        return _approve_out(
-            False,
-            1,
-            error="synthetic_review_not_allowed",
-            judge_result=judge_result,
+        dim_scores = {
+            d["id"]: d["score"] / d.get("max_score", 5) * 5
+            for d in judge_result.get("dimensions", [])
+            if "id" in d and "score" in d
+        }
+        phase_threshold = _phase_def.get("judge_pass_threshold", 3.5)
+        record_judge_score(
+            state,
+            args.phase,
+            overall_score=judge_result.get("overall_score", 0.0),
+            dimension_scores=dim_scores,
+            pass_threshold=phase_threshold,
+            judged_at=judge_result.get("judged_at"),
         )
-    if ps_pre and ps_pre.judge_score is not None and not ps_pre.judge_passed and not force:
+
+        ps_pre = state.phases.get(args.phase)
+        force = getattr(args, "force", False)
+
+        # Change 5: auto-synthesized Judge/Critique 降权——不能单独作为正式评审闭环
+        _allow_synthetic = getattr(args, "allow_synthetic_review", False)
+        _is_synthetic = bool(
+            judge_result.get("auto_synthesized")
+            or judge_result.get("synthesis_source")
+            or judge_result.get("synthetic", False)
+        )
+        if _is_synthetic and not _allow_synthetic and not force:
+            if not cli_json_mode(args):
+                print(
+                    "\n  ⚠️  Judge/Critique 由系统自动合成（auto-synthesized），不作为正式评审闭环。",
+                    file=sys.stderr,
+                )
+                print(
+                    "  approve 需要真实的人工或独立模型评审。",
+                    file=sys.stderr,
+                )
+                print(
+                    "  如确认接受自动评审结果，请加 --allow-synthetic-review 参数。",
+                    file=sys.stderr,
+                )
+            return _approve_out(
+                False,
+                1,
+                error="synthetic_review_not_allowed",
+                judge_result=judge_result,
+            )
+
+    if _judge_required and ps_pre and ps_pre.judge_score is not None and not ps_pre.judge_passed and not force:
         if not cli_json_mode(args):
             print(f"\n  ⚠️  Judge 评分 {ps_pre.judge_score:.1f}/5 未达标（阈值 {phase_threshold}）", file=sys.stderr)
             top_issues = judge_result.get("top_issues", []) if judge_result else []
