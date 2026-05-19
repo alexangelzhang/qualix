@@ -1187,6 +1187,9 @@ def run_q05_structure_checks(output_dir: Path, project_id: str) -> list[str]:
     )
     errors.extend(_check_test_file_eut_reverse(data, test_files, target_modules_data))
 
+    # C9: EUT 矩阵实现完整性——每条 EUT 的被测类必须有对应 @Test 文件（BLOCKED）
+    errors.extend(_check_eut_implementation_completeness(data, test_files))
+
     # concurrent_scope 是 WARNING 级别（不阻断 finalize）
     # 同时检测注解（@DistributedLocked 等）和代码级并发原语（ReentrantLock/synchronized/Atomic* 等）
     concurrent_warnings = _check_concurrent_scope(data, code_repos)
@@ -1196,4 +1199,59 @@ def run_q05_structure_checks(output_dir: Path, project_id: str) -> list[str]:
 
     if errors:
         log.info("Q05 structure checks: %d issue(s)", len(errors))
+    return errors
+
+
+def _check_eut_implementation_completeness(
+    data: dict[str, Any],
+    test_files: list[Path],
+) -> list[str]:
+    """C9: EUT 矩阵实现完整性——每条 EUT 的被测类必须有对应 @Test 实现文件.
+
+    核心原则：EUT 矩阵是测试设计规格，代码是实现。
+    无对应测试文件意味着该 EUT 停留在"纸上设计"，未真正实现。
+
+    检查逻辑：
+    1. 从每条 EUT 的 when 字段提取被测类名（Java 类名模式：大写开头 + .method）
+    2. 检查是否存在 {ClassName}Test.java（或 {ClassName}Tests.java）
+    3. 无对应测试文件 → BLOCKED（必须实现才能 finalize）
+    """
+    import re as _re
+    from collections import defaultdict
+
+    euts = data.get("eut_items", [])
+    if not euts:
+        return []
+
+    # 从测试文件路径提取被测类名（去掉 Test/Tests 后缀）
+    test_class_names: set[str] = set()
+    for tf in test_files:
+        stem = tf.stem
+        if stem.endswith("Tests"):
+            test_class_names.add(stem[:-5])
+        elif stem.endswith("Test"):
+            test_class_names.add(stem[:-4])
+        else:
+            test_class_names.add(stem)
+
+    # 从 EUT when 字段提取被测类名（格式：ClassName.methodName）
+    _CLASS_PATTERN = _re.compile(r"\b([A-Z][a-zA-Z0-9]{3,})\.[a-z]")
+    class_to_euts: dict[str, list[str]] = defaultdict(list)
+    for e in euts:
+        when = str(e.get("when", "") or "")
+        eut_id = e.get("eut_id", "?")
+        for cls in _CLASS_PATTERN.findall(when):
+            class_to_euts[cls].append(eut_id)
+
+    errors: list[str] = []
+    for cls in sorted(class_to_euts):
+        if cls not in test_class_names:
+            eut_ids = class_to_euts[cls]
+            sample = ", ".join(eut_ids[:3])
+            suffix = "..." if len(eut_ids) > 3 else ""
+            errors.append(
+                f"BLOCKED: Q05 eut_not_implemented — {cls} 有 {len(eut_ids)} 条 EUT 设计"
+                f"（{sample}{suffix}）但无对应测试文件（{cls}Test.java）。"
+                "EUT 矩阵必须全部实现为 @Test 方法后才能 finalize。"
+            )
     return errors
