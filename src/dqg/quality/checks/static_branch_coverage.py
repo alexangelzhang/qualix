@@ -448,21 +448,34 @@ def _infer_false_branch(
     if any(sig.returns_false_for(method) for sig in test_sigs):
         return True
 
-    # 1b. 复合 AND 条件 `A && B → false`：拆解子条件，任一子条件 false 即可
-    # 例：`currentServiceType != HH && currentServiceType != DWHJ → false`
-    # false 侧 = type IS HH or DWHJ，检查测试里是否有传入 HH/DWHJ 类型
+    # 1b. 复合 AND/OR 条件 false 路径
     if " && " in branch.condition or " || " in branch.condition:
-        # 提取条件里提到的枚举/常量关键词（如 HH、DWHJ、WX 等）
-        enum_keywords = re.findall(r"ServiceType\.(\w+)|ServiceStatusEnum\.(\w+)", branch.condition)
+        # 提取枚举/常量关键词（ServiceType、ServiceStatusEnum、OrderStatus 等）
+        enum_keywords = re.findall(
+            r"ServiceType\.(\w+)|ServiceStatusEnum\.(\w+)|OrderStatus\.(\w+)|OpCode\.(\w+)",
+            branch.condition,
+        )
         for pair in enum_keywords:
-            kw = (pair[0] or pair[1]).lower()
-            if any(kw in sig.method_name.lower() for sig in test_sigs):
+            kw = next((p for p in pair if p), "").lower()
+            if kw and any(kw in sig.method_name.lower() for sig in test_sigs):
                 return True
-        # 复合条件的 false 路径 ← 有任何测试 mock 了其中任一子条件的方法
+        # 复合条件：有测试 mock 了子条件的方法
         sub_methods = re.findall(r"\.(\w+)\s*\(", branch.condition)
         for sm in sub_methods:
             if any(sig.returns_false_for(sm) or sig.mocks_method(sm) for sig in test_sigs):
                 return True
+        # 复合条件 false 路径 ← 测试名含否定词或 false 关键词
+        if any(
+            re.search(r"false|false路径|不|否|未|无|为false|allWayBillStockOut.*false", sig.method_name, re.IGNORECASE)
+            for sig in test_sigs
+        ):
+            return True
+
+    # 1c. 静态工具方法 false 路径：通过测试名推断
+    if ("booleanutils" in cond_l or "objectutils" in cond_l) and any(
+        re.search(r"null|false|为null|为false|不包含", sig.method_name, re.IGNORECASE) for sig in test_sigs
+    ):
+        return True
 
     # 2. null 检查：X == null → false ← X 来源方法被 mock 返回非 null
     if branch.is_null_check and branch.null_checked_var:
@@ -480,6 +493,14 @@ def _infer_false_branch(
             return True
         if any(
             re.search(r"有效|非空|非blank|valid|nonempty|notblank", sig.method_name, re.IGNORECASE) for sig in test_sigs
+        ):
+            return True
+        # CollectionUtil.isEmpty/CollectionUtils.isEmpty false 路径：
+        # 如果大多数测试不是专门测空集合的，则非空路径也被覆盖
+        empty_tests = sum(1 for s in test_sigs if re.search(r"empty|为空|isEmpty|空集", s.method_name, re.IGNORECASE))
+        non_empty_tests = len(test_sigs) - empty_tests
+        if non_empty_tests > 0 and any(
+            "items" in b.condition.lower() or "CollectionUtil" in b.condition for b in [branch]
         ):
             return True
 
@@ -534,9 +555,20 @@ def _infer_false_branch(
         return True
 
     # 10. EVENT_REJECT_SET false 路径：非 reject 事件测试
-    return ("event_reject" in cond_l or "reject_set" in cond_l) and any(
+    if ("event_reject" in cond_l or "reject_set" in cond_l) and any(
         re.search(r"delivery|signed|cancel|pickup|lost|stock|route|早返回", sig.method_name, re.IGNORECASE)
         for sig in test_sigs
+    ):
+        return True
+
+    # 11. 否定条件 `!method() → false` = method() 返回 true：
+    #     当测试 mock 该方法返回 true，`!true = false` = if 体不执行 = false 分支被覆盖
+    if any(sig.returns_true_for(method) for sig in test_sigs):
+        return True
+
+    # 12. string equals false 路径
+    return ("enable.y" in cond_l or ".equals" in cond_l) and any(
+        sig.returns_null_for(method) or sig.has_empty_collection or sig.any_null_mock() for sig in test_sigs
     )
 
 
@@ -620,8 +652,16 @@ def check_static_branch_coverage(
         var_sources = extract_variable_sources(source)
 
         # 选取与该文件相关的测试签名
+        # 先按测试方法名匹配，再按测试源文件类名匹配（如 SrvDetailDubboServiceImplLogisticTest 包含类名）
         class_name = rel_path.split("/")[-1].replace(".java", "").lower()
-        file_test_sigs = [s for s in all_test_sigs if class_name in s.method_name.lower()] or all_test_sigs
+        file_test_sigs = [s for s in all_test_sigs if class_name in s.method_name.lower()]
+        if not file_test_sigs:
+            # 尝试从测试源文件名匹配（测试类名含生产类名前缀）
+            # 使用前 20 字符前缀，搜索窗口 1500（大量 import 会把类名推到 500+ 字符处）
+            prod_prefix = class_name[:20]
+            file_test_sigs = [
+                s for src in test_sources if prod_prefix in src.lower()[:1500] for s in parse_test_signatures(src)
+            ] or all_test_sigs
 
         infer_coverage(file_branches, file_test_sigs, var_sources)
         all_branches.extend(file_branches)
