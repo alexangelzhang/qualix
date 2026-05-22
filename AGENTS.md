@@ -176,6 +176,7 @@ Finalize 后自动跑一次 `guard_precision_report`，汇总到 `docs/system-he
 **JSON 操作**
 - 读: `json_utils.load_json(path)` / `load_json_strict(path)`
 - 写: `json_utils.save_json(path, data)`
+- 关键状态文件（state.json 等）写入用 `json_utils.save_json_atomic(path, data)`（mktemp + os.replace，crash 不损坏目标文件）
 - 禁止裸写 `json.loads` / `json.dumps`
 
 **异常处理**

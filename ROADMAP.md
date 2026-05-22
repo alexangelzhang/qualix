@@ -846,4 +846,18 @@ VAF（`~/git_dev/vibe-agentic-flow`）没发 PyPI 但通过 `install.sh + ~/.vcb
 | Git Worktree 隔离 | Q05/Q07 需要代码仓库时 | 每个并行 Phase 在独立 worktree 执行，避免代码文件冲突 |
 | Agent Teams 集成 | Claude Code Agent Teams GA 后 | 替代手动多 SubAgent 派发，用 Team Lead + Teammate 模型 |
 
-*最后更新：2026-04-25*
+*最后更新：2026-05-22*
+
+---
+
+## 10. 基础设施加固（2026-05-22 落地）
+
+借鉴 autoresearch hardness engineering 模式，对核心执行路径做五项加固：
+
+| 项目 | 说明 |
+|------|------|
+| `save_json_atomic` | `json_utils` 新增原子写入（mktemp + os.replace）；`save_state()` 改用，crash 不损坏 state.json |
+| Judge sentinel fallback | JSON 解析失败时检查 raw_output 末 5 行的 `DQG_VERDICT:PASS/FAIL`；rubric 末尾注入 sentinel 指令 |
+| `write_planning_snapshot` | `approve_phase` 成功后将主产物冻结到 `_internal/planning_snapshot_<phase_id>.json`，下游只读 snapshot |
+| Q06 编译预检 | `runtime_execute` 在 handler 前跑 `mvn test-compile`；编译失败直接返回，跳过 LLM |
+| AnthropicBackend 429 重试 | 捕获 `RateLimitError`，指数退避 60s→120s 最多 2 次重试 |

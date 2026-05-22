@@ -6,7 +6,10 @@ json.dumps(..., ensure_ascii=False, indent=2) 的重复模式。
 
 from __future__ import annotations
 
+import contextlib
 import json
+import os
+import tempfile
 from pathlib import Path
 from typing import Any
 
@@ -46,6 +49,25 @@ def save_json(path: Path, data: Any, *, indent: int = 2, sort_keys: bool = False
         json.dumps(data, ensure_ascii=False, indent=indent, sort_keys=sort_keys),
         encoding="utf-8",
     )
+
+
+def save_json_atomic(path: Path, data: Any, *, indent: int = 2, sort_keys: bool = False) -> None:
+    """原子写入 JSON 文件：mktemp → json.dumps → os.replace().
+
+    在同一目录创建临时文件确保 os.replace() 是同文件系统的原子操作。
+    进程中途 crash 只丢临时文件，不损坏目标文件。
+    """
+    path.parent.mkdir(parents=True, exist_ok=True)
+    content = json.dumps(data, ensure_ascii=False, indent=indent, sort_keys=sort_keys)
+    fd, tmp_path = tempfile.mkstemp(dir=path.parent, suffix=".tmp")
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            f.write(content)
+        os.replace(tmp_path, path)
+    except Exception:
+        with contextlib.suppress(OSError):
+            os.unlink(tmp_path)
+        raise
 
 
 def dump_json_str(data: Any, *, indent: int | None = 2, sort_keys: bool = False) -> str:

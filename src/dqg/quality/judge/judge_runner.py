@@ -18,6 +18,13 @@ from dqg.log import get_logger
 
 log = get_logger(__name__)
 
+# 当 JSON 结构化输出失败时，要求 LLM 在最后一行写 sentinel 以保留 pass/fail 信号
+_SENTINEL_INSTRUCTION: Final[str] = (
+    "\n\n---\n"
+    "**FALLBACK**: If JSON output fails for any reason, output ONLY one of these lines as the very last line:\n"
+    "`DQG_VERDICT:PASS` or `DQG_VERDICT:FAIL`"
+)
+
 JUDGE_RESPONSE_SCHEMA: Final[dict[str, Any]] = {
     "verdict": "PASS | FAIL | PASS_WITH_CONCERNS",
     "overall": "1-5 float",
@@ -41,6 +48,19 @@ class JudgeResult:
     token_usage: dict[str, int] = field(default_factory=dict)
     failing_dimensions: list[str] = field(default_factory=list)  # 触发 fail_threshold 的维度 ID
     _schema_version: int = 1
+
+
+def _extract_sentinel_verdict(raw_output: str) -> str | None:
+    """检查 raw_output 最后 5 个非空行是否含 DQG_VERDICT sentinel."""
+    if not raw_output:
+        return None
+    last_lines = [ln.strip() for ln in raw_output.splitlines() if ln.strip()][-5:]
+    for line in last_lines:
+        if line == "DQG_VERDICT:PASS":
+            return "PASS"
+        if line == "DQG_VERDICT:FAIL":
+            return "FAIL"
+    return None
 
 
 class JudgeRunner:
@@ -75,6 +95,17 @@ class JudgeRunner:
         Wire-compatible: existing consumers可不传 rubric_dims，行为保持不变。
         """
         if not raw or (not raw.get("overall") and not raw.get("overall_score")):
+            sentinel = _extract_sentinel_verdict(raw_output)
+            if sentinel:
+                log.info("Judge JSON parse failed, sentinel fallback: %s", sentinel)
+                return JudgeResult(
+                    overall_score=0.0,
+                    verdict=sentinel,
+                    dimensions=[],
+                    issues=[],
+                    raw_output=raw_output,
+                    health="SENTINEL_FALLBACK",
+                )
             return JudgeResult(
                 overall_score=0,
                 verdict="FAIL",
@@ -147,7 +178,7 @@ class JudgeRunner:
             if len(report_content) > 15000:
                 report_content = report_content[:15000] + "\n...(truncated)"
 
-        rubric_text = rubric
+        rubric_text = rubric + _SENTINEL_INSTRUCTION
         if warning_override:
             rubric_text += f"\n\n{warning_override}"
 
