@@ -9,9 +9,104 @@ from dqg.core.state_machine import PHASE_DEFS
 from dqg.core.state_machine import phase_dir as _phase_dir
 
 
+def _judge_replay(output_dir: Path, project_id: str, phase_id: str, model: str | None) -> dict:
+    """重跑 Judge 并与历史 _judge_iter*.json 对比，返回 drift 报告."""
+    from dqg.constants import DEFAULT_FALLBACK_MODEL, DEFAULT_JUDGE_MODEL, REPORT_MAP
+    from dqg.json_utils import load_json
+    from dqg.quality.judge import build_judge_prompt
+    from dqg.quality.judge.judge_runner import JudgeRunner
+
+    phase_def = PHASE_DEFS.get(phase_id, {})
+    pd = _phase_dir(output_dir, project_id, phase_def)
+
+    # 读所有历史迭代日志，取最高 N 轮作为"历史基准"
+    iter_files = sorted(pd.glob("_judge_iter*.json"), key=lambda p: p.name)
+    if not iter_files:
+        return {"error": f"No _judge_iter*.json found in {pd}", "drift_status": "NO_HISTORY"}
+
+    historical = load_json(iter_files[-1]) or {}
+    hist_consensus = historical.get("consensus", "UNKNOWN")
+    hist_avg_score = float(historical.get("avg_score", 0.0))
+    hist_iter = historical.get("iteration", len(iter_files))
+
+    report_file = REPORT_MAP.get(phase_id)
+    if not report_file:
+        return {"error": f"No REPORT_MAP entry for {phase_id}", "drift_status": "NO_HISTORY"}
+    report_path = pd / report_file
+    if not report_path.exists():
+        return {"error": f"Report not found: {report_path}", "drift_status": "NO_HISTORY"}
+
+    judge_build = build_judge_prompt(output_dir, project_id, phase_id)
+    rubric = judge_build.prompt if judge_build else ""
+
+    runner = JudgeRunner()
+    result = runner.run(
+        phase=phase_id,
+        report_path=str(report_path),
+        output_dir=str(output_dir),
+        model=model or DEFAULT_JUDGE_MODEL,
+        fallback=DEFAULT_FALLBACK_MODEL,
+        rubric=rubric,
+    )
+
+    new_verdict = result.verdict
+    new_score = result.overall_score
+    was_pass = hist_consensus in ("PASS", "PASS_WITH_CONCERNS")
+    is_pass = new_verdict in ("PASS", "PASS_WITH_CONCERNS")
+    score_drift = abs(new_score - hist_avg_score)
+
+    if was_pass and not is_pass:
+        drift_status = "REGRESSION"
+    elif not was_pass and is_pass:
+        drift_status = "IMPROVEMENT"
+    elif score_drift >= 0.5:
+        drift_status = "DRIFT"
+    else:
+        drift_status = "MATCH"
+
+    return {
+        "phase": phase_id,
+        "historical": {"iteration": hist_iter, "consensus": hist_consensus, "avg_score": round(hist_avg_score, 2)},
+        "current": {"verdict": new_verdict, "score": round(new_score, 2), "model": result.model},
+        "score_drift": round(score_drift, 2),
+        "drift_status": drift_status,
+    }
+
+
 def cmd_judge(args, output_dir: Path) -> int:
     from dqg.commands.cli_json import cli_envelope, cli_json_mode, print_cli_json
     from dqg.quality.judge import format_judge_summary, load_judge_result, write_judge_prompt
+
+    # --replay 模式：重跑 Judge，检测 rubric/harness 漂移
+    if getattr(args, "replay", False):
+        model = getattr(args, "model", None)
+        replay_result = _judge_replay(output_dir, args.project_id, args.phase, model)
+        drift_status = replay_result.get("drift_status", "UNKNOWN")
+        exit_code = 1 if drift_status == "REGRESSION" else 0
+        if cli_json_mode(args):
+            print_cli_json(
+                cli_envelope(
+                    command="judge",
+                    project_id=args.project_id,
+                    success=exit_code == 0,
+                    exit_code=exit_code,
+                    phase_id=args.phase,
+                    extra={"replay": replay_result},
+                )
+            )
+        else:
+            ds = replay_result.get("drift_status", "UNKNOWN")
+            hist = replay_result.get("historical", {})
+            curr = replay_result.get("current", {})
+            icon = {"MATCH": "✅", "DRIFT": "⚠️", "REGRESSION": "🚨", "IMPROVEMENT": "📈"}.get(ds, "❓")
+            print(f"\n  {icon} Judge Replay — {args.phase}: {ds}")
+            if "error" in replay_result:
+                print(f"  {replay_result['error']}")
+            else:
+                print(f"  历史: iter{hist.get('iteration')} {hist.get('consensus')} {hist.get('avg_score')}/5")
+                print(f"  当前: {curr.get('verdict')} {curr.get('score')}/5 ({curr.get('model')})")
+                print(f"  分数漂移: {replay_result.get('score_drift')}")
+        return exit_code
 
     result = load_judge_result(output_dir, args.project_id, args.phase)
     if result:

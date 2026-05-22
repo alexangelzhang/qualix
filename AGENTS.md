@@ -19,7 +19,7 @@ dqg                              # 全局命令
 
 dqg-run <project_id>             # 项目命令
 ├── phase:   execute / finalize / approve / skip / reset / auto / dag
-├── review:  judge / critique / preference / golden
+├── review:  judge [--replay] / critique / preference / golden
 ├── query:   status / next / detail / log / startup
 ├── ops:     metrics / observe / regression
 ├── tools:   wiki-compile / wiki-lint / orchestrate / cache
@@ -266,6 +266,14 @@ Finalize 后自动跑一次 `guard_precision_report`，汇总到 `docs/system-he
 | 汇总层 | `gate_verdict.py` (GateVerdict) | 所有检查结果汇入 `_gate_verdict.json`，HARD/SOFT 二级分类，approve 统一读取；`upstream_hashes` 记录上游产物 MD5，`is_stale()` 检测变更，startup 时 pending_review Phase 自动标注 stale | finalize 末尾自动构建，approve 时读取决策，startup 时检测 stale |
 | 第三层 | `git_safety_guard.py` (PreToolUse hook) | git push/force push/--no-verify 拦截 | 每次 Bash 调用前 |
 | 第三层 | `completion_gate.py` (Stop hook) | git clean/文档同步/goal-tracker | 响应结束前 |
+| pre-commit | `harness-regression` hook | harness 文件变更时自动运行 regression/cases/ 套件，有回归则阻断提交 | git commit 时 |
+
+## Harness 工具
+
+| 命令 | 用途 |
+|------|------|
+| `dqg-run <pid> judge <phase> --replay` | 重跑 Judge（当前 rubric），与历史 `_judge_iter*.json` 对比，输出 MATCH/DRIFT/REGRESSION/IMPROVEMENT |
+| `python scripts/check_harness_regression.py` | 手动触发 harness regression 套件（无参数时自动读 git diff --cached） |
 
 ## 多平台支持
 

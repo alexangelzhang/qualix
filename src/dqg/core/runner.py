@@ -113,6 +113,12 @@ def _build_parser() -> argparse.ArgumentParser:
     # judge
     p_judge = sub.add_parser("judge", help="查看/触发 Phase 质量评审")
     p_judge.add_argument("phase", help="Phase ID")
+    p_judge.add_argument(
+        "--replay",
+        action="store_true",
+        help="重跑 Judge（当前 rubric）并与历史 _judge_iter*.json 对比，检测 harness 漂移",
+    )
+    p_judge.add_argument("--model", default=None, help="Judge 模型（--replay 时生效）")
 
     # critique
     p_critique = sub.add_parser("critique", help="Self-Critique: 自我批评并修正")
