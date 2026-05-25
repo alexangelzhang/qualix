@@ -13,6 +13,9 @@ import re
 from pathlib import Path
 
 from dqg.json_utils import dump_json_str
+from dqg.log import get_logger
+
+log = get_logger(__name__)
 
 
 def fix_common_json_issues(raw: str) -> str:
@@ -37,7 +40,7 @@ def fix_common_json_issues(raw: str) -> str:
                 json.loads(fixed)
                 return fixed
             except json.JSONDecodeError:
-                pass
+                log.debug("fix_common_json_issues: both parse attempts failed for %.60r", raw)
 
     return raw
 
