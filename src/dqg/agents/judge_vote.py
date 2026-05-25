@@ -73,6 +73,26 @@ def _write_hard_block_result(output_dir: Path, vote: JudgeVote, guard_result: An
         log.error("Failed to write HARD_BLOCK result: %s", e)
 
 
+def _get_dynamic_dim_generator(phase_id: str):
+    """返回该 Phase 的动态维度生成器，未注册则返回 None（懒加载避免循环依赖）。
+
+    扩展方式：先对目标 Phase 做回归 audit（找"整体高分但某维度为零"的案例），
+    确认存在加权平均稀释问题后，在此添加对应生成器。
+    当前仅 Q01 已有回归证据。
+
+    Future extension points（需先有 regression audit 证据才加）：
+      "Q03"  -> generate_q03_dynamic_dimensions  (failure_mode 域分析)
+      "Q05a" -> generate_q05a_dynamic_dimensions (断言强度域)
+      "Q05b" -> generate_q05b_dynamic_dimensions (断言强度域)
+      "Q06"  -> generate_q06_dynamic_dimensions  (COVERED 准确率域)
+    """
+    if phase_id == "Q01":
+        from dqg.quality.judge.dynamic_rubric import generate_dynamic_dimensions
+
+        return generate_dynamic_dimensions
+    return None
+
+
 def _run_single_judge(
     output_dir: Path,
     report_path: Path,
@@ -83,8 +103,9 @@ def _run_single_judge(
 ) -> JudgeVote | None:
     """Thin wrapper: delegates to JudgeRunner, handles round orchestration.
 
-    Q01 专用增强：自动从 report_path 推 project_id/phase_id，注入动态维度
-    让门限机制生效（任一维度 score<fail_threshold 会强制 verdict=FAIL）。
+    自动从 report_path 推 project_id/phase_id，通过 _get_dynamic_dim_generator
+    注入动态维度，让门限机制生效（任一维度 score<fail_threshold → verdict=FAIL）。
+    当前仅 Q01 注册了生成器；其他 Phase 待 regression audit 后按需扩展。
     """
     from dqg.quality.judge_runner import JudgeRunner
 
@@ -97,10 +118,9 @@ def _run_single_judge(
         phase_id = ""
         project_id = ""
 
-    if phase_id == "Q01" and project_id:
-        from dqg.quality.judge.dynamic_rubric import generate_dynamic_dimensions
-
-        rubric_dims = generate_dynamic_dimensions(output_dir, project_id, phase_id)
+    gen = _get_dynamic_dim_generator(phase_id)
+    if gen and project_id:
+        rubric_dims = gen(output_dir, project_id, phase_id)
 
     runner = JudgeRunner(rubric_dims=rubric_dims)
     result = runner.run(
