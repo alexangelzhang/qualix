@@ -17,3 +17,19 @@
 - **Do**: 示例文件放 `docs/examples/` 或在 AGENTS.md/ROADMAP.md 里以代码块形式说明格式；不要放 `.dqg/`
 - **Why**: `.dqg/` 在 .gitignore 里（存运行时状态和本地配置），git add 会报 ignored 错误
 - **Evidence**: `git add dev-quality-gate/.dqg/rule_overrides.yaml.example` 报 `The following paths are ignored by one of your .gitignore files`
+
+### BL-20260525-file-split-range-overlap
+
+- **Scope**: 任何用 Python extract(start, end) 脚本拆分大文件的场景
+- **Trigger**: 生成多个 extract() 调用时，其中某段的范围覆盖了另一段已有的范围
+- **Do**: 写完提取脚本后，用 `ast.parse()` 扫描输出文件，检查是否有重复的函数名（`Counter(funcs) > 1`）；拆分前先画出不重叠的行范围区间
+- **Why**: 两个 `extract(1436, 1581)` + `extract(1483, 1548)` 导致函数被重复定义（F811），ruff pre-commit 才发现
+- **Evidence**: _checks_production.py 里 `check_eut_then_phantom_methods` 出现两次，commit d0dd2cf7 之前的 ruff 报 F811
+
+### BL-20260525-constant-between-functions
+
+- **Scope**: 拆分包含散落在函数间的模块级常量的大 Python 文件
+- **Trigger**: 按行范围拆分，把某个函数移到 file_B，但该函数依赖的常量（如 `_INJECT_MOCKS_PATTERN` 在 L479）已经随另一个行范围去了 file_A
+- **Do**: 拆分后对每个子文件运行 `python -c "from module import *"` 不够，要用实际测试用例触发函数体内的 NameError；或先用静态分析找所有引用 `_UPPER_CASE` 名字但未在本文件定义/导入的情况
+- **Why**: import 阶段不报错，但函数调用时 NameError（常量是运行时绑定的名字）
+- **Evidence**: `_INJECT_MOCKS_PATTERN` 在 eut_basic.py（L479）但被 eut_alignment.py 里的 `_check_test_file_eut_reverse` 使用，import 通过、运行失败
