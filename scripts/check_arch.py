@@ -62,6 +62,15 @@ MAX_PACKAGE_FILES = 8
 
 SRC_ROOT = Path(__file__).resolve().parent.parent / "src" / "dqg"
 
+# 每条规则存在的原因（降低误报投诉，减少 --no-verify 冲动）
+_ARCH_WHY: dict[str, str] = {
+    "ARCH-001": "大文件容纳多个职责，难以阅读和单独测试——按功能域拆子模块",
+    "ARCH-002": "长函数通常隐含多个逻辑分支，难以单测——提取子函数表达意图",
+    "ARCH-003": "包内文件过多预示职责扩散——按功能域建子包，每子包单一关注点",
+    "ARCH-004a": "json_utils.load_json 带缓存和错误处理；裸 json.load 在文件不存在时抛难以追踪的异常",
+    "ARCH-005": "dqg.log 统一注入 project_id/phase 上下文；裸 import logging 的日志无法关联到具体执行的 Phase",
+}
+
 
 class Violation:
     def __init__(self, file: str, line: int, rule: str, message: str, *, blocking: bool = True):
@@ -70,10 +79,12 @@ class Violation:
         self.rule = rule
         self.message = message
         self.blocking = blocking  # False = WARNING（不阻塞提交）
+        self.why: str = _ARCH_WHY.get(rule, "")
 
     def __str__(self) -> str:
         tag = "ERROR" if self.blocking else "WARNING"
-        return f"{self.file}:{self.line}: [{self.rule}] {tag}: {self.message}"
+        base = f"{self.file}:{self.line}: [{self.rule}] {tag}: {self.message}"
+        return f"{base}\n    ↳ 原因: {self.why}" if self.why else base
 
 
 def check_file_lines(path: Path, rel: str) -> list[Violation]:

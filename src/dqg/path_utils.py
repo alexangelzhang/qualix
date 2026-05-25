@@ -46,6 +46,7 @@ def resolve_context_files(phase_dir: Path) -> list[Path]:
     统一兼容旧布局（Phase 根目录）和新布局（_internal/、ingest/）。
     """
     file_specs: tuple[tuple[str, tuple[str, ...]], ...] = (
+        ("_phase_map.md", ("_internal",)),  # phase-map 置首：aider repo-map 思路，先建全局感知
         ("_upstream_context.md", ("_internal",)),
         ("_profile_context.md", ("_internal",)),
         ("_bug_cases.md", ("_internal",)),
@@ -65,7 +66,6 @@ def resolve_context_files(phase_dir: Path) -> list[Path]:
     return files
 
 
-
 def resolve_effective_context_files(phase_dir: Path) -> list[Path]:
     """返回去重后的有效上下文文件列表。
 
@@ -75,7 +75,7 @@ def resolve_effective_context_files(phase_dir: Path) -> list[Path]:
     """
     files = resolve_context_files(phase_dir)
     names = {path.name for path in files}
-    if '_upstream_context.md' not in names:
+    if "_upstream_context.md" not in names:
         return files
 
     duplicated_side_files = set(UPSTREAM_EMBEDDED_CONTEXT_FILES)

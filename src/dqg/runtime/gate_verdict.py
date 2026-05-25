@@ -32,6 +32,61 @@ class CheckItem:
     level: Literal["HARD", "SOFT"]  # HARD 不可绕过，SOFT 可 --force
     message: str = ""
     details: dict[str, Any] = field(default_factory=dict)
+    why: str = ""  # 这条规则存在的原因（降低误报投诉和 --force 冲动）
+    evidence: str = ""  # 正确做法示例
+
+
+# 静态 why 注册表：(source, name) → why / evidence
+# 优先查精确 (source, name)，找不到退回 (source, "*")
+_WHY_REGISTRY: dict[tuple[str, str], dict[str, str]] = {
+    ("schema", "schema_validation"): {
+        "why": "结构化 JSON 字段违反 Pydantic 约束；下游 Phase 读取时会解析失败，导致审计结果无法追溯",
+        "evidence": "缺少必填字段 / 字段类型错误 / enum 值不在允许范围内",
+    },
+    ("guardrail", "semantic_guardrail"): {
+        "why": "报告含泛化描述或幻觉内容，无法作为可验证证据；下游门禁依赖此报告做决策",
+        "evidence": "坏: '系统整体设计合理'  好: '类 X.method() 缺少空指针断言，见 L42'",
+    },
+    ("guardrail", "rationalization_guard"): {
+        "why": "Judge 评分被合理化稀释，导致低质量产物通过门禁",
+        "evidence": "检测到: '虽然...但', '总体来说', '可以接受' 等规避表达",
+    },
+    ("guardrail", "fabrication_detector"): {
+        "why": "报告中引用了不存在的类/方法/行号（幻觉输出），会直接误导开发者",
+        "evidence": "坏: 'MockService.verify() L88'（实际无此方法）  好: '[来源: OrderService.java:88]'",
+    },
+    ("handler", "critique_closure"): {
+        "why": "Judge+Critique 双轨制是质量闭环核心；仅有 Judge 会漏掉其盲区",
+        "evidence": "_critique.json 不存在，说明 Critique agent 未完成或未触发",
+    },
+    ("handler", "flow_integrity"): {
+        "why": "产物 core_arrays 为空时下游 Phase 审计结论无数据支撑",
+        "evidence": "audit_items / semantic_expectations 等数组为空，检查 worker 是否输出了结构化 JSON",
+    },
+    ("phase_constraints", "*"): {
+        "why": "Phase 业务指标不达标；达标线来自 phase_registry 配置，代表最低可接受质量",
+        "evidence": "运行 dqg-run spec --phase <phase_id> --json 查看 contract.hard_checks 确认阈值",
+    },
+    ("language", "*"): {
+        "why": "代码在 LLM 审计前必须可编译；编译失败的代码无法产生有意义的覆盖率分析",
+        "evidence": "运行 mvn test-compile（Java）修复编译错误后重新 execute",
+    },
+    ("schema", "*"): {
+        "why": "产物 JSON 不符合 Phase schema 约束，下游消费方无法正确解析",
+        "evidence": "运行 dqg-run spec --phase <phase_id> --json 查看 json_schema 字段要求",
+    },
+}
+
+
+def _enrich_why(item: CheckItem) -> CheckItem:
+    """用 _WHY_REGISTRY 填充 CheckItem 的 why/evidence（已有值则不覆盖）."""
+    if item.why:
+        return item
+    entry = _WHY_REGISTRY.get((item.source, item.name)) or _WHY_REGISTRY.get((item.source, "*"))
+    if entry:
+        item.why = entry.get("why", "")
+        item.evidence = entry.get("evidence", "")
+    return item
 
 
 @dataclass
@@ -185,6 +240,9 @@ def build_verdict(
                 details=v,
             )
         )
+
+    # 统一用 _WHY_REGISTRY 填充 why/evidence（不改已有值）
+    verdict.checks = [_enrich_why(c) for c in verdict.checks]
 
     return verdict
 

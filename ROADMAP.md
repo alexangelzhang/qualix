@@ -861,3 +861,13 @@ VAF（`~/git_dev/vibe-agentic-flow`）没发 PyPI 但通过 `install.sh + ~/.vcb
 | `write_planning_snapshot` | `approve_phase` 成功后将主产物冻结到 `_internal/planning_snapshot_<phase_id>.json`，下游只读 snapshot |
 | Q06 编译预检 | `runtime_execute` 在 handler 前跑 `mvn test-compile`；编译失败直接返回，跳过 LLM |
 | AnthropicBackend 429 重试 | 捕获 `RateLimitError`，指数退避 60s→120s 最多 2 次重试 |
+
+## 11. 规则自解释 + Phase-Map 注入（2026-05-25 落地）
+
+借鉴 secretlint opt-in 哲学和 aider repo-map 模式：
+
+| 项目 | 说明 |
+|------|------|
+| CheckItem why/evidence 字段 | `gate_verdict.py` CheckItem 新增 `why`/`evidence`；`_WHY_REGISTRY` 按 source 静态填充；降低误报投诉和 `--force` 冲动 |
+| check_arch.py why 输出 | ARCH-001~005 每条规则附 `↳ 原因:` 说明；`_ARCH_WHY` 静态注册表 |
+| Phase-Map 注入 | `context/phase_map.py` 为 Q01/Q05a/Q06 生成 ≤2KB 结构索引；`runtime_execute()` 写 `_internal/_phase_map.md`；`path_utils.resolve_context_files()` 置首，先于 `_upstream_context.md` 进入 Agent context |

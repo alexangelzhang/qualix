@@ -129,6 +129,15 @@ def runtime_execute(ctx: ExecutionContext) -> PhaseResult:
         profile=state.profile_id,
     )
 
+    # Phase-map 注入（aider repo-map 思路）：在全量 context 前先写入轻量结构索引
+    from dqg.context.phase_map import generate_phase_map
+
+    _map_text = generate_phase_map(ctx.output_dir, ctx.project_id, ctx.phase_id)
+    if _map_text and ctx.internal_dir:
+        ctx.internal_dir.mkdir(parents=True, exist_ok=True)
+        (ctx.internal_dir / "_phase_map.md").write_text(_map_text, encoding="utf-8")
+        log.info("Phase map written for %s (%d chars)", ctx.phase_id, len(_map_text))
+
     # 上下文加载
     loaded_ctx = load_context(ctx.output_dir, ctx.project_id, ctx.phase_id, ctx.model_name)
     if loaded_ctx.chunks:
