@@ -275,6 +275,22 @@ Finalize 后自动跑一次 `guard_precision_report`，汇总到 `docs/system-he
 | `dqg-run <pid> judge <phase> --replay` | 重跑 Judge（当前 rubric），与历史 `_judge_iter*.json` 对比，输出 MATCH/DRIFT/REGRESSION/IMPROVEMENT |
 | `python scripts/check_harness_regression.py` | 手动触发 harness regression 套件（无参数时自动读 git diff --cached） |
 
+## 项目级规则豁免（`.dqg/rule_overrides.yaml`）
+
+`.dqg/` 目录被 gitignore，创建此文件后不会进入版本控制（适合项目特殊约束）：
+
+```yaml
+# .dqg/rule_overrides.yaml
+disable:
+  - schema_validation    # 该项目产物使用 legacy 格式
+  - critique_closure     # 已有人工 review，不需要 Critique 闭环
+
+warn_only:
+  - semantic_guardrail   # 将 HARD block 降为 SOFT（允许 --force approve）
+```
+
+匹配规则：按 `CheckItem.name` 精确匹配（大小写不敏感）。可通过 `dqg-run <pid> finalize <phase> --json` 查看 `_gate_verdict.json` 中的 check name。
+
 ## 多平台支持
 
 | 工具 | 指令文件 |
