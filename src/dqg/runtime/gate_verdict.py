@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import hashlib
 from dataclasses import asdict, dataclass, field
+from dataclasses import replace as dc_replace
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any, Literal
 
@@ -153,7 +154,7 @@ class GateVerdict:
         return False
 
 
-def load_rule_overrides(base_dir: Path) -> dict[str, list[str]]:
+def load_rule_overrides(base_dir: Path) -> dict[str, set[str]]:
     """读取 <base_dir>/.dqg/rule_overrides.yaml 的项目级规则豁免配置.
 
     格式::
@@ -163,47 +164,47 @@ def load_rule_overrides(base_dir: Path) -> dict[str, list[str]]:
         warn_only:
           - semantic_guardrail     # HARD → SOFT 降级
 
+    返回 {key: set(lower-cased names)} 供 O(1) 查找。
     匹配策略：按 CheckItem.name 精确匹配（大小写不敏感）。
     """
+    import yaml
+
     override_path = base_dir / ".dqg" / "rule_overrides.yaml"
     if not override_path.exists():
         return {}
-    result: dict[str, list[str]] = {"disable": [], "warn_only": []}
     try:
-        current_key = ""
-        for line in override_path.read_text(encoding="utf-8").splitlines():
-            stripped = line.strip()
-            if stripped in ("disable:", "warn_only:"):
-                current_key = stripped[:-1]
-            elif current_key and stripped.startswith("- "):
-                value = stripped[2:].split("#")[0].strip().lower()
-                if value:
-                    result[current_key].append(value)
-            elif stripped and not stripped.startswith("#"):
-                current_key = ""
-    except OSError:
-        pass
-    return result
+        data = yaml.safe_load(override_path.read_text(encoding="utf-8"))
+        if not isinstance(data, dict):
+            return {}
+        return {
+            "disable": {s.lower() for s in data.get("disable", []) if isinstance(s, str)},
+            "warn_only": {s.lower() for s in data.get("warn_only", []) if isinstance(s, str)},
+        }
+    except Exception:
+        return {}
 
 
-def _apply_overrides(checks: list[CheckItem], overrides: dict[str, list[str]]) -> list[CheckItem]:
-    """把 rule_overrides 应用到 CheckItem 列表（仅对失败项生效）."""
+def _apply_overrides(checks: list[CheckItem], overrides: dict[str, set[str]]) -> list[CheckItem]:
+    """把 rule_overrides 应用到 CheckItem 列表（失败项降级/豁免）.
+
+    返回新列表；被豁免的项用 dataclasses.replace 生成副本，不修改原对象。
+    """
     if not overrides:
         return checks
-    disable_set = {s.lower() for s in overrides.get("disable", [])}
-    warn_only_set = {s.lower() for s in overrides.get("warn_only", [])}
+    disable_set = overrides.get("disable", set())
+    warn_only_set = overrides.get("warn_only", set())
+    result = []
     for item in checks:
-        name_lower = item.name.lower()
         if not item.passed:
+            name_lower = item.name.lower()
             if name_lower in disable_set:
-                item.passed = True
-                item.message = f"[project-override: disabled] {item.message}"
+                item = dc_replace(item, passed=True, message=f"[project-override: disabled] {item.message}")
                 log.info("GateVerdict override: disabled check %s", item.name)
             elif name_lower in warn_only_set and item.level == "HARD":
-                item.level = "SOFT"
-                item.message = f"[project-override: warn_only] {item.message}"
+                item = dc_replace(item, level="SOFT", message=f"[project-override: warn_only] {item.message}")
                 log.info("GateVerdict override: downgraded %s to SOFT", item.name)
-    return checks
+        result.append(item)
+    return result
 
 
 def build_verdict(
@@ -296,8 +297,8 @@ def build_verdict(
             )
         )
 
-    # 统一用 _WHY_REGISTRY 填充 why/evidence（不改已有值）
-    verdict.checks = [_enrich_why(c) for c in verdict.checks]
+    for c in verdict.checks:
+        _enrich_why(c)
 
     # 应用项目级 rule_overrides（disable/warn_only）
     if rule_overrides:

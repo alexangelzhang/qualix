@@ -40,6 +40,8 @@ def _parse_skill_frontmatter(skill_path: str) -> dict | None:
     """解析 SKILL.md 的 YAML frontmatter，返回 metadata 段（applies_to/hard_checks/evidence 等）."""
     from pathlib import Path
 
+    import yaml
+
     p = Path(skill_path)
     if not p.exists():
         return None
@@ -50,35 +52,8 @@ def _parse_skill_frontmatter(skill_path: str) -> dict | None:
         end = content.find("\n---", 3)
         if end == -1:
             return None
-        frontmatter_text = content[3:end].strip()
-
-        result: dict = {}
-        current_key = ""
-        in_metadata = False
-        for line in frontmatter_text.splitlines():
-            stripped = line.strip()
-            if stripped == "metadata:":
-                in_metadata = True
-                continue
-            if in_metadata:
-                if line and not line[0].isspace():
-                    in_metadata = False
-                    continue
-                if stripped.startswith("- "):
-                    value = stripped[2:].strip().strip("'\"")
-                    if current_key:
-                        result.setdefault(current_key, []).append(value)
-                elif ":" in stripped:
-                    k, _, v = stripped.partition(":")
-                    k = k.strip()
-                    v = v.strip().strip("'\"")
-                    current_key = k
-                    if v:
-                        if v.startswith("[") and v.endswith("]"):
-                            result[k] = [x.strip().strip("'\"") for x in v[1:-1].split(",")]
-                        else:
-                            result[k] = v
-        return result if result else None
+        fm = yaml.safe_load(content[3:end])
+        return fm.get("metadata") if isinstance(fm, dict) else None
     except Exception:
         return None
 

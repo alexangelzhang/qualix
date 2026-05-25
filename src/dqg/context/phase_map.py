@@ -15,7 +15,10 @@ from dqg.log import get_logger
 
 log = get_logger(__name__)
 
-# target_phase → 需要为哪些上游 Phase 生成 map
+# target_phase → 需要为哪些上游 Phase 生成索引摘要
+# 注意：这不等于 phase_registry.PHASE_DEFS[phase]["depends_on"]。
+# depends_on 表达"执行前置"，_UPSTREAM_MAP 表达"哪些上游产物对 worker 有参考价值"。
+# 例如 Q06 依赖 Q05b（直接前置），但 worker 需要的是 Q05a 的 EUT 矩阵和 Q01 的 SE 列表。
 _UPSTREAM_MAP: dict[str, list[str]] = {
     "Q04": ["Q01"],
     "Q05": ["Q01"],
