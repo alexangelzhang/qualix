@@ -871,3 +871,15 @@ VAF（`~/git_dev/vibe-agentic-flow`）没发 PyPI 但通过 `install.sh + ~/.vcb
 | CheckItem why/evidence 字段 | `gate_verdict.py` CheckItem 新增 `why`/`evidence`；`_WHY_REGISTRY` 按 source 静态填充；降低误报投诉和 `--force` 冲动 |
 | check_arch.py why 输出 | ARCH-001~005 每条规则附 `↳ 原因:` 说明；`_ARCH_WHY` 静态注册表 |
 | Phase-Map 注入 | `context/phase_map.py` 为 Q01/Q05a/Q06 生成 ≤2KB 结构索引；`runtime_execute()` 写 `_internal/_phase_map.md`；`path_utils.resolve_context_files()` 置首，先于 `_upstream_context.md` 进入 Agent context |
+| Phase-Map 增量更新 | mtime 检查：源 JSON 未变时跳过重新生成 |
+
+## 12. 规则治理完善（2026-05-25 落地）
+
+借鉴 secretlint opt-in 和 continue.dev 规则格式：
+
+| 项目 | 说明 |
+|------|------|
+| ironlaw YAML 元数据 | `~/.claude/scripts/ironlaw_rules.yaml` 存规则 why/enabled/opt_out；hook 启动时读取并 enrich reason 输出 |
+| ironlaw per-project opt-out | `.dqg/ironlaw_overrides.yaml` 的 disable 列表，opt_out: true 的规则可被项目级禁用 |
+| GateVerdict rule_overrides | `gate_verdict.build_verdict()` 加 `rule_overrides` 参数；`.dqg/rule_overrides.yaml` 定义 disable/warn_only 两级豁免 |
+| SKILL.md YAML frontmatter | `applies_to`/`hard_checks`/`evidence` 字段；`cmd_spec --phase` 输出中加 `skill_metadata` |

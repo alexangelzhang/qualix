@@ -8,6 +8,14 @@ metadata:
   phase: Q05a
   depends_on: [Q01]
   outputs: [eut_matrix.md, phase_b_structured.json, _reasoning_log.md]
+  applies_to: [Java, TypeScript]
+  hard_checks:
+    - 每条 EUT 的 then 字段必须包含具体断言（assertEquals/assertNotNull/verify 等）
+    - bound_se 必须指向真实存在的 SE-id（SE-001 格式）
+    - 每条 EUT 必须对应一个可执行的 Java/@Test 方法
+  evidence:
+    bad: "then: 验证接口正确返回"
+    good: "then: assertEquals(200, response.getStatus()) && assertNotNull(response.getOrderId())"
 allowed-tools:
   - Bash
   - Read

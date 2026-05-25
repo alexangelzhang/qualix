@@ -130,13 +130,36 @@ def runtime_execute(ctx: ExecutionContext) -> PhaseResult:
     )
 
     # Phase-map 注入（aider repo-map 思路）：在全量 context 前先写入轻量结构索引
-    from dqg.context.phase_map import generate_phase_map
+    # 增量更新：只有当源 JSON 比 _phase_map.md 新时才重新生成（Defer-A2）
+    from dqg.context.phase_map import _UPSTREAM_MAP, generate_phase_map
 
-    _map_text = generate_phase_map(ctx.output_dir, ctx.project_id, ctx.phase_id)
-    if _map_text and ctx.internal_dir:
-        ctx.internal_dir.mkdir(parents=True, exist_ok=True)
-        (ctx.internal_dir / "_phase_map.md").write_text(_map_text, encoding="utf-8")
-        log.info("Phase map written for %s (%d chars)", ctx.phase_id, len(_map_text))
+    _should_regenerate = True
+    if ctx.internal_dir:
+        _map_path = ctx.internal_dir / "_phase_map.md"
+        if _map_path.exists():
+            from dqg.constants import STRUCTURED_JSON_MAP
+
+            _map_mtime = _map_path.stat().st_mtime
+            _up_phases = _UPSTREAM_MAP.get(ctx.phase_id, [])
+            _any_newer = False
+            for _up in _up_phases:
+                _src_file = STRUCTURED_JSON_MAP.get(_up)
+                if _src_file:
+                    # 使用模块级 PHASE_DEFS / _phase_dir，避免 local import 导致 UnboundLocalError
+                    _src = _phase_dir(ctx.output_dir, ctx.project_id, PHASE_DEFS.get(_up, {})) / _src_file
+                    if _src.exists() and _src.stat().st_mtime > _map_mtime:
+                        _any_newer = True
+                        break
+            _should_regenerate = _any_newer
+            if not _should_regenerate:
+                log.debug("Phase map still fresh for %s, skipping regeneration", ctx.phase_id)
+
+    if _should_regenerate:
+        _map_text = generate_phase_map(ctx.output_dir, ctx.project_id, ctx.phase_id)
+        if _map_text and ctx.internal_dir:
+            ctx.internal_dir.mkdir(parents=True, exist_ok=True)
+            (ctx.internal_dir / "_phase_map.md").write_text(_map_text, encoding="utf-8")
+            log.info("Phase map written for %s (%d chars)", ctx.phase_id, len(_map_text))
 
     # 上下文加载
     loaded_ctx = load_context(ctx.output_dir, ctx.project_id, ctx.phase_id, ctx.model_name)
@@ -404,11 +427,14 @@ def runtime_finalize(ctx: ExecutionContext) -> PhaseResult:
             log.warning("Failed to persist guardrail results for %s", ctx.phase_id, exc_info=True)
 
     # GateVerdict: 汇总所有检查结果
-    from dqg.runtime.gate_verdict import build_verdict, save_verdict
+    from dqg.runtime.gate_verdict import build_verdict, load_rule_overrides, save_verdict
     from dqg.runtime.phase_contract import enforce_phase_constraints
 
     try:
         constraint_violations = enforce_phase_constraints(ctx.output_dir, ctx.project_id, ctx.phase_id)
+        # 项目根目录 = output_dir 的父目录（output_dir 形如 <project_root>/output）
+        _project_root = ctx.output_dir.parent
+        _rule_overrides = load_rule_overrides(_project_root)
         verdict = build_verdict(
             phase_id=ctx.phase_id,
             result=result,
@@ -416,6 +442,7 @@ def runtime_finalize(ctx: ExecutionContext) -> PhaseResult:
             constraint_violations=constraint_violations,
             schema_errors=ctx.shared.get("validation_errors"),
             upstream_hashes=upstream_hashes,
+            rule_overrides=_rule_overrides or None,
         )
         save_verdict(ctx.output_dir, ctx.project_id, ctx.phase_id, verdict)
         ctx.shared["gate_verdict"] = verdict.to_dict()

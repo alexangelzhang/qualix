@@ -36,6 +36,53 @@ def _phase_def_public(phase_id: str) -> dict[str, Any] | None:
     }
 
 
+def _parse_skill_frontmatter(skill_path: str) -> dict | None:
+    """解析 SKILL.md 的 YAML frontmatter，返回 metadata 段（applies_to/hard_checks/evidence 等）."""
+    from pathlib import Path
+
+    p = Path(skill_path)
+    if not p.exists():
+        return None
+    try:
+        content = p.read_text(encoding="utf-8")
+        if not content.startswith("---"):
+            return None
+        end = content.find("\n---", 3)
+        if end == -1:
+            return None
+        frontmatter_text = content[3:end].strip()
+
+        result: dict = {}
+        current_key = ""
+        in_metadata = False
+        for line in frontmatter_text.splitlines():
+            stripped = line.strip()
+            if stripped == "metadata:":
+                in_metadata = True
+                continue
+            if in_metadata:
+                if line and not line[0].isspace():
+                    in_metadata = False
+                    continue
+                if stripped.startswith("- "):
+                    value = stripped[2:].strip().strip("'\"")
+                    if current_key:
+                        result.setdefault(current_key, []).append(value)
+                elif ":" in stripped:
+                    k, _, v = stripped.partition(":")
+                    k = k.strip()
+                    v = v.strip().strip("'\"")
+                    current_key = k
+                    if v:
+                        if v.startswith("[") and v.endswith("]"):
+                            result[k] = [x.strip().strip("'\"") for x in v[1:-1].split(",")]
+                        else:
+                            result[k] = v
+        return result if result else None
+    except Exception:
+        return None
+
+
 def cmd_spec(args: Any, output_dir: Any) -> int:
     """输出单 Phase 规范：registry + contract + JSON Schema（纯只读，不写盘）。"""
     from pathlib import Path
@@ -82,6 +129,8 @@ def cmd_spec(args: Any, output_dir: Any) -> int:
 
     schema = json_schema_for_phase(phase_id)
 
+    skill_metadata = _parse_skill_frontmatter(skill_path) if skill_path else None
+
     print_cli_json(
         cli_envelope(
             command="spec",
@@ -93,6 +142,7 @@ def cmd_spec(args: Any, output_dir: Any) -> int:
                 "structured_json_filename": structured_name,
                 "report_filename": report_name,
                 "skill_file": skill_path,
+                "skill_metadata": skill_metadata,
                 "phase_registry": phase_def,
                 "json_schema": schema,
                 "contract": contract,

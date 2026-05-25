@@ -153,6 +153,59 @@ class GateVerdict:
         return False
 
 
+def load_rule_overrides(base_dir: Path) -> dict[str, list[str]]:
+    """读取 <base_dir>/.dqg/rule_overrides.yaml 的项目级规则豁免配置.
+
+    格式::
+
+        disable:
+          - schema_validation      # 完全豁免（passed=True）
+        warn_only:
+          - semantic_guardrail     # HARD → SOFT 降级
+
+    匹配策略：按 CheckItem.name 精确匹配（大小写不敏感）。
+    """
+    override_path = base_dir / ".dqg" / "rule_overrides.yaml"
+    if not override_path.exists():
+        return {}
+    result: dict[str, list[str]] = {"disable": [], "warn_only": []}
+    try:
+        current_key = ""
+        for line in override_path.read_text(encoding="utf-8").splitlines():
+            stripped = line.strip()
+            if stripped in ("disable:", "warn_only:"):
+                current_key = stripped[:-1]
+            elif current_key and stripped.startswith("- "):
+                value = stripped[2:].split("#")[0].strip().lower()
+                if value:
+                    result[current_key].append(value)
+            elif stripped and not stripped.startswith("#"):
+                current_key = ""
+    except OSError:
+        pass
+    return result
+
+
+def _apply_overrides(checks: list[CheckItem], overrides: dict[str, list[str]]) -> list[CheckItem]:
+    """把 rule_overrides 应用到 CheckItem 列表（仅对失败项生效）."""
+    if not overrides:
+        return checks
+    disable_set = {s.lower() for s in overrides.get("disable", [])}
+    warn_only_set = {s.lower() for s in overrides.get("warn_only", [])}
+    for item in checks:
+        name_lower = item.name.lower()
+        if not item.passed:
+            if name_lower in disable_set:
+                item.passed = True
+                item.message = f"[project-override: disabled] {item.message}"
+                log.info("GateVerdict override: disabled check %s", item.name)
+            elif name_lower in warn_only_set and item.level == "HARD":
+                item.level = "SOFT"
+                item.message = f"[project-override: warn_only] {item.message}"
+                log.info("GateVerdict override: downgraded %s to SOFT", item.name)
+    return checks
+
+
 def build_verdict(
     phase_id: str,
     result: PhaseResult,
@@ -160,6 +213,7 @@ def build_verdict(
     constraint_violations: list[dict[str, Any]] | None = None,
     schema_errors: list[str] | None = None,
     upstream_hashes: dict[str, str] | None = None,
+    rule_overrides: dict[str, list[str]] | None = None,
 ) -> GateVerdict:
     """从各检查源构建 GateVerdict.
 
@@ -170,6 +224,7 @@ def build_verdict(
         constraint_violations: enforce_phase_constraints() 返回值
         schema_errors: Schema validation errors（HARD 级别，不可 --force 绕过）
         upstream_hashes: 上游产物文件路径 → MD5 哈希（由 check_cross_phase_refs 提供）
+        rule_overrides: load_rule_overrides() 的结果，项目级豁免配置
     """
     verdict = GateVerdict(phase_id=phase_id)
     if upstream_hashes:
@@ -243,6 +298,10 @@ def build_verdict(
 
     # 统一用 _WHY_REGISTRY 填充 why/evidence（不改已有值）
     verdict.checks = [_enrich_why(c) for c in verdict.checks]
+
+    # 应用项目级 rule_overrides（disable/warn_only）
+    if rule_overrides:
+        verdict.checks = _apply_overrides(verdict.checks, rule_overrides)
 
     return verdict
 
