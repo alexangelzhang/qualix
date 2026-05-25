@@ -173,15 +173,23 @@ def load_rule_overrides(base_dir: Path) -> dict[str, set[str]]:
     if not override_path.exists():
         return {}
     try:
-        data = yaml.safe_load(override_path.read_text(encoding="utf-8"))
-        if not isinstance(data, dict):
-            return {}
-        return {
-            "disable": {s.lower() for s in data.get("disable", []) if isinstance(s, str)},
-            "warn_only": {s.lower() for s in data.get("warn_only", []) if isinstance(s, str)},
-        }
-    except Exception:
+        text = override_path.read_text(encoding="utf-8")
+    except OSError as e:
+        log.warning("load_rule_overrides: cannot read %s: %s", override_path, e)
         return {}
+    try:
+        data = yaml.safe_load(text)
+    except yaml.YAMLError as e:
+        # 格式错误不能静默：豁免规则全部失效会导致 HARD check 意外阻断
+        raise RuntimeError(
+            f"rule_overrides.yaml 解析失败，豁免规则已全部失效。\n请检查 {override_path} 的 YAML 语法。\n原因: {e}"
+        ) from e
+    if not isinstance(data, dict):
+        return {}
+    return {
+        "disable": {s.lower() for s in data.get("disable", []) if isinstance(s, str)},
+        "warn_only": {s.lower() for s in data.get("warn_only", []) if isinstance(s, str)},
+    }
 
 
 def _apply_overrides(checks: list[CheckItem], overrides: dict[str, set[str]]) -> list[CheckItem]:
@@ -214,7 +222,7 @@ def build_verdict(
     constraint_violations: list[dict[str, Any]] | None = None,
     schema_errors: list[str] | None = None,
     upstream_hashes: dict[str, str] | None = None,
-    rule_overrides: dict[str, list[str]] | None = None,
+    rule_overrides: dict[str, set[str]] | None = None,
 ) -> GateVerdict:
     """从各检查源构建 GateVerdict.
 
