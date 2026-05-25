@@ -23,11 +23,11 @@ from pathlib import Path
 LARGE_FILE_EXEMPTIONS: set[str] = {
     "agents/dag_scheduler.py",
     "media/parse_images.py",
-    "context/java_ast_analyzer.py",
+    "context/analysis/java_ast_analyzer.py",  # 已迁移到 analysis/ 子包
     "agents/llm_backends.py",
     "store/core.py",
     "core/cli.py",
-    "context/code_skeleton.py",
+    "context/analysis/code_skeleton.py",  # 已迁移到 analysis/ 子包
 }
 
 # 豁免列表：允许 import logging 的工具模块
