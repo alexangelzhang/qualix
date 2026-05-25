@@ -28,6 +28,7 @@ LARGE_FILE_EXEMPTIONS: set[str] = {
     "store/core.py",
     "core/cli.py",
     "context/analysis/code_skeleton.py",  # 已迁移到 analysis/ 子包
+    "quality/checks/_auto_checks_q01.py",  # Q01 专属检查，单一职责，459 行
 }
 
 # 豁免列表：允许 import logging 的工具模块
