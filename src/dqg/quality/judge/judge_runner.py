@@ -6,6 +6,7 @@ All modes produce the same canonical schema for downstream consumers.
 
 from __future__ import annotations
 
+import contextlib
 import time
 from dataclasses import dataclass, field
 from typing import Any, Final
@@ -18,11 +19,11 @@ from dqg.log import get_logger
 
 log = get_logger(__name__)
 
-# 当 JSON 结构化输出失败时，要求 LLM 在最后一行写 sentinel 以保留 pass/fail 信号
+# 当 JSON 结构化输出失败时，要求 LLM 在最后一行写 sentinel 以保留 pass/fail + score 信号
 _SENTINEL_INSTRUCTION: Final[str] = (
     "\n\n---\n"
     "**FALLBACK**: If JSON output fails for any reason, output ONLY one of these lines as the very last line:\n"
-    "`DQG_VERDICT:PASS` or `DQG_VERDICT:FAIL`"
+    "`DQG_VERDICT:PASS:X.X` or `DQG_VERDICT:FAIL:X.X` (where X.X is the overall score 1.0–5.0)"
 )
 
 JUDGE_RESPONSE_SCHEMA: Final[dict[str, Any]] = {
@@ -50,16 +51,24 @@ class JudgeResult:
     _schema_version: int = 1
 
 
-def _extract_sentinel_verdict(raw_output: str) -> str | None:
-    """检查 raw_output 最后 5 个非空行是否含 DQG_VERDICT sentinel."""
+def _extract_sentinel_verdict(raw_output: str) -> tuple[str, float] | None:
+    """检查 raw_output 最后 5 个非空行是否含 DQG_VERDICT sentinel.
+
+    支持带 score 格式（DQG_VERDICT:PASS:4.2）和无 score 旧格式（DQG_VERDICT:PASS）。
+    返回 (verdict, score) 或 None。
+    """
     if not raw_output:
         return None
     last_lines = [ln.strip() for ln in raw_output.splitlines() if ln.strip()][-5:]
     for line in last_lines:
-        if line == "DQG_VERDICT:PASS":
-            return "PASS"
-        if line == "DQG_VERDICT:FAIL":
-            return "FAIL"
+        for prefix, verdict in (("DQG_VERDICT:PASS", "PASS"), ("DQG_VERDICT:FAIL", "FAIL")):
+            if line.startswith(prefix):
+                parts = line.split(":")
+                score = 0.0
+                if len(parts) == 3:
+                    with contextlib.suppress(ValueError):
+                        score = float(parts[2])
+                return (verdict, score)
     return None
 
 
@@ -97,10 +106,11 @@ class JudgeRunner:
         if not raw or (not raw.get("overall") and not raw.get("overall_score")):
             sentinel = _extract_sentinel_verdict(raw_output)
             if sentinel:
-                log.info("Judge JSON parse failed, sentinel fallback: %s", sentinel)
+                s_verdict, s_score = sentinel
+                log.info("Judge JSON parse failed, sentinel fallback: %s score=%.1f", s_verdict, s_score)
                 return JudgeResult(
-                    overall_score=0.0,
-                    verdict=sentinel,
+                    overall_score=s_score,
+                    verdict=s_verdict,
                     dimensions=[],
                     issues=[],
                     raw_output=raw_output,

@@ -333,6 +333,52 @@ def handle_report_quality_checks(ctx: ExecutionContext, result: PhaseResult) -> 
     )
 
 
+def handle_session_failure_notes(ctx: ExecutionContext, result: PhaseResult) -> None:
+    """将本次执行产生的 warnings 追加到 failure-library 自动会话记录.
+
+    每次 finalize 后，若存在 warnings，追加到
+    ~/.dqg/regression/failure-library/<phase_id>/AUTO-session.md。
+    供下次执行前通过 bitlesson 检索历史踩坑。
+    """
+    from datetime import UTC, datetime
+
+    from dqg.tracking.regression import _failure_library_root
+
+    warnings = result.warnings
+    if not warnings:
+        return
+
+    phase_dir = _failure_library_root() / ctx.phase_id
+    phase_dir.mkdir(parents=True, exist_ok=True)
+    notes_path = phase_dir / "AUTO-session.md"
+
+    ts = datetime.now(UTC).strftime("%Y-%m-%d %H:%M UTC")
+    lines = [f"\n## {ts} — {ctx.project_id}", ""]
+    lines.extend(f"- {w}" for w in warnings)
+
+    with notes_path.open("a", encoding="utf-8") as f:
+        f.write("\n".join(lines) + "\n")
+
+    result.add_artifact("session_failure_notes", str(notes_path))
+
+
+def handle_results_tsv(ctx: ExecutionContext, result: PhaseResult) -> None:
+    """将本次 Phase 结果追加到 dqg-results.tsv（横向汇总，趋势分析用）."""
+    from datetime import UTC, datetime
+
+    judge_result = ctx.shared.get("judge_result")
+    score = judge_result.get("overall_score", "") if isinstance(judge_result, dict) else ""
+
+    ts = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+    tsv_path = ctx.output_dir.parent / "dqg-results.tsv"
+
+    if not tsv_path.exists():
+        tsv_path.write_text("project_id\tphase_id\tscore\ttimestamp\n", encoding="utf-8")
+
+    with tsv_path.open("a", encoding="utf-8") as f:
+        f.write(f"{ctx.project_id}\t{ctx.phase_id}\t{score}\t{ts}\n")
+
+
 def register_finalize_handlers() -> None:
     """注册所有 finalize 阶段的 handler."""
     # Group 1: 无依赖，可并行
@@ -390,3 +436,5 @@ def register_finalize_handlers() -> None:
         "score_calibration", handle_score_calibration, stage="finalize", order=95, depends_on=["quality_tracking"]
     )
     register_handler("eval_baseline", handle_eval_baseline, stage="finalize", order=98)
+    register_handler("results_tsv", handle_results_tsv, stage="finalize", order=99)
+    register_handler("session_failure_notes", handle_session_failure_notes, stage="finalize", order=100)
