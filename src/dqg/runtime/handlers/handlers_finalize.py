@@ -15,6 +15,54 @@ if TYPE_CHECKING:
     from dqg.runtime.result import PhaseResult
 
 
+class HardGateError(Exception):
+    """硬门禁失败：产物完整性或 schema 校验未通过，下游 judge 将被跳过."""
+
+
+def handle_hard_gate(ctx: ExecutionContext, result: PhaseResult) -> None:
+    """硬门禁：产物完整性 + Pydantic schema 校验，零 LLM。
+
+    通过：下游 review_chain/judge 正常执行。
+    失败：抛 HardGateError，gate=True 语义传播跳过所有下游。
+    """
+    from pydantic import ValidationError
+
+    from dqg.json_utils import load_json
+    from dqg.schemas.schema_export import structured_root_model
+    from dqg.text_utils import REPORT_MAP, STRUCTURED_JSON_MAP
+
+    errors: list[str] = []
+
+    # 1. 产物完整性：主结构化 JSON 和报告文件必须存在且非空
+    for fname_map in (STRUCTURED_JSON_MAP, REPORT_MAP):
+        fname = fname_map.get(ctx.phase_id)
+        if fname:
+            p = ctx.phase_root / fname
+            if not p.exists():
+                errors.append(f"[artifact] {fname} 不存在")
+            elif p.stat().st_size == 0:
+                errors.append(f"[artifact] {fname} 为空文件")
+
+    # 2. Pydantic schema 校验：只在结构化 JSON 存在时进行
+    json_fname = STRUCTURED_JSON_MAP.get(ctx.phase_id)
+    schema_cls = structured_root_model(ctx.phase_id)
+    if json_fname and schema_cls:
+        json_path = ctx.phase_root / json_fname
+        if json_path.exists() and json_path.stat().st_size > 0:
+            data = load_json(json_path)
+            try:
+                schema_cls.model_validate(data)
+            except ValidationError as ve:
+                for err in ve.errors()[:5]:
+                    loc = ".".join(str(x) for x in err["loc"])
+                    errors.append(f"[schema] {loc}: {err['msg']}")
+
+    if errors:
+        ctx.shared["hard_gate_failed"] = True
+        ctx.shared["hard_gate_errors"] = errors
+        raise HardGateError(f"{len(errors)} 项硬门禁失败，judge 将跳过:\n" + "\n".join(f"  • {e}" for e in errors))
+
+
 def handle_perf_metrics(ctx: ExecutionContext, result: PhaseResult) -> None:
     """收集并持久化性能指标."""
     from dqg.json_utils import save_json
@@ -401,6 +449,9 @@ def register_finalize_handlers() -> None:
 
     register_detection_handlers()
 
+    # 硬门禁：产物完整性 + schema 校验；失败时 gate=True 传播跳过 review_chain/judge
+    register_handler("hard_gate", handle_hard_gate, stage="finalize", order=58, required=True, gate=True)
+
     register_handler("profile_context_check", handle_profile_context_check, stage="finalize", order=60)
     register_handler(
         "requirement_graph",
@@ -412,9 +463,14 @@ def register_finalize_handlers() -> None:
     )
     register_handler("verification_bundle", handle_verification_bundle, stage="finalize", order=65)
     register_handler("facts_export", handle_facts_export, stage="finalize", order=66)
-    # Group 2: 依赖 memory_index
+    # Group 2: 依赖 memory_index + hard_gate（硬门禁通过后才生成 judge prompt）
     register_handler(
-        "review_chain", handle_review_chain, stage="finalize", order=70, depends_on=["memory_index"], required=True
+        "review_chain",
+        handle_review_chain,
+        stage="finalize",
+        order=70,
+        depends_on=["memory_index", "hard_gate"],
+        required=True,
     )
     # Group 2.5: 依赖 review_chain
     from .handlers_prompt_policy import handle_prompt_policy
