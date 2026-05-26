@@ -32,19 +32,18 @@ def handle_hard_gate(ctx: ExecutionContext, result: PhaseResult) -> None:
     from dqg.text_utils import REPORT_MAP, STRUCTURED_JSON_MAP
 
     errors: list[str] = []
+    json_fname = STRUCTURED_JSON_MAP.get(ctx.phase_id)
+    report_fname = REPORT_MAP.get(ctx.phase_id)
 
     # 1. 产物完整性：主结构化 JSON 和报告文件必须存在且非空
-    for fname_map in (STRUCTURED_JSON_MAP, REPORT_MAP):
-        fname = fname_map.get(ctx.phase_id)
-        if fname:
-            p = ctx.phase_root / fname
-            if not p.exists():
-                errors.append(f"[artifact] {fname} 不存在")
-            elif p.stat().st_size == 0:
-                errors.append(f"[artifact] {fname} 为空文件")
+    for fname in filter(None, (json_fname, report_fname)):
+        p = ctx.phase_root / fname
+        if not p.exists():
+            errors.append(f"[artifact] {fname} 不存在")
+        elif p.stat().st_size == 0:
+            errors.append(f"[artifact] {fname} 为空文件")
 
     # 2. Pydantic schema 校验：只在结构化 JSON 存在时进行
-    json_fname = STRUCTURED_JSON_MAP.get(ctx.phase_id)
     schema_cls = structured_root_model(ctx.phase_id)
     if json_fname and schema_cls:
         json_path = ctx.phase_root / json_fname
@@ -58,8 +57,6 @@ def handle_hard_gate(ctx: ExecutionContext, result: PhaseResult) -> None:
                     errors.append(f"[schema] {loc}: {err['msg']}")
 
     if errors:
-        ctx.shared["hard_gate_failed"] = True
-        ctx.shared["hard_gate_errors"] = errors
         raise HardGateError(f"{len(errors)} 项硬门禁失败，judge 将跳过:\n" + "\n".join(f"  • {e}" for e in errors))
 
 
