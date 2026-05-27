@@ -157,14 +157,20 @@ def analyze_data_patterns(phase: str | None = None) -> dict[str, Any]:
     raw_cases = load_cases_by_phase(phase) if phase else load_cases_by_phase("Q06")
     cases = [get_case_with_inferred_lesson(c) for c in raw_cases]
 
+    from dqg.constants import DATA_PATTERN_LESSON_MAX_CHARS, DATA_PATTERN_TOP_LESSONS
+
     pattern_counter: Counter = Counter()
     cases_by_pattern: dict[str, list[str]] = defaultdict(list)
+    lessons_by_pattern: dict[str, list[str]] = defaultdict(list)
 
     for case in cases:
         matched = match_data_patterns(case)
         for pid in matched:
             pattern_counter[pid] += 1
             cases_by_pattern[pid].append(case.get("case_id", ""))
+            lesson = (case.get("lesson") or "").strip()
+            if lesson:
+                lessons_by_pattern[pid].append(lesson[:DATA_PATTERN_LESSON_MAX_CHARS])
 
     top_patterns = []
     for pid, count in pattern_counter.most_common():
@@ -177,6 +183,7 @@ def analyze_data_patterns(phase: str | None = None) -> dict[str, Any]:
                     "count": count,
                     "suggestions": pattern_def["test_data_suggestions"],
                     "example_cases": cases_by_pattern[pid][:3],
+                    "top_lessons": list(dict.fromkeys(lessons_by_pattern[pid]))[:DATA_PATTERN_TOP_LESSONS],
                 }
             )
 
@@ -224,7 +231,7 @@ def write_data_patterns(
     Returns:
         写入的文件路径
     """
-    analysis = analyze_data_patterns("Q06")  # 始终从 Phase C 案例提取
+    analysis = analyze_data_patterns(phase_id)
     if not analysis["top_patterns"]:
         return None
 

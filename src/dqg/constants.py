@@ -415,4 +415,12 @@ IMAGE_SIZE_LIGHT_THRESHOLD = 50_000  # 50KB
 # 需要精读的图片类型关键词（流程图/状态机/架构图）
 IMAGE_DEEP_READ_KEYWORDS = ("流程", "状态", "架构", "时序", "ER", "拓扑", "flowchart", "state", "sequence")
 
+# ---------------------------------------------------------------------------
+# data_patterns sidecar
+# ---------------------------------------------------------------------------
+
+# 每个 pattern 保留的 lesson 原文数量及最大字符数
+DATA_PATTERN_TOP_LESSONS: int = 3
+DATA_PATTERN_LESSON_MAX_CHARS: int = 200
+
 # 枚举单一真源（T7）: `EnumSource` / `render_enum_contract_prefix` → `dqg.context.enum_contract`
