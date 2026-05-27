@@ -170,13 +170,13 @@ JUDGE_RUBRICS: Final[dict[str, dict[str, Any]]] = {
             {
                 "id": "audit_accuracy",
                 "name": "审计判定准确率",
-                "description": "COVERED/MISSING/WRONG_TARGET 的判定是否正确。注意：BUG_CASES 是历史失败案例（教学用途），不代表当前报告有同样问题；PARTIAL 附有技术说明（如'间接覆盖''无 class.method 映射'）属合法审计状态",
+                "description": "COVERED/MISSING/WRONG_TARGET 的判定是否正确。严禁从 BUG_CASES 历史案例推断当前报告存在同类问题——BUG_CASES 是已修正的历史错误，不是当前审计的缺陷；EUT ID 是否存在于 Q05 必须从实际文件验证，不能靠历史案例推断",
                 "weight": 0.35,
                 "rubric": {
-                    5: "所有审计状态判定正确，COVERED 确实有强断言，WRONG_TARGET 确实是弱断言，无漏报",
-                    4: "90%+ 判定正确，无明显弱断言漏报，PARTIAL 有充分技术理由，MISSING 仅限私有辅助方法或无法直接测试的场景——整体质量良好，应给 PASS_WITH_CONCERNS",
-                    3: "70-90% 正确，存在将 assertNotNull 判为 COVERED 的情况（已有漏报弱断言）",
-                    2: "多个判定错误，弱断言明显未被识别，覆盖率虚高",
+                    5: "所有审计状态判定正确，COVERED 确实有强断言，WRONG_TARGET 确实是弱断言，无漏报；EUT ID 引用验证充分",
+                    4: "90%+ 判定正确，无明显弱断言漏报，PARTIAL 有充分技术理由，MISSING 仅限私有辅助方法——整体质量良好，应给 PASS_WITH_CONCERNS；不能因 BUG_CASES 提到某 EUT ID 就推断当前报告存在 EUT ID 问题",
+                    3: "70-90% 正确，有可验证的弱断言漏报（assertNotNull 被误判为 COVERED，在报告文本和结构化字段中均无记录）",
+                    2: "多个判定错误，弱断言明显被判为 COVERED，覆盖率虚高",
                     1: "大面积判定错误，覆盖率严重虚高",
                 },
             },
