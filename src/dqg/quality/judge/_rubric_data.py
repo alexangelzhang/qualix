@@ -170,11 +170,11 @@ JUDGE_RUBRICS: Final[dict[str, dict[str, Any]]] = {
             {
                 "id": "audit_accuracy",
                 "name": "审计判定准确率",
-                "description": "COVERED/MISSING/WRONG_TARGET 的判定是否正确",
+                "description": "COVERED/MISSING/WRONG_TARGET 的判定是否正确。注意：BUG_CASES 是历史失败案例（教学用途），不代表当前报告有同样问题；PARTIAL 附有技术说明（如'间接覆盖''无 class.method 映射'）属合法审计状态",
                 "weight": 0.35,
                 "rubric": {
                     5: "所有审计状态判定正确，COVERED 确实有强断言，WRONG_TARGET 确实是弱断言，无漏报",
-                    4: "90%+ 判定正确，无明显弱断言漏报，个别边界 case 有争议——此分数说明整体审计质量良好，应给 PASS_WITH_CONCERNS",
+                    4: "90%+ 判定正确，无明显弱断言漏报，PARTIAL 有充分技术理由，MISSING 仅限私有辅助方法或无法直接测试的场景——整体质量良好，应给 PASS_WITH_CONCERNS",
                     3: "70-90% 正确，存在将 assertNotNull 判为 COVERED 的情况（已有漏报弱断言）",
                     2: "多个判定错误，弱断言明显未被识别，覆盖率虚高",
                     1: "大面积判定错误，覆盖率严重虚高",
@@ -196,13 +196,13 @@ JUDGE_RUBRICS: Final[dict[str, dict[str, Any]]] = {
             {
                 "id": "exception_branch",
                 "name": "异常分支覆盖",
-                "description": "T1 核心异常分支是否都有对应测试",
+                "description": "T1 核心公共业务方法的异常分支是否都有对应测试；私有辅助方法的 MISSING_DIRECT_TEST 不影响此维度",
                 "weight": 0.25,
                 "rubric": {
-                    5: "所有 T1 异常分支都有测试，断言验证异常类型（assertThrows）+业务状态不变+无脏数据；若项目无 T1 并发/幂等场景则不扣分",
-                    4: "T1 核心异常全部有测试，assertThrows 验证正确异常类型；少量测试缺少状态回滚三件套，但核心路径均覆盖——此分数说明异常覆盖充分，应给 PASS_WITH_CONCERNS",
-                    3: "主要 T1 异常有测试，但有 1-2 个 T1 核心异常分支（如非法状态跳转、版本冲突）缺少测试用例",
-                    2: "T1 核心异常测试明显缺失（3 个以上无测试），只有 happy path",
+                    5: "所有 T1 核心公共业务方法的异常分支都有测试，断言验证异常类型（assertThrows）+业务状态不变+无脏数据；若项目无 T1 并发/幂等场景则不扣分",
+                    4: "T1 核心公共业务方法的异常分支全部有测试，assertThrows 验证正确异常类型；私有辅助方法未直接测试不影响此维度评分——此分数说明异常覆盖充分，应给 PASS_WITH_CONCERNS",
+                    3: "主要 T1 公共业务方法有测试，但有 1-2 个 T1 核心公共方法（如非法状态跳转、版本冲突业务逻辑）缺少异常测试",
+                    2: "T1 核心公共业务方法的异常测试明显缺失（3 个以上公共方法无测试），只有 happy path",
                     1: "几乎无异常分支测试，或全是 happy path 无任何异常场景",
                 },
             },
