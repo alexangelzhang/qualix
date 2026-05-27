@@ -257,10 +257,31 @@ class AdaptiveLoop:
                 for v in record.judge_result.votes:
                     all_issues.extend(v.issues)
                 health = judge_health_check([record.judge_result])
+
+                # Worker 产出指纹：取结构化 JSON 前 2000 字符的 sha256
+                import hashlib as _hashlib
+
+                _worker_hash: str | None = None
+                _json_fname = STRUCTURED_JSON_MAP.get(phase_id)
+                if _json_fname:
+                    _json_path = pd / _json_fname
+                    if _json_path.exists():
+                        _raw = _json_path.read_text(encoding="utf-8", errors="replace")[:2000]
+                        _worker_hash = _hashlib.sha256(_raw.encode()).hexdigest()[:16]
+
+                # Judge 驳回签名：只在 FAIL 时计算 top-3 issue codes 的 hash
+                _rejection_sig: str | None = None
+                if not passed:
+                    _top_codes = sorted({(v.get("code") or v.get("dimension") or "") for v in all_issues if v})[:3]
+                    if _top_codes:
+                        _rejection_sig = _hashlib.sha256("|".join(_top_codes).encode()).hexdigest()[:16]
+
                 monitor.record_iteration(
                     avg_score=record.judge_result.avg_score,
                     issues=all_issues,
                     judge_health=health,
+                    worker_output_hash=_worker_hash,
+                    judge_rejection_sig=_rejection_sig,
                 )
 
             if passed:

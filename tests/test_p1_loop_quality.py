@@ -120,3 +120,46 @@ def test_pivot_snapshot_skips_missing_files(tmp_path):
     # No files exist — must not raise
     loop._save_pivot_snapshot(pd=pd, iteration_n=0, phase_id="Q99")
     # Just verifying no exception was raised
+
+
+# ---------------------------------------------------------------------------
+# Task 3: 退化检测增强（Worker 输出指纹 + Judge 驳回签名）
+# ---------------------------------------------------------------------------
+
+
+def test_loop_health_output_fingerprint_stagnation():
+    """Worker 连续 2 轮产出相同 hash → EARLY_STOP(output_fingerprint_stagnation)."""
+    from dqg.agents.loop_health import LoopHealthMonitor
+
+    monitor = LoopHealthMonitor()
+    monitor.record_iteration(avg_score=3.0, worker_output_hash="abc123")
+    monitor.record_iteration(avg_score=3.0, worker_output_hash="abc123")
+
+    result = monitor.check()
+    assert result.should_stop, "相同 Worker 输出应触发 EARLY_STOP"
+    assert result.status == "output_fingerprint_stagnation"
+
+
+def test_loop_health_rejection_sig_stagnation():
+    """Judge 连续 2 轮驳回签名相同 → EARLY_STOP(rejection_signature_stagnation)."""
+    from dqg.agents.loop_health import LoopHealthMonitor
+
+    monitor = LoopHealthMonitor()
+    monitor.record_iteration(avg_score=2.5, judge_rejection_sig="def456")
+    monitor.record_iteration(avg_score=2.6, judge_rejection_sig="def456")
+
+    result = monitor.check()
+    assert result.should_stop
+    assert result.status == "rejection_signature_stagnation"
+
+
+def test_loop_health_different_hashes_no_stop():
+    """Worker 输出 hash 不同时不应触发指纹停滞."""
+    from dqg.agents.loop_health import LoopHealthMonitor
+
+    monitor = LoopHealthMonitor()
+    monitor.record_iteration(avg_score=3.0, worker_output_hash="aaa111")
+    monitor.record_iteration(avg_score=3.2, worker_output_hash="bbb222")
+
+    result = monitor.check()
+    assert not result.should_stop, "不同 hash 不应触发停滞"
