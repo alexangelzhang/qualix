@@ -150,7 +150,7 @@ def analyze_data_patterns(phase: str | None = None) -> dict[str, Any]:
         {
             "total_cases": N,
             "pattern_distribution": {"DP-FIELD-MAPPING": 18, ...},
-            "top_patterns": [{"id": "...", "count": N, "suggestions": [...]}],
+            "top_patterns": [{"id": "...", "count": N, "suggestions": [...], "example_cases": ["case_id1", ...], "top_lessons": ["lesson text...", ...]}],
             "cases_by_pattern": {"DP-FIELD-MAPPING": ["case_id1", ...], ...},
         }
     """

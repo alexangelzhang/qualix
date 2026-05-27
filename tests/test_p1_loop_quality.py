@@ -7,9 +7,8 @@ from __future__ import annotations
 # ---------------------------------------------------------------------------
 
 
-def test_write_data_patterns_uses_phase_id():
+def test_write_data_patterns_uses_phase_id(tmp_path):
     """write_data_patterns 必须用 phase_id 调用 analyze_data_patterns，而非硬编码 'Q06'."""
-    from pathlib import Path
     from unittest.mock import patch as _patch
 
     from dqg.tracking.data_patterns import write_data_patterns
@@ -18,12 +17,20 @@ def test_write_data_patterns_uses_phase_id():
 
     def _fake_analyze(phase=None):
         captured_phase.append(phase)
-        return {"top_patterns": [], "total_cases": 0, "pattern_distribution": {}, "cases_by_pattern": {}}
+        return {
+            "top_patterns": [
+                {"id": "DP-X", "name": "测试", "count": 1, "suggestions": [], "example_cases": [], "top_lessons": []}
+            ],
+            "total_cases": 1,
+            "pattern_distribution": {"DP-X": 1},
+            "cases_by_pattern": {},
+        }
 
     with _patch("dqg.tracking.data_patterns.analyze_data_patterns", side_effect=_fake_analyze):
-        write_data_patterns(Path("/tmp"), "proj", "Q05")
+        result_path = write_data_patterns(tmp_path, "proj", "Q05")
 
     assert captured_phase == ["Q05"], f"Expected ['Q05'], got {captured_phase}"
+    assert result_path is not None, "write_data_patterns should return a path when patterns exist"
 
 
 def test_analyze_data_patterns_includes_top_lessons():
