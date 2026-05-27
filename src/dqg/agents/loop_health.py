@@ -22,7 +22,7 @@ class HealthCheckResult:
     """健康检查结果."""
 
     should_stop: bool = False
-    status: str = "ok"  # ok / score_stagnation / issue_repetition / infra_failure
+    status: str = "ok"  # ok / score_stagnation / issue_repetition / infra_failure / output_fingerprint_stagnation / rejection_signature_stagnation
     message: str = ""
 
 

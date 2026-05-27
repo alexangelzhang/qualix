@@ -203,6 +203,7 @@ class AdaptiveLoop:
             },
         )
         trace_run_id = uuid.uuid4().hex[:12]
+        import hashlib as _hashlib
 
         for i in range(max_iterations):
             record, passed, iter_llm_calls = self._execute_iteration(
@@ -259,8 +260,6 @@ class AdaptiveLoop:
                 health = judge_health_check([record.judge_result])
 
                 # Worker 产出指纹：取结构化 JSON 前 2000 字符的 sha256
-                import hashlib as _hashlib
-
                 _worker_hash: str | None = None
                 _json_fname = STRUCTURED_JSON_MAP.get(phase_id)
                 if _json_fname:
