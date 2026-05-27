@@ -18,6 +18,58 @@ if TYPE_CHECKING:
 log = get_logger(__name__)
 
 
+def _ensure_image_semantics_tokenized_column(conn: sqlite3.Connection) -> None:
+    """已有库补建 image_semantics.description_tokenized 列及关联触发器（幂等）.
+
+    旧库升级路径：
+    1. 加列
+    2. 重建触发器（DROP + CREATE，使用新列）
+    3. 回填 description_tokenized
+    4. 重建 FTS 索引
+    """
+    cols = {row[1] for row in conn.execute("PRAGMA table_info(image_semantics)")}
+    if "description_tokenized" in cols:
+        return
+
+    conn.execute("ALTER TABLE image_semantics ADD COLUMN description_tokenized TEXT DEFAULT ''")
+
+    conn.execute("DROP TRIGGER IF EXISTS img_sem_ai")
+    conn.execute("DROP TRIGGER IF EXISTS img_sem_au")
+    conn.execute(
+        """CREATE TRIGGER IF NOT EXISTS img_sem_ai AFTER INSERT ON image_semantics BEGIN
+            INSERT INTO image_semantics_fts(rowid, filename, description, related_reqs, mermaid_code, section_context)
+            VALUES (new.id, new.filename, new.description_tokenized, new.related_reqs, new.mermaid_code, new.section_context);
+        END;"""
+    )
+    conn.execute(
+        """CREATE TRIGGER IF NOT EXISTS img_sem_au AFTER UPDATE ON image_semantics BEGIN
+            INSERT INTO image_semantics_fts(image_semantics_fts, rowid, filename, description, related_reqs, mermaid_code, section_context)
+            VALUES ('delete', old.id, old.filename, old.description_tokenized, old.related_reqs, old.mermaid_code, old.section_context);
+            INSERT INTO image_semantics_fts(rowid, filename, description, related_reqs, mermaid_code, section_context)
+            VALUES (new.id, new.filename, new.description_tokenized, new.related_reqs, new.mermaid_code, new.section_context);
+        END;"""
+    )
+
+    try:
+        from dqg.text_utils import tokenize_chinese
+
+        rows = conn.execute(
+            "SELECT id, filename, description, related_reqs, mermaid_code, section_context FROM image_semantics"
+        ).fetchall()
+        for row in rows:
+            row_id, filename, desc, reqs, mermaid, section = row
+            tokenized = tokenize_chinese(f"{filename} {desc} {reqs} {mermaid} {section}")
+            conn.execute("UPDATE image_semantics SET description_tokenized=? WHERE id=?", (tokenized, row_id))
+            conn.execute(
+                "INSERT OR REPLACE INTO image_semantics_fts(rowid, filename, description, related_reqs, mermaid_code, section_context) VALUES (?, ?, ?, ?, ?, ?)",
+                (row_id, filename, tokenized, reqs, mermaid, section),
+            )
+    except Exception:
+        pass  # 回填失败不阻断启动，下次 save_image_semantic 写入正确值
+
+    log.info("image_semantics: description_tokenized column added and backfilled")
+
+
 def _ensure_feedback_trust_table(conn: sqlite3.Connection) -> None:
     """已有库补建 feedback_trust（CREATE IF NOT EXISTS 幂等）."""
     conn.execute(
@@ -293,6 +345,7 @@ CREATE TABLE IF NOT EXISTS image_semantics (
     filename TEXT NOT NULL,
     kind TEXT DEFAULT 'image',
     description TEXT DEFAULT '',
+    description_tokenized TEXT DEFAULT '',
     related_reqs TEXT DEFAULT '[]',
     mermaid_code TEXT DEFAULT '',
     section_context TEXT DEFAULT '',
@@ -308,12 +361,19 @@ CREATE VIRTUAL TABLE IF NOT EXISTS image_semantics_fts USING fts5(
 
 CREATE TRIGGER IF NOT EXISTS img_sem_ai AFTER INSERT ON image_semantics BEGIN
     INSERT INTO image_semantics_fts(rowid, filename, description, related_reqs, mermaid_code, section_context)
-    VALUES (new.id, new.filename, new.description, new.related_reqs, new.mermaid_code, new.section_context);
+    VALUES (new.id, new.filename, new.description_tokenized, new.related_reqs, new.mermaid_code, new.section_context);
+END;
+
+CREATE TRIGGER IF NOT EXISTS img_sem_au AFTER UPDATE ON image_semantics BEGIN
+    INSERT INTO image_semantics_fts(image_semantics_fts, rowid, filename, description, related_reqs, mermaid_code, section_context)
+    VALUES ('delete', old.id, old.filename, old.description_tokenized, old.related_reqs, old.mermaid_code, old.section_context);
+    INSERT INTO image_semantics_fts(rowid, filename, description, related_reqs, mermaid_code, section_context)
+    VALUES (new.id, new.filename, new.description_tokenized, new.related_reqs, new.mermaid_code, new.section_context);
 END;
 
 CREATE TRIGGER IF NOT EXISTS img_sem_ad AFTER DELETE ON image_semantics BEGIN
     INSERT INTO image_semantics_fts(image_semantics_fts, rowid, filename, description, related_reqs, mermaid_code, section_context)
-    VALUES ('delete', old.id, old.filename, old.description, old.related_reqs, old.mermaid_code, old.section_context);
+    VALUES ('delete', old.id, old.filename, old.description_tokenized, old.related_reqs, old.mermaid_code, old.section_context);
 END;
 
 CREATE TABLE IF NOT EXISTS text_segments (
@@ -456,6 +516,10 @@ def _get_cached_connection(db_str: str) -> sqlite3.Connection:
         _ensure_prompt_versions_table(conn)
     except Exception:
         log.debug("prompt_versions table ensure failed", exc_info=True)
+    try:
+        _ensure_image_semantics_tokenized_column(conn)
+    except Exception:
+        log.debug("image_semantics tokenized column ensure failed", exc_info=True)
     cache[db_str] = conn
     return conn
 
