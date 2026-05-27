@@ -6,6 +6,17 @@
     "skill-creator@claude-plugins-official": true
   },
   "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'python3 \"$(git rev-parse --show-toplevel)/dev-quality-gate/.claude/hooks/ironlaw_guard.py\"'"
+          }
+        ]
+      }
+    ],
     "SessionStart": [
       {
         "matcher": "",
