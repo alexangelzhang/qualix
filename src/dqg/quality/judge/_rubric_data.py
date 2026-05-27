@@ -209,7 +209,7 @@ JUDGE_RUBRICS: Final[dict[str, dict[str, Any]]] = {
             {
                 "id": "scenario_quality",
                 "name": "场景覆盖质量",
-                "description": "测试数据是否覆盖真实故障组合（多记录/边界值/特定枚举组合/多条件AND）",
+                "description": "测试数据是否覆盖真实故障组合（多记录/边界值/特定枚举组合/多条件AND）。[判定校准] 本 Phase 的核心判定维度为 audit_accuracy/wrong_target_detection/exception_branch/scenario_quality 四项；动态维度（dyn_* 前缀）是补充参考，不应单独决定 PASS/FAIL——当四项核心维度均 >= 3 分且无明确 FAIL 触发点时，应给 PASS_WITH_CONCERNS",
                 "weight": 0.1,
                 "rubric": {
                     5: "测试数据覆盖了多记录场景、边界值组合、特定枚举组合，mock 数据贴近真实业务字段",
