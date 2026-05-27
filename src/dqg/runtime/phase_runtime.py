@@ -204,21 +204,12 @@ def runtime_execute(ctx: ExecutionContext) -> PhaseResult:
     result.add_event(EventType.PROFILE_WRITTEN, "Profile manifest written")
     _emit(ctx, EventType.PROFILE_WRITTEN, "Profile manifest written", action="execute")
 
-    # Q06 编译预检：测试代码不编译则跳过 LLM 审计，节省 token
-    if ctx.phase_id == "Q06" and ctx.code_repos:
-        from dqg.languages.java.provider import JavaProvider
+    # Pre-execute 检查（domain 注册的快速门禁，如 Q06 编译预检）
+    from dqg.runtime.lifecycle import run_pre_checks
 
-        _java_provider = JavaProvider()
-        for _repo in ctx.code_repos:
-            _cr = _java_provider.compile_check(Path(_repo))
-            if not _cr.passed and not _cr.skipped:
-                result.add_error(f"Q06 pre-check: 测试编译失败，跳过 LLM 审计 ({_repo}): {_cr.error_summary}")
-                result.add_event(
-                    EventType.EXECUTE_COMPLETED,
-                    f"Q06 pre-check compile failed: {_cr.error_summary}",
-                )
-                _flush()
-                return result
+    if run_pre_checks(ctx, result):
+        _flush()
+        return result
 
     # 执行所有注册的 execute handler
     get_registry().run_handlers("execute", ctx, result)

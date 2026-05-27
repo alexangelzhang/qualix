@@ -7,6 +7,7 @@ handler 按依赖关系分组并行执行，无依赖的 handler 同时运行。
 from __future__ import annotations
 
 import threading
+from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Protocol
@@ -20,6 +21,10 @@ class LifecycleHandler(Protocol):
     """Handler 协议：接收执行上下文和结果对象."""
 
     def __call__(self, ctx: ExecutionContext, result: PhaseResult) -> None: ...
+
+
+# Pre-execute 检查函数：返回 True 表示终止整个 execute（跳过所有 handler）
+PreCheckFn = Callable[["ExecutionContext", "PhaseResult"], bool]
 
 
 @dataclass
@@ -197,9 +202,26 @@ class LifecycleRegistry:
 # 全局注册表实例
 _registry = LifecycleRegistry()
 
+# Pre-execute 检查注册表：phase_id → list[PreCheckFn]
+_pre_checks: dict[str, list[PreCheckFn]] = {}
+
 
 def get_registry() -> LifecycleRegistry:
     return _registry
+
+
+def register_pre_check(phase_id: str, fn: PreCheckFn) -> None:
+    """注册 pre-execute 检查函数.
+
+    fn 返回 True 时终止整个 execute 阶段（跳过所有 lifecycle handler）。
+    用于 Q06 编译预检等"失败则无需运行 LLM"的快速门禁。
+    """
+    _pre_checks.setdefault(phase_id, []).append(fn)
+
+
+def run_pre_checks(ctx: ExecutionContext, result: PhaseResult) -> bool:
+    """运行当前 Phase 的所有 pre-execute 检查. 返回 True 表示应终止 execute."""
+    return any(fn(ctx, result) for fn in _pre_checks.get(ctx.phase_id, []))
 
 
 def register_handler(

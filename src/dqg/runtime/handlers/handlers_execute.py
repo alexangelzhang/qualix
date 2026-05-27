@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from dqg.runtime.lifecycle import register_handler
+from dqg.runtime.lifecycle import register_handler, register_pre_check
 
 if TYPE_CHECKING:
     from dqg.runtime.execution_context import ExecutionContext
@@ -418,8 +418,32 @@ def handle_code_skeleton(ctx: ExecutionContext, result: PhaseResult) -> None:
     result.add_artifact("code_skeleton_md", str(md_path))
 
 
+def _q06_compile_precheck(ctx: ExecutionContext, result: PhaseResult) -> bool:
+    """Q06 pre-execute：测试代码不编译则跳过 LLM 审计，节省 token. 返回 True = abort."""
+    from pathlib import Path
+
+    from dqg.runtime.events import EventType
+
+    if not ctx.code_repos:
+        return False
+    from dqg.languages.java.provider import JavaProvider
+
+    java_provider = JavaProvider()
+    for repo in ctx.code_repos:
+        cr = java_provider.compile_check(Path(repo))
+        if not cr.passed and not cr.skipped:
+            result.add_error(f"Q06 pre-check: 测试编译失败，跳过 LLM 审计 ({repo}): {cr.error_summary}")
+            result.add_event(
+                EventType.EXECUTE_COMPLETED,
+                f"Q06 pre-check compile failed: {cr.error_summary}",
+            )
+            return True
+    return False
+
+
 def register_execute_handlers() -> None:
     """注册所有 execute 阶段的 handler."""
+    register_pre_check("Q06", _q06_compile_precheck)
     register_handler(
         "persist_inputs",
         handle_persist_inputs,

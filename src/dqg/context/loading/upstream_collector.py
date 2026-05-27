@@ -9,6 +9,7 @@ from dqg.context.chunking.chunk_processor import (
     _collect_phase_artifacts,
 )
 from dqg.context.chunking.chunk_summarizer import summarize_upstream_chunk
+from dqg.context.loading.context_policy import get_context_policy
 from dqg.core.model_registry import estimate_tokens
 from dqg.core.profiles import get_profile, load_profile_context_l1
 from dqg.core.state_machine import PHASE_DEFS, PhaseStatus
@@ -103,8 +104,9 @@ def load_upstream_context(
 
         futures["current"] = pool.submit(_collect_current_phase_inputs, phase_root, target_phase)
 
-        # GAP 模式（仅 Q01）
-        if target_phase == "Q01":
+        policy = get_context_policy(target_phase)
+
+        if policy.inject_gap:
 
             def _load_gap():
                 from dqg.memory.rsm_patterns import extract_gap_patterns, format_patterns_as_checklist
@@ -114,8 +116,7 @@ def load_upstream_context(
 
             futures["gap"] = pool.submit(_load_gap)
 
-        # Profile context（Q03-Q07）— 使用 L1 Phase 感知压缩减少 token 消耗
-        if target_phase in {"Q04", "Q03", "Q05", "Q05a", "Q05b", "Q06", "Q07"}:
+        if policy.inject_profile:
 
             def _load_profile():
                 profile = get_profile(getattr(state, "profile_id", None))
@@ -126,8 +127,7 @@ def load_upstream_context(
         # Fact count
         futures["fact_count"] = pool.submit(MemoryLayer(output_dir).get_fact_count, project_id)
 
-        # RSM 覆盖率
-        if target_phase not in {"Q01"}:
+        if policy.inject_rsm:
             from dqg.schemas.rsm import _rsm_path
 
             if _rsm_path(output_dir, project_id).exists():
@@ -212,8 +212,10 @@ def load_sidecar_context(
     """加载 sidecar 文件（diff context、memory、bug cases），原地追加到 all_chunks."""
     from .context_loader import ContextChunk
 
-    # Diff context（Q06/Q07）— 直接串行读取，两个小文件不值得开线程池
-    if target_phase in ("Q06", "Q07"):
+    policy = get_context_policy(target_phase)
+
+    # Diff context — 由 context_policy 声明，直接串行读取（两个小文件不值得开线程池）
+    if policy.inject_diff_context:
         diff_path = resolve_internal_file(phase_root, "_diff_context.md")
         if diff_path.exists():
             diff_text = diff_path.read_text(encoding="utf-8")
@@ -246,8 +248,7 @@ def load_sidecar_context(
                 )
 
     # Bug cases 依赖前面所有 chunks 的 relevance_seed（串行）
-    inject_bug_cases = target_phase in {"Q01", "Q04", "Q03", "Q05", "Q05a", "Q05b", "Q06", "Q07"}
-    if inject_bug_cases:
+    if policy.inject_bug_cases:
         from .context_loader import _build_relevance_seed
 
         relevance_input = _build_relevance_seed(all_chunks)
