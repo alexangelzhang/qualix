@@ -197,6 +197,19 @@ def run_finalize_checks(output_dir: Path, project_id: str, phase_id: str) -> lis
 
         errors.extend(run_q05_structure_checks(output_dir, project_id))
 
+    # Q05a: EUT → SE.code_target 可追溯性检查（始终 WARNING，TDD 兼容）
+    if phase_id == "Q05a":
+        from .evidence_contract import check_eut_code_target_traceability
+
+        phase_def_q05a = PHASE_DEFS.get("Q05a")
+        if phase_def_q05a:
+            int_dir_q05a = _internal_dir(output_dir, project_id, phase_def_q05a)
+            inputs_q05a = load_json(int_dir_q05a / "_inputs.json") if (int_dir_q05a / "_inputs.json").is_file() else {}
+            code_repos_q05a: list[str] = (inputs_q05a or {}).get("code_repos", [])
+            if not code_repos_q05a and (inputs_q05a or {}).get("code_repo"):
+                code_repos_q05a = [inputs_q05a["code_repo"]]
+            errors.extend(check_eut_code_target_traceability(output_dir, project_id, code_repos_q05a))
+
     # Phase Q05b: C1+C2 then 字段对齐检查
     # Q05b Ralph Loop 只跑 C9+编译，不跑 C1+C2（then 关键词对齐）。
     # 补在 finalize gate 里：EUT then 描述的断言方法名/关键词必须出现在对应 @Test 方法体内。
