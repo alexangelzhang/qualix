@@ -242,13 +242,14 @@
 - **Anti-Rationalization Guard 精度评估**（2026-05-10 立项）— 当前 Guard telemetry 已落盘（LAYER1_HIT / REJUDGE_PASSED / GUARD_EXHAUSTED + before/after pair），但还缺把原料变成数字的闭环。分三层落：
   - **Should P1a — Ground truth 标注集**：从历史 `_rationalization_pairs/*.json` 挑 30–50 条 pair，主会话人工判定 CONFIRMED vs FALSE_POSITIVE 作为基准集；基于基准集计算当前 `RATIONALIZATION_PATTERNS` / `OVERCORRECTION_PATTERNS` 的 precision / recall。**启动条件**：`guard_event_files_read` ≥ 20（telemetry 样本量够）
   - **Should P1b — 历史 failure-library 反事实回放**：对已知 leniency failure case 做"如果当时跑 guard 会不会拦住"的回放；输出每个 pattern 的命中率与拦截贡献。**依赖** P1a 的标注规范
-  - **Nice P2 — A/B 对照实验**：同一批 Judge 输入跑 guard on/off 各一遍，对比最终 consensus 和 leniency 率差异。**成本**：holdout suite 双跑 N 条 Phase；**触发条件**：P1a + P1b 暴露的 precision 足够稳定，需要衡量净效益才启动
+  - **Nice P2 — A/B 对照实验**：同一批 Judge 输入跑 guard on/off 各一遍，对比最终 consensus 和 leniency 率差异。**成本**：holdout suite 双跑 N 条 Phase；**触发条件**：P1a + P1b 暴露的 precision 足够稳定，需要衡量净效益才启动。**2026-05-27 暂缓**：pairs 数据量不足，Guard 整体有效，当前 ROI 不足以支撑专项双跑
   - **验证指标**：guard precision ≥ 0.7、recall ≥ 0.8（先以 P1a 为基准校准阈值）
   - **实施笔记**：P1a/P1b 工作量合计约 1 周；P2 看 holdout 成本，单独立项
 - **Skill Evolution 真正的 Phase Pipeline 回放（ReplayExecutor）**（2026-05-10 补，替代当前基于分布对比的打折版本）— 目前 `validate_against_holdout` 只对比 bug case 的 root_cause 分布 + suggestion 文本覆盖，**不实际执行 Phase**。距 2026-04-15 spec 的 ReplayExecutor 还有 ~80% 落差。P2 触发条件：
   - `regression/holdout/` 目录收集到至少 3-5 条可回放 case（完整输入 + 期望输出 snapshot + quality_baseline）
   - 出现 auto-merge 误放过的真实 overfitting 事件（当前分布对比漏判）
   - 预估工作量：~1 周（isolated output_dir + safe-finalize whitelist + JudgeRunner 对比 quality_baseline）
+  - **2026-05-27 暂缓**：Skill Evolution 影响力在 B+C 结构化改造后下降（主要质量驱动已转向 schema gate），holdout case 不足，ROI 不足
 - **Bug Case compress 侧**（HL absorb+compress 对偶缺的另一半）— 当前 Bug Case Library 单调累加（2286 条），无淘汰 / 时间衰减 / 规则适用范围收窄机制。P2 触发条件：
   - Bug Case 数量 >5000，或出现"旧 case 污染新项目 suggestion"的具体失败案例
   - 与 `memory/confidence_decay.py`（已有 Correction/Preference/Fact 三级半衰期）口径统一
@@ -689,7 +690,9 @@ VAF（`~/git_dev/vibe-agentic-flow`）没发 PyPI 但通过 `install.sh + ~/.vcb
 
 ### P2（平台化规模阶段）
 
-- **Harness/Domain 分层 Phase 1** — 定义 `HarnessApp` 协议（provider/hooks/task_runner/output_protocol/session_resume），Domain 层通过注册而非 import 接入 Harness
+- **FTS5 自定义 tokenizer（jieba 原生入 SQLite）**（2026-05-27 规划）— 当前中文搜索在应用层分词后写入 FTS5，jieba 作为 SQLite 扩展直接在 tokenizer 层处理，消除分词和索引的层级错位。实现路径：`sqlite-fts5-jieba` C 扩展 + Python ctypes 加载；fallback：若扩展加载失败回退当前 n-gram 策略。预估工作量：2-3 天
+- **跨模型泛化验证（golden × held-out 模型 runbook）**（2026-05-27 规划）— 用固定 golden 输入集在 claude-sonnet / deepseek / qwen 三个模型上分别跑 Phase，对比 Judge 评分差异和规则遵守率，识别"在 A 模型上写的 skill rule 在 B 模型上无效"的泛化失败。触发条件：有 2+ 团队使用不同主模型。实现路径：`tracking/multi_model_eval.py` + `dqg-run PROJ regression multi-model`。预估工作量：3-4 天
+- **Harness/Domain 分层 Phase 1** — 定义 `HarnessApp` 协议（provider/hooks/task_runner/output_protocol/session_resume），Domain 层通过注册而非 import 接入 Harness。**2026-05-27 升为可顺手执行**：不专门立项，在改动相关文件时按此方向重构，目标是每次触碰 phase-specific 逻辑时收窄耦合
 - **Harness/Domain 分层 Phase 2** — `context_loader.py` 的 phase-specific 分支改为 Domain 层注册的 context_policy；`multi_agent.py` 的 prompt 模板改为 Domain 层提供；`row_to_dict` 的 JSON 字段列表改为 schema 驱动
 - **DeepEval 集成** — ~~引入 DeepEval 作为自动化评分引擎，替代 prompt-based judge~~ → **2026-05-10 修正为"代码保留但禁用"**。当前 `score_calibration.py::_run_deepeval_scoring` 是 no-op，趋势检测保留。2025 年起 DeepEval 已支持 Anthropic / Gemini / Bedrock / Ollama（当年绑 GPT-4 的限制已解除），但本项目已有 Multi-Judge 投票 + Critique + Anti-Rat/Overcorrection Guard 评审链，再加一层独立打分的信号增量不明显 & token 成本翻倍。**复活触发条件**（任一满足）：
   - Anti-Rationalization Guard 精度评估（见 P1 三层规划）暴露"Multi-Judge 三模型共识即便 PASS 也有大量实际 leniency"的系统偏差
