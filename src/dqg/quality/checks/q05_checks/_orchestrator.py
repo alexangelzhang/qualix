@@ -46,14 +46,14 @@ from ._checks_production import check_eut_then_phantom_methods
 from ._collect import _collect_new_test_files_from_repos, _collect_supplemental_files
 
 
-def run_q05_structure_checks(output_dir: Path, project_id: str) -> list[str]:
-    """对 Q05 phase_b_structured + supplemental_tests 做结构类校验."""
-    phase_def = PHASE_DEFS.get("Q05")
+def run_q05_structure_checks(output_dir: Path, project_id: str, phase_id: str = "Q05") -> list[str]:
+    """对 Q05/Q05a phase_b_structured + supplemental_tests 做结构类校验."""
+    phase_def = PHASE_DEFS.get(phase_id)
     if not phase_def:
         return []
 
     pd = _phase_dir(output_dir, project_id, phase_def)
-    json_name = STRUCTURED_JSON_MAP.get("Q05")
+    json_name = STRUCTURED_JSON_MAP.get(phase_id)
     if not json_name:
         return []
 

@@ -195,7 +195,7 @@ def run_finalize_checks(output_dir: Path, project_id: str, phase_id: str) -> lis
     if phase_id in ("Q05", "Q05a"):
         from .q05_structure_checks import run_q05_structure_checks
 
-        errors.extend(run_q05_structure_checks(output_dir, project_id))
+        errors.extend(run_q05_structure_checks(output_dir, project_id, phase_id=phase_id))
 
     # Q05a: EUT → SE.code_target 可追溯性检查（始终 WARNING，TDD 兼容）
     if phase_id == "Q05a":

@@ -111,7 +111,7 @@ class TestWeakAssertGateQ05:
     def test_q05_high_risk_1_triggers_blocked(self, tmp_path: Path):
         from dqg.runtime.handlers_detection import handle_weak_assert_gate
 
-        ctx = _make_ctx(tmp_path, "Q05")
+        ctx = _make_ctx(tmp_path, "Q05b")
         payload = {
             "summary": {
                 "high_risk_count": 1,
@@ -121,7 +121,7 @@ class TestWeakAssertGateQ05:
         }
         (ctx.internal_dir / "_weak_assert_context.json").write_text(json.dumps(payload), encoding="utf-8")
 
-        result = PhaseResult(phase_id="Q05")
+        result = PhaseResult(phase_id="Q05b")
         handle_weak_assert_gate(ctx, result)
 
         assert not result.success
@@ -268,7 +268,7 @@ class OrderServiceTest {
         ctx = ExecutionContext(
             output_dir=tmp_path / "output",
             project_id="test",
-            phase_id="Q05",
+            phase_id="Q05b",
             code_repo=str(repo),
             internal_dir=internal_dir,
             phase_root=phase_root,
@@ -276,7 +276,7 @@ class OrderServiceTest {
             shared={},
         )
 
-        result = PhaseResult(phase_id="Q05")
+        result = PhaseResult(phase_id="Q05b")
         handle_weak_assert_scan_q05(ctx, result)
 
         # 验证生成了 _weak_assert_context.json
@@ -290,9 +290,9 @@ class OrderServiceTest {
         """code_repo 为 None 时静默跳过."""
         from dqg.runtime.handlers_detection import handle_weak_assert_scan_q05
 
-        ctx = _make_ctx(tmp_path, "Q05")
+        ctx = _make_ctx(tmp_path, "Q05b")
         ctx.code_repo = None
-        result = PhaseResult(phase_id="Q05")
+        result = PhaseResult(phase_id="Q05b")
         handle_weak_assert_scan_q05(ctx, result)
 
         assert not (ctx.internal_dir / "_weak_assert_context.json").exists()
