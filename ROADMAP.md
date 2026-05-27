@@ -108,6 +108,14 @@
 - Change 5：`auto-synthesized` Judge/Critique 降权——`approve` 时若 judge_result 标记为 auto-synthesized 则返回 `synthetic_review_not_allowed` 错误，须显式传 `--allow-synthetic-review` 才能通过
 - Change 6：所有 fallback 语义统一为 `BLOCKED`/`FAIL`/`WARNING`/`NOT_APPLICABLE`/`INFRA_FAILURE` 前缀，禁止"返回空列表 = 通过"隐式语义
 
+2026-05-27 完成（Evidence Contract 硬化 — 方案 A）：
+
+- **SE.source 跨引用校验**：`handle_se_source_evidence` handler（Q01 finalize, order=57, required=True）解析 `SE.source="file:N"`，验证 PRD ingest 文件第 N 行存在；source 非空但行号无效 → BLOCKED；source 空 → WARNING；成功落盘 `_internal/_se_source_evidence.json`（含 line_text + context_hash）
+- **EUT → SE.code_target grep**：`check_eut_code_target_traceability()`（Q05a finalize）从 bound_item → SE.code_target 提取类名，grep 代码仓库；未找到 → WARNING（TDD 兼容，非 BLOCKED）
+- **Q06 COVERED 证据字段（G10）**：`_check_covered_evidence_fields()`（Q06 finalize）检查 COVERED 条目：无 test_class 且无 test_location → WARNING；test_location.file 不存在于代码仓库 → BLOCKED
+- 实现：`src/dqg/quality/checks/evidence_contract.py`（新增）+ handlers_finalize.py + finalize_checks.py + q06_structure_checks.py；11 条单测（`tests/test_evidence_contract.py`），943 已有测试零回归
+- 方案 B（未来架构优化）见下方 P1 末尾
+
 2026-05-19 规划（统一 claim/evidence/verifier/gate 防幻觉架构）：
 
 - 背景：Q01/Q05/Q06 已形成对称防幻觉链路，但检查规则仍分散在 schema、auto checks、structure checks、cross-phase checks、guardrail 和 finalize handler 中；下一阶段目标是把散点规则收束为统一事实验证架构。评估详见 [`docs/anti-hallucination-framework-evaluation.md`](docs/anti-hallucination-framework-evaluation.md)
@@ -119,7 +127,8 @@
 - P1：Evidence Registry / Evidence Graph。统一证据类型：`PRD_LINE`、`CODE_LOCATION`、`TEST_METHOD`、`COVERAGE_REPORT`、`COMPILE_RESULT`、`TEST_RUN`、`HUMAN_DECISION`，证据必须带路径、行号或 hash，避免证据漂移后旧结论继续有效
 - P1：Verifier Registry。沉淀 `source_line_verifier`、`cross_phase_ref_verifier`、`test_assertion_verifier`、`compile_verifier`、`coverage_verifier`、`summary_derivation_verifier`，让新增 Phase 通过注册 verifier 接入同一套 gate
 - P2：审计查询与 UX。提供 `SE → EUT → Test → Audit → Finding` 链路查询、missing-evidence dashboard、按 claim type 聚合的误报/漏报趋势
-- 验收口径：虚拟或越界的 `SE.source` 阻断 Q01；有代码仓和测试产物但无 coverage evidence 时 Q06 输出 `MISSING_EVIDENCE`；现有核心检查全部能产出结构化 `CheckItem`；Evidence Graph 能回答“哪些 SE 没有 EUT / 哪些 COVERED 没有断言 / 哪些 finding 没有代码证据”三类问题
+- 验收口径：虚拟或越界的 `SE.source` 阻断 Q01；有代码仓和测试产物但无 coverage evidence 时 Q06 输出 `MISSING_EVIDENCE`；现有核心检查全部能产出结构化 `CheckItem`；Evidence Graph 能回答”哪些 SE 没有 EUT / 哪些 COVERED 没有断言 / 哪些 finding 没有代码证据”三类问题
+- **方案 B Evidence Contract（未来架构优化）** — 在方案 A 基础上进一步显式化合同：`EutItem` 加 `impl_class: str = “”` 字段（替代通过 SE.code_target 间接推导）；`EutAuditItem` 当 `status=COVERED` 时 `test_class` Pydantic validator 强制非空。触发条件：Q05a 出现 >20% impl 未找到且确认不是 TDD 场景，或 LLM 频繁填写不存在的 impl_class 的具体案例。工作量约 1 天（schema 迁移 + LLM prompt 更新）
 
 2026-05-11 新增（Q06 JaCoCo CLI 接入）：
 
