@@ -45,3 +45,5 @@ observability/
 
 # DQG 运行时数据
 .dqg/
+results.tsv
+run.log
