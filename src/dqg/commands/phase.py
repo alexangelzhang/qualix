@@ -206,6 +206,7 @@ def cmd_finalize(args, output_dir: Path) -> int:
         output_dir=output_dir,
         project_id=args.project_id,
         phase_id=args.phase,
+        strict_profile_context=getattr(args, "strict_profile_context", False),
     )
 
     result = runtime_finalize(ctx)

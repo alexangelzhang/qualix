@@ -235,9 +235,15 @@ def handle_profile_context_check(ctx: ExecutionContext, result: PhaseResult) -> 
     if not report_file:
         return
 
+    _strict = getattr(ctx, "strict_profile_context", False)
+
     profile_ctx_path = resolve_internal_file(ctx.phase_root, "_profile_context.md")
     if not profile_ctx_path.exists():
-        result.add_warning(f"Missing profile context: {profile_ctx_path}")
+        _msg = f"Missing profile context: {profile_ctx_path}"
+        if _strict:
+            result.errors.append(f"BLOCKED: [profile_context] {_msg}")
+        else:
+            result.add_warning(_msg)
 
     report_path = ctx.phase_root / report_file
     if report_path.exists():
@@ -245,7 +251,11 @@ def handle_profile_context_check(ctx: ExecutionContext, result: PhaseResult) -> 
 
         _PROFILE_CTX_RE = _re.compile(r"^#{1,3}\s*(\d+\.\s*)?PROFILE_CONTEXT", _re.MULTILINE)
         if not _PROFILE_CTX_RE.search(report_path.read_text(encoding="utf-8")):
-            result.add_warning("Report missing PROFILE_CONTEXT section")
+            _msg2 = "Report missing PROFILE_CONTEXT section"
+            if _strict:
+                result.errors.append(f"BLOCKED: [profile_context] {_msg2}")
+            else:
+                result.add_warning(_msg2)
 
 
 def handle_progress_file(ctx: ExecutionContext, result: PhaseResult) -> None:

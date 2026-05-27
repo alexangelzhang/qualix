@@ -25,6 +25,7 @@ class ExecutionContext:
     base_branch: str = "master"
     feature_branch: str = "HEAD"
     coverage_report: str | None = None
+    strict_profile_context: bool = False  # finalize --strict-profile-context 时为 True
 
     # 运行时填充
     phase_def: dict[str, Any] = field(default_factory=dict)

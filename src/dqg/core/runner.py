@@ -66,6 +66,12 @@ def _build_parser() -> argparse.ArgumentParser:
         default=None,
         help="代码仓库路径，多个用逗号分隔（手动模式下用于写入 _inputs.json，启用编译/测试 gate）",
     )
+    p_fin.add_argument(
+        "--strict-profile-context",
+        action="store_true",
+        default=False,
+        help="严格模式：报告缺少 PROFILE_CONTEXT 时阻断 finalize（默认 WARNING）",
+    )
 
     # approve
     p_app = sub.add_parser("approve", help="人工确认通过")
