@@ -700,12 +700,13 @@ VAF（`~/git_dev/vibe-agentic-flow`）没发 PyPI 但通过 `install.sh + ~/.vcb
   - 需要定期对 golden 报告做第四方仲裁打分（避免 Judge 陷入自我校准循环）
   - 复活成本：写 `DeepEvalBaseLLM` 适配器套到 `LLMConfig`（~2h）+ 填 `_run_deepeval_scoring` 实现（~1h）+ 重新校准 `SCORE_DRIFT_THRESHOLD=1.0` 阈值（依赖真实数据，不是拍脑袋）
 - ~~代码 Embedding + 语义搜索（替代 FTS5 n-gram）~~ → 已完成：`code_semantic_search.py` 基于 FTS5 + 概念映射 + 调用链实现，零新依赖
-- 指标正式入库（Prometheus/ClickHouse）
+- 指标正式入库（Prometheus/ClickHouse）— 等规模上来再做，当前 observability 报告够用
 - Dashboard 分层（管理视图/研发视图）
 - 告警接 IM/值班链路
 - 规则与 profile 的版本治理平台化
 - VS Code / IntelliJ 插件（Phase 结果编辑器内高亮）
 - 渐进式采用（支持只跑单个 Phase 的单个维度）
+- **LSP（Language Server Protocol）集成**（最低优先级）— DQG Phase 产物（SE/EUT/GAP）通过 LSP 实时推送到编辑器，代码变更时触发增量 finalize；技术复杂度高、依赖编辑器插件生态；触发条件：插件用户数 > 50 且有明确的"边写代码边看门禁状态"需求
 
 ---
 
