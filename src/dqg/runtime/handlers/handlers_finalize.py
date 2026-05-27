@@ -235,13 +235,13 @@ def handle_profile_context_check(ctx: ExecutionContext, result: PhaseResult) -> 
     if not report_file:
         return
 
-    _strict = getattr(ctx, "strict_profile_context", False)
+    _strict = ctx.strict_profile_context
 
     profile_ctx_path = resolve_internal_file(ctx.phase_root, "_profile_context.md")
     if not profile_ctx_path.exists():
         _msg = f"Missing profile context: {profile_ctx_path}"
         if _strict:
-            result.errors.append(f"BLOCKED: [profile_context] {_msg}")
+            result.add_error(f"BLOCKED: [profile_context] {_msg}")
         else:
             result.add_warning(_msg)
 
@@ -253,7 +253,7 @@ def handle_profile_context_check(ctx: ExecutionContext, result: PhaseResult) -> 
         if not _PROFILE_CTX_RE.search(report_path.read_text(encoding="utf-8")):
             _msg2 = "Report missing PROFILE_CONTEXT section"
             if _strict:
-                result.errors.append(f"BLOCKED: [profile_context] {_msg2}")
+                result.add_error(f"BLOCKED: [profile_context] {_msg2}")
             else:
                 result.add_warning(_msg2)
 

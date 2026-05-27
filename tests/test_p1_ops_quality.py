@@ -30,6 +30,7 @@ def _make_result():
     r = MagicMock()
     r.errors = []
     r.warnings = []
+    r.add_error = lambda msg: r.errors.append(msg)
     r.add_warning = lambda msg: r.warnings.append(msg)
     return r
 
