@@ -694,11 +694,7 @@ VAF（`~/git_dev/vibe-agentic-flow`）没发 PyPI 但通过 `install.sh + ~/.vcb
 - ~~**跨模型泛化验证（golden × held-out 模型 runbook）**~~ → **2026-05-27 已完成**。`tracking/multi_model_judge.py`：MultiJudgeReport / ModelJudgeRun dataclass，`_compute_stats` 计算 score_range / score_stddev / verdict_agreement / fragile_dimensions / consistency_verdict（CONSISTENT / MARGINAL / DIVERGED）。CLI：`dqg-run PROJ regression multi-judge --phase Q03 --models a,b`，支持 `--json`。commit bbb6311f
 - ~~**Harness/Domain 分层 Phase 1**~~ → **2026-05-27 已完成**。新增 `ContextPolicy` dataclass + `_DEFAULT_POLICIES`（context_policy.py），upstream_collector 5 处 `if target_phase` 分支全部消除。新增 `PreCheckFn` + `register_pre_check` / `run_pre_checks`（lifecycle.py），Q06 compile pre-check 从 phase_runtime 迁移到 handlers_execute domain handler，phase_runtime 只调用泛化的 `run_pre_checks`。commit 3477ed5b
 - **Harness/Domain 分层 Phase 2** — `multi_agent.py` 的 `generate_critique_prompt` 硬编码 `phase_a_report.md`/`phase_a_structured.json` 路径改为从 `REPORT_MAP`/`STRUCTURED_JSON_MAP` 取值；`row_to_dict` 已有自动检测无需改动。顺手改，不专门立项
-- **DeepEval 集成** — ~~引入 DeepEval 作为自动化评分引擎，替代 prompt-based judge~~ → **2026-05-10 修正为"代码保留但禁用"**。当前 `score_calibration.py::_run_deepeval_scoring` 是 no-op，趋势检测保留。2025 年起 DeepEval 已支持 Anthropic / Gemini / Bedrock / Ollama（当年绑 GPT-4 的限制已解除），但本项目已有 Multi-Judge 投票 + Critique + Anti-Rat/Overcorrection Guard 评审链，再加一层独立打分的信号增量不明显 & token 成本翻倍。**复活触发条件**（任一满足）：
-  - Anti-Rationalization Guard 精度评估（见 P1 三层规划）暴露"Multi-Judge 三模型共识即便 PASS 也有大量实际 leniency"的系统偏差
-  - 出现"同一报告跨 provider（Claude / DeepSeek / Qwen）评分严重分歧无法裁决"的具体 case
-  - 需要定期对 golden 报告做第四方仲裁打分（避免 Judge 陷入自我校准循环）
-  - 复活成本：写 `DeepEvalBaseLLM` 适配器套到 `LLMConfig`（~2h）+ 填 `_run_deepeval_scoring` 实现（~1h）+ 重新校准 `SCORE_DRIFT_THRESHOLD=1.0` 阈值（依赖真实数据，不是拍脑袋）
+- ~~**DeepEval 集成**~~ → **2026-05-27 已复活**。`_DQGDeepEvalModel(DeepEvalBaseLLM)` 适配器包装 `AnthropicBackend`，无需 OpenAI key。`_run_deepeval_scoring` 用 GEval 独立打分（GEval 0-1 → DQG 1-5），可选依赖 `pip install dev-quality-gate[deepeval]`，默认模型 `claude-haiku-4-5-20251001`（可通过 `DQG_DEEPEVAL_MODEL` 覆盖）。commit 876529a0
 - ~~代码 Embedding + 语义搜索（替代 FTS5 n-gram）~~ → 已完成：`code_semantic_search.py` 基于 FTS5 + 概念映射 + 调用链实现，零新依赖
 - 指标正式入库（Prometheus/ClickHouse）— 等规模上来再做，当前 observability 报告够用
 - Dashboard 分层（管理视图/研发视图）
@@ -800,7 +796,7 @@ VAF（`~/git_dev/vibe-agentic-flow`）没发 PyPI 但通过 `install.sh + ~/.vcb
 **长期 / 研究**
 
 1. **#4 Rubric 搜索**：独立 sandbox；搜索空间、训练/验证 split、与默认 rubric 回退策略单独立项。
-2. **#8 ironlaw**：**阶段 A** 静态 YAML/JSON + schema + CI 校验，hook 只读配置；**阶段 B** 案例库仅生成 **候选规则**，经 PR 人审合并进配置；**阶段 C（可选）** 按 profile/Phase 覆盖。**不推荐**：hook 启动时从全库全自动聚合并直接生效。
+2. **#8 ironlaw**：~~**阶段 A**~~ → **2026-05-27 已完成**。`ironlaw_rules.yaml` 加 `matchers` 字段（工具名列表），hook 从 YAML 读取替代硬编码 Python 集合；新增 `ironlaw_rules_schema.json`（JSON Schema）+ `test_ironlaw_rules.py`（4 项验证）。改 matchers/enabled/opt_out 只需编辑 YAML，无需改 Python。**阶段 B** 案例库仅生成 **候选规则**，经 PR 人审合并进配置；**阶段 C（可选）** 按 profile/Phase 覆盖。**不推荐**：hook 启动时从全库全自动聚合并直接生效。
 
 #### 风险与依赖（摘要）
 
