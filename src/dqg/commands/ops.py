@@ -13,6 +13,37 @@ if TYPE_CHECKING:
     import argparse
 
 
+def _run_maintain(output_dir: Path) -> dict:
+    """执行三项定期维护任务，返回统计摘要.
+
+    1. bug_cases compress（超 5000 条触发衰减淘汰）
+    2. evolution 谱系文件 90 天硬过期
+    3. experiments SQLite 90 天硬过期
+    """
+    from dqg.store.bug_cases import compress_bug_cases
+    from dqg.store.experiments import prune_stale_experiments
+    from dqg.tracking.skill_evolution import cleanup_stale_evolution
+
+    compress_result = compress_bug_cases(output_dir)
+
+    evolution_deleted = evolution_scanned = 0
+    if output_dir.is_dir():
+        for proj_dir in output_dir.iterdir():
+            if not proj_dir.is_dir() or proj_dir.name.startswith("."):
+                continue
+            r = cleanup_stale_evolution(output_dir, proj_dir.name)
+            evolution_scanned += r["scanned"]
+            evolution_deleted += r["deleted"]
+
+    exp_deleted = prune_stale_experiments(output_dir)
+
+    return {
+        "bug_cases": compress_result,
+        "evolution_files": {"scanned": evolution_scanned, "deleted": evolution_deleted},
+        "experiments_deleted": exp_deleted,
+    }
+
+
 def cmd_metrics(args: argparse.Namespace, output_dir: Path) -> int:
     """度量自动采集（原 dqg-metrics）."""
     from dqg.commands.cli_json import cli_envelope, cli_json_mode, print_cli_json
@@ -83,6 +114,7 @@ def cmd_observe(args: argparse.Namespace, output_dir: Path) -> int:
             )
             alerts_json, alerts_md = _write_alerts(out_dir, payload["label"], alerts)
             prom_path = _write_prometheus_snapshot(out_dir, payload, alerts)
+            maintain_stats = _run_maintain(out_dir)
             print_cli_json(
                 cli_envelope(
                     command="observe",
@@ -98,10 +130,12 @@ def cmd_observe(args: argparse.Namespace, output_dir: Path) -> int:
                         "alerts_md": str(alerts_md),
                         "prometheus_snapshot": str(prom_path),
                         "payload": payload,
+                        "maintain": maintain_stats,
                     },
                 )
             )
             return 0
+        _run_maintain(Path(args.base_dir).resolve() / "output")
         from dqg.reporting.observability import _cmd_daily
 
         return int(_cmd_daily(args))
@@ -132,6 +166,28 @@ def cmd_observe(args: argparse.Namespace, output_dir: Path) -> int:
                 f"  v{r.get('version')} hash={r.get('prompt_hash', '')[:12]}… "
                 f"agent={r.get('agent_name')}/{r.get('agent_role')} run={r.get('trace_run_id', '')}"
             )
+        return 0
+
+    if action == "maintain":
+        base = Path(getattr(args, "base_dir", ".") or ".").resolve()
+        out_dir = base / "output"
+        stats = _run_maintain(out_dir)
+        if cli_json_mode(args):
+            print_cli_json(
+                cli_envelope(
+                    command="observe",
+                    project_id=args.project_id,
+                    success=True,
+                    exit_code=0,
+                    extra={"observe_action": "maintain", **stats},
+                )
+            )
+        else:
+            bc = stats["bug_cases"]
+            ev = stats["evolution_files"]
+            print(f"  [maintain] bug_cases: {bc['total_before']}→{bc['total_after']} (-{bc['deleted']})")
+            print(f"  [maintain] evolution files: scanned={ev['scanned']} deleted={ev['deleted']}")
+            print(f"  [maintain] experiments pruned: {stats['experiments_deleted']}")
         return 0
 
     if action == "guard-precision":

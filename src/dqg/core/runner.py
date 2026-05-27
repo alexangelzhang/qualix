@@ -220,7 +220,7 @@ def _build_parser() -> argparse.ArgumentParser:
         "observe_action",
         nargs="?",
         default="report",
-        choices=["report", "daily", "guard-precision", "prompt-versions"],
+        choices=["report", "daily", "guard-precision", "prompt-versions", "maintain"],
     )
     p_observe.add_argument("--period", choices=["daily", "weekly"], default="daily")
     p_observe.add_argument("--date", default=None, help="锚点日期 YYYY-MM-DD")
