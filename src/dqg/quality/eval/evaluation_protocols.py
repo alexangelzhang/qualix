@@ -355,6 +355,94 @@ _Q07 = PhaseProtocol(
 )
 
 # ---------------------------------------------------------------------------
+# Q05a — EUT 矩阵设计
+# ---------------------------------------------------------------------------
+_Q05a = PhaseProtocol(
+    phase_id="Q05a",
+    judge=AgentProtocol(
+        role_label="EUT矩阵设计审查员",
+        checklist=(
+            "每条 REQ/BR/SE 是否有对应 EUT（bound_item 非空）",
+            "Happy Path + Exception + Boundary 三种路径是否均覆盖",
+            "then 字段是否包含具体断言描述（非「验证成功」类模糊描述）",
+            "git diff 变更的实现类是否全部出现在 EUT 的 when 字段中",
+            "并发/幂等语义的 SE 是否有对应多线程 EUT",
+        ),
+        red_lines=(
+            "不接受「验证成功/结果正确」类模糊 then，必须含方法名或具体期望值",
+            "不允许按 SE 汇总（SE-based 模式），必须 EUT 逐条对应",
+        ),
+        domain_vocab={
+            "EUT": "Expected Unit Test，预期单测条目，含 when/then/route_type/bound_item",
+            "bound_item": "EUT 绑定的 SE/REQ ID，标识被测需求来源",
+            "C10": "git diff 覆盖 gate：每个变更实现类必须有 EUT",
+        },
+        focus_areas=(
+            "EUT覆盖完备性",
+            "then具体性",
+            "git_diff覆盖",
+        ),
+    ),
+    critique=AgentProtocol(
+        role_label="测试设计盲区猎手",
+        checklist=(
+            "是否遗漏了并发/幂等/分布式锁相关的异常 EUT",
+            "边界条件（null/空集/最大值）是否有专项 EUT",
+            "Mock 层级策略是否合理（不过度 Mock 导致脆弱设计）",
+        ),
+        red_lines=("不重复 Judge 已发现的问题",),
+        focus_areas=(
+            "并发幂等盲区",
+            "边界条件盲区",
+            "Mock策略风险",
+        ),
+    ),
+)
+
+# ---------------------------------------------------------------------------
+# Q05b — 单测代码生成（judge_required=False，本 protocol 供手动 judge 使用）
+# ---------------------------------------------------------------------------
+_Q05b = PhaseProtocol(
+    phase_id="Q05b",
+    judge=AgentProtocol(
+        role_label="单测代码质量审查员",
+        checklist=(
+            "每条 EUT 是否有对应 @Test 方法（// EUT-xxx 追溯注释）",
+            "断言是否验证业务语义（不是 assertNotNull/assertTrue(true)）",
+            "代码是否能通过编译（无幻觉方法名/缺失 import）",
+            "@Test 方法是否忠实实现 EUT 的 when/then 规格，未越权修改 EUT 矩阵",
+        ),
+        red_lines=(
+            "不接受 assertNotNull 冒充覆盖",
+            "不允许 Q05b 修改 Q05a 的 EUT 矩阵",
+        ),
+        domain_vocab={
+            "C9": "EUT 实现完整性 gate：每条 EUT 必须有 @Test 方法",
+            "弱断言": "assertNotNull/assertTrue(true) 等不验证业务语义的断言",
+        },
+        focus_areas=(
+            "编译可行性",
+            "断言强度",
+            "EUT忠实度",
+        ),
+    ),
+    critique=AgentProtocol(
+        role_label="测试可维护性审查员",
+        checklist=(
+            "Mock 数据是否贴近真实业务（不是全用默认值/null）",
+            "测试数据是否覆盖已知故障路径（边界值/多记录场景）",
+            "是否存在过度 Mock 导致测试脆弱",
+        ),
+        red_lines=("不重复 Judge 已发现的问题",),
+        focus_areas=(
+            "Mock真实性",
+            "测试数据质量",
+            "可维护性",
+        ),
+    ),
+)
+
+# ---------------------------------------------------------------------------
 # Registry + helpers
 # ---------------------------------------------------------------------------
 PHASE_PROTOCOLS: Final[dict[str, PhaseProtocol]] = {
@@ -363,6 +451,8 @@ PHASE_PROTOCOLS: Final[dict[str, PhaseProtocol]] = {
     "Q03": _Q03,
     "Q04": _Q04,
     "Q05": _Q05,
+    "Q05a": _Q05a,
+    "Q05b": _Q05b,
     "Q06": _Q06,
     "Q07": _Q07,
 }
