@@ -186,6 +186,25 @@ Q05a 设计阶段必须对每个目标类做静态覆盖率投影：
 
 - `eut_matrix.md`：人类可读的 EUT 测试大纲
 - `phase_b_structured.json`：机器可读的结构化 EUT 矩阵（遵循 phase_b schema）
+
+```json
+{
+  "project_id": "maf-srv-service",
+  "eut_items": [
+    {
+      "eut_id": "EUT-001",
+      "bound_se": "SE-001",
+      "bound_item": "SE-001",
+      "route_type": "Happy Path",
+      "given": "标准创建工单 DTO 传入",
+      "when": "LogisticExchangeIdentifyManager.identify(dto)",
+      "then": "assertEquals(IdentifyResult.MATCHED, result.getStatus())",
+      "risk_tier": "T1"
+    }
+  ]
+}
+```
+
 - `_internal/_q05_target_modules.json`：三层驱动产物
 
 ### Step 2: 自检（提交前强制检查）

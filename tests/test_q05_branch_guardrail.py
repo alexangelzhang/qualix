@@ -1,4 +1,4 @@
-"""Q05 分支覆盖 Guardrail."""
+"""Q05a 分支覆盖 Guardrail."""
 
 import json
 from pathlib import Path
@@ -8,12 +8,12 @@ from dqg.quality.guardrail.q05_branch_coverage import Q05BranchCoverageGuardrail
 
 
 def test_skips_when_no_inventory(tmp_path: Path) -> None:
-    q5 = tmp_path / "P" / "Q05"
+    q5 = tmp_path / "P" / "Q05a"
     q5.mkdir(parents=True)
     ctx = GuardrailContext(
         output_dir=tmp_path,
         project_id="P",
-        phase_id="Q05",
+        phase_id="Q05a",
         phase_dir=q5,
     )
     r = Q05BranchCoverageGuardrail().check(ctx)[0]
@@ -22,7 +22,7 @@ def test_skips_when_no_inventory(tmp_path: Path) -> None:
 
 
 def test_blocks_when_exception_branch_but_no_exception_eut(tmp_path: Path) -> None:
-    q5 = tmp_path / "P" / "Q05"
+    q5 = tmp_path / "P" / "Q05a"
     internal = q5 / "_internal"
     internal.mkdir(parents=True)
     inv = {
@@ -53,7 +53,7 @@ def test_blocks_when_exception_branch_but_no_exception_eut(tmp_path: Path) -> No
     ctx = GuardrailContext(
         output_dir=tmp_path,
         project_id="P",
-        phase_id="Q05",
+        phase_id="Q05a",
         phase_dir=q5,
     )
     r = Q05BranchCoverageGuardrail().check(ctx)[0]
@@ -62,7 +62,7 @@ def test_blocks_when_exception_branch_but_no_exception_eut(tmp_path: Path) -> No
 
 
 def test_blocks_when_boundary_branch_but_no_boundary_eut(tmp_path: Path) -> None:
-    q5 = tmp_path / "P" / "Q05"
+    q5 = tmp_path / "P" / "Q05a"
     internal = q5 / "_internal"
     internal.mkdir(parents=True)
     inv = {
@@ -93,7 +93,7 @@ def test_blocks_when_boundary_branch_but_no_boundary_eut(tmp_path: Path) -> None
     ctx = GuardrailContext(
         output_dir=tmp_path,
         project_id="P",
-        phase_id="Q05",
+        phase_id="Q05a",
         phase_dir=q5,
     )
     results = Q05BranchCoverageGuardrail().check(ctx)
@@ -103,7 +103,7 @@ def test_blocks_when_boundary_branch_but_no_boundary_eut(tmp_path: Path) -> None
 
 
 def test_passes_when_both_exception_and_boundary_covered(tmp_path: Path) -> None:
-    q5 = tmp_path / "P" / "Q05"
+    q5 = tmp_path / "P" / "Q05a"
     internal = q5 / "_internal"
     internal.mkdir(parents=True)
     inv = {
@@ -142,7 +142,7 @@ def test_passes_when_both_exception_and_boundary_covered(tmp_path: Path) -> None
     ctx = GuardrailContext(
         output_dir=tmp_path,
         project_id="P",
-        phase_id="Q05",
+        phase_id="Q05a",
         phase_dir=q5,
     )
     results = Q05BranchCoverageGuardrail().check(ctx)

@@ -87,9 +87,9 @@ def test_check_report_structure_phase_b():
 
 TC-001
 
-## Coverage Matrix
+## 目标模块
 
-| SE | Test |
+LogisticExchangeIdentifyManager
 """
-    result = check_report_structure(report, "Q05")
+    result = check_report_structure(report, "Q05a")
     assert result["passed"] is True
