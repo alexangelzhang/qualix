@@ -39,25 +39,29 @@ from dqg.constants import DEFAULT_FALLBACK_MODEL, DEFAULT_JUDGE_MODEL
 from dqg.quality.judge.judge_rubrics import compose_rubric
 from dqg.quality.judge.judge_runner import JudgeRunner
 
-CASES_ROOT = PROJECT_ROOT / "regression" / "failure-library" / "cases"
+FAILURE_CASES_ROOT = PROJECT_ROOT / "regression" / "failure-library" / "cases"
+PASS_CASES_ROOT = PROJECT_ROOT / "regression" / "pass-library" / "cases"
+CASES_ROOT = FAILURE_CASES_ROOT  # 默认，main() 中按 --library 覆盖
 
 # FN case：judge 漏判了真实缺陷 → 正确应为 FAIL
-# FP case：judge 误判了正确产出 → 正确应为 PASS
+# FP case：judge 误判了正确产出 → 正确应为 PASS（failure-library 中手动标注）
+# PASS case：已验证的良好产出 → 正确应为 PASS（pass-library 中来自 output/）
 EXPECTED_VERDICT: dict[str, str] = {
     "FN": "FAIL",
     "FP": "PASS",
+    "PASS": "PASS",
 }
 
 
-def load_cases(phase: str, error_types: list[str], limit: int, seed: int) -> list[dict]:
+def load_cases(phase: str, error_types: list[str], limit: int, seed: int, cases_root: Path | None = None) -> list[dict]:
     """加载指定 Phase 的 GT case，过滤 error_type，采样到 limit 条。"""
-    phase_dir = CASES_ROOT / phase
+    root = cases_root or CASES_ROOT
+    phase_dir = root / phase
     if not phase_dir.exists():
-        # 尝试大小写变体
-        candidates = [d for d in CASES_ROOT.iterdir() if d.name.upper() == phase.upper()]
+        candidates = [d for d in root.iterdir() if d.name.upper() == phase.upper()]
         if not candidates:
             print(f"❌ 未找到 Phase 目录: {phase_dir}", file=sys.stderr)
-            print(f"   可用 Phase: {sorted(d.name for d in CASES_ROOT.iterdir() if d.is_dir())}", file=sys.stderr)
+            print(f"   可用 Phase: {sorted(d.name for d in root.iterdir() if d.is_dir())}", file=sys.stderr)
             sys.exit(1)
         phase_dir = candidates[0]
 
@@ -138,19 +142,45 @@ def main() -> None:
     parser.add_argument("--phase", required=True, help="Phase ID，如 Q06/Q05a/Q03")
     parser.add_argument("--limit", type=int, default=30, help="最多评估条数（-1=全量）")
     parser.add_argument("--error-types", default="FN,FP", help="评估的 error_type，逗号分隔")
+    parser.add_argument(
+        "--library",
+        choices=["failure", "pass", "both"],
+        default="failure",
+        help="使用哪个 case 库（failure/pass/both，默认 failure）",
+    )
     parser.add_argument("--verbose", action="store_true", help="输出每条 case 详情")
     parser.add_argument("--model", default=DEFAULT_JUDGE_MODEL, help="judge 模型")
     parser.add_argument("--fallback", default=DEFAULT_FALLBACK_MODEL, help="fallback 模型")
     parser.add_argument("--seed", type=int, default=42, help="随机采样种子")
     args = parser.parse_args()
 
-    error_types = [e.strip().upper() for e in args.error_types.split(",")]
+    # 根据 library 参数决定 error_types 和 cases_root
+    if args.library == "pass":
+        error_types = ["PASS"]
+        cases_root = PASS_CASES_ROOT
+    elif args.library == "both":
+        error_types = [e.strip().upper() for e in args.error_types.split(",")]
+        error_types = list(set(error_types) | {"PASS"})
+        cases_root = None  # load from both (handled below)
+    else:
+        error_types = [e.strip().upper() for e in args.error_types.split(",")]
+        cases_root = FAILURE_CASES_ROOT
+
     unknown = set(error_types) - set(EXPECTED_VERDICT)
     if unknown:
         print(f"❌ 未知 error_type: {unknown}，支持: {list(EXPECTED_VERDICT)}", file=sys.stderr)
         sys.exit(1)
 
-    cases = load_cases(args.phase, error_types, args.limit, args.seed)
+    if args.library == "both":
+        # 合并两个库的 case
+        fail_cases = load_cases(
+            args.phase, [e for e in error_types if e != "PASS"], args.limit // 2, args.seed, FAILURE_CASES_ROOT
+        )
+        pass_cases = load_cases(args.phase, ["PASS"], args.limit // 2, args.seed, PASS_CASES_ROOT)
+        cases = fail_cases + pass_cases
+    else:
+        cases = load_cases(args.phase, error_types, args.limit, args.seed, cases_root)
+
     rubric = compose_rubric(args.phase)
 
     if args.verbose:

@@ -1,0 +1,15 @@
+{
+  "case_id": "PASS-Q01-home-replace-renewal-20260527-04",
+  "phase": "Q01",
+  "error_type": "PASS",
+  "project_id": "home-replace-renewal",
+  "source": "output_verified",
+  "judged_at": "2026-05-18T16:50:40.707613+00:00",
+  "created_at": "2026-05-27T18:19:24.968649",
+  "status": "open",
+  "expected_verdict": "PASS",
+  "tags": [
+    "pass-library",
+    "project:home-replace-renewal"
+  ]
+}
