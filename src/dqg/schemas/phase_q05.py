@@ -234,10 +234,24 @@ class EutTaskItem(BaseModel):
     failure_reason: str | None = None
     assertion_type: AssertionType | None = Field(
         default=None,
-        description="实现时使用的断言类型，Q05b 完成每条 EUT 后填写，weak_assert_gate 据此精确判断",
+        description=(
+            "实现时使用的断言类型（passes=True 时必填）。"
+            "weak_assert_gate 据此精确判断断言强度，不得弱于 EUT 设计的 then_assertion_type。"
+        ),
     )
 
     model_config = {"populate_by_name": True}
+
+    @model_validator(mode="after")
+    def assertion_type_required_when_passes(self) -> EutTaskItem:
+        """passes=True 时必须声明断言类型，防止弱断言悄悄混入."""
+        if self.passes and self.assertion_type is None:
+            raise ValueError(
+                f"EUT {self.eut_id}: passes=True 时 assertion_type 必须填写"
+                "（assertEquals/assertThrows/verify/state_check/other）。"
+                "Q05b 标记 passes=True 前必须声明所用断言类型。"
+            )
+        return self
 
 
 class PhaseBCodeStatusOutput(BaseModel):

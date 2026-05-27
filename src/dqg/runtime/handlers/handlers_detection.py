@@ -46,10 +46,15 @@ def handle_weak_assert_gate(ctx: ExecutionContext, result: PhaseResult) -> None:
         issues.append(f"high-risk 弱断言 {high_risk} 个（BLOCKED 阈值 {WEAK_ASSERT_HIGH_RISK_BLOCK}）")
         blocked = True
 
+    # Q05b: 弱断言比例超阈值直接 BLOCKED（弱断言是铁律，不允许半数以上方法用弱断言）
+    if is_q05 and weak_ratio >= WEAK_ASSERT_RATIO_WARN:
+        issues.append(f"弱断言比例 {weak_ratio:.0%}（Q05b BLOCKED 阈值 {WEAK_ASSERT_RATIO_WARN:.0%}）")
+        blocked = True
+
     # Q06 / 通用: WARNING 级别
-    if high_risk >= WEAK_ASSERT_HIGH_RISK_WARN:
+    if not is_q05 and high_risk >= WEAK_ASSERT_HIGH_RISK_WARN:
         issues.append(f"high-risk 弱断言 {high_risk} 个（WARNING 阈值 {WEAK_ASSERT_HIGH_RISK_WARN}）")
-    if weak_ratio >= WEAK_ASSERT_RATIO_WARN:
+    if not is_q05 and weak_ratio >= WEAK_ASSERT_RATIO_WARN:
         issues.append(f"弱断言比例 {weak_ratio:.0%}（WARNING 阈值 {WEAK_ASSERT_RATIO_WARN:.0%}）")
 
     if issues:
