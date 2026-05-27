@@ -543,6 +543,7 @@ def cmd_approve(args, output_dir: Path) -> int:
             action="approve",
             status="approved",
             comment=comment,
+            force_approved=force,
         ),
     )
 

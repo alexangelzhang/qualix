@@ -37,6 +37,7 @@ class PhaseRunRecord(BaseModel):
     python_version: str = Field(default_factory=platform.python_version)
     # Prompt-level observability (Phase 1: Prompt Fingerprint)
     llm_calls: list[dict[str, Any]] = Field(default_factory=list)
+    force_approved: bool = False  # approve --force 时为 True，用于误报率统计
 
 
 def _telemetry_path(output_dir: Path, project_id: str) -> Path:
