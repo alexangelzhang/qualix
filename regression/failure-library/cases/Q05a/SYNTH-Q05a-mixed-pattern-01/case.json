@@ -1,0 +1,14 @@
+{
+  "case_id": "SYNTH-Q05a-mixed-pattern-01",
+  "phase": "Q05a",
+  "error_type": "FN",
+  "severity": "high",
+  "title": "EUT-based 与 SE-based 混合模式——铁律绕过伪装场景",
+  "root_cause": "SKILL_RULE",
+  "fix_target": "skills/eut-matrix-design/SKILL.md",
+  "tags": ["synthetic", "iron-law-bypass", "mixed-pattern", "hard"],
+  "created_at": "2026-05-27T12:00:00",
+  "status": "open",
+  "lesson": "部分 SE 被聚合为单条 EUT（SE-006/SE-007/SE-008 聚合为 EUT-SE-BATCH），disguised by mostly-correct EUT-based entries",
+  "case_category": "IRON_LAW_VIOLATION"
+}

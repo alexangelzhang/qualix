@@ -47,3 +47,4 @@ observability/
 .dqg/
 results.tsv
 run.log
+*.log
