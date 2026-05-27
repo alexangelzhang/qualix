@@ -59,3 +59,64 @@ def test_analyze_data_patterns_includes_top_lessons():
     for pattern in result.get("top_patterns", []):
         assert "top_lessons" in pattern, f"Pattern {pattern['id']} missing top_lessons"
         assert isinstance(pattern["top_lessons"], list)
+
+
+# ---------------------------------------------------------------------------
+# Task 2: PIVOT snapshot
+# ---------------------------------------------------------------------------
+
+
+def _make_adaptive_loop_fixtures(tmp_path):
+    """构造 AdaptiveLoop 测试所需的最小 fixtures."""
+    from dqg.agents.adaptive_loop import AdaptiveLoop
+
+    loop = AdaptiveLoop(output_dir=tmp_path)
+    pd = tmp_path / "proj" / "phase_a"
+    pd.mkdir(parents=True)
+    (pd / "_internal").mkdir()
+
+    (pd / "phase_a_structured.json").write_text('{"project_id": "proj"}')
+    (pd / "phase_a_report.md").write_text("# Report v1")
+    (pd / "_internal" / "_reasoning_log.md").write_text("## Step 1")
+
+    return loop, pd
+
+
+def test_pivot_snapshot_creates_dir_on_judge_fail(tmp_path):
+    """Judge FAIL 时应创建 _pivot_v1/ 目录并包含主 JSON."""
+    from dqg.constants import STRUCTURED_JSON_MAP
+
+    loop, pd = _make_adaptive_loop_fixtures(tmp_path)
+    phase_id = "Q01"
+    json_fname = STRUCTURED_JSON_MAP.get(phase_id, "phase_a_structured.json")
+    (pd / json_fname).write_text('{"project_id": "proj"}')
+
+    loop._save_pivot_snapshot(pd=pd, iteration_n=0, phase_id=phase_id)
+
+    pivot_dir = pd / "_pivot_v1"
+    assert pivot_dir.is_dir(), "_pivot_v1 目录未创建"
+    assert (pivot_dir / json_fname).exists(), "主 JSON 未复制"
+
+
+def test_pivot_snapshot_writes_latest_pointer(tmp_path):
+    """_save_pivot_snapshot 应更新 _pivot_latest 文件."""
+
+    loop, pd = _make_adaptive_loop_fixtures(tmp_path)
+    loop._save_pivot_snapshot(pd=pd, iteration_n=1, phase_id="Q01")
+
+    pointer = pd / "_pivot_latest"
+    assert pointer.exists()
+    assert pointer.read_text().strip() == "_pivot_v2"
+
+
+def test_pivot_snapshot_skips_missing_files(tmp_path):
+    """不存在的文件不应导致 snapshot 抛出异常."""
+    from dqg.agents.adaptive_loop import AdaptiveLoop
+
+    loop = AdaptiveLoop(output_dir=tmp_path)
+    pd = tmp_path / "proj" / "phaseX"
+    pd.mkdir(parents=True)
+
+    # No files exist — must not raise
+    loop._save_pivot_snapshot(pd=pd, iteration_n=0, phase_id="Q99")
+    # Just verifying no exception was raised
