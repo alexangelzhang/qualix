@@ -175,9 +175,9 @@ JUDGE_RUBRICS: Final[dict[str, dict[str, Any]]] = {
                 "rubric": {
                     5: "所有审计状态判定正确，COVERED 确实有强断言，WRONG_TARGET 确实是弱断言，无漏报；EUT ID 引用验证充分",
                     4: "90%+ 判定正确，无明显弱断言漏报，PARTIAL 有充分技术理由，MISSING 仅限私有辅助方法——整体质量良好，应给 PASS_WITH_CONCERNS；不能因 BUG_CASES 提到某 EUT ID 就推断当前报告存在 EUT ID 问题",
-                    3: "70-90% 正确，有可验证的弱断言漏报（assertNotNull 被误判为 COVERED，在报告文本和结构化字段中均无记录）",
-                    2: "多个判定错误，弱断言明显被判为 COVERED，覆盖率虚高",
-                    1: "大面积判定错误，覆盖率严重虚高",
+                    3: "70-90% 正确，有可验证的弱断言漏报：即在报告文本和结构化字段中均无记录的 assertNotNull 被标为 COVERED（必须有原文引用，不能推断）",
+                    2: "有具体文本引用证据（非 BUG_CASES 推断）证明多个弱断言被明确标为 COVERED，且报告文本无任何弱断言数量统计",
+                    1: "大面积判定错误，覆盖率严重虚高（有多条明确引用为证）",
                 },
             },
             {
@@ -188,8 +188,8 @@ JUDGE_RUBRICS: Final[dict[str, dict[str, Any]]] = {
                 "rubric": {
                     5: "所有弱断言都被识别：通过 WRONG_TARGET 标记、PARTIAL 分类或报告头部统计（如'仅弱断言 assertNotNull-only: N 个'）明确列出；若报告本身无弱断言则直接给 5 分",
                     4: "弱断言已在报告中通过任意形式识别（头部统计、WRONG_TARGET、PARTIAL），整体识别率 90%+——报告明确给出弱断言数量统计即符合此标准，应给 PASS_WITH_CONCERNS",
-                    3: "弱断言部分识别，但有超过 10% 的弱断言被漏算为 COVERED（头部统计比实际少）",
-                    2: "多个明显弱断言被判为 COVERED，报告无任何弱断言数量统计或标记",
+                    3: "弱断言部分识别，但有具体引用证据（非 BUG_CASES 推断）证明超过 10% 的弱断言被漏算为 COVERED",
+                    2: "报告无任何弱断言数量统计（头部统计数量为 0 或不存在），且无 WRONG_TARGET 或 PARTIAL 标记——如果报告头部明确写出弱断言数量（如'N个assertNotNull-only'），则此维度至少 4 分",
                     1: "报告无任何弱断言识别记录，弱断言全部隐含在 COVERED 中",
                 },
             },
