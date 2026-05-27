@@ -284,14 +284,14 @@ JUDGE_RUBRICS: Final[dict[str, dict[str, Any]]] = {
             {
                 "id": "req_coverage",
                 "name": "需求覆盖完备性",
-                "description": "EUT 矩阵是否覆盖了所有 REQ/BR/SE，每条需求都有对应的 EUT 条目",
+                "description": "EUT 矩阵是否覆盖了所有 REQ/BR/SE，每条需求都有对应的 EUT 条目。铁律：每条 EUT 的 bound_item 只能绑定单个 SE/BR/REQ；将多个 SE 合并为一条 EUT 是 SE-based 聚合模式，属于铁律违反，直接导致 FAIL",
                 "weight": 0.30,
                 "rubric": {
-                    5: "每条 REQ、BR、SE 都有至少一个对应 EUT，bound_item 字段引用准确",
-                    4: "90%+ REQ/BR/SE 有对应 EUT，仅遗漏 1-2 个非关键语义点",
+                    5: "每条 REQ、BR、SE 都有至少一个对应 EUT，bound_item 字段引用准确，无 SE-based 聚合",
+                    4: "90%+ REQ/BR/SE 有对应 EUT，仅遗漏 1-2 个非关键语义点，无 SE-based 聚合——整体覆盖良好，应给 PASS_WITH_CONCERNS",
                     3: "主要 REQ/BR 有覆盖，但 SE（隐式语义）遗漏超过 3 条",
                     2: "EUT 覆盖不足 70%，整块 BR 或 SE 类型无对应测试",
-                    1: "EUT 矩阵严重不完整，大量 REQ/SE 无对应条目",
+                    1: "EUT 矩阵严重不完整或存在 SE-based 聚合（多个 SE 绑定同一 EUT，路径类型为 Mixed）",
                 },
             },
             {
@@ -313,11 +313,11 @@ JUDGE_RUBRICS: Final[dict[str, dict[str, Any]]] = {
                 "description": "EUT 的 then 字段是否包含具体可验证的断言语义，禁止'验证接口正确'类泛化描述",
                 "weight": 0.25,
                 "rubric": {
-                    5: "所有 EUT 的 then 包含具体断言（assertEquals(200, status)/verify(repo, times(1))），无泛化描述",
-                    4: "90%+ then 字段是具体断言，个别条目描述稍泛化但含关键字段名",
-                    3: "主要 EUT 有具体断言，但存在 10-30%「验证返回正确」类空话",
+                    5: "所有 EUT 的 then 包含具体断言（assertEquals(200, status)/verify(repo, times(1))/assertThrows(ExceptionClass.class, ...)），无泛化描述",
+                    4: "90%+ then 字段是具体断言，个别条目描述稍泛化但含关键字段名——整体断言质量良好，应给 PASS_WITH_CONCERNS",
+                    3: "主要 EUT 有具体断言，但存在 10-30% 「验证返回正确」类空话，无法直接转为代码",
                     2: "超过 30% 的 then 字段是无法直接转换为代码的泛化描述",
-                    1: "大量 then 为「验证功能正常」类无效描述，断言规格缺失",
+                    1: "大量 then 为「验证功能正常」类无效描述，或报告仅为验证错误/错误消息，无实质断言规格",
                 },
             },
             {
