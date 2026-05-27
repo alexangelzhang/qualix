@@ -334,7 +334,7 @@ def _write_markdown_report(path: Path, payload: dict[str, Any]) -> None:
             )
     # 运营口径节
     gp = payload.get("guard_precision", {})
-    guard_rows = gp.get("guards", [])
+    guard_rows = [{"name": name, **counters} for name, counters in gp.get("by_guard", {}).items()]
     if guard_rows:
         lines += [
             "",
@@ -346,10 +346,11 @@ def _write_markdown_report(path: Path, payload: dict[str, Any]) -> None:
             "| --- | ---: | ---: | ---: | ---: |",
         ]
         for g in guard_rows:
-            total = g.get("total", 0)
+            passed = g.get("pass", 0)
             blocked = g.get("blocked", 0)
+            total = passed + blocked + g.get("fail", 0)
             hit_rate = blocked / total if total > 0 else 0.0
-            lines.append(f"| {g.get('name', '?')} | {total} | {g.get('passed', 0)} | {blocked} | {hit_rate:.2%} |")
+            lines.append(f"| {g.get('name', '?')} | {total} | {passed} | {blocked} | {hit_rate:.2%} |")
 
     has_closure = any(r.get("avg_closure_hours", 0) > 0 for r in payload.get("projects", []))
     if has_closure:
