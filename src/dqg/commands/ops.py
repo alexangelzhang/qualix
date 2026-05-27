@@ -267,6 +267,51 @@ def cmd_regression(args: argparse.Namespace, output_dir: Path) -> int:
 
     action = getattr(args, "regression_action", "run")
 
+    if action == "multi-judge":
+        from dqg.constants import DEFAULT_JUDGE_MODEL, DEFAULT_PRIMARY_MODEL
+        from dqg.tracking.multi_model_judge import run_multi_model_judge
+
+        phase_id = getattr(args, "phase", None) or "Q03"
+        models_raw = getattr(args, "models", None) or f"{DEFAULT_JUDGE_MODEL},{DEFAULT_PRIMARY_MODEL}"
+        models = [m.strip() for m in models_raw.split(",") if m.strip()]
+        if len(models) < 2:
+            print(f"错误: --models 需要至少 2 个模型，当前: {models}")
+            return 1
+
+        try:
+            report = run_multi_model_judge(output_dir, args.project_id, phase_id, models)
+        except (FileNotFoundError, ValueError) as e:
+            if cli_json_mode(args):
+                print_cli_json(
+                    cli_envelope(
+                        command="regression",
+                        project_id=args.project_id,
+                        success=False,
+                        exit_code=1,
+                        extra={"regression_action": "multi-judge", "error": str(e)},
+                    )
+                )
+            else:
+                print(f"  ❌ {e}")
+            return 1
+
+        if cli_json_mode(args):
+            import dataclasses
+
+            print_cli_json(
+                cli_envelope(
+                    command="regression",
+                    project_id=args.project_id,
+                    success=True,
+                    exit_code=0,
+                    extra={"regression_action": "multi-judge", "report": dataclasses.asdict(report)},
+                )
+            )
+        else:
+            for line in report.summary_lines():
+                print(f"  {line}")
+        return 0
+
     if action == "trend":
         payload = build_failure_trend(_failure_history_path(), period=getattr(args, "period", "weekly"))
         trend_output = (

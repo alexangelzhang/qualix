@@ -232,10 +232,16 @@ def _build_parser() -> argparse.ArgumentParser:
 
     # regression
     p_regr = sub.add_parser("regression", help="回归测试（原 dqg-regression）")
-    p_regr.add_argument("regression_action", nargs="?", default="run", choices=["run", "trend"])
+    p_regr.add_argument("regression_action", nargs="?", default="run", choices=["run", "trend", "multi-judge"])
     p_regr.add_argument("--case", dest="case_id", default=None, help="只运行指定 case")
     p_regr.add_argument("--period", choices=["weekly"], default="weekly")
     p_regr.add_argument("--output-dir", dest="regression_output_dir", default=None, help="输出目录")
+    p_regr.add_argument("--phase", default=None, help="multi-judge: 指定 Phase ID（默认 Q03）")
+    p_regr.add_argument(
+        "--models",
+        default=None,
+        help="multi-judge: 逗号分隔的模型列表（默认 deepseek-chat,claude-opus-4-6）",
+    )
 
     # spec：Phase 规范（JSON Schema + contract），代码为单一事实源
     p_spec = sub.add_parser("spec", help="输出 Phase 规范（JSON Schema + phase_contract），供 Agent 解析")
