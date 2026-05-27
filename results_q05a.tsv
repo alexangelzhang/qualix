@@ -1,8 +1,0 @@
-commit	metric	status	description
-baseline	100.0	baseline	all 6 cases correct (3 trivial FN + 3 synthetic hard FN + 1 PASS)
-6a2dd7b7	100.0	keep	exp1: SE-ban + PASS calibration req_coverage/assertion_quality
-2defadc3	100.0	keep	exp2: code_path_projection Mixed=invalid + PASS calibration
-69939221	100.0	keep	exp3: Q05b iron law explicit + PASS calibration all 4 dims
-d1d03836	100.0	keep	exp4: git_diff_coverage PASS calibration
-d1d03836	100.0	keep	exp4-5 Q05b assertTrue catch + borderline PASS verified
-d1d03836	100.0	keep	exp5: robustness seed=77 100% + borderline PASS verified

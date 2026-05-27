@@ -48,3 +48,4 @@ observability/
 results.tsv
 run.log
 *.log
+*.tsv
