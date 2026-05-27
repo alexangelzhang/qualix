@@ -91,6 +91,23 @@ def _check_target_modules_json(
                 "请在 Step 0.5b 中为每条 SE 搜索对应实现类（未找到填 found=false + gap_reason）。"
             )
 
+    # ── 层 1b：BR 覆盖完整性 ─────────────────────────────────────────────────
+    if q01_data:
+        all_br_ids = {
+            r["req_id"]
+            for r in q01_data.get("requirements", [])
+            if isinstance(r, dict) and r.get("req_id", "").startswith("BR-")
+        }
+        br_mappings = data.get("br_mappings", [])
+        mapped_br_ids = {m.get("br_id", "") for m in br_mappings if isinstance(m, dict)}
+        missing_br = sorted(all_br_ids - mapped_br_ids)
+        if missing_br:
+            errors.append(
+                f"BLOCKED: Q05 target_modules_br_incomplete — "
+                f"_q05_target_modules.json 缺少以下 BR 的类映射: {', '.join(missing_br)}。"
+                "请在 Step 0.5a 中为每条 BR 搜索对应实现类（未找到填 found=false + gap_reason）。"
+            )
+
     # ── 层 2：git_diff_files 非空（证明执行了 git diff） ─────────────────────
     diff_files = data.get("git_diff_files", [])
     if not diff_files and code_repos:

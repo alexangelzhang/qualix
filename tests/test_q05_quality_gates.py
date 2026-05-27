@@ -10,7 +10,7 @@ from pydantic import ValidationError
 
 from dqg.runtime.execution_context import ExecutionContext
 from dqg.runtime.result import PhaseResult
-from dqg.schemas.phase_b import EutItem, RiskTier, RouteType
+from dqg.schemas.phase_b import AssertionType, EutItem, RiskTier, RouteType
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -23,7 +23,7 @@ if TYPE_CHECKING:
 class TestEutThenValidator:
     """EUT then 字段必须包含具体断言或值，拒绝模糊描述."""
 
-    def _make_eut(self, then: str) -> EutItem:
+    def _make_eut(self, then: str, assertion_type: AssertionType = AssertionType.EQUALS) -> EutItem:
         return EutItem(
             eut_id="EUT-001",
             bound_se="SE-001",
@@ -31,6 +31,7 @@ class TestEutThenValidator:
             given="正常 DTO",
             when="调用 createOrder",
             then=then,
+            then_assertion_type=assertion_type,
             risk_tier=RiskTier.T1,
         )
 
