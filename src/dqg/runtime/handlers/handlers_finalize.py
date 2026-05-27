@@ -19,6 +19,37 @@ class HardGateError(Exception):
     """硬门禁失败：产物完整性或 schema 校验未通过，下游 judge 将被跳过."""
 
 
+def handle_se_source_evidence(ctx: ExecutionContext, result: PhaseResult) -> None:
+    """Q01: 校验每条 SE.source 指向的 ingest 文件行号真实存在，落盘 _se_source_evidence.json."""
+    import datetime
+
+    from dqg.json_utils import load_json
+    from dqg.quality.checks.evidence_contract import verify_se_sources
+    from dqg.text_utils import STRUCTURED_JSON_MAP
+
+    if not ctx.phase_root:
+        return
+    json_fname = STRUCTURED_JSON_MAP.get("Q01", "phase_a_structured.json")
+    json_path = ctx.phase_root / json_fname
+    if not json_path.exists():
+        return  # hard_gate 会捕获文件缺失
+
+    data = load_json(json_path) or {}
+    se_list = data.get("semantic_expectations", [])
+    if not se_list:
+        return
+
+    errors, entries = verify_se_sources(ctx.phase_root, se_list)
+    result.errors.extend(errors)
+
+    evidence = {
+        "verified_at": datetime.datetime.now(datetime.UTC).isoformat(),
+        "entries": entries,
+    }
+    if ctx.internal_dir:
+        _async_write_json(ctx.internal_dir / "_se_source_evidence.json", evidence)
+
+
 def handle_hard_gate(ctx: ExecutionContext, result: PhaseResult) -> None:
     """硬门禁：产物完整性 + Pydantic schema 校验，零 LLM。
 
@@ -440,6 +471,16 @@ def register_finalize_handlers() -> None:
     from .handlers_memory_finalize import register_memory_garden_handler
 
     register_memory_garden_handler()
+
+    # SE.source 跨引用校验：Q01 专属，order=57（先于 hard_gate=58）
+    register_handler(
+        "se_source_evidence",
+        handle_se_source_evidence,
+        stage="finalize",
+        order=57,
+        phases={"Q01"},
+        required=True,
+    )
 
     # 异构检测层（注册在 handlers_detection 内部）
     from .handlers_detection import register_detection_handlers
