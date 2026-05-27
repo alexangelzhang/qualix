@@ -297,14 +297,14 @@ JUDGE_RUBRICS: Final[dict[str, dict[str, Any]]] = {
             {
                 "id": "code_path_projection",
                 "name": "代码路径覆盖投影",
-                "description": "EUT 矩阵对目标类的 Happy/Exception/Boundary/Concurrent 路径是否达到 100% 投影覆盖",
+                "description": "EUT 矩阵对目标类的 Happy/Exception/Boundary/Concurrent 路径是否达到 100% 投影覆盖。每条 EUT 的路径类型必须为 Happy/Exception/Boundary/Concurrent 之一；'Mixed' 类型表示 SE-based 聚合，视为路径未分类，不计入有效覆盖",
                 "weight": 0.30,
                 "rubric": {
-                    5: "所有目标类的 Happy/Exception/Boundary 路径均有 EUT 覆盖，并发/幂等语义存在时也已覆盖",
-                    4: "Happy+Exception 路径全覆盖，Boundary 仅遗漏 1-2 个非关键边界条件",
+                    5: "所有目标类的 Happy/Exception/Boundary 路径均有 EUT 覆盖，并发/幂等语义存在时也已覆盖，无 Mixed 路径类型",
+                    4: "Happy+Exception 路径全覆盖，Boundary 仅遗漏 1-2 个非关键边界条件——整体路径投影良好，应给 PASS_WITH_CONCERNS",
                     3: "Happy Path 全覆盖，但 Exception 或 Boundary 路径存在系统性遗漏",
-                    2: "Exception/Boundary 路径覆盖不足 70%，多个异常分支无对应 EUT",
-                    1: "仅有 Happy Path EUT，异常和边界路径基本未覆盖",
+                    2: "Exception/Boundary 路径覆盖不足 70%，多个异常分支无对应 EUT，或存在 Mixed 类型导致路径未分类",
+                    1: "仅有 Happy Path EUT，异常和边界路径基本未覆盖，或报告无实质路径分析",
                 },
             },
             {
