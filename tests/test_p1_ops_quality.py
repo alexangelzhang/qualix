@@ -61,3 +61,53 @@ def test_non_strict_profile_context_warns_only(tmp_path):
 
     assert result.errors == [], "非严格模式不应有 BLOCKED error"
     assert len(result.warnings) > 0, "非严格模式应有 WARNING"
+
+
+# ---------------------------------------------------------------------------
+# Task 2: Task store CLI
+# ---------------------------------------------------------------------------
+
+
+def test_cmd_task_list_returns_records(tmp_path):
+    """cmd_task list 应返回已有 task runs."""
+    from dqg.commands.task_cmd import cmd_task
+    from dqg.runtime.task_store import complete_task_run, create_task_run
+
+    tid1 = create_task_run(tmp_path, task_type="adaptive", project_id="p1", phase_id="Q01")
+    complete_task_run(tmp_path, tid1, status="completed", result_summary="done")
+    create_task_run(tmp_path, task_type="adaptive", project_id="p1", phase_id="Q05")
+
+    args = type(
+        "A",
+        (),
+        {
+            "project_id": "p1",
+            "task_action": "list",
+            "task_id": None,
+            "status": "all",
+            "limit": 20,
+            "json": False,
+        },
+    )()
+    rc = cmd_task(args, tmp_path)
+    assert rc == 0
+
+
+def test_cmd_task_resume_no_tasks(tmp_path):
+    """cmd_task resume 无可恢复 task 时应优雅返回（非 crash）."""
+    from dqg.commands.task_cmd import cmd_task
+
+    args = type(
+        "A",
+        (),
+        {
+            "project_id": "p1",
+            "task_action": "resume",
+            "task_id": None,
+            "status": "all",
+            "limit": 20,
+            "json": False,
+        },
+    )()
+    rc = cmd_task(args, tmp_path)
+    assert rc in (0, 1)

@@ -191,6 +191,24 @@ def _build_parser() -> argparse.ArgumentParser:
     # version
     sub.add_parser("version", help="显示 DQG 版本号")
 
+    # task
+    p_task = sub.add_parser("task", help="Task 管理（list/resume）")
+    p_task.add_argument(
+        "task_action",
+        nargs="?",
+        default="list",
+        choices=["list", "resume"],
+        help="操作（list: 列出 tasks；resume: 查找/显示可恢复 task）",
+    )
+    p_task.add_argument("task_id", nargs="?", default=None, help="Task ID（resume 指定 task 用）")
+    p_task.add_argument(
+        "--status",
+        choices=["running", "completed", "failed", "all"],
+        default="all",
+        help="按状态过滤（list 用，默认 all）",
+    )
+    p_task.add_argument("--limit", type=int, default=20, help="最多返回条数（默认 20）")
+
     # --- ops: metrics / observe / regression ---
 
     # metrics
@@ -310,6 +328,11 @@ def _dispatch(cmd: str) -> callable:
         from dqg.commands.render import cmd_render
 
         return cmd_render
+
+    if cmd == "task":
+        from dqg.commands.task_cmd import cmd_task
+
+        return cmd_task
 
     return None
 
