@@ -185,9 +185,9 @@ PRICING_CACHE_READ_PER_M = 1.5  # Cache read (0.1x input)
 # ---------------------------------------------------------------------------
 
 WEAK_ASSERT_HIGH_RISK_WARN = 3  # 弱断言 gate: high-risk 方法数 ≥ 此值触发 WARNING
-WEAK_ASSERT_RATIO_WARN = 0.5  # 弱断言 gate: weak/total 比例 ≥ 此值触发 WARNING
-WEAK_ASSERT_HIGH_RISK_BLOCK = 1  # Q05 弱断言 gate: high-risk ≥ 此值触发 BLOCKED
-WEAK_ASSERT_RATIO_BLOCK = 0.0  # Q05 弱断言 gate: 不按比例 block（用 high-risk 计数）
+WEAK_ASSERT_RATIO_WARN = 0.5  # 弱断言 gate: weak/total 比例 ≥ 此值触发 WARNING（Q06）
+WEAK_ASSERT_HIGH_RISK_BLOCK = 1  # Q05b 弱断言 gate: high-risk ≥ 此值触发 BLOCKED
+WEAK_ASSERT_RATIO_BLOCK = 0.1  # Q05b 弱断言 gate: weak/total 比例 ≥ 此值触发 BLOCKED（10%）
 SKILL_AUTO_MERGE_ENABLED = True  # Skill Evolution: 高置信度规则自动合入 SKILL.md
 SKILL_AUTO_MERGE_OVERFITTING_THRESHOLD = 0.5  # holdout coverage_gap 超此值自动 revert
 

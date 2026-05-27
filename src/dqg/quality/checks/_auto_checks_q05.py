@@ -132,19 +132,19 @@ def _check_q05_req_br_se_coverage(
             happy_covered += 1
         else:
             errors.append(
-                f"FAIL: Q05 {item_id} 缺少 Happy Path EUT（直接 bound_item 或通过 SE.bound_reqs 间接覆盖均可）。"
+                f"BLOCKED: Q05 {item_id} 缺少 Happy Path EUT（直接 bound_item 或通过 SE.bound_reqs 间接覆盖均可）。"
             )
 
         # Exception（100%，直接 or 间接）
         if not _has_route_coverage(item_id, "Exception"):
             errors.append(
-                f"FAIL: Q05 {item_id} 缺少 Exception EUT（要求 100%）。必须覆盖该条目实现代码的所有异常/错误分支。"
+                f"BLOCKED: Q05 {item_id} 缺少 Exception EUT（要求 100%）。必须覆盖该条目实现代码的所有异常/错误分支。"
             )
 
         # Boundary（有边界语义时 100%，直接 or 间接）
         has_boundary = any(kw in desc for kw in _BOUNDARY_KEYWORDS)
         if has_boundary and not _has_route_coverage(item_id, "Boundary"):
-            errors.append(f"FAIL: Q05 {item_id} 描述含边界语义但缺少 Boundary EUT（要求 100%）。")
+            errors.append(f"BLOCKED: Q05 {item_id} 描述含边界语义但缺少 Boundary EUT（要求 100%）。")
 
         # 并发/幂等/多线程（有相关语义时必须有并发测试）
         concurrent_kw = next((kw for kw in _CONCURRENT_KEYWORDS if kw in desc), None)
@@ -157,7 +157,7 @@ def _check_q05_req_br_se_coverage(
             )
             if not has_concurrent:
                 errors.append(
-                    f"FAIL: Q05 {item_id} 有并发/幂等语义（含关键词「{concurrent_kw}」）"
+                    f"BLOCKED: Q05 {item_id} 有并发/幂等语义（含关键词「{concurrent_kw}」）"
                     "但缺少并发测试（then 须含 CountDownLatch/ExecutorService/AtomicInteger 等强并发断言）。"
                 )
 

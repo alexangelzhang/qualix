@@ -19,6 +19,7 @@ def handle_weak_assert_gate(ctx: ExecutionContext, result: PhaseResult) -> None:
     from dqg.constants import (
         WEAK_ASSERT_HIGH_RISK_BLOCK,
         WEAK_ASSERT_HIGH_RISK_WARN,
+        WEAK_ASSERT_RATIO_BLOCK,
         WEAK_ASSERT_RATIO_WARN,
     )
     from dqg.json_utils import load_json
@@ -46,9 +47,9 @@ def handle_weak_assert_gate(ctx: ExecutionContext, result: PhaseResult) -> None:
         issues.append(f"high-risk 弱断言 {high_risk} 个（BLOCKED 阈值 {WEAK_ASSERT_HIGH_RISK_BLOCK}）")
         blocked = True
 
-    # Q05b: 弱断言比例超阈值直接 BLOCKED（弱断言是铁律，不允许半数以上方法用弱断言）
-    if is_q05 and weak_ratio >= WEAK_ASSERT_RATIO_WARN:
-        issues.append(f"弱断言比例 {weak_ratio:.0%}（Q05b BLOCKED 阈值 {WEAK_ASSERT_RATIO_WARN:.0%}）")
+    # Q05b: 弱断言比例 ≥10% 直接 BLOCKED（弱断言是铁律，理论上不应出现）
+    if is_q05 and weak_ratio >= WEAK_ASSERT_RATIO_BLOCK:
+        issues.append(f"弱断言比例 {weak_ratio:.0%}（Q05b BLOCKED 阈值 {WEAK_ASSERT_RATIO_BLOCK:.0%}）")
         blocked = True
 
     # Q06 / 通用: WARNING 级别
