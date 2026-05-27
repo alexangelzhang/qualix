@@ -100,7 +100,7 @@ Q06 最常见的失败模式是产出 JSON 时 schema 校验不过。先锁定�
       "se_id": "SE-001",
       "eut_id": "EUT-001,EUT-002",
       "description": "SE 描述",
-      "status": "COVERED|PARTIAL|MISSING|WRONG_TARGET|CONFLICT",
+      "status": "COVERED",
       "test_class": "XxxTest [来源: XxxTest.java:45]",
       "test_method": "method1, method2",
       "evidence": "assertEquals('expected', actual) [XxxTest.java:52]; verify(mock).call() [XxxTest.java:58]",
@@ -121,10 +121,10 @@ Q06 最常见的失败模式是产出 JSON 时 schema 校验不过。先锁定�
       }
     }
   ],
-  "findings": [...],
+  "findings": [],
   "coverage_gate": {"line_coverage": 85.0, "branch_coverage": 72.0},
   "conclusion": "PASS_WITH_RISKS",
-  "summary": {...}
+  "summary": {}
 }
 ```
 
