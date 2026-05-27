@@ -237,7 +237,7 @@ dqg-run PROJ --profile go-service auto
 dqg-run PROJ --profile typescript-service execute Q06
 ```
 
-选中的 profile 会持久化到项目状态，并在 `Q04/Q03/Q05/Q06/Q07` 自动注入：
+选中的 profile 会持久化到项目状态，并在 `Q04/Q03/Q05/Q05a/Q05b/Q06/Q07` 自动注入：
 
 - baseline 文档
 - 风险词典
@@ -248,11 +248,11 @@ dqg-run PROJ --profile typescript-service execute Q06
 - `_profile.json`：结构化 profile 元数据
 - `_profile_context.md`：可直接粘贴到报告头部的 `PROFILE_CONTEXT` 区块
 
-例如：`output/<project>/Q05/_internal/_profile.json`、`output/<project>/Q05/_internal/_profile_context.md`
+例如：`output/<project>/Q05a/_internal/_profile.json`、`output/<project>/Q05a/_internal/_profile_context.md`
 
 推荐报告模板（均包含 `PROFILE_CONTEXT` 区块）：
 
-- Phase Q05：`references/eut-matrix-template.md`
+- Phase Q05a（EUT 矩阵设计）：`references/eut-matrix-template.md`
 - Phase Q06：`references/ut-audit-template.md`
 - Phase Q07：`references/code-review-template.md`
 
@@ -289,7 +289,7 @@ python -m dqg.tracking.bug_cases         # 查看 failure-library 报告
 python -m dqg.tracking.import_bug_cases <ingest.json>  # 从飞书导入
 ```
 
-`regression/cases/prompt-eval/Q05-basic` 和 `Q06-basic` 内置了 `prompt_outputs/v1_baseline.json`、`prompt_outputs/v2_enhanced.json`。`prompt-eval` 优先级为：注入执行器结果 > 离线 `prompt_outputs` > 固定输入 fallback，因此默认命令即可看到增强 prompt 的离线 A/B 指标差异。
+`regression/cases/prompt-eval/Q05a-basic`（EUT 矩阵设计）和 `Q06-basic` 内置了 `prompt_outputs/v1_baseline.json`、`prompt_outputs/v2_enhanced.json`。`Q05-basic` 保留作 legacy 回归基准。`prompt-eval` 优先级为：注入执行器结果 > 离线 `prompt_outputs` > 固定输入 fallback，因此默认命令即可看到增强 prompt 的离线 A/B 指标差异。
 
 ## 质量保障
 

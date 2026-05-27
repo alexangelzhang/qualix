@@ -1,0 +1,18 @@
+{
+  "case_id": "FEISHU-57bb3554",
+  "phase": "Q05a",
+  "error_type": "MISS",
+  "severity": "high",
+  "title": "【权益管理】权益管理列表更新人字段存在问题",
+  "root_cause": "历史BUG",
+  "fix_target": "",
+  "tags": "[\"feishu-import\", \"category:历史BUG\", \"bug_class:后端\"]",
+  "created_at": "2026-04-15",
+  "status": "open",
+  "source": "{\"feishu_table\": \"tblGxARLByCc5h3T\", \"bug_id\": null, \"requirement\": \"国际-售后-三包鉴权\"}",
+  "expected": "{\"content\": \"（需人工确认）\"}",
+  "actual": "{\"content\": \"国内也有这个问题，非本次修改导致\"}",
+  "lesson": "对照 Phase skill、schema 与历史反例复盘本案例；修复后更新 case 状态并补充可复现片段。",
+  "holdout": "False",
+  "case_category": "STRUCTURED_SCHEMA"
+}

@@ -1,0 +1,17 @@
+{
+  "case_id": "FEISHU-INF-86531fea",
+  "phase": "Q05a",
+  "error_type": "MISS",
+  "severity": "medium",
+  "title": "日志验证，家桩接口日志没有打印\"策略\"，预期是和其他服务日志一样进行打印",
+  "root_cause": "函数正常分支未覆盖",
+  "tags": "[\"feishu-import\", \"inferred-from-title\", \"category:函数正常分支未覆盖\"]",
+  "created_at": "2026-04-15",
+  "status": "open",
+  "source": "{\"feishu_table\": \"tblGxARLByCc5h3T\", \"bug_id\": \"86531fea\", \"original_cat1\": \"未分类\", \"inferred_cat2\": \"函数正常分支未覆盖\", \"inference_reason\": \"日志缺失，正常分支逻辑遗漏\", \"requirement\": \"桩云微服务拆分\"}",
+  "expected": "{\"content\": \"（根据bug描述推理，需人工确认）\"}",
+  "actual": "{\"content\": \"日志验证，家桩接口日志没有打印\\\"策略\\\"，预期是和其他服务日志一样进行打印\"}",
+  "lesson": "日志缺失，正常分支逻辑遗漏",
+  "holdout": "False",
+  "case_category": "STRUCTURED_SCHEMA"
+}

@@ -55,7 +55,7 @@ def infer_case_category(case: dict[str, Any]) -> str:
         return "CROSS_PHASE_IDS"
     if phase in ("Q06", "C") and ("eut" in title or "audit" in title):
         return "CROSS_PHASE_IDS"
-    if phase in ("Q05", "B") and "bound_se" in title:
+    if phase in ("Q05", "Q05a", "B") and "bound_se" in title:
         return "CROSS_PHASE_IDS"
 
     # 3) 弱断言 / then

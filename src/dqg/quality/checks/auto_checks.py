@@ -34,6 +34,8 @@ _SCHEMA_MAP: Final = MappingProxyType(
         "Q04": "dqg.schemas.phase_q04:PhaseA5Output",
         "Q03": "dqg.schemas.phase_q03:PhaseA6Output",
         "Q05": "dqg.schemas.phase_q05:PhaseBOutput",
+        "Q05a": "dqg.schemas.phase_q05:PhaseBOutput",
+        "Q05b": "dqg.schemas.phase_q05:PhaseBCodeStatusOutput",
         "Q06": "dqg.schemas.phase_q06:PhaseCOutput",
         "Q07": "dqg.schemas.phase_q07:PhaseDOutput",
     }
@@ -122,7 +124,7 @@ def auto_derive_checks(
             errors.extend(_check_br_density_ratio(output_dir, project_id, phase_id))
 
         # --- Q05: REQ+BR+SE × 代码路径完整性（Happy/Exception/Boundary/并发幂等）---
-        if phase_id == "Q05":
+        if phase_id in {"Q05", "Q05a"}:
             errors.extend(_check_q05_req_br_se_coverage(validated, phase_id, output_dir, project_id))
 
         # --- Q06: coverage_gate 自报 ↔ JaCoCo 一致性 (G2) ---
@@ -134,7 +136,7 @@ def auto_derive_checks(
             errors.extend(_check_evidence_line_reality(output_dir, project_id, phase_id))
 
     # --- 5. RSM 覆盖率校验（跨 Phase，在 A.5/B/D finalize 时触发）---
-    if phase_id in {"Q04", "Q05", "Q06", "Q07"}:
+    if phase_id in {"Q04", "Q05", "Q05a", "Q05b", "Q06", "Q07"}:
         errors.extend(_check_rsm_coverage(output_dir, project_id, phase_id))
 
     return errors
@@ -291,7 +293,7 @@ def _check_rsm_coverage(output_dir: Path, project_id: str, phase_id: str) -> lis
                         }
                     )
 
-    if phase_id in ("Q05", "Q06") and coverage.total_ses > 0 and coverage.test_coverage_rate < 0.6:
+    if phase_id in ("Q05", "Q05a", "Q05b", "Q06") and coverage.total_ses > 0 and coverage.test_coverage_rate < 0.6:
         # B/C finalize 时：SE 应该有对应 EUT
         errors.append(
             f"RSM_COVERAGE: SE→EUT 测试覆盖率 {coverage.test_coverage_rate:.0%} "
@@ -302,7 +304,7 @@ def _check_rsm_coverage(output_dir: Path, project_id: str, phase_id: str) -> lis
                 gap_tasks.append(
                     {
                         "target_id": item.req_id,
-                        "target_phase": "Q05",
+                        "target_phase": "Q05a",
                         "action": "补充 EUT",
                         "description": f"{item.req_id}: {item.description}",
                         "current_status": "NO_EUT",

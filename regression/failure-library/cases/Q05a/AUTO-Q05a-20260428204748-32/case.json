@@ -1,0 +1,28 @@
+{
+  "case_id": "AUTO-Q05a-20260428204748-32",
+  "phase": "Q05a",
+  "error_type": "FN",
+  "severity": "medium",
+  "title": "Value error, EUT then 字段缺少具体性: '返回false'。需包含断言方法、具体值、状态码、异常类型等可验证内容。 [type=value_error, input_value=",
+  "root_cause": "SKILL_RULE",
+  "fix_target": "",
+  "tags": [
+    "auto-generated",
+    "project:shuangzhou-v4"
+  ],
+  "created_at": "2026-04-28",
+  "status": "open",
+  "source": {
+    "project_id": "shuangzhou-v4",
+    "auto_generated": true,
+    "validation_error": "Value error, EUT then 字段缺少具体性: '返回false'。需包含断言方法、具体值、状态码、异常类型等可验证内容。 [type=value_error, input_value='返回false', input_type=str]"
+  },
+  "expected": {
+    "content": "（需人工确认）"
+  },
+  "actual": {
+    "content": "Value error, EUT then 字段缺少具体性: '返回false'。需包含断言方法、具体值、状态码、异常类型等可验证内容。 [type=value_error, input_value='返回false', input_type=str]"
+  },
+  "lesson": "EUT then 须写具体断言与期望值，禁止「验证成功」等模糊描述",
+  "case_category": "ASSERTION_QUALITY"
+}

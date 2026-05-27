@@ -199,7 +199,7 @@ class FabricationDetectorGuardrail(PhaseGuardrail):
 
     def check(self, ctx: GuardrailContext) -> list[GuardrailResult]:
         # 只对涉及代码的 Phase 检测
-        if ctx.phase_id not in ("Q03", "Q04", "Q05", "Q06", "Q07"):
+        if ctx.phase_id not in ("Q03", "Q04", "Q05", "Q05a", "Q05b", "Q06", "Q07"):
             return []
 
         # 提取标识符

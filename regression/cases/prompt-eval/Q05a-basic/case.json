@@ -1,0 +1,6 @@
+{
+  "case_id": "Q05a-basic",
+  "sample_type": "prompt-eval",
+  "phase": "Q05a",
+  "description": "Q05a EUT matrix design prompt regression baseline"
+}

@@ -252,5 +252,7 @@ def get_rules(phase_id: str) -> list[dict[str, Any]]:
     }
 
     rules = common.copy()
-    rules.extend(phase_specific.get(phase_id, []))
+    # Q05a (EUT matrix design) uses Q05 rule set
+    phase_lookup = "Q05" if phase_id == "Q05a" else phase_id
+    rules.extend(phase_specific.get(phase_lookup, []))
     return rules

@@ -1,0 +1,18 @@
+{
+  "case_id": "FEISHU-2bae9130",
+  "phase": "Q05a",
+  "error_type": "MISS",
+  "severity": "high",
+  "title": "运单少件索赔后，已入库数量未正确显示，可索赔20个，索赔了10个，已入库数量显示为0，预期显示为10",
+  "root_cause": "技术方案不清晰",
+  "fix_target": "",
+  "tags": "[\"feishu-import\", \"category:技术方案不清晰\", \"bug_class:后端\"]",
+  "created_at": "2026-04-15",
+  "status": "open",
+  "source": "{\"feishu_table\": \"tblGxARLByCc5h3T\", \"bug_id\": null, \"requirement\": \"汽车配件索赔2.0\"}",
+  "expected": "{\"content\": \"增加单测 mock各种数据场景组合，以及对于结果数据判断正确性\"}",
+  "actual": "{\"content\": \"该查询后端逻辑没统计到 历史逻辑中的 索赔后剩余入库数量，比如a001 采购了20个，少件了9个 这9个可以发起索赔，剩下的11个要入库（这11个没有计算到）。涉及到集成测试\"}",
+  "lesson": "增加单测 mock各种数据场景组合，以及对于结果数据判断正确性",
+  "holdout": "False",
+  "case_category": "STRUCTURED_SCHEMA"
+}

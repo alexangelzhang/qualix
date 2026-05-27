@@ -95,6 +95,26 @@ PHASE_CONSTRAINTS: Final = MappingProxyType(
                 "label": "至少 1 条 EUT 测试用例",
             },
         ],
+        "Q05a": [
+            {
+                "metric": "eut_count",
+                "op": ">=",
+                "threshold": 1,
+                "source": "phase_b_structured.json:eut_items[]",
+                "block_if_fail": True,
+                "label": "至少 1 条 EUT 测试用例",
+            },
+        ],
+        "Q05b": [
+            {
+                "metric": "task_count",
+                "op": ">=",
+                "threshold": 1,
+                "source": "phase_b_code_status.json:tasks[]",
+                "block_if_fail": True,
+                "label": "至少 1 个 EUT 实现状态条目",
+            },
+        ],
         "Q06": [
             {
                 "metric": "se_coverage_rate",

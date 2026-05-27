@@ -1,0 +1,17 @@
+{
+  "case_id": "FEISHU-INF-22622c80",
+  "phase": "Q05a",
+  "error_type": "MISS",
+  "severity": "medium",
+  "title": "自动化账号和个人账号配置白名单后，自动化账号没有生效未走dubbo，个人账号生效走的dubbo",
+  "root_cause": "函数未覆盖",
+  "tags": "[\"feishu-import\", \"inferred\", \"category:函数未覆盖\"]",
+  "created_at": "2026-04-15",
+  "status": "open",
+  "source": "{\"feishu_table\": \"tblGxARLByCc5h3T\", \"bug_id\": null, \"original_cat1\": \"未分类\", \"original_cat2\": \"函数未覆盖\", \"requirement\": \"桩云微服务拆分\"}",
+  "expected": "{\"content\": \"未及时暂停测试，已知问题\"}",
+  "actual": "{\"content\": \"因为支持技能市场项目，未能及时与qa沟通暂停，上周问题已经修复，没能及时提交修改。原因是：走Dubbo远程时，有几个接口的对象未做序列化\"}",
+  "lesson": "未及时暂停测试，已知问题",
+  "holdout": "False",
+  "case_category": "STRUCTURED_SCHEMA"
+}

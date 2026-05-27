@@ -1,0 +1,18 @@
+{
+  "case_id": "FEISHU-132986",
+  "phase": "Q05a",
+  "error_type": "MISS",
+  "severity": "high",
+  "title": "【132986】故障/处理方法/物料关系，编辑操作update_time_ts字段未更新",
+  "root_cause": "表变更/DAO变更",
+  "fix_target": "",
+  "tags": "[\"feishu-import\", \"category:表变更/DAO变更\", \"bug_class:后端\"]",
+  "created_at": "2026-04-15",
+  "status": "open",
+  "source": "{\"feishu_table\": \"tblGxARLByCc5h3T\", \"bug_id\": \"132986\", \"requirement\": \"国际-主数据-产品、技术、备件主数据\"}",
+  "expected": "{\"content\": \"（需人工确认）\"}",
+  "actual": "{\"content\": \"sql是通过注解方式实现的，新增时间戳字段写入时只修改了mapper.xml，字段写入遗漏了\"}",
+  "lesson": "对照 Phase skill、schema 与历史反例复盘本案例；修复后更新 case 状态并补充可复现片段。",
+  "holdout": "False",
+  "case_category": "STRUCTURED_SCHEMA"
+}

@@ -1,0 +1,29 @@
+{
+  "case_id": "SEED-phaseB-wrong-directory-006",
+  "phase": "Q05a",
+  "error_type": "WRONG",
+  "severity": "high",
+  "title": "单测文件放置在错误的模块目录下，导致编译失败",
+  "root_cause": "CONTEXT",
+  "fix_target": "skills/unit-test-generation.md",
+  "tags": [
+    "编译失败",
+    "目录错误",
+    "模块放置"
+  ],
+  "created_at": "2026-04-27",
+  "status": "open",
+  "source": {
+    "seed_case": true,
+    "pattern": "单测文件被放置在错误的 Maven 模块下（如 service-api 而非 service-impl），导致找不到被测类的依赖，编译失败"
+  },
+  "expected": {
+    "content": "单测文件的 package 声明和目录路径必须与被测类所在模块一致，src/test/java 下的目录结构镜像 src/main/java"
+  },
+  "actual": {
+    "content": "单测文件放在了错误的模块目录下，mvn compile 报 cannot find symbol"
+  },
+  "lesson": "生成单测前必须确认被测类所在的 Maven 模块（通过 pom.xml 或目录结构），单测文件放在同一模块的 src/test/java 下，package 声明与被测类一致。compile_check gate 可拦截但应在生成阶段就避免。",
+  "holdout": false,
+  "case_category": "DOC_SKILL_DRIFT"
+}

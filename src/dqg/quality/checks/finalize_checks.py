@@ -241,22 +241,22 @@ def run_finalize_checks(output_dir: Path, project_id: str, phase_id: str) -> lis
                 if c12_errors:
                     errors.extend(c12_errors)
 
-    # Phase B: 单测编译 gate（从 _inputs.json 读 code_repos，逐仓库检查）
-    if phase_id == "Q05":
+    # Phase Q05b: 单测编译 gate（从 _inputs.json 读 code_repos，逐仓库检查）
+    if phase_id in {"Q05", "Q05b"}:
         from .compile_check import check_phase_b_compilation
 
-        phase_def_q05 = PHASE_DEFS.get("Q05")
-        if phase_def_q05:
-            int_dir_q05 = _internal_dir(output_dir, project_id, phase_def_q05)
-            inputs_data_q05 = load_json(int_dir_q05 / "_inputs.json") or {}
-            code_repos_q05: list[str] = inputs_data_q05.get("code_repos", [])
-            if not code_repos_q05 and inputs_data_q05.get("code_repo"):
-                code_repos_q05 = [inputs_data_q05["code_repo"]]
-            for repo in code_repos_q05:
+        phase_def_q05b = PHASE_DEFS.get(phase_id)
+        if phase_def_q05b:
+            int_dir_q05b = _internal_dir(output_dir, project_id, phase_def_q05b)
+            inputs_data_q05b_compile = load_json(int_dir_q05b / "_inputs.json") or {}
+            code_repos_q05b_compile: list[str] = inputs_data_q05b_compile.get("code_repos", [])
+            if not code_repos_q05b_compile and inputs_data_q05b_compile.get("code_repo"):
+                code_repos_q05b_compile = [inputs_data_q05b_compile["code_repo"]]
+            for repo in code_repos_q05b_compile:
                 errors.extend(check_phase_b_compilation(output_dir, project_id, repo))
 
-    # Phase B: 单测编译+运行铁律 gate（不可跳过）
-    if phase_id == "Q05":
+    # Phase Q05b: 单测编译+运行铁律 gate（不可跳过）
+    if phase_id in {"Q05", "Q05b"}:
         from .test_execution_gate import check_q05_test_execution
 
         errors.extend(check_q05_test_execution(output_dir, project_id))

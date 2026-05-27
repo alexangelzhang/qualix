@@ -103,9 +103,9 @@ Judge 放水检测器。识别 Judge 评分中的合理化倾向（"虽然...但
 - Relationships: 解决 Skill 示例 ≠ Schema required 的"两张皮"问题；T8 Schema↔Prompt 一致性 CI 以 EnumSource 作为比对基准
 
 ### Q05BranchCoverageGuardrail
-Q05 Phase 专属的 PhaseGuardrail。校验 EUT 对业务方法各分支（happy / 边界 / 异常 / 并发）的覆盖率，关键方法（含 throws / try-catch）必须 ≥1 条异常分支 EUT，否则 BLOCKED。配合 Q05 三步生成范式（分支枚举 → 业务后果映射 → 断言对准）使用。
-- _Avoid_: 与通用 PhaseGuardrail 混用（这是 Q05 专属挂载，只在 `get_phase_guardrails("Q05")` 时生效）
-- Relationships: 由 T6 Q05 范式改造引入；T12 bug 回归实验的验收依赖它真能拦住 no-exception-test
+Q05/Q05a Phase 专属的 PhaseGuardrail。校验 EUT 对业务方法各分支（happy / 边界 / 异常 / 并发）的覆盖率，关键方法（含 throws / try-catch）必须 ≥1 条异常分支 EUT，否则 BLOCKED。配合 Q05a EUT 矩阵设计三步范式（分支枚举 → 业务后果映射 → 断言对准）使用。
+- _Avoid_: 与通用 PhaseGuardrail 混用（这是 Q05/Q05a 专属挂载，只在 `get_phase_guardrails("Q05"|"Q05a")` 时生效）
+- Relationships: 由 T6 Q05 范式改造引入；Q05 已拆为 Q05a（EUT 设计）+ Q05b（代码生成），本 Guardrail 属于 Q05a 层
 
 ### RationalizationProbeGuardrail
 字段级合理化拦截器。在 Q03/Q06 的 `PhaseGuardrail` 中对自由文本字段（business_path、failure_scenario、finding.message）扫描合理化话术（"虽然... 但是..."、"按常识...")，与对话层的 RationalizationGuard 形成互补。

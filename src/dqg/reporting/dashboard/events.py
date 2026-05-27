@@ -24,7 +24,7 @@ def _page_events():
     if not pid:
         return
 
-    phase_filter = st.selectbox("Phase", ["全部", "Q01", "Q02", "Q03", "Q04", "Q05", "Q06", "Q07"])
+    phase_filter = st.selectbox("Phase", ["全部", "Q01", "Q02", "Q03", "Q04", "Q05", "Q05a", "Q05b", "Q06", "Q07"])
     phase_id = None if phase_filter == "全部" else phase_filter
 
     events = _cached_event_timeline(pid, phase_id)

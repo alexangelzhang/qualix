@@ -1,0 +1,18 @@
+{
+  "case_id": "FEISHU-50c9684f",
+  "phase": "Q05a",
+  "error_type": "MISS",
+  "severity": "high",
+  "title": "/customer/detail接口，配置走迁移前逻辑可以返回数据，配置走迁移后逻辑报500",
+  "root_cause": "漏测",
+  "fix_target": "",
+  "tags": "[\"feishu-import\", \"category:漏测\", \"bug_class:后端\"]",
+  "created_at": "2026-04-15",
+  "status": "open",
+  "source": "{\"feishu_table\": \"tblGxARLByCc5h3T\", \"bug_id\": null, \"requirement\": \"桩云微服务拆分\"}",
+  "expected": "{\"content\": \"（需人工确认）\"}",
+  "actual": "{\"content\": \"customer类接口问题一样，同第一个，/customer/secret\"}",
+  "lesson": "对照 Phase skill、schema 与历史反例复盘本案例；修复后更新 case 状态并补充可复现片段。",
+  "holdout": "False",
+  "case_category": "STRUCTURED_SCHEMA"
+}

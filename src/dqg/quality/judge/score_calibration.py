@@ -161,6 +161,12 @@ def _get_phase_criteria(phase_id: str) -> str:
             "1) EUT covers all SE 2) Strong assertions used "
             "3) Exception paths tested 4) Code compilable"
         ),
+        "Q05a": (
+            "Check EUT matrix design: "
+            "1) EUT covers all SE/REQ/BR 2) then fields concrete "
+            "3) Exception/Boundary paths included 4) bound_item non-empty"
+        ),
+        "Q05b": ("Check test codegen: 1) All EUTs have @Test methods 2) Strong assertions 3) Code compilable"),
         "Q06": (
             "Check test audit: "
             "1) Classifications accurate 2) Weak assertions identified "

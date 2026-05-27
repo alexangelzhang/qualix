@@ -65,7 +65,7 @@ def _check_q05_req_br_se_coverage(
     - 有边界语义的条目必须有 Boundary EUT（100%）
     - 有并发/幂等语义的 SE 必须有并发测试（CountDownLatch/ExecutorService 等）
     """
-    if phase_id != "Q05":
+    if phase_id not in {"Q05", "Q05a"}:
         return []
 
     # 读 Q01 upstream JSON 获取 REQ/BR/SE 完整列表

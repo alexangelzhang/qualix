@@ -115,7 +115,7 @@ def load_upstream_context(
             futures["gap"] = pool.submit(_load_gap)
 
         # Profile context（Q03-Q07）— 使用 L1 Phase 感知压缩减少 token 消耗
-        if target_phase in {"Q04", "Q03", "Q05", "Q06", "Q07"}:
+        if target_phase in {"Q04", "Q03", "Q05", "Q05a", "Q05b", "Q06", "Q07"}:
 
             def _load_profile():
                 profile = get_profile(getattr(state, "profile_id", None))
@@ -246,7 +246,7 @@ def load_sidecar_context(
                 )
 
     # Bug cases 依赖前面所有 chunks 的 relevance_seed（串行）
-    inject_bug_cases = target_phase in {"Q01", "Q04", "Q03", "Q05", "Q06", "Q07"}
+    inject_bug_cases = target_phase in {"Q01", "Q04", "Q03", "Q05", "Q05a", "Q05b", "Q06", "Q07"}
     if inject_bug_cases:
         from .context_loader import _build_relevance_seed
 

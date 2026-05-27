@@ -353,6 +353,7 @@ def _get_hard_checks(phase_id: str) -> list[dict[str, str]]:
 
     phase_specific: dict[str, list[dict[str, str]]] = {
         "Q05": [{"name": "编译验证通过", "level": "BLOCKED"}],
+        "Q05b": [{"name": "编译验证通过", "level": "BLOCKED"}],
         "Q06": [{"name": "覆盖率 >= 80%", "level": "BLOCKED"}],
     }
 

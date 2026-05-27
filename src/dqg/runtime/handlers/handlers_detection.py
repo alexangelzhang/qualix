@@ -37,11 +37,11 @@ def handle_weak_assert_gate(ctx: ExecutionContext, result: PhaseResult) -> None:
     weak_methods = summary.get("weak_method_count", 0)
     weak_ratio = weak_methods / total_methods if total_methods > 0 else 0.0
 
-    is_q05 = ctx.phase_id == "Q05"
+    is_q05 = ctx.phase_id in {"Q05", "Q05b"}
     issues: list[str] = []
     blocked = False
 
-    # Q05: high-risk 弱断言直接 BLOCKED（左移卡控）
+    # Q05/Q05b: high-risk 弱断言直接 BLOCKED（左移卡控）
     if is_q05 and high_risk >= WEAK_ASSERT_HIGH_RISK_BLOCK:
         issues.append(f"high-risk 弱断言 {high_risk} 个（BLOCKED 阈值 {WEAK_ASSERT_HIGH_RISK_BLOCK}）")
         blocked = True
@@ -139,7 +139,7 @@ def handle_mock_coincidence_check(ctx: ExecutionContext, result: PhaseResult) ->
     from dqg.constants import MOCK_COINCIDENCE_KEYWORDS, MOCK_REALITY_KEYWORDS
     from dqg.text_utils import REPORT_MAP
 
-    is_q05 = ctx.phase_id == "Q05"
+    is_q05 = ctx.phase_id in {"Q05", "Q05a", "Q05b"}
 
     if is_q05:
         return
