@@ -275,7 +275,8 @@ class AdaptiveLoop:
                 log.warning("Adaptive loop early stop: %s", health_result.status)
                 break
 
-            # PIVOT: Judge FAIL + 健康 + 还有下一轮时，快照当前轮产物
+            # PIVOT: 前提 passed=False（上方已 break）且 should_stop=False（上方已 break）
+            # 只在 Judge FAIL + 健康 + 还有下一轮时快照，防止下轮覆盖写丢失当前版本
             if i + 1 < max_iterations:
                 self._save_pivot_snapshot(pd=pd, iteration_n=i, phase_id=phase_id)
 
@@ -328,15 +329,19 @@ class AdaptiveLoop:
             log.warning("PIVOT: 无法创建快照目录 %s", pivot_dir)
             return
 
+        json_fname = STRUCTURED_JSON_MAP.get(phase_id)
+        report_fname = REPORT_MAP.get(phase_id)
+        if not json_fname:
+            log.warning("PIVOT: phase_id %s 不在 STRUCTURED_JSON_MAP，主产物跳过", phase_id)
         candidates = [
-            pd / (STRUCTURED_JSON_MAP.get(phase_id) or ""),
-            pd / (REPORT_MAP.get(phase_id) or ""),
+            pd / json_fname if json_fname else None,
+            pd / report_fname if report_fname else None,
             pd / "_internal" / "_reasoning_log.md",
             pd / f"_judge_iter{iteration_n + 1}.json",
             pd / f"_handoff_iter{iteration_n + 1}.md",
         ]
         for src in candidates:
-            if src and src.exists() and src.is_file():
+            if src is not None and src.exists() and src.is_file():
                 try:
                     shutil.copy2(src, pivot_dir / src.name)
                 except OSError:
