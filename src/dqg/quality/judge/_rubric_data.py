@@ -327,10 +327,10 @@ JUDGE_RUBRICS: Final[dict[str, dict[str, Any]]] = {
                 "weight": 0.15,
                 "rubric": {
                     5: "git diff 变更的所有实现类均出现在 EUT 的 when 字段，无漏测变更",
-                    4: "90%+ 变更类有 EUT 覆盖，仅遗漏 1 个无业务语义的辅助类",
+                    4: "90%+ 变更类有 EUT 覆盖，仅遗漏 1 个无业务语义的辅助类——整体变更覆盖充分，应给 PASS_WITH_CONCERNS",
                     3: "主要业务类有 EUT 覆盖，但存在未被 REQ/SE 引用的变更类未添加 EUT",
                     2: "超过 3 个变更类无对应 EUT，code_repo 视角覆盖明显不足",
-                    1: "git diff 覆盖检查未执行或大量变更类无 EUT",
+                    1: "git diff 覆盖检查未执行或大量变更类无 EUT，或报告为纯错误消息",
                 },
             },
         ],
