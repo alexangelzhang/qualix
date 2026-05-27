@@ -691,7 +691,7 @@ VAF（`~/git_dev/vibe-agentic-flow`）没发 PyPI 但通过 `install.sh + ~/.vcb
 ### P2（平台化规模阶段）
 
 - **FTS5 自定义 tokenizer（jieba 原生入 SQLite）**（2026-05-27 规划）— 当前中文搜索在应用层分词后写入 FTS5，jieba 作为 SQLite 扩展直接在 tokenizer 层处理，消除分词和索引的层级错位。实现路径：`sqlite-fts5-jieba` C 扩展 + Python ctypes 加载；fallback：若扩展加载失败回退当前 n-gram 策略。预估工作量：2-3 天
-- **跨模型泛化验证（golden × held-out 模型 runbook）**（2026-05-27 规划）— 用固定 golden 输入集在 claude-sonnet / deepseek / qwen 三个模型上分别跑 Phase，对比 Judge 评分差异和规则遵守率，识别"在 A 模型上写的 skill rule 在 B 模型上无效"的泛化失败。触发条件：有 2+ 团队使用不同主模型。实现路径：`tracking/multi_model_eval.py` + `dqg-run PROJ regression multi-model`。预估工作量：3-4 天
+- ~~**跨模型泛化验证（golden × held-out 模型 runbook）**~~ → **2026-05-27 已完成**。`tracking/multi_model_judge.py`：MultiJudgeReport / ModelJudgeRun dataclass，`_compute_stats` 计算 score_range / score_stddev / verdict_agreement / fragile_dimensions / consistency_verdict（CONSISTENT / MARGINAL / DIVERGED）。CLI：`dqg-run PROJ regression multi-judge --phase Q03 --models a,b`，支持 `--json`。commit bbb6311f
 - **Harness/Domain 分层 Phase 1** — 定义 `HarnessApp` 协议（provider/hooks/task_runner/output_protocol/session_resume），Domain 层通过注册而非 import 接入 Harness。**2026-05-27 升为可顺手执行**：不专门立项，在改动相关文件时按此方向重构，目标是每次触碰 phase-specific 逻辑时收窄耦合
 - **Harness/Domain 分层 Phase 2** — `context_loader.py` 的 phase-specific 分支改为 Domain 层注册的 context_policy；`multi_agent.py` 的 prompt 模板改为 Domain 层提供；`row_to_dict` 的 JSON 字段列表改为 schema 驱动
 - **DeepEval 集成** — ~~引入 DeepEval 作为自动化评分引擎，替代 prompt-based judge~~ → **2026-05-10 修正为"代码保留但禁用"**。当前 `score_calibration.py::_run_deepeval_scoring` 是 no-op，趋势检测保留。2025 年起 DeepEval 已支持 Anthropic / Gemini / Bedrock / Ollama（当年绑 GPT-4 的限制已解除），但本项目已有 Multi-Judge 投票 + Critique + Anti-Rat/Overcorrection Guard 评审链，再加一层独立打分的信号增量不明显 & token 成本翻倍。**复活触发条件**（任一满足）：
