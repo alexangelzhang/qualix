@@ -1,0 +1,31 @@
+{
+  "case_id": "JUDGE-Q05-20260429164113-dyn_state_machine-00",
+  "phase": "Q05a",
+  "error_type": "FN",
+  "severity": "medium",
+  "title": "SubProcess 状态机覆盖了 WAIT_APPROVE/APPROVED/REJECTED/CANCELLED 四个状态，但 CANCELLED（撤销）的触发需调 BPM API 属集成测试范围",
+  "root_cause": "SKILL_RULE",
+  "fix_target": "",
+  "tags": [
+    "judge-extracted",
+    "dim:dyn_state_machine",
+    "project:shuangzhou-v4"
+  ],
+  "created_at": "2026-04-29",
+  "status": "open",
+  "source": {
+    "project_id": "shuangzhou-v4",
+    "judge_extracted": true,
+    "dimension": "dyn_state_machine",
+    "dim_score": 3,
+    "dim_max_score": 5
+  },
+  "expected": {
+    "content": "（需人工补充期望行为）"
+  },
+  "actual": {
+    "content": "SubProcess 状态机覆盖了 WAIT_APPROVE/APPROVED/REJECTED/CANCELLED 四个状态，但 CANCELLED（撤销）的触发需调 BPM API 属集成测试范围，单测仅需验证撤销后 SubProcess 状态变更逻辑"
+  },
+  "lesson": "SubProcess 状态机覆盖了 WAIT_APPROVE/APPROVED/REJECTED/CANCELLED 四个状态，但 CANCELLED（撤销）的触发需调 BPM API 属集成测试范围，单测仅需验证撤销后 SubProcess 状态变更逻辑",
+  "case_category": "DOC_SKILL_DRIFT"
+}

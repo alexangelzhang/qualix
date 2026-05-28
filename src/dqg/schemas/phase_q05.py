@@ -77,6 +77,23 @@ class RiskTier(StrEnum):
     T3 = "T3"
 
 
+class AssertionType(StrEnum):
+    """EUT then 字段对应的断言类型（必填，收窄自由空间防止模糊 then）.
+
+    - EQUALS: assertEquals(expected, actual) 验证返回值/业务状态
+    - THROWS: assertThrows(XxxException.class, ...) 验证异常类型
+    - VERIFY: verify(mock).method(...) 验证方法调用/次数
+    - STATE: 验证对象状态（结合 assertEquals/getter 系列）
+    - OTHER: 上述不覆盖的合理断言，须在 then 字段注明具体方法名
+    """
+
+    EQUALS = "assertEquals"
+    THROWS = "assertThrows"
+    VERIFY = "verify"
+    STATE = "state_check"
+    OTHER = "other"
+
+
 class EutItem(BaseModel):
     """EUT 条目."""
 
@@ -94,6 +111,12 @@ class EutItem(BaseModel):
     given: str = Field(min_length=1)
     when: str = Field(min_length=1)
     then: str = Field(min_length=1)
+    then_assertion_type: AssertionType = Field(
+        description=(
+            "断言类型（必填）：assertEquals/assertThrows/verify/state_check/other。"
+            "防止 then 字段模糊——LLM 必须显式声明断言方式，other 须在 then 中注明具体方法名。"
+        ),
+    )
     risk_tier: RiskTier = RiskTier.T2
     repo: str = Field(default="", description="归属仓库名，多仓库场景必填")
     se_refs: list[str] = Field(default_factory=list, description="关联的 SE ID 列表")
@@ -209,8 +232,26 @@ class EutTaskItem(BaseModel):
     test_file: str | None = None
     test_method: str | None = None
     failure_reason: str | None = None
+    assertion_type: AssertionType | None = Field(
+        default=None,
+        description=(
+            "实现时使用的断言类型（passes=True 时必填）。"
+            "weak_assert_gate 据此精确判断断言强度，不得弱于 EUT 设计的 then_assertion_type。"
+        ),
+    )
 
     model_config = {"populate_by_name": True}
+
+    @model_validator(mode="after")
+    def assertion_type_required_when_passes(self) -> EutTaskItem:
+        """passes=True 时必须声明断言类型，防止弱断言悄悄混入."""
+        if self.passes and self.assertion_type is None:
+            raise ValueError(
+                f"EUT {self.eut_id}: passes=True 时 assertion_type 必须填写"
+                "（assertEquals/assertThrows/verify/state_check/other）。"
+                "Q05b 标记 passes=True 前必须声明所用断言类型。"
+            )
+        return self
 
 
 class PhaseBCodeStatusOutput(BaseModel):

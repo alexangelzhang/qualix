@@ -1,0 +1,15 @@
+{
+  "case_id": "PASS-Q06-finance-model-20260527-03",
+  "phase": "Q06",
+  "error_type": "PASS",
+  "project_id": "finance-model",
+  "source": "output_verified",
+  "judged_at": "2026-04-29T13:00:54.324731+00:00",
+  "created_at": "2026-05-27T18:19:24.967203",
+  "status": "open",
+  "expected_verdict": "PASS",
+  "tags": [
+    "pass-library",
+    "project:finance-model"
+  ]
+}

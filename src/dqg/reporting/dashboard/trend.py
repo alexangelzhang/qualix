@@ -51,8 +51,8 @@ def _load_phase_score_history(output_dir: Path, project_id: str) -> list[dict]:
                         "version": "current",
                     }
                 )
-            except Exception:
-                pass
+            except Exception as e:
+                log.warning("Failed to load judge result %s: %s", judge_path, e)
 
         # 归档版本
         archive_root = phase_path / "_archive"
@@ -74,8 +74,8 @@ def _load_phase_score_history(output_dir: Path, project_id: str) -> list[dict]:
                                 "version": ver_dir.name,
                             }
                         )
-                    except Exception:
-                        pass
+                    except Exception as e:
+                        log.warning("Failed to load archived judge result %s: %s", archived_judge, e)
 
     return records
 

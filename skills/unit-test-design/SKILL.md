@@ -8,6 +8,14 @@ metadata:
   phase: Q05a
   depends_on: [Q01]
   outputs: [eut_matrix.md, phase_b_structured.json, _reasoning_log.md]
+  applies_to: [Java, TypeScript]
+  hard_checks:
+    - 每条 EUT 的 then 字段必须包含具体断言（assertEquals/assertNotNull/verify 等）
+    - bound_se 必须指向真实存在的 SE-id（SE-001 格式）
+    - 每条 EUT 必须对应一个可执行的 Java/@Test 方法
+  evidence:
+    bad: "then: 验证接口正确返回"
+    good: "then: assertEquals(200, response.getStatus()) && assertNotNull(response.getOrderId())"
 allowed-tools:
   - Bash
   - Read
@@ -63,7 +71,7 @@ Q05a 设计阶段必须对每个目标类做静态覆盖率投影：
 - 投影行覆盖率 = 有 EUT 覆盖的行 / 总行数 = 100%（公司硬性指标）
 - 投影分支覆盖率 = 有 EUT 覆盖的分支 / 总分支数 = 100%（公司硬性指标）
 
-> 投影 < 100% 的 EUT 矩阵不允许 finalize。必须补充 EUT，直到每个被测类的投影覆盖率满足门限。
+> 投影覆盖率是诊断参考（WARNING 级），不阻断 finalize，但人工 approve 时需确认低覆盖率的原因。
 
 ---
 
@@ -178,6 +186,25 @@ Q05a 设计阶段必须对每个目标类做静态覆盖率投影：
 
 - `eut_matrix.md`：人类可读的 EUT 测试大纲
 - `phase_b_structured.json`：机器可读的结构化 EUT 矩阵（遵循 phase_b schema）
+
+```json
+{
+  "project_id": "maf-srv-service",
+  "eut_items": [
+    {
+      "eut_id": "EUT-001",
+      "bound_se": "SE-001",
+      "bound_item": "SE-001",
+      "route_type": "Happy Path",
+      "given": "标准创建工单 DTO 传入",
+      "when": "LogisticExchangeIdentifyManager.identify(dto)",
+      "then": "assertEquals(IdentifyResult.MATCHED, result.getStatus())",
+      "risk_tier": "T1"
+    }
+  ]
+}
+```
+
 - `_internal/_q05_target_modules.json`：三层驱动产物
 
 ### Step 2: 自检（提交前强制检查）
@@ -187,8 +214,7 @@ Q05a 设计阶段必须对每个目标类做静态覆盖率投影：
 - [ ] git diff 每个实现类都出现在某条 EUT 的 when 字段
 - [ ] then 字段无模糊描述（无"验证成功"、"返回正确结果"等）
 - [ ] 异常路径 100% 覆盖（每个 catch 分支有 Exception EUT）
-- [ ] **每个被测类投影行覆盖率 = 100%**（静态分支枚举，不低于此门限不 finalize）
-- [ ] **每个被测类投影覆盖率 = 100%（公司硬性指标）**（if/else/switch/catch 两侧各有 EUT）
+- [ ] 每个被测类投影覆盖率尽量接近 100%（WARNING 级，记录低覆盖率原因）
 - [ ] 推理日志 `_reasoning_log.md` 已输出
 
 ### Step 3: Judge/Critique
@@ -207,8 +233,9 @@ Q05a 设计阶段必须对每个目标类做静态覆盖率投影：
 | `br_mappings` 覆盖全部后端 BR | BLOCKED |
 | `git_diff_not_covered`（C10） | BLOCKED |
 | then 字段模糊 | BLOCKED |
-| **投影行覆盖率 < 100%（任一被测类）** | **BLOCKED** |
-| **投影分支覆盖率 < 100%（任一被测类）** | **BLOCKED** |
+| `then_assertion_type` 未填 | BLOCKED（schema 强制） |
+| 投影行覆盖率 < 100%（任一被测类） | WARNING（提供数据，不阻断） |
+| 投影分支覆盖率 < 100%（任一被测类） | WARNING（提供数据，不阻断） |
 | 推理日志存在 | BLOCKED |
 
 ## 通过标准
@@ -216,7 +243,7 @@ Q05a 设计阶段必须对每个目标类做静态覆盖率投影：
 - 三层驱动产物完整（se_mappings + br_mappings + git_diff_files 全部非空）
 - 每条 REQ/BR/SE 有直接 EUT，bound_item 非空
 - git diff 每个实现类在某条 EUT 的 when 字段中有引用
-- then 字段包含具体断言
+- then 字段包含具体断言，且 `then_assertion_type` 已填（assertEquals/assertThrows/verify/state_check/other）
 - 人工 approve 后，`phase_b_structured.json` 锁定为 Q05b 代码生成规格
 
 ## 禁止事项

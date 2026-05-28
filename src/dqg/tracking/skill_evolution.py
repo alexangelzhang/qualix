@@ -13,7 +13,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -26,6 +26,8 @@ log = get_logger(__name__)
 
 # 高置信度阈值：同一条建议被 N+ 个 case 支撑时标记为"建议自动合入"
 HIGH_CONFIDENCE_THRESHOLD = 3
+# 进化记录时间衰减
+EVOLUTION_MAX_AGE_DAYS = 90  # 超过此天数的进化记录强制过期
 
 
 def generate_skill_diff(
@@ -158,6 +160,45 @@ def record_evolution(
     _append_lineage_index(lineage_dir, lineage)
 
     return lineage_file
+
+
+def cleanup_stale_evolution(
+    output_dir: Path,
+    project_id: str,
+    max_age_days: int = EVOLUTION_MAX_AGE_DAYS,
+) -> dict[str, int]:
+    """删除超过 max_age_days 的进化谱系 JSON 文件.
+
+    只删除 evolution_*.json 历史快照，不删除谱系索引文件（_lineage_index.json）。
+
+    Returns:
+        {"scanned": N, "deleted": M, "kept": K}
+    """
+    lineage_dir = output_dir / project_id / "_skill_evolution"
+    if not lineage_dir.is_dir():
+        return {"scanned": 0, "deleted": 0, "kept": 0}
+
+    now = datetime.now(tz=UTC)
+    cutoff_seconds = max_age_days * 86400
+    scanned = deleted = 0
+
+    for path in sorted(lineage_dir.glob("evolution_*.json")):
+        scanned += 1
+        # 优先读文件中的 timestamp 字段，fallback 到文件 mtime
+        data = load_json(path)
+        ts_str = data.get("timestamp", "") if isinstance(data, dict) else ""
+        try:
+            recorded = datetime.fromisoformat(ts_str).replace(tzinfo=UTC)
+        except (ValueError, TypeError):
+            recorded = datetime.fromtimestamp(path.stat().st_mtime, tz=UTC)
+
+        age_seconds = (now - recorded).total_seconds()
+        if age_seconds > cutoff_seconds:
+            path.unlink(missing_ok=True)
+            deleted += 1
+            log.info("Evolution file expired (%d days): %s", int(age_seconds / 86400), path.name)
+
+    return {"scanned": scanned, "deleted": deleted, "kept": scanned - deleted}
 
 
 def generate_evolution_report(

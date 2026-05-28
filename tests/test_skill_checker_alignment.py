@@ -24,6 +24,8 @@ _SKILL_PHASE_MAP: dict[str, str] = {
     "tech-quality-review": "Q03",
     "tech-coverage-audit": "Q04",
     "unit-test-generation": "Q05",
+    "unit-test-design": "Q05a",
+    "unit-test-codegen": "Q05b",
     "unit-test-audit": "Q06",
     "code-review": "Q07",
 }

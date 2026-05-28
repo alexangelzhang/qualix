@@ -40,8 +40,18 @@ observability/
 # Session journals（个人短期接力，不提交）
 .claude/journals/
 
+# 覆盖父目录的 .claude/ 全忽略规则，让团队共享的 hook 和项目配置可提交
+!.claude/
+!.claude/hooks/
+!.claude/hooks/**
+!.claude/settings.json
+
 # macOS
 .DS_Store
 
 # DQG 运行时数据
 .dqg/
+results.tsv
+run.log
+*.log
+*.tsv

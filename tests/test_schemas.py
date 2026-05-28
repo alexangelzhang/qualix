@@ -143,6 +143,7 @@ class TestPhaseBSchema:
                     given="正常 DTO",
                     when="提交订单",
                     then="状态变为 PROCESSING",
+                    then_assertion_type="assertEquals",
                     risk_tier=RiskTier.T1,
                 ),
             ],

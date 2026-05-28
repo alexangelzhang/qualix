@@ -9,7 +9,7 @@ from dqg.tracking.case_reflect import REFLECT_LESSON_MAX_LEN, apply_reflect_meta
 def test_apply_reflect_fills_empty_lesson_and_category() -> None:
     case = {
         "case_id": "T-REFLECT-1",
-        "phase": "Q05",
+        "phase": "Q05a",
         "error_type": "WRONG",
         "severity": "medium",
         "title": "missing required field x",
@@ -28,7 +28,7 @@ def test_apply_reflect_fills_empty_lesson_and_category() -> None:
 def test_apply_reflect_preserves_existing_lesson() -> None:
     case = {
         "case_id": "T-REFLECT-2",
-        "phase": "Q05",
+        "phase": "Q05a",
         "title": "x",
         "root_cause": "SCHEMA",
         "lesson": "已有人工教训" * 20,

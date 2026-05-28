@@ -55,6 +55,7 @@ class ReflectResult:
     root_cause: str = ""
     failure_patterns: list[str] = field(default_factory=list)
     suggested_changes: list[str] = field(default_factory=list)
+    evidence_warning: str = ""  # 非空表示输入契约质量不足
 
 
 @dataclass
@@ -84,6 +85,57 @@ class EvolutionOutcome:
         }
 
 
+# 输入契约阈值
+_MIN_EVIDENCE_DESC_LEN = 30  # description 少于此长度视为"纯摘要"
+_MIN_EVIDENCE_RATIO = 0.5  # 低于此比例触发警告
+
+
+def _check_evidence_quality(judge_results: list[dict]) -> tuple[int, int, str]:
+    """校验 judge_results 中 issue 的证据质量.
+
+    判断标准：
+    - 有 source_excerpt / original_text 字段（非空）→ 强证据
+    - description 长度 >= _MIN_EVIDENCE_DESC_LEN → 视为有效观察（可能包含原始引用）
+    - 两者均不满足 → 纯摘要
+
+    Returns:
+        (with_evidence, total, warning_msg)
+        warning_msg 为空表示质量合格。
+    """
+    total = with_evidence = 0
+    for jr in judge_results:
+        for issue in jr.get("issues", []):
+            total += 1
+            desc = issue.get("description", "")
+            has_excerpt = bool(issue.get("source_excerpt") or issue.get("original_text"))
+            if has_excerpt or len(desc) >= _MIN_EVIDENCE_DESC_LEN:
+                with_evidence += 1
+
+    if total == 0:
+        return 0, 0, ""
+
+    ratio = with_evidence / total
+    if ratio == 0:
+        return (
+            0,
+            total,
+            (
+                f"输入契约违反：{total} 条 issue 均无原始片段（source_excerpt）且 description 过短，"
+                "无法生成可信 skill 规则。请在 judge_results 中提供 source_excerpt 字段或完整描述。"
+            ),
+        )
+    if ratio < _MIN_EVIDENCE_RATIO:
+        return (
+            with_evidence,
+            total,
+            (
+                f"输入契约警告：{with_evidence}/{total} 条 issue 有证据支撑（{ratio:.0%}），"
+                f"低于阈值 {_MIN_EVIDENCE_RATIO:.0%}。建议补充 source_excerpt 字段以提升规则质量。"
+            ),
+        )
+    return with_evidence, total, ""
+
+
 class SkillReflector:
     """Analyzes adaptive loop failures and auto-evolves skill rules."""
 
@@ -92,7 +144,19 @@ class SkillReflector:
         self.project_id = project_id
 
     def reflect(self, judge_results: list[dict]) -> ReflectResult:
-        """Analyze judge results, classify root cause via LLM, extract failure patterns."""
+        """Analyze judge results, classify root cause via LLM, extract failure patterns.
+
+        输入契约：judge_results 中的 issue 应包含 source_excerpt 字段或足够长的 description，
+        以防止基于纯摘要生成不可信的 skill 规则。
+        """
+        # 输入契约检查
+        _, _, warning = _check_evidence_quality(judge_results)
+        if warning and "违反" in warning:
+            log.warning("SkillReflector.reflect: %s", warning)
+            return ReflectResult(actionable=False, evidence_warning=warning)
+        if warning:
+            log.warning("SkillReflector.reflect: %s", warning)
+
         all_issues = []
         for jr in judge_results:
             for issue in jr.get("issues", []):
@@ -122,6 +186,7 @@ class SkillReflector:
             root_cause=root_cause,
             failure_patterns=unique_issues,
             suggested_changes=[fix] if fix else [f"Address: {unique_issues[0][:100]}"],
+            evidence_warning=warning,
         )
 
     def _classify_root_cause(self, issues: list[str]) -> tuple[str, str, str]:

@@ -184,6 +184,9 @@ def build_judge_prompt(
             "}",
             "```",
             "",
+            "**FALLBACK**: 如果无法写入 JSON 文件，在输出末尾另起一行写入：",
+            "`DQG_VERDICT:PASS:X.X` 或 `DQG_VERDICT:FAIL:X.X`（X.X 为 overall_score 1.0–5.0）",
+            "",
             "## 开始评审",
             "",
             "请逐个维度评审，先读取所有文件，再给出评分。",
@@ -382,7 +385,7 @@ def synthesize_judge_result(
     """
     from datetime import datetime
 
-    from dqg.json_utils import save_json
+    from dqg.json_utils import save_json_atomic
 
     phase_def = PHASE_DEFS.get(phase_id)
     if not phase_def:
@@ -490,7 +493,7 @@ def synthesize_judge_result(
     }
 
     pd.mkdir(parents=True, exist_ok=True)
-    save_json(result_path, result)
+    save_json_atomic(result_path, result)
     try:
         from dqg.memory.trust_level import TrustLevel, record_trust_event
 

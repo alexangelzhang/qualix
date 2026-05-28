@@ -144,6 +144,66 @@ class TestLifecycleRegistry:
         reg.run_handlers("execute", ctx, result)
         assert any(e.event_type == EventType.SIDECAR_COMPLETED and "noop" in e.message for e in result.events)
 
+    def test_gate_handler_failure_skips_downstream(self):
+        """gate=True handler 失败时，依赖它的 handler 被 skip（warning），不执行."""
+        reg = LifecycleRegistry()
+        ran: list[str] = []
+
+        def gate_handler(ctx, r):
+            raise ValueError("schema invalid")
+
+        def downstream(ctx, r):
+            ran.append("downstream")
+
+        reg.register("hard_gate", gate_handler, stage="finalize", gate=True, required=True)
+        reg.register("judge", downstream, stage="finalize", order=70, depends_on=["hard_gate"])
+
+        ctx = ExecutionContext(output_dir=Path("/tmp"), project_id="p", phase_id="Q01")
+        result = PhaseResult()
+        reg.run_handlers("finalize", ctx, result)
+
+        assert "downstream" not in ran
+        assert any("judge" in w and "hard gate" in w for w in result.warnings)
+
+    def test_gate_false_failure_does_not_skip_downstream(self):
+        """gate=False（默认）的 handler 失败不影响下游执行."""
+        reg = LifecycleRegistry()
+        ran: list[str] = []
+
+        def flaky(ctx, r):
+            raise ValueError("transient error")
+
+        def downstream(ctx, r):
+            ran.append("downstream")
+
+        reg.register("flaky", flaky, stage="finalize")
+        reg.register("judge", downstream, stage="finalize", order=70, depends_on=["flaky"])
+
+        ctx = ExecutionContext(output_dir=Path("/tmp"), project_id="p", phase_id="Q01")
+        result = PhaseResult()
+        reg.run_handlers("finalize", ctx, result)
+
+        assert "downstream" in ran
+
+    def test_gate_skip_propagates_transitively(self):
+        """gate skip 传播：A(gate) 失败 → B 依赖 A 被跳过 → C 依赖 B 也被跳过."""
+        reg = LifecycleRegistry()
+        ran: list[str] = []
+
+        def fail(ctx, r):
+            raise ValueError("fail")
+
+        reg.register("A", fail, stage="finalize", gate=True, required=True)
+        reg.register("B", lambda ctx, r: ran.append("B"), stage="finalize", order=60, depends_on=["A"])
+        reg.register("C", lambda ctx, r: ran.append("C"), stage="finalize", order=70, depends_on=["B"])
+
+        ctx = ExecutionContext(output_dir=Path("/tmp"), project_id="p", phase_id="Q01")
+        result = PhaseResult()
+        reg.run_handlers("finalize", ctx, result)
+
+        assert ran == []
+        assert sum(1 for w in result.warnings if "hard gate" in w) == 2  # B and C skipped
+
 
 # ---------------------------------------------------------------------------
 # ExecutionContext 测试

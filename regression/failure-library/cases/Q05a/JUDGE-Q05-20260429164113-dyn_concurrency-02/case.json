@@ -1,0 +1,31 @@
+{
+  "case_id": "JUDGE-Q05-20260429164113-dyn_concurrency-02",
+  "phase": "Q05a",
+  "error_type": "FN",
+  "severity": "medium",
+  "title": "applyEarlyDeliveryAuthStore 的幂等控制（EUT-002）仅验证了串行重复提交，未验证并发提交的竞态条件",
+  "root_cause": "SKILL_RULE",
+  "fix_target": "",
+  "tags": [
+    "judge-extracted",
+    "dim:dyn_concurrency",
+    "project:shuangzhou-v4"
+  ],
+  "created_at": "2026-04-29",
+  "status": "open",
+  "source": {
+    "project_id": "shuangzhou-v4",
+    "judge_extracted": true,
+    "dimension": "dyn_concurrency",
+    "dim_score": 3,
+    "dim_max_score": 5
+  },
+  "expected": {
+    "content": "（需人工补充期望行为）"
+  },
+  "actual": {
+    "content": "applyEarlyDeliveryAuthStore 的幂等控制（EUT-002）仅验证了串行重复提交，未验证并发提交的竞态条件"
+  },
+  "lesson": "applyEarlyDeliveryAuthStore 的幂等控制（EUT-002）仅验证了串行重复提交，未验证并发提交的竞态条件",
+  "case_category": "CROSS_PHASE_IDS"
+}

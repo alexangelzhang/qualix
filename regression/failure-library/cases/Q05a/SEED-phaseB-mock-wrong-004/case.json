@@ -1,0 +1,29 @@
+{
+  "case_id": "SEED-phaseB-mock-wrong-004",
+  "phase": "Q05a",
+  "error_type": "WRONG",
+  "severity": "medium",
+  "title": "Mock 返回值与真实业务行为不一致，测试通过但逻辑错误",
+  "root_cause": "CONTEXT",
+  "fix_target": "skills/unit-test-generation.md",
+  "tags": [
+    "mock不准确",
+    "返回值错误",
+    "假阳性"
+  ],
+  "created_at": "2026-04-09",
+  "status": "open",
+  "source": {
+    "seed_case": true,
+    "pattern": "when(gateway.queryOrder(any())).thenReturn(new Order()) 返回空 Order 对象，但真实场景 Gateway 返回的 Order 有必填字段（status/amount），导致测试通过但实际会 NPE"
+  },
+  "expected": {
+    "content": "Mock 返回值应包含业务必填字段，与 Gateway 接口契约一致"
+  },
+  "actual": {
+    "content": "Mock 返回空对象或默认值，掩盖了真实调用时的字段缺失问题"
+  },
+  "lesson": "Mock 返回值必须符合接口契约，至少包含被测方法会访问的所有字段。建议从技术方案的 DTO 定义中提取必填字段构造 mock 数据。",
+  "holdout": false,
+  "case_category": "DOC_SKILL_DRIFT"
+}

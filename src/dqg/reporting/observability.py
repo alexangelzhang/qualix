@@ -18,7 +18,7 @@ from dqg.reporting.collect_metrics import collect_all_metrics
 from dqg.reporting.telemetry import PhaseRunRecord, load_records
 from dqg.tracking.regression import build_failure_trend
 
-ALLOWED_PHASES: Final = frozenset({"Q01", "Q04", "Q03", "Q05", "Q06", "Q07"})
+ALLOWED_PHASES: Final = frozenset({"Q01", "Q04", "Q03", "Q05", "Q05a", "Q05b", "Q06", "Q07"})
 DATE_FMT = "%Y-%m-%d"
 
 
@@ -98,6 +98,27 @@ def _project_metrics(output_dir: Path, project_id: str, records: list[PhaseRunRe
     )
     approval_rate = (len(approve_records) / len(finalize_records)) if finalize_records else 0.0
 
+    # 闭环时长（execute → approve 时间差，小时）
+    execute_records = [r for r in records if r.action == "execute"]
+    closure_hours: list[float] = []
+    for phase in ALLOWED_PHASES:
+        first_exec = next((r for r in execute_records if r.phase_id == phase), None)
+        last_approve = next((r for r in reversed(approve_records) if r.phase_id == phase), None)
+        if first_exec and last_approve and first_exec.timestamp and last_approve.timestamp:
+            try:
+                t0 = datetime.fromisoformat(first_exec.timestamp)
+                t1 = datetime.fromisoformat(last_approve.timestamp)
+                delta = (t1 - t0).total_seconds() / 3600
+                if delta >= 0:
+                    closure_hours.append(delta)
+            except (ValueError, TypeError):
+                pass
+    avg_closure_hours = round(mean(closure_hours), 2) if closure_hours else 0.0
+
+    # 误报率（force_approved / total_approved）
+    force_count = sum(1 for r in approve_records if getattr(r, "force_approved", False))
+    force_approve_rate = round(force_count / len(approve_records), 4) if approve_records else 0.0
+
     phase_stats: dict[str, dict[str, Any]] = {}
     for phase in sorted(ALLOWED_PHASES):
         phase_finalize = [r for r in finalize_records if r.phase_id == phase]
@@ -133,6 +154,8 @@ def _project_metrics(output_dir: Path, project_id: str, records: list[PhaseRunRe
         "gap_closure_rate": round(gap_closure_rate, 4),
         "block_count": block_count,
         "phase_stats": phase_stats,
+        "avg_closure_hours": avg_closure_hours,
+        "force_approve_rate": force_approve_rate,
     }
 
 
@@ -309,6 +332,41 @@ def _write_markdown_report(path: Path, payload: dict[str, Any]) -> None:
                 f"| {x['project_id']} | {x['phase']} | {x['metric']} | {x['current']} | {x['hist_mean']} | "
                 f"{','.join(x.get('methods', []))} |"
             )
+    # 运营口径节
+    gp = payload.get("guard_precision", {})
+    guard_rows = [{"name": name, **counters} for name, counters in gp.get("by_guard", {}).items()]
+    if guard_rows:
+        lines += [
+            "",
+            "## 运营口径",
+            "",
+            "### Guard 精度",
+            "",
+            "| Guard | 执行 | 通过 | 阻断 | 命中率 |",
+            "| --- | ---: | ---: | ---: | ---: |",
+        ]
+        for g in guard_rows:
+            passed = g.get("pass", 0)
+            blocked = g.get("blocked", 0)
+            total = passed + blocked + g.get("fail", 0)
+            hit_rate = blocked / total if total > 0 else 0.0
+            lines.append(f"| {g.get('name', '?')} | {total} | {passed} | {blocked} | {hit_rate:.2%} |")
+
+    has_closure = any(r.get("avg_closure_hours", 0) > 0 for r in payload.get("projects", []))
+    if has_closure:
+        lines += [
+            "",
+            "### Phase 运营（闭环时长 / 误报率）",
+            "",
+            "| Project | 平均闭环时长(h) | Force Approve 率 |",
+            "| --- | ---: | ---: |",
+        ]
+        for item in payload.get("projects", []):
+            lines.append(
+                f"| {item['project_id']} | {item.get('avg_closure_hours', 0):.2f} | "
+                f"{item.get('force_approve_rate', 0):.2%} |"
+            )
+
     path.write_text("\n".join(lines).strip() + "\n", encoding="utf-8")
 
 
@@ -421,6 +479,12 @@ def generate_report(
     from dqg.reporting.observability_anomalies import detect_metric_anomalies
 
     payload["metric_anomalies"] = detect_metric_anomalies(_load_history(output_dir), period.label)
+    try:
+        from dqg.reporting.guard_precision_report import build_guard_precision_summary
+
+        payload["guard_precision"] = build_guard_precision_summary(output_dir)
+    except Exception:
+        payload["guard_precision"] = {}
     json_path, md_path = _report_paths(output_dir, period_name, period.label)
     save_json(json_path, payload)
     _write_markdown_report(md_path, payload)

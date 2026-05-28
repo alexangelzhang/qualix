@@ -1,0 +1,18 @@
+{
+  "case_id": "FEISHU-77885889",
+  "phase": "Q05a",
+  "error_type": "MISS",
+  "severity": "high",
+  "title": "创建运营活动，同一门店类型有重叠的活动时间，报错提示错误  预期报错为：TESTP000000000005  测试零件E已经存在未开始或进行中的活动",
+  "root_cause": "提示异常与提示体验",
+  "fix_target": "",
+  "tags": "[\"feishu-import\", \"category:提示异常与提示体验\", \"bug_class:后端\"]",
+  "created_at": "2026-04-15",
+  "status": "open",
+  "source": "{\"feishu_table\": \"tblGxARLByCc5h3T\", \"bug_id\": null, \"requirement\": \"汽车配件索赔2.0\"}",
+  "expected": "{\"content\": \"针对提示语正确性做断言；\"}",
+  "actual": "{\"content\": \"提示语错误，责任人未做好细节验收，预期报错提示未和需求完全一致,调整报错提示\"}",
+  "lesson": "针对提示语正确性做断言；",
+  "holdout": "False",
+  "case_category": "STRUCTURED_SCHEMA"
+}

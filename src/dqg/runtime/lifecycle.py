@@ -7,6 +7,7 @@ handler 按依赖关系分组并行执行，无依赖的 handler 同时运行。
 from __future__ import annotations
 
 import threading
+from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Protocol
@@ -22,6 +23,10 @@ class LifecycleHandler(Protocol):
     def __call__(self, ctx: ExecutionContext, result: PhaseResult) -> None: ...
 
 
+# Pre-execute 检查函数：返回 True 表示终止整个 execute（跳过所有 handler）
+PreCheckFn = Callable[["ExecutionContext", "PhaseResult"], bool]
+
+
 @dataclass
 class HandlerRegistration:
     """Handler 注册条目."""
@@ -33,6 +38,7 @@ class HandlerRegistration:
     order: int = 100  # 越小越先执行
     depends_on: list[str] = field(default_factory=list)  # 依赖的 handler 名称
     required: bool = False  # True = 失败时 BLOCKED，False = 失败时 WARNING
+    gate: bool = False  # True = 失败时跳过所有直接/间接下游（硬门禁语义）
 
 
 class LifecycleRegistry:
@@ -50,6 +56,7 @@ class LifecycleRegistry:
         order: int = 100,
         depends_on: list[str] | None = None,
         required: bool = False,
+        gate: bool = False,
     ) -> None:
         self._handlers.append(
             HandlerRegistration(
@@ -60,6 +67,7 @@ class LifecycleRegistry:
                 order=order,
                 depends_on=depends_on or [],
                 required=required,
+                gate=gate,
             )
         )
 
@@ -119,6 +127,7 @@ class LifecycleRegistry:
             deps[h.name] = {d for d in h.depends_on if d in active_names}
 
         completed_names: set[str] = set()
+        gate_failed_names: set[str] = set()  # gate=True 的 handler 失败后加入，传播跳过下游
         result_lock = threading.Lock()
 
         def _run_one(reg: HandlerRegistration) -> tuple[str, Exception | None]:
@@ -133,6 +142,8 @@ class LifecycleRegistry:
                 return reg.name, None
             except Exception as exc:
                 with result_lock:
+                    if reg.gate:
+                        gate_failed_names.add(reg.name)
                     if reg.required:
                         result.add_error(f"BLOCKED: required handler {reg.name} failed: {exc}")
                     else:
@@ -145,8 +156,21 @@ class LifecycleRegistry:
                 [n for n in remaining if deps[n].issubset(completed_names)],
                 key=lambda n: by_name[n].order,
             )
+
+            # 优先处理：deps 中含 gate 失败的 handler → 跳过并传播
+            gate_blocked = [n for n in ready if deps[n] & gate_failed_names]
+            if gate_blocked:
+                for n in gate_blocked:
+                    failed_gate_deps = sorted(deps[n] & gate_failed_names)
+                    with result_lock:
+                        result.add_warning(f"Handler {n} skipped: hard gate failed in {', '.join(failed_gate_deps)}")
+                    gate_failed_names.add(n)  # 传播：本 handler 也视为 gate 失败
+                    completed_names.add(n)  # 标记完成，避免其下游进入死锁路径
+                    remaining.discard(n)
+                continue  # 重新评估 remaining
+
             if not ready:
-                # 依赖死锁：剩余 handler 的依赖无法满足
+                # 依赖死锁：剩余 handler 的依赖无法满足（非 gate 原因）
                 unresolved = {n: deps[n] - completed_names for n in remaining}
                 for name, missing in unresolved.items():
                     reg = by_name[name]
@@ -178,9 +202,26 @@ class LifecycleRegistry:
 # 全局注册表实例
 _registry = LifecycleRegistry()
 
+# Pre-execute 检查注册表：phase_id → list[PreCheckFn]
+_pre_checks: dict[str, list[PreCheckFn]] = {}
+
 
 def get_registry() -> LifecycleRegistry:
     return _registry
+
+
+def register_pre_check(phase_id: str, fn: PreCheckFn) -> None:
+    """注册 pre-execute 检查函数.
+
+    fn 返回 True 时终止整个 execute 阶段（跳过所有 lifecycle handler）。
+    用于 Q06 编译预检等"失败则无需运行 LLM"的快速门禁。
+    """
+    _pre_checks.setdefault(phase_id, []).append(fn)
+
+
+def run_pre_checks(ctx: ExecutionContext, result: PhaseResult) -> bool:
+    """运行当前 Phase 的所有 pre-execute 检查. 返回 True 表示应终止 execute."""
+    return any(fn(ctx, result) for fn in _pre_checks.get(ctx.phase_id, []))
 
 
 def register_handler(
@@ -191,6 +232,7 @@ def register_handler(
     order: int = 100,
     depends_on: list[str] | None = None,
     required: bool = False,
+    gate: bool = False,
 ) -> None:
     """便捷注册函数."""
-    _registry.register(name, handler, stage, phases, order, depends_on, required)
+    _registry.register(name, handler, stage, phases, order, depends_on, required, gate)

@@ -1,21 +1,17 @@
-"""Q05 结构合规 checks（T5）."""
+"""Q05a 结构合规 checks（T5）."""
 
 import json
 from pathlib import Path
 
-import pytest
-
 from dqg.quality.checks.q05_structure_checks import run_q05_structure_checks
 
 
-@pytest.fixture
-def q05_layout(tmp_path: Path) -> tuple[Path, str]:
+def _make_layout(tmp_path: Path, phase_dir: str) -> tuple[Path, str]:
     out = tmp_path / "output"
     pid = "P1"
-    q05 = out / pid / "Q05"
-    q05.mkdir(parents=True)
-    # 创建最小 _q05_target_modules.json，避免 missing_target_modules gate 干扰其他测试断言
-    internal = q05 / "_internal"
+    pd = out / pid / phase_dir
+    pd.mkdir(parents=True)
+    internal = pd / "_internal"
     internal.mkdir(parents=True)
     (internal / "_q05_target_modules.json").write_text(
         json.dumps({"se_mappings": [], "br_mappings": [], "git_diff_files": ["Dummy.java"], "target_repos": []}),
@@ -24,8 +20,8 @@ def q05_layout(tmp_path: Path) -> tuple[Path, str]:
     return out, pid
 
 
-def test_eut_missing_se_blocked(q05_layout: tuple[Path, str]) -> None:
-    out, pid = q05_layout
+def test_eut_missing_se_blocked(tmp_path: Path) -> None:
+    out, pid = _make_layout(tmp_path, "Q05a")
     structured = {
         "project_id": pid,
         "eut_items": [
@@ -40,17 +36,16 @@ def test_eut_missing_se_blocked(q05_layout: tuple[Path, str]) -> None:
         ],
         "test_cases": [],
     }
-    (out / pid / "Q05" / "phase_b_structured.json").write_text(
-        json.dumps(structured, ensure_ascii=False),
-        encoding="utf-8",
+    (out / pid / "Q05a" / "phase_b_structured.json").write_text(
+        json.dumps(structured, ensure_ascii=False), encoding="utf-8"
     )
-    errs = run_q05_structure_checks(out, pid)
+    errs = run_q05_structure_checks(out, pid, phase_id="Q05a")
     assert len(errs) == 1
     assert "eut_missing_se" in errs[0]
 
 
-def test_wrong_directory_blocked(q05_layout: tuple[Path, str]) -> None:
-    out, pid = q05_layout
+def test_wrong_directory_blocked(tmp_path: Path) -> None:
+    out, pid = _make_layout(tmp_path, "Q05a")
     structured = {
         "project_id": pid,
         "eut_items": [],
@@ -62,30 +57,48 @@ def test_wrong_directory_blocked(q05_layout: tuple[Path, str]) -> None:
             }
         ],
     }
-    (out / pid / "Q05" / "phase_b_structured.json").write_text(
-        json.dumps(structured, ensure_ascii=False),
-        encoding="utf-8",
+    (out / pid / "Q05a" / "phase_b_structured.json").write_text(
+        json.dumps(structured, ensure_ascii=False), encoding="utf-8"
     )
-    errs = run_q05_structure_checks(out, pid)
+    errs = run_q05_structure_checks(out, pid, phase_id="Q05a")
     assert any("wrong_directory" in e for e in errs)
 
 
-def test_mock_typo_blocked(q05_layout: tuple[Path, str]) -> None:
-    out, pid = q05_layout
+def test_mock_typo_blocked(tmp_path: Path) -> None:
+    out, pid = _make_layout(tmp_path, "Q05a")
     structured = {"project_id": pid, "eut_items": [], "test_cases": []}
-    (out / pid / "Q05" / "phase_b_structured.json").write_text(
-        json.dumps(structured, ensure_ascii=False),
-        encoding="utf-8",
+    (out / pid / "Q05a" / "phase_b_structured.json").write_text(
+        json.dumps(structured, ensure_ascii=False), encoding="utf-8"
     )
-    sup = out / pid / "Q05" / "supplemental_tests"
+    sup = out / pid / "Q05a" / "supplemental_tests"
     sup.mkdir(parents=True)
-    (sup / "Bad.java").write_text(
-        "class X { void t() { when(m).getSucess(); } }\n",
-        encoding="utf-8",
-    )
-    errs = run_q05_structure_checks(out, pid)
+    (sup / "Bad.java").write_text("class X { void t() { when(m).getSucess(); } }\n", encoding="utf-8")
+    errs = run_q05_structure_checks(out, pid, phase_id="Q05a")
     assert any("mock_wrong" in e for e in errs)
 
 
 def test_no_structured_returns_empty(tmp_path: Path) -> None:
     assert run_q05_structure_checks(tmp_path / "output", "x") == []
+
+
+def test_legacy_q05_path_still_works(tmp_path: Path) -> None:
+    """Legacy Q05 directory path (backward compat)."""
+    out, pid = _make_layout(tmp_path, "Q05")
+    structured = {
+        "project_id": pid,
+        "eut_items": [
+            {
+                "eut_id": "EUT-001",
+                "bound_se": "",
+                "route_type": "Happy Path",
+                "given": "g",
+                "when": "w",
+                "then": "assertEquals(1, x)",
+            }
+        ],
+        "test_cases": [],
+    }
+    (out / pid / "Q05" / "phase_b_structured.json").write_text(json.dumps(structured, ensure_ascii=False))
+    errs = run_q05_structure_checks(out, pid)  # default phase_id="Q05"
+    assert len(errs) == 1
+    assert "eut_missing_se" in errs[0]

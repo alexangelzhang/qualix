@@ -19,6 +19,7 @@ def handle_weak_assert_gate(ctx: ExecutionContext, result: PhaseResult) -> None:
     from dqg.constants import (
         WEAK_ASSERT_HIGH_RISK_BLOCK,
         WEAK_ASSERT_HIGH_RISK_WARN,
+        WEAK_ASSERT_RATIO_BLOCK,
         WEAK_ASSERT_RATIO_WARN,
     )
     from dqg.json_utils import load_json
@@ -37,19 +38,24 @@ def handle_weak_assert_gate(ctx: ExecutionContext, result: PhaseResult) -> None:
     weak_methods = summary.get("weak_method_count", 0)
     weak_ratio = weak_methods / total_methods if total_methods > 0 else 0.0
 
-    is_q05 = ctx.phase_id == "Q05"
+    is_q05 = ctx.phase_id in {"Q05", "Q05b"}
     issues: list[str] = []
     blocked = False
 
-    # Q05: high-risk 弱断言直接 BLOCKED（左移卡控）
+    # Q05/Q05b: high-risk 弱断言直接 BLOCKED（左移卡控）
     if is_q05 and high_risk >= WEAK_ASSERT_HIGH_RISK_BLOCK:
         issues.append(f"high-risk 弱断言 {high_risk} 个（BLOCKED 阈值 {WEAK_ASSERT_HIGH_RISK_BLOCK}）")
         blocked = True
 
+    # Q05b: 弱断言比例 ≥10% 直接 BLOCKED（弱断言是铁律，理论上不应出现）
+    if is_q05 and weak_ratio >= WEAK_ASSERT_RATIO_BLOCK:
+        issues.append(f"弱断言比例 {weak_ratio:.0%}（Q05b BLOCKED 阈值 {WEAK_ASSERT_RATIO_BLOCK:.0%}）")
+        blocked = True
+
     # Q06 / 通用: WARNING 级别
-    if high_risk >= WEAK_ASSERT_HIGH_RISK_WARN:
+    if not is_q05 and high_risk >= WEAK_ASSERT_HIGH_RISK_WARN:
         issues.append(f"high-risk 弱断言 {high_risk} 个（WARNING 阈值 {WEAK_ASSERT_HIGH_RISK_WARN}）")
-    if weak_ratio >= WEAK_ASSERT_RATIO_WARN:
+    if not is_q05 and weak_ratio >= WEAK_ASSERT_RATIO_WARN:
         issues.append(f"弱断言比例 {weak_ratio:.0%}（WARNING 阈值 {WEAK_ASSERT_RATIO_WARN:.0%}）")
 
     if issues:
@@ -139,7 +145,7 @@ def handle_mock_coincidence_check(ctx: ExecutionContext, result: PhaseResult) ->
     from dqg.constants import MOCK_COINCIDENCE_KEYWORDS, MOCK_REALITY_KEYWORDS
     from dqg.text_utils import REPORT_MAP
 
-    is_q05 = ctx.phase_id == "Q05"
+    is_q05 = ctx.phase_id in {"Q05", "Q05a", "Q05b"}
 
     if is_q05:
         return

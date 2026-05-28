@@ -13,8 +13,8 @@ from dqg.commands.cli_json import cli_envelope, cli_json_mode, print_cli_json
 from dqg.constants import PHASE_DIR_MAP, STRUCTURED_JSON_MAP
 from dqg.reporting.html_render import render_q05_eut_matrix
 
-_SUPPORTED_PHASES = {"Q05"}
-_DEFAULT_OUTPUT_NAME = {"Q05": "eut_matrix.html"}
+_SUPPORTED_PHASES = {"Q05", "Q05a"}
+_DEFAULT_OUTPUT_NAME = {"Q05": "eut_matrix.html", "Q05a": "eut_matrix.html"}
 
 
 def _emit(

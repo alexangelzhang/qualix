@@ -22,23 +22,25 @@ def save_image_semantic(
     phase_id: str,
     record: dict[str, Any],
 ) -> None:
-    """保存一条图片语义记录（自动分词存入 FTS5）."""
+    """保存一条图片语义记录（分词写入 description_tokenized，触发器同步 FTS5）."""
     desc = record.get("description", "")
     reqs_str = dump_json_str(record.get("related_reqs", []), indent=None)
     mermaid = record.get("mermaid_code", "")
     section = record.get("section_context", "")
     filename = record.get("filename", "")
 
+    # 分词写入 description_tokenized，FTS5 通过触发器使用此列
     tokenized = tokenize_chinese(f"{filename} {desc} {reqs_str} {mermaid} {section}")
 
     with get_connection(output_dir) as conn:
         conn.execute(
             """INSERT INTO image_semantics
-            (project_id, phase_id, filename, kind, description,
+            (project_id, phase_id, filename, kind, description, description_tokenized,
              related_reqs, mermaid_code, section_context, token_estimate)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(project_id, phase_id, filename) DO UPDATE SET
                 description=excluded.description,
+                description_tokenized=excluded.description_tokenized,
                 related_reqs=excluded.related_reqs,
                 mermaid_code=excluded.mermaid_code,
                 section_context=excluded.section_context,
@@ -49,21 +51,13 @@ def save_image_semantic(
                 filename,
                 record.get("kind", "image"),
                 desc,
+                tokenized,
                 reqs_str,
                 mermaid,
                 section,
                 record.get("token_estimate", 0),
             ),
         )
-        row = conn.execute(
-            "SELECT id FROM image_semantics WHERE project_id=? AND phase_id=? AND filename=?",
-            (project_id, phase_id, filename),
-        ).fetchone()
-        if row:
-            conn.execute(
-                "INSERT OR REPLACE INTO image_semantics_fts(rowid, filename, description, related_reqs, mermaid_code, section_context) VALUES (?, ?, ?, ?, ?, ?)",
-                (row[0], filename, tokenized, tokenize_chinese(reqs_str), tokenize_chinese(mermaid), tokenize_chinese(section)),
-            )
 
 
 def save_batch(

@@ -1,4 +1,4 @@
-"""Experiments 存储：插入、更新、查询、汇总."""
+"""Experiments 存储：插入、更新、查询、汇总、衰减清理."""
 
 from __future__ import annotations
 
@@ -7,6 +7,8 @@ from typing import Any
 
 from dqg.json_utils import dump_json_str
 from dqg.store.core import get_connection, row_to_dict
+
+EXPERIMENT_MAX_AGE_DAYS = 90  # SQLite 实验记录硬过期天数
 
 
 def insert_experiment(output_dir: Path, record: dict[str, Any]) -> None:
@@ -43,7 +45,16 @@ def insert_experiment(output_dir: Path, record: dict[str, Any]) -> None:
 
 def update_experiment(output_dir: Path, experiment_id: str, updates: dict[str, Any]) -> None:
     """更新实验记录."""
-    allowed = {"judge_score", "judge_dimensions", "delta", "accepted", "reason", "finished_at", "duration_seconds", "token_count"}
+    allowed = {
+        "judge_score",
+        "judge_dimensions",
+        "delta",
+        "accepted",
+        "reason",
+        "finished_at",
+        "duration_seconds",
+        "token_count",
+    }
     sets = []
     params: list[Any] = []
     for k, v in updates.items():
@@ -96,15 +107,13 @@ def query_experiments(
 def get_experiment_summary(output_dir: Path, skill_file: str) -> dict[str, Any]:
     """获取某个 skill 的实验汇总."""
     with get_connection(output_dir) as conn:
-        total = conn.execute(
-            "SELECT COUNT(*) FROM experiments WHERE skill_file = ?", (skill_file,)
-        ).fetchone()[0]
+        total = conn.execute("SELECT COUNT(*) FROM experiments WHERE skill_file = ?", (skill_file,)).fetchone()[0]
         accepted = conn.execute(
             "SELECT COUNT(*) FROM experiments WHERE skill_file = ? AND accepted = 1", (skill_file,)
         ).fetchone()[0]
-        best = conn.execute(
-            "SELECT MAX(judge_score) FROM experiments WHERE skill_file = ?", (skill_file,)
-        ).fetchone()[0]
+        best = conn.execute("SELECT MAX(judge_score) FROM experiments WHERE skill_file = ?", (skill_file,)).fetchone()[
+            0
+        ]
         latest = conn.execute(
             "SELECT judge_score, delta, accepted, reason FROM experiments WHERE skill_file = ? ORDER BY created_at DESC LIMIT 1",
             (skill_file,),
@@ -118,3 +127,20 @@ def get_experiment_summary(output_dir: Path, skill_file: str) -> dict[str, Any]:
             "best_score": best,
             "latest": row_to_dict(latest) if latest else None,
         }
+
+
+def prune_stale_experiments(
+    output_dir: Path,
+    max_age_days: int = EXPERIMENT_MAX_AGE_DAYS,
+) -> int:
+    """删除超过 max_age_days 的实验记录，返回删除数量.
+
+    硬过期：物理删除。保留近期记录以维持 get_experiment_summary 的准确性。
+    """
+    with get_connection(output_dir) as conn:
+        result = conn.execute(
+            "DELETE FROM experiments WHERE created_at < datetime('now', ? || ' days')",
+            (f"-{max_age_days}",),
+        )
+        deleted = result.rowcount
+    return deleted

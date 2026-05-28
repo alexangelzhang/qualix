@@ -66,6 +66,12 @@ def _build_parser() -> argparse.ArgumentParser:
         default=None,
         help="代码仓库路径，多个用逗号分隔（手动模式下用于写入 _inputs.json，启用编译/测试 gate）",
     )
+    p_fin.add_argument(
+        "--strict-profile-context",
+        action="store_true",
+        default=False,
+        help="严格模式：报告缺少 PROFILE_CONTEXT 时阻断 finalize（默认 WARNING）",
+    )
 
     # approve
     p_app = sub.add_parser("approve", help="人工确认通过")
@@ -113,6 +119,12 @@ def _build_parser() -> argparse.ArgumentParser:
     # judge
     p_judge = sub.add_parser("judge", help="查看/触发 Phase 质量评审")
     p_judge.add_argument("phase", help="Phase ID")
+    p_judge.add_argument(
+        "--replay",
+        action="store_true",
+        help="重跑 Judge（当前 rubric）并与历史 _judge_iter*.json 对比，检测 harness 漂移",
+    )
+    p_judge.add_argument("--model", default=None, help="Judge 模型（--replay 时生效）")
 
     # critique
     p_critique = sub.add_parser("critique", help="Self-Critique: 自我批评并修正")
@@ -179,6 +191,24 @@ def _build_parser() -> argparse.ArgumentParser:
     # version
     sub.add_parser("version", help="显示 DQG 版本号")
 
+    # task
+    p_task = sub.add_parser("task", help="Task 管理（list/resume）")
+    p_task.add_argument(
+        "task_action",
+        nargs="?",
+        default="list",
+        choices=["list", "resume"],
+        help="操作（list: 列出 tasks；resume: 查找/显示可恢复 task）",
+    )
+    p_task.add_argument("task_id", nargs="?", default=None, help="Task ID（resume 指定 task 用）")
+    p_task.add_argument(
+        "--status",
+        choices=["running", "completed", "failed", "all"],
+        default="all",
+        help="按状态过滤（list 用，默认 all）",
+    )
+    p_task.add_argument("--limit", type=int, default=20, help="最多返回条数（默认 20）")
+
     # --- ops: metrics / observe / regression ---
 
     # metrics
@@ -190,7 +220,7 @@ def _build_parser() -> argparse.ArgumentParser:
         "observe_action",
         nargs="?",
         default="report",
-        choices=["report", "daily", "guard-precision", "prompt-versions"],
+        choices=["report", "daily", "guard-precision", "prompt-versions", "maintain"],
     )
     p_observe.add_argument("--period", choices=["daily", "weekly"], default="daily")
     p_observe.add_argument("--date", default=None, help="锚点日期 YYYY-MM-DD")
@@ -202,10 +232,16 @@ def _build_parser() -> argparse.ArgumentParser:
 
     # regression
     p_regr = sub.add_parser("regression", help="回归测试（原 dqg-regression）")
-    p_regr.add_argument("regression_action", nargs="?", default="run", choices=["run", "trend"])
+    p_regr.add_argument("regression_action", nargs="?", default="run", choices=["run", "trend", "multi-judge"])
     p_regr.add_argument("--case", dest="case_id", default=None, help="只运行指定 case")
     p_regr.add_argument("--period", choices=["weekly"], default="weekly")
     p_regr.add_argument("--output-dir", dest="regression_output_dir", default=None, help="输出目录")
+    p_regr.add_argument("--phase", default=None, help="multi-judge: 指定 Phase ID（默认 Q03）")
+    p_regr.add_argument(
+        "--models",
+        default=None,
+        help="multi-judge: 逗号分隔的模型列表（默认 deepseek-chat,claude-opus-4-6）",
+    )
 
     # spec：Phase 规范（JSON Schema + contract），代码为单一事实源
     p_spec = sub.add_parser("spec", help="输出 Phase 规范（JSON Schema + phase_contract），供 Agent 解析")
@@ -298,6 +334,11 @@ def _dispatch(cmd: str) -> callable:
         from dqg.commands.render import cmd_render
 
         return cmd_render
+
+    if cmd == "task":
+        from dqg.commands.task_cmd import cmd_task
+
+        return cmd_task
 
     return None
 

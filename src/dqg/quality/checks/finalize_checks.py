@@ -30,6 +30,53 @@ _COUNT_FIELDS: Final = MappingProxyType(
 )
 
 
+# Q05b assertion_type 允许的实现范围：EUT 声明的类型 → 可接受的实现类型集合
+_ASSERTION_ALLOWED_IMPL: Final = MappingProxyType(
+    {
+        "assertThrows": {"assertThrows"},  # 异常断言不得降级
+        "assertEquals": {"assertEquals", "state_check"},  # state_check 等价于 equals
+        "verify": {"verify"},  # mock 调用验证不得降级
+        "state_check": {"assertEquals", "state_check"},
+        "other": {"assertEquals", "assertThrows", "verify", "state_check", "other"},
+    }
+)
+
+
+def _check_assertion_type_consistency(
+    eut_data: dict,
+    code_status: dict,
+) -> list[str]:
+    """cross-field: EUT then_assertion_type vs EutTaskItem.assertion_type.
+
+    当 Q05b 标记某条 EUT passes=True，实际使用的断言类型不得弱于 EUT 设计时声明的类型。
+    """
+    errors: list[str] = []
+    eut_specs = {
+        item["eut_id"]: item.get("then_assertion_type", "")
+        for item in eut_data.get("eut_items", [])
+        if isinstance(item, dict) and item.get("eut_id")
+    }
+    if not eut_specs:
+        return errors
+
+    for task in code_status.get("tasks", []):
+        if not isinstance(task, dict) or not task.get("passes"):
+            continue
+        eut_id = task.get("eut_id", "")
+        impl_type = task.get("assertion_type", "")
+        spec_type = eut_specs.get(eut_id, "")
+        if not spec_type or not impl_type:
+            continue
+        allowed = _ASSERTION_ALLOWED_IMPL.get(spec_type, set())
+        if impl_type not in allowed:
+            errors.append(
+                f"BLOCKED: {eut_id} 断言类型降级——EUT 设计声明 {spec_type}，"
+                f"实现时使用了 {impl_type}（不在允许范围 {sorted(allowed)} 内）。"
+                "弱断言是铁律：实现必须达到或超过 EUT 规格声明的断言强度。"
+            )
+    return errors
+
+
 def check_reasoning_log(output_dir: Path, project_id: str, phase_id: str) -> list[str]:
     """检查 _reasoning_log.md 是否存在.
 
@@ -195,7 +242,20 @@ def run_finalize_checks(output_dir: Path, project_id: str, phase_id: str) -> lis
     if phase_id in ("Q05", "Q05a"):
         from .q05_structure_checks import run_q05_structure_checks
 
-        errors.extend(run_q05_structure_checks(output_dir, project_id))
+        errors.extend(run_q05_structure_checks(output_dir, project_id, phase_id=phase_id))
+
+    # Q05a: EUT → SE.code_target 可追溯性检查（始终 WARNING，TDD 兼容）
+    if phase_id == "Q05a":
+        from .evidence_contract import check_eut_code_target_traceability
+
+        phase_def_q05a = PHASE_DEFS.get("Q05a")
+        if phase_def_q05a:
+            int_dir_q05a = _internal_dir(output_dir, project_id, phase_def_q05a)
+            inputs_q05a = load_json(int_dir_q05a / "_inputs.json") if (int_dir_q05a / "_inputs.json").is_file() else {}
+            code_repos_q05a: list[str] = (inputs_q05a or {}).get("code_repos", [])
+            if not code_repos_q05a and (inputs_q05a or {}).get("code_repo"):
+                code_repos_q05a = [inputs_q05a["code_repo"]]
+            errors.extend(check_eut_code_target_traceability(output_dir, project_id, code_repos_q05a))
 
     # Phase Q05b: C1+C2 then 字段对齐检查
     # Q05b Ralph Loop 只跑 C9+编译，不跑 C1+C2（then 关键词对齐）。
@@ -228,22 +288,32 @@ def run_finalize_checks(output_dir: Path, project_id: str, phase_id: str) -> lis
                 if c12_errors:
                     errors.extend(c12_errors)
 
-    # Phase B: 单测编译 gate（从 _inputs.json 读 code_repos，逐仓库检查）
-    if phase_id == "Q05":
+            # Assertion type 一致性：EUT then_assertion_type vs EutTaskItem.assertion_type
+            # phase_b_code_status.json 里 passes=True 的条目的 assertion_type 不得弱于
+            # phase_b_structured.json 中对应 EUT 的 then_assertion_type
+            if phase_def_q05b:
+                from dqg.constants import STRUCTURED_JSON_MAP as _SJM2
+
+                code_status_path = _phase_dir(output_dir, project_id, phase_def_q05b) / _SJM2["Q05b"]
+                code_status = load_json(code_status_path) if code_status_path.is_file() else {}
+                errors.extend(_check_assertion_type_consistency(eut_data or {}, code_status or {}))
+
+    # Phase Q05b: 单测编译 gate（从 _inputs.json 读 code_repos，逐仓库检查）
+    if phase_id in {"Q05", "Q05b"}:
         from .compile_check import check_phase_b_compilation
 
-        phase_def_q05 = PHASE_DEFS.get("Q05")
-        if phase_def_q05:
-            int_dir_q05 = _internal_dir(output_dir, project_id, phase_def_q05)
-            inputs_data_q05 = load_json(int_dir_q05 / "_inputs.json") or {}
-            code_repos_q05: list[str] = inputs_data_q05.get("code_repos", [])
-            if not code_repos_q05 and inputs_data_q05.get("code_repo"):
-                code_repos_q05 = [inputs_data_q05["code_repo"]]
-            for repo in code_repos_q05:
+        phase_def_q05b = PHASE_DEFS.get(phase_id)
+        if phase_def_q05b:
+            int_dir_q05b = _internal_dir(output_dir, project_id, phase_def_q05b)
+            inputs_data_q05b_compile = load_json(int_dir_q05b / "_inputs.json") or {}
+            code_repos_q05b_compile: list[str] = inputs_data_q05b_compile.get("code_repos", [])
+            if not code_repos_q05b_compile and inputs_data_q05b_compile.get("code_repo"):
+                code_repos_q05b_compile = [inputs_data_q05b_compile["code_repo"]]
+            for repo in code_repos_q05b_compile:
                 errors.extend(check_phase_b_compilation(output_dir, project_id, repo))
 
-    # Phase B: 单测编译+运行铁律 gate（不可跳过）
-    if phase_id == "Q05":
+    # Phase Q05b: 单测编译+运行铁律 gate（不可跳过）
+    if phase_id in {"Q05", "Q05b"}:
         from .test_execution_gate import check_q05_test_execution
 
         errors.extend(check_q05_test_execution(output_dir, project_id))

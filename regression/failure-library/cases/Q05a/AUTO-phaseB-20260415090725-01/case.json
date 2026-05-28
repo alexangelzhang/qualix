@@ -1,0 +1,28 @@
+{
+  "case_id": "AUTO-phaseB-20260415090725-01",
+  "phase": "Q05a",
+  "error_type": "FN",
+  "severity": "medium",
+  "title": "eut_items",
+  "root_cause": "SKILL_RULE",
+  "fix_target": "",
+  "tags": [
+    "auto-generated",
+    "project:insurance-damage-assessment"
+  ],
+  "created_at": "2026-04-15",
+  "status": "open",
+  "source": {
+    "project_id": "insurance-damage-assessment",
+    "auto_generated": true,
+    "validation_error": "eut_items"
+  },
+  "expected": {
+    "content": "（需人工确认）"
+  },
+  "actual": {
+    "content": "eut_items"
+  },
+  "lesson": "Skill 规则未覆盖此失败场景，需要补充检查项",
+  "case_category": "DOC_SKILL_DRIFT"
+}

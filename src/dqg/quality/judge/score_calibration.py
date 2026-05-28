@@ -7,6 +7,7 @@
 
 from __future__ import annotations
 
+import os
 from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
@@ -22,6 +23,48 @@ log = get_logger(__name__)
 SCORE_DRIFT_THRESHOLD = 1.0
 TREND_WINDOW = 5
 TREND_INFLATION_THRESHOLD = 0.5
+
+# DeepEval 使用的模型，默认最便宜的 Haiku；可通过环境变量覆盖
+_DEEPEVAL_MODEL_DEFAULT = "claude-haiku-4-5-20251001"
+
+
+try:
+    from deepeval.models import DeepEvalBaseLLM as _DeepEvalBase
+except ImportError:
+    _DeepEvalBase = object  # type: ignore[assignment,misc]
+
+
+class _DQGDeepEvalModel(_DeepEvalBase):  # type: ignore[misc]
+    """DeepEvalBaseLLM 适配器，包装 DQG 的 create_backend.
+
+    使用懒加载避免 import 时强依赖 deepeval。
+    安装：pip install dev-quality-gate[deepeval]
+    """
+
+    def __init__(self, model: str) -> None:
+        self._model_name = model
+        self._backend = None
+
+    def _get_backend(self):
+        if self._backend is None:
+            from dqg.agents.llm_backends import create_backend
+
+            api_key = os.environ.get("ANTHROPIC_API_KEY", "")
+            self._backend = create_backend(self._model_name, api_key)
+        return self._backend
+
+    def load_model(self):
+        return self._get_backend()
+
+    def generate(self, prompt: str, schema=None) -> str:
+        text, _ = self._get_backend().chat([{"role": "user", "content": prompt}])
+        return text
+
+    async def a_generate(self, prompt: str, schema=None) -> str:
+        return self.generate(prompt, schema)
+
+    def get_model_name(self) -> str:
+        return self._model_name
 
 
 def check_score_consistency(
@@ -133,8 +176,40 @@ def check_score_trend(
 
 
 def _run_deepeval_scoring(phase_id: str, report_text: str) -> float | None:
-    """DeepEval 评分已禁用，DQG 内置 Judge/Critique 评审链已足够."""
-    return None
+    """用 DeepEval GEval 对 Phase 报告独立评分，返回 1-5 分或 None（不可用时）.
+
+    需要 pip install dev-quality-gate[deepeval]。
+    使用 DQG 自有 AnthropicBackend，不依赖 OpenAI key。
+    """
+    try:
+        from deepeval.metrics import GEval
+        from deepeval.test_case import LLMTestCase, LLMTestCaseParams
+    except ImportError:
+        log.debug("deepeval not installed, skipping calibration (pip install dev-quality-gate[deepeval])")
+        return None
+
+    try:
+        model_name = os.environ.get("DQG_DEEPEVAL_MODEL", _DEEPEVAL_MODEL_DEFAULT)
+
+        custom_model = _DQGDeepEvalModel(model_name)
+        criteria = _get_phase_criteria(phase_id)
+
+        metric = GEval(
+            name=f"DQG-{phase_id}",
+            criteria=criteria,
+            evaluation_params=[LLMTestCaseParams.ACTUAL_OUTPUT],
+            model=custom_model,
+        )
+        test_case = LLMTestCase(
+            input=f"Phase {phase_id} quality evaluation",
+            actual_output=report_text,
+        )
+        metric.measure(test_case)
+        # GEval score: 0-1 → DQG 1-5
+        return round(1.0 + metric.score * 4.0, 1)
+    except Exception as exc:
+        log.warning("DeepEval scoring failed for %s: %s", phase_id, exc)
+        return None
 
 
 def _get_phase_criteria(phase_id: str) -> str:
@@ -161,6 +236,12 @@ def _get_phase_criteria(phase_id: str) -> str:
             "1) EUT covers all SE 2) Strong assertions used "
             "3) Exception paths tested 4) Code compilable"
         ),
+        "Q05a": (
+            "Check EUT matrix design: "
+            "1) EUT covers all SE/REQ/BR 2) then fields concrete "
+            "3) Exception/Boundary paths included 4) bound_item non-empty"
+        ),
+        "Q05b": ("Check test codegen: 1) All EUTs have @Test methods 2) Strong assertions 3) Code compilable"),
         "Q06": (
             "Check test audit: "
             "1) Classifications accurate 2) Weak assertions identified "

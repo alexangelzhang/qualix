@@ -12,7 +12,7 @@ def test_compute_prompt_metrics_includes_manifest_hashes(tmp_path) -> None:
     case_dir = tmp_path / "case"
     (case_dir / "input").mkdir(parents=True)
     (case_dir / "prompt_versions").mkdir()
-    save_json(case_dir / "case.json", {"case_id": "PE-001", "phase": "Q05", "sample_type": "prompt-eval"})
+    save_json(case_dir / "case.json", {"case_id": "PE-001", "phase": "Q05a", "sample_type": "prompt-eval"})
     save_json(case_dir / "input" / "out.json", {"eut_cases": [{"id": "EUT-1"}]})
     (case_dir / "prompt_versions" / "v1.md").write_text("# Prompt", encoding="utf-8")
     save_json(
@@ -36,7 +36,7 @@ def test_run_prompt_eval_case_uses_executor_outputs_per_prompt_version(tmp_path)
     case_dir = tmp_path / "case"
     (case_dir / "input").mkdir(parents=True)
     (case_dir / "prompt_versions").mkdir()
-    save_json(case_dir / "case.json", {"case_id": "PE-002", "phase": "Q05", "sample_type": "prompt-eval"})
+    save_json(case_dir / "case.json", {"case_id": "PE-002", "phase": "Q05a", "sample_type": "prompt-eval"})
     save_json(case_dir / "input" / "input.json", {"requirements": ["REQ-1"]})
     (case_dir / "prompt_versions" / "v1.md").write_text("# Prompt v1", encoding="utf-8")
     (case_dir / "prompt_versions" / "v2.md").write_text("# Prompt v2", encoding="utf-8")
@@ -83,7 +83,7 @@ def test_run_prompt_eval_case_uses_offline_prompt_outputs(tmp_path) -> None:
 def test_format_comparison_table_includes_execution_source(tmp_path) -> None:
     result = {
         "case_id": "PE-004",
-        "phase": "Q05",
+        "phase": "Q05a",
         "metric_ids": ["eut_count"],
         "metric_names": {"eut_count": "EUT 数量"},
         "rows": [

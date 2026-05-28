@@ -10,7 +10,7 @@ from pydantic import ValidationError
 
 from dqg.runtime.execution_context import ExecutionContext
 from dqg.runtime.result import PhaseResult
-from dqg.schemas.phase_b import EutItem, RiskTier, RouteType
+from dqg.schemas.phase_b import AssertionType, EutItem, RiskTier, RouteType
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -23,7 +23,7 @@ if TYPE_CHECKING:
 class TestEutThenValidator:
     """EUT then 字段必须包含具体断言或值，拒绝模糊描述."""
 
-    def _make_eut(self, then: str) -> EutItem:
+    def _make_eut(self, then: str, assertion_type: AssertionType = AssertionType.EQUALS) -> EutItem:
         return EutItem(
             eut_id="EUT-001",
             bound_se="SE-001",
@@ -31,6 +31,7 @@ class TestEutThenValidator:
             given="正常 DTO",
             when="调用 createOrder",
             then=then,
+            then_assertion_type=assertion_type,
             risk_tier=RiskTier.T1,
         )
 
@@ -111,7 +112,7 @@ class TestWeakAssertGateQ05:
     def test_q05_high_risk_1_triggers_blocked(self, tmp_path: Path):
         from dqg.runtime.handlers_detection import handle_weak_assert_gate
 
-        ctx = _make_ctx(tmp_path, "Q05")
+        ctx = _make_ctx(tmp_path, "Q05b")
         payload = {
             "summary": {
                 "high_risk_count": 1,
@@ -121,7 +122,7 @@ class TestWeakAssertGateQ05:
         }
         (ctx.internal_dir / "_weak_assert_context.json").write_text(json.dumps(payload), encoding="utf-8")
 
-        result = PhaseResult(phase_id="Q05")
+        result = PhaseResult(phase_id="Q05b")
         handle_weak_assert_gate(ctx, result)
 
         assert not result.success
@@ -268,7 +269,7 @@ class OrderServiceTest {
         ctx = ExecutionContext(
             output_dir=tmp_path / "output",
             project_id="test",
-            phase_id="Q05",
+            phase_id="Q05b",
             code_repo=str(repo),
             internal_dir=internal_dir,
             phase_root=phase_root,
@@ -276,7 +277,7 @@ class OrderServiceTest {
             shared={},
         )
 
-        result = PhaseResult(phase_id="Q05")
+        result = PhaseResult(phase_id="Q05b")
         handle_weak_assert_scan_q05(ctx, result)
 
         # 验证生成了 _weak_assert_context.json
@@ -290,9 +291,9 @@ class OrderServiceTest {
         """code_repo 为 None 时静默跳过."""
         from dqg.runtime.handlers_detection import handle_weak_assert_scan_q05
 
-        ctx = _make_ctx(tmp_path, "Q05")
+        ctx = _make_ctx(tmp_path, "Q05b")
         ctx.code_repo = None
-        result = PhaseResult(phase_id="Q05")
+        result = PhaseResult(phase_id="Q05b")
         handle_weak_assert_scan_q05(ctx, result)
 
         assert not (ctx.internal_dir / "_weak_assert_context.json").exists()

@@ -43,9 +43,9 @@ class TestSourceAnnotations:
         issues = check_source_annotations(text, "Q01")
         assert len(issues) == 0
 
-    def test_q05_accepts_se_eut_as_source(self):
+    def test_q05a_accepts_se_eut_as_source(self):
         text = "SE-003 对应 EUT-007 的异常路径遗漏，需补充边界测试\n"
-        issues = check_source_annotations(text, "Q05")
+        issues = check_source_annotations(text, "Q05a")
         assert len(issues) == 0
 
     def test_q07_accepts_file_line_as_source(self):
@@ -211,10 +211,10 @@ class TestReportSemanticGuardrail:
         warnings = [r for r in results if not r.passed and "越权" in r.message]
         assert len(warnings) >= 1
 
-    def test_cross_phase_ok_for_q05(self):
+    def test_cross_phase_ok_for_q05a(self):
         g = ReportSemanticGuardrail()
         report = "EUT-001 测试用例\nEUT-002 单测\n"
-        ctx = _make_ctx("Q05", report=report)
+        ctx = _make_ctx("Q05a", report=report)
         results = g.check(ctx)
         warnings = [r for r in results if not r.passed and "越权" in r.message]
         assert len(warnings) == 0

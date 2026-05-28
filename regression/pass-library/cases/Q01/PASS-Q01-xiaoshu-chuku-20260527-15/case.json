@@ -1,0 +1,15 @@
+{
+  "case_id": "PASS-Q01-xiaoshu-chuku-20260527-15",
+  "phase": "Q01",
+  "error_type": "PASS",
+  "project_id": "xiaoshu-chuku",
+  "source": "output_verified",
+  "judged_at": "2026-05-06T14:39:16.727100+00:00",
+  "created_at": "2026-05-27T18:19:24.984178",
+  "status": "open",
+  "expected_verdict": "PASS",
+  "tags": [
+    "pass-library",
+    "project:xiaoshu-chuku"
+  ]
+}

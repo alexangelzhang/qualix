@@ -6,6 +6,7 @@ All modes produce the same canonical schema for downstream consumers.
 
 from __future__ import annotations
 
+import contextlib
 import time
 from dataclasses import dataclass, field
 from typing import Any, Final
@@ -17,6 +18,13 @@ from dqg.agents.llm_backends import (
 from dqg.log import get_logger
 
 log = get_logger(__name__)
+
+# 当 JSON 结构化输出失败时，要求 LLM 在最后一行写 sentinel 以保留 pass/fail + score 信号
+_SENTINEL_INSTRUCTION: Final[str] = (
+    "\n\n---\n"
+    "**FALLBACK**: If JSON output fails for any reason, output ONLY one of these lines as the very last line:\n"
+    "`DQG_VERDICT:PASS:X.X` or `DQG_VERDICT:FAIL:X.X` (where X.X is the overall score 1.0–5.0)"
+)
 
 JUDGE_RESPONSE_SCHEMA: Final[dict[str, Any]] = {
     "verdict": "PASS | FAIL | PASS_WITH_CONCERNS",
@@ -41,6 +49,27 @@ class JudgeResult:
     token_usage: dict[str, int] = field(default_factory=dict)
     failing_dimensions: list[str] = field(default_factory=list)  # 触发 fail_threshold 的维度 ID
     _schema_version: int = 1
+
+
+def _extract_sentinel_verdict(raw_output: str) -> tuple[str, float] | None:
+    """检查 raw_output 最后 5 个非空行是否含 DQG_VERDICT sentinel.
+
+    支持带 score 格式（DQG_VERDICT:PASS:4.2）和无 score 旧格式（DQG_VERDICT:PASS）。
+    返回 (verdict, score) 或 None。
+    """
+    if not raw_output:
+        return None
+    last_lines = [ln.strip() for ln in raw_output.splitlines() if ln.strip()][-5:]
+    for line in last_lines:
+        for prefix, verdict in (("DQG_VERDICT:PASS", "PASS"), ("DQG_VERDICT:FAIL", "FAIL")):
+            if line.startswith(prefix):
+                parts = line.split(":")
+                score = 0.0
+                if len(parts) == 3:
+                    with contextlib.suppress(ValueError):
+                        score = float(parts[2])
+                return (verdict, score)
+    return None
 
 
 class JudgeRunner:
@@ -75,6 +104,18 @@ class JudgeRunner:
         Wire-compatible: existing consumers可不传 rubric_dims，行为保持不变。
         """
         if not raw or (not raw.get("overall") and not raw.get("overall_score")):
+            sentinel = _extract_sentinel_verdict(raw_output)
+            if sentinel:
+                s_verdict, s_score = sentinel
+                log.info("Judge JSON parse failed, sentinel fallback: %s score=%.1f", s_verdict, s_score)
+                return JudgeResult(
+                    overall_score=s_score,
+                    verdict=s_verdict,
+                    dimensions=[],
+                    issues=[],
+                    raw_output=raw_output,
+                    health="SENTINEL_FALLBACK",
+                )
             return JudgeResult(
                 overall_score=0,
                 verdict="FAIL",
@@ -147,7 +188,7 @@ class JudgeRunner:
             if len(report_content) > 15000:
                 report_content = report_content[:15000] + "\n...(truncated)"
 
-        rubric_text = rubric
+        rubric_text = rubric + _SENTINEL_INSTRUCTION
         if warning_override:
             rubric_text += f"\n\n{warning_override}"
 

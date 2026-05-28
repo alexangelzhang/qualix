@@ -39,7 +39,7 @@ def render_enum_contract_prefix(phase_id: str) -> str:
         return _q01_block()
     if phase_id == "Q06":
         return _q06_block()
-    if phase_id == "Q05":
+    if phase_id in {"Q05", "Q05a"}:
         return _q05_block()
     return ""
 

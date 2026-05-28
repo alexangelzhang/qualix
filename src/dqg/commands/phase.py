@@ -206,6 +206,7 @@ def cmd_finalize(args, output_dir: Path) -> int:
         output_dir=output_dir,
         project_id=args.project_id,
         phase_id=args.phase,
+        strict_profile_context=getattr(args, "strict_profile_context", False),
     )
 
     result = runtime_finalize(ctx)
@@ -525,6 +526,11 @@ def cmd_approve(args, output_dir: Path) -> int:
         return _approve_out(False, 1, error="approve_phase_errors", errors=errors)
 
     save_state(output_dir, state)
+
+    from dqg.core.state_machine import write_planning_snapshot
+
+    write_planning_snapshot(output_dir, args.project_id, args.phase)
+
     _, append_record, _ = _telemetry()
     from dqg.reporting.telemetry import PhaseRunRecord
 
@@ -537,6 +543,7 @@ def cmd_approve(args, output_dir: Path) -> int:
             action="approve",
             status="approved",
             comment=comment,
+            force_approved=force,
         ),
     )
 

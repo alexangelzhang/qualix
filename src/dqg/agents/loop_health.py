@@ -22,7 +22,7 @@ class HealthCheckResult:
     """健康检查结果."""
 
     should_stop: bool = False
-    status: str = "ok"  # ok / score_stagnation / issue_repetition / infra_failure
+    status: str = "ok"  # ok / score_stagnation / issue_repetition / infra_failure / output_fingerprint_stagnation / rejection_signature_stagnation
     message: str = ""
 
 
@@ -53,12 +53,16 @@ class LoopHealthMonitor:
         self._scores: list[float] = []
         self._issue_sets: list[set[str]] = []
         self._infra_failures: int = 0
+        self._worker_output_hashes: list[str] = []
+        self._judge_rejection_sigs: list[str] = []
 
     def record_iteration(
         self,
         avg_score: float,
         issues: list[dict[str, Any]] | None = None,
         judge_health: str = "HEALTHY",
+        worker_output_hash: str | None = None,
+        judge_rejection_sig: str | None = None,
     ) -> None:
         """记录一轮迭代的结果."""
         self._scores.append(avg_score)
@@ -77,6 +81,9 @@ class LoopHealthMonitor:
             self._infra_failures += 1
         else:
             self._infra_failures = 0
+
+        self._worker_output_hashes.append(worker_output_hash or "")
+        self._judge_rejection_sigs.append(judge_rejection_sig or "")
 
     def check(self) -> HealthCheckResult:
         """检查当前循环健康状态."""
@@ -113,6 +120,30 @@ class LoopHealthMonitor:
                     log.warning("LoopHealthMonitor: %s", msg)
                     return HealthCheckResult(should_stop=True, status="issue_repetition", message=msg)
 
+        # 4. Worker 产出指纹停滞
+        if len(self._worker_output_hashes) >= 2:
+            last = self._worker_output_hashes[-1]
+            if last and last == self._worker_output_hashes[-2]:
+                msg = "Worker 连续 2 轮产出完全相同（指纹不变），修正无效"
+                log.warning("LoopHealthMonitor: %s", msg)
+                return HealthCheckResult(
+                    should_stop=True,
+                    status="output_fingerprint_stagnation",
+                    message=msg,
+                )
+
+        # 5. Judge 驳回签名停滞
+        if len(self._judge_rejection_sigs) >= 2:
+            last = self._judge_rejection_sigs[-1]
+            if last and last == self._judge_rejection_sigs[-2]:
+                msg = "Judge 连续 2 轮驳回相同 issue（签名不变），Worker 未解决根本问题"
+                log.warning("LoopHealthMonitor: %s", msg)
+                return HealthCheckResult(
+                    should_stop=True,
+                    status="rejection_signature_stagnation",
+                    message=msg,
+                )
+
         return HealthCheckResult()
 
     def get_summary(self) -> dict[str, Any]:
@@ -128,4 +159,6 @@ class LoopHealthMonitor:
             ],
             "infra_failure_streak": self._infra_failures,
             "total_iterations": len(self._scores),
+            "output_fingerprint_history": [h[:8] if h else "" for h in self._worker_output_hashes],
+            "rejection_sig_history": [s[:8] if s else "" for s in self._judge_rejection_sigs],
         }

@@ -358,7 +358,7 @@ def main() -> int:
 
     p_prompt = sub.add_parser("prompt-eval", help="Run offline prompt A/B eval for Q05/Q06")
     p_prompt.add_argument("--case", dest="case_id", default=None, help="指定 case_id")
-    p_prompt.add_argument("--phase", choices=["Q05", "Q06"], default=None, help="筛选 phase")
+    p_prompt.add_argument("--phase", choices=["Q05", "Q05a", "Q05b", "Q06"], default=None, help="筛选 phase")
 
     p_impact = sub.add_parser("rule-impact", help="Profile rule change → metric impact report")
     p_impact.add_argument("--profile", required=True, help="Profile ID (e.g. java-ddd-tmf)")

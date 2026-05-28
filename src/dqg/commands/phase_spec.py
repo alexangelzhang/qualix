@@ -36,6 +36,28 @@ def _phase_def_public(phase_id: str) -> dict[str, Any] | None:
     }
 
 
+def _parse_skill_frontmatter(skill_path: str) -> dict | None:
+    """解析 SKILL.md 的 YAML frontmatter，返回 metadata 段（applies_to/hard_checks/evidence 等）."""
+    from pathlib import Path
+
+    import yaml
+
+    p = Path(skill_path)
+    if not p.exists():
+        return None
+    try:
+        content = p.read_text(encoding="utf-8")
+        if not content.startswith("---"):
+            return None
+        end = content.find("\n---", 3)
+        if end == -1:
+            return None
+        fm = yaml.safe_load(content[3:end])
+        return fm.get("metadata") if isinstance(fm, dict) else None
+    except Exception:
+        return None
+
+
 def cmd_spec(args: Any, output_dir: Any) -> int:
     """输出单 Phase 规范：registry + contract + JSON Schema（纯只读，不写盘）。"""
     from pathlib import Path
@@ -82,6 +104,8 @@ def cmd_spec(args: Any, output_dir: Any) -> int:
 
     schema = json_schema_for_phase(phase_id)
 
+    skill_metadata = _parse_skill_frontmatter(skill_path) if skill_path else None
+
     print_cli_json(
         cli_envelope(
             command="spec",
@@ -93,6 +117,7 @@ def cmd_spec(args: Any, output_dir: Any) -> int:
                 "structured_json_filename": structured_name,
                 "report_filename": report_name,
                 "skill_file": skill_path,
+                "skill_metadata": skill_metadata,
                 "phase_registry": phase_def,
                 "json_schema": schema,
                 "contract": contract,

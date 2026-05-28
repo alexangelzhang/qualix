@@ -182,9 +182,9 @@ PRICING_CACHE_READ_PER_M = 1.5  # Cache read (0.1x input)
 # ---------------------------------------------------------------------------
 
 WEAK_ASSERT_HIGH_RISK_WARN = 3  # 弱断言 gate: high-risk 方法数 ≥ 此值触发 WARNING
-WEAK_ASSERT_RATIO_WARN = 0.5  # 弱断言 gate: weak/total 比例 ≥ 此值触发 WARNING
-WEAK_ASSERT_HIGH_RISK_BLOCK = 1  # Q05 弱断言 gate: high-risk ≥ 此值触发 BLOCKED
-WEAK_ASSERT_RATIO_BLOCK = 0.0  # Q05 弱断言 gate: 不按比例 block（用 high-risk 计数）
+WEAK_ASSERT_RATIO_WARN = 0.5  # 弱断言 gate: weak/total 比例 ≥ 此值触发 WARNING（Q06）
+WEAK_ASSERT_HIGH_RISK_BLOCK = 1  # Q05b 弱断言 gate: high-risk ≥ 此值触发 BLOCKED
+WEAK_ASSERT_RATIO_BLOCK = 0.1  # Q05b 弱断言 gate: weak/total 比例 ≥ 此值触发 BLOCKED（10%）
 SKILL_AUTO_MERGE_ENABLED = True  # Skill Evolution: 高置信度规则自动合入 SKILL.md
 SKILL_AUTO_MERGE_OVERFITTING_THRESHOLD = 0.5  # holdout coverage_gap 超此值自动 revert
 
@@ -411,5 +411,13 @@ IMAGE_SIZE_SKIP_THRESHOLD = 10_000  # 10KB
 IMAGE_SIZE_LIGHT_THRESHOLD = 50_000  # 50KB
 # 需要精读的图片类型关键词（流程图/状态机/架构图）
 IMAGE_DEEP_READ_KEYWORDS = ("流程", "状态", "架构", "时序", "ER", "拓扑", "flowchart", "state", "sequence")
+
+# ---------------------------------------------------------------------------
+# data_patterns sidecar
+# ---------------------------------------------------------------------------
+
+# 每个 pattern 保留的 lesson 原文数量及最大字符数
+DATA_PATTERN_TOP_LESSONS: int = 3
+DATA_PATTERN_LESSON_MAX_CHARS: int = 200
 
 # 枚举单一真源（T7）: `EnumSource` / `render_enum_contract_prefix` → `dqg.context.enum_contract`

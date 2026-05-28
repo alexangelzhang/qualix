@@ -5,11 +5,15 @@ from __future__ import annotations
 import json
 import os
 import re
+import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Any, ClassVar
 
 from dqg.json_utils import dump_json_str
+from dqg.log import get_logger
+
+log = get_logger(__name__)
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -181,12 +185,31 @@ class AnthropicBackend(LLMBackend):
 
         system_param = system_blocks if system_blocks else ""
 
-        response = client.messages.create(
-            model=self.model,
-            max_tokens=kwargs.get("max_tokens", self.max_tokens),
-            system=system_param,
-            messages=chat_msgs,
-        )
+        # 429 指数退避：60s → 120s，最多重试 2 次
+        _backoff_seconds = [60, 120]
+        for _attempt, _wait in enumerate([-1, *_backoff_seconds]):
+            if _wait > 0:
+                log.warning(
+                    "AnthropicBackend: 429 rate limit, waiting %ds before retry %d/%d",
+                    _wait,
+                    _attempt,
+                    len(_backoff_seconds),
+                )
+                time.sleep(_wait)
+            try:
+                response = client.messages.create(
+                    model=self.model,
+                    max_tokens=kwargs.get("max_tokens", self.max_tokens),
+                    system=system_param,
+                    messages=chat_msgs,
+                )
+                break
+            except anthropic.RateLimitError:
+                if _attempt == len(_backoff_seconds):
+                    raise
+        else:
+            # unreachable, but keeps type checkers happy
+            raise RuntimeError("Anthropic rate limit retry exhausted")  # pragma: no cover
 
         # SDK 0.88.0+ 可能返回 SSE 字符串而非 Message 对象
         if isinstance(response, str):

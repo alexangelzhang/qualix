@@ -49,7 +49,7 @@ def _page_dag():
 
     # 流程进度卡片
     st.subheader("流程进度")
-    dag_order = ["Q01", "Q02", "Q03", "Q04", "Q05", "Q06", "Q07"]
+    dag_order = ["Q01", "Q02", "Q03", "Q04", "Q05", "Q05a", "Q05b", "Q06", "Q07"]
     cols = st.columns(len(dag_order))
     for i, qid in enumerate(dag_order):
         ps = phases.get(qid, {})

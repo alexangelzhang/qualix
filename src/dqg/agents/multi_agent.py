@@ -20,6 +20,9 @@ if TYPE_CHECKING:
     from pathlib import Path
 
 from dqg.core.state_machine import PHASE_DEFS
+from dqg.log import get_logger
+
+log = get_logger(__name__)
 from dqg.core.state_machine import phase_dir as _phase_dir
 
 # ---------------------------------------------------------------------------
@@ -161,8 +164,8 @@ def generate_worker_prompt(
                 if anchor:
                     parts.append(anchor)
                     parts.append("")
-            except Exception:
-                pass  # 锚点提取失败不阻断 Worker
+            except Exception as e:
+                log.debug("Anchor extraction failed (non-blocking): %s", e)
 
     return "\n".join(parts)
 

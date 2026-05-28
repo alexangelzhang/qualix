@@ -10,7 +10,7 @@ from dqg.schemas.phase_q01 import PhaseAOutput
 from dqg.schemas.phase_q02 import PhaseA3Output
 from dqg.schemas.phase_q03 import PhaseA6Output
 from dqg.schemas.phase_q04 import PhaseA5Output
-from dqg.schemas.phase_q05 import PhaseBOutput
+from dqg.schemas.phase_q05 import PhaseBCodeStatusOutput, PhaseBOutput
 from dqg.schemas.phase_q06 import PhaseCOutput
 from dqg.schemas.phase_q07 import PhaseDOutput
 
@@ -20,6 +20,8 @@ _PHASE_ROOT_MODELS: dict[str, type[BaseModel]] = {
     "Q03": PhaseA6Output,
     "Q04": PhaseA5Output,
     "Q05": PhaseBOutput,
+    "Q05a": PhaseBOutput,
+    "Q05b": PhaseBCodeStatusOutput,
     "Q06": PhaseCOutput,
     "Q07": PhaseDOutput,
 }

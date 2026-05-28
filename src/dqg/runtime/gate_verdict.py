@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import hashlib
 from dataclasses import asdict, dataclass, field
+from dataclasses import replace as dc_replace
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any, Literal
 
@@ -32,6 +33,61 @@ class CheckItem:
     level: Literal["HARD", "SOFT"]  # HARD 不可绕过，SOFT 可 --force
     message: str = ""
     details: dict[str, Any] = field(default_factory=dict)
+    why: str = ""  # 这条规则存在的原因（降低误报投诉和 --force 冲动）
+    evidence: str = ""  # 正确做法示例
+
+
+# 静态 why 注册表：(source, name) → why / evidence
+# 优先查精确 (source, name)，找不到退回 (source, "*")
+_WHY_REGISTRY: dict[tuple[str, str], dict[str, str]] = {
+    ("schema", "schema_validation"): {
+        "why": "结构化 JSON 字段违反 Pydantic 约束；下游 Phase 读取时会解析失败，导致审计结果无法追溯",
+        "evidence": "缺少必填字段 / 字段类型错误 / enum 值不在允许范围内",
+    },
+    ("guardrail", "semantic_guardrail"): {
+        "why": "报告含泛化描述或幻觉内容，无法作为可验证证据；下游门禁依赖此报告做决策",
+        "evidence": "坏: '系统整体设计合理'  好: '类 X.method() 缺少空指针断言，见 L42'",
+    },
+    ("guardrail", "rationalization_guard"): {
+        "why": "Judge 评分被合理化稀释，导致低质量产物通过门禁",
+        "evidence": "检测到: '虽然...但', '总体来说', '可以接受' 等规避表达",
+    },
+    ("guardrail", "fabrication_detector"): {
+        "why": "报告中引用了不存在的类/方法/行号（幻觉输出），会直接误导开发者",
+        "evidence": "坏: 'MockService.verify() L88'（实际无此方法）  好: '[来源: OrderService.java:88]'",
+    },
+    ("handler", "critique_closure"): {
+        "why": "Judge+Critique 双轨制是质量闭环核心；仅有 Judge 会漏掉其盲区",
+        "evidence": "_critique.json 不存在，说明 Critique agent 未完成或未触发",
+    },
+    ("handler", "flow_integrity"): {
+        "why": "产物 core_arrays 为空时下游 Phase 审计结论无数据支撑",
+        "evidence": "audit_items / semantic_expectations 等数组为空，检查 worker 是否输出了结构化 JSON",
+    },
+    ("phase_constraints", "*"): {
+        "why": "Phase 业务指标不达标；达标线来自 phase_registry 配置，代表最低可接受质量",
+        "evidence": "运行 dqg-run spec --phase <phase_id> --json 查看 contract.hard_checks 确认阈值",
+    },
+    ("language", "*"): {
+        "why": "代码在 LLM 审计前必须可编译；编译失败的代码无法产生有意义的覆盖率分析",
+        "evidence": "运行 mvn test-compile（Java）修复编译错误后重新 execute",
+    },
+    ("schema", "*"): {
+        "why": "产物 JSON 不符合 Phase schema 约束，下游消费方无法正确解析",
+        "evidence": "运行 dqg-run spec --phase <phase_id> --json 查看 json_schema 字段要求",
+    },
+}
+
+
+def _enrich_why(item: CheckItem) -> CheckItem:
+    """用 _WHY_REGISTRY 填充 CheckItem 的 why/evidence（已有值则不覆盖）."""
+    if item.why:
+        return item
+    entry = _WHY_REGISTRY.get((item.source, item.name)) or _WHY_REGISTRY.get((item.source, "*"))
+    if entry:
+        item.why = entry.get("why", "")
+        item.evidence = entry.get("evidence", "")
+    return item
 
 
 @dataclass
@@ -98,6 +154,67 @@ class GateVerdict:
         return False
 
 
+def load_rule_overrides(base_dir: Path) -> dict[str, set[str]]:
+    """读取 <base_dir>/.dqg/rule_overrides.yaml 的项目级规则豁免配置.
+
+    格式::
+
+        disable:
+          - schema_validation      # 完全豁免（passed=True）
+        warn_only:
+          - semantic_guardrail     # HARD → SOFT 降级
+
+    返回 {key: set(lower-cased names)} 供 O(1) 查找。
+    匹配策略：按 CheckItem.name 精确匹配（大小写不敏感）。
+    """
+    import yaml
+
+    override_path = base_dir / ".dqg" / "rule_overrides.yaml"
+    if not override_path.exists():
+        return {}
+    try:
+        text = override_path.read_text(encoding="utf-8")
+    except OSError as e:
+        log.warning("load_rule_overrides: cannot read %s: %s", override_path, e)
+        return {}
+    try:
+        data = yaml.safe_load(text)
+    except yaml.YAMLError as e:
+        # 格式错误不能静默：豁免规则全部失效会导致 HARD check 意外阻断
+        raise RuntimeError(
+            f"rule_overrides.yaml 解析失败，豁免规则已全部失效。\n请检查 {override_path} 的 YAML 语法。\n原因: {e}"
+        ) from e
+    if not isinstance(data, dict):
+        return {}
+    return {
+        "disable": {s.lower() for s in data.get("disable", []) if isinstance(s, str)},
+        "warn_only": {s.lower() for s in data.get("warn_only", []) if isinstance(s, str)},
+    }
+
+
+def _apply_overrides(checks: list[CheckItem], overrides: dict[str, set[str]]) -> list[CheckItem]:
+    """把 rule_overrides 应用到 CheckItem 列表（失败项降级/豁免）.
+
+    返回新列表；被豁免的项用 dataclasses.replace 生成副本，不修改原对象。
+    """
+    if not overrides:
+        return checks
+    disable_set = overrides.get("disable", set())
+    warn_only_set = overrides.get("warn_only", set())
+    result = []
+    for item in checks:
+        if not item.passed:
+            name_lower = item.name.lower()
+            if name_lower in disable_set:
+                item = dc_replace(item, passed=True, message=f"[project-override: disabled] {item.message}")
+                log.info("GateVerdict override: disabled check %s", item.name)
+            elif name_lower in warn_only_set and item.level == "HARD":
+                item = dc_replace(item, level="SOFT", message=f"[project-override: warn_only] {item.message}")
+                log.info("GateVerdict override: downgraded %s to SOFT", item.name)
+        result.append(item)
+    return result
+
+
 def build_verdict(
     phase_id: str,
     result: PhaseResult,
@@ -105,6 +222,7 @@ def build_verdict(
     constraint_violations: list[dict[str, Any]] | None = None,
     schema_errors: list[str] | None = None,
     upstream_hashes: dict[str, str] | None = None,
+    rule_overrides: dict[str, set[str]] | None = None,
 ) -> GateVerdict:
     """从各检查源构建 GateVerdict.
 
@@ -115,6 +233,7 @@ def build_verdict(
         constraint_violations: enforce_phase_constraints() 返回值
         schema_errors: Schema validation errors（HARD 级别，不可 --force 绕过）
         upstream_hashes: 上游产物文件路径 → MD5 哈希（由 check_cross_phase_refs 提供）
+        rule_overrides: load_rule_overrides() 的结果，项目级豁免配置
     """
     verdict = GateVerdict(phase_id=phase_id)
     if upstream_hashes:
@@ -185,6 +304,13 @@ def build_verdict(
                 details=v,
             )
         )
+
+    for c in verdict.checks:
+        _enrich_why(c)
+
+    # 应用项目级 rule_overrides（disable/warn_only）
+    if rule_overrides:
+        verdict.checks = _apply_overrides(verdict.checks, rule_overrides)
 
     return verdict
 

@@ -8,6 +8,14 @@ metadata:
   phase: Q06
   depends_on: [Q01, Q05b]
   outputs: [phase_c_structured.json, phase_c_report.md, _reasoning_log.md]
+  applies_to: [Java, TypeScript]
+  hard_checks:
+    - EUT-id 必须与 Q05a 产物一致（CROSS_PHASE_IDS）
+    - then 字段必须包含具体断言方法和期望值（禁止"验证成功"等模糊描述）
+    - COVERED 判定的 evidence 字段必须引用代码行号（格式 [文件名:行号]）
+  evidence:
+    bad: "then: 验证成功 / audit_status: COVERED（无 evidence）"
+    good: "then: assertEquals(200, resp.getStatus()); evidence: [来源: OrderTest.java:88]"
 allowed-tools:
   - Bash
   - Read
@@ -92,7 +100,7 @@ Q06 最常见的失败模式是产出 JSON 时 schema 校验不过。先锁定�
       "se_id": "SE-001",
       "eut_id": "EUT-001,EUT-002",
       "description": "SE 描述",
-      "status": "COVERED|PARTIAL|MISSING|WRONG_TARGET|CONFLICT",
+      "status": "COVERED",
       "test_class": "XxxTest [来源: XxxTest.java:45]",
       "test_method": "method1, method2",
       "evidence": "assertEquals('expected', actual) [XxxTest.java:52]; verify(mock).call() [XxxTest.java:58]",
@@ -113,10 +121,10 @@ Q06 最常见的失败模式是产出 JSON 时 schema 校验不过。先锁定�
       }
     }
   ],
-  "findings": [...],
+  "findings": [],
   "coverage_gate": {"line_coverage": 85.0, "branch_coverage": 72.0},
   "conclusion": "PASS_WITH_RISKS",
-  "summary": {...}
+  "summary": {}
 }
 ```
 

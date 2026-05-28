@@ -77,7 +77,7 @@ HARNESS_COMPONENTS: Final = MappingProxyType(
             "blast_radius",
             "execute_handler",
             "代码改动影响范围",
-            phases={"Q05", "Q06"},
+            phases={"Q05", "Q05a", "Q05b", "Q06"},
             avg_cost_tokens=500,
             avg_duration_ms=1000,
         ),
@@ -85,7 +85,7 @@ HARNESS_COMPONENTS: Final = MappingProxyType(
             "data_patterns",
             "execute_handler",
             "故障数据模式注入",
-            phases={"Q05", "Q06"},
+            phases={"Q05", "Q05a", "Q05b", "Q06"},
             avg_cost_tokens=300,
             avg_duration_ms=100,
         ),
@@ -93,7 +93,7 @@ HARNESS_COMPONENTS: Final = MappingProxyType(
             "se_code_mapping",
             "execute_handler",
             "SE→Code 自动映射",
-            phases={"Q05", "Q06", "Q07"},
+            phases={"Q05", "Q05a", "Q05b", "Q06", "Q07"},
             avg_cost_tokens=500,
             avg_duration_ms=2000,
         ),
@@ -165,7 +165,12 @@ HARNESS_COMPONENTS: Final = MappingProxyType(
             "no_regression", "finalize_gate", "产物数量防回退", avg_cost_tokens=0, avg_duration_ms=10
         ),
         "compile_check": HarnessComponent(
-            "compile_check", "finalize_gate", "编译验证", phases={"Q05"}, avg_cost_tokens=0, avg_duration_ms=30000
+            "compile_check",
+            "finalize_gate",
+            "编译验证",
+            phases={"Q05", "Q05b"},
+            avg_cost_tokens=0,
+            avg_duration_ms=30000,
         ),
         "coverage_gate": HarnessComponent(
             "coverage_gate", "finalize_gate", "覆盖率门禁", phases={"Q06"}, avg_cost_tokens=0, avg_duration_ms=1000

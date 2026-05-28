@@ -1,0 +1,18 @@
+{
+  "case_id": "FEISHU-135240",
+  "phase": "Q05a",
+  "error_type": "MISS",
+  "severity": "high",
+  "title": "【135240】机构不在配置参数开关内--检测处理的时候带出了故障原因",
+  "root_cause": "函数正常分支未覆盖",
+  "fix_target": "",
+  "tags": "[\"feishu-import\", \"category:函数正常分支未覆盖\", \"bug_class:后端\"]",
+  "created_at": "2026-04-15",
+  "status": "open",
+  "source": "{\"feishu_table\": \"tblGxARLByCc5h3T\", \"bug_id\": \"135240\", \"requirement\": \"问题分类-故障原因模块\"}",
+  "expected": "{\"content\": \"（需人工确认）\"}",
+  "actual": "{\"content\": \"机构在参数配置中参数配置有误，未按规定格式配置，同时配置匹配逻辑有问题，需要从全匹配修改为单匹配，未覆盖到测试用例 配置查询逻辑也有问题，原来是contains匹配\"}",
+  "lesson": "对照 Phase skill、schema 与历史反例复盘本案例；修复后更新 case 状态并补充可复现片段。",
+  "holdout": "False",
+  "case_category": "STRUCTURED_SCHEMA"
+}

@@ -1,0 +1,31 @@
+{
+  "case_id": "JUDGE-Q05-20260429164113-eut_coverage-01",
+  "phase": "Q05a",
+  "error_type": "FN",
+  "severity": "medium",
+  "title": "REQ-007（工单归属类型筛选）仅 EUT-040 验证枚举值，缺少筛选逻辑、多选、联动「仅查看自己」的测试（BR-035/BR-036/BR-037/BR-038）",
+  "root_cause": "SKILL_RULE",
+  "fix_target": "",
+  "tags": [
+    "judge-extracted",
+    "dim:eut_coverage",
+    "project:shuangzhou-v4"
+  ],
+  "created_at": "2026-04-29",
+  "status": "open",
+  "source": {
+    "project_id": "shuangzhou-v4",
+    "judge_extracted": true,
+    "dimension": "eut_coverage",
+    "dim_score": 3,
+    "dim_max_score": 5
+  },
+  "expected": {
+    "content": "（需人工补充期望行为）"
+  },
+  "actual": {
+    "content": "REQ-007（工单归属类型筛选）仅 EUT-040 验证枚举值，缺少筛选逻辑、多选、联动「仅查看自己」的测试（BR-035/BR-036/BR-037/BR-038）"
+  },
+  "lesson": "REQ-007（工单归属类型筛选）仅 EUT-040 验证枚举值，缺少筛选逻辑、多选、联动「仅查看自己」的测试（BR-035/BR-036/BR-037/BR-038）",
+  "case_category": "CROSS_PHASE_IDS"
+}

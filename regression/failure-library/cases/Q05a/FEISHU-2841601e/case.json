@@ -1,0 +1,18 @@
+{
+  "case_id": "FEISHU-2841601e",
+  "phase": "Q05a",
+  "error_type": "MISS",
+  "severity": "high",
+  "title": "工单取消，是否支付信息未国际化",
+  "root_cause": "国际化多语言问题",
+  "fix_target": "",
+  "tags": "[\"feishu-import\", \"category:国际化多语言问题\", \"bug_class:后端\"]",
+  "created_at": "2026-04-15",
+  "status": "open",
+  "source": "{\"feishu_table\": \"tblGxARLByCc5h3T\", \"bug_id\": null, \"requirement\": \"国际-售后-送修退货流程\"}",
+  "expected": "{\"content\": \"（需人工确认）\"}",
+  "actual": "{\"content\": \"国际化问题：前端+后端\"}",
+  "lesson": "对照 Phase skill、schema 与历史反例复盘本案例；修复后更新 case 状态并补充可复现片段。",
+  "holdout": "False",
+  "case_category": "STRUCTURED_SCHEMA"
+}

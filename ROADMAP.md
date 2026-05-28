@@ -108,6 +108,14 @@
 - Change 5：`auto-synthesized` Judge/Critique 降权——`approve` 时若 judge_result 标记为 auto-synthesized 则返回 `synthetic_review_not_allowed` 错误，须显式传 `--allow-synthetic-review` 才能通过
 - Change 6：所有 fallback 语义统一为 `BLOCKED`/`FAIL`/`WARNING`/`NOT_APPLICABLE`/`INFRA_FAILURE` 前缀，禁止"返回空列表 = 通过"隐式语义
 
+2026-05-27 完成（Evidence Contract 硬化 — 方案 A）：
+
+- **SE.source 跨引用校验**：`handle_se_source_evidence` handler（Q01 finalize, order=57, required=True）解析 `SE.source="file:N"`，验证 PRD ingest 文件第 N 行存在；source 非空但行号无效 → BLOCKED；source 空 → WARNING；成功落盘 `_internal/_se_source_evidence.json`（含 line_text + context_hash）
+- **EUT → SE.code_target grep**：`check_eut_code_target_traceability()`（Q05a finalize）从 bound_item → SE.code_target 提取类名，grep 代码仓库；未找到 → WARNING（TDD 兼容，非 BLOCKED）
+- **Q06 COVERED 证据字段（G10）**：`_check_covered_evidence_fields()`（Q06 finalize）检查 COVERED 条目：无 test_class 且无 test_location → WARNING；test_location.file 不存在于代码仓库 → BLOCKED
+- 实现：`src/dqg/quality/checks/evidence_contract.py`（新增）+ handlers_finalize.py + finalize_checks.py + q06_structure_checks.py；11 条单测（`tests/test_evidence_contract.py`），943 已有测试零回归
+- 方案 B（未来架构优化）见下方 P1 末尾
+
 2026-05-19 规划（统一 claim/evidence/verifier/gate 防幻觉架构）：
 
 - 背景：Q01/Q05/Q06 已形成对称防幻觉链路，但检查规则仍分散在 schema、auto checks、structure checks、cross-phase checks、guardrail 和 finalize handler 中；下一阶段目标是把散点规则收束为统一事实验证架构。评估详见 [`docs/anti-hallucination-framework-evaluation.md`](docs/anti-hallucination-framework-evaluation.md)
@@ -119,7 +127,8 @@
 - P1：Evidence Registry / Evidence Graph。统一证据类型：`PRD_LINE`、`CODE_LOCATION`、`TEST_METHOD`、`COVERAGE_REPORT`、`COMPILE_RESULT`、`TEST_RUN`、`HUMAN_DECISION`，证据必须带路径、行号或 hash，避免证据漂移后旧结论继续有效
 - P1：Verifier Registry。沉淀 `source_line_verifier`、`cross_phase_ref_verifier`、`test_assertion_verifier`、`compile_verifier`、`coverage_verifier`、`summary_derivation_verifier`，让新增 Phase 通过注册 verifier 接入同一套 gate
 - P2：审计查询与 UX。提供 `SE → EUT → Test → Audit → Finding` 链路查询、missing-evidence dashboard、按 claim type 聚合的误报/漏报趋势
-- 验收口径：虚拟或越界的 `SE.source` 阻断 Q01；有代码仓和测试产物但无 coverage evidence 时 Q06 输出 `MISSING_EVIDENCE`；现有核心检查全部能产出结构化 `CheckItem`；Evidence Graph 能回答“哪些 SE 没有 EUT / 哪些 COVERED 没有断言 / 哪些 finding 没有代码证据”三类问题
+- 验收口径：虚拟或越界的 `SE.source` 阻断 Q01；有代码仓和测试产物但无 coverage evidence 时 Q06 输出 `MISSING_EVIDENCE`；现有核心检查全部能产出结构化 `CheckItem`；Evidence Graph 能回答”哪些 SE 没有 EUT / 哪些 COVERED 没有断言 / 哪些 finding 没有代码证据”三类问题
+- **方案 B Evidence Contract（未来架构优化）** — 在方案 A 基础上进一步显式化合同：`EutItem` 加 `impl_class: str = “”` 字段（替代通过 SE.code_target 间接推导）；`EutAuditItem` 当 `status=COVERED` 时 `test_class` Pydantic validator 强制非空。触发条件：Q05a 出现 >20% impl 未找到且确认不是 TDD 场景，或 LLM 频繁填写不存在的 impl_class 的具体案例。工作量约 1 天（schema 迁移 + LLM prompt 更新）
 
 2026-05-11 新增（Q06 JaCoCo CLI 接入）：
 
@@ -233,13 +242,14 @@
 - **Anti-Rationalization Guard 精度评估**（2026-05-10 立项）— 当前 Guard telemetry 已落盘（LAYER1_HIT / REJUDGE_PASSED / GUARD_EXHAUSTED + before/after pair），但还缺把原料变成数字的闭环。分三层落：
   - **Should P1a — Ground truth 标注集**：从历史 `_rationalization_pairs/*.json` 挑 30–50 条 pair，主会话人工判定 CONFIRMED vs FALSE_POSITIVE 作为基准集；基于基准集计算当前 `RATIONALIZATION_PATTERNS` / `OVERCORRECTION_PATTERNS` 的 precision / recall。**启动条件**：`guard_event_files_read` ≥ 20（telemetry 样本量够）
   - **Should P1b — 历史 failure-library 反事实回放**：对已知 leniency failure case 做"如果当时跑 guard 会不会拦住"的回放；输出每个 pattern 的命中率与拦截贡献。**依赖** P1a 的标注规范
-  - **Nice P2 — A/B 对照实验**：同一批 Judge 输入跑 guard on/off 各一遍，对比最终 consensus 和 leniency 率差异。**成本**：holdout suite 双跑 N 条 Phase；**触发条件**：P1a + P1b 暴露的 precision 足够稳定，需要衡量净效益才启动
+  - **Nice P2 — A/B 对照实验**：同一批 Judge 输入跑 guard on/off 各一遍，对比最终 consensus 和 leniency 率差异。**成本**：holdout suite 双跑 N 条 Phase；**触发条件**：P1a + P1b 暴露的 precision 足够稳定，需要衡量净效益才启动。**2026-05-27 暂缓**：pairs 数据量不足，Guard 整体有效，当前 ROI 不足以支撑专项双跑
   - **验证指标**：guard precision ≥ 0.7、recall ≥ 0.8（先以 P1a 为基准校准阈值）
   - **实施笔记**：P1a/P1b 工作量合计约 1 周；P2 看 holdout 成本，单独立项
 - **Skill Evolution 真正的 Phase Pipeline 回放（ReplayExecutor）**（2026-05-10 补，替代当前基于分布对比的打折版本）— 目前 `validate_against_holdout` 只对比 bug case 的 root_cause 分布 + suggestion 文本覆盖，**不实际执行 Phase**。距 2026-04-15 spec 的 ReplayExecutor 还有 ~80% 落差。P2 触发条件：
   - `regression/holdout/` 目录收集到至少 3-5 条可回放 case（完整输入 + 期望输出 snapshot + quality_baseline）
   - 出现 auto-merge 误放过的真实 overfitting 事件（当前分布对比漏判）
   - 预估工作量：~1 周（isolated output_dir + safe-finalize whitelist + JudgeRunner 对比 quality_baseline）
+  - **2026-05-27 暂缓**：Skill Evolution 影响力在 B+C 结构化改造后下降（主要质量驱动已转向 schema gate），holdout case 不足，ROI 不足
 - **Bug Case compress 侧**（HL absorb+compress 对偶缺的另一半）— 当前 Bug Case Library 单调累加（2286 条），无淘汰 / 时间衰减 / 规则适用范围收窄机制。P2 触发条件：
   - Bug Case 数量 >5000，或出现"旧 case 污染新项目 suggestion"的具体失败案例
   - 与 `memory/confidence_decay.py`（已有 Correction/Preference/Fact 三级半衰期）口径统一
@@ -680,20 +690,19 @@ VAF（`~/git_dev/vibe-agentic-flow`）没发 PyPI 但通过 `install.sh + ~/.vcb
 
 ### P2（平台化规模阶段）
 
-- **Harness/Domain 分层 Phase 1** — 定义 `HarnessApp` 协议（provider/hooks/task_runner/output_protocol/session_resume），Domain 层通过注册而非 import 接入 Harness
-- **Harness/Domain 分层 Phase 2** — `context_loader.py` 的 phase-specific 分支改为 Domain 层注册的 context_policy；`multi_agent.py` 的 prompt 模板改为 Domain 层提供；`row_to_dict` 的 JSON 字段列表改为 schema 驱动
-- **DeepEval 集成** — ~~引入 DeepEval 作为自动化评分引擎，替代 prompt-based judge~~ → **2026-05-10 修正为"代码保留但禁用"**。当前 `score_calibration.py::_run_deepeval_scoring` 是 no-op，趋势检测保留。2025 年起 DeepEval 已支持 Anthropic / Gemini / Bedrock / Ollama（当年绑 GPT-4 的限制已解除），但本项目已有 Multi-Judge 投票 + Critique + Anti-Rat/Overcorrection Guard 评审链，再加一层独立打分的信号增量不明显 & token 成本翻倍。**复活触发条件**（任一满足）：
-  - Anti-Rationalization Guard 精度评估（见 P1 三层规划）暴露"Multi-Judge 三模型共识即便 PASS 也有大量实际 leniency"的系统偏差
-  - 出现"同一报告跨 provider（Claude / DeepSeek / Qwen）评分严重分歧无法裁决"的具体 case
-  - 需要定期对 golden 报告做第四方仲裁打分（避免 Judge 陷入自我校准循环）
-  - 复活成本：写 `DeepEvalBaseLLM` 适配器套到 `LLMConfig`（~2h）+ 填 `_run_deepeval_scoring` 实现（~1h）+ 重新校准 `SCORE_DRIFT_THRESHOLD=1.0` 阈值（依赖真实数据，不是拍脑袋）
+- **FTS5 自定义 tokenizer（jieba 原生入 SQLite）**（2026-05-27 规划）— 当前中文搜索在应用层分词后写入 FTS5，jieba 作为 SQLite 扩展直接在 tokenizer 层处理，消除分词和索引的层级错位。实现路径：`sqlite-fts5-jieba` C 扩展 + Python ctypes 加载；fallback：若扩展加载失败回退当前 n-gram 策略。预估工作量：2-3 天
+- ~~**跨模型泛化验证（golden × held-out 模型 runbook）**~~ → **2026-05-27 已完成**。`tracking/multi_model_judge.py`：MultiJudgeReport / ModelJudgeRun dataclass，`_compute_stats` 计算 score_range / score_stddev / verdict_agreement / fragile_dimensions / consistency_verdict（CONSISTENT / MARGINAL / DIVERGED）。CLI：`dqg-run PROJ regression multi-judge --phase Q03 --models a,b`，支持 `--json`。commit bbb6311f
+- ~~**Harness/Domain 分层 Phase 1**~~ → **2026-05-27 已完成**。新增 `ContextPolicy` dataclass + `_DEFAULT_POLICIES`（context_policy.py），upstream_collector 5 处 `if target_phase` 分支全部消除。新增 `PreCheckFn` + `register_pre_check` / `run_pre_checks`（lifecycle.py），Q06 compile pre-check 从 phase_runtime 迁移到 handlers_execute domain handler，phase_runtime 只调用泛化的 `run_pre_checks`。commit 3477ed5b
+- **Harness/Domain 分层 Phase 2** — `multi_agent.py` 的 `generate_critique_prompt` 硬编码 `phase_a_report.md`/`phase_a_structured.json` 路径改为从 `REPORT_MAP`/`STRUCTURED_JSON_MAP` 取值；`row_to_dict` 已有自动检测无需改动。顺手改，不专门立项
+- ~~**DeepEval 集成**~~ → **2026-05-27 已复活**。`_DQGDeepEvalModel(DeepEvalBaseLLM)` 适配器包装 `AnthropicBackend`，无需 OpenAI key。`_run_deepeval_scoring` 用 GEval 独立打分（GEval 0-1 → DQG 1-5），可选依赖 `pip install dev-quality-gate[deepeval]`，默认模型 `claude-haiku-4-5-20251001`（可通过 `DQG_DEEPEVAL_MODEL` 覆盖）。commit 876529a0
 - ~~代码 Embedding + 语义搜索（替代 FTS5 n-gram）~~ → 已完成：`code_semantic_search.py` 基于 FTS5 + 概念映射 + 调用链实现，零新依赖
-- 指标正式入库（Prometheus/ClickHouse）
+- 指标正式入库（Prometheus/ClickHouse）— 等规模上来再做，当前 observability 报告够用
 - Dashboard 分层（管理视图/研发视图）
 - 告警接 IM/值班链路
 - 规则与 profile 的版本治理平台化
 - VS Code / IntelliJ 插件（Phase 结果编辑器内高亮）
 - 渐进式采用（支持只跑单个 Phase 的单个维度）
+- **LSP（Language Server Protocol）集成**（最低优先级）— DQG Phase 产物（SE/EUT/GAP）通过 LSP 实时推送到编辑器，代码变更时触发增量 finalize；技术复杂度高、依赖编辑器插件生态；触发条件：插件用户数 > 50 且有明确的"边写代码边看门禁状态"需求
 
 ---
 
@@ -787,7 +796,7 @@ VAF（`~/git_dev/vibe-agentic-flow`）没发 PyPI 但通过 `install.sh + ~/.vcb
 **长期 / 研究**
 
 1. **#4 Rubric 搜索**：独立 sandbox；搜索空间、训练/验证 split、与默认 rubric 回退策略单独立项。
-2. **#8 ironlaw**：**阶段 A** 静态 YAML/JSON + schema + CI 校验，hook 只读配置；**阶段 B** 案例库仅生成 **候选规则**，经 PR 人审合并进配置；**阶段 C（可选）** 按 profile/Phase 覆盖。**不推荐**：hook 启动时从全库全自动聚合并直接生效。
+2. **#8 ironlaw**：~~**阶段 A**~~ → **2026-05-27 已完成**。`ironlaw_rules.yaml` 加 `matchers` 字段（工具名列表），hook 从 YAML 读取替代硬编码 Python 集合；新增 `ironlaw_rules_schema.json`（JSON Schema）+ `test_ironlaw_rules.py`（4 项验证）。改 matchers/enabled/opt_out 只需编辑 YAML，无需改 Python。**阶段 B** 案例库仅生成 **候选规则**，经 PR 人审合并进配置；**阶段 C（可选）** 按 profile/Phase 覆盖。**不推荐**：hook 启动时从全库全自动聚合并直接生效。
 
 #### 风险与依赖（摘要）
 
@@ -846,4 +855,40 @@ VAF（`~/git_dev/vibe-agentic-flow`）没发 PyPI 但通过 `install.sh + ~/.vcb
 | Git Worktree 隔离 | Q05/Q07 需要代码仓库时 | 每个并行 Phase 在独立 worktree 执行，避免代码文件冲突 |
 | Agent Teams 集成 | Claude Code Agent Teams GA 后 | 替代手动多 SubAgent 派发，用 Team Lead + Teammate 模型 |
 
-*最后更新：2026-04-25*
+*最后更新：2026-05-22*
+
+---
+
+## 10. 基础设施加固（2026-05-22 落地）
+
+借鉴 autoresearch hardness engineering 模式，对核心执行路径做五项加固：
+
+| 项目 | 说明 |
+|------|------|
+| `save_json_atomic` | `json_utils` 新增原子写入（mktemp + os.replace）；`save_state()` 改用，crash 不损坏 state.json |
+| Judge sentinel fallback | JSON 解析失败时检查 raw_output 末 5 行的 `DQG_VERDICT:PASS/FAIL`；rubric 末尾注入 sentinel 指令 |
+| `write_planning_snapshot` | `approve_phase` 成功后将主产物冻结到 `_internal/planning_snapshot_<phase_id>.json`，下游只读 snapshot |
+| Q06 编译预检 | `runtime_execute` 在 handler 前跑 `mvn test-compile`；编译失败直接返回，跳过 LLM |
+| AnthropicBackend 429 重试 | 捕获 `RateLimitError`，指数退避 60s→120s 最多 2 次重试 |
+
+## 11. 规则自解释 + Phase-Map 注入（2026-05-25 落地）
+
+借鉴 secretlint opt-in 哲学和 aider repo-map 模式：
+
+| 项目 | 说明 |
+|------|------|
+| CheckItem why/evidence 字段 | `gate_verdict.py` CheckItem 新增 `why`/`evidence`；`_WHY_REGISTRY` 按 source 静态填充；降低误报投诉和 `--force` 冲动 |
+| check_arch.py why 输出 | ARCH-001~005 每条规则附 `↳ 原因:` 说明；`_ARCH_WHY` 静态注册表 |
+| Phase-Map 注入 | `context/phase_map.py` 为 Q01/Q05a/Q06 生成 ≤2KB 结构索引；`runtime_execute()` 写 `_internal/_phase_map.md`；`path_utils.resolve_context_files()` 置首，先于 `_upstream_context.md` 进入 Agent context |
+| Phase-Map 增量更新 | mtime 检查：源 JSON 未变时跳过重新生成 |
+
+## 12. 规则治理完善（2026-05-25 落地）
+
+借鉴 secretlint opt-in 和 continue.dev 规则格式：
+
+| 项目 | 说明 |
+|------|------|
+| ironlaw YAML 元数据 | `~/.claude/scripts/ironlaw_rules.yaml` 存规则 why/enabled/opt_out；hook 启动时读取并 enrich reason 输出 |
+| ironlaw per-project opt-out | `.dqg/ironlaw_overrides.yaml` 的 disable 列表，opt_out: true 的规则可被项目级禁用 |
+| GateVerdict rule_overrides | `gate_verdict.build_verdict()` 加 `rule_overrides` 参数；`.dqg/rule_overrides.yaml` 定义 disable/warn_only 两级豁免 |
+| SKILL.md YAML frontmatter | `applies_to`/`hard_checks`/`evidence` 字段；`cmd_spec --phase` 输出中加 `skill_metadata` |

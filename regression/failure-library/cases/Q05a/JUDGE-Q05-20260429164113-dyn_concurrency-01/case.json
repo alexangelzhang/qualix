@@ -1,0 +1,31 @@
+{
+  "case_id": "JUDGE-Q05-20260429164113-dyn_concurrency-01",
+  "phase": "Q05a",
+  "error_type": "FN",
+  "severity": "medium",
+  "title": "batchModifyDayCapacity 使用 CompletableFuture 并发执行（EUT-068），但未验证并发写入冲突场景",
+  "root_cause": "SKILL_RULE",
+  "fix_target": "",
+  "tags": [
+    "judge-extracted",
+    "dim:dyn_concurrency",
+    "project:shuangzhou-v4"
+  ],
+  "created_at": "2026-04-29",
+  "status": "open",
+  "source": {
+    "project_id": "shuangzhou-v4",
+    "judge_extracted": true,
+    "dimension": "dyn_concurrency",
+    "dim_score": 3,
+    "dim_max_score": 5
+  },
+  "expected": {
+    "content": "（需人工补充期望行为）"
+  },
+  "actual": {
+    "content": "batchModifyDayCapacity 使用 CompletableFuture 并发执行（EUT-068），但未验证并发写入冲突场景"
+  },
+  "lesson": "batchModifyDayCapacity 使用 CompletableFuture 并发执行（EUT-068），但未验证并发写入冲突场景",
+  "case_category": "CROSS_PHASE_IDS"
+}

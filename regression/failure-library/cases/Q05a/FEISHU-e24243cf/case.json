@@ -1,0 +1,18 @@
+{
+  "case_id": "FEISHU-e24243cf",
+  "phase": "Q05a",
+  "error_type": "MISS",
+  "severity": "high",
+  "title": "申请免责审批单详情的审批日志，没有展示服务投诉判责的操作日志",
+  "root_cause": "数据表字段变更",
+  "fix_target": "",
+  "tags": "[\"feishu-import\", \"category:数据表字段变更\", \"bug_class:后端\"]",
+  "created_at": "2026-04-15",
+  "status": "open",
+  "source": "{\"feishu_table\": \"tblGxARLByCc5h3T\", \"bug_id\": null, \"requirement\": \"客诉管理-服务投诉判责优化\"}",
+  "expected": "{\"content\": \"需要补充新增枚举类型的单测\"}",
+  "actual": "{\"content\": \"旧代码改造，新增一个枚举类型。但是查询语句没有做改造，查询语句有个白名单过滤逻辑，没有新增这个枚举值。导致被过滤了。\"}",
+  "lesson": "需要补充新增枚举类型的单测",
+  "holdout": "False",
+  "case_category": "STRUCTURED_SCHEMA"
+}

@@ -93,7 +93,7 @@ def _check_judge_critique(pd: Path, report: str, phase_id: str) -> tuple[bool, s
         if has_decisions:
             return True, "有设计决策记录"
         return False, "技术方案中无设计决策记录"
-    if phase_id == "Q05":
+    if phase_id in {"Q05", "Q05a"}:
         has_eut = "EUT" in report or "eut_matrix" in report
         if has_eut:
             return True, "有 EUT 矩阵"
@@ -121,7 +121,7 @@ def _check_source_annotation(pd: Path, report: str, phase_id: str) -> tuple[bool
 
 
 def _check_confidence_annotation(pd: Path, report: str, phase_id: str) -> tuple[bool, str]:
-    if phase_id in ("Q02", "Q05", "Q06"):
+    if phase_id in ("Q02", "Q05", "Q05a", "Q05b", "Q06"):
         return True, "确定性产出，不适用"
     if phase_id == "Q07":
         matches = RE_CONFIDENCE_D.findall(report)

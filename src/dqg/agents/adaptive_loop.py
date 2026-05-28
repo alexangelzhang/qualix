@@ -203,6 +203,7 @@ class AdaptiveLoop:
             },
         )
         trace_run_id = uuid.uuid4().hex[:12]
+        import hashlib as _hashlib
 
         for i in range(max_iterations):
             record, passed, iter_llm_calls = self._execute_iteration(
@@ -257,10 +258,29 @@ class AdaptiveLoop:
                 for v in record.judge_result.votes:
                     all_issues.extend(v.issues)
                 health = judge_health_check([record.judge_result])
+
+                # Worker 产出指纹：取结构化 JSON 前 2000 字符的 sha256
+                _worker_hash: str | None = None
+                _json_fname = STRUCTURED_JSON_MAP.get(phase_id)
+                if _json_fname:
+                    _json_path = pd / _json_fname
+                    if _json_path.exists():
+                        _raw = _json_path.read_text(encoding="utf-8", errors="replace")[:2000]
+                        _worker_hash = _hashlib.sha256(_raw.encode()).hexdigest()[:16]
+
+                # Judge 驳回签名：只在 FAIL 时计算 top-3 issue codes 的 hash
+                _rejection_sig: str | None = None
+                if not passed:
+                    _top_codes = sorted({(v.get("code") or v.get("dimension") or "") for v in all_issues if v})[:3]
+                    if _top_codes:
+                        _rejection_sig = _hashlib.sha256("|".join(_top_codes).encode()).hexdigest()[:16]
+
                 monitor.record_iteration(
                     avg_score=record.judge_result.avg_score,
                     issues=all_issues,
                     judge_health=health,
+                    worker_output_hash=_worker_hash,
+                    judge_rejection_sig=_rejection_sig,
                 )
 
             if passed:
@@ -274,6 +294,11 @@ class AdaptiveLoop:
                 early_stop_reason = health_result.message
                 log.warning("Adaptive loop early stop: %s", health_result.status)
                 break
+
+            # PIVOT: 前提 passed=False（上方已 break）且 should_stop=False（上方已 break）
+            # 只在 Judge FAIL + 健康 + 还有下一轮时快照，防止下轮覆盖写丢失当前版本
+            if i + 1 < max_iterations:
+                self._save_pivot_snapshot(pd=pd, iteration_n=i, phase_id=phase_id)
 
         total_duration = time.time() - start
         models_used = list(set([worker_model, *judge_models, fallback]))
@@ -309,6 +334,43 @@ class AdaptiveLoop:
 
         self._write_summary(pd, result, issue_tracker)
         return result
+
+    def _save_pivot_snapshot(self, pd: Path, iteration_n: int, phase_id: str) -> None:
+        """Judge FAIL 后保存当前轮产物到 _pivot_v{n+1}/，防止下一轮覆盖写丢失好版本."""
+        import contextlib
+        import shutil
+
+        from dqg.constants import REPORT_MAP, STRUCTURED_JSON_MAP
+
+        pivot_dir = pd / f"_pivot_v{iteration_n + 1}"
+        try:
+            pivot_dir.mkdir(parents=True, exist_ok=True)
+        except OSError:
+            log.warning("PIVOT: 无法创建快照目录 %s", pivot_dir)
+            return
+
+        json_fname = STRUCTURED_JSON_MAP.get(phase_id)
+        report_fname = REPORT_MAP.get(phase_id)
+        if not json_fname:
+            log.warning("PIVOT: phase_id %s 不在 STRUCTURED_JSON_MAP，主产物跳过", phase_id)
+        candidates = [
+            pd / json_fname if json_fname else None,
+            pd / report_fname if report_fname else None,
+            pd / "_internal" / "_reasoning_log.md",
+            pd / f"_judge_iter{iteration_n + 1}.json",
+            pd / f"_handoff_iter{iteration_n + 1}.md",
+        ]
+        for src in candidates:
+            if src is not None and src.exists() and src.is_file():
+                try:
+                    shutil.copy2(src, pivot_dir / src.name)
+                except OSError:
+                    log.debug("PIVOT: 无法复制 %s", src)
+
+        with contextlib.suppress(OSError):
+            (pd / "_pivot_latest").write_text(pivot_dir.name, encoding="utf-8")
+
+        log.info("PIVOT: 快照已保存到 %s", pivot_dir)
 
     def _schema_errors_after_worker(
         self,

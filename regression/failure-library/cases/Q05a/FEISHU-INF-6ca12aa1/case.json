@@ -1,0 +1,17 @@
+{
+  "case_id": "FEISHU-INF-6ca12aa1",
+  "phase": "Q05a",
+  "error_type": "MISS",
+  "severity": "medium",
+  "title": "【家桩-用户管理/设备管理】/shadow/privateCharger/auth/userList、/privateCharger/equipment/list，接口报502",
+  "root_cause": "函数未覆盖",
+  "tags": "[\"feishu-import\", \"inferred-from-title\", \"category:函数未覆盖\"]",
+  "created_at": "2026-04-15",
+  "status": "open",
+  "source": "{\"feishu_table\": \"tblGxARLByCc5h3T\", \"bug_id\": \"6ca12aa1\", \"original_cat1\": \"未分类\", \"inferred_cat2\": \"函数未覆盖\", \"inference_reason\": \"后端bug，默认推理为函数未覆盖\", \"requirement\": \"桩云微服务拆分\"}",
+  "expected": "{\"content\": \"（根据bug描述推理，需人工确认）\"}",
+  "actual": "{\"content\": \"【家桩-用户管理/设备管理】/shadow/privateCharger/auth/userList、/privateCharger/equipment/list，接口报502\"}",
+  "lesson": "后端bug，默认推理为函数未覆盖",
+  "holdout": "False",
+  "case_category": "STRUCTURED_SCHEMA"
+}

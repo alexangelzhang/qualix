@@ -1,0 +1,15 @@
+{
+  "case_id": "PASS-Q06-shuangzhou-v4-20260527-13",
+  "phase": "Q06",
+  "error_type": "PASS",
+  "project_id": "shuangzhou-v4",
+  "source": "output_verified",
+  "judged_at": "2026-05-10T16:24:03.882135+00:00",
+  "created_at": "2026-05-27T18:19:24.981526",
+  "status": "open",
+  "expected_verdict": "PASS",
+  "tags": [
+    "pass-library",
+    "project:shuangzhou-v4"
+  ]
+}

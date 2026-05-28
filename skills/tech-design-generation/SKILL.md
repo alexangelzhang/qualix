@@ -129,6 +129,20 @@ Critique 发现问题 → 修正 → 重新自检。
 - `output/<project_id>/Q02/phase_a3_structured.json` — 结构化产物
 - `output/<project_id>/Q02/_reasoning_log.md` — 推理日志（每个关键设计决策的 Why）
 
+`phase_a3_structured.json` 最小合法骨架：
+
+```json
+{
+  "project_id": "maf-srv-service",
+  "architecture_style": "DDD+TMF",
+  "req_mapping": [],
+  "interfaces": [],
+  "data_models": [],
+  "gaps": [],
+  "blockers": []
+}
+```
+
 产物模板见 [references/design-templates.md](references/design-templates.md)。
 
 技术方案必须包含以下标准章节（缺一不可）：

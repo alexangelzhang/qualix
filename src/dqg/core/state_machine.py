@@ -19,11 +19,14 @@ from pathlib import Path
 
 from pydantic import BaseModel, Field
 
-from dqg.constants import LEGACY_PHASE_ID_MAP
+from dqg.constants import LEGACY_PHASE_ID_MAP, STRUCTURED_JSON_MAP
+from dqg.log import get_logger
+
+log = get_logger(__name__)
 
 # Domain 层 Phase 定义（re-export 保持向后兼容）
 from dqg.core.phase_registry import PHASE_DEFS, PHASE_ORDER
-from dqg.json_utils import load_json_strict, save_json
+from dqg.json_utils import load_json, load_json_strict, save_json_atomic
 
 
 class PhaseStatus(StrEnum):
@@ -118,10 +121,10 @@ def load_state(output_dir: Path, project_id: str) -> ProjectState:
 
 
 def save_state(output_dir: Path, state: ProjectState) -> Path:
-    """持久化项目状态."""
+    """持久化项目状态（原子写入：crash 不损坏 state.json）."""
     state.updated_at = datetime.now().isoformat()
     path = _state_path(output_dir, state.project_id)
-    save_json(path, state.model_dump())
+    save_json_atomic(path, state.model_dump())
     return path
 
 
@@ -353,3 +356,32 @@ def get_parallel_groups(state: ProjectState) -> list[list[str]]:
         groups.append(group)
 
     return groups
+
+
+def write_planning_snapshot(output_dir: Path, project_id: str, phase_id: str) -> Path | None:
+    """approve 后冻结 Phase 主产物到 _internal/planning_snapshot_<phase_id>.json.
+
+    下游 Phase 应只读 snapshot，不读可能被重跑覆盖的 structured.json。
+    源文件不存在时静默跳过（无 structured JSON 的 Phase 正常情况）。
+    """
+    src_filename = STRUCTURED_JSON_MAP.get(phase_id)
+    if not src_filename:
+        return None
+
+    phase_def = PHASE_DEFS.get(phase_id, {})
+    pd = phase_dir(output_dir, project_id, phase_def)
+    src = pd / src_filename
+    if not src.exists():
+        log.debug("write_planning_snapshot: source %s not found, skipping", src)
+        return None
+
+    data = load_json(src)
+    if data is None:
+        log.warning("write_planning_snapshot: failed to load %s", src)
+        return None
+
+    internal_dir = pd / "_internal"
+    dest = internal_dir / f"planning_snapshot_{phase_id}.json"
+    save_json_atomic(dest, data)
+    log.info("Planning snapshot written: %s", dest)
+    return dest
