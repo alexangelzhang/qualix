@@ -108,6 +108,12 @@
 - Change 5：`auto-synthesized` Judge/Critique 降权——`approve` 时若 judge_result 标记为 auto-synthesized 则返回 `synthetic_review_not_allowed` 错误，须显式传 `--allow-synthetic-review` 才能通过
 - Change 6：所有 fallback 语义统一为 `BLOCKED`/`FAIL`/`WARNING`/`NOT_APPLICABLE`/`INFRA_FAILURE` 前缀，禁止"返回空列表 = 通过"隐式语义
 
+2026-05-29 完成（Harness Gap 修复 A/D/C）：
+
+- **Gap A — Phase finalize 提醒**：新增 `.claude/hooks/phase_finalize_reminder.py`（PostToolUse hook），检测 `dqg-run * execute` 完成后 Phase 仍处于 `in_progress` 时注入提醒，将"完成"从 AI 主观声明切换为状态机可验证状态；注册到 `.claude/settings.json` PostToolUse
+- **Gap D — SE-based 模式硬检测**：新增 `check_se_based_pattern()`（`finalize_checks.py`），Q05a/Q06 finalize 时自动检测 eut_id 以 SE- 开头、重复 eut_id、audit_items 数量 << SE 数量三类 SE-based 反模式；BLOCKED 级 hard-stop，将 CLAUDE.md 铁律第6条从软约束升级为机器强制
+- **Gap C — PreCompact Phase 进度断点**：`~/.claude/scripts/precompact_guard.py` 新增 `_write_dqg_phase_progress()`，PreCompact 时扫描 DQG output 目录，将 in_progress Phase + 已完成 EUT ID 列表写入 `output/<pid>/_phase_progress.json`；实现类 Ralph Loop 的 session 间进度定位
+
 2026-05-27 完成（Evidence Contract 硬化 — 方案 A）：
 
 - **SE.source 跨引用校验**：`handle_se_source_evidence` handler（Q01 finalize, order=57, required=True）解析 `SE.source="file:N"`，验证 PRD ingest 文件第 N 行存在；source 非空但行号无效 → BLOCKED；source 空 → WARNING；成功落盘 `_internal/_se_source_evidence.json`（含 line_text + context_hash）

@@ -223,6 +223,113 @@ def _save_counts_snapshot(json_path: Path, snapshot_path: Path, phase_id: str) -
         save_json(snapshot_path, counts)
 
 
+def check_se_based_pattern(output_dir: Path, project_id: str, phase_id: str) -> list[str]:
+    """检测 Q05a/Q06 产物是否使用了被禁止的 SE-based 汇总模式.
+
+    铁律：Q05a（EUT矩阵设计）和 Q06（单测覆盖审计）必须使用 EUT 逐条模式：
+    每条 audit_item/eut_item 必须对应一个独立的 eut_id，不允许按 SE 汇总。
+
+    SE-based 模式的判定条件（满足任一即判定违规）：
+    1. eut_id 字段以 SE- 开头（明确的 SE 级别 ID）
+    2. 多条条目共享相同 eut_id（汇总特征）
+    3. Q06 audit_items 数量 << Q01 SE 数量（比值 < 0.5 且 SE ≥ 3，WARNING 级别）
+
+    Returns:
+        错误列表，有 BLOCKED 前缀的错误会阻断 finalize。
+    """
+    if phase_id not in ("Q05a", "Q06"):
+        return []
+
+    phase_def = PHASE_DEFS.get(phase_id)
+    if not phase_def:
+        return []
+
+    pd = _phase_dir(output_dir, project_id, phase_def)
+    json_file = STRUCTURED_JSON_MAP.get(phase_id)
+    if not json_file:
+        return []
+
+    json_path = pd / json_file
+    if not json_path.exists():
+        return []
+
+    data = load_json(json_path)
+    if not data:
+        return []
+
+    errors: list[str] = []
+
+    if phase_id == "Q05a":
+        eut_items = data.get("eut_items", [])
+        if not eut_items:
+            return []
+
+        # 判定1：eut_id 以 SE- 开头（明确 SE-based）
+        se_format_ids = [
+            item.get("eut_id", "") for item in eut_items
+            if isinstance(item, dict) and item.get("eut_id", "").startswith("SE-")
+        ]
+        if se_format_ids:
+            errors.append(
+                f"BLOCKED: Q05a 使用了 SE-based 模式——发现 {len(se_format_ids)} 条 eut_item 的 eut_id "
+                f"以 SE- 开头（如 {se_format_ids[0]!r}）。"
+                "EUT 矩阵设计必须使用 EUT 逐条模式：每条 eut_item 必须有独立的 EUT-NNN 格式 eut_id。"
+                "按 SE 汇总会掩盖单个测试方法的骨架/弱断言问题，导致覆盖率虚高。"
+            )
+
+        # 判定2：重复 eut_id（汇总特征）
+        from collections import Counter
+
+        eut_id_counts = Counter(
+            item.get("eut_id", "") for item in eut_items
+            if isinstance(item, dict) and item.get("eut_id", "")
+        )
+        duplicates = {eid: cnt for eid, cnt in eut_id_counts.items() if cnt > 1}
+        if duplicates:
+            dup_sample = list(duplicates.items())[:3]
+            errors.append(
+                f"BLOCKED: Q05a 发现重复 eut_id——{dup_sample}。"
+                "EUT 逐条模式要求每个 eut_id 唯一，重复出现说明多条 EUT 被汇总进了同一条目。"
+            )
+
+    elif phase_id == "Q06":
+        audit_items = data.get("audit_items", [])
+        if not audit_items:
+            return []
+
+        # 判定1：eut_id 以 SE- 开头
+        se_level_items = [
+            item for item in audit_items
+            if isinstance(item, dict) and item.get("eut_id", "").startswith("SE-")
+        ]
+        if se_level_items:
+            errors.append(
+                f"BLOCKED: Q06 使用了 SE-based 模式——发现 {len(se_level_items)} 条 audit_item 的 eut_id "
+                f"以 SE- 开头（如 {se_level_items[0].get('eut_id')!r}）。"
+                "Q06 单测覆盖审计必须使用 EUT 逐条模式：每条 audit_item 对应一个 EUT-NNN。"
+                "按 SE 汇总粒度过粗，会掩盖单个测试方法的覆盖问题。"
+            )
+
+        # 判定2（WARNING）：audit_items 数量 << Q01 SE 数量（比率检查，仅在无明确 SE-based 特征时）
+        q01_phase_def = PHASE_DEFS.get("Q01")
+        if q01_phase_def and not se_level_items:
+            q01_json_file = STRUCTURED_JSON_MAP.get("Q01")
+            if q01_json_file:
+                q01_path = _phase_dir(output_dir, project_id, q01_phase_def) / q01_json_file
+                if q01_path.exists():
+                    q01_data = load_json(q01_path) or {}
+                    se_count = len(q01_data.get("semantic_expectations", []))
+                    audit_count = len(audit_items)
+                    if se_count >= 3 and audit_count < se_count * 0.5:
+                        errors.append(
+                            f"WARNING: Q06 audit_items 数量（{audit_count}）远少于 Q01 SE 数量（{se_count}），"
+                            f"比值 {audit_count / se_count:.1%} < 50%。"
+                            "请确认是否为 EUT 逐条模式。如果确实逐条，忽略此 WARNING。"
+                        )
+
+    return errors
+
+
 def run_finalize_checks(output_dir: Path, project_id: str, phase_id: str) -> list[str]:
     """运行所有 finalize 硬性校验.
 
@@ -237,6 +344,9 @@ def run_finalize_checks(output_dir: Path, project_id: str, phase_id: str) -> lis
     from .auto_checks import auto_derive_checks
 
     errors.extend(auto_derive_checks(output_dir, project_id, phase_id))
+
+    # SE-based 模式检测（Q05a/Q06 铁律）
+    errors.extend(check_se_based_pattern(output_dir, project_id, phase_id))
 
     # Phase B: 结构合规（EUT/路径/Mock 启发式）先于编译执行
     if phase_id in ("Q05", "Q05a"):
