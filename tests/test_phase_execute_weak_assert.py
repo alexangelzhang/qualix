@@ -6,11 +6,11 @@ import json
 from types import SimpleNamespace
 from typing import TYPE_CHECKING
 
-from dqg.commands.phase import cmd_execute
-from dqg.context.context_loader import LoadedContext
-from dqg.context.diff_context import DiffContext
-from dqg.core.model_registry import get_model_profile
-from dqg.core.state_machine import PhaseStatus, ProjectState, save_state
+from qualix.commands.phase import cmd_execute
+from qualix.context.context_loader import LoadedContext
+from qualix.context.diff_context import DiffContext
+from qualix.core.model_registry import get_model_profile
+from qualix.core.state_machine import PhaseStatus, ProjectState, save_state
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -46,10 +46,10 @@ def _build_args(code_repo: str) -> SimpleNamespace:
 
 
 def _stub_common_dependencies(monkeypatch) -> None:
-    monkeypatch.setattr("dqg.context.context_loader.load_context", lambda *args, **kwargs: _empty_context())
-    monkeypatch.setattr("dqg.reporting.telemetry.append_record", lambda *args, **kwargs: None)
-    monkeypatch.setattr("dqg.services.phase_service.write_phase_profile_manifest", lambda *args, **kwargs: None)
-    monkeypatch.setattr("dqg.context.doc_summary.generate_summary_file", lambda *args, **kwargs: None)
+    monkeypatch.setattr("qualix.context.context_loader.load_context", lambda *args, **kwargs: _empty_context())
+    monkeypatch.setattr("qualix.reporting.telemetry.append_record", lambda *args, **kwargs: None)
+    monkeypatch.setattr("qualix.services.phase_service.write_phase_profile_manifest", lambda *args, **kwargs: None)
+    monkeypatch.setattr("qualix.context.doc_summary.generate_summary_file", lambda *args, **kwargs: None)
 
 
 def test_phase_c_execute_writes_weak_assert_sidecar_for_diff_test_files(monkeypatch, tmp_path: Path) -> None:
@@ -82,7 +82,7 @@ class OrderServiceTest {
         changed_files=["src/test/java/demo/OrderServiceTest.java"],
         modified_files=["src/test/java/demo/OrderServiceTest.java"],
     )
-    monkeypatch.setattr("dqg.context.diff_context.collect_diff_context", lambda *args, **kwargs: diff_ctx)
+    monkeypatch.setattr("qualix.context.diff_context.collect_diff_context", lambda *args, **kwargs: diff_ctx)
 
     exit_code = cmd_execute(_build_args(str(repo_dir)), output_dir)
 
@@ -116,7 +116,7 @@ def test_phase_c_execute_writes_explanatory_notes_when_diff_has_no_test_files(mo
         changed_files=["src/main/java/demo/OrderService.java"],
         modified_files=["src/main/java/demo/OrderService.java"],
     )
-    monkeypatch.setattr("dqg.context.diff_context.collect_diff_context", lambda *args, **kwargs: diff_ctx)
+    monkeypatch.setattr("qualix.context.diff_context.collect_diff_context", lambda *args, **kwargs: diff_ctx)
 
     exit_code = cmd_execute(_build_args(str(repo_dir)), output_dir)
 

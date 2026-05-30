@@ -19,7 +19,7 @@
 |------|------|
 | `pyproject.toml` 是 `version = "0.1.0"`，从未发过 PyPI | `pyproject.toml` |
 | ROADMAP `仍待推进（P1）` 里有 "PyPI 发布" 一条（已提升至 P0） | ROADMAP §3.C |
-| `dqg-run` CLI 默认从 cwd 读 `skills/` `references/` `profiles/` `regression/` `output/` | `src/dqg/core/runner.py` |
+| `qualix-run` CLI 默认从 cwd 读 `skills/` `references/` `profiles/` `regression/` `output/` | `src/dqg/core/runner.py` |
 | `SKILL.md` / `references/` / `profiles/` 和 `src/dqg/` 源码**同仓库** | 仓库根 |
 | 用户自带的 CLAUDE.md 是 DQG 维护者视角（"怎么开发 DQG"），不是用户视角（"怎么用 DQG"） | `CLAUDE.md` |
 
@@ -53,15 +53,15 @@
 ### L1 — PyPI 发布（最硬的边界）
 
 ```bash
-pip install dev-quality-gate
+pip install qualix
 ```
 
 之后用户目录下 `ls` **看不到 DQG 源码**。Claude 读不到源码 → 默认行为从"修 bug"变成"汇报 bug"。
 
 实施要点：
 - `pyproject.toml` 声明 `[tool.hatch.build.targets.wheel.force-include]` 把 `skills/` `references/` 打进 wheel 资源
-- 所有路径推导从 `Path(__file__).parents[N]` 改为 `importlib.resources.files("dqg")`
-- `dqg-run path skills` 等 CLI 帮用户查资源位置（只读，不鼓励进入）
+- 所有路径推导从 `Path(__file__).parents[N]` 改为 `importlib.resources.files("qualix")`
+- `qualix-run path skills` 等 CLI 帮用户查资源位置（只读，不鼓励进入）
 - 版本号从 `0.1.0` 升到 `0.2.0`（破坏性布局变更）
 
 ### L1 备选 — `install.sh` + `~/.dqg/` 模式（借鉴 VAF，低成本先行）
@@ -72,7 +72,7 @@ pip install dev-quality-gate
 # DQG 仓库根目录执行一次
 ./install.sh
 # 把 skills/ references/ profiles/ core/rules/ 拷贝到 ~/.dqg/
-# 用户项目里 dqg-run 从 ~/.dqg/ 读资源，从 .dqg/（项目目录）读用户定制
+# 用户项目里 qualix-run 从 ~/.dqg/ 读资源，从 .dqg/（项目目录）读用户定制
 ```
 
 **价值**：
@@ -88,11 +88,11 @@ pip install dev-quality-gate
 
 **另一条参考**：VAF 有一个独立 `VERSION` 文件（`2.3.1-rc.20260304`），不和 `pyproject.toml` 耦合。DQG 可以加一个 `VERSION` 文件让版本号真正流转起来（当前 `pyproject.toml` 卡在 `0.1.0` 没动），`install.sh` 读 VERSION 贴 label。
 
-### L2 — `dqg-run init` 分离用户工作区
+### L2 — `qualix-run init` 分离用户工作区
 
 ```bash
 cd my-project
-dqg-run init
+qualix-run init
 # 生成 .dqg/
 #   profiles/           # 用户自定义 profile
 #   skill-overrides/    # 用户覆盖的 skill 片段
@@ -104,21 +104,21 @@ dqg-run init
 
 ### L3 — CLAUDE.md guardrail 样板（软防御）
 
-`dqg-run init` 在用户项目 `CLAUDE.md` 末尾追加：
+`qualix-run init` 在用户项目 `CLAUDE.md` 末尾追加：
 
 ```markdown
 ## DQG 使用规约
 
-DQG 是通过 `pip install dev-quality-gate` 安装的工具，**不要修改它的源码**。
+DQG 是通过 `pip install qualix` 安装的工具，**不要修改它的源码**。
 
 遇到 DQG 报错时：
-1. 跑 `dqg-run doctor` 生成 issue bundle
+1. 跑 `qualix-run doctor` 生成 issue bundle
 2. 把 bundle 提交给 DQG 维护者，**而不是自己 patch**
 3. 需要定制行为 → 改 `.dqg/` 里的 profile 或 skill override
 
 相关资源：
-- `dqg-run path skills`  — 只读查看内置 skill
-- `dqg-run --help`       — CLI 完整参数
+- `qualix-run path skills`  — 只读查看内置 skill
+- `qualix-run --help`       — CLI 完整参数
 ```
 
 这层是软防御，真正起作用的是 L1 + L2 造成的物理隔离。
@@ -129,9 +129,9 @@ DQG 是通过 `pip install dev-quality-gate` 安装的工具，**不要修改它
 
 - [ ] 用户 cwd 里 `ls` 看不到 DQG 源码（只有 `.dqg/` 和用户项目文件）
 - [ ] Claude 在用户项目里跑 DQG 时，默认不读 `site-packages/dqg/*.py`
-- [ ] `dqg-run doctor` 产出可上报的 issue bundle：错误 stack + 输入摘要（脱敏）+ `dqg --version` + 相关 `_internal/` 产物
+- [ ] `qualix-run doctor` 产出可上报的 issue bundle：错误 stack + 输入摘要（脱敏）+ `dqg --version` + 相关 `_internal/` 产物
 - [ ] CLI 每个错误信息末尾带"请报告 issue: https://.../issues/new" 明示分工
-- [ ] 新用户接入时，典型 Claude Agent 行为是"读 `.dqg/settings.yaml` + 跑 `dqg-run`"，而非"读 `src/dqg/` + 改源码"
+- [ ] 新用户接入时，典型 Claude Agent 行为是"读 `.dqg/settings.yaml` + 跑 `qualix-run`"，而非"读 `src/dqg/` + 改源码"
 
 ## 风险与取舍
 
@@ -151,10 +151,10 @@ DQG 是通过 `pip install dev-quality-gate` 安装的工具，**不要修改它
 预估：**3-5 工作日**（不含真实发 PyPI 后的用户迁移支持）
 
 - `pyproject.toml` 资源声明 + `importlib.resources` 改造：1-1.5 天
-- `dqg-run init` 命令 + `.dqg/` 目录约定 + 用户工作区解析：1 天
+- `qualix-run init` 命令 + `.dqg/` 目录约定 + 用户工作区解析：1 天
 - 路径推导全面审计（当前散在 `context_loader.py` / `skill_loader.py` / `phase_registry.py` / `handlers_*.py` 多处）：0.5-1 天
 - 发 PyPI + 迁移文档 + 升级指南：0.5 天
-- `dqg-run doctor` 扩展为 issue bundle 生成器：0.5-1 天
+- `qualix-run doctor` 扩展为 issue bundle 生成器：0.5-1 天
 
 建议单独 session 执行，不和其他 feature 混。
 

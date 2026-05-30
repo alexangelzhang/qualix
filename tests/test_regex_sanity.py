@@ -27,7 +27,7 @@ import pytest
 class TestRESourceBase:
     """RE_SOURCE_BASE — 通用 [来源: xxx] / [Source: xxx] 格式."""
 
-    from dqg.quality.rules.source_spec import RE_SOURCE_BASE as PAT
+    from qualix.quality.rules.source_spec import RE_SOURCE_BASE as PAT
 
     @pytest.mark.parametrize(
         "text",
@@ -39,7 +39,7 @@ class TestRESourceBase:
         ],
     )
     def test_should_match(self, text):
-        from dqg.quality.rules.source_spec import RE_SOURCE_BASE
+        from qualix.quality.rules.source_spec import RE_SOURCE_BASE
 
         assert RE_SOURCE_BASE.search(text), f"应匹配但未匹配: {text!r}"
 
@@ -52,7 +52,7 @@ class TestRESourceBase:
         ],
     )
     def test_should_not_match(self, text):
-        from dqg.quality.rules.source_spec import RE_SOURCE_BASE
+        from qualix.quality.rules.source_spec import RE_SOURCE_BASE
 
         assert not RE_SOURCE_BASE.search(text), f"不应匹配但匹配了: {text!r}"
 
@@ -69,7 +69,7 @@ class TestPhaseSourceExtraQ01:
         ],
     )
     def test_should_match(self, text):
-        from dqg.quality.rules.source_spec import PHASE_SOURCE_EXTRA
+        from qualix.quality.rules.source_spec import PHASE_SOURCE_EXTRA
 
         assert PHASE_SOURCE_EXTRA["Q01"].search(text), f"Q01 应匹配: {text!r}"
 
@@ -82,7 +82,7 @@ class TestPhaseSourceExtraQ01:
         ],
     )
     def test_should_not_match(self, text):
-        from dqg.quality.rules.source_spec import PHASE_SOURCE_EXTRA
+        from qualix.quality.rules.source_spec import PHASE_SOURCE_EXTRA
 
         assert not PHASE_SOURCE_EXTRA["Q01"].search(text), f"Q01 不应匹配: {text!r}"
 
@@ -102,7 +102,7 @@ class TestPhaseSourceExtraQ04:
         ],
     )
     def test_should_match(self, text):
-        from dqg.quality.rules.source_spec import PHASE_SOURCE_EXTRA
+        from qualix.quality.rules.source_spec import PHASE_SOURCE_EXTRA
 
         assert PHASE_SOURCE_EXTRA["Q04"].search(text), f"Q04 应匹配: {text!r}"
 
@@ -117,7 +117,7 @@ class TestPhaseSourceExtraQ04:
         ],
     )
     def test_should_not_match(self, text):
-        from dqg.quality.rules.source_spec import PHASE_SOURCE_EXTRA
+        from qualix.quality.rules.source_spec import PHASE_SOURCE_EXTRA
 
         assert not PHASE_SOURCE_EXTRA["Q04"].search(text), f"Q04 不应匹配: {text!r}"
 
@@ -135,7 +135,7 @@ class TestPhaseSourceExtraQ05:
         ],
     )
     def test_should_match(self, text):
-        from dqg.quality.rules.source_spec import PHASE_SOURCE_EXTRA
+        from qualix.quality.rules.source_spec import PHASE_SOURCE_EXTRA
 
         assert PHASE_SOURCE_EXTRA["Q05"].search(text), f"Q05 应匹配: {text!r}"
 
@@ -147,7 +147,7 @@ class TestPhaseSourceExtraQ05:
         ],
     )
     def test_should_not_match(self, text):
-        from dqg.quality.rules.source_spec import PHASE_SOURCE_EXTRA
+        from qualix.quality.rules.source_spec import PHASE_SOURCE_EXTRA
 
         assert not PHASE_SOURCE_EXTRA["Q05"].search(text), f"Q05 不应匹配: {text!r}"
 
@@ -170,7 +170,7 @@ class TestConclusionPattern:
         ],
     )
     def test_should_match(self, text):
-        from dqg.quality.rules.source_spec import _CONCLUSION_PATTERN
+        from qualix.quality.rules.source_spec import _CONCLUSION_PATTERN
 
         assert _CONCLUSION_PATTERN.search(text), f"应匹配但未匹配: {text!r}"
 
@@ -185,7 +185,7 @@ class TestConclusionPattern:
         ],
     )
     def test_should_not_match(self, text):
-        from dqg.quality.rules.source_spec import _CONCLUSION_PATTERN
+        from qualix.quality.rules.source_spec import _CONCLUSION_PATTERN
 
         assert not _CONCLUSION_PATTERN.search(text), f"不应匹配但匹配了: {text!r}"
 
@@ -207,7 +207,7 @@ class TestValidIdPattern:
         ],
     )
     def test_should_match(self, text):
-        from dqg.quality.rules.source_spec import _VALID_ID_PATTERN
+        from qualix.quality.rules.source_spec import _VALID_ID_PATTERN
 
         assert _VALID_ID_PATTERN.search(text), f"应匹配但未匹配: {text!r}"
 
@@ -220,7 +220,7 @@ class TestValidIdPattern:
         ],
     )
     def test_should_not_match(self, text):
-        from dqg.quality.rules.source_spec import _VALID_ID_PATTERN
+        from qualix.quality.rules.source_spec import _VALID_ID_PATTERN
 
         assert not _VALID_ID_PATTERN.search(text), f"不应匹配但匹配了: {text!r}"
 
@@ -254,7 +254,7 @@ class TestIsSourceAnnotated:
         ],
     )
     def test_annotation(self, line, phase, should_pass):
-        from dqg.quality.rules.source_spec import is_source_annotated
+        from qualix.quality.rules.source_spec import is_source_annotated
 
         result = is_source_annotated(line, phase)
         if should_pass:
@@ -282,7 +282,7 @@ class TestREConfidence:
         ],
     )
     def test_should_match(self, text):
-        from dqg.quality.rules.rule_definitions import RE_CONFIDENCE
+        from qualix.quality.rules.rule_definitions import RE_CONFIDENCE
 
         assert RE_CONFIDENCE.search(text), f"应匹配: {text!r}"
 
@@ -294,7 +294,7 @@ class TestREConfidence:
         ],
     )
     def test_should_not_match(self, text):
-        from dqg.quality.rules.rule_definitions import RE_CONFIDENCE
+        from qualix.quality.rules.rule_definitions import RE_CONFIDENCE
 
         assert not RE_CONFIDENCE.search(text), f"不应匹配: {text!r}"
 
@@ -304,12 +304,12 @@ class TestRECoverageStatus:
 
     @pytest.mark.parametrize("text", ["COVERED", "NOT_COVERED", "PARTIAL", "MISSING", "IMPLICIT"])
     def test_should_match(self, text):
-        from dqg.quality.rules.rule_definitions import RE_COVERAGE_STATUS
+        from qualix.quality.rules.rule_definitions import RE_COVERAGE_STATUS
 
         assert RE_COVERAGE_STATUS.search(text)
 
     def test_should_not_match(self):
-        from dqg.quality.rules.rule_definitions import RE_COVERAGE_STATUS
+        from qualix.quality.rules.rule_definitions import RE_COVERAGE_STATUS
 
         assert not RE_COVERAGE_STATUS.search("覆盖已完成")
 
@@ -319,7 +319,7 @@ class TestREGapLevel:
 
     @pytest.mark.parametrize("text", ["P0", "P1", "P2", "| 高 |", "| 中 |", "| 低 |", "风险等级"])
     def test_should_match(self, text):
-        from dqg.quality.rules.rule_definitions import RE_GAP_LEVEL
+        from qualix.quality.rules.rule_definitions import RE_GAP_LEVEL
 
         assert RE_GAP_LEVEL.search(text), f"应匹配: {text!r}"
 
@@ -331,7 +331,7 @@ class TestREGapLevel:
         ],
     )
     def test_should_not_match(self, text):
-        from dqg.quality.rules.rule_definitions import RE_GAP_LEVEL
+        from qualix.quality.rules.rule_definitions import RE_GAP_LEVEL
 
         assert not RE_GAP_LEVEL.search(text), f"不应匹配: {text!r}"
 
@@ -348,13 +348,13 @@ class TestValidIdPatternInReportChecks:
         "text", ["REQ-001", "BR-002", "SE-003", "GAP-004", "OPEN-005"]
     )
     def test_valid_ids(self, text):
-        from dqg.quality.checks.report_quality_checks import _VALID_ID_PATTERN
+        from qualix.quality.checks.report_quality_checks import _VALID_ID_PATTERN
 
         assert _VALID_ID_PATTERN.search(text)
 
     @pytest.mark.parametrize("text", ["req-001", "REQ_001", "REQ 001"])
     def test_invalid_ids(self, text):
-        from dqg.quality.checks.report_quality_checks import _VALID_ID_PATTERN
+        from qualix.quality.checks.report_quality_checks import _VALID_ID_PATTERN
 
         assert not _VALID_ID_PATTERN.search(text)
 
@@ -364,13 +364,13 @@ class TestInvalidIdPattern:
 
     @pytest.mark.parametrize("text", ["REQ_001", "req-001", "BR 002"])
     def test_detects_invalid(self, text):
-        from dqg.quality.checks.report_quality_checks import _INVALID_ID_PATTERN
+        from qualix.quality.checks.report_quality_checks import _INVALID_ID_PATTERN
 
         assert _INVALID_ID_PATTERN.search(text), f"应检测为非法: {text!r}"
 
     @pytest.mark.parametrize("text", ["REQ-001", "BR-002", "SE-003"])
     def test_valid_not_flagged(self, text):
-        from dqg.quality.checks.report_quality_checks import _INVALID_ID_PATTERN
+        from qualix.quality.checks.report_quality_checks import _INVALID_ID_PATTERN
 
         assert not _INVALID_ID_PATTERN.search(text), f"合法 ID 被误报: {text!r}"
 
@@ -387,12 +387,12 @@ class TestStepPattern:
         ],
     )
     def test_should_match(self, text):
-        from dqg.quality.checks.report_quality_checks import _STEP_PATTERN
+        from qualix.quality.checks.report_quality_checks import _STEP_PATTERN
 
         assert _STEP_PATTERN.search(text), f"应匹配: {text!r}"
 
     def test_should_not_match(self):
-        from dqg.quality.checks.report_quality_checks import _STEP_PATTERN
+        from qualix.quality.checks.report_quality_checks import _STEP_PATTERN
 
         assert not _STEP_PATTERN.search("Step without heading marker")
 
@@ -457,7 +457,7 @@ class TestCheckRegexScript:
 
 
 class TestCheckRegexCI:
-    """通过脚本入口扫描 src/dqg/，确认现存代码无 R1/R3 问题."""
+    """通过脚本入口扫描 src/qualix/，确认现存代码无 R1/R3 问题."""
 
     def test_no_regex_bugs_in_src(self):
         import subprocess

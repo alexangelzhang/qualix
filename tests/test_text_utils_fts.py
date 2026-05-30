@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from dqg.cache.image_cache import save_image_semantic, search_image_semantics
-from dqg.text_utils import build_fts_query, build_fts_query_tokens, text_query_has_signal, tokenize_chinese
+from qualix.cache.image_cache import save_image_semantic, search_image_semantics
+from qualix.text_utils import build_fts_query, build_fts_query_tokens, text_query_has_signal, tokenize_chinese
 
 
 def test_tokenize_chinese_does_not_cross_punctuation_boundaries() -> None:

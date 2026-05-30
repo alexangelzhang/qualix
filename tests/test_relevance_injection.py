@@ -2,10 +2,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from dqg.quality.critique import generate_critique_prompt
-from dqg.quality.judge import generate_judge_prompt
-from dqg.tracking.case_selector import select_relevant_cases
-from dqg.tracking.experiment import generate_experiment_prompt
+from qualix.quality.critique import generate_critique_prompt
+from qualix.quality.judge import generate_judge_prompt
+from qualix.tracking.case_selector import select_relevant_cases
+from qualix.tracking.experiment import generate_experiment_prompt
 
 
 def _write_case(
@@ -65,7 +65,7 @@ def test_relevance_matching_used_by_judge_critique_and_experiment(tmp_path: Path
         severity="low",
     )
 
-    import dqg.tracking.case_selector as case_selector
+    import qualix.tracking.case_selector as case_selector
 
     original_load = case_selector.load_cases_by_phase
     monkeypatch.setattr(

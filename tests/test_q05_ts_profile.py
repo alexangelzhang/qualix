@@ -10,20 +10,20 @@ import json
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-from dqg.quality.checks.coverage_gate import (
+from qualix.quality.checks.coverage_gate import (
     check_coverage_gate,
     find_coverage_report,
     parse_istanbul_json,
 )
-from dqg.quality.checks.q05_structure_checks import (
+from qualix.quality.checks.q05_structure_checks import (
     _check_wrong_directory,
     _collect_supplemental_files,
 )
-from dqg.quality.checks.test_execution_gate import (
+from qualix.quality.checks.test_execution_gate import (
     _discover_new_test_classes,
     run_test_check,
 )
-from dqg.runtime.execution_context import ExecutionContext
+from qualix.runtime.execution_context import ExecutionContext
 
 # ---------------------------------------------------------------------------
 # Fixtures

@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from dqg.tracking.case_category import CASE_CATEGORIES
-from dqg.tracking.case_reflect import REFLECT_LESSON_MAX_LEN, apply_reflect_metadata
+from qualix.tracking.case_category import CASE_CATEGORIES
+from qualix.tracking.case_reflect import REFLECT_LESSON_MAX_LEN, apply_reflect_metadata
 
 
 def test_apply_reflect_fills_empty_lesson_and_category() -> None:

@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 
 def test_cache_miss_then_hit(tmp_path: Path):
     """First call should miss, second with same files should hit."""
-    from dqg.cache.evidence_cache import EvidencePackCache
+    from qualix.cache.evidence_cache import EvidencePackCache
 
     cache = EvidencePackCache(tmp_path)
 
@@ -40,7 +40,7 @@ def test_cache_miss_then_hit(tmp_path: Path):
 
 def test_cache_invalidates_on_file_change(tmp_path: Path):
     """Modifying a source file should invalidate the cache."""
-    from dqg.cache.evidence_cache import EvidencePackCache
+    from qualix.cache.evidence_cache import EvidencePackCache
 
     cache = EvidencePackCache(tmp_path)
 
@@ -60,7 +60,7 @@ def test_cache_invalidates_on_file_change(tmp_path: Path):
 
 def test_cache_invalidates_on_file_added(tmp_path: Path):
     """Adding a new file to the input set should invalidate."""
-    from dqg.cache.evidence_cache import EvidencePackCache
+    from qualix.cache.evidence_cache import EvidencePackCache
 
     cache = EvidencePackCache(tmp_path)
 
@@ -79,7 +79,7 @@ def test_cache_invalidates_on_file_added(tmp_path: Path):
 
 def test_cache_stats(tmp_path: Path):
     """Stats should track hits and misses."""
-    from dqg.cache.evidence_cache import EvidencePackCache
+    from qualix.cache.evidence_cache import EvidencePackCache
 
     cache = EvidencePackCache(tmp_path)
     f1 = tmp_path / "x.md"
@@ -98,7 +98,7 @@ def test_cache_stats(tmp_path: Path):
 
 def test_empty_file_list(tmp_path: Path):
     """Empty file list should not crash."""
-    from dqg.cache.evidence_cache import EvidencePackCache
+    from qualix.cache.evidence_cache import EvidencePackCache
 
     cache = EvidencePackCache(tmp_path)
     assert cache.get("Q07", []) is None
@@ -108,7 +108,7 @@ def test_empty_file_list(tmp_path: Path):
 
 def test_file_cache_invalidates_on_mtime_change(tmp_path: Path):
     """chunk_processor._read_file_safe should re-read when mtime changes."""
-    from dqg.context.chunk_processor import _file_cache, _read_file_safe
+    from qualix.context.chunk_processor import _file_cache, _read_file_safe
 
     # Clear module-level cache
     _file_cache.clear()
@@ -128,7 +128,7 @@ def test_file_cache_invalidates_on_mtime_change(tmp_path: Path):
 
 def test_cache_reports_savings(tmp_path: Path):
     """Cache should report estimated token savings on hit."""
-    from dqg.cache.evidence_cache import EvidencePackCache
+    from qualix.cache.evidence_cache import EvidencePackCache
 
     cache = EvidencePackCache(tmp_path)
     f1 = tmp_path / "big.md"
@@ -144,7 +144,7 @@ def test_cache_reports_savings(tmp_path: Path):
 
 def test_end_to_end_cache_across_phases(tmp_path: Path):
     """Verify cache works across multiple phases sharing upstream artifacts."""
-    from dqg.cache.evidence_cache import EvidencePackCache
+    from qualix.cache.evidence_cache import EvidencePackCache
 
     cache = EvidencePackCache(tmp_path)
 

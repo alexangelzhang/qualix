@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from dqg.store.core import row_to_dict
-from dqg.tracking.bug_cases import load_cases_by_phase, render_cases_for_prompt
-from dqg.tracking.case_selector import select_relevant_cases
+from qualix.store.core import row_to_dict
+from qualix.tracking.bug_cases import load_cases_by_phase, render_cases_for_prompt
+from qualix.tracking.case_selector import select_relevant_cases
 
 
 def _write_case(
@@ -46,7 +46,7 @@ def _write_case(
 
 
 def test_store_private_alias_still_exports_row_to_dict() -> None:
-    import dqg.store as store
+    import qualix.store as store
 
     assert store._row_to_dict is row_to_dict
 
@@ -96,7 +96,7 @@ def test_select_relevant_cases_uses_preloaded_case_content(tmp_path: Path) -> No
         input_text="库存同步异常",
     )
 
-    import dqg.tracking.case_selector as case_selector
+    import qualix.tracking.case_selector as case_selector
 
     original_load = case_selector.load_cases_by_phase
 

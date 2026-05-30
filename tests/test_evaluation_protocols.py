@@ -1,6 +1,6 @@
 """Tests for evaluation_protocols.py — PhaseProtocol data structures and 7 Phase configs."""
 
-from dqg.quality.evaluation_protocols import (
+from qualix.quality.evaluation_protocols import (
     PHASE_PROTOCOLS,
     get_protocol,
     render_protocol_for_prompt,

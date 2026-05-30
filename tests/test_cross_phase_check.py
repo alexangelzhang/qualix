@@ -1,9 +1,9 @@
-"""Tests for dqg.cross_phase_check — 跨 Phase ID 引用校验."""
+"""Tests for qualix.cross_phase_check — 跨 Phase ID 引用校验."""
 
 import json
 from pathlib import Path
 
-from dqg.quality.cross_phase_check import check_cross_phase_refs, validate_eut_id_subset
+from qualix.quality.cross_phase_check import check_cross_phase_refs, validate_eut_id_subset
 
 
 def _write_json(path: Path, data: dict) -> None:

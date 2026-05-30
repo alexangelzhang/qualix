@@ -2,19 +2,19 @@
 
 from __future__ import annotations
 
-from dqg.quality.fabrication_detector import (
+from qualix.quality.fabrication_detector import (
     FabricationDetectorGuardrail,
     _extract_java_identifiers,
 )
-from dqg.quality.guardrail import GuardrailContext
-from dqg.quality.report_quality_checks import (
+from qualix.quality.guardrail import GuardrailContext
+from qualix.quality.report_quality_checks import (
     check_confidence_annotations,
     check_gap_risk_level,
     check_id_format,
     check_open_decision_owner,
     check_source_annotations,
 )
-from dqg.quality.semantic_guardrail import ReportSemanticGuardrail
+from qualix.quality.semantic_guardrail import ReportSemanticGuardrail
 
 # ---------------------------------------------------------------------------
 # report_quality_checks
@@ -464,7 +464,7 @@ class TestTraceability:
         return q02_dir
 
     def test_all_ids_traced(self, tmp_path):
-        from dqg.quality.rules.rule_checks import _check_traceability
+        from qualix.quality.rules.rule_checks import _check_traceability
 
         q02_dir = self._setup(tmp_path, ["REQ-001", "REQ-002"])
         report = "技术方案覆盖 REQ-001 和 REQ-002 的所有场景"
@@ -473,7 +473,7 @@ class TestTraceability:
         assert "2/2" in detail
 
     def test_detects_missing_id(self, tmp_path):
-        from dqg.quality.rules.rule_checks import _check_traceability
+        from qualix.quality.rules.rule_checks import _check_traceability
 
         q02_dir = self._setup(tmp_path, ["REQ-001", "REQ-002", "REQ-003"])
         report = "技术方案覆盖 REQ-001 和 REQ-002"
@@ -482,7 +482,7 @@ class TestTraceability:
         assert "REQ-003" in detail
 
     def test_skips_when_q01_absent(self, tmp_path):
-        from dqg.quality.rules.rule_checks import _check_traceability
+        from qualix.quality.rules.rule_checks import _check_traceability
 
         q02_dir = tmp_path / "Q02"
         q02_dir.mkdir(parents=True)
@@ -499,7 +499,7 @@ class TestTraceability:
         q01_dir.mkdir(parents=True)
         (q01_dir / "phase_a_structured.json").write_text(_json.dumps({"requirements": []}), encoding="utf-8")
 
-        from dqg.quality.rules.rule_checks import _check_traceability
+        from qualix.quality.rules.rule_checks import _check_traceability
 
         passed, _ = _check_traceability(q02_dir, "任意报告", "Q02")
         assert passed

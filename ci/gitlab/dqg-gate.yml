@@ -3,9 +3,9 @@
 # 使用方式（在项目的 .gitlab-ci.yml 中）：
 #
 #   include:
-#     - project: 'nr-car-service/dev-quality-gate'
+#     - project: 'nr-car-service/qualix'
 #       ref: main
-#       file: 'dev-quality-gate/ci/gitlab/dqg-gate.yml'
+#       file: 'qualix/ci/gitlab/dqg-gate.yml'
 #
 #   dqg-quality-gate:
 #     extends: .dqg-quality-gate
@@ -15,7 +15,7 @@
 #
 
 .dqg-install: &dqg-install
-  - pip install -e "${DQG_REPO_PATH:-dev-quality-gate/dev-quality-gate}" --quiet
+  - pip install -e "${DQG_REPO_PATH:-qualix/qualix}" --quiet
 
 .dqg-quality-gate:
   stage: test
@@ -28,11 +28,11 @@
   script:
     - *dqg-install
     - |
-      dqg-run "$DQG_PROJECT_ID" ci-gate "$DQG_PHASE" \
+      qualix-run "$DQG_PROJECT_ID" ci-gate "$DQG_PHASE" \
         --fail-on "$DQG_FAIL_ON" \
         --pr-comment > dqg_gate_report.md 2>/dev/null || true
       # 也输出 JSON 供后续 job 消费
-      dqg-run "$DQG_PROJECT_ID" ci-gate "$DQG_PHASE" \
+      qualix-run "$DQG_PROJECT_ID" ci-gate "$DQG_PHASE" \
         --fail-on "$DQG_FAIL_ON" \
         --json > dqg_verdict.json 2>/dev/null
       EXIT_CODE=$?

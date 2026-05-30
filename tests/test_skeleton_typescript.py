@@ -42,7 +42,7 @@ export class UserService {
 
 
 def _skip_if_no_ts():
-    from dqg.languages.typescript.ast_analyzer import is_available
+    from qualix.languages.typescript.ast_analyzer import is_available
 
     if not is_available():
         pytest.skip("tree-sitter-typescript not available")
@@ -51,7 +51,7 @@ def _skip_if_no_ts():
 def test_ts_skeleton_basic():
     """TypeScript skeleton should preserve signatures, omit bodies."""
     _skip_if_no_ts()
-    from dqg.languages.typescript.provider import TypeScriptProvider
+    from qualix.languages.typescript.provider import TypeScriptProvider
 
     provider = TypeScriptProvider()
     result = provider.extract_skeleton(TS_SOURCE)
@@ -73,7 +73,7 @@ def test_ts_skeleton_basic():
 def test_ts_skeleton_expand_methods():
     """Oracle-marked methods should be fully expanded."""
     _skip_if_no_ts()
-    from dqg.languages.typescript.provider import TypeScriptProvider
+    from qualix.languages.typescript.provider import TypeScriptProvider
 
     provider = TypeScriptProvider()
     result = provider.extract_skeleton(TS_SOURCE, expand_methods={"findById"})
@@ -87,7 +87,7 @@ def test_ts_skeleton_expand_methods():
 def test_ts_skeleton_empty_source():
     """Empty source should return minimal result."""
     _skip_if_no_ts()
-    from dqg.languages.typescript.provider import TypeScriptProvider
+    from qualix.languages.typescript.provider import TypeScriptProvider
 
     provider = TypeScriptProvider()
     result = provider.extract_skeleton("")

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""文件行数门禁：src/dqg/ 下 .py 文件不超过 400 行。
+"""文件行数门禁：src/qualix/ 下 .py 文件不超过 400 行。
 
 用法:
     python scripts/check_file_lines.py          # 检查所有文件
@@ -23,40 +23,40 @@ MAX_LINES = 400
 # 历史遗留超标文件白名单（2026-04-20 基线）
 # 拆分后从此列表移除，目标：清空
 LEGACY_ALLOWLIST: set[str] = {
-    "src/dqg/agents/agent.py",
-    "src/dqg/agents/adaptive_loop.py",
-    "src/dqg/agents/agent_orchestrator.py",
-    "src/dqg/agents/dag_scheduler.py",
-    "src/dqg/agents/llm_backends.py",
-    "src/dqg/commands/phase.py",
-    "src/dqg/constants.py",
-    "src/dqg/context/chunking/chunk_processor.py",
-    "src/dqg/context/analysis/code_skeleton.py",
-    "src/dqg/context/loading/context_loader.py",
-    "src/dqg/context/analysis/java_ast_analyzer.py",
-    "src/dqg/context/analysis/weak_assert_context.py",
-    "src/dqg/core/cli.py",
-    "src/dqg/ingest/feishu/crawler.py",
-    "src/dqg/media/parse_images.py",
-    "src/dqg/reporting/perf_tracker.py",
-    "src/dqg/memory/knowledge_network.py",
-    "src/dqg/quality/checks/blast_radius.py",
-    "src/dqg/quality/checks/coverage_gate.py",
-    "src/dqg/quality/judge/critique.py",
-    "src/dqg/quality/eval/eval_baseline.py",
-    "src/dqg/quality/eval/evaluation_protocols.py",
-    "src/dqg/quality/judge/judge.py",
-    "src/dqg/reporting/observability.py",
-    "src/dqg/runtime/handlers/handlers_execute.py",
-    "src/dqg/runtime/phase_contract.py",
-    "src/dqg/schemas/rsm.py",
-    "src/dqg/store/core.py",
-    "src/dqg/tracking/skill_reflector.py",
+    "src/qualix/agents/agent.py",
+    "src/qualix/agents/adaptive_loop.py",
+    "src/qualix/agents/agent_orchestrator.py",
+    "src/qualix/agents/dag_scheduler.py",
+    "src/qualix/agents/llm_backends.py",
+    "src/qualix/commands/phase.py",
+    "src/qualix/constants.py",
+    "src/qualix/context/chunking/chunk_processor.py",
+    "src/qualix/context/analysis/code_skeleton.py",
+    "src/qualix/context/loading/context_loader.py",
+    "src/qualix/context/analysis/java_ast_analyzer.py",
+    "src/qualix/context/analysis/weak_assert_context.py",
+    "src/qualix/core/cli.py",
+    "src/qualix/ingest/feishu/crawler.py",
+    "src/qualix/media/parse_images.py",
+    "src/qualix/reporting/perf_tracker.py",
+    "src/qualix/memory/knowledge_network.py",
+    "src/qualix/quality/checks/blast_radius.py",
+    "src/qualix/quality/checks/coverage_gate.py",
+    "src/qualix/quality/judge/critique.py",
+    "src/qualix/quality/eval/eval_baseline.py",
+    "src/qualix/quality/eval/evaluation_protocols.py",
+    "src/qualix/quality/judge/judge.py",
+    "src/qualix/reporting/observability.py",
+    "src/qualix/runtime/handlers/handlers_execute.py",
+    "src/qualix/runtime/phase_contract.py",
+    "src/qualix/schemas/rsm.py",
+    "src/qualix/store/core.py",
+    "src/qualix/tracking/skill_reflector.py",
 }
 
 
 def check(strict: bool = False) -> int:
-    root = Path("src/dqg")
+    root = Path("src/qualix")
     if not root.exists():
         print(f"ERROR: {root} not found, run from project root")
         return 1

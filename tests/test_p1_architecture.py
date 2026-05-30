@@ -6,12 +6,12 @@ import time
 from types import SimpleNamespace
 from typing import TYPE_CHECKING
 
-from dqg.agents.adaptive_loop import multi_judge_vote
-from dqg.cache.semantic_cache import cache_get, cache_invalidate, cache_put
-from dqg.constants import MEMORY_INDEX_STATE_FILE
-from dqg.core.state_machine import PHASE_DEFS
-from dqg.memory.memory_layer import MemoryLayer
-from dqg.store import get_connection
+from qualix.agents.adaptive_loop import multi_judge_vote
+from qualix.cache.semantic_cache import cache_get, cache_invalidate, cache_put
+from qualix.constants import MEMORY_INDEX_STATE_FILE
+from qualix.core.state_machine import PHASE_DEFS
+from qualix.memory.memory_layer import MemoryLayer
+from qualix.store import get_connection
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -56,7 +56,7 @@ def test_multi_judge_vote_runs_in_parallel_and_preserves_model_order(monkeypatch
                     stats["active"] -= 1
 
         def chat_structured(self, messages, response_schema=None, **kwargs):
-            from dqg.agents.llm_backends import StructuredChatResult
+            from qualix.agents.llm_backends import StructuredChatResult
             with lock:
                 stats["active"] += 1
                 stats["max_active"] = max(stats["max_active"], stats["active"])
@@ -73,11 +73,11 @@ def test_multi_judge_vote_runs_in_parallel_and_preserves_model_order(monkeypatch
             return self.model_name
 
     monkeypatch.setattr(
-        "dqg.quality.judge_runner.create_backend",
+        "qualix.quality.judge_runner.create_backend",
         lambda model, api_key: _FakeBackend(model),
     )
     monkeypatch.setattr(
-        "dqg.quality.judge_runner.LLMConfig",
+        "qualix.quality.judge_runner.LLMConfig",
         lambda **kw: SimpleNamespace(_resolve_api_key=lambda m: "fake-key"),
     )
 
@@ -164,12 +164,12 @@ def test_memory_layer_index_phase_skips_unchanged_inputs_and_reindexes_on_change
         calls["invalidate"] += 1
         return 0
 
-    monkeypatch.setattr("dqg.memory.memory_layer.index_phase_facts", _fake_index_phase_facts)
-    monkeypatch.setattr("dqg.memory.memory_layer.index_project_facts", _fake_index_project_facts)
-    monkeypatch.setattr("dqg.memory.memory_layer.extract_facts_from_json", _fake_extract_facts_from_json)
-    monkeypatch.setattr("dqg.memory.memory_layer.track_version", _fake_track_version)
-    monkeypatch.setattr("dqg.memory.memory_layer.generate_summary_file", _fake_generate_summary_file)
-    monkeypatch.setattr("dqg.memory.memory_layer.cache_invalidate", _fake_cache_invalidate)
+    monkeypatch.setattr("qualix.memory.memory_layer.index_phase_facts", _fake_index_phase_facts)
+    monkeypatch.setattr("qualix.memory.memory_layer.index_project_facts", _fake_index_project_facts)
+    monkeypatch.setattr("qualix.memory.memory_layer.extract_facts_from_json", _fake_extract_facts_from_json)
+    monkeypatch.setattr("qualix.memory.memory_layer.track_version", _fake_track_version)
+    monkeypatch.setattr("qualix.memory.memory_layer.generate_summary_file", _fake_generate_summary_file)
+    monkeypatch.setattr("qualix.memory.memory_layer.cache_invalidate", _fake_cache_invalidate)
 
     memory = MemoryLayer(output_dir)
 

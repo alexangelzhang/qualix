@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import dqg.services.phase_service as phase_service
+import qualix.services.phase_service as phase_service
 
 
 def test_write_phase_profile_manifest_writes_relevance_matched_bug_cases(tmp_path, monkeypatch) -> None:

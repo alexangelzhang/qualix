@@ -165,13 +165,13 @@ T1 核心异常分支是否都有对应测试
 
 ## 评审输入
 
-Phase 输出目录: `/Users/zhangyiqian/git_dev/dev-quality-gate/dev-quality-gate/output/home-replace-renewal/Q06`
+Phase 输出目录: `/Users/zhangyiqian/git_dev/qualix/qualix/output/home-replace-renewal/Q06`
 
 请读取以下文件进行评审：
 
-1. `/Users/zhangyiqian/git_dev/dev-quality-gate/dev-quality-gate/output/home-replace-renewal/Q06/ut_audit_report.md`
-2. `/Users/zhangyiqian/git_dev/dev-quality-gate/dev-quality-gate/output/home-replace-renewal/Q06/phase_c_structured.json`
-3. Phase Q01 产物: `/Users/zhangyiqian/git_dev/dev-quality-gate/dev-quality-gate/output/home-replace-renewal/Q01/phase_a_structured.json`
+1. `/Users/zhangyiqian/git_dev/qualix/qualix/output/home-replace-renewal/Q06/ut_audit_report.md`
+2. `/Users/zhangyiqian/git_dev/qualix/qualix/output/home-replace-renewal/Q06/phase_c_structured.json`
+3. Phase Q01 产物: `/Users/zhangyiqian/git_dev/qualix/qualix/output/home-replace-renewal/Q01/phase_a_structured.json`
 
 ## BUG_CASES — 已知判错案例（务必避免重犯）
 
@@ -237,7 +237,7 @@ Phase 输出目录: `/Users/zhangyiqian/git_dev/dev-quality-gate/dev-quality-gat
 ## 输出格式
 
 请输出以下 JSON 格式的评审结果，保存到：
-`/Users/zhangyiqian/git_dev/dev-quality-gate/dev-quality-gate/output/home-replace-renewal/Q06/_judge_result.json`
+`/Users/zhangyiqian/git_dev/qualix/qualix/output/home-replace-renewal/Q06/_judge_result.json`
 
 ```json
 {

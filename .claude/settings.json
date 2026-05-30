@@ -12,7 +12,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash -c 'python3 \"$(git rev-parse --show-toplevel)/dev-quality-gate/.claude/hooks/ironlaw_guard.py\"'"
+            "command": "bash -c 'python3 \"$(git rev-parse --show-toplevel)/qualix/.claude/hooks/ironlaw_guard.py\"'"
           }
         ]
       }
@@ -23,11 +23,11 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash -c 'python3 \"$(git rev-parse --show-toplevel)/dev-quality-gate/.claude/hooks/phase_finalize_reminder.py\"'"
+            "command": "bash -c 'python3 \"$(git rev-parse --show-toplevel)/qualix/.claude/hooks/phase_finalize_reminder.py\"'"
           },
           {
             "type": "command",
-            "command": "bash -c 'python3 \"$(git rev-parse --show-toplevel)/dev-quality-gate/.claude/hooks/ttsr_reminder.py\"'",
+            "command": "bash -c 'python3 \"$(git rev-parse --show-toplevel)/qualix/.claude/hooks/ttsr_reminder.py\"'",
             "async": true
           }
         ]
@@ -37,7 +37,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash -c 'python3 \"$(git rev-parse --show-toplevel)/dev-quality-gate/.claude/hooks/ttsr_reminder.py\"'",
+            "command": "bash -c 'python3 \"$(git rev-parse --show-toplevel)/qualix/.claude/hooks/ttsr_reminder.py\"'",
             "async": true
           }
         ]

@@ -4,9 +4,9 @@ from __future__ import annotations
 
 from types import SimpleNamespace
 
-from dqg.commands.setup import cmd_init
-from dqg.core.state_machine import load_state
-from dqg.json_utils import load_json_strict
+from qualix.commands.setup import cmd_init
+from qualix.core.state_machine import load_state
+from qualix.json_utils import load_json_strict
 
 
 def test_init_rejects_unknown_profile(tmp_path) -> None:

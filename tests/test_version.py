@@ -13,5 +13,5 @@ def test_version_file_exists():
 def test_package_version_matches_file():
     version_file = Path(__file__).resolve().parents[1] / "VERSION"
     file_version = version_file.read_text().strip()
-    pkg_version = importlib.metadata.version("dev-quality-gate")
+    pkg_version = importlib.metadata.version("qualix")
     assert pkg_version == file_version

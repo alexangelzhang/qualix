@@ -303,7 +303,7 @@ Expected: `ModuleNotFoundError: No module named 'dqg.commands.task_cmd'`
 新建 `src/dqg/commands/task_cmd.py`：
 
 ```python
-"""dqg-run <pid> task list|resume — Task 管理 CLI."""
+"""qualix-run <pid> task list|resume — Task 管理 CLI."""
 from __future__ import annotations
 
 import sys
@@ -331,7 +331,7 @@ def _print_table(rows: list[dict[str, Any]]) -> None:
 
 
 def cmd_task(args, output_dir: Path) -> int:
-    """dqg-run <pid> task list|resume."""
+    """qualix-run <pid> task list|resume."""
     from dqg.commands.cli_json import cli_envelope, cli_json_mode, print_cli_json
     from dqg.runtime.task_store import (
         get_latest_checkpoint,
@@ -419,7 +419,7 @@ def cmd_task(args, output_dir: Path) -> int:
                 print(f"  类型: {task.get('task_type')}  Phase: {task.get('phase_id')}  状态: {task.get('status')}")
                 if ckpt:
                     print(f"  最新 checkpoint: {ckpt.get('checkpoint_id')} ({ckpt.get('created_at', '')})")
-                    print(f"  恢复命令: dqg-run {args.project_id} adaptive {task.get('phase_id', '')} --resume {task['id']}")
+                    print(f"  恢复命令: qualix-run {args.project_id} adaptive {task.get('phase_id', '')} --resume {task['id']}")
             return 0
 
     print(f"  未知 task action: {action}", file=sys.stderr)
@@ -474,7 +474,7 @@ Expected: no new failures
 
 ```bash
 git add src/dqg/commands/task_cmd.py src/dqg/core/runner.py tests/test_p1_ops_quality.py
-git commit -m "feat(p1-5): task store CLI（dqg-run <pid> task list/resume）"
+git commit -m "feat(p1-5): task store CLI（qualix-run <pid> task list/resume）"
 ```
 
 ---

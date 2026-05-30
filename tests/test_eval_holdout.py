@@ -1,4 +1,4 @@
-"""Tests for dqg.quality.eval.eval_holdout.validate_against_holdout."""
+"""Tests for qualix.quality.eval.eval_holdout.validate_against_holdout."""
 
 from __future__ import annotations
 
@@ -6,7 +6,7 @@ from typing import Any
 
 import pytest
 
-from dqg.quality.eval.eval_holdout import _compute_l1_divergence, validate_against_holdout
+from qualix.quality.eval.eval_holdout import _compute_l1_divergence, validate_against_holdout
 
 
 def test_l1_divergence_identical() -> None:
@@ -42,12 +42,12 @@ def _patch_cases(
             return holdout
         return training
 
-    monkeypatch.setattr("dqg.tracking.bug_cases.load_cases_by_phase", _loader)
+    monkeypatch.setattr("qualix.tracking.bug_cases.load_cases_by_phase", _loader)
 
 
 def _patch_suggestions(monkeypatch: pytest.MonkeyPatch, payload: dict[str, Any]) -> None:
     monkeypatch.setattr(
-        "dqg.tracking.skill_factory.generate_skill_suggestions",
+        "qualix.tracking.skill_factory.generate_skill_suggestions",
         lambda phase: payload,
     )
 

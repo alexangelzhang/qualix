@@ -14,7 +14,7 @@ import pytest
 
 class TestCoverageMatrix:
     def test_extract_requirement_ids(self):
-        from dqg.quality.coverage_matrix import extract_requirement_ids
+        from qualix.quality.coverage_matrix import extract_requirement_ids
 
         data = {
             "requirements": [
@@ -39,7 +39,7 @@ class TestCoverageMatrix:
         assert len(result["open_items"]) == 1
 
     def test_extract_tech_design_sections(self, tmp_path):
-        from dqg.quality.coverage_matrix import extract_tech_design_sections
+        from qualix.quality.coverage_matrix import extract_tech_design_sections
 
         md = tmp_path / "tech_design.md"
         md.write_text("## 3.1 退款接口\nRefundService.refund(RefundRequest req)\n## 3.2 查询\n")
@@ -47,7 +47,7 @@ class TestCoverageMatrix:
         assert any(s["type"] == "heading" for s in sections)
 
     def test_generate_coverage_matrix_no_phase_a(self, tmp_path):
-        from dqg.quality.coverage_matrix import generate_coverage_matrix
+        from qualix.quality.coverage_matrix import generate_coverage_matrix
 
         result = generate_coverage_matrix(tmp_path, "nonexistent")
         assert result is None
@@ -60,7 +60,7 @@ class TestCoverageMatrix:
 
 class TestDynamicRubric:
     def test_classify_se_domains(self):
-        from dqg.quality.dynamic_rubric import classify_se_domains
+        from qualix.quality.dynamic_rubric import classify_se_domains
 
         se_list = [
             {"description": "金额计算精度必须到分"},
@@ -74,14 +74,14 @@ class TestDynamicRubric:
 
     def test_generate_dynamic_dimensions_empty(self, tmp_path):
         """老行为：required_domains=() 时无 SE 返回空列表."""
-        from dqg.quality.dynamic_rubric import generate_dynamic_dimensions
+        from qualix.quality.dynamic_rubric import generate_dynamic_dimensions
 
         dims = generate_dynamic_dimensions(tmp_path, "nonexistent", "Q01", required_domains=())
         assert dims == []
 
     def test_generate_dynamic_dimensions_required_defaults(self, tmp_path):
         """新行为：默认必查白名单即使 SE 0 命中也生成 5 个维度兜底."""
-        from dqg.quality.dynamic_rubric import _REQUIRED_DOMAINS, generate_dynamic_dimensions
+        from qualix.quality.dynamic_rubric import _REQUIRED_DOMAINS, generate_dynamic_dimensions
 
         dims = generate_dynamic_dimensions(tmp_path, "nonexistent", "Q01")
         assert len(dims) == len(_REQUIRED_DOMAINS)
@@ -91,7 +91,7 @@ class TestDynamicRubric:
             assert d.get("fail_threshold") == 2
 
     def test_enrich_rubric_normalizes_weights(self):
-        from dqg.quality.dynamic_rubric import enrich_rubric_with_dynamic_dimensions
+        from qualix.quality.dynamic_rubric import enrich_rubric_with_dynamic_dimensions
 
         rubric = {
             "name": "test",
@@ -109,7 +109,7 @@ class TestDynamicRubric:
         assert len(enriched["dimensions"]) == 3
 
     def test_enrich_rubric_no_duplicates(self):
-        from dqg.quality.dynamic_rubric import enrich_rubric_with_dynamic_dimensions
+        from qualix.quality.dynamic_rubric import enrich_rubric_with_dynamic_dimensions
 
         rubric = {
             "name": "test",
@@ -121,7 +121,7 @@ class TestDynamicRubric:
 
     def test_classify_new_q01_domains(self):
         """新增 3 个 Q01 业务语义域：数据一致性/外部依赖/异常恢复."""
-        from dqg.quality.dynamic_rubric import classify_se_domains
+        from qualix.quality.dynamic_rubric import classify_se_domains
 
         se_list = [
             {"description": "金刚位和投诉单两个入口提交的数据同步一致性"},
@@ -136,7 +136,7 @@ class TestDynamicRubric:
 
     def test_all_templates_have_fail_threshold(self):
         """所有 9 个模板必须有 fail_threshold 字段（支撑维度门限机制）."""
-        from dqg.quality.dynamic_rubric import _DYNAMIC_DIMENSION_TEMPLATES
+        from qualix.quality.dynamic_rubric import _DYNAMIC_DIMENSION_TEMPLATES
 
         for domain, tpl in _DYNAMIC_DIMENSION_TEMPLATES.items():
             assert "fail_threshold" in tpl, f"{domain} template missing fail_threshold"
@@ -145,7 +145,7 @@ class TestDynamicRubric:
 
     def test_ddd_aggregate_not_in_templates(self):
         """DDD 聚合边界维度已被移出 Q01 层（属于 Q02/Q03 技术方案评审）."""
-        from dqg.quality.dynamic_rubric import _DYNAMIC_DIMENSION_TEMPLATES, _SE_DOMAIN_PATTERNS
+        from qualix.quality.dynamic_rubric import _DYNAMIC_DIMENSION_TEMPLATES, _SE_DOMAIN_PATTERNS
 
         assert "DDD 聚合边界" not in _DYNAMIC_DIMENSION_TEMPLATES
         assert "DDD 聚合边界" not in _SE_DOMAIN_PATTERNS
@@ -158,36 +158,36 @@ class TestDynamicRubric:
 
 class TestCompileCheck:
     def test_detect_build_tool_maven(self, tmp_path):
-        from dqg.quality.compile_check import detect_build_tool
+        from qualix.quality.compile_check import detect_build_tool
 
         (tmp_path / "pom.xml").write_text("<project/>")
         assert detect_build_tool(tmp_path) == "maven"
 
     def test_detect_build_tool_gradle(self, tmp_path):
-        from dqg.quality.compile_check import detect_build_tool
+        from qualix.quality.compile_check import detect_build_tool
 
         (tmp_path / "build.gradle").write_text("apply plugin: 'java'")
         assert detect_build_tool(tmp_path) == "gradle"
 
     def test_detect_build_tool_go(self, tmp_path):
-        from dqg.quality.compile_check import detect_build_tool
+        from qualix.quality.compile_check import detect_build_tool
 
         (tmp_path / "go.mod").write_text("module example.com/foo")
         assert detect_build_tool(tmp_path) == "go"
 
     def test_detect_build_tool_none(self, tmp_path):
-        from dqg.quality.compile_check import detect_build_tool
+        from qualix.quality.compile_check import detect_build_tool
 
         assert detect_build_tool(tmp_path) is None
 
     def test_check_phase_b_no_repo(self):
-        from dqg.quality.compile_check import check_phase_b_compilation
+        from qualix.quality.compile_check import check_phase_b_compilation
 
         errors = check_phase_b_compilation(Path("/tmp"), "test", code_repo=None)
         assert errors == []
 
     def test_check_phase_b_missing_repo(self):
-        from dqg.quality.compile_check import check_phase_b_compilation
+        from qualix.quality.compile_check import check_phase_b_compilation
 
         errors = check_phase_b_compilation(Path("/tmp"), "test", code_repo="/nonexistent/path")
         assert any("BLOCKED" in e for e in errors)
@@ -200,7 +200,7 @@ class TestCompileCheck:
 
 class TestBlastRadius:
     def test_build_call_graph_regex(self, tmp_path):
-        from dqg.quality.blast_radius import build_call_graph_regex
+        from qualix.quality.blast_radius import build_call_graph_regex
 
         java_file = tmp_path / "OrderService.java"
         java_file.write_text(
@@ -223,7 +223,7 @@ class TestBlastRadius:
         assert any("charge" in c for c in calls)
 
     def test_build_call_graph_empty(self, tmp_path):
-        from dqg.quality.blast_radius import build_call_graph_regex
+        from qualix.quality.blast_radius import build_call_graph_regex
 
         graph = build_call_graph_regex(tmp_path, [])
         assert graph == {}
@@ -236,7 +236,7 @@ class TestBlastRadius:
 
 class TestCoverageGate:
     def test_parse_jacoco_xml(self, tmp_path):
-        from dqg.quality.coverage_gate import parse_jacoco_xml
+        from qualix.quality.coverage_gate import parse_jacoco_xml
 
         xml_content = textwrap.dedent("""\
             <?xml version="1.0" encoding="UTF-8"?>
@@ -255,7 +255,7 @@ class TestCoverageGate:
         assert result["branch"]["rate"] == 0.6
 
     def test_check_coverage_gate_pass(self):
-        from dqg.quality.coverage_gate import check_coverage_gate
+        from qualix.quality.coverage_gate import check_coverage_gate
 
         # 公司硬性指标：行/分支覆盖率均 100% 才算通过
         coverage = {
@@ -266,7 +266,7 @@ class TestCoverageGate:
         assert errors == []
 
     def test_check_coverage_gate_pass_custom_threshold(self):
-        from dqg.quality.coverage_gate import check_coverage_gate
+        from qualix.quality.coverage_gate import check_coverage_gate
 
         # 允许自定义阈值（向下兼容旧场景）
         coverage = {
@@ -277,7 +277,7 @@ class TestCoverageGate:
         assert errors == []
 
     def test_check_coverage_gate_fail(self):
-        from dqg.quality.coverage_gate import check_coverage_gate
+        from qualix.quality.coverage_gate import check_coverage_gate
 
         # 85%/82% 在 100% 阈值下应 FAIL
         coverage = {
@@ -289,13 +289,13 @@ class TestCoverageGate:
         assert all("BLOCKED" in e for e in errors)
 
     def test_parse_jacoco_xml_missing(self, tmp_path):
-        from dqg.quality.coverage_gate import parse_jacoco_xml
+        from qualix.quality.coverage_gate import parse_jacoco_xml
 
         result = parse_jacoco_xml(tmp_path / "nonexistent.xml")
         assert result is None
 
     def test_find_jacoco_report_maven(self, tmp_path):
-        from dqg.quality.coverage_gate import find_jacoco_report
+        from qualix.quality.coverage_gate import find_jacoco_report
 
         jacoco_dir = tmp_path / "target" / "site" / "jacoco"
         jacoco_dir.mkdir(parents=True)
@@ -305,12 +305,12 @@ class TestCoverageGate:
         assert "jacoco.xml" in str(found)
 
     def test_find_jacoco_report_none(self, tmp_path):
-        from dqg.quality.coverage_gate import find_jacoco_report
+        from qualix.quality.coverage_gate import find_jacoco_report
 
         assert find_jacoco_report(tmp_path) is None
 
     def test_parse_jacoco_per_file(self, tmp_path):
-        from dqg.quality.coverage_gate import parse_jacoco_per_file
+        from qualix.quality.coverage_gate import parse_jacoco_per_file
 
         xml_content = textwrap.dedent("""\
             <?xml version="1.0" encoding="UTF-8"?>
@@ -338,12 +338,12 @@ class TestCoverageGate:
         assert result["com/example/Bar.java"]["line"]["rate"] == 0.5
 
     def test_parse_jacoco_per_file_missing(self, tmp_path):
-        from dqg.quality.coverage_gate import parse_jacoco_per_file
+        from qualix.quality.coverage_gate import parse_jacoco_per_file
 
         assert parse_jacoco_per_file(tmp_path / "nope.xml") is None
 
     def test_compute_incremental_coverage_basic(self):
-        from dqg.quality.coverage_gate import compute_incremental_coverage
+        from qualix.quality.coverage_gate import compute_incremental_coverage
 
         per_file = {
             "com/example/Foo.java": {
@@ -375,7 +375,7 @@ class TestCoverageGate:
         assert abs(result["incremental"]["branch"]["rate"] - 0.5556) < 0.001
 
     def test_compute_incremental_coverage_no_match(self):
-        from dqg.quality.coverage_gate import compute_incremental_coverage
+        from qualix.quality.coverage_gate import compute_incremental_coverage
 
         per_file = {
             "com/example/Unrelated.java": {
@@ -395,7 +395,7 @@ class TestCoverageGate:
 
     def test_compute_incremental_coverage_filename_fallback(self):
         """changed_files 路径不含 java/ 目录时 fallback 到文件名匹配."""
-        from dqg.quality.coverage_gate import compute_incremental_coverage
+        from qualix.quality.coverage_gate import compute_incremental_coverage
 
         per_file = {
             "com/example/Service.java": {
@@ -420,7 +420,7 @@ class TestCoverageGate:
 
 class TestOvercorrectionGuard:
     def test_no_overcorrection(self):
-        from dqg.quality.rationalization_guard import OvercorrectionGuard
+        from qualix.quality.rationalization_guard import OvercorrectionGuard
 
         guard = OvercorrectionGuard()
         output = (
@@ -433,7 +433,7 @@ class TestOvercorrectionGuard:
         assert result.fail_without_evidence == []
 
     def test_detect_style_overcorrection(self):
-        from dqg.quality.rationalization_guard import OvercorrectionGuard
+        from qualix.quality.rationalization_guard import OvercorrectionGuard
 
         guard = OvercorrectionGuard()
         output = "虽然代码逻辑正确，但不符合最佳实践，判定 FAIL。"
@@ -442,7 +442,7 @@ class TestOvercorrectionGuard:
         assert len(result.confirmed_overcorrections) >= 1
 
     def test_detect_fail_without_evidence(self):
-        from dqg.quality.rationalization_guard import OvercorrectionGuard
+        from qualix.quality.rationalization_guard import OvercorrectionGuard
 
         guard = OvercorrectionGuard()
         output = "该模块整体质量一般。\n\nFAIL: 缺少异常处理逻辑，不符合规范要求。\n\nPASS: 接口定义清晰。"
@@ -452,7 +452,7 @@ class TestOvercorrectionGuard:
         assert "缺少异常处理" in result.fail_without_evidence[0]
 
     def test_fail_with_evidence_passes(self):
-        from dqg.quality.rationalization_guard import OvercorrectionGuard
+        from qualix.quality.rationalization_guard import OvercorrectionGuard
 
         guard = OvercorrectionGuard()
         output = (
@@ -463,7 +463,7 @@ class TestOvercorrectionGuard:
         assert result.fail_without_evidence == []
 
     def test_detect_theoretical_risk_as_blocker(self):
-        from dqg.quality.rationalization_guard import OvercorrectionGuard
+        from qualix.quality.rationalization_guard import OvercorrectionGuard
 
         guard = OvercorrectionGuard()
         output = "潜在风险较大，判定 BLOCKER。"
@@ -472,7 +472,7 @@ class TestOvercorrectionGuard:
         assert len(result.confirmed_overcorrections) >= 1
 
     def test_format_overcorrection_warning(self):
-        from dqg.quality.rationalization_guard import (
+        from qualix.quality.rationalization_guard import (
             OvercorrectionResult,
             format_overcorrection_warning,
         )
@@ -530,7 +530,7 @@ class TestCodeSkeleton:
     """)
 
     def test_regex_skeleton_no_expand(self):
-        from dqg.context.code_skeleton import extract_skeleton_regex
+        from qualix.context.code_skeleton import extract_skeleton_regex
 
         result = extract_skeleton_regex(self.SAMPLE_JAVA)
         assert result.total_lines > result.skeleton_lines
@@ -545,7 +545,7 @@ class TestCodeSkeleton:
         assert result.expanded_methods == []
 
     def test_regex_skeleton_with_expand(self):
-        from dqg.context.code_skeleton import extract_skeleton_regex
+        from qualix.context.code_skeleton import extract_skeleton_regex
 
         result = extract_skeleton_regex(self.SAMPLE_JAVA, expand_methods={"getOrder"})
         # getOrder 应展开
@@ -556,7 +556,7 @@ class TestCodeSkeleton:
 
     def test_extract_skeleton_unified(self):
         """统一入口：tree-sitter 或 regex 都应返回有效结果."""
-        from dqg.context.code_skeleton import extract_skeleton
+        from qualix.context.code_skeleton import extract_skeleton
 
         result = extract_skeleton(self.SAMPLE_JAVA)
         assert result.skeleton_lines > 0
@@ -565,7 +565,7 @@ class TestCodeSkeleton:
 
     def test_extract_skeleton_with_oracle(self):
         """Oracle 标注：只展开相关方法."""
-        from dqg.context.code_skeleton import extract_skeleton
+        from qualix.context.code_skeleton import extract_skeleton
 
         result = extract_skeleton(self.SAMPLE_JAVA, expand_methods={"validateOrder"})
         assert "validateOrder" in result.expanded_methods
@@ -575,7 +575,7 @@ class TestCodeSkeleton:
         assert "NotFoundException" not in result.skeleton_text
 
     def test_extract_skeleton_for_files(self, tmp_path):
-        from dqg.context.code_skeleton import extract_skeleton_for_files
+        from qualix.context.code_skeleton import extract_skeleton_for_files
 
         java_file = tmp_path / "OrderService.java"
         java_file.write_text(self.SAMPLE_JAVA)
@@ -590,14 +590,14 @@ class TestCodeSkeleton:
         assert r.compression_ratio >= 1.0
 
     def test_empty_source(self):
-        from dqg.context.code_skeleton import extract_skeleton
+        from qualix.context.code_skeleton import extract_skeleton
 
         result = extract_skeleton("")
         assert result.skeleton_lines == 0 or result.skeleton_text.strip() == ""
 
     def test_case_insensitive_expand(self):
         """方法名匹配应大小写不敏感."""
-        from dqg.context.code_skeleton import extract_skeleton_regex
+        from qualix.context.code_skeleton import extract_skeleton_regex
 
         result = extract_skeleton_regex(self.SAMPLE_JAVA, expand_methods={"GETORDER"})
         assert "getOrder" in result.expanded_methods
@@ -610,7 +610,7 @@ class TestCodeSkeleton:
 
 class TestDemandTrace:
     def test_trace_downstream_basic(self):
-        from dqg.quality.demand_trace import trace_downstream
+        from qualix.quality.demand_trace import trace_downstream
 
         graph = {
             "Controller.handleOrder": {
@@ -655,7 +655,7 @@ class TestDemandTrace:
         assert len(result["traced_files"]) == 4
 
     def test_trace_downstream_depth_limit(self):
-        from dqg.quality.demand_trace import trace_downstream
+        from qualix.quality.demand_trace import trace_downstream
 
         graph = {
             "A.a": {"file": "A.java", "line": 1, "calls": ["B.b"], "called_by": []},
@@ -671,14 +671,14 @@ class TestDemandTrace:
         assert "C.c" not in methods  # depth 2, beyond limit
 
     def test_trace_downstream_empty_graph(self):
-        from dqg.quality.demand_trace import trace_downstream
+        from qualix.quality.demand_trace import trace_downstream
 
         result = trace_downstream({}, ["Missing.method"])
         assert result["traced_methods"] == []
         assert result["traced_files"] == []
 
     def test_extract_entry_methods(self):
-        from dqg.quality.demand_trace import _extract_entry_methods
+        from qualix.quality.demand_trace import _extract_entry_methods
 
         se_data = {
             "mappings": [
@@ -712,7 +712,7 @@ class TestDemandTrace:
         assert len(entries) == 3
 
     def test_compute_overlap(self):
-        from dqg.quality.demand_trace import _compute_overlap
+        from qualix.quality.demand_trace import _compute_overlap
 
         trace = {
             "traced_methods": [
@@ -733,7 +733,7 @@ class TestDemandTrace:
         assert overlap["recommendation"] == "HIGH_CONFIDENCE"
 
     def test_compute_overlap_no_intersection(self):
-        from dqg.quality.demand_trace import _compute_overlap
+        from qualix.quality.demand_trace import _compute_overlap
 
         trace = {"traced_methods": [{"method": "A.a"}]}
         blast = {"changed_methods": ["B.b"], "affected_callers": []}
@@ -750,7 +750,7 @@ class TestDemandTrace:
 
 class TestRequirementSmell:
     def test_detect_vague(self):
-        from dqg.quality.requirement_smell import detect_smells
+        from qualix.quality.requirement_smell import detect_smells
 
         text = "系统应适当控制并发请求数量，尽量保证响应速度。"
         report = detect_smells(text)
@@ -758,7 +758,7 @@ class TestRequirementSmell:
         assert "VAGUE" in types
 
     def test_detect_subjective(self):
-        from dqg.quality.requirement_smell import detect_smells
+        from qualix.quality.requirement_smell import detect_smells
 
         text = "界面设计要美观，交互流畅。"
         report = detect_smells(text)
@@ -766,7 +766,7 @@ class TestRequirementSmell:
         assert "SUBJECTIVE" in types
 
     def test_detect_unbounded(self):
-        from dqg.quality.requirement_smell import detect_smells
+        from qualix.quality.requirement_smell import detect_smells
 
         text = "支持所有用户同时在线，数据量不限。"
         report = detect_smells(text)
@@ -774,7 +774,7 @@ class TestRequirementSmell:
         assert "UNBOUNDED" in types
 
     def test_detect_incomplete(self):
-        from dqg.quality.requirement_smell import detect_smells
+        from qualix.quality.requirement_smell import detect_smells
 
         text = "优化查询性能，提升用户体验。"
         report = detect_smells(text)
@@ -782,7 +782,7 @@ class TestRequirementSmell:
         assert "INCOMPLETE" in types
 
     def test_detect_contradictory(self):
-        from dqg.quality.requirement_smell import detect_smells
+        from qualix.quality.requirement_smell import detect_smells
 
         text = "该接口必须同步返回结果，同时支持异步回调通知。"
         report = detect_smells(text)
@@ -790,7 +790,7 @@ class TestRequirementSmell:
         assert "CONTRADICTORY" in types
 
     def test_clean_requirement(self):
-        from dqg.quality.requirement_smell import detect_smells
+        from qualix.quality.requirement_smell import detect_smells
 
         text = "用户提交订单后，系统在3秒内返回订单号，状态为PENDING。"
         report = detect_smells(text)
@@ -798,7 +798,7 @@ class TestRequirementSmell:
         assert len(report.smells) == 0
 
     def test_quality_score_degrades(self):
-        from dqg.quality.requirement_smell import detect_smells
+        from qualix.quality.requirement_smell import detect_smells
 
         text = "系统应适当处理并发请求。\n所有用户数据不限容量。\n界面要美观大方。\n"
         report = detect_smells(text)
@@ -806,7 +806,7 @@ class TestRequirementSmell:
         assert len(report.smells) >= 3
 
     def test_get_smell_lines(self):
-        from dqg.quality.requirement_smell import detect_smells, get_smell_lines
+        from qualix.quality.requirement_smell import detect_smells, get_smell_lines
 
         text = "正常需求描述。\n系统应适当处理请求。\n另一条正常需求。"
         report = detect_smells(text)
@@ -816,7 +816,7 @@ class TestRequirementSmell:
         assert 3 not in lines
 
     def test_dedup_same_line_same_type(self):
-        from dqg.quality.requirement_smell import detect_smells
+        from qualix.quality.requirement_smell import detect_smells
 
         # 同一行多个模糊词只保留一条 VAGUE
         text = "系统应适当且尽量保证合理的响应速度。"
@@ -855,7 +855,7 @@ class TestRequirementGraph:
     }
 
     def test_build_graph(self):
-        from dqg.quality.requirement_graph import build_requirement_graph
+        from qualix.quality.requirement_graph import build_requirement_graph
 
         G = build_requirement_graph(self.SAMPLE_DATA)
         assert G is not None
@@ -863,7 +863,7 @@ class TestRequirementGraph:
         assert G.number_of_nodes() == 12
 
     def test_detect_uncovered_br(self):
-        from dqg.quality.requirement_graph import (
+        from qualix.quality.requirement_graph import (
             analyze_requirement_graph,
             build_requirement_graph,
         )
@@ -875,7 +875,7 @@ class TestRequirementGraph:
         assert any(a.node_id == "BR-003" for a in uncovered)
 
     def test_detect_orphan_se(self):
-        from dqg.quality.requirement_graph import (
+        from qualix.quality.requirement_graph import (
             analyze_requirement_graph,
             build_requirement_graph,
         )
@@ -887,7 +887,7 @@ class TestRequirementGraph:
         assert any(a.node_id == "SE-003" for a in orphans)
 
     def test_detect_isolated_req(self):
-        from dqg.quality.requirement_graph import (
+        from qualix.quality.requirement_graph import (
             analyze_requirement_graph,
             build_requirement_graph,
         )
@@ -901,7 +901,7 @@ class TestRequirementGraph:
         assert not any(a.node_id == "REQ-001" for a in isolated)
 
     def test_detect_dangling_gap_and_open(self):
-        from dqg.quality.requirement_graph import (
+        from qualix.quality.requirement_graph import (
             analyze_requirement_graph,
             build_requirement_graph,
         )
@@ -914,7 +914,7 @@ class TestRequirementGraph:
         assert any(a.node_id == "OPEN-002" for a in dangling_opens)
 
     def test_coverage_summary(self):
-        from dqg.quality.requirement_graph import (
+        from qualix.quality.requirement_graph import (
             analyze_requirement_graph,
             build_requirement_graph,
         )
@@ -925,7 +925,7 @@ class TestRequirementGraph:
         assert result.coverage_summary["br_se_coverage"] == pytest.approx(0.67, abs=0.01)
 
     def test_empty_data(self):
-        from dqg.quality.requirement_graph import (
+        from qualix.quality.requirement_graph import (
             analyze_requirement_graph,
             build_requirement_graph,
         )

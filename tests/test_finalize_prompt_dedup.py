@@ -6,8 +6,8 @@ import json
 from types import SimpleNamespace
 from typing import TYPE_CHECKING
 
-from dqg.commands.phase import cmd_finalize
-from dqg.core.state_machine import PhaseStatus, ProjectState, save_state
+from qualix.commands.phase import cmd_finalize
+from qualix.core.state_machine import PhaseStatus, ProjectState, save_state
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -44,33 +44,33 @@ def test_finalize_reuses_review_chain_payload_and_does_not_regenerate_prompts(
     state = ProjectState(project_id="demo")
     state.phases["Q01"].status = PhaseStatus.IN_PROGRESS
 
-    monkeypatch.setattr("dqg.commands.phase.load_state", lambda *_: state)
-    monkeypatch.setattr("dqg.commands.phase.save_state", lambda *args, **kwargs: None)
-    monkeypatch.setattr("dqg.reporting.telemetry.append_record", lambda *args, **kwargs: None)
-    monkeypatch.setattr("dqg.runtime.phase_runtime.finalize_phase", lambda *args, **kwargs: [])
-    monkeypatch.setattr("dqg.commands.phase.record_judge_score", lambda *args, **kwargs: None)
+    monkeypatch.setattr("qualix.commands.phase.load_state", lambda *_: state)
+    monkeypatch.setattr("qualix.commands.phase.save_state", lambda *args, **kwargs: None)
+    monkeypatch.setattr("qualix.reporting.telemetry.append_record", lambda *args, **kwargs: None)
+    monkeypatch.setattr("qualix.runtime.phase_runtime.finalize_phase", lambda *args, **kwargs: [])
+    monkeypatch.setattr("qualix.commands.phase.record_judge_score", lambda *args, **kwargs: None)
 
-    monkeypatch.setattr("dqg.quality.finalize_checks.run_finalize_checks", lambda *args, **kwargs: [])
-    monkeypatch.setattr("dqg.quality.cross_phase_check.check_cross_phase_refs", lambda *args, **kwargs: ([], {}))
-    monkeypatch.setattr("dqg.schemas.validate_phase_output", lambda *args, **kwargs: [])
-    monkeypatch.setattr("dqg.cache.fact_cache.index_phase_facts", lambda *args, **kwargs: 0)
-    monkeypatch.setattr("dqg.reporting.perf_tracker.collect_phase_metrics", lambda *args, **kwargs: {})
-    monkeypatch.setattr("dqg.reporting.perf_tracker.persist_phase_metrics", lambda *args, **kwargs: None)
+    monkeypatch.setattr("qualix.quality.finalize_checks.run_finalize_checks", lambda *args, **kwargs: [])
+    monkeypatch.setattr("qualix.quality.cross_phase_check.check_cross_phase_refs", lambda *args, **kwargs: ([], {}))
+    monkeypatch.setattr("qualix.schemas.validate_phase_output", lambda *args, **kwargs: [])
+    monkeypatch.setattr("qualix.cache.fact_cache.index_phase_facts", lambda *args, **kwargs: 0)
+    monkeypatch.setattr("qualix.reporting.perf_tracker.collect_phase_metrics", lambda *args, **kwargs: {})
+    monkeypatch.setattr("qualix.reporting.perf_tracker.persist_phase_metrics", lambda *args, **kwargs: None)
     monkeypatch.setattr(
-        "dqg.memory.memory_layer.MemoryLayer.index_phase", lambda *args, **kwargs: {"facts": 0, "version_diff": None}
+        "qualix.memory.memory_layer.MemoryLayer.index_phase", lambda *args, **kwargs: {"facts": 0, "version_diff": None}
     )
-    monkeypatch.setattr("dqg.quality.golden_sample.compare_with_golden", lambda *args, **kwargs: {})
-    monkeypatch.setattr("dqg.quality.golden_sample.format_golden_diff", lambda diff: "golden")
-    monkeypatch.setattr("dqg.quality.rule_compliance.compute_rule_compliance", lambda *args, **kwargs: None)
+    monkeypatch.setattr("qualix.quality.golden_sample.compare_with_golden", lambda *args, **kwargs: {})
+    monkeypatch.setattr("qualix.quality.golden_sample.format_golden_diff", lambda diff: "golden")
+    monkeypatch.setattr("qualix.quality.rule_compliance.compute_rule_compliance", lambda *args, **kwargs: None)
     monkeypatch.setattr(
-        "dqg.skill_tracker.track_rule_quality",
+        "qualix.skill_tracker.track_rule_quality",
         lambda *args, **kwargs: {"matched_signals": [], "potential_new_issues": []},
     )
-    monkeypatch.setattr("dqg.memory.version_tracker.extract_facts_from_json", lambda *args, **kwargs: [])
-    monkeypatch.setattr("dqg.memory.version_tracker.format_version_diff", lambda *args, **kwargs: "version")
-    monkeypatch.setattr("dqg.memory.version_tracker.track_version", lambda *args, **kwargs: {})
-    monkeypatch.setattr("dqg.skill_tracker.auto_generate_bug_case", lambda *args, **kwargs: [])
-    monkeypatch.setattr("dqg.skill_tracker.suggest_prompt_fix", lambda *args, **kwargs: [])
+    monkeypatch.setattr("qualix.memory.version_tracker.extract_facts_from_json", lambda *args, **kwargs: [])
+    monkeypatch.setattr("qualix.memory.version_tracker.format_version_diff", lambda *args, **kwargs: "version")
+    monkeypatch.setattr("qualix.memory.version_tracker.track_version", lambda *args, **kwargs: {})
+    monkeypatch.setattr("qualix.skill_tracker.auto_generate_bug_case", lambda *args, **kwargs: [])
+    monkeypatch.setattr("qualix.skill_tracker.suggest_prompt_fix", lambda *args, **kwargs: [])
 
     review_counts = {"judge": 0, "critique": 0}
 
@@ -92,15 +92,15 @@ def test_finalize_reuses_review_chain_payload_and_does_not_regenerate_prompts(
             "必须引用证据。"
         )
 
-    monkeypatch.setattr("dqg.quality.review_chain.generate_judge_prompt", _judge_prompt)
-    monkeypatch.setattr("dqg.quality.review_chain.generate_critique_prompt", _critique_prompt)
+    monkeypatch.setattr("qualix.quality.review_chain.generate_judge_prompt", _judge_prompt)
+    monkeypatch.setattr("qualix.quality.review_chain.generate_critique_prompt", _critique_prompt)
 
     monkeypatch.setattr(
-        "dqg.quality.judge.generate_judge_prompt",
+        "qualix.quality.judge.generate_judge_prompt",
         lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError("judge prompt should be reused")),
     )
     monkeypatch.setattr(
-        "dqg.quality.critique.generate_critique_prompt",
+        "qualix.quality.critique.generate_critique_prompt",
         lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError("critique prompt should be reused")),
     )
 

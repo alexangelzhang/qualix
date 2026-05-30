@@ -1,8 +1,8 @@
-"""Tests for dqg.collect_metrics."""
+"""Tests for qualix.collect_metrics."""
 
 from pathlib import Path
 
-from dqg.reporting.collect_metrics import (
+from qualix.reporting.collect_metrics import (
     collect_all_metrics,
     count_pattern,
     extract_phase_a6_metrics,

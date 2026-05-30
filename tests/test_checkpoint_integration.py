@@ -8,7 +8,7 @@ import json
 
 def test_evidence_pack_checkpoint_passes_good_pack():
     """Good evidence pack with contract passes checkpoint."""
-    from dqg.quality.checkpoint_validator import validate_checkpoint
+    from qualix.quality.checkpoint_validator import validate_checkpoint
 
     contract = {
         "verification_targets": [
@@ -28,7 +28,7 @@ def test_evidence_pack_checkpoint_passes_good_pack():
 
 def test_evidence_pack_checkpoint_blocks_empty_pack():
     """Empty evidence pack fails checkpoint."""
-    from dqg.quality.checkpoint_validator import validate_checkpoint
+    from qualix.quality.checkpoint_validator import validate_checkpoint
 
     contract = {
         "verification_targets": [{"id": "REQ-001", "description": "test"}],
@@ -41,7 +41,7 @@ def test_upstream_quality_check_in_preflight(tmp_path):
     """Preflight upstream quality check runs without error."""
     from unittest.mock import MagicMock, patch
 
-    from dqg.runtime.preflight import _check_upstream_quality
+    from qualix.runtime.preflight import _check_upstream_quality
 
     project_id = "test-proj"
     q01_dir = tmp_path / project_id / "Q01"
@@ -68,7 +68,7 @@ def test_upstream_quality_check_in_preflight(tmp_path):
     mock_phase.run_status = "ok"
     mock_state.phases = {"Q01": mock_phase}
 
-    with patch("dqg.core.state_machine.load_state", return_value=mock_state):
+    with patch("qualix.core.state_machine.load_state", return_value=mock_state):
         result = _check_upstream_quality(tmp_path, project_id, "Q03")
 
     assert result["name"] == "upstream_quality"
@@ -77,7 +77,7 @@ def test_upstream_quality_check_in_preflight(tmp_path):
 
 def test_checkpoint_no_contract_graceful_skip():
     """No contract file → checkpoint skips gracefully."""
-    from dqg.quality.checkpoint_validator import validate_checkpoint
+    from qualix.quality.checkpoint_validator import validate_checkpoint
 
     result = validate_checkpoint("some content here", {}, "Q01", "test")
     assert result.passed is True

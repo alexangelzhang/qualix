@@ -35,9 +35,9 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
-from dqg.constants import DEFAULT_FALLBACK_MODEL, DEFAULT_JUDGE_MODEL
-from dqg.quality.judge.judge_rubrics import compose_rubric
-from dqg.quality.judge.judge_runner import JudgeRunner
+from qualix.constants import DEFAULT_FALLBACK_MODEL, DEFAULT_JUDGE_MODEL
+from qualix.quality.judge.judge_rubrics import compose_rubric
+from qualix.quality.judge.judge_runner import JudgeRunner
 
 FAILURE_CASES_ROOT = PROJECT_ROOT / "regression" / "failure-library" / "cases"
 PASS_CASES_ROOT = PROJECT_ROOT / "regression" / "pass-library" / "cases"

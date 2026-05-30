@@ -1,11 +1,11 @@
-"""Tests for dqg.model_registry and dqg.context_loader."""
+"""Tests for qualix.model_registry and qualix.context_loader."""
 
 import json
 from pathlib import Path
 
-from dqg.context.context_loader import load_context
-from dqg.core.model_registry import estimate_tokens, get_model_profile
-from dqg.core.state_machine import PhaseStatus, ProjectState, load_state, save_state
+from qualix.context.context_loader import load_context
+from qualix.core.model_registry import estimate_tokens, get_model_profile
+from qualix.core.state_machine import PhaseStatus, ProjectState, load_state, save_state
 
 
 class TestModelRegistry:
@@ -160,7 +160,7 @@ class TestContextLoader:
             return "## BUG_CASES\n\n### 反例 1: 登录后未跳首页 [漏报]"
 
         monkeypatch.setattr(
-            "dqg.context.upstream_collector.render_relevant_cases_for_prompt",
+            "qualix.context.upstream_collector.render_relevant_cases_for_prompt",
             fake_render,
         )
 

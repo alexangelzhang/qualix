@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Feishu 文档 ingest 入口 — 调用 dqg.ingest.feishu.crawler.crawl_documents."""
+"""Feishu 文档 ingest 入口 — 调用 qualix.ingest.feishu.crawler.crawl_documents."""
 
 import argparse
 import sys
@@ -7,9 +7,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
-from dqg.ingest.feishu.auth import load_larkkit
-from dqg.ingest.feishu.crawler import crawl_documents
-from dqg.json_utils import dump_json_str
+from qualix.ingest.feishu.auth import load_larkkit
+from qualix.ingest.feishu.crawler import crawl_documents
+from qualix.json_utils import dump_json_str
 
 
 def main() -> int:

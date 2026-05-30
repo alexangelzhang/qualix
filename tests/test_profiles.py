@@ -1,10 +1,10 @@
-"""Tests for dqg.profiles."""
+"""Tests for qualix.profiles."""
 
 from __future__ import annotations
 
 from pathlib import Path
 
-from dqg.core.profiles import (
+from qualix.core.profiles import (
     DqgProfile,
     _load_profile_context_cached,
     get_profile,

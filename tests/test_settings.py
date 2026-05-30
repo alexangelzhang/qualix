@@ -1,6 +1,6 @@
 import pytest
 
-from dqg.core.settings import check_version_drift, load_settings
+from qualix.core.settings import check_version_drift, load_settings
 
 
 def test_load_settings_minimal(tmp_path):

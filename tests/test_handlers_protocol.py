@@ -28,7 +28,7 @@ def _make_result():
 
 def test_protocol_compliance_passes_when_all_covered(tmp_path):
     """All checklist items mentioned in judge result → no BLOCKED errors."""
-    from dqg.runtime.handlers_protocol import handle_protocol_compliance
+    from qualix.runtime.handlers_protocol import handle_protocol_compliance
 
     ctx = _make_ctx(tmp_path, "Q07")
     result = _make_result()
@@ -55,7 +55,7 @@ def test_protocol_compliance_passes_when_all_covered(tmp_path):
 
 def test_protocol_compliance_warns_when_checklist_uncovered(tmp_path):
     """Missing checklist items → WARNING (not BLOCKED, keyword fuzzy match too imprecise)."""
-    from dqg.runtime.handlers_protocol import handle_protocol_compliance
+    from qualix.runtime.handlers_protocol import handle_protocol_compliance
 
     ctx = _make_ctx(tmp_path, "Q07")
     result = _make_result()
@@ -77,7 +77,7 @@ def test_protocol_compliance_warns_when_checklist_uncovered(tmp_path):
 
 def test_protocol_compliance_skips_unknown_phase(tmp_path):
     """Unknown phase → no errors, no warnings."""
-    from dqg.runtime.handlers_protocol import handle_protocol_compliance
+    from qualix.runtime.handlers_protocol import handle_protocol_compliance
 
     ctx = _make_ctx(tmp_path, "Q99")
     result = _make_result()
@@ -87,7 +87,7 @@ def test_protocol_compliance_skips_unknown_phase(tmp_path):
 
 def test_protocol_compliance_warns_on_zero_dynamic_genes(tmp_path):
     """No dynamic genes → WARNING (SOFT, not BLOCKED)."""
-    from dqg.runtime.handlers_protocol import handle_protocol_compliance
+    from qualix.runtime.handlers_protocol import handle_protocol_compliance
 
     ctx = _make_ctx(tmp_path, "Q07")
     result = _make_result()

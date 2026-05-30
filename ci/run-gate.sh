@@ -28,9 +28,9 @@ if [ -z "$PROJECT_ID" ]; then
   exit 2
 fi
 
-# 检查 dqg-run 是否可用
-if ! command -v dqg-run &>/dev/null; then
-  echo "ERROR: dqg-run 未找到，请先执行 pip install -e ." >&2
+# 检查 qualix-run 是否可用
+if ! command -v qualix-run &>/dev/null; then
+  echo "ERROR: qualix-run 未找到，请先执行 pip install -e ." >&2
   exit 2
 fi
 
@@ -51,7 +51,7 @@ echo "Project: $PROJECT_ID  Phase: ${DQG_ALL_PHASES:-0 == 1 and 'ALL' or $PHASE}
 echo ""
 
 # 运行 gate
-dqg-run "$PROJECT_ID" ci-gate $PHASE_FLAG \
+qualix-run "$PROJECT_ID" ci-gate $PHASE_FLAG \
   --fail-on "$FAIL_ON" \
   $PR_FLAG
 EXIT_CODE=$?

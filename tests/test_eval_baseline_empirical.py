@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from dqg.quality.eval.eval_baseline import (
+from qualix.quality.eval.eval_baseline import (
     REGRESSION_THRESHOLD,
     _empirical_regression_tail,
     compare_with_baseline,
@@ -28,7 +28,7 @@ def test_empirical_tail_calm_history_allows_large_drop() -> None:
 
 def test_compare_suppresses_regression_when_empirical_not_confirmed(tmp_path: Path, monkeypatch) -> None:
     monkeypatch.setattr(
-        "dqg.quality.eval.eval_baseline._load_metric_series",
+        "qualix.quality.eval.eval_baseline._load_metric_series",
         lambda *a, **k: [1.0, 0.5] * 7,
     )
 

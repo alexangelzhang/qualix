@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dqg.store.prompt_versions import query_prompt_versions, record_prompt_snapshot
+from qualix.store.prompt_versions import query_prompt_versions, record_prompt_snapshot
 
 
 def test_record_prompt_snapshot_versions(tmp_path) -> None:

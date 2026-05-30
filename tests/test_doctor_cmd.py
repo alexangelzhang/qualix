@@ -3,7 +3,7 @@ import tarfile
 
 import pytest
 
-from dqg.commands.doctor import (
+from qualix.commands.doctor import (
     build_bundle,
     check_version_consistency,
     redact_text,
@@ -19,7 +19,7 @@ def project_with_state(tmp_path):
     (tmp_path / ".dqg" / "last-run.json").write_text(
         json.dumps(
             {
-                "cmd": ["dqg-run", "status"],
+                "cmd": ["qualix-run", "status"],
                 "exit_code": 1,
                 "ts": "2026-05-11T14:00:00+0800",
                 "cwd": str(tmp_path),
@@ -126,7 +126,7 @@ def test_run_doctor_ci_mode_outputs_json(project_with_state, tmp_path, monkeypat
     """In CI mode, run_doctor should print a JSON line to stdout and return 0."""
     import json as _json
 
-    from dqg.commands.doctor import run_doctor
+    from qualix.commands.doctor import run_doctor
 
     monkeypatch.setenv("CI", "true")
     out_bundle = tmp_path / "bundle.tgz"
@@ -151,7 +151,7 @@ def test_run_doctor_ci_mode_outputs_json(project_with_state, tmp_path, monkeypat
 
 def test_run_doctor_ci_mode_not_triggered_without_env(project_with_state, tmp_path, monkeypatch, capsys):
     """Without CI env vars, run_doctor should print prose (not JSON) and respect no_upload."""
-    from dqg.commands.doctor import run_doctor
+    from qualix.commands.doctor import run_doctor
 
     for v in ("CI", "GITLAB_CI", "GITHUB_ACTIONS", "JENKINS_URL", "BUILDKITE"):
         monkeypatch.delenv(v, raising=False)

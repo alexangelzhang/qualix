@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-from dqg.json_utils import load_json_strict
-from dqg.quality.critique import write_critique_prompt, write_preference_prompt
-from dqg.quality.judge import write_judge_prompt
-from dqg.quality.review_chain import write_review_chain_prompt
+from qualix.json_utils import load_json_strict
+from qualix.quality.critique import write_critique_prompt, write_preference_prompt
+from qualix.quality.judge import write_judge_prompt
+from qualix.quality.review_chain import write_review_chain_prompt
 
 
 def test_write_judge_prompt_persists_prompt_manifest(tmp_path) -> None:
@@ -29,7 +29,7 @@ def test_write_judge_prompt_persists_prompt_manifest(tmp_path) -> None:
     ]
     assert manifest["section_hashes"]["evaluation_protocol"]
     assert manifest["section_hashes"]["rubric"]
-    assert "dqg.quality.judge_rubrics" in manifest["section_sources"]["rubric"]
+    assert "qualix.quality.judge_rubrics" in manifest["section_sources"]["rubric"]
 
 
 def test_write_critique_prompt_persists_prompt_manifest(tmp_path) -> None:
@@ -49,7 +49,7 @@ def test_write_critique_prompt_persists_prompt_manifest(tmp_path) -> None:
         "evaluation_protocol",
     ]
     assert manifest["section_hashes"]["critique_steps"]
-    assert "dqg.quality.evaluation_protocols" in manifest["section_sources"]["evaluation_protocol"]
+    assert "qualix.quality.evaluation_protocols" in manifest["section_sources"]["evaluation_protocol"]
 
 
 def test_write_review_chain_prompt_persists_prompt_manifest(tmp_path) -> None:
@@ -69,7 +69,7 @@ def test_write_review_chain_prompt_persists_prompt_manifest(tmp_path) -> None:
         "preference_block",
         "completion_contract",
     ]
-    assert "dqg.quality.judge" in manifest["section_sources"]["judge_block"]
+    assert "qualix.quality.judge" in manifest["section_sources"]["judge_block"]
 
 
 def test_write_preference_prompt_persists_section_manifest(tmp_path) -> None:

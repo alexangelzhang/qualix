@@ -10,8 +10,8 @@
 2. 扫描 `output/` 目录下包含 `state.json` 的项目：
    - 1 个项目：自动使用
    - 多个项目：列出让用户选择
-   - 无项目：提示 `dqg-run <project_id> init`
-3. 执行 `dqg-run --base-dir <project_root> <project_id> startup`
+   - 无项目：提示 `qualix-run <project_id> init`
+3. 执行 `qualix-run --base-dir <project_root> <project_id> startup`
 4. 解析 JSON 输出，渲染菜单
 5. **等待用户选择**
 
@@ -43,13 +43,13 @@
 
 - `available: true` → 可执行
 - `available: false` 且前置未完成 → 锁定，选择时提示解锁条件
-- `status: approved` → 已完成，选择时执行 `dqg-run detail <phase>` 展示详情页
+- `status: approved` → 已完成，选择时执行 `qualix-run detail <phase>` 展示详情页
 - `v` → 详情模式（每个 Phase 的交付物清单、校验结果、Judge 评分）
 - `g` → 全局进度（从 JSON 的 `progress` 字段渲染）
 
 ### 已完成 Phase 详情页
 
-执行 `dqg-run --base-dir <project_root> <project_id> detail <phase_id>` 后展示：
+执行 `qualix-run --base-dir <project_root> <project_id> detail <phase_id>` 后展示：
 - 产物摘要（交付物列表 + 关键指标）
 - 操作选项：`[b] 返回菜单` / `[r] 重新执行此 Phase`
 - **等待用户选择**
@@ -60,14 +60,14 @@
 
 1. **收集输入**（逐步交互，每次只问一个）
 2. **执行 Phase**（读取 skill → 假设暴露 → 执行 → 自动质量闭环）
-3. **Finalize**（`dqg-run finalize` → 展示校验结果 → 等待确认）
-4. **Approve**（`dqg-run approve` → 刷新菜单 → 等待下一步选择）
+3. **Finalize**（`qualix-run finalize` → 展示校验结果 → 等待确认）
+4. **Approve**（`qualix-run approve` → 刷新菜单 → 等待下一步选择）
 
 > 执行细节、sidecar 列表、finalize handler、Adaptive Loop 等均在 `dqg_starter.md` 中定义，选择 Phase 后再加载，启动时不需要。
 
 ## 启动阶段核心规则
 
-1. **脚本驱动状态** — 状态管理必须通过 `dqg-run`，禁止手动构造
+1. **脚本驱动状态** — 状态管理必须通过 `qualix-run`，禁止手动构造
 2. **逐步交互** — 每次只展示一个问题，等待用户回复后再展示下一个
 3. **等待用户输入** — 菜单展示、确认点必须等待用户输入，禁止自动继续
 4. **控制权交还** — Phase 产出后进入 finalize 流程，不自动建议下一步

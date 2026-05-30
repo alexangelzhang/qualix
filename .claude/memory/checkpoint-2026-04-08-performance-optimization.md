@@ -1,7 +1,7 @@
 ---
 date: 2026-04-08
 session_topic: DQG 性能与证据链优化收口
-project: dev-quality-gate
+project: qualix
 status: completed
 ---
 

@@ -2,14 +2,14 @@ from __future__ import annotations
 
 from unittest.mock import patch
 
-from dqg.commands.path_cmd import run_path
+from qualix.commands.path_cmd import run_path
 
 
 def test_path_skills(tmp_path, capsys):
     """Should print the resolved skills directory."""
     global_dqg = tmp_path / ".dqg"
     (global_dqg / "skills" / "Q01").mkdir(parents=True)
-    with patch("dqg.commands.path_cmd.ResourceResolver") as MockResolver:
+    with patch("qualix.commands.path_cmd.ResourceResolver") as MockResolver:
         instance = MockResolver.return_value
         instance.resolve_dir.return_value = global_dqg / "skills"
         rc = run_path("skills")
@@ -28,7 +28,7 @@ def test_path_unknown_category(capsys):
 
 def test_path_not_found(capsys):
     """If resolve_dir raises FileNotFoundError, print error and exit non-zero."""
-    with patch("dqg.commands.path_cmd.ResourceResolver") as MockResolver:
+    with patch("qualix.commands.path_cmd.ResourceResolver") as MockResolver:
         instance = MockResolver.return_value
         instance.resolve_dir.side_effect = FileNotFoundError("not found")
         rc = run_path("skills")

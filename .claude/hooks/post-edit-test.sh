@@ -13,5 +13,5 @@ except:
 # Only trigger on src/dqg/ Python files
 echo "$FILE_PATH" | grep -q "src/dqg/.*\.py$" || exit 0
 
-cd /Users/zhangyiqian/Dev/dev-quality-gate
+cd /Users/zhangyiqian/Dev/qualix
 pytest tests/ -q --tb=short -x 2>&1 | tail -20

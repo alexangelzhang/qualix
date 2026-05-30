@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pytest
 
-from dqg.ingest.feishu_ingest_snapshot import (
+from qualix.ingest.feishu_ingest_snapshot import (
     assert_snapshot_case,
     build_snapshot_case_name,
     load_snapshot,
@@ -111,8 +111,8 @@ def test_run_feishu_snapshot_case_collects_bundle(monkeypatch: pytest.MonkeyPatc
         (output_dir / "plain_text.txt").write_text("hello\n", encoding="utf-8")
         return {"nodes": [], "edges": []}
 
-    monkeypatch.setattr("dqg.ingest.feishu_ingest_snapshot.load_larkkit", fake_load_larkkit)
-    monkeypatch.setattr("dqg.ingest.feishu_ingest_snapshot.crawl_documents", fake_crawl_documents)
+    monkeypatch.setattr("qualix.ingest.feishu_ingest_snapshot.load_larkkit", fake_load_larkkit)
+    monkeypatch.setattr("qualix.ingest.feishu_ingest_snapshot.crawl_documents", fake_crawl_documents)
 
     bundle = run_feishu_snapshot_case("https://mi.feishu.cn/docx/ABC123", tmp_path / "run")
 

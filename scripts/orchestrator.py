@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Thin wrapper — 实际逻辑已迁移至 src/dqg/orchestrator.py."""
+"""Thin wrapper — 实际逻辑已迁移至 src/qualix/orchestrator.py."""
 
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
-from dqg.services.orchestrator import main
+from qualix.services.orchestrator import main
 
 if __name__ == "__main__":
     main()

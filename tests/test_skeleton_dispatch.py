@@ -5,7 +5,7 @@ from __future__ import annotations
 
 def test_java_provider_extract_skeleton():
     """JavaProvider.extract_skeleton() should produce a SkeletonResult."""
-    from dqg.languages.java.provider import JavaProvider
+    from qualix.languages.java.provider import JavaProvider
 
     provider = JavaProvider()
     source = """\
@@ -42,8 +42,8 @@ def test_handle_code_skeleton_dispatches_through_provider(monkeypatch, tmp_path)
     """handle_code_skeleton should dispatch through LanguageProvider registry."""
     from types import SimpleNamespace
 
-    from dqg.context.code_skeleton import SkeletonResult
-    from dqg.json_utils import save_json
+    from qualix.context.code_skeleton import SkeletonResult
+    from qualix.json_utils import save_json
 
     # Setup: create a fake TypeScript file and demand trace
     repo_dir = tmp_path / "repo"
@@ -81,7 +81,7 @@ def test_handle_code_skeleton_dispatches_through_provider(monkeypatch, tmp_path)
             )
 
     # Mock registry — patch on the module that get_registry is imported from
-    import dqg.languages.registry as reg_mod
+    import qualix.languages.registry as reg_mod
 
     mock_registry = SimpleNamespace(get=lambda lang_id: MockProvider() if lang_id == "typescript" else None)
     monkeypatch.setattr(reg_mod, "get_registry", lambda: mock_registry)
@@ -101,7 +101,7 @@ def test_handle_code_skeleton_dispatches_through_provider(monkeypatch, tmp_path)
         add_artifact=lambda k, v: artifacts.update({k: v}),
     )
 
-    from dqg.runtime.handlers_execute import handle_code_skeleton
+    from qualix.runtime.handlers_execute import handle_code_skeleton
 
     handle_code_skeleton(ctx, phase_result)
 

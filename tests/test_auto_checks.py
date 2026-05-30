@@ -1,10 +1,10 @@
-"""Tests for dqg.quality.auto_checks."""
+"""Tests for qualix.quality.auto_checks."""
 
 import json
 import tempfile
 from pathlib import Path
 
-from dqg.quality.auto_checks import auto_derive_checks
+from qualix.quality.auto_checks import auto_derive_checks
 
 
 def _setup_phase_a(tmpdir: Path, data: dict, with_prd: bool = True) -> Path:

@@ -10,7 +10,7 @@ from unittest.mock import MagicMock, patch
 
 
 def test_dqg_model_generate_delegates_to_backend():
-    from src.dqg.quality.judge.score_calibration import _DQGDeepEvalModel
+    from src.qualix.quality.judge.score_calibration import _DQGDeepEvalModel
 
     model = _DQGDeepEvalModel("claude-haiku-4-5-20251001")
     fake_backend = MagicMock()
@@ -23,7 +23,7 @@ def test_dqg_model_generate_delegates_to_backend():
 
 
 def test_dqg_model_get_model_name():
-    from src.dqg.quality.judge.score_calibration import _DQGDeepEvalModel
+    from src.qualix.quality.judge.score_calibration import _DQGDeepEvalModel
 
     model = _DQGDeepEvalModel("claude-sonnet-4-6")
     assert model.get_model_name() == "claude-sonnet-4-6"
@@ -38,7 +38,7 @@ def test_run_deepeval_scoring_returns_none_on_import_error():
     """ImportError（未安装 deepeval）时静默返回 None."""
     import builtins
 
-    from src.dqg.quality.judge.score_calibration import _run_deepeval_scoring
+    from src.qualix.quality.judge.score_calibration import _run_deepeval_scoring
 
     original_import = builtins.__import__
 
@@ -54,7 +54,7 @@ def test_run_deepeval_scoring_returns_none_on_import_error():
 
 def test_run_deepeval_scoring_maps_score_to_1_5():
     """GEval 0-1 分映射到 DQG 1-5 分."""
-    from src.dqg.quality.judge.score_calibration import _run_deepeval_scoring
+    from src.qualix.quality.judge.score_calibration import _run_deepeval_scoring
 
     mock_metric = MagicMock()
     mock_metric.score = 0.75  # → 1 + 0.75*4 = 4.0
@@ -72,7 +72,7 @@ def test_run_deepeval_scoring_maps_score_to_1_5():
 
 def test_run_deepeval_scoring_returns_none_on_exception():
     """任何运行时异常都应静默返回 None，不抛出."""
-    from src.dqg.quality.judge.score_calibration import _run_deepeval_scoring
+    from src.qualix.quality.judge.score_calibration import _run_deepeval_scoring
 
     mock_metric = MagicMock()
     mock_metric.measure.side_effect = RuntimeError("LLM call failed")
@@ -88,7 +88,7 @@ def test_run_deepeval_scoring_returns_none_on_exception():
 
 def test_run_deepeval_scoring_score_boundaries():
     """边界值：score=0 → 1.0, score=1 → 5.0."""
-    from src.dqg.quality.judge.score_calibration import _run_deepeval_scoring
+    from src.qualix.quality.judge.score_calibration import _run_deepeval_scoring
 
     for geval_score, expected_dqg in [(0.0, 1.0), (1.0, 5.0)]:
         mock_metric = MagicMock()
@@ -107,7 +107,7 @@ def test_run_deepeval_scoring_score_boundaries():
 
 
 def test_get_phase_criteria_covers_all_known_phases():
-    from src.dqg.quality.judge.score_calibration import _get_phase_criteria
+    from src.qualix.quality.judge.score_calibration import _get_phase_criteria
 
     for phase_id in ("Q01", "Q03", "Q04", "Q05", "Q05a", "Q05b", "Q06", "Q07"):
         criteria = _get_phase_criteria(phase_id)
@@ -115,7 +115,7 @@ def test_get_phase_criteria_covers_all_known_phases():
 
 
 def test_get_phase_criteria_fallback_for_unknown():
-    from src.dqg.quality.judge.score_calibration import _get_phase_criteria
+    from src.qualix.quality.judge.score_calibration import _get_phase_criteria
 
     result = _get_phase_criteria("Q99")
     assert "quality" in result.lower() or "assess" in result.lower()

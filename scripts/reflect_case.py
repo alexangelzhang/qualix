@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """T10: 对已有 failure-library case 执行 Failure→Reflector 回流（lesson / case_category）。
 
-调用 `dqg.tracking.case_reflect.apply_reflect_metadata`。默认 dry-run；`--apply` 写回。
+调用 `qualix.tracking.case_reflect.apply_reflect_metadata`。默认 dry-run；`--apply` 写回。
 
 用法:
   python scripts/reflect_case.py --dry-run
@@ -20,7 +20,7 @@ from pathlib import Path
 def _repo_root() -> Path:
     here = Path(__file__).resolve().parent
     for p in (here.parent, here.parent.parent):
-        if (p / "src" / "dqg").is_dir() and (p / "regression" / "failure-library").is_dir():
+        if (p / "src" / "qualix").is_dir() and (p / "regression" / "failure-library").is_dir():
             return p
     return here.parent
 
@@ -29,8 +29,8 @@ def main() -> int:
     root = _repo_root()
     sys.path.insert(0, str(root / "src"))
 
-    from dqg.constants import CASES_DIR
-    from dqg.tracking.case_reflect import apply_reflect_metadata
+    from qualix.constants import CASES_DIR
+    from qualix.tracking.case_reflect import apply_reflect_metadata
 
     ap = argparse.ArgumentParser(description="Reflect lesson + case_category onto bug cases")
     ap.add_argument("--dry-run", action="store_true", help="只列出将变更的文件，不写盘")

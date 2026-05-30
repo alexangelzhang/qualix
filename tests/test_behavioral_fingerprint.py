@@ -1,10 +1,10 @@
-"""Tests for dqg.quality.behavioral_fingerprint."""
+"""Tests for qualix.quality.behavioral_fingerprint."""
 
 import json
 import tempfile
 from pathlib import Path
 
-from dqg.quality.behavioral_fingerprint import (
+from qualix.quality.behavioral_fingerprint import (
     compare_fingerprints,
     extract_fingerprint,
     extract_fingerprints_from_file,

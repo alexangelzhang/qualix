@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from dqg.reporting.observability import _build_prompt_effectiveness
-from dqg.reporting.telemetry import PhaseRunRecord
+from qualix.reporting.observability import _build_prompt_effectiveness
+from qualix.reporting.telemetry import PhaseRunRecord
 
 
 def test_build_prompt_effectiveness_includes_cost_usd() -> None:

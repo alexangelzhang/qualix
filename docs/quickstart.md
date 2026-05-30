@@ -12,7 +12,7 @@
 
 ```bash
 git clone <your-dqg-repo-url>
-cd dev-quality-gate
+cd qualix
 ./scripts/install.sh
 ```
 
@@ -29,7 +29,7 @@ cd dev-quality-gate
 安装脚本最后会自动运行 doctor。也可以手动检查：
 
 ```bash
-dqg-run any-project doctor
+qualix-run any-project doctor
 ```
 
 确认输出全部 ✓ 或只有 ⚠（警告不阻断）。
@@ -40,7 +40,7 @@ dqg-run any-project doctor
 ## Step 3: 初始化项目
 
 ```bash
-dqg-run my-first-project init --profile java-ddd-tmf
+qualix-run my-first-project init --profile java-ddd-tmf
 ```
 
 执行效果：
@@ -53,7 +53,7 @@ dqg-run my-first-project init --profile java-ddd-tmf
     输出目录: output/my-first-project
     Phase 目录: Q01, Q02, Q03, Q04, Q05, Q06, Q07
 
-  下一步: dqg-run my-first-project startup
+  下一步: qualix-run my-first-project startup
 ```
 
 ## Step 4: 在 AI IDE 中启动
@@ -106,10 +106,10 @@ AI 会逐步引导你：
 
 | 命令 | 用途 |
 |------|------|
-| `dqg-run <project> init` | 初始化项目 |
-| `dqg-run <project> startup` | 输出 JSON 菜单（供 AI 解析） |
-| `dqg-run <project> status` | 查看状态看板 |
-| `dqg-run <project> doctor` | 环境健康检查 |
-| `dqg-run <project> update` | 更新到最新版本 |
-| `dqg-run <project> version` | 显示版本号 |
+| `qualix-run <project> init` | 初始化项目 |
+| `qualix-run <project> startup` | 输出 JSON 菜单（供 AI 解析） |
+| `qualix-run <project> status` | 查看状态看板 |
+| `qualix-run <project> doctor` | 环境健康检查 |
+| `qualix-run <project> update` | 更新到最新版本 |
+| `qualix-run <project> version` | 显示版本号 |
 | `@dqg_starter.md 执行` | AI IDE 一站式入口 |

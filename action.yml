@@ -47,7 +47,7 @@ runs:
         fi
 
         # 以 JSON 模式运行，捕获结构化结果
-        JSON_OUT=$(dqg-run "${{ inputs.project-id }}" ci-gate $PHASE_FLAG \
+        JSON_OUT=$(qualix-run "${{ inputs.project-id }}" ci-gate $PHASE_FLAG \
           --fail-on "${{ inputs.fail-on }}" \
           --json \
           --base-dir "${{ inputs.output-dir }}/.." 2>/dev/null)
@@ -70,7 +70,7 @@ runs:
 
         # Step Summary（PR Comment 格式）
         if [ "${{ inputs.post-summary }}" = "true" ]; then
-          dqg-run "${{ inputs.project-id }}" ci-gate $PHASE_FLAG \
+          qualix-run "${{ inputs.project-id }}" ci-gate $PHASE_FLAG \
             --fail-on "${{ inputs.fail-on }}" \
             --pr-comment \
             --base-dir "${{ inputs.output-dir }}/.." 2>/dev/null >> "$GITHUB_STEP_SUMMARY" || true

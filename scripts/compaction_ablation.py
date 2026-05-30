@@ -19,10 +19,10 @@ from pathlib import Path
 # Ensure project root on path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from dqg.agents.llm_backends import create_backend
-from dqg.core.model_registry import estimate_tokens
-from dqg.core.profiles import get_profile, load_profile_context_l0, load_profile_context_l1
-from dqg.quality.judge_rubrics import compose_rubric, compose_rubric_compact
+from qualix.agents.llm_backends import create_backend
+from qualix.core.model_registry import estimate_tokens
+from qualix.core.profiles import get_profile, load_profile_context_l0, load_profile_context_l1
+from qualix.quality.judge_rubrics import compose_rubric, compose_rubric_compact
 
 
 def _run_judge(rubric: str, report: str, model: str, api_key: str) -> dict:

@@ -131,7 +131,7 @@ Step 8: 修正（根据 Step 7 发现的问题修正报告，重新执行 Step 6
 
 根据 Step 7 发现的问题修正报告，修正完成后重新执行 Step 6 自检确认。
 
-**全部通过后，才能执行 `dqg-run <project> finalize A.5`。**
+**全部通过后，才能执行 `qualix-run <project> finalize A.5`。**
 
 ## 输出模板
 

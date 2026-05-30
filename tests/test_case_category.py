@@ -1,7 +1,7 @@
 """case_category 推断与 lesson 兜底."""
 
-from dqg.tracking.case_category import CASE_CATEGORIES, infer_case_category
-from dqg.tracking.lesson_inference import infer_lesson_with_fallback
+from qualix.tracking.case_category import CASE_CATEGORIES, infer_case_category
+from qualix.tracking.lesson_inference import infer_lesson_with_fallback
 
 
 def test_case_categories_five() -> None:
@@ -25,7 +25,7 @@ def test_infer_lesson_with_fallback_never_empty() -> None:
 
 
 def test_validate_case_category_invalid() -> None:
-    from dqg.tracking.bug_cases import validate_case_schema
+    from qualix.tracking.bug_cases import validate_case_schema
 
     errs = validate_case_schema({"lesson": "x", "case_category": "NOT_A_REAL_CATEGORY"})
     assert any("case_category" in e for e in errs)

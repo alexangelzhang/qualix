@@ -248,7 +248,7 @@ python -m dqg.quality.checks.report_quality_checks output/<project_id> <project_
 
 根据 Step 5 发现的问题修正报告，修正完成后重新执行 Step 4 自检确认。
 
-**全部通过后，才能执行 `dqg-run <project> finalize A`。**
+**全部通过后，才能执行 `qualix-run <project> finalize A`。**
 
 ## 上下文加载与缓存原则（Token 优化）
 

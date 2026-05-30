@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from dqg.core.resource_resolver import ResourceResolver
+from qualix.core.resource_resolver import ResourceResolver
 
 
 @pytest.fixture
@@ -131,9 +131,9 @@ def test_layer4_warning_only_once_per_category(tmp_path, capsys):
 
 
 def test_legacy_cwd_layout_warns(tmp_path, capsys):
-    """cwd 同时有 src/dqg/ 和 skills/ 时打印 deprecation warning."""
+    """cwd 同时有 src/qualix/ 和 skills/ 时打印 deprecation warning."""
     legacy = tmp_path / "legacy"
-    (legacy / "src" / "dqg").mkdir(parents=True)
+    (legacy / "src" / "qualix").mkdir(parents=True)
     (legacy / "skills").mkdir()
 
     resolver = ResourceResolver(

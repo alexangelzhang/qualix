@@ -26,7 +26,7 @@
 
 确认问题是否可稳定复现：
 
-1. 重新运行 `dqg-run <project> finalize <phase>` 确认错误仍然存在
+1. 重新运行 `qualix-run <project> finalize <phase>` 确认错误仍然存在
 2. 记录完整的错误信息到 `_reasoning_log.md`
 3. 如果不可复现，进入**不可复现决策树**：
 
@@ -58,7 +58,7 @@
 当问题是"之前通过，现在失败"时：
 1. 确认最后一次通过的 commit（`git log` 找到上次 approve 的时间点）
 2. 使用 `git bisect start HEAD <last_good_commit>` 开始二分
-3. 每次 bisect 步骤运行 `dqg-run <project> finalize <phase>` 判断 good/bad
+3. 每次 bisect 步骤运行 `qualix-run <project> finalize <phase>` 判断 good/bad
 4. 定位到引入问题的具体 commit 后，分析该 commit 的改动
 
 ### Step 3: Reduce（简化）

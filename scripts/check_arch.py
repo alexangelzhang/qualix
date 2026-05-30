@@ -5,11 +5,11 @@
 1. 单文件不超过 400 行
 2. 单函数不超过 80 行
 3. 包内 .py 文件不超过 8 个（不含 __init__.py）
-4. 禁止在业务代码中 import logging（应使用 dqg.log）
-5. 禁止文件级 json.load(open(...)) 模式（应使用 dqg.json_utils）
+4. 禁止在业务代码中 import logging（应使用 qualix.log）
+5. 禁止文件级 json.load(open(...)) 模式（应使用 qualix.json_utils）
 
 pre-commit 模式只检查变更文件，不拦截存量债务。
-全量模式（无参数）扫描整个 src/dqg/。
+全量模式（无参数）扫描整个 src/qualix/。
 """
 
 from __future__ import annotations
@@ -61,7 +61,7 @@ MAX_FILE_LINES = 400
 MAX_FUNC_LINES = 80
 MAX_PACKAGE_FILES = 8
 
-SRC_ROOT = Path(__file__).resolve().parent.parent / "src" / "dqg"
+SRC_ROOT = Path(__file__).resolve().parent.parent / "src" / "qualix"
 
 # 每条规则存在的原因（降低误报投诉，减少 --no-verify 冲动）
 _ARCH_WHY: dict[str, str] = {
@@ -69,7 +69,7 @@ _ARCH_WHY: dict[str, str] = {
     "ARCH-002": "长函数通常隐含多个逻辑分支，难以单测——提取子函数表达意图",
     "ARCH-003": "包内文件过多预示职责扩散——按功能域建子包，每子包单一关注点",
     "ARCH-004a": "json_utils.load_json 带缓存和错误处理；裸 json.load 在文件不存在时抛难以追踪的异常",
-    "ARCH-005": "dqg.log 统一注入 project_id/phase 上下文；裸 import logging 的日志无法关联到具体执行的 Phase",
+    "ARCH-005": "qualix.log 统一注入 project_id/phase 上下文；裸 import logging 的日志无法关联到具体执行的 Phase",
 }
 
 
@@ -166,7 +166,7 @@ def check_bare_json_file_read(path: Path, rel: str) -> list[Violation]:
         if stripped.startswith("#"):
             continue
         if _JSON_FILE_READ_RE.search(line):
-            violations.append(Violation(rel, i, "ARCH-004", "json.load/loads 直接读文件，应使用 dqg.json_utils"))
+            violations.append(Violation(rel, i, "ARCH-004", "json.load/loads 直接读文件，应使用 qualix.json_utils"))
     return violations
 
 
@@ -181,7 +181,7 @@ def check_bare_logging(path: Path, rel: str) -> list[Violation]:
         if stripped.startswith("#"):
             continue
         if stripped == "import logging" or stripped.startswith("from logging import"):
-            violations.append(Violation(rel, i, "ARCH-005", "裸写 import logging，应使用 dqg.log.get_logger"))
+            violations.append(Violation(rel, i, "ARCH-005", "裸写 import logging，应使用 qualix.log.get_logger"))
     return violations
 
 
@@ -206,7 +206,7 @@ def main() -> int:
             all_violations.extend(check_bare_json_file_read(path, rel))
             all_violations.extend(check_bare_logging(path, rel))
     else:
-        # 全量模式：扫描整个 src/dqg/
+        # 全量模式：扫描整个 src/qualix/
         for path in sorted(SRC_ROOT.rglob("*.py")):
             if "__pycache__" in str(path):
                 continue

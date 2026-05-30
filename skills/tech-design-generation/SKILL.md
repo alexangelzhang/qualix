@@ -32,7 +32,7 @@ allowed-tools:
 
 ```
 用户已提供技术方案，Phase Q02 跳过。
-执行：dqg-run <project_id> skip A.3 -c "已有技术方案: <来源>"
+执行：qualix-run <project_id> skip A.3 -c "已有技术方案: <来源>"
 直接进入 Phase Q03 质量评审。
 ```
 

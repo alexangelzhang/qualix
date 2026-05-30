@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-import dqg.context.chunk_processor as chunk_processor
-from dqg.context.context_loader import ContextChunk
+import qualix.context.chunk_processor as chunk_processor
+from qualix.context.context_loader import ContextChunk
 
 
 def test_split_large_chunk_reuses_token_cache_for_duplicate_paragraphs(monkeypatch) -> None:

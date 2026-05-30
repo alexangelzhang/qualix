@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from dqg.quality.se_checklist import (
+from qualix.quality.se_checklist import (
     _load_yaml,
     _parse_yaml_simple,
     format_checklist_prompt,

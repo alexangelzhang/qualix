@@ -1,9 +1,9 @@
-"""Tests for dqg.structured_retry — LLM 输出结构化重试."""
+"""Tests for qualix.structured_retry — LLM 输出结构化重试."""
 
 import json
 from pathlib import Path
 
-from dqg.agents.structured_retry import (
+from qualix.agents.structured_retry import (
     fix_common_json_issues,
     simplify_payload,
     try_parse_structured_output,

@@ -1,6 +1,6 @@
-"""dqg-run init (workspace-level) 命令测试."""
+"""qualix-run init (workspace-level) 命令测试."""
 
-from dqg.commands.init import GUARDRAIL_BEGIN, GUARDRAIL_END, _detect_code_repos, run_init
+from qualix.commands.init import GUARDRAIL_BEGIN, GUARDRAIL_END, _detect_code_repos, run_init
 
 
 def test_init_creates_workspace(tmp_path):
@@ -126,16 +126,16 @@ def test_init_empty_code_repos_when_no_git_subdirs(tmp_path):
 
 def test_install_claude_commands_copies_md_files(tmp_path, monkeypatch):
     """_install_claude_commands 应把 claude_commands 目录下的 .md 文件复制到 .claude/commands/."""
-    from dqg.commands.init import _install_claude_commands
+    from qualix.commands.init import _install_claude_commands
 
     # 构造一个假的 claude_commands 源目录
     fake_src = tmp_path / "fake_pkg" / "claude_commands"
     fake_src.mkdir(parents=True)
-    (fake_src / "dqg-starter.md").write_text("# dqg-starter")
+    (fake_src / "qualix-starter.md").write_text("# qualix-starter")
     (fake_src / "other.txt").write_text("not md")
 
     # monkeypatch ResourceResolver.resolve_dir 返回假目录
-    from dqg.core import resource_resolver
+    from qualix.core import resource_resolver
 
     monkeypatch.setattr(
         resource_resolver.ResourceResolver,
@@ -147,15 +147,15 @@ def test_install_claude_commands_copies_md_files(tmp_path, monkeypatch):
     dest_root.mkdir()
     installed = _install_claude_commands(dest_root)
 
-    assert "dqg-starter.md" in installed
-    assert (dest_root / ".claude" / "commands" / "dqg-starter.md").exists()
+    assert "qualix-starter.md" in installed
+    assert (dest_root / ".claude" / "commands" / "qualix-starter.md").exists()
     assert not (dest_root / ".claude" / "commands" / "other.txt").exists()
 
 
 def test_install_claude_commands_graceful_when_missing(tmp_path, monkeypatch):
     """claude_commands 目录不存在时静默返回空列表."""
-    from dqg.commands.init import _install_claude_commands
-    from dqg.core import resource_resolver
+    from qualix.commands.init import _install_claude_commands
+    from qualix.core import resource_resolver
 
     monkeypatch.setattr(
         resource_resolver.ResourceResolver,

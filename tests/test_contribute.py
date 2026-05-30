@@ -1,10 +1,10 @@
-"""Tests for dqg.commands.contribute."""
+"""Tests for qualix.commands.contribute."""
 
 import json
 import time
 from pathlib import Path
 
-from dqg.commands.contribute import mark_contributed, run_contribute, scan_new_cases
+from qualix.commands.contribute import mark_contributed, run_contribute, scan_new_cases
 
 
 def _make_case(cases_root: Path, case_id: str, status: str = "new") -> Path:

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dqg.reporting.observability_anomalies import (
+from qualix.reporting.observability_anomalies import (
     anomalies_to_alert_dicts,
     detect_metric_anomalies,
 )

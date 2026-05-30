@@ -4,10 +4,10 @@ from __future__ import annotations
 
 import pytest
 
-from dqg.prompting import PromptAssembler, PromptSpec, PromptTemplate
-from dqg.quality.critique import build_critique_prompt, build_preference_prompt
-from dqg.quality.judge import build_judge_prompt
-from dqg.quality.review_chain import build_review_chain_prompt
+from qualix.prompting import PromptAssembler, PromptSpec, PromptTemplate
+from qualix.quality.critique import build_critique_prompt, build_preference_prompt
+from qualix.quality.judge import build_judge_prompt
+from qualix.quality.review_chain import build_review_chain_prompt
 
 
 def test_prompt_assembler_preserves_judge_order_and_section_hashes() -> None:

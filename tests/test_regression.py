@@ -1,11 +1,11 @@
-"""Tests for dqg.regression."""
+"""Tests for qualix.regression."""
 
 from __future__ import annotations
 
 import json
 from typing import TYPE_CHECKING
 
-from dqg.tracking.regression import (
+from qualix.tracking.regression import (
     append_failure_history,
     build_failure_trend,
     classify_diff,

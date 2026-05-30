@@ -1,6 +1,6 @@
-"""Tests for dqg.memory.memory_filter."""
+"""Tests for qualix.memory.memory_filter."""
 
-from dqg.memory.memory_filter import (
+from qualix.memory.memory_filter import (
     MemoryEntry,
     filter_memory_for_phase,
     parse_memory_entries,

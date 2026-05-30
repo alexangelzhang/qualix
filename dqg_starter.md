@@ -43,7 +43,7 @@ Q02 可 skip（已有技术方案时）；Q05a/Q05b/Q06 与 Q02/Q03/Q04 独立�
 
 | # | 规则 |
 |:-:|:---|
-| 1 | **脚本驱动状态** — 状态管理必须通过 `dqg-run`，禁止手动构造 |
+| 1 | **脚本驱动状态** — 状态管理必须通过 `qualix-run`，禁止手动构造 |
 | 2 | **逐步交互** — 多步输入时每次只展示一个问题，等待回复后再展示下一个 |
 | 3 | **等待用户输入** — 菜单展示、输入收集、确认点必须等待用户输入 |
 | 4 | **Skill 驱动执行** — Phase 任务必须读取对应 skill 文件执行 |
@@ -82,14 +82,14 @@ python3 scripts/parse_image_assets.py \
 ### 步骤二：执行 Phase
 
 ```bash
-dqg-run --base-dir <project_root> <project_id> execute <phase_id>
+qualix-run --base-dir <project_root> <project_id> execute <phase_id>
 ```
 
 #### Orchestrator 模式（推荐，长任务必须）
 
 主 Agent 作为 Orchestrator，**禁止自己执行 Phase skill**。必须通过 Agent tool 派发 SubAgent：
 
-1. 读取 `dqg-run execute` 输出的上下文路径和 skill 路径
+1. 读取 `qualix-run execute` 输出的上下文路径和 skill 路径
 2. 构造 SubAgent prompt（包含：目标、上下文路径、skill 路径、产出要求）
 3. 通过 Agent tool 派发 SubAgent 执行，自己等待结果
 4. SubAgent 完成后，主 Agent 只做结果验收（检查产出文件是否存在）
@@ -144,7 +144,7 @@ SubAgent prompt 模板：
 
 #### 并行调度（多 Phase 同时可执行时）
 
-当 `dqg-run status` 显示多个 Phase 可执行（如 Q02 + Q05 都 available），Orchestrator 应并行派发：
+当 `qualix-run status` 显示多个 Phase 可执行（如 Q02 + Q05 都 available），Orchestrator 应并行派发：
 
 **判断规则**：同一批 available phases 之间没有互相依赖（A 不在 B 的 depends_on 里，B 也不在 A 的 depends_on 里），即可并行。
 
@@ -168,7 +168,7 @@ Agent(prompt="执行 Phase Q05...", subagent_type="general-purpose")
 
 **CLI 并行（无人值守模式）**：
 ```bash
-dqg-run --base-dir <project_root> <project_id> dag --max-parallel 2
+qualix-run --base-dir <project_root> <project_id> dag --max-parallel 2
 ```
 DAG 调度器自动识别并行组，ThreadPoolExecutor 并发执行。
 
@@ -180,7 +180,7 @@ DAG 调度器自动识别并行组，ThreadPoolExecutor 并发执行。
 ### 步骤三：Finalize
 
 ```bash
-dqg-run --base-dir <project_root> <project_id> finalize <phase_id>
+qualix-run --base-dir <project_root> <project_id> finalize <phase_id>
 ```
 
 展示：校验结果 + 交付物清单（`deliverables` 字段）+ 确认清单（`approve_checklist` 字段）。
@@ -188,10 +188,10 @@ dqg-run --base-dir <project_root> <project_id> finalize <phase_id>
 ### 步骤四：Approve + 刷新菜单
 
 ```bash
-dqg-run --base-dir <project_root> <project_id> approve <phase_id> -c "<备注>"
+qualix-run --base-dir <project_root> <project_id> approve <phase_id> -c "<备注>"
 ```
 
-approve 后重新执行 `dqg-run startup` 刷新菜单，**等待用户选择**，不自动继续。
+approve 后重新执行 `qualix-run startup` 刷新菜单，**等待用户选择**，不自动继续。
 
 ---
 

@@ -6,7 +6,7 @@ from __future__ import annotations
 
 def test_protocol_renders_into_judge_prompt():
     """Protocol renders into text suitable for Judge prompt injection."""
-    from dqg.quality.evaluation_protocols import get_protocol, render_protocol_for_prompt
+    from qualix.quality.evaluation_protocols import get_protocol, render_protocol_for_prompt
 
     for phase_id in ("Q01", "Q03", "Q04", "Q05", "Q05a", "Q05b", "Q06", "Q07"):
         proto = get_protocol(phase_id)
@@ -21,7 +21,7 @@ def test_protocol_renders_into_judge_prompt():
 
 def test_gene_store_phase_filtering_end_to_end(tmp_path):
     """Genes saved with phase+role are correctly filtered on load."""
-    from dqg.quality.gene_store import load_genes_for_phase, save_genes
+    from qualix.quality.gene_store import load_genes_for_phase, save_genes
 
     genes = [
         {
@@ -82,8 +82,8 @@ def test_gene_store_phase_filtering_end_to_end(tmp_path):
 
 def test_compose_rubric_plus_protocol():
     """compose_rubric + protocol render can be concatenated."""
-    from dqg.quality.evaluation_protocols import get_protocol, render_protocol_for_prompt
-    from dqg.quality.judge_rubrics import compose_rubric
+    from qualix.quality.evaluation_protocols import get_protocol, render_protocol_for_prompt
+    from qualix.quality.judge_rubrics import compose_rubric
 
     rubric = compose_rubric("Q07")
     proto = get_protocol("Q07")

@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from dqg.agents.agent import Agent
-from dqg.agents.llm_backends import LLMConfig
+from qualix.agents.agent import Agent
+from qualix.agents.llm_backends import LLMConfig
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -23,7 +23,7 @@ class _FakeBackend:
 
 def test_agent_run_uses_excerpted_context_bundle(monkeypatch, tmp_path: Path) -> None:
     backend = _FakeBackend()
-    monkeypatch.setattr("dqg.agents.agent.create_backend", lambda *args, **kwargs: backend)
+    monkeypatch.setattr("qualix.agents.agent.create_backend", lambda *args, **kwargs: backend)
 
     long_text = "权限校验失败\n" + ("尾部不应进入全文 prompt" * 800)
     context_file = tmp_path / "context.md"
@@ -52,7 +52,7 @@ def test_agent_run_uses_excerpted_context_bundle(monkeypatch, tmp_path: Path) ->
 
 def test_agent_run_caps_total_context_bundle_size(monkeypatch, tmp_path: Path) -> None:
     backend = _FakeBackend()
-    monkeypatch.setattr("dqg.agents.agent.create_backend", lambda *args, **kwargs: backend)
+    monkeypatch.setattr("qualix.agents.agent.create_backend", lambda *args, **kwargs: backend)
 
     first = tmp_path / "first.md"
     second = tmp_path / "second.md"
@@ -80,7 +80,7 @@ def test_agent_run_caps_total_context_bundle_size(monkeypatch, tmp_path: Path) -
 def test_agent_run_separates_dynamic_context(monkeypatch, tmp_path: Path) -> None:
     """dynamic_context_files should produce a separate user message WITHOUT cache_control."""
     backend = _FakeBackend()
-    monkeypatch.setattr("dqg.agents.agent.create_backend", lambda *args, **kwargs: backend)
+    monkeypatch.setattr("qualix.agents.agent.create_backend", lambda *args, **kwargs: backend)
 
     static_file = tmp_path / "evidence.md"
     static_file.write_text("REQ-001 需求内容", encoding="utf-8")
@@ -114,7 +114,7 @@ def test_agent_run_separates_dynamic_context(monkeypatch, tmp_path: Path) -> Non
 def test_agent_run_no_dynamic_context_unchanged(monkeypatch, tmp_path: Path) -> None:
     """When dynamic_context_files=None (default), behavior is identical to before: 3 messages."""
     backend = _FakeBackend()
-    monkeypatch.setattr("dqg.agents.agent.create_backend", lambda *args, **kwargs: backend)
+    monkeypatch.setattr("qualix.agents.agent.create_backend", lambda *args, **kwargs: backend)
 
     static_file = tmp_path / "evidence.md"
     static_file.write_text("REQ-002 静态内容", encoding="utf-8")

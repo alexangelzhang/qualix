@@ -4,8 +4,8 @@ import json
 from types import SimpleNamespace
 from typing import TYPE_CHECKING
 
-from dqg.agents.adaptive_loop import AdaptiveLoop, multi_judge_vote
-from dqg.agents.llm_backends import StructuredChatResult, _extract_json
+from qualix.agents.adaptive_loop import AdaptiveLoop, multi_judge_vote
+from qualix.agents.llm_backends import StructuredChatResult, _extract_json
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -61,11 +61,11 @@ def test_multi_judge_vote_reuses_agent_query_cache(monkeypatch, tmp_path: Path) 
     }
 
     monkeypatch.setattr(
-        "dqg.agents.llm_backends.create_backend",
+        "qualix.agents.llm_backends.create_backend",
         lambda model, api_key: backend_by_model.get(model, backend_by_model.get("judge-a")),
     )
     monkeypatch.setattr(
-        "dqg.quality.judge_runner.create_backend",
+        "qualix.quality.judge_runner.create_backend",
         lambda model, api_key: backend_by_model.get(model, backend_by_model.get("judge-a")),
     )
 
@@ -125,11 +125,11 @@ def test_multi_judge_vote_boundary_triggers_secondary(monkeypatch, tmp_path: Pat
     }
 
     monkeypatch.setattr(
-        "dqg.agents.llm_backends.create_backend",
+        "qualix.agents.llm_backends.create_backend",
         lambda model, api_key: backend_by_model.get(model, backend_by_model.get("judge-a")),
     )
     monkeypatch.setattr(
-        "dqg.quality.judge_runner.create_backend",
+        "qualix.quality.judge_runner.create_backend",
         lambda model, api_key: backend_by_model.get(model, backend_by_model.get("judge-a")),
     )
 
@@ -189,9 +189,9 @@ def test_adaptive_loop_passes_output_dir_to_all_agents(monkeypatch, tmp_path: Pa
         def name(self):
             return "fake"
 
-    monkeypatch.setattr("dqg.agents.adaptive_loop.Agent", _FakeAgent)
-    monkeypatch.setattr("dqg.agents.llm_backends.create_backend", lambda model, api_key: _FakeBackendInner())
-    monkeypatch.setattr("dqg.quality.judge_runner.create_backend", lambda model, api_key: _FakeBackendInner())
+    monkeypatch.setattr("qualix.agents.adaptive_loop.Agent", _FakeAgent)
+    monkeypatch.setattr("qualix.agents.llm_backends.create_backend", lambda model, api_key: _FakeBackendInner())
+    monkeypatch.setattr("qualix.quality.judge_runner.create_backend", lambda model, api_key: _FakeBackendInner())
 
     loop = AdaptiveLoop(tmp_path / "output")
     loop.run(

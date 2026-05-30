@@ -1,4 +1,4 @@
-from dqg.context.enum_contract import EnumSource, render_enum_contract_prefix
+from qualix.context.enum_contract import EnumSource, render_enum_contract_prefix
 
 
 def test_render_prefix_q03_contains_severity_enum() -> None:

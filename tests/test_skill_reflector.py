@@ -1,6 +1,6 @@
 """Tests for SkillReflector reflect→write→verify loop."""
 
-from dqg.tracking.skill_reflector import (
+from qualix.tracking.skill_reflector import (
     EvolutionOutcome,
     ReflectResult,
     SkillReflector,
@@ -94,10 +94,10 @@ def test_evolution_outcome_to_dict():
 def _make_writable_skill(tmp_path, phase: str = "Q01", initial_content: str | None = None):
     """构造一个可写 skill 文件并把 SKILL_FILE_MAP 指向它.
 
-    `dqg.tracking.skill_reflector` 用 `from dqg.constants import SKILL_FILE_MAP` 做 module-level import，
+    `qualix.tracking.skill_reflector` 用 `from qualix.constants import SKILL_FILE_MAP` 做 module-level import，
     因此必须 patch reflector 模块上的 alias（而非 constants 原件）才能生效。
     """
-    from dqg import constants
+    from qualix import constants
 
     skill = tmp_path / "SKILL.md"
     skill.write_text(
@@ -117,9 +117,9 @@ def test_write_noop_deduped_when_all_rules_already_present(tmp_path, monkeypatch
         tmp_path,
         initial_content='## Anti-Rationalization\n\n| "already there rule" | rebuttal |\n',
     )
-    monkeypatch.setattr("dqg.tracking.skill_reflector.SKILL_FILE_MAP", patched)
+    monkeypatch.setattr("qualix.tracking.skill_reflector.SKILL_FILE_MAP", patched)
     monkeypatch.setattr(
-        "dqg.tracking.skill_auto_merge.verify_with_holdout",
+        "qualix.tracking.skill_auto_merge.verify_with_holdout",
         lambda phase, allow_fail_open=False: True,
     )
 
@@ -140,9 +140,9 @@ def test_write_noop_deduped_when_all_rules_already_present(tmp_path, monkeypatch
 def test_write_reverted_when_holdout_fails(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     skill, patched = _make_writable_skill(tmp_path)
-    monkeypatch.setattr("dqg.tracking.skill_reflector.SKILL_FILE_MAP", patched)
+    monkeypatch.setattr("qualix.tracking.skill_reflector.SKILL_FILE_MAP", patched)
     monkeypatch.setattr(
-        "dqg.tracking.skill_auto_merge.verify_with_holdout",
+        "qualix.tracking.skill_auto_merge.verify_with_holdout",
         lambda phase, allow_fail_open=False: False,
     )
 
@@ -164,9 +164,9 @@ def test_write_reverted_when_holdout_fails(tmp_path, monkeypatch):
 def test_write_auto_apply_exposes_diff_and_inserted_entries(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     skill, patched = _make_writable_skill(tmp_path)
-    monkeypatch.setattr("dqg.tracking.skill_reflector.SKILL_FILE_MAP", patched)
+    monkeypatch.setattr("qualix.tracking.skill_reflector.SKILL_FILE_MAP", patched)
     monkeypatch.setattr(
-        "dqg.tracking.skill_auto_merge.verify_with_holdout",
+        "qualix.tracking.skill_auto_merge.verify_with_holdout",
         lambda phase, allow_fail_open=False: True,
     )
 
@@ -193,9 +193,9 @@ def test_reflect_and_write_action_maps_noop_deduped(tmp_path, monkeypatch):
         tmp_path,
         initial_content='## Anti-Rationalization\n\n| "existing pattern" | rebut |\n',
     )
-    monkeypatch.setattr("dqg.tracking.skill_reflector.SKILL_FILE_MAP", patched)
+    monkeypatch.setattr("qualix.tracking.skill_reflector.SKILL_FILE_MAP", patched)
     monkeypatch.setattr(
-        "dqg.tracking.skill_auto_merge.verify_with_holdout",
+        "qualix.tracking.skill_auto_merge.verify_with_holdout",
         lambda phase, allow_fail_open=False: True,
     )
     monkeypatch.setattr(

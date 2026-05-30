@@ -165,7 +165,7 @@ def main() -> int:
 
     print("\n下一步：")
     print("  cd 你的项目目录")
-    print("  dqg-run init")
+    print("  qualix-run init")
     return 0
 
 

@@ -6,8 +6,8 @@ from pathlib import Path
 
 import pytest
 
-from dqg.agents.handoff_builder import build_handoff_document
-from dqg.agents.judge_vote import IterationRecord, JudgeVote, VoteResult
+from qualix.agents.handoff_builder import build_handoff_document
+from qualix.agents.judge_vote import IterationRecord, JudgeVote, VoteResult
 
 
 def test_handoff_includes_schema_errors_under_issues() -> None:
@@ -39,7 +39,7 @@ def test_iteration_record_schema_errors_default() -> None:
 @pytest.fixture
 def q06_phase_dir(tmp_path: Path) -> tuple[Path, Path]:
     """output/<pid>/Q06 with stale structured JSON."""
-    from dqg.constants import PHASE_DIR_MAP, STRUCTURED_JSON_MAP
+    from qualix.constants import PHASE_DIR_MAP, STRUCTURED_JSON_MAP
 
     out = tmp_path / "output"
     pid = "p1"
@@ -56,7 +56,7 @@ def test_schema_errors_after_worker_removes_stale_when_no_json_in_content(
     q06_phase_dir: tuple[Path, Path],
 ) -> None:
     """本轮输出无 JSON 块时删除残留 JSON，validate 反映「缺失」而非误用过期文件。"""
-    from dqg.agents.adaptive_loop import AdaptiveLoop
+    from qualix.agents.adaptive_loop import AdaptiveLoop
 
     output_dir, pd = q06_phase_dir
     loop = AdaptiveLoop(output_dir)
@@ -67,7 +67,7 @@ def test_schema_errors_after_worker_removes_stale_when_no_json_in_content(
         worker_content="仅 Markdown，没有 ```json 块也没有裸对象。",
         worker_ok=True,
     )
-    from dqg.constants import STRUCTURED_JSON_MAP
+    from qualix.constants import STRUCTURED_JSON_MAP
 
     jp = pd / STRUCTURED_JSON_MAP["Q06"]
     assert not jp.exists()
@@ -77,7 +77,7 @@ def test_schema_errors_after_worker_removes_stale_when_no_json_in_content(
 
 def test_schema_errors_after_worker_validates_extracted_json(q06_phase_dir: tuple[Path, Path]) -> None:
     """Worker 输出含合法 JSON 但缺必填字段时，应得到 Pydantic 风格错误列表。"""
-    from dqg.agents.adaptive_loop import AdaptiveLoop
+    from qualix.agents.adaptive_loop import AdaptiveLoop
 
     output_dir, pd = q06_phase_dir
     loop = AdaptiveLoop(output_dir)
@@ -98,8 +98,8 @@ def test_schema_errors_after_worker_validates_extracted_json(q06_phase_dir: tupl
 
 def test_schema_errors_after_worker_skips_when_worker_failed(q06_phase_dir: tuple[Path, Path]) -> None:
     """Worker 失败时短路返回 []，且不触碰 phase_dir 里的既有 JSON。"""
-    from dqg.agents.adaptive_loop import AdaptiveLoop
-    from dqg.constants import STRUCTURED_JSON_MAP
+    from qualix.agents.adaptive_loop import AdaptiveLoop
+    from qualix.constants import STRUCTURED_JSON_MAP
 
     output_dir, pd = q06_phase_dir
     loop = AdaptiveLoop(output_dir)
@@ -121,7 +121,7 @@ def test_schema_errors_after_worker_skips_when_worker_failed(q06_phase_dir: tupl
 
 def test_schema_errors_after_worker_skips_when_phase_unregistered(tmp_path: Path) -> None:
     """phase 不在 STRUCTURED_JSON_MAP 时短路返回 []（契约：finalize 兜底报错）。"""
-    from dqg.agents.adaptive_loop import AdaptiveLoop
+    from qualix.agents.adaptive_loop import AdaptiveLoop
 
     loop = AdaptiveLoop(tmp_path / "output")
     errs = loop._schema_errors_after_worker(
@@ -136,7 +136,7 @@ def test_schema_errors_after_worker_skips_when_phase_unregistered(tmp_path: Path
 
 def test_truncate_schema_errors_for_summary_caps_items_and_chars() -> None:
     """_adaptive_summary.json 里的 schema_errors 应受条数/字符长度双上限约束。"""
-    from dqg.agents.adaptive_loop import (
+    from qualix.agents.adaptive_loop import (
         _SUMMARY_SCHEMA_ERROR_MAX_CHARS,
         _SUMMARY_SCHEMA_ERROR_MAX_ITEMS,
         _truncate_schema_errors_for_summary,
@@ -154,7 +154,7 @@ def test_write_summary_marks_unresolved_when_last_iter_has_schema_errors(tmp_pat
     """AC 3：最后一轮仍有 schema_errors → adaptive_loop_schema_unresolved=True。"""
     import json
 
-    from dqg.agents.adaptive_loop import AdaptiveLoop, AdaptiveResult
+    from qualix.agents.adaptive_loop import AdaptiveLoop, AdaptiveResult
 
     loop = AdaptiveLoop(tmp_path / "output")
     iters = [
@@ -176,7 +176,7 @@ def test_write_summary_clears_unresolved_when_last_iter_fixed_errors(tmp_path: P
     """AC 3：早期轮有 schema_errors 但最后一轮清空 → unresolved=False。"""
     import json
 
-    from dqg.agents.adaptive_loop import AdaptiveLoop, AdaptiveResult
+    from qualix.agents.adaptive_loop import AdaptiveLoop, AdaptiveResult
 
     loop = AdaptiveLoop(tmp_path / "output")
     iters = [

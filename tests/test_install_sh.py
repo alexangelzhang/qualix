@@ -57,7 +57,7 @@ def test_install_sh_real_copy(tmp_path):
 
 def test_install_sh_missing_source_root_fails(tmp_path):
     """source-root 缺资源目录必须报错退出."""
-    fake_source = tmp_path / "not-a-dqg-repo"
+    fake_source = tmp_path / "not-a-qualix-repo"
     fake_source.mkdir()
     result = subprocess.run(
         [

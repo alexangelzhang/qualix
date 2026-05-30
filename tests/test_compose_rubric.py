@@ -6,7 +6,7 @@ from __future__ import annotations
 
 def test_shared_rubric_has_four_dimensions():
     """Shared rubric defines exactly 4 universal quality dimensions."""
-    from dqg.constants import SHARED_RUBRIC_DIMENSIONS
+    from qualix.constants import SHARED_RUBRIC_DIMENSIONS
 
     assert len(SHARED_RUBRIC_DIMENSIONS) == 4
     ids = {d["id"] for d in SHARED_RUBRIC_DIMENSIONS}
@@ -15,7 +15,7 @@ def test_shared_rubric_has_four_dimensions():
 
 def test_shared_rubric_weights_sum_to_040():
     """Shared rubric base weights sum to 0.40 (40%)."""
-    from dqg.constants import SHARED_RUBRIC_DIMENSIONS
+    from qualix.constants import SHARED_RUBRIC_DIMENSIONS
 
     total = sum(d["weight"] for d in SHARED_RUBRIC_DIMENSIONS)
     assert abs(total - 0.40) < 0.001
@@ -23,7 +23,7 @@ def test_shared_rubric_weights_sum_to_040():
 
 def test_shared_rubric_dimensions_have_rubric_scale():
     """Each shared dimension has a 1-5 rubric scale."""
-    from dqg.constants import SHARED_RUBRIC_DIMENSIONS
+    from qualix.constants import SHARED_RUBRIC_DIMENSIONS
 
     for dim in SHARED_RUBRIC_DIMENSIONS:
         assert "rubric" in dim
@@ -32,7 +32,7 @@ def test_shared_rubric_dimensions_have_rubric_scale():
 
 def test_compose_rubric_includes_shared_and_routed():
     """compose_rubric output contains both shared and routed dimension IDs."""
-    from dqg.quality.judge_rubrics import compose_rubric
+    from qualix.quality.judge_rubrics import compose_rubric
 
     result = compose_rubric("Q07")
     assert "source_citation" in result  # shared
@@ -41,7 +41,7 @@ def test_compose_rubric_includes_shared_and_routed():
 
 def test_compose_rubric_unknown_phase_only_shared():
     """Unknown phase ID returns only shared dimensions."""
-    from dqg.quality.judge_rubrics import compose_rubric
+    from qualix.quality.judge_rubrics import compose_rubric
 
     result = compose_rubric("Q99")
     assert "source_citation" in result
@@ -50,7 +50,7 @@ def test_compose_rubric_unknown_phase_only_shared():
 
 def test_compose_rubric_all_phases_have_routed():
     """Every known Phase including Q05a/Q05b has routed rubric dimensions."""
-    from dqg.quality.judge_rubrics import PHASE_ROUTED_RUBRICS, compose_rubric
+    from qualix.quality.judge_rubrics import PHASE_ROUTED_RUBRICS, compose_rubric
 
     for phase_id in ("Q01", "Q03", "Q04", "Q05", "Q05a", "Q05b", "Q06", "Q07"):
         assert phase_id in PHASE_ROUTED_RUBRICS, f"{phase_id} missing from PHASE_ROUTED_RUBRICS"
@@ -60,7 +60,7 @@ def test_compose_rubric_all_phases_have_routed():
 
 def test_compose_rubric_with_dynamic_dimensions():
     """Dynamic dimensions are appended without affecting other layers."""
-    from dqg.quality.judge_rubrics import compose_rubric
+    from qualix.quality.judge_rubrics import compose_rubric
 
     dynamic = [
         {
@@ -78,7 +78,7 @@ def test_compose_rubric_with_dynamic_dimensions():
 
 def test_compose_rubric_layer_independent_weights():
     """Each layer keeps its own weights — no cross-layer normalization."""
-    from dqg.quality.judge_rubrics import compose_rubric_structured
+    from qualix.quality.judge_rubrics import compose_rubric_structured
 
     dims = compose_rubric_structured("Q07")
     shared = [

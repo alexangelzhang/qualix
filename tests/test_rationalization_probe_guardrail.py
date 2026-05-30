@@ -5,9 +5,9 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from dqg.quality.guardrail.guardrail import GuardrailContext
-from dqg.quality.guardrail.guardrail_impl import get_guardrails
-from dqg.quality.guardrail.rationalization_probe import RationalizationProbeGuardrail
+from qualix.quality.guardrail.guardrail import GuardrailContext
+from qualix.quality.guardrail.guardrail_impl import get_guardrails
+from qualix.quality.guardrail.rationalization_probe import RationalizationProbeGuardrail
 
 
 def test_get_guardrails_q03_includes_probe() -> None:

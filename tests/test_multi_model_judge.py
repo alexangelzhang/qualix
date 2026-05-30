@@ -7,7 +7,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from dqg.tracking.multi_model_judge import (
+from qualix.tracking.multi_model_judge import (
     ModelJudgeRun,
     MultiJudgeReport,
     _compute_stats,
@@ -140,7 +140,7 @@ def test_summary_lines_format():
 
 def test_run_multi_model_judge_uses_judge_runner(tmp_path: Path):
     """验证 run_multi_model_judge 对每个模型各调用一次 JudgeRunner.run."""
-    from dqg.core.state_machine import PHASE_DEFS
+    from qualix.core.state_machine import PHASE_DEFS
 
     phase_def = PHASE_DEFS.get("Q03")
     assert phase_def, "Q03 must be in PHASE_DEFS"
@@ -159,7 +159,7 @@ def test_run_multi_model_judge_uses_judge_runner(tmp_path: Path):
     fake_result.duration = 1.0
     fake_result.raw_output = ""
 
-    with patch("dqg.quality.judge.judge_runner.JudgeRunner") as MockRunner:
+    with patch("qualix.quality.judge.judge_runner.JudgeRunner") as MockRunner:
         mock_instance = MagicMock()
         mock_instance.run.return_value = fake_result
         MockRunner.return_value = mock_instance

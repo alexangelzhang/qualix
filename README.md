@@ -1,4 +1,4 @@
-# dev-quality-gate
+# qualix
 
 > 研发质量门禁 — 从需求到代码的全链路防漏 Pipeline
 
@@ -88,7 +88,7 @@ Q01 ──→ Q02(可选) ──→ Q03 ──→ Q04 ──→ Q07
 
 ```bash
 git clone https://github.com/your-org/rd-gate.git
-cd dev-quality-gate
+cd qualix
 ./scripts/install.sh
 ```
 
@@ -98,11 +98,11 @@ cd dev-quality-gate
 
 ```bash
 cd <你的项目>
-dqg-run init          # 建 .dqg/output/ + settings.yaml + 注入 CLAUDE.md guardrail
-dqg-run auth status   # 查看飞书认证状态（团队数据上报依赖 larkkit 登录）
-dqg-run path skills   # 查看内置资源路径（只读）
-dqg-run doctor        # 遇到工具 bug 时生成 issue bundle 并自动上报（需 glab）
-dqg-run contribute    # 把本地新积累的 failure-library 案例贡献回 DQG repo
+qualix-run init          # 建 .dqg/output/ + settings.yaml + 注入 CLAUDE.md guardrail
+qualix-run auth status   # 查看飞书认证状态（团队数据上报依赖 larkkit 登录）
+qualix-run path skills   # 查看内置资源路径（只读）
+qualix-run doctor        # 遇到工具 bug 时生成 issue bundle 并自动上报（需 glab）
+qualix-run contribute    # 把本地新积累的 failure-library 案例贡献回 DQG repo
 ```
 
 > 团队数据上报依赖飞书认证，请先执行 `uvx larkkit auth login` 完成一次性登录。
@@ -137,40 +137,40 @@ dqg-run contribute    # 把本地新积累的 failure-library 案例贡献回 DQ
 
 ```bash
 # 查看项目状态
-dqg-run PROJ status
+qualix-run PROJ status
 
 # 逐步执行
-dqg-run PROJ execute Q01         # 启动 Phase Q01
-dqg-run PROJ finalize Q01        # 校验产物
-dqg-run PROJ approve Q01         # 确认通过
+qualix-run PROJ execute Q01         # 启动 Phase Q01
+qualix-run PROJ finalize Q01        # 校验产物
+qualix-run PROJ approve Q01         # 确认通过
 
 # 质量进化（finalize 后自动生成 prompt 文件）
-dqg-run PROJ judge Q01           # LLM-as-Judge 独立评审
-dqg-run PROJ critique Q01        # Self-Critique 自我批评 → 生成 v2
-dqg-run PROJ preference Q01      # RLAIF 偏好比较 v1 vs v2
+qualix-run PROJ judge Q01           # LLM-as-Judge 独立评审
+qualix-run PROJ critique Q01        # Self-Critique 自我批评 → 生成 v2
+qualix-run PROJ preference Q01      # RLAIF 偏好比较 v1 vs v2
 
 # 全自动模式（交互式，每个 Phase 暂停等 approve）
-dqg-run PROJ auto
-dqg-run PROJ auto --model claude-opus-4-1m    # 指定模型
-dqg-run PROJ auto --skip Q03                  # 跳过某 Phase
+qualix-run PROJ auto
+qualix-run PROJ auto --model claude-opus-4-1m    # 指定模型
+qualix-run PROJ auto --skip Q03                  # 跳过某 Phase
 
 # 查看执行记录
-dqg-run PROJ log
+qualix-run PROJ log
 
 # 度量采集
-dqg-run PROJ metrics
+qualix-run PROJ metrics
 
 # Skill 演化：从 failure-library 提炼改进建议
-dqg-run PROJ skill-evolve analyze            # 各 Phase top 失败模式（按 lesson 去重）
-dqg-run PROJ skill-evolve suggest --phase Q06  # 生成 SKILL.md 建议文件
-dqg-run PROJ skill-evolve apply --phase Q06    # dry-run 预览改动
-dqg-run PROJ skill-evolve apply --phase Q06 --no-dry-run  # 真正写入
+qualix-run PROJ skill-evolve analyze            # 各 Phase top 失败模式（按 lesson 去重）
+qualix-run PROJ skill-evolve suggest --phase Q06  # 生成 SKILL.md 建议文件
+qualix-run PROJ skill-evolve apply --phase Q06    # dry-run 预览改动
+qualix-run PROJ skill-evolve apply --phase Q06 --no-dry-run  # 真正写入
 ```
 
 ## 项目结构
 
 ```
-dev-quality-gate/
+qualix/
 ├── dqg_starter.md              # AI IDE 入口 skill（@dqg-starter 触发）
 ├── AGENTS.md                   # 通用项目知识（所有 IDE/CLI 共享）
 ├── CLAUDE.md                   # Claude Code 专用指令
@@ -223,7 +223,7 @@ Prompt 产物治理：
 - `prompting/` 负责 prompt spec、assembler、section/template、hash、资产 hash、manifest 写入和 policy gate，不绑定 Java/Go/TypeScript 等具体语言
 - 每次写出 `_judge_prompt.md`、`_critique_prompt.md`、`_preference_prompt.md`、`_review_chain.md` 时，同步生成 `_internal/_prompt_manifests/*.json`
 - Judge/Critique/Preference/Review Chain prompt 通过 `PromptAssembler` 固定片段顺序；manifest 记录 `assembly_order`、`section_hashes`、`section_sources`，用于定位 prompt hash 变化来自哪个片段或来源资产
-- `dqg-run PROJ regression prompt-eval` 会读取 prompt version manifest 和 `prompt_outputs/<version>.json`，输出 prompt hash、section 顺序、执行来源和 Q05/Q06 指标；如接入真实 LLM，可通过 `PromptEvalExecutor` 注入执行器
+- `qualix-run PROJ regression prompt-eval` 会读取 prompt version manifest 和 `prompt_outputs/<version>.json`，输出 prompt hash、section 顺序、执行来源和 Q05/Q06 指标；如接入真实 LLM，可通过 `PromptEvalExecutor` 注入执行器
 - finalize 阶段的 `prompt_policy` handler 会校验 manifest 完整性、prompt hash、结构化输出 schema、证据契约、评估协议（检查清单 + 行为红线），并阻断专家 persona 标签，结果写入 `_internal/_prompt_policy.json`
 
 ## 技术栈适配
@@ -238,9 +238,9 @@ Prompt 产物治理：
 
 ```bash
 # 新项目接入时直接选 profile
-dqg-run PROJ --profile java-ddd-tmf execute Q01
-dqg-run PROJ --profile go-service auto
-dqg-run PROJ --profile typescript-service execute Q06
+qualix-run PROJ --profile java-ddd-tmf execute Q01
+qualix-run PROJ --profile go-service auto
+qualix-run PROJ --profile typescript-service execute Q06
 ```
 
 选中的 profile 会持久化到项目状态，并在 `Q04/Q03/Q05/Q05a/Q05b/Q06/Q07` 自动注入：
@@ -269,7 +269,7 @@ Profile 约定：
 - `profile.json` 必须包含 `profile_id`、`version`、`name`、`description`、`language`、`baseline_path`、`risk_catalog_path`、`quality_thresholds`
 - `version` 使用 SemVer 格式，例如 `1.0.0`
 - `language` 使用小写 Provider ID（如 `java`、`go`、`typescript`、`python`、`rust`、`kotlin`）；schema 校验只检查 ID 格式，不阻断未来语言扩展
-- `dqg-run PROJ doctor` 会校验所有 profile 的 schema、路径和阈值，防止跨团队扩展时出现基线漂移
+- `qualix-run PROJ doctor` 会校验所有 profile 的 schema、路径和阈值，防止跨团队扩展时出现基线漂移
 
 ## 质量进化闭环
 
@@ -283,14 +283,14 @@ DQG 借鉴 OpenSpace 的自进化思路，实现了三层质量进化机制：
 
 ```bash
 # 质量进化命令
-dqg-run PROJ judge Q01           # 独立评审
-dqg-run PROJ critique Q01        # 自我批评 → v2
-dqg-run PROJ preference Q01      # v1 vs v2 偏好比较
+qualix-run PROJ judge Q01           # 独立评审
+qualix-run PROJ critique Q01        # 自我批评 → v2
+qualix-run PROJ preference Q01      # v1 vs v2 偏好比较
 
 # Bug 案例库
-dqg-run PROJ regression run      # 回放基准 + 失败样例库
-dqg-run PROJ regression trend    # 查看失败样例趋势
-dqg-run PROJ regression prompt-eval  # 对 prompt_versions 做离线 A/B 指标对比（可读取 prompt_outputs/*.json）
+qualix-run PROJ regression run      # 回放基准 + 失败样例库
+qualix-run PROJ regression trend    # 查看失败样例趋势
+qualix-run PROJ regression prompt-eval  # 对 prompt_versions 做离线 A/B 指标对比（可读取 prompt_outputs/*.json）
 python -m dqg.tracking.bug_cases         # 查看 failure-library 报告
 python -m dqg.tracking.import_bug_cases <ingest.json>  # 从飞书导入
 ```
@@ -316,16 +316,16 @@ Streamlit 看板内置"可观测性"页面，实时展示告警历史、日报/�
 
 ```bash
 # 生成日报（JSON + Markdown）
-dqg-run PROJ observe report --period daily
+qualix-run PROJ observe report --period daily
 
 # 生成周报，并按项目/Phase 过滤
-dqg-run PROJ observe report --period weekly --project rights-platform --phase Q03
+qualix-run PROJ observe report --period weekly --project rights-platform --phase Q03
 
 # 每日任务：生成日报 + 写入历史指标仓 + 告警输出（建议配合 cron）
-dqg-run PROJ observe daily
+qualix-run PROJ observe daily
 
 # Guard 精度周报（T9）：聚合各 guard 的拦对/拦错/漏拦三态
-dqg-run PROJ observe guard-precision
+qualix-run PROJ observe guard-precision
 ```
 
 输出目录：
@@ -333,7 +333,7 @@ dqg-run PROJ observe guard-precision
 - 报告：`observability/reports/<daily|weekly>/*.json|*.md`
 - 指标仓：`observability/metrics_history.jsonl`
 - 告警：`observability/alerts/*.json|*.md`
-- Prometheus：`observability/prometheus/*.prom`（`dqg-run PROJ observe daily` 自动产出）
+- Prometheus：`observability/prometheus/*.prom`（`qualix-run PROJ observe daily` 自动产出）
 - Guard 精度：`docs/system-health-reports/guard_precision.md`（finalize 后自动刷新，也可手动 `observe guard-precision`）
 
 当前指标覆盖：
@@ -349,7 +349,7 @@ dqg-run PROJ observe guard-precision
 - `PHASE_FAILURE_RATE`
 - `FAILURE_LIBRARY_REGRESSION`（失败样例回归退化）
 
-周报会额外聚合失败样例库趋势（如果已执行过 `dqg-run PROJ regression run`）：
+周报会额外聚合失败样例库趋势（如果已执行过 `qualix-run PROJ regression run`）：
 
 - `误报`
 - `漏报`
@@ -409,10 +409,10 @@ pytest tests/integration/test_feishu_ingest_snapshot.py -q
 
 ```bash
 # 跑全量基准回放集
-dqg-run PROJ regression run
+qualix-run PROJ regression run
 
 # 只跑某个样本
-dqg-run PROJ regression run --case rights-platform
+qualix-run PROJ regression run --case rights-platform
 ```
 
 当前内置样本：
@@ -429,13 +429,13 @@ dqg-run PROJ regression run --case rights-platform
 - `回归`：基线中存在、当前输出缺失
 - `偏移`：文件仍存在，但内容发生变化
 
-若任一回放 case 不通过，`dqg-run PROJ regression run` 会返回非 0，可直接用于规则改动后的回归门禁。
+若任一回放 case 不通过，`qualix-run PROJ regression run` 会返回非 0，可直接用于规则改动后的回归门禁。
 
 失败样例库趋势统计：
 
 ```bash
 # 周维度统计误报/漏报趋势
-dqg-run PROJ regression trend --period weekly
+qualix-run PROJ regression trend --period weekly
 ```
 
 相关产物：

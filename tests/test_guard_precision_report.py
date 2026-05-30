@@ -1,8 +1,8 @@
 import json
 from pathlib import Path
 
-from dqg.constants import GUARD_EVENT_FILENAME
-from dqg.reporting.guard_precision_report import (
+from qualix.constants import GUARD_EVENT_FILENAME
+from qualix.reporting.guard_precision_report import (
     build_guard_precision_summary,
     render_guard_precision_markdown,
     write_guard_precision_report,

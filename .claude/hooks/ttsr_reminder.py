@@ -6,7 +6,7 @@
 
 检测两类高频铁律违规（来自 failure-library 3460 条案例统计）：
   1. SE-based 模式：Q05a/Q05b/Q06 产物中按 SE 汇总而非 EUT 逐条
-  2. 缺 --json：dqg-run 输出包含 prose 结构而非 JSON（忘加 --json）
+  2. 缺 --json：qualix-run 输出包含 prose 结构而非 JSON（忘加 --json）
 """
 
 import json
@@ -28,8 +28,8 @@ _SE_BASED_PATTERNS = [
     re.compile(r'SE-\d+.*?覆盖.*?(?:个|条|项)\s*EUT', re.DOTALL),  # prose：N个EUT对应SE
 ]
 
-# 缺 --json 的特征：Bash 执行了 dqg-run 但输出是人类可读格式（不是 JSON 对象/数组）
-_DQG_RUN_RE = re.compile(r'dqg[-_]run\s+\S+\s+\S+')
+# 缺 --json 的特征：Bash 执行了 qualix-run 但输出是人类可读格式（不是 JSON 对象/数组）
+_DQG_RUN_RE = re.compile(r'qualix[-_]run\s+\S+\s+\S+')
 _JSON_START_RE = re.compile(r'^\s*[\[{]')
 _PROSE_DQG_PATTERNS = [
     re.compile(r'(?:状态|Phase|phase)\s*[:：]\s*(?:not_started|in_progress|completed)', re.IGNORECASE),
@@ -51,7 +51,7 @@ def _detect_missing_json_flag(tool_name: str, tool_input: dict, output: str) -> 
     # 有 --json 就不提醒
     if "--json" in command:
         return False
-    # 检查输出是否是 prose（有非 JSON 结构的 dqg 输出）
+    # 检查输出是否是 prose（有非 JSON 结构的 qualix 输出）
     if _JSON_START_RE.match(output):
         return False
     return any(p.search(output) for p in _PROSE_DQG_PATTERNS)
@@ -91,8 +91,8 @@ def main():
 
     if _detect_missing_json_flag(tool_name, tool_input, output):
         reminders.append(
-            "【TTSR-铁律3】dqg-run 输出疑似 prose 格式。"
-            "所有 dqg-run 调用 MUST 加 --json 标志，让输出可被稳定解析。"
+            "【TTSR-铁律3】qualix-run 输出疑似 prose 格式。"
+            "所有 qualix-run 调用 MUST 加 --json 标志，让输出可被稳定解析。"
             "请在命令末尾补加 --json 后重试。"
         )
 

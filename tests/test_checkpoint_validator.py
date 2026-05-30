@@ -19,7 +19,7 @@ def _make_contract(verification_targets=None, done_definition=None):
 
 def test_validate_passes_with_good_content():
     """Content covering all verification targets passes."""
-    from dqg.quality.checkpoint_validator import validate_checkpoint
+    from qualix.quality.checkpoint_validator import validate_checkpoint
 
     content = json.dumps(
         {
@@ -37,7 +37,7 @@ def test_validate_passes_with_good_content():
 
 def test_validate_fails_with_empty_content():
     """Empty content fails rule check."""
-    from dqg.quality.checkpoint_validator import validate_checkpoint
+    from qualix.quality.checkpoint_validator import validate_checkpoint
 
     result = validate_checkpoint("", _make_contract(), "Q01", "evidence_pack")
     assert result.passed is False
@@ -46,7 +46,7 @@ def test_validate_fails_with_empty_content():
 
 def test_validate_fails_with_low_coverage():
     """Content covering < 60% of verification targets fails."""
-    from dqg.quality.checkpoint_validator import validate_checkpoint
+    from qualix.quality.checkpoint_validator import validate_checkpoint
 
     content = json.dumps(
         {
@@ -62,7 +62,7 @@ def test_validate_fails_with_low_coverage():
 
 def test_validate_skips_when_no_contract():
     """No contract → skip checkpoint, return PASS."""
-    from dqg.quality.checkpoint_validator import validate_checkpoint
+    from qualix.quality.checkpoint_validator import validate_checkpoint
 
     result = validate_checkpoint("some content", {}, "Q01", "evidence_pack")
     assert result.passed is True
@@ -70,7 +70,7 @@ def test_validate_skips_when_no_contract():
 
 def test_validate_skips_when_no_targets():
     """Contract with empty verification_targets → skip, return PASS."""
-    from dqg.quality.checkpoint_validator import validate_checkpoint
+    from qualix.quality.checkpoint_validator import validate_checkpoint
 
     result = validate_checkpoint("some content", {"verification_targets": []}, "Q01", "test")
     assert result.passed is True
@@ -78,7 +78,7 @@ def test_validate_skips_when_no_targets():
 
 def test_rule_checks_recorded():
     """Rule check results are recorded in CheckpointResult."""
-    from dqg.quality.checkpoint_validator import validate_checkpoint
+    from qualix.quality.checkpoint_validator import validate_checkpoint
 
     content = json.dumps({"evidences": [{"id": "E-001", "source": "x:1", "content": "REQ-001 test"}]})
     result = validate_checkpoint(content, _make_contract(), "Q01", "test")
@@ -88,7 +88,7 @@ def test_rule_checks_recorded():
 
 def test_validate_plain_text_content():
     """Plain text (not JSON) content also works for upstream quality check."""
-    from dqg.quality.checkpoint_validator import validate_checkpoint
+    from qualix.quality.checkpoint_validator import validate_checkpoint
 
     content = "# 需求结构化报告\n\n## REQ-001 创建维保单\n## SE-001 校验\n## BR-001 关联"
     result = validate_checkpoint(content, _make_contract(), "Q01", "upstream_report")

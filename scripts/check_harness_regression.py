@@ -17,33 +17,33 @@ from pathlib import Path
 # 触发回归检查的 harness 文件模式（相对于 repo 根目录）
 HARNESS_PATTERNS: tuple[str, ...] = (
     # 检查逻辑
-    "src/dqg/quality/checks/auto_checks.py",
-    "src/dqg/quality/checks/q05_structure_checks.py",
-    "src/dqg/quality/checks/finalize_checks.py",
-    "src/dqg/quality/guardrail/",
-    "src/dqg/quality/rules/",
+    "src/qualix/quality/checks/auto_checks.py",
+    "src/qualix/quality/checks/q05_structure_checks.py",
+    "src/qualix/quality/checks/finalize_checks.py",
+    "src/qualix/quality/guardrail/",
+    "src/qualix/quality/rules/",
     # Phase 注册（pass_threshold / judge_required 等）
-    "src/dqg/core/phase_registry.py",
+    "src/qualix/core/phase_registry.py",
     # SKILL.md（rubric 和检查规则定义）
     "skills/",
     # Judge runner 本身（rubric 解析 / sentinel 逻辑）
-    "src/dqg/quality/judge/",
+    "src/qualix/quality/judge/",
 )
 
 
 def _repo_root() -> Path:
     here = Path(__file__).resolve().parent
     for p in (here.parent, here.parent.parent):
-        if (p / "src" / "dqg").is_dir():
+        if (p / "src" / "qualix").is_dir():
             return p
     return here.parent
 
 
 def _is_harness_file(path_str: str) -> bool:
     """判断文件是否命中 HARNESS_PATTERNS."""
-    # 归一化：去掉 dev-quality-gate/ 前缀，兼容 pre-commit 传入的相对路径
+    # 归一化：去掉 qualix/ 前缀，兼容 pre-commit 传入的相对路径
     rel = path_str
-    for prefix in ("dev-quality-gate/", "./dev-quality-gate/"):
+    for prefix in ("qualix/", "./qualix/"):
         if rel.startswith(prefix):
             rel = rel[len(prefix) :]
             break
@@ -53,9 +53,9 @@ def _is_harness_file(path_str: str) -> bool:
 def _run_regression() -> tuple[int, list[dict]]:
     """运行所有 curated regression cases，返回 (exit_code, results)."""
     try:
-        from dqg.tracking.regression import compute_exit_code, discover_cases, run_case
+        from qualix.tracking.regression import compute_exit_code, discover_cases, run_case
     except ImportError:
-        print("  [harness-regression] dqg 未安装，跳过检查", file=sys.stderr)
+        print("  [harness-regression] qualix 未安装，跳过检查", file=sys.stderr)
         return 0, []
 
     cases = [c for c in discover_cases() if c.get("actual_dir")]  # 只跑有 actual_dir 的 curated 案例

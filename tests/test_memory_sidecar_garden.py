@@ -4,11 +4,11 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from dqg.memory.garden import _polarity_clash, run_memory_garden
-from dqg.memory.knowledge_network import add_link, upsert_node, walk_weighted_neighbors
-from dqg.memory.sidecar_l1 import enqueue_memory_sidecar
-from dqg.memory.trust_level import TrustLevel, recent_trust_summary, record_trust_event, trust_weight
-from dqg.store import get_connection
+from qualix.memory.garden import _polarity_clash, run_memory_garden
+from qualix.memory.knowledge_network import add_link, upsert_node, walk_weighted_neighbors
+from qualix.memory.sidecar_l1 import enqueue_memory_sidecar
+from qualix.memory.trust_level import TrustLevel, recent_trust_summary, record_trust_event, trust_weight
+from qualix.store import get_connection
 
 
 def _init_db(output_dir: Path) -> None:

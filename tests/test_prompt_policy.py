@@ -4,14 +4,14 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from dqg.json_utils import load_json_strict, save_json
-from dqg.prompting import PromptCompiler, PromptSpec, write_prompt_manifest
-from dqg.prompting.policy import validate_prompt_artifact
-from dqg.quality.critique import generate_critique_prompt
-from dqg.quality.judge import generate_judge_prompt
-from dqg.runtime.execution_context import ExecutionContext
-from dqg.runtime.handlers_prompt_policy import handle_prompt_policy
-from dqg.runtime.result import PhaseResult
+from qualix.json_utils import load_json_strict, save_json
+from qualix.prompting import PromptCompiler, PromptSpec, write_prompt_manifest
+from qualix.prompting.policy import validate_prompt_artifact
+from qualix.quality.critique import generate_critique_prompt
+from qualix.quality.judge import generate_judge_prompt
+from qualix.runtime.execution_context import ExecutionContext
+from qualix.runtime.handlers_prompt_policy import handle_prompt_policy
+from qualix.runtime.result import PhaseResult
 
 if TYPE_CHECKING:
     from pathlib import Path

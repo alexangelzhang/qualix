@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from dqg.runtime.gate_verdict import CheckItem, GateVerdict, _extract_handler_name, build_verdict
-from dqg.runtime.result import PhaseResult
+from qualix.runtime.gate_verdict import CheckItem, GateVerdict, _extract_handler_name, build_verdict
+from qualix.runtime.result import PhaseResult
 
 
 class TestCheckItem:
@@ -145,7 +145,7 @@ class TestBuildVerdict:
 
 class TestSaveLoadVerdict:
     def test_roundtrip(self, tmp_path):
-        from dqg.runtime.gate_verdict import load_verdict, save_verdict
+        from qualix.runtime.gate_verdict import load_verdict, save_verdict
 
         output_dir = tmp_path / "output"
         output_dir.mkdir()
@@ -170,7 +170,7 @@ class TestSaveLoadVerdict:
         assert loaded.upstream_hashes == {"Q05/phase_b_structured.json": "abc123"}
 
     def test_load_missing(self, tmp_path):
-        from dqg.runtime.gate_verdict import load_verdict
+        from qualix.runtime.gate_verdict import load_verdict
 
         output_dir = tmp_path / "output"
         output_dir.mkdir()

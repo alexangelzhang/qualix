@@ -2,14 +2,14 @@
 
 from __future__ import annotations
 
-from dqg.agents.agent import AgentResult, extract_llm_call
+from qualix.agents.agent import AgentResult, extract_llm_call
 
 
 def test_maybe_sample_agent_payload_full_rate(monkeypatch) -> None:
     monkeypatch.setenv("DQG_TELEMETRY_PAYLOAD_SAMPLE_RATE", "1")
-    monkeypatch.setattr("dqg.reporting.telemetry_payload.random.random", lambda: 0.0)
+    monkeypatch.setattr("qualix.reporting.telemetry_payload.random.random", lambda: 0.0)
 
-    from dqg.reporting.telemetry_payload import maybe_sample_agent_payload
+    from qualix.reporting.telemetry_payload import maybe_sample_agent_payload
 
     p, r = maybe_sample_agent_payload([{"role": "user", "content": "hello"}], "world")
     assert "hello" in p
@@ -18,7 +18,7 @@ def test_maybe_sample_agent_payload_full_rate(monkeypatch) -> None:
 
 def test_maybe_sample_disabled(monkeypatch) -> None:
     monkeypatch.setenv("DQG_TELEMETRY_PAYLOAD_SAMPLE_RATE", "0")
-    from dqg.reporting.telemetry_payload import maybe_sample_agent_payload
+    from qualix.reporting.telemetry_payload import maybe_sample_agent_payload
 
     p, r = maybe_sample_agent_payload([{"role": "user", "content": "hello"}], "world")
     assert p == "" and r == ""

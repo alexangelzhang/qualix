@@ -1,6 +1,6 @@
 """Tests for StructuredChatResult and chat_structured()."""
 
-from dqg.agents.llm_backends import StructuredChatResult, _extract_json
+from qualix.agents.llm_backends import StructuredChatResult, _extract_json
 
 
 def test_extract_json_from_code_block():

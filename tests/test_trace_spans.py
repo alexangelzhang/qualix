@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from dqg.reporting.observability import _build_trace_summary
-from dqg.reporting.telemetry import PhaseRunRecord
-from dqg.reporting.trace_spans import enrich_llm_call_span
+from qualix.reporting.observability import _build_trace_summary
+from qualix.reporting.telemetry import PhaseRunRecord
+from qualix.reporting.trace_spans import enrich_llm_call_span
 
 
 def test_enrich_llm_call_span_path() -> None:

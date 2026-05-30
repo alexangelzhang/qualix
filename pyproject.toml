@@ -1,7 +1,7 @@
 [project]
-name = "dev-quality-gate"
+name = "qualix"
 dynamic = ["version"]
-description = "研发质量门禁 — 从需求到代码的全链路防漏管线"
+description = "AI-native development quality gate — full-chain coverage from requirements to code"
 requires-python = ">=3.11"
 dependencies = [
     "pydantic>=2.0",
@@ -19,30 +19,30 @@ dev = [
 ]
 
 [project.scripts]
-dqg = "dqg.core.cli:main"
-dqg-run = "dqg.core.runner:main"
+qualix = "qualix.core.cli:main"
+qualix-run = "qualix.core.runner:main"
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project.urls]
-Homepage = "https://github.com/your-org/rd-gate"
-Issues = "https://github.com/your-org/rd-gate/-/issues"
-Source = "https://github.com/your-org/rd-gate"
+Homepage = "https://github.com/your-org/qualix"
+Issues = "https://github.com/your-org/qualix/issues"
+Source = "https://github.com/your-org/qualix"
 
 [tool.hatch.version]
 path = "VERSION"
 pattern = "(?P<version>.+)"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/dqg"]
+packages = ["src/qualix"]
 
 [tool.hatch.build.targets.wheel.force-include]
-"skills" = "dqg/skills"
-"references" = "dqg/references"
-"profiles" = "dqg/profiles"
-".claude/commands" = "dqg/claude_commands"
+"skills" = "qualix/skills"
+"references" = "qualix/references"
+"profiles" = "qualix/profiles"
+".claude/commands" = "qualix/claude_commands"
 
 [tool.ruff]
 target-version = "py311"
@@ -50,42 +50,19 @@ line-length = 120
 src = ["src", "tests"]
 
 [tool.ruff.lint]
-select = [
-    "E",    # pycodestyle errors
-    "W",    # pycodestyle warnings
-    "F",    # pyflakes
-    "I",    # isort
-    "N",    # pep8-naming
-    "UP",   # pyupgrade
-    "B",    # flake8-bugbear
-    "SIM",  # flake8-simplify
-    "TCH",  # flake8-type-checking
-    "RUF",  # ruff-specific
-]
-ignore = [
-    "E501",    # line too long — 交给 formatter
-    "E402",    # module import not at top — scripts 常用 sys.path 再 import
-    "N802",    # 函数名小写 — BaseHTTPRequestHandler 的 do_POST/do_OPTIONS 是标准接口
-    "N806",    # non-lowercase in function — 矩阵/张量命名 X/Y 常见
-    "SIM108",  # ternary operator — 可读性优先
-    "TC001",   # typing-only first-party import — 与 __future__ annotations 重复收益
-    "TC003",   # typing-only stdlib import — 与 __future__ annotations 重复收益
-    "RUF001",  # ambiguous unicode char in string — 中文项目，全角字符正常
-    "RUF002",  # ambiguous unicode char in docstring
-    "RUF003",  # ambiguous unicode char in comment
-]
+select = ["E","W","F","I","N","UP","B","SIM","TCH","RUF"]
+ignore = ["E501","E402","N802","N806","SIM108","TC001","TC003","RUF001","RUF002","RUF003"]
 
 [tool.ruff.lint.per-file-ignores]
-"**/__init__.py" = ["F401", "F403"]  # re-export 是 __init__.py 的本职
-"**/tests/**" = ["RUF012"]  # 测试类的 SAMPLE_DATA dict 默认值无需 ClassVar
+"**/__init__.py" = ["F401", "F403"]
+"**/tests/**" = ["RUF012"]
 "**/test_*.py" = ["RUF012"]
-# Facade re-export 文件（拆包后对外保持向后兼容）
 "**/ingest/feishu/crawler.py" = ["F401"]
 "**/memory/knowledge_network.py" = ["F401"]
 "**/quality/judge/critique.py" = ["F401"]
 "**/runtime/phase_contract.py" = ["F401"]
-"**/dqg/skill_tracker.py" = ["F401"]
-"**/dqg/text_utils.py" = ["F401"]
+"**/qualix/skill_tracker.py" = ["F401"]
+"**/qualix/text_utils.py" = ["F401"]
 "**/context/analysis/weak_assert_context.py" = ["F401"]
 "**/agents/adaptive_loop.py" = ["F401"]
 "**/quality/eval/eval_baseline.py" = ["F401"]
@@ -96,15 +73,14 @@ ignore = [
 "**/schemas/phase_b.py" = ["F403"]
 "**/schemas/phase_c.py" = ["F403"]
 "**/schemas/phase_d.py" = ["F403"]
-# Importability 探测（try import 检查包可用性）
 "**/agents/dag_scheduler.py" = ["F401"]
 "**/commands/phase.py" = ["F401"]
 "**/commands/phase_auto.py" = ["F401"]
-"**/dqg/core/cli.py" = ["F401"]
+"**/qualix/core/cli.py" = ["F401"]
 "**/test_runtime.py" = ["F401"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["dqg"]
+known-first-party = ["qualix"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

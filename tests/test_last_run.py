@@ -1,21 +1,21 @@
-"""Tests for dqg.core.last_run — last-run marker atomic write."""
+"""Tests for qualix.core.last_run — last-run marker atomic write."""
 
 import json
 
-from dqg.core.last_run import read_last_run, write_last_run
+from qualix.core.last_run import read_last_run, write_last_run
 
 
 def test_write_then_read(tmp_path):
     (tmp_path / ".dqg").mkdir()
     write_last_run(
         project_root=tmp_path,
-        cmd=["dqg-run", "status"],
+        cmd=["qualix-run", "status"],
         exit_code=0,
         stderr_tail="",
     )
     data = read_last_run(tmp_path)
     assert data is not None
-    assert data["cmd"] == ["dqg-run", "status"]
+    assert data["cmd"] == ["qualix-run", "status"]
     assert data["exit_code"] == 0
     assert "ts" in data
     assert "cwd" in data
@@ -30,7 +30,7 @@ def test_write_skipped_without_dqg_dir(tmp_path):
     """No .dqg/ directory → write is a no-op, no file created."""
     write_last_run(
         project_root=tmp_path,
-        cmd=["dqg-run", "x"],
+        cmd=["qualix-run", "x"],
         exit_code=0,
         stderr_tail="",
     )
@@ -44,7 +44,7 @@ def test_stderr_tail_truncated(tmp_path):
     huge = "x" * 10000
     write_last_run(
         project_root=tmp_path,
-        cmd=["dqg-run", "status"],
+        cmd=["qualix-run", "status"],
         exit_code=1,
         stderr_tail=huge,
     )
@@ -57,18 +57,18 @@ def test_atomic_write_produces_valid_json(tmp_path):
     """File must always be valid JSON even after multiple writes."""
     (tmp_path / ".dqg").mkdir()
     for i in range(5):
-        write_last_run(tmp_path, ["dqg-run", str(i)], i, "")
+        write_last_run(tmp_path, ["qualix-run", str(i)], i, "")
     path = tmp_path / ".dqg" / "last-run.json"
     # strict JSON parse
     data = json.loads(path.read_text())
-    assert data["cmd"] == ["dqg-run", "4"]
+    assert data["cmd"] == ["qualix-run", "4"]
 
 
 def test_tee_writer_captures_stderr():
     """_TeeWriter should write to both original stream and internal buffer."""
     import io as _io
 
-    from dqg.core.runner import _TeeWriter
+    from qualix.core.runner import _TeeWriter
 
     original = _io.StringIO()
     tee = _TeeWriter(original)
@@ -86,11 +86,11 @@ def test_tee_writer_stderr_tail_written_to_last_run(tmp_path):
     (tmp_path / ".dqg").mkdir()
     script = (
         "import sys; sys.path.insert(0, 'src'); "
-        "from dqg.core.runner import _TeeWriter; "
+        "from qualix.core.runner import _TeeWriter; "
         "import io; tee = _TeeWriter(sys.stderr); sys.stderr = tee; "
         "print('captured error', file=sys.stderr); "
         "sys.stderr = tee._original; "
-        f"from dqg.core.last_run import write_last_run; from pathlib import Path; "
+        f"from qualix.core.last_run import write_last_run; from pathlib import Path; "
         f"write_last_run(Path(r'{tmp_path}'), ['test'], 0, tee.getvalue())"
     )
     subprocess.run([sys.executable, "-c", script], cwd=tmp_path, check=True)

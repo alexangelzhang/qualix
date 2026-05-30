@@ -1,8 +1,8 @@
-"""Tests for dqg.orchestrator."""
+"""Tests for qualix.orchestrator."""
 
 from pathlib import Path
 
-from dqg.services.orchestrator import (
+from qualix.services.orchestrator import (
     PHASES,
     PhaseStatus,
     build_next_command,

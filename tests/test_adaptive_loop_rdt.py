@@ -29,7 +29,7 @@ def tmp_output(tmp_path):
 
 def test_p1_depth_config_resolves_from_blast_radius(tmp_output):
     """HIGH risk_tier → max_iterations=3, force_secondary=True."""
-    from dqg.constants import REVIEW_DEPTH_CONFIG
+    from qualix.constants import REVIEW_DEPTH_CONFIG
 
     cfg = REVIEW_DEPTH_CONFIG["HIGH"]
     assert cfg["max_iterations"] == 3
@@ -41,7 +41,7 @@ def test_p2_anchor_extracted_from_upstream(tmp_output):
     tmp_path, project_id = tmp_output
     upstream_path = tmp_path / project_id / "Q07" / "_upstream_context.md"
 
-    from dqg.agents.handoff_builder import extract_anchor_summary
+    from qualix.agents.handoff_builder import extract_anchor_summary
 
     text = upstream_path.read_text()
     anchor = extract_anchor_summary(text)
@@ -52,7 +52,7 @@ def test_p2_anchor_extracted_from_upstream(tmp_output):
 
 def test_p3_composed_rubric_has_shared_and_routed():
     """Q07 composed rubric includes both shared and routed dimensions."""
-    from dqg.quality.judge_rubrics import compose_rubric_structured
+    from qualix.quality.judge_rubrics import compose_rubric_structured
 
     dims = compose_rubric_structured("Q07")
     ids = {d["id"] for d in dims}
@@ -69,8 +69,8 @@ def test_p1_p2_p3_all_wired_in_adaptive_loop(tmp_output):
     tmp_path, project_id = tmp_output
 
     # We can't run the full loop (needs LLM), but we can verify the setup code runs
-    from dqg.constants import REVIEW_DEPTH_CONFIG, REVIEW_DEPTH_DEFAULT
-    from dqg.json_utils import load_json
+    from qualix.constants import REVIEW_DEPTH_CONFIG, REVIEW_DEPTH_DEFAULT
+    from qualix.json_utils import load_json
 
     blast_path = tmp_path / project_id / "Q07" / "_internal" / "_blast_radius.json"
     blast_data = load_json(blast_path)
@@ -83,12 +83,12 @@ def test_p1_p2_p3_all_wired_in_adaptive_loop(tmp_output):
     upstream_path = tmp_path / project_id / "Q07" / "_upstream_context.md"
     assert upstream_path.exists()
 
-    from dqg.agents.handoff_builder import extract_anchor_summary
+    from qualix.agents.handoff_builder import extract_anchor_summary
 
     anchor = extract_anchor_summary(upstream_path.read_text())
     assert "REQ-001" in anchor
 
-    from dqg.quality.judge_rubrics import compose_rubric
+    from qualix.quality.judge_rubrics import compose_rubric
 
     rubric = compose_rubric("Q07")
     assert "source_citation" in rubric

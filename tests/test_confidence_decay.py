@@ -5,7 +5,7 @@ from __future__ import annotations
 import math
 from pathlib import Path
 
-from dqg.memory.confidence_decay import (
+from qualix.memory.confidence_decay import (
     HALF_LIFE_DAYS_FACT,
     MemoryDecayCategory,
     compute_decayed_confidence,
@@ -13,8 +13,8 @@ from dqg.memory.confidence_decay import (
     half_life_days,
     recent_mean_trust_weight,
 )
-from dqg.memory.trust_level import TrustLevel, record_trust_event
-from dqg.store import get_connection
+from qualix.memory.trust_level import TrustLevel, record_trust_event
+from qualix.store import get_connection
 
 
 def test_half_life_constants() -> None:

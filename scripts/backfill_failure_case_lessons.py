@@ -6,7 +6,7 @@
   python scripts/backfill_failure_case_lessons.py --apply            # 写回文件
   python scripts/backfill_failure_case_lessons.py --apply --limit 100
 
-默认仓库根目录为包含 dev-quality-gate/ 的 cwd；若在 dev-quality-gate 子目录内运行会自动上探。
+默认仓库根目录为包含 qualix/ 的 cwd；若在 qualix 子目录内运行会自动上探。
 """
 
 from __future__ import annotations
@@ -20,7 +20,7 @@ from pathlib import Path
 def _repo_root() -> Path:
     here = Path(__file__).resolve().parent
     for p in [here.parent, here.parent.parent]:
-        if (p / "src" / "dqg").is_dir() and (p / "regression" / "failure-library").is_dir():
+        if (p / "src" / "qualix").is_dir() and (p / "regression" / "failure-library").is_dir():
             return p
     return here.parent
 
@@ -29,8 +29,8 @@ def main() -> int:
     root = _repo_root()
     sys.path.insert(0, str(root / "src"))
 
-    from dqg.tracking.case_category import CASE_CATEGORIES, infer_case_category
-    from dqg.tracking.lesson_inference import infer_lesson_with_fallback
+    from qualix.tracking.case_category import CASE_CATEGORIES, infer_case_category
+    from qualix.tracking.lesson_inference import infer_lesson_with_fallback
 
     ap = argparse.ArgumentParser(description="Backfill failure-library case.json lesson + case_category")
     ap.add_argument("--dry-run", action="store_true", help="只打印统计，不写文件")

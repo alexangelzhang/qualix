@@ -24,9 +24,9 @@
 | `VERSION` | Create | 纯文本版本号，如 `0.2.0-dev.20260511`；hatchling 和 install.sh 的共同版本源 |
 | `install.sh` | Create | bash + 内联 Python 脚本，借鉴 VAF；拷资源 + pip 安装 |
 | `src/dqg/core/resource_resolver.py` | Create | 三层资源查找（项目 `.dqg/` → `~/.dqg/` → `importlib.resources`） |
-| `src/dqg/commands/init.py` | Create | `dqg-run init` 实现：建 .dqg/output、写 settings.yaml、注入 CLAUDE.md |
-| `src/dqg/commands/doctor.py` | Create | `dqg-run doctor` 实现：生成 bundle、脱敏、glab 上传 |
-| `src/dqg/commands/path_cmd.py` | Create | `dqg-run path <skills\|references\|profiles>` 只读查看内置资源 |
+| `src/dqg/commands/init.py` | Create | `qualix-run init` 实现：建 .dqg/output、写 settings.yaml、注入 CLAUDE.md |
+| `src/dqg/commands/doctor.py` | Create | `qualix-run doctor` 实现：生成 bundle、脱敏、glab 上传 |
+| `src/dqg/commands/path_cmd.py` | Create | `qualix-run path <skills\|references\|profiles>` 只读查看内置资源 |
 | `src/dqg/core/last_run.py` | Create | last-run marker 读写（`.dqg/last-run.json`） |
 | `src/dqg/core/settings.py` | Create | `.dqg/settings.yaml` 加载器 + 版本一致性检查 |
 | `pyproject.toml` | Modify | dynamic version、project.urls、wheel force-include |
@@ -88,7 +88,7 @@ def test_version_file_exists():
 def test_package_version_matches_file():
     version_file = Path(__file__).resolve().parents[1] / "VERSION"
     file_version = version_file.read_text().strip()
-    pkg_version = importlib.metadata.version("dev-quality-gate")
+    pkg_version = importlib.metadata.version("qualix")
     assert pkg_version == file_version
 ```
 
@@ -103,7 +103,7 @@ Expected: FAIL（VERSION 文件不存在或 pyproject 还没改 dynamic）
 
 ```toml
 [project]
-name = "dev-quality-gate"
+name = "qualix"
 dynamic = ["version"]
 description = "研发质量门禁 — 从需求到代码的全链路防漏管线"
 requires-python = ">=3.11"
@@ -136,7 +136,7 @@ packages = ["src/dqg"]
 ```python
 from importlib.metadata import version as _meta_version
 
-__version__ = _meta_version("dev-quality-gate")
+__version__ = _meta_version("qualix")
 ```
 
 - [ ] **Step 6: 重新安装并跑测试**
@@ -309,7 +309,7 @@ class ResourceResolver:
     def _package_fallback(category: str, relative: str) -> Path | None:
         try:
             from importlib.resources import files
-            pkg_path = files("dqg") / category / relative
+            pkg_path = files("qualix") / category / relative
             if hasattr(pkg_path, "_path"):
                 p = Path(str(pkg_path._path))
             else:
@@ -322,7 +322,7 @@ class ResourceResolver:
     def _package_fallback_dir(category: str) -> Path | None:
         try:
             from importlib.resources import files
-            pkg_path = files("dqg") / category
+            pkg_path = files("qualix") / category
             if hasattr(pkg_path, "_path"):
                 p = Path(str(pkg_path._path))
             else:
@@ -661,7 +661,7 @@ def main() -> int:
     print("\n✓ 安装完成")
     print("\n下一步：")
     print("  cd 你的项目目录")
-    print("  dqg-run init")
+    print("  qualix-run init")
     return 0
 
 
@@ -711,7 +711,7 @@ git commit -m "feat(distribution): install.sh 基础框架 + dry-run + --dev + -
 def test_legacy_cwd_layout_warns(tmp_path, capsys, monkeypatch):
     """cwd 同时有 src/dqg/ 和 skills/ 时打印 deprecation warning."""
     legacy = tmp_path / "legacy"
-    (legacy / "src" / "dqg").mkdir(parents=True)
+    (legacy / "src" / "qualix").mkdir(parents=True)
     (legacy / "skills").mkdir()
 
     resolver = ResourceResolver(
@@ -758,7 +758,7 @@ class ResourceResolver:
     def check_legacy_layout(self) -> None:
         """检测 cwd 是否还是老的 DQG repo 内布局，打印 deprecation warning."""
         legacy_signals = [
-            self.project_root / "src" / "dqg",
+            self.project_root / "src" / "qualix",
             self.project_root / "skills",
         ]
         if all(p.exists() for p in legacy_signals):
@@ -766,7 +766,7 @@ class ResourceResolver:
                 "\n⚠️  DEPRECATION: 检测到 cwd 仍在 DQG repo 内布局运行。\n"
                 "   未来版本将移除此兼容路径，请按 docs/migration-from-0.1.md 迁移：\n"
                 "   1. 在家目录外新建你的项目工作区\n"
-                "   2. cd 到工作区后运行 dqg-run init\n"
+                "   2. cd 到工作区后运行 qualix-run init\n"
                 "   此警告保留 3 个月，然后会升级为 error。\n",
                 file=sys.stderr,
             )
@@ -830,9 +830,9 @@ ls -la ~/.dqg
 Expected:
 - `~/.dqg/skills/` 是 symlink 指向 `<repo>/skills`
 - `~/.dqg/references/`、`~/.dqg/profiles/`、`~/.dqg/regression/`、`~/.dqg/VERSION` 同理
-- `pip show dev-quality-gate` 显示 editable install
+- `pip show qualix` 显示 editable install
 
-- [ ] **Step 3: 验证 dqg-run 能读 ~/.dqg 资源**
+- [ ] **Step 3: 验证 qualix-run 能读 ~/.dqg 资源**
 
 ```bash
 cd /tmp
@@ -848,9 +848,9 @@ Expected: 打印 `~/.dqg/profiles` 路径
 
 - [ ] `./install.sh --dry-run` 输出包含 "DQG version" 和 "安装计划"
 - [ ] `./install.sh --dev` 在 repo 根执行后，改 `skills/` 文件立即在 `~/.dqg/skills/` 可见
-- [ ] `dqg-run --version` 返回 VERSION 文件内容
-- [ ] 在 DQG repo 内跑任意 dqg-run 子命令能看到 deprecation warning
-- [ ] 在 /tmp/test-user-project 跑 `dqg-run` 能读到 ~/.dqg 资源不报错
+- [ ] `qualix-run --version` 返回 VERSION 文件内容
+- [ ] 在 DQG repo 内跑任意 qualix-run 子命令能看到 deprecation warning
+- [ ] 在 /tmp/test-user-project 跑 `qualix-run` 能读到 ~/.dqg 资源不报错
 
 - [ ] **Step 5: Commit 里程碑标记**
 
@@ -941,7 +941,7 @@ class DqgSettings:
 def load_settings(project_root: Path) -> DqgSettings:
     path = project_root / ".dqg" / "settings.yaml"
     if not path.exists():
-        raise FileNotFoundError(f"Not a DQG project workspace: {path} missing. 先跑 `dqg-run init`")
+        raise FileNotFoundError(f"Not a DQG project workspace: {path} missing. 先跑 `qualix-run init`")
     data = yaml.safe_load(path.read_text()) or {}
     return DqgSettings(
         dqg_version=str(data.get("dqg_version", "")),
@@ -987,7 +987,7 @@ git commit -m "feat(distribution): .dqg/settings.yaml 加载器 + 版本一致�
 
 ---
 
-### Task 8: dqg-run init 命令
+### Task 8: qualix-run init 命令
 
 **Files:**
 - Create: `src/dqg/commands/init.py`
@@ -1085,17 +1085,17 @@ _GUARDRAIL_BODY = """## DQG 使用规约
 DQG 是通过 install.sh 安装的工具，**不要修改它的源码**。
 
 遇到 DQG 报错时：
-1. 跑 `dqg-run doctor` 生成 issue bundle
+1. 跑 `qualix-run doctor` 生成 issue bundle
 2. 把 bundle 提交给 DQG 维护者
 
 相关资源：
-- `dqg-run --help` — CLI 完整参数
-- `dqg-run path <skills|references|profiles>` — 查看内置资源"""
+- `qualix-run --help` — CLI 完整参数
+- `qualix-run path <skills|references|profiles>` — 查看内置资源"""
 
 
 def _settings_yaml(profile: str, dqg_version: str) -> str:
     return (
-        f"# DQG 项目配置 — 由 dqg-run init 生成\n"
+        f"# DQG 项目配置 — 由 qualix-run init 生成\n"
         f"dqg_version: \"{dqg_version}\"   # 自动写入，勿手改\n"
         f"profile: {profile}\n"
         f"code_repos: []   # 填写代码仓绝对路径\n"
@@ -1143,7 +1143,7 @@ def run_init(project_root: Path, profile: str, force: bool) -> int:
 
     (dqg_root / "output").mkdir(parents=True)
     try:
-        dqg_version = _version("dev-quality-gate")
+        dqg_version = _version("qualix")
     except Exception:
         dqg_version = "unknown"
     (dqg_root / "settings.yaml").write_text(_settings_yaml(profile, dqg_version))
@@ -1156,7 +1156,7 @@ def run_init(project_root: Path, profile: str, force: bool) -> int:
     print("✓ .gitignore 已追加 .dqg/output/")
     print("\n下一步：")
     print("  1. 编辑 .dqg/settings.yaml 填写 code_repos")
-    print("  2. 运行 dqg-run <project_id> startup 开始")
+    print("  2. 运行 qualix-run <project_id> startup 开始")
     return 0
 ```
 
@@ -1190,7 +1190,7 @@ Expected: 6 PASS
 
 ```bash
 mkdir -p /tmp/test-init && cd /tmp/test-init
-dqg-run init
+qualix-run init
 ls -la .dqg/
 cat .dqg/settings.yaml
 cat CLAUDE.md
@@ -1203,12 +1203,12 @@ Expected: 全部符合预期
 
 ```bash
 git add src/dqg/commands/init.py src/dqg/core/runner.py tests/test_init_cmd.py
-git commit -m "feat(distribution): dqg-run init 建 .dqg/ 工作区 + 注入 CLAUDE.md guardrail"
+git commit -m "feat(distribution): qualix-run init 建 .dqg/ 工作区 + 注入 CLAUDE.md guardrail"
 ```
 
 ---
 
-### Task 9: dqg-run path 只读查看内置资源
+### Task 9: qualix-run path 只读查看内置资源
 
 **Files:**
 - Create: `src/dqg/commands/path_cmd.py`
@@ -1293,7 +1293,7 @@ Expected: PASS
 
 ```bash
 git add src/dqg/commands/path_cmd.py src/dqg/core/runner.py tests/test_path_cmd.py
-git commit -m "feat(distribution): dqg-run path <category> 只读查看内置资源"
+git commit -m "feat(distribution): qualix-run path <category> 只读查看内置资源"
 ```
 
 ---
@@ -1314,7 +1314,7 @@ import pytest
 
 
 def test_drift_warning_prints(tmp_path, monkeypatch):
-    """构造 settings.yaml 版本与 installed 不同时跑 dqg-run，应看到 warning."""
+    """构造 settings.yaml 版本与 installed 不同时跑 qualix-run，应看到 warning."""
     monkeypatch.chdir(tmp_path)
     (tmp_path / ".dqg").mkdir()
     (tmp_path / ".dqg" / "settings.yaml").write_text(
@@ -1322,7 +1322,7 @@ def test_drift_warning_prints(tmp_path, monkeypatch):
     )
     # 跑最轻量命令：help，但要 main() 走到 drift check
     result = subprocess.run(
-        ["dqg-run", "status", "--json"],
+        ["qualix-run", "status", "--json"],
         capture_output=True,
         text=True,
         cwd=tmp_path,
@@ -1346,7 +1346,7 @@ def _check_version_drift(cwd: Path) -> None:
     from importlib.metadata import version as _v
     from dqg.core.settings import check_version_drift
     try:
-        installed = _v("dev-quality-gate")
+        installed = _v("qualix")
     except Exception:
         return
     drift = check_version_drift(cwd, installed)
@@ -1354,7 +1354,7 @@ def _check_version_drift(cwd: Path) -> None:
         pinned, running = drift
         print(
             f"\n⚠️  版本漂移: settings.yaml pin 的 {pinned} 与安装的 {running} 不一致\n"
-            f"   建议运行: dqg-run init --force 同步（注意会清空 code_repos）\n"
+            f"   建议运行: qualix-run init --force 同步（注意会清空 code_repos）\n"
             f"   或手动修改 .dqg/settings.yaml 的 dqg_version 字段\n",
             file=sys.stderr,
         )
@@ -1376,10 +1376,10 @@ Expected: PASS
 
 - [ ] **Step 5: 第二批里程碑验收**
 
-- [ ] `dqg-run init` 在空项目建出 `.dqg/output/` + settings.yaml + 注入 CLAUDE.md
-- [ ] 重跑 `dqg-run init --force` CLAUDE.md guardrail 只有一份
-- [ ] `dqg-run path skills` 打印 `~/.dqg/skills` 绝对路径
-- [ ] 用户项目里改 settings.yaml 的 dqg_version 后跑 dqg-run 看到漂移 warning
+- [ ] `qualix-run init` 在空项目建出 `.dqg/output/` + settings.yaml + 注入 CLAUDE.md
+- [ ] 重跑 `qualix-run init --force` CLAUDE.md guardrail 只有一份
+- [ ] `qualix-run path skills` 打印 `~/.dqg/skills` 绝对路径
+- [ ] 用户项目里改 settings.yaml 的 dqg_version 后跑 qualix-run 看到漂移 warning
 
 - [ ] **Step 6: Commit**
 
@@ -1413,12 +1413,12 @@ from dqg.core.last_run import write_last_run, read_last_run
 def test_write_then_read(tmp_path):
     write_last_run(
         project_root=tmp_path,
-        cmd=["dqg-run", "status"],
+        cmd=["qualix-run", "status"],
         exit_code=0,
         stderr_tail="",
     )
     data = read_last_run(tmp_path)
-    assert data["cmd"] == ["dqg-run", "status"]
+    assert data["cmd"] == ["qualix-run", "status"]
     assert data["exit_code"] == 0
     assert "ts" in data
     assert "cwd" in data
@@ -1430,7 +1430,7 @@ def test_read_missing_returns_none(tmp_path):
 
 def test_atomic_write_no_partial_file(tmp_path):
     """中断不应留下损坏的 JSON."""
-    write_last_run(tmp_path, ["dqg-run", "x"], 0, "")
+    write_last_run(tmp_path, ["qualix-run", "x"], 0, "")
     path = tmp_path / ".dqg" / "last-run.json"
     # 必须能严格 JSON 解析
     json.loads(path.read_text())
@@ -1553,7 +1553,7 @@ def project_with_state(tmp_path):
         "dqg_version: \"0.2.0\"\nprofile: java-ddd\ncode_repos:\n  - /abs/path\n"
     )
     (tmp_path / ".dqg" / "last-run.json").write_text(
-        json.dumps({"cmd": ["dqg-run", "status"], "exit_code": 1, "ts": "t", "cwd": str(tmp_path), "stderr_tail": "boom"})
+        json.dumps({"cmd": ["qualix-run", "status"], "exit_code": 1, "ts": "t", "cwd": str(tmp_path), "stderr_tail": "boom"})
     )
     output = tmp_path / ".dqg" / "output" / "proj1"
     output.mkdir(parents=True)
@@ -1647,7 +1647,7 @@ def redact_text(text: str) -> str:
 def _collect_env() -> str:
     lines = []
     try:
-        lines.append(f"dqg version: {_version('dev-quality-gate')}")
+        lines.append(f"dqg version: {_version('qualix')}")
     except Exception as e:
         lines.append(f"dqg version: unknown ({e})")
     lines.append(f"python: {sys.version.splitlines()[0]}")
@@ -1680,7 +1680,7 @@ def check_version_consistency(
         global_version = g.read_text().strip() if g.exists() else ""
     if installed_version is None:
         try:
-            installed_version = _version("dev-quality-gate")
+            installed_version = _version("qualix")
         except Exception:
             installed_version = ""
     versions = {settings_version, global_version, installed_version} - {""}
@@ -1848,7 +1848,7 @@ def test_upload_via_glab_success(mock_run, tmp_path):
     )
     ok, url, err = upload_via_glab(
         title="t", description="d", bundle=bundle,
-        repo_path="nr-car-service/dev-quality-gate", timeout=5,
+        repo_path="nr-car-service/qualix", timeout=5,
     )
     assert ok
     assert url and "issues/7" in url
@@ -1892,7 +1892,7 @@ def detect_glab() -> tuple[bool, str]:
 
 def resolve_issues_url() -> str:
     try:
-        meta = _metadata("dev-quality-gate")
+        meta = _metadata("qualix")
     except Exception:
         return "https://github.com/your-org/rd-gate/-/issues"
     for entry in meta.get_all("Project-URL") or []:
@@ -1979,7 +1979,7 @@ def run_doctor(
             f"⚠ 版本不一致: settings={consistency['settings']}, "
             f"global={consistency['global']}, installed={consistency['installed']}"
         )
-        print("  建议重跑 install.sh 和 dqg-run init --force")
+        print("  建议重跑 install.sh 和 qualix-run init --force")
     else:
         print(f"✓ 版本一致性: OK ({consistency['installed']})")
 
@@ -2059,7 +2059,7 @@ Expected: PASS
 
 ```bash
 cd /tmp/test-init  # Task 8 的目录
-PATH=/usr/bin:/bin dqg-run doctor --no-upload
+PATH=/usr/bin:/bin qualix-run doctor --no-upload
 ```
 
 Expected: bundle 生成，打印 issue URL，退出 0
@@ -2108,7 +2108,7 @@ git pull
 
 ```bash
 cd <你的项目目录>
-dqg-run init
+qualix-run init
 ```
 
 这会创建：
@@ -2137,7 +2137,7 @@ code_repos:
 ### 5. 验证
 
 ```bash
-dqg-run status --json
+qualix-run status --json
 ```
 
 Expected: 正常输出，无 deprecation warning。
@@ -2154,12 +2154,12 @@ Expected: 正常输出，无 deprecation warning。
 
 ### 多项目复用
 
-一次 `install.sh` 后，每个项目分别 `cd` 进去跑 `dqg-run init`，各自有独立 `.dqg/output/`，共享 `~/.dqg/` 资源。
+一次 `install.sh` 后，每个项目分别 `cd` 进去跑 `qualix-run init`，各自有独立 `.dqg/output/`，共享 `~/.dqg/` 资源。
 
 ### 如何回滚到 0.1
 
 ```bash
-pip uninstall dev-quality-gate
+pip uninstall qualix
 rm -rf ~/.dqg
 cd <DQG repo>
 git checkout <0.1 tag>
@@ -2190,12 +2190,12 @@ Expected: 全绿
 
 参考 spec 的 Definition of Done 节：
 
-- [ ] 新用户执行 `git clone && ./install.sh && cd <别的项目> && dqg-run init` 后 `<别的项目>/` 下 `ls` 看不到 DQG 源码
-- [ ] `dqg-run init` 幂等：重跑不重复写 CLAUDE.md marker 节段
-- [ ] `dqg-run --version` 返回 VERSION 文件内容
+- [ ] 新用户执行 `git clone && ./install.sh && cd <别的项目> && qualix-run init` 后 `<别的项目>/` 下 `ls` 看不到 DQG 源码
+- [ ] `qualix-run init` 幂等：重跑不重复写 CLAUDE.md marker 节段
+- [ ] `qualix-run --version` 返回 VERSION 文件内容
 - [ ] `pyproject.toml` 的 version 为 dynamic，build wheel 时读 VERSION（跑 `python -m build` 验证）
-- [ ] `dqg-run doctor --no-upload` 打印 bundle 路径 + issue URL，退出 0
-- [ ] `dqg-run doctor`（装了 glab 且登录过）创建 issue 并打印 URL
+- [ ] `qualix-run doctor --no-upload` 打印 bundle 路径 + issue URL，退出 0
+- [ ] `qualix-run doctor`（装了 glab 且登录过）创建 issue 并打印 URL
 - [ ] 老路径触发 deprecation warning 但仍可跑通 Q01
 - [ ] `./install.sh --dev` 改 skills/ 文件立即在 `~/.dqg/skills/` 可见
 - [ ] `./install.sh --dry-run` 输出符合 spec 第 2 节样本

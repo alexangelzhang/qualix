@@ -44,7 +44,7 @@ def _make_result():
 
 def test_verify_se_sources_ok(tmp_path):
     """source='plain_text.txt:2' 指向真实行 → status=ok, no errors."""
-    from dqg.quality.checks.evidence_contract import verify_se_sources
+    from qualix.quality.checks.evidence_contract import verify_se_sources
 
     _write_ingest_file(tmp_path, "plain_text.txt", ["line1", "line2 PRD内容", "line3"])
     se_list = [{"se_id": "SE-001", "source": "plain_text.txt:2"}]
@@ -57,7 +57,7 @@ def test_verify_se_sources_ok(tmp_path):
 
 def test_verify_se_sources_empty_source(tmp_path):
     """source='' → status=empty_source, WARNING."""
-    from dqg.quality.checks.evidence_contract import verify_se_sources
+    from qualix.quality.checks.evidence_contract import verify_se_sources
 
     se_list = [{"se_id": "SE-002", "source": ""}]
     errors, entries = verify_se_sources(tmp_path, se_list)
@@ -67,7 +67,7 @@ def test_verify_se_sources_empty_source(tmp_path):
 
 def test_verify_se_sources_file_missing(tmp_path):
     """source='nonexist.txt:1' 文件不存在 → BLOCKED."""
-    from dqg.quality.checks.evidence_contract import verify_se_sources
+    from qualix.quality.checks.evidence_contract import verify_se_sources
 
     se_list = [{"se_id": "SE-003", "source": "nonexist.txt:1"}]
     errors, entries = verify_se_sources(tmp_path, se_list)
@@ -77,7 +77,7 @@ def test_verify_se_sources_file_missing(tmp_path):
 
 def test_verify_se_sources_line_oob(tmp_path):
     """source='plain_text.txt:999' 行号超出 → BLOCKED."""
-    from dqg.quality.checks.evidence_contract import verify_se_sources
+    from qualix.quality.checks.evidence_contract import verify_se_sources
 
     _write_ingest_file(tmp_path, "plain_text.txt", ["only one line"])
     se_list = [{"se_id": "SE-004", "source": "plain_text.txt:999"}]
@@ -88,7 +88,7 @@ def test_verify_se_sources_line_oob(tmp_path):
 
 def test_handler_writes_evidence_file_and_blocks_on_invalid_source(tmp_path):
     """handle_se_source_evidence: 行号超出 → BLOCKED + evidence 文件落盘."""
-    from dqg.runtime.handlers.handlers_finalize import handle_se_source_evidence
+    from qualix.runtime.handlers.handlers_finalize import handle_se_source_evidence
 
     ctx = _make_ctx(tmp_path)
     structured = {
@@ -152,7 +152,7 @@ def _setup_q01_q05a(tmp_path: Path, code_target: str, bound_item: str = "SE-001"
 
 def test_check_eut_code_target_found(tmp_path):
     """SE.code_target 类名在 code_repo 中能 grep 到 → 无 warning."""
-    from dqg.quality.checks.evidence_contract import check_eut_code_target_traceability
+    from qualix.quality.checks.evidence_contract import check_eut_code_target_traceability
 
     _setup_q01_q05a(tmp_path, code_target="OrderService")
     repo = tmp_path / "repo"
@@ -165,7 +165,7 @@ def test_check_eut_code_target_found(tmp_path):
 
 def test_check_eut_code_target_not_found(tmp_path):
     """SE.code_target 在 code_repo 中 grep 不到 → WARNING."""
-    from dqg.quality.checks.evidence_contract import check_eut_code_target_traceability
+    from qualix.quality.checks.evidence_contract import check_eut_code_target_traceability
 
     _setup_q01_q05a(tmp_path, code_target="GhostService")
     repo = tmp_path / "repo"
@@ -179,7 +179,7 @@ def test_check_eut_code_target_not_found(tmp_path):
 
 def test_check_eut_code_target_empty_skips(tmp_path):
     """SE.code_target='' → skip, 无 warning."""
-    from dqg.quality.checks.evidence_contract import check_eut_code_target_traceability
+    from qualix.quality.checks.evidence_contract import check_eut_code_target_traceability
 
     _setup_q01_q05a(tmp_path, code_target="")
 
@@ -194,7 +194,7 @@ def test_check_eut_code_target_empty_skips(tmp_path):
 
 def test_covered_no_evidence_warns(tmp_path):
     """COVERED + test_class='' + test_location=None → WARNING."""
-    from dqg.quality.checks.q06_structure_checks import _check_covered_evidence_fields
+    from qualix.quality.checks.q06_structure_checks import _check_covered_evidence_fields
 
     data = {
         "audit_items": [
@@ -207,7 +207,7 @@ def test_covered_no_evidence_warns(tmp_path):
 
 def test_covered_with_test_class_passes(tmp_path):
     """COVERED + test_class 有值 → 无 error."""
-    from dqg.quality.checks.q06_structure_checks import _check_covered_evidence_fields
+    from qualix.quality.checks.q06_structure_checks import _check_covered_evidence_fields
 
     data = {
         "audit_items": [
@@ -220,7 +220,7 @@ def test_covered_with_test_class_passes(tmp_path):
 
 def test_covered_test_location_file_not_found_blocks(tmp_path):
     """COVERED + test_location.file 在 code_repo 中找不到 → BLOCKED."""
-    from dqg.quality.checks.q06_structure_checks import _check_covered_evidence_fields
+    from qualix.quality.checks.q06_structure_checks import _check_covered_evidence_fields
 
     repo = tmp_path / "repo"
     repo.mkdir()

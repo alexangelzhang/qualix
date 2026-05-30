@@ -9,7 +9,7 @@ R1 字符类里含竖线（可能误将交替式写成字符类）
    （单字符集合如 [\\s\\-:|] 里的 | 是合意字面量，不报警）
 
 用法:
-    python scripts/check_regex.py                    # 扫描 src/dqg/ 全量
+    python scripts/check_regex.py                    # 扫描 src/qualix/ 全量
     python scripts/check_regex.py src/foo/bar.py     # 扫描指定文件
     python scripts/check_regex.py --staged           # 只扫描 git staged 文件
 
@@ -27,7 +27,7 @@ import sys
 from pathlib import Path
 from typing import NamedTuple
 
-SRC_ROOT = Path(__file__).parent.parent / "src" / "dqg"
+SRC_ROOT = Path(__file__).parent.parent / "src" / "qualix"
 
 # ---------------------------------------------------------------------------
 # 正则 pattern 解析工具

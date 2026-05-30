@@ -24,7 +24,7 @@ def _make_gene(gene_id: str, phase_id: str, agent_role: str = "judge") -> dict:
 
 def test_load_genes_for_phase_and_role(tmp_path):
     """load_genes_for_phase filters by phase_id (existing behavior)."""
-    from dqg.quality.gene_store import load_genes_for_phase, save_genes
+    from qualix.quality.gene_store import load_genes_for_phase, save_genes
 
     save_genes(tmp_path, [_make_gene("G1", "Q03"), _make_gene("G2", "Q07")])
     q03_genes = load_genes_for_phase(tmp_path, "Q03")
@@ -34,7 +34,7 @@ def test_load_genes_for_phase_and_role(tmp_path):
 
 def test_load_genes_filters_by_agent_role(tmp_path):
     """load_genes_for_phase with agent_role filters correctly."""
-    from dqg.quality.gene_store import load_genes_for_phase, save_genes
+    from qualix.quality.gene_store import load_genes_for_phase, save_genes
 
     save_genes(
         tmp_path,
@@ -54,7 +54,7 @@ def test_load_genes_filters_by_agent_role(tmp_path):
 
 def test_load_genes_no_role_filter_returns_all(tmp_path):
     """Without agent_role filter, returns all genes for the phase."""
-    from dqg.quality.gene_store import load_genes_for_phase, save_genes
+    from qualix.quality.gene_store import load_genes_for_phase, save_genes
 
     save_genes(
         tmp_path,
@@ -69,7 +69,7 @@ def test_load_genes_no_role_filter_returns_all(tmp_path):
 
 def test_extract_genes_includes_agent_role():
     """Extracted genes include agent_role field."""
-    from dqg.quality.gene_store import extract_genes_from_preference
+    from qualix.quality.gene_store import extract_genes_from_preference
 
     preference = {
         "preferred": "v2",

@@ -1,10 +1,10 @@
-"""Tests for dqg.quality.trajectory."""
+"""Tests for qualix.quality.trajectory."""
 
 import json
 import tempfile
 from pathlib import Path
 
-from dqg.quality.trajectory import (
+from qualix.quality.trajectory import (
     CompressedTrajectory,
     compress_trajectory,
     save_trajectories,

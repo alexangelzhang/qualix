@@ -3,8 +3,8 @@
 import json
 from pathlib import Path
 
-from dqg.quality.guardrail.guardrail import GuardrailContext
-from dqg.quality.guardrail.q05_branch_coverage import Q05BranchCoverageGuardrail
+from qualix.quality.guardrail.guardrail import GuardrailContext
+from qualix.quality.guardrail.q05_branch_coverage import Q05BranchCoverageGuardrail
 
 
 def test_skips_when_no_inventory(tmp_path: Path) -> None:

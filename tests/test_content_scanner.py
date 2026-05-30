@@ -1,6 +1,6 @@
-"""Tests for dqg.security.content_scanner."""
+"""Tests for qualix.security.content_scanner."""
 
-from dqg.security.content_scanner import scan_content
+from qualix.security.content_scanner import scan_content
 
 
 class TestScanContent:

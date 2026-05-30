@@ -1,6 +1,6 @@
-"""Tests for dqg.schemas.critique_feedback."""
+"""Tests for qualix.schemas.critique_feedback."""
 
-from dqg.schemas.critique_feedback import CritiqueAction, CritiqueFeedback, CritiqueFeedbackItem
+from qualix.schemas.critique_feedback import CritiqueAction, CritiqueFeedback, CritiqueFeedbackItem
 
 
 class TestCritiqueFeedbackItem:

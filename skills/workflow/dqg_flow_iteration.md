@@ -25,12 +25,12 @@ Phase Q07 发现问题 → 开发修复代码 → 重置 Phase Q07 → 重新执
 
 **操作**:
 ```bash
-# 手动重置状态（编辑 _state.json 或未来支持 dqg-run reset 命令）
+# 手动重置状态（编辑 _state.json 或未来支持 qualix-run reset 命令）
 # 重新执行
-dqg-run PROJ execute D
+qualix-run PROJ execute D
 # ... 执行 skill ...
-dqg-run PROJ finalize D
-dqg-run PROJ approve D
+qualix-run PROJ finalize D
+qualix-run PROJ approve D
 ```
 
 **注意**: 重跑时会自动加载最新的上游产物上下文，无需重跑上游 Phase。
@@ -82,10 +82,10 @@ Phase Q06 FAIL → 补充测试（Phase Q05b 或手动） → 重置 Phase Q06 �
 
 ### 未来支持（TODO）
 ```bash
-dqg-run PROJ reset D                    # 重置单个 Phase
-dqg-run PROJ reset B C D                # 重置多个 Phase
-dqg-run PROJ reset --from A.6           # 重置 A.6 及其下游
-dqg-run PROJ reset --module 权益退款 D   # 重置某模块的某个 Phase
+qualix-run PROJ reset D                    # 重置单个 Phase
+qualix-run PROJ reset B C D                # 重置多个 Phase
+qualix-run PROJ reset --from A.6           # 重置 A.6 及其下游
+qualix-run PROJ reset --module 权益退款 D   # 重置某模块的某个 Phase
 ```
 
 ## 产物保留策略

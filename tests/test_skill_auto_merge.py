@@ -1,11 +1,11 @@
-"""Tests for dqg.tracking.skill_auto_merge."""
+"""Tests for qualix.tracking.skill_auto_merge."""
 
 from __future__ import annotations
 
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from dqg.tracking.skill_auto_merge import (
+from qualix.tracking.skill_auto_merge import (
     ApplyResult,
     MarkdownSectionEditor,
     apply_to_skill_file,
@@ -201,7 +201,7 @@ def test_verify_rejects_on_exception_by_default(monkeypatch: pytest.MonkeyPatch)
         raise RuntimeError("boom")
 
     monkeypatch.setattr(
-        "dqg.quality.eval.eval_holdout.validate_against_holdout",
+        "qualix.quality.eval.eval_holdout.validate_against_holdout",
         _raise,
     )
     assert verify_with_holdout("Q01") is False
@@ -212,7 +212,7 @@ def test_verify_allows_fail_open_on_exception_when_opted_in(monkeypatch: pytest.
         raise RuntimeError("boom")
 
     monkeypatch.setattr(
-        "dqg.quality.eval.eval_holdout.validate_against_holdout",
+        "qualix.quality.eval.eval_holdout.validate_against_holdout",
         _raise,
     )
     assert verify_with_holdout("Q01", allow_fail_open=True) is True
@@ -220,7 +220,7 @@ def test_verify_allows_fail_open_on_exception_when_opted_in(monkeypatch: pytest.
 
 def test_verify_rejects_when_holdout_not_ready(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(
-        "dqg.quality.eval.eval_holdout.validate_against_holdout",
+        "qualix.quality.eval.eval_holdout.validate_against_holdout",
         lambda phase: {
             "overfitting_signal": False,
             "holdout_ready": False,
@@ -232,7 +232,7 @@ def test_verify_rejects_when_holdout_not_ready(monkeypatch: pytest.MonkeyPatch) 
 
 def test_verify_allows_when_holdout_not_ready_with_fail_open(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(
-        "dqg.quality.eval.eval_holdout.validate_against_holdout",
+        "qualix.quality.eval.eval_holdout.validate_against_holdout",
         lambda phase: {
             "overfitting_signal": False,
             "holdout_ready": False,
@@ -244,7 +244,7 @@ def test_verify_allows_when_holdout_not_ready_with_fail_open(monkeypatch: pytest
 
 def test_verify_rejects_on_overfitting(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(
-        "dqg.quality.eval.eval_holdout.validate_against_holdout",
+        "qualix.quality.eval.eval_holdout.validate_against_holdout",
         lambda phase: {
             "overfitting_signal": True,
             "holdout_ready": True,
@@ -259,7 +259,7 @@ def test_verify_rejects_on_overfitting(monkeypatch: pytest.MonkeyPatch) -> None:
 
 def test_verify_allows_when_holdout_ok(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(
-        "dqg.quality.eval.eval_holdout.validate_against_holdout",
+        "qualix.quality.eval.eval_holdout.validate_against_holdout",
         lambda phase: {
             "overfitting_signal": False,
             "holdout_ready": True,

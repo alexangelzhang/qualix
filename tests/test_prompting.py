@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from dqg.json_utils import load_json_strict
-from dqg.prompting import PromptAsset, PromptCompiler, PromptSpec, write_prompt_manifest
+from qualix.json_utils import load_json_strict
+from qualix.prompting import PromptAsset, PromptCompiler, PromptSpec, write_prompt_manifest
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -50,16 +50,16 @@ def test_prompt_compiler_records_section_sources() -> None:
         spec,
         sections=[("rubric", "RUBRIC"), ("evaluation_protocol", "PROTOCOL")],
         section_sources={
-            "rubric": ("dqg.quality.judge_rubrics", "dqg.quality.dynamic_rubric"),
-            "evaluation_protocol": ("dqg.quality.evaluation_protocols",),
+            "rubric": ("qualix.quality.judge_rubrics", "qualix.quality.dynamic_rubric"),
+            "evaluation_protocol": ("qualix.quality.evaluation_protocols",),
         },
     )
 
     assert build.manifest.section_sources["rubric"] == (
-        "dqg.quality.judge_rubrics",
-        "dqg.quality.dynamic_rubric",
+        "qualix.quality.judge_rubrics",
+        "qualix.quality.dynamic_rubric",
     )
-    assert build.manifest.section_sources["evaluation_protocol"] == ("dqg.quality.evaluation_protocols",)
+    assert build.manifest.section_sources["evaluation_protocol"] == ("qualix.quality.evaluation_protocols",)
 
 
 def test_write_prompt_manifest_uses_internal_manifest_dir(tmp_path: Path) -> None:

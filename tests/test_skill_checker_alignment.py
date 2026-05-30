@@ -15,7 +15,7 @@ from pathlib import Path
 
 import pytest
 
-from dqg.schemas.schema_export import json_schema_for_phase, structured_root_model
+from qualix.schemas.schema_export import json_schema_for_phase, structured_root_model
 
 # SKILL.md 文件路径和对应 Phase
 _SKILL_PHASE_MAP: dict[str, str] = {
@@ -115,7 +115,7 @@ def test_skill_json_no_unknown_required_fields(skill_name: str, phase_id: str) -
     assert not unknown, (
         f"skills/{skill_name}/SKILL.md JSON 示例包含 schema 中不存在的字段：{sorted(unknown)}\n"
         f"Schema 允许字段：{sorted(schema_props)}\n"
-        f"可能是拼写错误，请对照 `dqg-run spec --phase {phase_id} --json` 检查"
+        f"可能是拼写错误，请对照 `qualix-run spec --phase {phase_id} --json` 检查"
     )
 
 
@@ -128,5 +128,5 @@ def test_pydantic_schema_exists_for_skill(skill_name: str, phase_id: str) -> Non
     model = structured_root_model(phase_id)
     assert model is not None, (
         f"{phase_id} 缺少 Pydantic schema 模型。\n"
-        f"修复：在 src/dqg/schemas/schema_export.py 的 _PHASE_ROOT_MODELS 中注册"
+        f"修复：在 src/qualix/schemas/schema_export.py 的 _PHASE_ROOT_MODELS 中注册"
     )

@@ -2,11 +2,11 @@
 
 ## 环境配置
 
-### Q: dqg-run 命令找不到？
+### Q: qualix-run 命令找不到？
 
 ```bash
 # 确认已安装
-pip install -e /path/to/dev-quality-gate
+pip install -e /path/to/qualix
 
 # 或直接使用模块调用
 python -m dqg.core.runner <project_id> <command>
@@ -40,10 +40,10 @@ uvx larkkit auth status
 
 ```bash
 # 1. 环境检查
-dqg-run any doctor
+qualix-run any doctor
 
 # 2. 初始化项目
-dqg-run my-project init --profile java-ddd-tmf
+qualix-run my-project init --profile java-ddd-tmf
 
 # 3. 在 AI IDE 中启动
 @dqg_starter.md 执行
@@ -56,7 +56,7 @@ dqg-run my-project init --profile java-ddd-tmf
 ### Q: 如何切换 profile？
 
 ```bash
-dqg-run <project_id> status --profile go-service
+qualix-run <project_id> status --profile go-service
 ```
 
 ## Phase 执行
@@ -127,7 +127,7 @@ Q01 → Q05a → Q05b → Q06
 ### Q: 如何查看某个 Phase 的产物？
 
 ```bash
-dqg-run <project_id> detail <phase_id>
+qualix-run <project_id> detail <phase_id>
 ```
 
 或在菜单中选择已完成的 Phase 编号。
@@ -137,13 +137,13 @@ dqg-run <project_id> detail <phase_id>
 ### Q: 如何查看当前版本？
 
 ```bash
-dqg-run <project_id> version
+qualix-run <project_id> version
 ```
 
 ### Q: 如何升级 DQG？
 
 ```bash
-dqg-run <project_id> update
+qualix-run <project_id> update
 ```
 
 会自动 git pull 并同步 version.json。
@@ -161,5 +161,5 @@ dqg-run <project_id> update
 可以，但不建议。跳过会导致下游 Phase 缺少输入：
 
 ```bash
-dqg-run <project_id> skip <phase_id> -c "跳过原因"
+qualix-run <project_id> skip <phase_id> -c "跳过原因"
 ```

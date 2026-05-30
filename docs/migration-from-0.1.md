@@ -25,7 +25,7 @@ git pull
 
 ```bash
 cd <你的项目目录>
-dqg-run init
+qualix-run init
 ```
 
 这会创建：
@@ -54,7 +54,7 @@ code_repos:
 ### 5. 验证
 
 ```bash
-dqg-run status --json
+qualix-run status --json
 ```
 
 预期：正常输出，无 deprecation warning。
@@ -71,12 +71,12 @@ dqg-run status --json
 
 ### 多项目复用
 
-一次 `install.sh` 后，每个项目分别 `cd` 进去跑 `dqg-run init`，各自有独立 `.dqg/output/`，共享 `~/.dqg/` 资源。
+一次 `install.sh` 后，每个项目分别 `cd` 进去跑 `qualix-run init`，各自有独立 `.dqg/output/`，共享 `~/.dqg/` 资源。
 
 ### 如何回滚到 0.1
 
 ```bash
-pip uninstall dev-quality-gate
+pip uninstall qualix
 rm -rf ~/.dqg
 cd <DQG repo>
 git checkout <0.1 tag>

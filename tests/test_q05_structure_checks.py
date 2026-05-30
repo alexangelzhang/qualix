@@ -3,7 +3,7 @@
 import json
 from pathlib import Path
 
-from dqg.quality.checks.q05_structure_checks import run_q05_structure_checks
+from qualix.quality.checks.q05_structure_checks import run_q05_structure_checks
 
 
 def _make_layout(tmp_path: Path, phase_dir: str) -> tuple[Path, str]:

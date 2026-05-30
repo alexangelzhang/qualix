@@ -1,8 +1,8 @@
-"""Tests for dqg.telemetry."""
+"""Tests for qualix.telemetry."""
 
 from pathlib import Path
 
-from dqg.reporting.telemetry import PhaseRunRecord, append_record, load_records
+from qualix.reporting.telemetry import PhaseRunRecord, append_record, load_records
 
 
 class TestTelemetry:

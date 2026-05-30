@@ -5,7 +5,7 @@ from __future__ import annotations
 
 def test_risk_score_empty_change():
     """No changes → score 0, tier LOW."""
-    from dqg.quality.blast_radius import compute_risk_score
+    from qualix.quality.blast_radius import compute_risk_score
 
     radius = {"changed_files": [], "changed_methods": [], "affected_callers": [], "affected_tests": []}
     result = compute_risk_score(radius)
@@ -15,7 +15,7 @@ def test_risk_score_empty_change():
 
 def test_risk_score_small_change():
     """1 file, 1 method, 0 callers → LOW tier."""
-    from dqg.quality.blast_radius import compute_risk_score
+    from qualix.quality.blast_radius import compute_risk_score
 
     radius = {
         "changed_files": ["Foo.java"],
@@ -30,7 +30,7 @@ def test_risk_score_small_change():
 
 def test_risk_score_medium_change():
     """3-5 files, several callers → MEDIUM tier."""
-    from dqg.quality.blast_radius import compute_risk_score
+    from qualix.quality.blast_radius import compute_risk_score
 
     radius = {
         "changed_files": [f"File{i}.java" for i in range(4)],
@@ -45,7 +45,7 @@ def test_risk_score_medium_change():
 
 def test_risk_score_high_change():
     """10+ files, many callers → HIGH tier."""
-    from dqg.quality.blast_radius import compute_risk_score
+    from qualix.quality.blast_radius import compute_risk_score
 
     radius = {
         "changed_files": [f"File{i}.java" for i in range(12)],
@@ -60,7 +60,7 @@ def test_risk_score_high_change():
 
 def test_risk_score_critical_change():
     """30+ files, massive blast radius → CRITICAL."""
-    from dqg.quality.blast_radius import compute_risk_score
+    from qualix.quality.blast_radius import compute_risk_score
 
     radius = {
         "changed_files": [f"File{i}.java" for i in range(35)],
@@ -75,7 +75,7 @@ def test_risk_score_critical_change():
 
 def test_compute_blast_radius_includes_risk():
     """compute_risk_score integration: verify shape matches what write_blast_radius persists."""
-    from dqg.quality.blast_radius import compute_risk_score
+    from qualix.quality.blast_radius import compute_risk_score
 
     radius = {
         "changed_files": ["A.java"],
@@ -92,7 +92,7 @@ def test_compute_blast_radius_includes_risk():
 
 def test_risk_score_factors_breakdown():
     """Result should include per-factor breakdown."""
-    from dqg.quality.blast_radius import compute_risk_score
+    from qualix.quality.blast_radius import compute_risk_score
 
     radius = {
         "changed_files": ["A.java", "B.java"],
@@ -112,7 +112,7 @@ def test_risk_score_factors_breakdown():
 
 def test_constraints_relaxed_for_low_risk():
     """LOW risk tier should relax coverage thresholds."""
-    from dqg.runtime.phase_constraints import get_adjusted_thresholds
+    from qualix.runtime.phase_constraints import get_adjusted_thresholds
 
     adjusted = get_adjusted_thresholds("Q04", "LOW")
     # Q04 default: req_coverage_rate >= 0.8, se_coverage_rate >= 0.8
@@ -123,7 +123,7 @@ def test_constraints_relaxed_for_low_risk():
 
 def test_constraints_unchanged_for_critical_risk():
     """CRITICAL risk tier should keep or tighten thresholds."""
-    from dqg.runtime.phase_constraints import get_adjusted_thresholds
+    from qualix.runtime.phase_constraints import get_adjusted_thresholds
 
     adjusted = get_adjusted_thresholds("Q04", "CRITICAL")
     req_cov = next(c for c in adjusted if c["metric"] == "req_coverage_rate")
@@ -132,7 +132,7 @@ def test_constraints_unchanged_for_critical_risk():
 
 def test_constraints_default_without_risk_tier():
     """No risk tier → use default thresholds."""
-    from dqg.runtime.phase_constraints import get_adjusted_thresholds
+    from qualix.runtime.phase_constraints import get_adjusted_thresholds
 
     adjusted = get_adjusted_thresholds("Q04", None)
     req_cov = next(c for c in adjusted if c["metric"] == "req_coverage_rate")

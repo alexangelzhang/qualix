@@ -32,7 +32,7 @@ def _make_case(
 
 def test_render_signs_format():
     """Cases with trigger/do/why should render in Signs format."""
-    from dqg.tracking.bug_cases import _render_single_case
+    from qualix.tracking.bug_cases import _render_single_case
 
     case = _make_case(
         title="公共接口变更未更新调用方",
@@ -50,7 +50,7 @@ def test_render_signs_format():
 
 def test_render_legacy_lesson_fallback():
     """Cases without trigger/do/why should fall back to lesson format."""
-    from dqg.tracking.bug_cases import _render_single_case
+    from qualix.tracking.bug_cases import _render_single_case
 
     case = _make_case(
         title="遗漏异常处理分析",
@@ -66,7 +66,7 @@ def test_render_mixed_cases():
     """render_cases_for_prompt should handle mix of Signs and legacy cases."""
     from unittest.mock import patch
 
-    from dqg.tracking.bug_cases import render_cases_for_prompt
+    from qualix.tracking.bug_cases import render_cases_for_prompt
 
     cases = [
         _make_case(
@@ -79,7 +79,7 @@ def test_render_mixed_cases():
         ),
         _make_case(case_id="LEGACY-001", severity="high", title="Legacy case", lesson="legacy-lesson-text"),
     ]
-    with patch("dqg.tracking.bug_cases.load_cases_by_phase", return_value=cases):
+    with patch("qualix.tracking.bug_cases.load_cases_by_phase", return_value=cases):
         rendered = render_cases_for_prompt("Q03")
     assert "Trigger:" in rendered
     assert "教训:" in rendered
@@ -89,7 +89,7 @@ def test_render_mixed_cases():
 
 def test_render_empty_signs_fields_uses_lesson():
     """If trigger/do/why are empty strings, fall back to lesson."""
-    from dqg.tracking.bug_cases import _render_single_case
+    from qualix.tracking.bug_cases import _render_single_case
 
     case = _make_case(
         title="Partial case", trigger_pattern="", wrong_action="", why_failed="", lesson="fallback lesson"
@@ -102,7 +102,7 @@ def test_render_empty_signs_fields_uses_lesson():
 
 def test_validate_case_schema_valid_signs():
     """Valid Signs case should pass validation."""
-    from dqg.tracking.bug_cases import validate_case_schema
+    from qualix.tracking.bug_cases import validate_case_schema
 
     case = _make_case(
         trigger_pattern="修改了公共接口",
@@ -115,7 +115,7 @@ def test_validate_case_schema_valid_signs():
 
 def test_validate_case_schema_partial_signs():
     """Partial Signs fields (only trigger, missing do/why) should warn."""
-    from dqg.tracking.bug_cases import validate_case_schema
+    from qualix.tracking.bug_cases import validate_case_schema
 
     case = _make_case(
         trigger_pattern="有 trigger",
@@ -129,7 +129,7 @@ def test_validate_case_schema_partial_signs():
 
 def test_validate_case_schema_legacy_ok():
     """Legacy case with lesson but no Signs fields is valid."""
-    from dqg.tracking.bug_cases import validate_case_schema
+    from qualix.tracking.bug_cases import validate_case_schema
 
     case = _make_case(lesson="some lesson")
     errors = validate_case_schema(case)
@@ -138,7 +138,7 @@ def test_validate_case_schema_legacy_ok():
 
 def test_validate_case_schema_no_lesson_no_signs():
     """Case with neither lesson nor Signs fields should warn."""
-    from dqg.tracking.bug_cases import validate_case_schema
+    from qualix.tracking.bug_cases import validate_case_schema
 
     case = _make_case()
     errors = validate_case_schema(case)

@@ -1,4 +1,4 @@
-"""Tests for dqg.reporting.html_render (Q05 EUT Matrix HTML renderer)."""
+"""Tests for qualix.reporting.html_render (Q05 EUT Matrix HTML renderer)."""
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from dqg.reporting.html_render import render_q05_eut_matrix
+from qualix.reporting.html_render import render_q05_eut_matrix
 
 FIXTURE_JSON = Path(__file__).parent.parent / "output" / "finance-model" / "Q05" / "phase_b_structured.json"
 
@@ -80,7 +80,7 @@ def test_render_embedded_json_is_parsable(tmp_path: Path):
     html = out.read_text(encoding="utf-8")
 
     # 提取嵌入 JSON 段
-    marker = '<script id="dqg-data" type="application/json">'
+    marker = '<script id="qualix-data" type="application/json">'
     start = html.index(marker) + len(marker)
     end = html.index("</script>", start)
     embedded = html[start:end]

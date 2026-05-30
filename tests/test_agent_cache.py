@@ -3,10 +3,10 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from dqg.agents.agent import Agent
-from dqg.agents.llm_backends import LLMConfig
-from dqg.core.state_machine import PHASE_DEFS
-from dqg.store import get_connection
+from qualix.agents.agent import Agent
+from qualix.agents.llm_backends import LLMConfig
+from qualix.core.state_machine import PHASE_DEFS
+from qualix.store import get_connection
 
 
 class _FakeBackend:
@@ -41,7 +41,7 @@ def test_agent_run_caches_final_response_and_reuses_it(tmp_path: Path, monkeypat
     fallback = _FakeBackend("openai-compat:fallback", [("fallback answer", {"input_tokens": 10, "output_tokens": 3})])
 
     monkeypatch.setattr(
-        "dqg.agents.agent.create_backend", lambda model, api_key: primary if model == "test-model" else fallback
+        "qualix.agents.agent.create_backend", lambda model, api_key: primary if model == "test-model" else fallback
     )
 
     agent = Agent(
@@ -90,7 +90,7 @@ def test_agent_run_does_not_cache_tool_call_turns(tmp_path: Path, monkeypatch) -
         ],
     )
 
-    monkeypatch.setattr("dqg.agents.agent.create_backend", lambda model, api_key: primary)
+    monkeypatch.setattr("qualix.agents.agent.create_backend", lambda model, api_key: primary)
 
     def noop(x: int) -> str:
         return f"noop:{x}"

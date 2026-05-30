@@ -165,13 +165,13 @@ EUT 矩阵是否覆盖了所有 REQ/BR/SE，包括 Happy Path、Exception、Boun
 
 ## 评审输入
 
-Phase 输出目录: `/Users/zhangyiqian/git_dev/dev-quality-gate/dev-quality-gate/output/home-replace-renewal/Q05`
+Phase 输出目录: `/Users/zhangyiqian/git_dev/qualix/qualix/output/home-replace-renewal/Q05`
 
 请读取以下文件进行评审：
 
-1. `/Users/zhangyiqian/git_dev/dev-quality-gate/dev-quality-gate/output/home-replace-renewal/Q05/eut_matrix.md`
-2. `/Users/zhangyiqian/git_dev/dev-quality-gate/dev-quality-gate/output/home-replace-renewal/Q05/phase_b_structured.json`
-3. Phase Q01 产物: `/Users/zhangyiqian/git_dev/dev-quality-gate/dev-quality-gate/output/home-replace-renewal/Q01/phase_a_structured.json`
+1. `/Users/zhangyiqian/git_dev/qualix/qualix/output/home-replace-renewal/Q05/eut_matrix.md`
+2. `/Users/zhangyiqian/git_dev/qualix/qualix/output/home-replace-renewal/Q05/phase_b_structured.json`
+3. Phase Q01 产物: `/Users/zhangyiqian/git_dev/qualix/qualix/output/home-replace-renewal/Q01/phase_a_structured.json`
 
 ## BUG_CASES — 已知判错案例（务必避免重犯）
 
@@ -237,7 +237,7 @@ Phase 输出目录: `/Users/zhangyiqian/git_dev/dev-quality-gate/dev-quality-gat
 ## 输出格式
 
 请输出以下 JSON 格式的评审结果，保存到：
-`/Users/zhangyiqian/git_dev/dev-quality-gate/dev-quality-gate/output/home-replace-renewal/Q05/_judge_result.json`
+`/Users/zhangyiqian/git_dev/qualix/qualix/output/home-replace-renewal/Q05/_judge_result.json`
 
 ```json
 {

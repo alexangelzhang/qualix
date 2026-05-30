@@ -12,7 +12,7 @@ from pathlib import Path
 
 
 def _insert_cases(output_dir: Path, cases: list[dict]) -> None:
-    from dqg.store.bug_cases import upsert_bug_case
+    from qualix.store.bug_cases import upsert_bug_case
 
     for c in cases:
         upsert_bug_case(output_dir, c)
@@ -25,7 +25,7 @@ def _make_case(case_id: str, severity: str = "medium", status: str = "open", day
 
 class TestBugCaseCompress:
     def test_no_compress_below_threshold(self, tmp_path: Path) -> None:
-        from dqg.store.bug_cases import COMPRESS_THRESHOLD, compress_bug_cases
+        from qualix.store.bug_cases import COMPRESS_THRESHOLD, compress_bug_cases
 
         # 插入 3 条远少于阈值
         _insert_cases(tmp_path, [_make_case(f"C-{i}") for i in range(3)])
@@ -34,7 +34,7 @@ class TestBugCaseCompress:
         assert result["total_after"] == 3
 
     def test_compress_triggers_above_threshold(self, tmp_path: Path) -> None:
-        from dqg.store.bug_cases import compress_bug_cases
+        from qualix.store.bug_cases import compress_bug_cases
 
         # 插入 10 条，阈值设 5，保留 4
         cases = [_make_case(f"C-{i}", status="resolved", days_ago=i * 10) for i in range(10)]
@@ -46,7 +46,7 @@ class TestBugCaseCompress:
 
     def test_open_cases_protected_from_first_deletion(self, tmp_path: Path) -> None:
         """open 案例应比 resolved 案例更晚被删除."""
-        from dqg.store.bug_cases import compress_bug_cases, query_bug_cases
+        from qualix.store.bug_cases import compress_bug_cases, query_bug_cases
 
         cases = [_make_case(f"OPEN-{i}", status="open", days_ago=300) for i in range(3)] + [
             _make_case(f"RESOLVED-{i}", status="resolved", days_ago=5) for i in range(3)
@@ -60,7 +60,7 @@ class TestBugCaseCompress:
 
     def test_high_severity_scored_higher(self, tmp_path: Path) -> None:
         """同龄案例中，critical 应比 low 更晚被删."""
-        from dqg.store.bug_cases import compress_bug_cases, query_bug_cases
+        from qualix.store.bug_cases import compress_bug_cases, query_bug_cases
 
         cases = [_make_case(f"CRIT-{i}", severity="critical", status="resolved", days_ago=100) for i in range(3)] + [
             _make_case(f"LOW-{i}", severity="low", status="resolved", days_ago=100) for i in range(3)
@@ -84,7 +84,7 @@ class TestEvolutionStoreDecay:
         return p
 
     def test_cleanup_removes_stale_files(self, tmp_path: Path) -> None:
-        from dqg.tracking.skill_evolution import cleanup_stale_evolution
+        from qualix.tracking.skill_evolution import cleanup_stale_evolution
 
         lineage_dir = tmp_path / "proj" / "_skill_evolution"
         now = datetime.now(tz=UTC)
@@ -102,13 +102,13 @@ class TestEvolutionStoreDecay:
         assert (lineage_dir / "evolution_Q01_new.json").exists()
 
     def test_cleanup_missing_dir_returns_zero(self, tmp_path: Path) -> None:
-        from dqg.tracking.skill_evolution import cleanup_stale_evolution
+        from qualix.tracking.skill_evolution import cleanup_stale_evolution
 
         result = cleanup_stale_evolution(tmp_path, "nonexistent_project")
         assert result == {"scanned": 0, "deleted": 0, "kept": 0}
 
     def test_prune_stale_experiments_removes_old_rows(self, tmp_path: Path) -> None:
-        from dqg.store.experiments import insert_experiment, prune_stale_experiments, query_experiments
+        from qualix.store.experiments import insert_experiment, prune_stale_experiments, query_experiments
 
         # 插入一条 100 天前的记录
         old_exp = {
@@ -124,7 +124,7 @@ class TestEvolutionStoreDecay:
         }
         insert_experiment(tmp_path, old_exp)
         # 手动把 created_at 改到 100 天前
-        from dqg.store.core import get_connection
+        from qualix.store.core import get_connection
 
         with get_connection(tmp_path) as conn:
             conn.execute(
@@ -137,7 +137,7 @@ class TestEvolutionStoreDecay:
         assert not any(e["experiment_id"] == "EXP-OLD" for e in remaining)
 
     def test_prune_keeps_recent_experiments(self, tmp_path: Path) -> None:
-        from dqg.store.experiments import insert_experiment, prune_stale_experiments, query_experiments
+        from qualix.store.experiments import insert_experiment, prune_stale_experiments, query_experiments
 
         recent_exp = {
             "experiment_id": "EXP-RECENT",
@@ -173,7 +173,7 @@ class TestSkillReflectorInputContract:
         return [{"verdict": "FAIL", "overall": 2.0, "issues": issues}]
 
     def test_contract_passes_with_long_descriptions(self) -> None:
-        from dqg.tracking.skill_reflector import _check_evidence_quality
+        from qualix.tracking.skill_reflector import _check_evidence_quality
 
         jr = self._make_jr(["EUT 矩阵里 SE-001 没有对应的 Exception 路径测试用例，并发场景未覆盖"])
         with_ev, total, warning = _check_evidence_quality(jr)
@@ -182,14 +182,14 @@ class TestSkillReflectorInputContract:
         assert warning == ""
 
     def test_contract_passes_with_source_excerpt(self) -> None:
-        from dqg.tracking.skill_reflector import _check_evidence_quality
+        from qualix.tracking.skill_reflector import _check_evidence_quality
 
         jr = self._make_jr(["短描述"], with_excerpt=True)
         _, _, warning = _check_evidence_quality(jr)
         assert warning == ""
 
     def test_contract_warns_on_low_evidence_ratio(self) -> None:
-        from dqg.tracking.skill_reflector import _check_evidence_quality
+        from qualix.tracking.skill_reflector import _check_evidence_quality
 
         # 1 条有效（长描述），3 条纯摘要（短描述）
         jr = self._make_jr(["EUT 矩阵缺少 SE-001 的异常路径覆盖，导致并发场景漏测"]) + self._make_jr(["差", "坏", "错"])
@@ -198,7 +198,7 @@ class TestSkillReflectorInputContract:
 
     def test_contract_violation_blocks_reflect(self) -> None:
         """0 证据时 reflect 应返回 actionable=False."""
-        from dqg.tracking.skill_reflector import SkillReflector
+        from qualix.tracking.skill_reflector import SkillReflector
 
         reflector = SkillReflector(phase="Q01", project_id="test")
         jr = self._make_jr(["差", "坏"])  # 纯摘要，<30 chars
@@ -211,7 +211,7 @@ class TestSkillReflectorInputContract:
         """evidence_warning 应传递到最终 ReflectResult."""
         from unittest.mock import patch
 
-        from dqg.tracking.skill_reflector import SkillReflector
+        from qualix.tracking.skill_reflector import SkillReflector
 
         reflector = SkillReflector(phase="Q01", project_id="test")
         # 1 条长描述（有效） + 3 条短描述（摘要）→ 25% < 50% → warning 但不阻断

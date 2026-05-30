@@ -157,7 +157,7 @@ echo "=========================================="
 echo ""
 
 cd "$PROJECT_DIR"
-dqg-run any-project doctor 2>/dev/null || true
+qualix-run any-project doctor 2>/dev/null || true
 
 echo ""
 echo "=========================================="
@@ -168,7 +168,7 @@ else
 fi
 echo ""
 echo "  下一步:"
-echo "    1. dqg-run <project-id> init --profile java-ddd-tmf"
+echo "    1. qualix-run <project-id> init --profile java-ddd-tmf"
 echo "    2. 在 AI IDE 中执行 @dqg_starter.md"
 echo "=========================================="
 echo ""

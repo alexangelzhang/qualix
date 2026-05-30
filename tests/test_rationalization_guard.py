@@ -2,7 +2,7 @@
 
 from unittest.mock import MagicMock
 
-from dqg.quality.rationalization_guard import (
+from qualix.quality.rationalization_guard import (
     GuardResult,
     RationalizationGuard,
     format_rejudge_warning,

@@ -9,7 +9,7 @@ from pathlib import Path
 
 def _repo_root() -> Path:
     p = Path(__file__).resolve().parent.parent
-    if (p / "src" / "dqg").is_dir():
+    if (p / "src" / "qualix").is_dir():
         return p
     return p.parent
 
@@ -34,7 +34,7 @@ def _slice(text: str, start: str, end: str | None) -> str:
 
 
 def _check_q03(skill_text: str) -> list[str]:
-    from dqg.schemas.phase_q03 import FailureModeItem, QualityIssue
+    from qualix.schemas.phase_q03 import FailureModeItem, QualityIssue
 
     errs: list[str] = []
     start = "**`failure_modes[]` 每条必填字段"
@@ -58,7 +58,7 @@ def _check_q03(skill_text: str) -> list[str]:
 
 
 def _check_q06(skill_text: str) -> list[str]:
-    from dqg.schemas.phase_q06 import EutAuditItem, FindingItem
+    from qualix.schemas.phase_q06 import EutAuditItem, FindingItem
 
     errs: list[str] = []
     start = "**`findings[]` 每条必填"

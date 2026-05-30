@@ -154,7 +154,7 @@ def _save_state(state: dict) -> None:
 
 def _is_dqg_project() -> bool:
     cwd = os.getcwd()
-    return any(os.path.exists(os.path.join(cwd, m)) for m in ("src/dqg/", "skills/", "dqg_starter.md"))
+    return any(os.path.exists(os.path.join(cwd, m)) for m in ("src/qualix/", "skills/", "qualix-starter.md"))
 
 
 # ---------------------------------------------------------------------------
@@ -249,7 +249,7 @@ def check_agent_dqg_manual(tool_name: str, tool_input: dict[str, Any], state: di
         return CheckResult(
             "block",
             "[铁律守卫] DQG 手动模式下禁止派 SubAgent 执行 Phase。\n\n"
-            "规则来源：CLAUDE.md > 项目经验 + dqg_starter.md > 模式选择规则\n"
+            "规则来源：CLAUDE.md > 项目经验 + qualix-starter.md > 模式选择规则\n"
             "原因：SubAgent 有独立 context，产出质量不可控，主会话直接执行可实时验证。\n\n"
             "请在主会话直接读取 skill 文件并执行。",
         )

@@ -28,7 +28,7 @@ def _make_fake_result(role: str = "worker") -> SimpleNamespace:
 
 
 def _make_vote_result(verdict: str, score: float):
-    from dqg.agents.judge_vote import JudgeVote, VoteResult
+    from qualix.agents.judge_vote import JudgeVote, VoteResult
 
     vote = JudgeVote(model="fake-judge", verdict=verdict, overall=score, scores={}, issues=[])
     return VoteResult(votes=[vote], consensus=verdict, avg_score=score, disagreements=[])
@@ -36,7 +36,7 @@ def _make_vote_result(verdict: str, score: float):
 
 def test_fixer_uses_dynamic_context_files(monkeypatch, tmp_path: Path) -> None:
     """Fixer iteration must pass handoff+report as dynamic_context_files, not prepend to context_files."""
-    from dqg.agents.adaptive_loop import AdaptiveLoop
+    from qualix.agents.adaptive_loop import AdaptiveLoop
 
     # Track all Agent.run() calls: list of (name, context_files, dynamic_context_files)
     run_calls: list[tuple[str, list | None, list | None]] = []
@@ -59,14 +59,14 @@ def test_fixer_uses_dynamic_context_files(monkeypatch, tmp_path: Path) -> None:
             return _make_vote_result("FAIL", 1.0)
         return _make_vote_result("PASS", 5.0)
 
-    monkeypatch.setattr("dqg.agents.adaptive_loop.Agent", _FakeAgent)
-    monkeypatch.setattr("dqg.agents.adaptive_loop.multi_judge_vote", _fake_multi_judge_vote)
+    monkeypatch.setattr("qualix.agents.adaptive_loop.Agent", _FakeAgent)
+    monkeypatch.setattr("qualix.agents.adaptive_loop.multi_judge_vote", _fake_multi_judge_vote)
 
     # Stub out task_store functions
-    monkeypatch.setattr("dqg.runtime.task_store.create_task_run", lambda *a, **kw: "task-1")
-    monkeypatch.setattr("dqg.runtime.task_store.complete_task_run", lambda *a, **kw: None)
-    monkeypatch.setattr("dqg.runtime.task_store.add_task_event", lambda *a, **kw: None)
-    monkeypatch.setattr("dqg.runtime.task_store.save_checkpoint", lambda *a, **kw: None)
+    monkeypatch.setattr("qualix.runtime.task_store.create_task_run", lambda *a, **kw: "task-1")
+    monkeypatch.setattr("qualix.runtime.task_store.complete_task_run", lambda *a, **kw: None)
+    monkeypatch.setattr("qualix.runtime.task_store.add_task_event", lambda *a, **kw: None)
+    monkeypatch.setattr("qualix.runtime.task_store.save_checkpoint", lambda *a, **kw: None)
 
     # Create fake evidence files
     evidence_dir = tmp_path / "evidence"
@@ -121,7 +121,7 @@ def test_fixer_uses_dynamic_context_files(monkeypatch, tmp_path: Path) -> None:
 
 def test_cache_tokens_in_extract_llm_call():
     """extract_llm_call should include cache token metrics."""
-    from dqg.agents.agent import AgentResult, extract_llm_call
+    from qualix.agents.agent import AgentResult, extract_llm_call
 
     result = AgentResult(
         agent_name="test",
@@ -161,10 +161,10 @@ def test_message_bytes_prefix_stable(monkeypatch, tmp_path):
         def name(self):
             return "spy-backend"
 
-    monkeypatch.setattr("dqg.agents.agent.create_backend", lambda *a, **kw: SpyBackend())
+    monkeypatch.setattr("qualix.agents.agent.create_backend", lambda *a, **kw: SpyBackend())
 
-    from dqg.agents.agent import Agent
-    from dqg.agents.llm_backends import LLMConfig
+    from qualix.agents.agent import Agent
+    from qualix.agents.llm_backends import LLMConfig
 
     evidence = tmp_path / "evidence.md"
     evidence.write_text("REQ-001 需求\nBR-001 规则\nSE-001 语义期望", encoding="utf-8")

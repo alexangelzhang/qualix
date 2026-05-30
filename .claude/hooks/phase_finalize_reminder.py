@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """PostToolUse hook: Phase 执行完成后，检测未 finalize 状态并注入提醒.
 
-触发条件：Bash 工具调用，命令包含 "dqg-run" 且包含 "execute"。
+触发条件：Bash 工具调用，命令包含 "qualix-run" 且包含 "execute"。
 检测逻辑：
   1. 从命令中提取 project_id 和 phase_id
   2. 读取 state.json，确认该 Phase 处于 in_progress（execute 完成但未 finalize）
@@ -35,15 +35,15 @@ def _find_project_root() -> Path | None:
 
 
 def _parse_execute_command(cmd: str) -> tuple[str, str] | None:
-    """从 dqg-run <pid> execute <phase> 中提取 (project_id, phase_id)。
+    """从 qualix-run <pid> execute <phase> 中提取 (project_id, phase_id)。
 
     支持格式：
-      dqg-run <pid> execute <phase>
-      dqg-run <pid> execute <phase> [options...]
+      qualix-run <pid> execute <phase>
+      qualix-run <pid> execute <phase> [options...]
     返回 None 表示解析失败或不是 execute 命令。
     """
-    # 匹配 dqg-run 后跟 project_id，再跟 execute，再跟 phase_id
-    m = re.search(r"dqg-run\s+(\S+)\s+execute\s+(\S+)", cmd)
+    # 匹配 qualix-run 后跟 project_id，再跟 execute，再跟 phase_id
+    m = re.search(r"qualix-run\s+(\S+)\s+execute\s+(\S+)", cmd)
     if not m:
         return None
     project_id = m.group(1)
@@ -77,7 +77,7 @@ def main() -> None:
     # 只关心 execute 命令
     tool_input = data.get("tool_input", {})
     cmd = tool_input.get("command", "") if isinstance(tool_input, dict) else ""
-    if "dqg-run" not in cmd or "execute" not in cmd:
+    if "qualix-run" not in cmd or "execute" not in cmd:
         sys.exit(0)
 
     parsed = _parse_execute_command(cmd)
@@ -96,7 +96,7 @@ def main() -> None:
     if status == "in_progress":
         inject(
             f"[Phase Finalize 提醒] {phase_id} 已执行完成，当前状态 in_progress。\n"
-            f"请运行 `dqg-run {project_id} finalize {phase_id} --json` 提交 Phase 产物。\n"
+            f"请运行 `qualix-run {project_id} finalize {phase_id} --json` 提交 Phase 产物。\n"
             "finalize 是收尾四步的必选项，不调用 finalize 则 Phase 不算完成。"
         )
 

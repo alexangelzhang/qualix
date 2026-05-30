@@ -16,7 +16,7 @@
 - **Trigger**: 想把示例配置文件（如 `rule_overrides.yaml.example`）放到 `.dqg/` 里版本控制
 - **Do**: 示例文件放 `docs/examples/` 或在 AGENTS.md/ROADMAP.md 里以代码块形式说明格式；不要放 `.dqg/`
 - **Why**: `.dqg/` 在 .gitignore 里（存运行时状态和本地配置），git add 会报 ignored 错误
-- **Evidence**: `git add dev-quality-gate/.dqg/rule_overrides.yaml.example` 报 `The following paths are ignored by one of your .gitignore files`
+- **Evidence**: `git add qualix/.dqg/rule_overrides.yaml.example` 报 `The following paths are ignored by one of your .gitignore files`
 
 ### BL-20260525-file-split-range-overlap
 

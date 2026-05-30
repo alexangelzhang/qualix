@@ -6,7 +6,7 @@
 ## 入口
 
 - `/dqg-starter` — 快速启动（command 文件自包含启动逻辑，按需加载执行指南）
-- CLI 启动: `dqg-run <project_id> startup`
+- CLI 启动: `qualix-run <project_id> startup`
 
 ## Skill 文件结构（agentskills.io 标准）
 
@@ -16,7 +16,7 @@
 
 ## Orchestrator 模式 & 并行调度
 
-长任务（Q03/Q04/Q06 等）主 Agent 作为 Orchestrator，禁止自己执行 skill，必须通过 SubAgent 派发。同一批无依赖的 Phase 可并行执行（如 Q02 + Q05）。CLI 模式: `dqg-run <project_id> dag --max-parallel 2`。详见 `AGENTS.md`。
+长任务（Q03/Q04/Q06 等）主 Agent 作为 Orchestrator，禁止自己执行 skill，必须通过 SubAgent 派发。同一批无依赖的 Phase 可并行执行（如 Q02 + Q05）。CLI 模式: `qualix-run <project_id> dag --max-parallel 2`。详见 `AGENTS.md`。
 
 ## 执行引擎
 

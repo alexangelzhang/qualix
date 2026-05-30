@@ -1,7 +1,7 @@
 ---
 date: 2026-05-18
 session_topic: Q05/Q01 gate 体系深度修复——防幻觉/防绕过/交叉验证全面升级
-project: dev-quality-gate
+project: qualix
 status: in-progress
 ---
 
@@ -43,7 +43,7 @@ home-replace-renewal Q05 待执行（Q01 approved，Q05 单测代码已在业务
 - [ ] git push（hook 拦截，用户手动执行）
 
 ## 下次会话建议
-执行 dqg-run home-replace-renewal startup 确认状态，然后跑 Q05。
+执行 qualix-run home-replace-renewal startup 确认状态，然后跑 Q05。
 今天修复了大量 gate，finalize 时会触发新门禁拦截属正常现象，根据报错修复产物即可。
 feature: /Users/zhangyiqian/git_dev/wmx-logistic-exchange/asp-aftersale-service (feature-wmx-logistic-exchange)
 master: /Users/zhangyiqian/git_dev/asp-aftersale-service

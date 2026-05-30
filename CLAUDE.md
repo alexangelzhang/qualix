@@ -5,9 +5,9 @@
 <critical>
 Three unbreakable rules (check before every action):
 
-1. SPEC OVER SKILL: Before executing any Phase, MUST run `dqg-run <pid> spec --phase Q0X --json` to get the contract. When spec and SKILL.md conflict, spec always wins.
+1. SPEC OVER SKILL: Before executing any Phase, MUST run `qualix-run <pid> spec --phase Q0X --json` to get the contract. When spec and SKILL.md conflict, spec always wins.
 2. EUT-PER-ITEM: Q05a/Q05b/Q06 output MUST have one audit_item per eut_id. NEVER aggregate by SE (SE-based pattern).
-3. JSON-FLAG: All `dqg-run` calls MUST include `--json`. NEVER parse prose output.
+3. JSON-FLAG: All `qualix-run` calls MUST include `--json`. NEVER parse prose output.
 
 Consequences: spec mismatch → schema rejection; SE-based → coverage inflation hiding weak assertions; missing --json → prose drift causes parse errors.
 </critical>
@@ -23,13 +23,13 @@ Consequences: spec mismatch → schema rejection; SE-based → coverage inflatio
 ## Entry Points
 
 - `/dqg-starter` — Quick start
-- `dqg-run <project_id> startup` — CLI startup
+- `qualix-run <project_id> startup` — CLI startup
 
 ## Behavioral Rules
 
 - Phase tasks MUST load the corresponding skill file; never improvise outside the skill.
-- **Before starting any Phase, run `dqg-run <pid> spec --phase Q0X --json`**: read required fields/constraints from `json_schema`, gate conditions from `contract.hard_checks`, dependencies from `phase_registry`. When spec and SKILL.md conflict, spec wins.
-- All state management through `dqg-run` CLI; never manually edit `state.json`. Add `--json` to all `dqg-run` calls.
+- **Before starting any Phase, run `qualix-run <pid> spec --phase Q0X --json`**: read required fields/constraints from `json_schema`, gate conditions from `contract.hard_checks`, dependencies from `phase_registry`. When spec and SKILL.md conflict, spec wins.
+- All state management through `qualix-run` CLI; never manually edit `state.json`. Add `--json` to all `qualix-run` calls.
 - Four-step close: detect output → finalize → approve → refresh menu. Before finalize, check gate checklist item by item.
 - After code changes, sync instruction files — `completion_gate.py` auto-detects and blocks if out of sync.
 
@@ -52,8 +52,8 @@ Answer these questions before any tool call. If the answer to any is "yes", stop
 3. **Did a SubAgent report "tests passed"?** → Don't trust it. Re-run `mvn test` in the main session.
 4. **Do dqg_starter.md and CLAUDE.md conflict?** → CLAUDE.md has higher priority.
 5. **Are Q05a/Q05b/Q06 outputs using SE-based pattern (aggregating by SE)?** → Forbidden. Each audit_item must correspond to one eut_id.
-6. **Am I starting a Phase without running `dqg-run <pid> spec --phase Q0X --json`?** → Run spec first.
-7. **Am I calling `dqg-run` without `--json`?** → Add it.
+6. **Am I starting a Phase without running `qualix-run <pid> spec --phase Q0X --json`?** → Run spec first.
+7. **Am I calling `qualix-run` without `--json`?** → Add it.
 
 > The ironlaw guard hook (`ironlaw_guard.py`) auto-checks Agent/Grep/Bash calls, but hooks can only catch obvious violations. This self-check covers semantic scenarios hooks cannot detect.
 
@@ -69,7 +69,7 @@ Answer these questions before any tool call. If the answer to any is "yes", stop
 <critical>
 Restating three rules (Lost-in-the-Middle defense, repeated at end of file):
 
-1. SPEC OVER SKILL — Run `dqg-run <pid> spec --phase Q0X --json` before SKILL.md. Spec wins on conflict.
+1. SPEC OVER SKILL — Run `qualix-run <pid> spec --phase Q0X --json` before SKILL.md. Spec wins on conflict.
 2. EUT-PER-ITEM — Each audit_item in Q05a/Q05b/Q06 must independently correspond to one eut_id. NEVER aggregate by SE.
-3. JSON-FLAG — All `dqg-run` calls MUST include `--json`.
+3. JSON-FLAG — All `qualix-run` calls MUST include `--json`.
 </critical>

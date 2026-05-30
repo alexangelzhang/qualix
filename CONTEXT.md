@@ -113,7 +113,7 @@ Q05/Q05a Phase 专属的 PhaseGuardrail。校验 EUT 对业务方法各分支（
 - Relationships: 由 T11 引入，挂载在 `get_phase_guardrails("Q03"|"Q06")`
 
 ### Guard Precision Report
-Guard 精度周报。聚合 `output/*/_guardrail_results.json`，按 guard 维度统计"拦对/拦错/漏拦"三态，输出到 `docs/*/guard_precision.md`。命令 `dqg-run observe guard-precision`，finalize 后自动刷新。
+Guard 精度周报。聚合 `output/*/_guardrail_results.json`，按 guard 维度统计"拦对/拦错/漏拦"三态，输出到 `docs/*/guard_precision.md`。命令 `qualix-run observe guard-precision`，finalize 后自动刷新。
 - _Avoid_: "guardrail 报告"（此处特指精度三态观测，非单次 guardrail 执行结果）
 - Relationships: 由 T9 引入；是 DoD "上线后"维度的观测数据源之一
 

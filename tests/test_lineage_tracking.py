@@ -7,8 +7,8 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 
-from dqg.quality.auto_checks import auto_derive_checks
-from dqg.schemas.location import SourceLocation
+from qualix.quality.auto_checks import auto_derive_checks
+from qualix.schemas.location import SourceLocation
 
 
 class TestSourceLocation:
@@ -48,21 +48,21 @@ class TestSourceLocation:
 
 class TestTCItemWithLocation:
     def test_tc_item_without_location_is_valid(self):
-        from dqg.schemas.phase_q05 import TCItem
+        from qualix.schemas.phase_q05 import TCItem
 
         item = TCItem(id="TC-001", repo="car-mrs")
         assert item.test_location is None
         assert item.production_location is None
 
     def test_tc_item_with_test_location(self):
-        from dqg.schemas.phase_q05 import TCItem
+        from qualix.schemas.phase_q05 import TCItem
 
         loc = SourceLocation(file="OrderServiceTest.java", line_start=45)
         item = TCItem(id="TC-001", repo="car-mrs", test_location=loc)
         assert item.test_location.line_start == 45
 
     def test_tc_item_with_both_locations(self):
-        from dqg.schemas.phase_q05 import TCItem
+        from qualix.schemas.phase_q05 import TCItem
 
         item = TCItem(
             id="TC-001",
@@ -88,14 +88,14 @@ class TestTCItemWithLocation:
 
 class TestEutAuditItemWithLocation:
     def test_eut_audit_item_without_location_is_valid(self):
-        from dqg.schemas.phase_q06 import EutAuditItem
+        from qualix.schemas.phase_q06 import EutAuditItem
 
         item = EutAuditItem(eut_id="EUT-001", status="COVERED")
         assert item.test_location is None
         assert item.production_location is None
 
     def test_eut_audit_item_with_locations(self):
-        from dqg.schemas.phase_q06 import EutAuditItem
+        from qualix.schemas.phase_q06 import EutAuditItem
 
         item = EutAuditItem(
             eut_id="EUT-001",
@@ -121,13 +121,13 @@ class TestEutAuditItemWithLocation:
 
 class TestFindingItemWithLocation:
     def test_finding_item_without_location_is_valid(self):
-        from dqg.schemas.phase_q06 import FindingItem
+        from qualix.schemas.phase_q06 import FindingItem
 
         item = FindingItem(id="FIND-001", severity="HIGH")
         assert item.production_location is None
 
     def test_finding_item_with_production_location(self):
-        from dqg.schemas.phase_q06 import FindingItem
+        from qualix.schemas.phase_q06 import FindingItem
 
         item = FindingItem(
             id="FIND-001",

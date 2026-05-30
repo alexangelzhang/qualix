@@ -1,6 +1,6 @@
 """Tests for report structure contract check."""
 
-from dqg.runtime.phase_contract import check_report_structure
+from qualix.runtime.phase_contract import check_report_structure
 
 
 def test_check_report_structure_all_present():

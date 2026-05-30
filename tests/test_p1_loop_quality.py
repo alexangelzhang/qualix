@@ -11,7 +11,7 @@ def test_write_data_patterns_uses_phase_id(tmp_path):
     """write_data_patterns 必须用 phase_id 调用 analyze_data_patterns，而非硬编码 'Q06'."""
     from unittest.mock import patch as _patch
 
-    from dqg.tracking.data_patterns import write_data_patterns
+    from qualix.tracking.data_patterns import write_data_patterns
 
     captured_phase = []
 
@@ -26,7 +26,7 @@ def test_write_data_patterns_uses_phase_id(tmp_path):
             "cases_by_pattern": {},
         }
 
-    with _patch("dqg.tracking.data_patterns.analyze_data_patterns", side_effect=_fake_analyze):
+    with _patch("qualix.tracking.data_patterns.analyze_data_patterns", side_effect=_fake_analyze):
         result_path = write_data_patterns(tmp_path, "proj", "Q05")
 
     assert captured_phase == ["Q05"], f"Expected ['Q05'], got {captured_phase}"
@@ -37,7 +37,7 @@ def test_analyze_data_patterns_includes_top_lessons():
     """analyze_data_patterns 返回的 top_patterns 每条应包含 top_lessons 列表."""
     from unittest.mock import patch as _patch
 
-    from dqg.tracking.data_patterns import analyze_data_patterns
+    from qualix.tracking.data_patterns import analyze_data_patterns
 
     fake_cases = [
         {
@@ -51,8 +51,8 @@ def test_analyze_data_patterns_includes_top_lessons():
     ]
 
     with (
-        _patch("dqg.tracking.data_patterns.load_cases_by_phase", return_value=fake_cases),
-        _patch("dqg.tracking.data_patterns.get_case_with_inferred_lesson", side_effect=lambda c: c),
+        _patch("qualix.tracking.data_patterns.load_cases_by_phase", return_value=fake_cases),
+        _patch("qualix.tracking.data_patterns.get_case_with_inferred_lesson", side_effect=lambda c: c),
     ):
         result = analyze_data_patterns("Q05")
 
@@ -68,7 +68,7 @@ def test_analyze_data_patterns_includes_top_lessons():
 
 def _make_adaptive_loop_fixtures(tmp_path):
     """构造 AdaptiveLoop 测试所需的最小 fixtures."""
-    from dqg.agents.adaptive_loop import AdaptiveLoop
+    from qualix.agents.adaptive_loop import AdaptiveLoop
 
     loop = AdaptiveLoop(output_dir=tmp_path)
     pd = tmp_path / "proj" / "phase_a"
@@ -84,7 +84,7 @@ def _make_adaptive_loop_fixtures(tmp_path):
 
 def test_pivot_snapshot_creates_dir_on_judge_fail(tmp_path):
     """Judge FAIL 时应创建 _pivot_v1/ 目录并包含主 JSON."""
-    from dqg.constants import STRUCTURED_JSON_MAP
+    from qualix.constants import STRUCTURED_JSON_MAP
 
     loop, pd = _make_adaptive_loop_fixtures(tmp_path)
     phase_id = "Q01"
@@ -111,7 +111,7 @@ def test_pivot_snapshot_writes_latest_pointer(tmp_path):
 
 def test_pivot_snapshot_skips_missing_files(tmp_path):
     """不存在的文件不应导致 snapshot 抛出异常."""
-    from dqg.agents.adaptive_loop import AdaptiveLoop
+    from qualix.agents.adaptive_loop import AdaptiveLoop
 
     loop = AdaptiveLoop(output_dir=tmp_path)
     pd = tmp_path / "proj" / "phaseX"
@@ -129,7 +129,7 @@ def test_pivot_snapshot_skips_missing_files(tmp_path):
 
 def test_loop_health_output_fingerprint_stagnation():
     """Worker 连续 2 轮产出相同 hash → EARLY_STOP(output_fingerprint_stagnation)."""
-    from dqg.agents.loop_health import LoopHealthMonitor
+    from qualix.agents.loop_health import LoopHealthMonitor
 
     monitor = LoopHealthMonitor()
     monitor.record_iteration(avg_score=3.0, worker_output_hash="abc123")
@@ -142,7 +142,7 @@ def test_loop_health_output_fingerprint_stagnation():
 
 def test_loop_health_rejection_sig_stagnation():
     """Judge 连续 2 轮驳回签名相同 → EARLY_STOP(rejection_signature_stagnation)."""
-    from dqg.agents.loop_health import LoopHealthMonitor
+    from qualix.agents.loop_health import LoopHealthMonitor
 
     monitor = LoopHealthMonitor()
     monitor.record_iteration(avg_score=2.5, judge_rejection_sig="def456")
@@ -155,7 +155,7 @@ def test_loop_health_rejection_sig_stagnation():
 
 def test_loop_health_different_hashes_no_stop():
     """Worker 输出 hash 不同时不应触发指纹停滞."""
-    from dqg.agents.loop_health import LoopHealthMonitor
+    from qualix.agents.loop_health import LoopHealthMonitor
 
     monitor = LoopHealthMonitor()
     monitor.record_iteration(avg_score=3.0, worker_output_hash="aaa111")

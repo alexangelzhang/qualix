@@ -8,7 +8,7 @@ from unittest.mock import patch
 
 def test_review_depth_config_has_all_tiers():
     """Every risk tier maps to a depth config."""
-    from dqg.constants import REVIEW_DEPTH_CONFIG
+    from qualix.constants import REVIEW_DEPTH_CONFIG
 
     for tier in ("LOW", "MEDIUM", "HIGH", "CRITICAL"):
         cfg = REVIEW_DEPTH_CONFIG[tier]
@@ -19,7 +19,7 @@ def test_review_depth_config_has_all_tiers():
 
 def test_review_depth_low_is_lightest():
     """LOW tier: 1 iteration, no secondary, skip critique."""
-    from dqg.constants import REVIEW_DEPTH_CONFIG
+    from qualix.constants import REVIEW_DEPTH_CONFIG
 
     cfg = REVIEW_DEPTH_CONFIG["LOW"]
     assert cfg["max_iterations"] == 1
@@ -29,7 +29,7 @@ def test_review_depth_low_is_lightest():
 
 def test_review_depth_high_forces_secondary():
     """HIGH tier: 3 iterations, force secondary."""
-    from dqg.constants import REVIEW_DEPTH_CONFIG
+    from qualix.constants import REVIEW_DEPTH_CONFIG
 
     cfg = REVIEW_DEPTH_CONFIG["HIGH"]
     assert cfg["max_iterations"] == 3
@@ -39,14 +39,14 @@ def test_review_depth_high_forces_secondary():
 
 def test_review_depth_default_is_medium():
     """Default fallback is MEDIUM."""
-    from dqg.constants import REVIEW_DEPTH_DEFAULT
+    from qualix.constants import REVIEW_DEPTH_DEFAULT
 
     assert REVIEW_DEPTH_DEFAULT == "MEDIUM"
 
 
 def test_force_secondary_skips_boundary_check():
     """force_secondary=True invokes secondary models regardless of primary score."""
-    from dqg.agents.judge_vote import JudgeVote, multi_judge_vote
+    from qualix.agents.judge_vote import JudgeVote, multi_judge_vote
 
     fake_vote = JudgeVote(
         model="primary",
@@ -59,7 +59,7 @@ def test_force_secondary_skips_boundary_check():
         health="HEALTHY",
     )
 
-    with patch("dqg.agents.judge_vote._run_single_judge", return_value=fake_vote) as mock_judge:
+    with patch("qualix.agents.judge_vote._run_single_judge", return_value=fake_vote) as mock_judge:
         result = multi_judge_vote(
             output_dir="/tmp",
             report_path="/tmp/report.md",
@@ -75,7 +75,7 @@ def test_force_secondary_skips_boundary_check():
 
 def test_no_force_secondary_skips_clear_pass():
     """Without force_secondary, clear PASS (4.5) skips secondary."""
-    from dqg.agents.judge_vote import JudgeVote, multi_judge_vote
+    from qualix.agents.judge_vote import JudgeVote, multi_judge_vote
 
     fake_vote = JudgeVote(
         model="primary",
@@ -88,7 +88,7 @@ def test_no_force_secondary_skips_clear_pass():
         health="HEALTHY",
     )
 
-    with patch("dqg.agents.judge_vote._run_single_judge", return_value=fake_vote):
+    with patch("qualix.agents.judge_vote._run_single_judge", return_value=fake_vote):
         result = multi_judge_vote(
             output_dir="/tmp",
             report_path="/tmp/report.md",

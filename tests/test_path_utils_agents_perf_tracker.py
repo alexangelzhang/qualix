@@ -5,10 +5,10 @@ from pathlib import Path
 
 import pytest
 
-import dqg.reporting.perf_tracker as perf_tracker
-from dqg.constants import REPORT_MAP, STRUCTURED_JSON_MAP
-from dqg.core.state_machine import PHASE_DEFS
-from dqg.path_utils import resolve_context_files, resolve_effective_context_files
+import qualix.reporting.perf_tracker as perf_tracker
+from qualix.constants import REPORT_MAP, STRUCTURED_JSON_MAP
+from qualix.core.state_machine import PHASE_DEFS
+from qualix.path_utils import resolve_context_files, resolve_effective_context_files
 
 
 @pytest.fixture(autouse=True)

@@ -11,7 +11,7 @@ def _make_chunk(source: str, content: str, file_path: str = "") -> SimpleNamespa
 
 def test_priority_ids_boost_relevant_quotes():
     """Quotes matching priority_ids should be selected first."""
-    from dqg.context.evidence_renderer import render_key_quotes
+    from qualix.context.evidence_renderer import render_key_quotes
 
     chunks = [
         _make_chunk(
@@ -41,7 +41,7 @@ def test_priority_ids_boost_relevant_quotes():
 
 def test_priority_ids_empty_falls_back_to_regex():
     """Empty priority_ids should behave identically to current regex selection."""
-    from dqg.context.evidence_renderer import render_key_quotes
+    from qualix.context.evidence_renderer import render_key_quotes
 
     chunks = [_make_chunk("Phase A", "REQ-001 需求内容\n\nBR-001 业务规则", "phase_a.json")]
     result_none = render_key_quotes(chunks)
@@ -51,7 +51,7 @@ def test_priority_ids_empty_falls_back_to_regex():
 
 def test_priority_ids_with_no_matches_falls_back():
     """If no quotes match priority_ids, fall back to regex selection."""
-    from dqg.context.evidence_renderer import render_key_quotes
+    from qualix.context.evidence_renderer import render_key_quotes
 
     chunks = [_make_chunk("Phase A", "REQ-001 需求内容\n\nBR-001 业务规则", "phase_a.json")]
     result = render_key_quotes(chunks, priority_ids={"REQ-999", "BR-999"})
@@ -61,7 +61,7 @@ def test_priority_ids_with_no_matches_falls_back():
 
 def test_extract_priority_ids_from_targets():
     """extract_priority_ids should return flat set of SE/BR/REQ IDs."""
-    from dqg.runtime.phase_contract import extract_priority_ids
+    from qualix.runtime.phase_contract import extract_priority_ids
 
     targets = [
         {"se_id": "SE-001", "mapping_target": "REQ-001", "source": "phase_a"},
@@ -81,7 +81,7 @@ def test_extract_priority_ids_from_targets():
 
 def test_extract_priority_ids_empty():
     """Empty targets should return empty set."""
-    from dqg.runtime.phase_contract import extract_priority_ids
+    from qualix.runtime.phase_contract import extract_priority_ids
 
     assert extract_priority_ids([]) == set()
     assert extract_priority_ids(None) == set()
@@ -91,12 +91,12 @@ def test_loaded_context_passes_priority_ids(monkeypatch):
     """LoadedContext.render_evidence_pack() should pass priority_ids to render_key_quotes."""
     from types import SimpleNamespace
 
-    from dqg.context.context_loader import ContextChunk, LoadedContext
+    from qualix.context.context_loader import ContextChunk, LoadedContext
 
     # Track render_key_quotes calls
     render_calls = []
 
-    import dqg.context.context_loader as cl
+    import qualix.context.context_loader as cl
 
     original_render = cl.render_key_quotes
 

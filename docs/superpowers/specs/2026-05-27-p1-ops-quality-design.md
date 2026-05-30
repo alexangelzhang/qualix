@@ -83,10 +83,10 @@ else:
 
 ```python
 def cmd_task_list(args, output_dir: Path) -> int:
-    """dqg-run <pid> task list [--status STATUS] [--limit N] [--json]"""
+    """qualix-run <pid> task list [--status STATUS] [--limit N] [--json]"""
 
 def cmd_task_resume(args, output_dir: Path) -> int:
-    """dqg-run <pid> task resume [task_id] [--json]
+    """qualix-run <pid> task resume [task_id] [--json]
     
     无 task_id → 调 get_resumable_task 找可恢复任务
     有 task_id → 调 get_latest_checkpoint 取最新 checkpoint
@@ -109,7 +109,7 @@ abc123def...   adaptive   proj1    Q05    running    2026-05-27T10:00
 可恢复任务: abc123def...
   类型: adaptive  项目: proj1  Phase: Q05
   最新 checkpoint: iter_3 (2026-05-27T10:30)
-  恢复命令: dqg-run proj1 adaptive Q05 --resume abc123def...
+  恢复命令: qualix-run proj1 adaptive Q05 --resume abc123def...
 ```
 
 **注册到 core/cli.py** (`main()` 里的 subparser 区)：
@@ -132,9 +132,9 @@ sp_task_resume.add_argument("--json", action="store_true")
 `_base_dir()` 和 `_output_dir()` 全局函数已在 `core/cli.py` 里，`task_cmd.py` 直接用 `task_store.py` 的函数。
 
 ### 验收
-- `dqg-run proj1 task list` → 表格显示 task runs
-- `dqg-run proj1 task list --status running --json` → JSON 格式
-- `dqg-run proj1 task resume` → 显示可恢复 task 的 checkpoint 信息
+- `qualix-run proj1 task list` → 表格显示 task runs
+- `qualix-run proj1 task list --status running --json` → JSON 格式
+- `qualix-run proj1 task resume` → 显示可恢复 task 的 checkpoint 信息
 
 ---
 

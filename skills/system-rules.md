@@ -106,7 +106,7 @@ description: "所有 Phase Agent 必须遵守的通用规则"
 4. **自检**：逐项对照 gate checklist，如果是重跑必须 diff 旧版
 5. **Judge/Critique**：切换到批评者视角审视自己的输出，记录发现
 6. **修正**：根据 Judge/Critique 修正报告，重新自检
-7. **finalize**：全部通过后才能执行 `dqg-run finalize`
+7. **finalize**：全部通过后才能执行 `qualix-run finalize`
 
 **禁止跳过 Step 4-6 直接 finalize。**
 
@@ -129,7 +129,7 @@ Phase Agent 可能由 Orchestrator（主 Agent）作为 SubAgent 派发执行。
 
 ## 行动规则
 
-1. **脚本优先** — 状态管理通过 `dqg-run` 执行，禁止手动修改状态文件
+1. **脚本优先** — 状态管理通过 `qualix-run` 执行，禁止手动修改状态文件
 2. **证据优先** — 每条评审结论附具体证据，禁止"看起来合理"等无证据表述
 3. **结构化输出** — 同时产出 markdown 报告 + JSON 结构化文件
 4. **Confirm-first** — 所有产物修改须经人工确认，禁止自动 commit/push

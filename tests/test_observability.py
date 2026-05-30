@@ -1,4 +1,4 @@
-"""Tests for dqg.observability."""
+"""Tests for qualix.observability."""
 
 from __future__ import annotations
 
@@ -6,9 +6,9 @@ import json
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from dqg.reporting.observability import _build_alerts, _parse_date, _write_prometheus_snapshot, generate_report
-from dqg.reporting.telemetry import PhaseRunRecord, append_record
-from dqg.tracking.regression import append_failure_history
+from qualix.reporting.observability import _build_alerts, _parse_date, _write_prometheus_snapshot, generate_report
+from qualix.reporting.telemetry import PhaseRunRecord, append_record
+from qualix.tracking.regression import append_failure_history
 
 if TYPE_CHECKING:
     from pathlib import Path

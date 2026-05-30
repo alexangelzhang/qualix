@@ -10,9 +10,9 @@ from pathlib import Path
 
 sys.path.insert(0, "src")
 
-from dqg.constants import DEFAULT_FALLBACK_MODEL, DEFAULT_JUDGE_MODEL
-from dqg.quality.judge.judge_rubrics import compose_rubric
-from dqg.quality.judge.judge_runner import JudgeRunner
+from qualix.constants import DEFAULT_FALLBACK_MODEL, DEFAULT_JUDGE_MODEL
+from qualix.quality.judge.judge_rubrics import compose_rubric
+from qualix.quality.judge.judge_runner import JudgeRunner
 
 CASES = [
     # FN: must FAIL

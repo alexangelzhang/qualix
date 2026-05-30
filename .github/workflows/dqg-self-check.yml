@@ -3,12 +3,12 @@ name: DQG Self Quality Check
 on:
   pull_request:
     paths:
-      - 'dev-quality-gate/src/**'
-      - 'dev-quality-gate/skills/**'
+      - 'qualix/src/**'
+      - 'qualix/skills/**'
   push:
     branches: [main]
     paths:
-      - 'dev-quality-gate/src/**'
+      - 'qualix/src/**'
 
 jobs:
   regression:
@@ -23,11 +23,11 @@ jobs:
           python-version: '3.11'
 
       - name: Install DQG
-        run: pip install -e dev-quality-gate/dev-quality-gate --quiet
+        run: pip install -e qualix/qualix --quiet
 
       - name: Run regression tests
         run: |
-          cd dev-quality-gate/dev-quality-gate
+          cd qualix/qualix
           python -m pytest tests/ -x -q --tb=short
 
   # CI Gate example (requires finalize artifacts to exist)
@@ -39,7 +39,7 @@ jobs:
   #   needs: regression
   #   steps:
   #     - uses: actions/checkout@v4
-  #     - uses: ./dev-quality-gate/dev-quality-gate
+  #     - uses: ./qualix/qualix
   #       with:
   #         project-id: your-project
   #         phase: Q06

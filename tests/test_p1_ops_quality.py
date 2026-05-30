@@ -12,7 +12,7 @@ from unittest.mock import MagicMock
 
 
 def _make_ctx(tmp_path: Path, phase_id: str = "Q01", strict: bool = False):
-    from dqg.runtime.execution_context import ExecutionContext
+    from qualix.runtime.execution_context import ExecutionContext
 
     ctx = ExecutionContext(
         output_dir=tmp_path,
@@ -38,7 +38,7 @@ def _make_result():
 
 def test_strict_profile_context_blocks_when_section_missing(tmp_path):
     """--strict-profile-context 且报告缺 PROFILE_CONTEXT → BLOCKED."""
-    from dqg.runtime.handlers.handlers_finalize import handle_profile_context_check
+    from qualix.runtime.handlers.handlers_finalize import handle_profile_context_check
 
     ctx = _make_ctx(tmp_path, phase_id="Q01", strict=True)
     (ctx.phase_root / "phase_a_report.md").write_text("# 报告\n\n无 profile context")
@@ -52,7 +52,7 @@ def test_strict_profile_context_blocks_when_section_missing(tmp_path):
 
 def test_non_strict_profile_context_warns_only(tmp_path):
     """非严格模式下缺 PROFILE_CONTEXT → 仅 WARNING，不 BLOCKED。"""
-    from dqg.runtime.handlers.handlers_finalize import handle_profile_context_check
+    from qualix.runtime.handlers.handlers_finalize import handle_profile_context_check
 
     ctx = _make_ctx(tmp_path, phase_id="Q01", strict=False)
     (ctx.phase_root / "phase_a_report.md").write_text("# 报告\n\n无 profile context")
@@ -71,8 +71,8 @@ def test_non_strict_profile_context_warns_only(tmp_path):
 
 def test_cmd_task_list_returns_records(tmp_path):
     """cmd_task list 应返回已有 task runs."""
-    from dqg.commands.task_cmd import cmd_task
-    from dqg.runtime.task_store import complete_task_run, create_task_run
+    from qualix.commands.task_cmd import cmd_task
+    from qualix.runtime.task_store import complete_task_run, create_task_run
 
     tid1 = create_task_run(tmp_path, task_type="adaptive", project_id="p1", phase_id="Q01")
     complete_task_run(tmp_path, tid1, status="completed", result_summary="done")
@@ -96,7 +96,7 @@ def test_cmd_task_list_returns_records(tmp_path):
 
 def test_cmd_task_resume_no_tasks(tmp_path):
     """cmd_task resume 无可恢复 task 时应优雅返回（非 crash）."""
-    from dqg.commands.task_cmd import cmd_task
+    from qualix.commands.task_cmd import cmd_task
 
     args = type(
         "A",
@@ -121,7 +121,7 @@ def test_cmd_task_resume_no_tasks(tmp_path):
 
 def test_phase_run_record_has_force_approved_field():
     """PhaseRunRecord 应有 force_approved 字段，默认 False。"""
-    from dqg.reporting.telemetry import PhaseRunRecord
+    from qualix.reporting.telemetry import PhaseRunRecord
 
     r = PhaseRunRecord(project_id="p1", phase_id="Q01", phase_name="需求分析", action="approve", status="approved")
     assert hasattr(r, "force_approved"), "PhaseRunRecord 缺少 force_approved 字段"
@@ -132,8 +132,8 @@ def test_closure_hours_computed(tmp_path):
     """_project_metrics 应计算 avg_closure_hours。"""
     from datetime import datetime, timedelta
 
-    from dqg.reporting.observability import _project_metrics
-    from dqg.reporting.telemetry import PhaseRunRecord
+    from qualix.reporting.observability import _project_metrics
+    from qualix.reporting.telemetry import PhaseRunRecord
 
     now = datetime.now(UTC)
     records = [
@@ -162,8 +162,8 @@ def test_closure_hours_computed(tmp_path):
 
 def test_force_approve_rate_computed(tmp_path):
     """force_approve_rate 应等于 force_approved / total_approved。"""
-    from dqg.reporting.observability import _project_metrics
-    from dqg.reporting.telemetry import PhaseRunRecord
+    from qualix.reporting.observability import _project_metrics
+    from qualix.reporting.telemetry import PhaseRunRecord
 
     records = [
         PhaseRunRecord(
@@ -181,7 +181,7 @@ def test_generate_report_includes_guard_precision(tmp_path):
     """generate_report 的返回 payload 应含 guard_precision 字段。"""
     from datetime import date
 
-    from dqg.reporting.observability import generate_report
+    from qualix.reporting.observability import generate_report
 
     try:
         payload, _, _ = generate_report(tmp_path, period_name="daily", anchor=date.today())

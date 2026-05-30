@@ -1,6 +1,6 @@
-"""Tests for dqg.core.model_registry."""
+"""Tests for qualix.core.model_registry."""
 
-from dqg.core.model_registry import estimate_tokens
+from qualix.core.model_registry import estimate_tokens
 
 
 def test_estimate_tokens_handles_mixed_text() -> None:

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from dqg.services.phase_service import profile_context_warnings as _profile_context_warnings
+from qualix.services.phase_service import profile_context_warnings as _profile_context_warnings
 
 if TYPE_CHECKING:
     from pathlib import Path

@@ -28,7 +28,7 @@ TEMPLATE = """{
 def _repo_root() -> Path:
     here = Path(__file__).resolve().parent
     for p in (here.parent, here.parent.parent):
-        if (p / "src" / "dqg").is_dir():
+        if (p / "src" / "qualix").is_dir():
             return p
     return here.parent
 

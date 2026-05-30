@@ -1,10 +1,10 @@
-"""Tests for dqg.schemas.rsm."""
+"""Tests for qualix.schemas.rsm."""
 
 import json
 import tempfile
 from pathlib import Path
 
-from dqg.schemas.rsm import (
+from qualix.schemas.rsm import (
     RSMMutation,
     apply_mutations,
     build_lifecycle,
@@ -224,7 +224,7 @@ class TestRSMMutations:
         assert len(applied) == 1
 
     def test_modify_mutation(self):
-        from dqg.schemas.rsm import RequirementLifecycle
+        from qualix.schemas.rsm import RequirementLifecycle
 
         lc = {"REQ-001": RequirementLifecycle(req_id="REQ-001", id_type="REQ", description="旧描述")}
         mut = RSMMutation(target_id="REQ-001", action="modify", value="新描述", reason="不完整")
@@ -233,7 +233,7 @@ class TestRSMMutations:
         assert len(applied) == 1
 
     def test_delete_mutation(self):
-        from dqg.schemas.rsm import RequirementLifecycle
+        from qualix.schemas.rsm import RequirementLifecycle
 
         lc = {"REQ-001": RequirementLifecycle(req_id="REQ-001", id_type="REQ", description="误报")}
         mut = RSMMutation(target_id="REQ-001", action="delete", reason="误报")
@@ -242,7 +242,7 @@ class TestRSMMutations:
         assert len(applied) == 1
 
     def test_escalate_gap(self):
-        from dqg.schemas.rsm import RequirementLifecycle
+        from qualix.schemas.rsm import RequirementLifecycle
 
         lc = {"GAP-001": RequirementLifecycle(req_id="GAP-001", id_type="GAP", closure_status="已闭环")}
         mut = RSMMutation(target_id="GAP-001", action="escalate", reason="实际未解决")
@@ -275,7 +275,7 @@ class TestMutationsFromCritique:
 
 class TestRSMPersistence:
     def test_save_and_load(self):
-        from dqg.schemas.rsm import RequirementLifecycle
+        from qualix.schemas.rsm import RequirementLifecycle
 
         with tempfile.TemporaryDirectory() as tmpdir:
             output_dir = Path(tmpdir)

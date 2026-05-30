@@ -59,7 +59,7 @@ install.sh     ──执行──▶    编排以上拷贝 + pip 安装
 
 1. 项目级覆盖：`<cwd>/.dqg/skill-overrides/` 或 `<cwd>/.dqg/profiles/`（用户手动 mkdir 创建，init 不预建）
 2. 全局：`~/.dqg/skills/`、`~/.dqg/references/`、`~/.dqg/profiles/`
-3. 包内兜底：`importlib.resources.files("dqg")/skills/` 等
+3. 包内兜底：`importlib.resources.files("qualix")/skills/` 等
 
 `regression/` 走 1→2，不放包内（体积大）。`output/` 固定写项目级 `.dqg/output/`。
 
@@ -106,7 +106,7 @@ class ResourceResolver:
 3. 四类资源逐个拷到 `~/.dqg/<name>/`，覆盖式（先删旧 dest 再 copytree）
 4. `VERSION` 拷到 `~/.dqg/VERSION`
 5. 跑 `pip install --user <source-root>`（非 --dev）或 `pip install --user -e <source-root>`（--dev）
-6. 打印 next steps：`cd 你的项目目录; dqg-run init`
+6. 打印 next steps：`cd 你的项目目录; qualix-run init`
 
 #### --dev 模式差异
 
@@ -116,16 +116,16 @@ class ResourceResolver:
 
 #### 不做
 
-- 不做 `--uninstall`（靠 `rm -rf ~/.dqg/ && pip uninstall dev-quality-gate`）
+- 不做 `--uninstall`（靠 `rm -rf ~/.dqg/ && pip uninstall qualix`）
 - 不做升级子命令（重跑 install.sh 即升级）
 - 不自动写 `~/.zshrc`（`pip install --user` 装的命令默认在 PATH；不在则在 next steps 提示）
 
-### `dqg-run init`
+### `qualix-run init`
 
 #### 命令签名
 
 ```
-dqg-run init [--profile PROFILE_NAME] [--force]
+qualix-run init [--profile PROFILE_NAME] [--force]
 ```
 
 | 参数 | 默认 | 作用 |
@@ -144,7 +144,7 @@ dqg-run init [--profile PROFILE_NAME] [--force]
    ```
 3. 写 `settings.yaml`：
    ```yaml
-   # DQG 项目配置 — 由 dqg-run init 生成
+   # DQG 项目配置 — 由 qualix-run init 生成
    dqg_version: "0.2.0-dev.20260511"   # 自动写入，勿手改
    profile: java-ddd
    code_repos: []   # 填写代码仓绝对路径
@@ -157,12 +157,12 @@ dqg-run init [--profile PROFILE_NAME] [--force]
    DQG 是通过 install.sh 安装的工具，**不要修改它的源码**。
 
    遇到 DQG 报错时：
-   1. 跑 `dqg-run doctor` 生成 issue bundle
+   1. 跑 `qualix-run doctor` 生成 issue bundle
    2. 把 bundle 提交给 DQG 维护者
 
    相关资源：
-   - `dqg-run --help` — CLI 完整参数
-   - `dqg-run path <skills|references|profiles>` — 查看内置资源
+   - `qualix-run --help` — CLI 完整参数
+   - `qualix-run path <skills|references|profiles>` — 查看内置资源
    <!-- DQG-GUARDRAIL-END -->
    ```
    - CLAUDE.md 不存在时新建只含该段的文件
@@ -174,15 +174,15 @@ dqg-run init [--profile PROFILE_NAME] [--force]
 
 - 不预建 `.dqg/profiles/` / `.dqg/skill-overrides/`（能力保留，入口不推销；用户需要时手动 mkdir 就会被 ResourceResolver 捡起）
 - 不拷 profile 模板（避免副本幽灵化）
-- 不做 `dqg-run deinit`（用户自行 `rm -rf`）
+- 不做 `qualix-run deinit`（用户自行 `rm -rf`）
 - 不做 `.dqg/cache/` 或 `.dqg/knowledge/`
 
-### `dqg-run doctor`
+### `qualix-run doctor`
 
 #### 命令签名
 
 ```
-dqg-run doctor [--output PATH] [--redact/--no-redact] [--include-internal/--no-include-internal] [--no-upload] [--title TITLE]
+qualix-run doctor [--output PATH] [--redact/--no-redact] [--include-internal/--no-include-internal] [--no-upload] [--title TITLE]
 ```
 
 | 参数 | 默认 | 作用 |
@@ -200,7 +200,7 @@ doctor-bundle-20260511-142301.tgz
 ├── manifest.json       # 版本/时间/触发原因/脱敏摘要
 ├── env.txt             # dqg --version、python、pip list、OS
 ├── settings.yaml       # .dqg/settings.yaml 副本（脱敏）
-├── recent-errors/      # 最近一次 dqg-run 的 stderr / exceptions
+├── recent-errors/      # 最近一次 qualix-run 的 stderr / exceptions
 ├── state.json          # output/<project>/state.json（脱敏）
 ├── _internal/          # 最近 phase 的 _reasoning_log.md 等
 └── input-summary.txt   # 输入文件列表 + 大小（不含内容）
@@ -208,7 +208,7 @@ doctor-bundle-20260511-142301.tgz
 
 #### 数据来源
 
-- **last-run marker**: `dqg-run` 启动时 atomic-write 一份 `.dqg/last-run.json`（cmd、ts、cwd、exit-code、tail-stderr），doctor 主要读这个
+- **last-run marker**: `qualix-run` 启动时 atomic-write 一份 `.dqg/last-run.json`（cmd、ts、cwd、exit-code、tail-stderr），doctor 主要读这个
 - **state.json**: 当前 project 的状态快照
 - `_internal/`: 按 state.json 里最近的 phase 取
 - **settings.yaml**: 直接拷贝后脱敏
@@ -222,7 +222,7 @@ doctor-bundle-20260511-142301.tgz
 
 #### 版本一致性检查
 
-对比三处：`pip show dev-quality-gate`、`~/.dqg/VERSION`、`.dqg/settings.yaml` 的 `dqg_version`。不一致时 `manifest.json` 标 `version_mismatch: true` 并提示重跑 `install.sh`。
+对比三处：`pip show qualix`、`~/.dqg/VERSION`、`.dqg/settings.yaml` 的 `dqg_version`。不一致时 `manifest.json` 标 `version_mismatch: true` 并提示重跑 `install.sh`。
 
 #### 自动上传（基于 glab）
 
@@ -252,7 +252,7 @@ glab 缺失提示：
 - `pyproject.toml` 改为：
   ```toml
   [project]
-  name = "dev-quality-gate"
+  name = "qualix"
   dynamic = ["version"]
 
   [project.urls]
@@ -270,7 +270,7 @@ glab 缺失提示：
   "profiles" = "dqg/profiles"
   ```
   注：hatchling ≥ 1.18 支持从纯文本文件读版本（regex source + pattern 匹配整行）。
-- `src/dqg/__init__.py`：`__version__ = importlib.metadata.version("dev-quality-gate")`
+- `src/dqg/__init__.py`：`__version__ = importlib.metadata.version("qualix")`
 - `install.sh` 读 `VERSION` 文件打 banner + 拷到 `~/.dqg/VERSION`
 - 所有代码读版本/URL 统一走 `importlib.metadata`，不硬编码
 
@@ -280,14 +280,14 @@ glab 缺失提示：
 
 ```
 1. git clone + ./install.sh
-   → 资源拷 ~/.dqg/，pip install --user .，dqg-run 进 ~/.local/bin/
-2. cd 用户项目 + dqg-run init
+   → 资源拷 ~/.dqg/，pip install --user .，qualix-run 进 ~/.local/bin/
+2. cd 用户项目 + qualix-run init
    → 建 .dqg/output/，写 settings.yaml，注入 CLAUDE.md，追 .gitignore
 3. 用户填 .dqg/settings.yaml 的 code_repos
-4. dqg-run <project_id> startup
+4. qualix-run <project_id> startup
    → ResourceResolver 查资源：.dqg/ → ~/.dqg/ → site-packages
    → output 写到 .dqg/output/
-5. 遇错：dqg-run doctor
+5. 遇错：qualix-run doctor
    → 生成脱敏 bundle → glab 创建 issue（或 fallback 打印路径）
 ```
 
@@ -297,8 +297,8 @@ glab 缺失提示：
 1. git pull DQG repo
 2. ./install.sh 重跑
    → ~/.dqg/* 被覆盖，site-packages 覆盖，VERSION 更新
-3. dqg-run 启动检测 settings.yaml 的 dqg_version ≠ ~/.dqg/VERSION
-   → 打印 warning：建议 dqg-run init --force 同步，不 block
+3. qualix-run 启动检测 settings.yaml 的 dqg_version ≠ ~/.dqg/VERSION
+   → 打印 warning：建议 qualix-run init --force 同步，不 block
 ```
 
 ### 维护者日常
@@ -307,7 +307,7 @@ glab 缺失提示：
 1. DQG repo 根执行 ./install.sh --dev
    → ~/.dqg/* 变 symlink，pip install --user -e .
 2. 改 skills/*.md 或 src/dqg/*.py 立即生效
-3. cd 到测试项目跑 dqg-run，无需重装
+3. cd 到测试项目跑 qualix-run，无需重装
 ```
 
 ## 迁移
@@ -316,7 +316,7 @@ glab 缺失提示：
 
 1. 家目录外新建"用户项目"工作区
 2. 原 `profiles/custom.yaml` 等自定义文件拷到新工作区 `.dqg/profiles/`
-3. `dqg-run init` 建 `.dqg/output/` + settings
+3. `qualix-run init` 建 `.dqg/output/` + settings
 4. 原 `output/` 历史产物拷到 `.dqg/output/`
 
 第一版不做迁移脚本。VERSION 跳到 `0.2.0` 明示破坏性。老路径（cwd 含 `src/dqg/`）保留 3 个月兼容期：ResourceResolver 查找时发现 `<cwd>/skills/` + `<cwd>/src/dqg/` 共存，打印 deprecation warning 继续跑。
@@ -333,8 +333,8 @@ glab 缺失提示：
 
 ### 第二批：用户工作区
 
-- `dqg-run init`（建 `.dqg/output/` + settings.yaml + 注入 CLAUDE.md + 追 .gitignore）
-- `dqg-run path <skills|references|profiles>` 只读入口
+- `qualix-run init`（建 `.dqg/output/` + settings.yaml + 注入 CLAUDE.md + 追 .gitignore）
+- `qualix-run path <skills|references|profiles>` 只读入口
 - settings.yaml 加载与 code_repos 字段接入
 - 版本一致性 warning
 
@@ -350,12 +350,12 @@ glab 缺失提示：
 
 物理边界验收:
 
-- [ ] 新用户执行 `git clone && ./install.sh && cd <别的项目> && dqg-run init` 后,`<别的项目>/` 下 `ls` 看不到 DQG 源码
-- [ ] `dqg-run init` 幂等：重跑不重复写 CLAUDE.md marker 节段，不重建已有 `.dqg/`
-- [ ] `dqg-run --version` 返回 VERSION 文件内容
+- [ ] 新用户执行 `git clone && ./install.sh && cd <别的项目> && qualix-run init` 后,`<别的项目>/` 下 `ls` 看不到 DQG 源码
+- [ ] `qualix-run init` 幂等：重跑不重复写 CLAUDE.md marker 节段，不重建已有 `.dqg/`
+- [ ] `qualix-run --version` 返回 VERSION 文件内容
 - [ ] `pyproject.toml` 的 `version` 为 dynamic，build wheel 时读 VERSION
-- [ ] `dqg-run doctor` 无 glab 时打印 bundle 路径 + issue URL，退出 0
-- [ ] `dqg-run doctor` 有 glab 时创建 issue 并打印 URL
+- [ ] `qualix-run doctor` 无 glab 时打印 bundle 路径 + issue URL，退出 0
+- [ ] `qualix-run doctor` 有 glab 时创建 issue 并打印 URL
 - [ ] 老路径（cwd 含 `src/dqg/`）触发 deprecation warning 但仍可跑通至少 Q01
 - [ ] `./install.sh --dev` 在 repo 根跑后，改 `skills/` 文件立即在 `~/.dqg/skills/` 可见（symlink）
 - [ ] `./install.sh --dry-run` 输出符合第 2 节样本格式
@@ -364,7 +364,7 @@ glab 缺失提示：
 ## Out of Scope
 
 - 发布 PyPI（留给 L1 正版路径）
-- `dqg-run deinit` / `--uninstall`
+- `qualix-run deinit` / `--uninstall`
 - 迁移脚本（人工指引为主）
 - bundle 自动上传到飞书或其他平台
 - profile 模板拷贝到 `.dqg/profiles/`

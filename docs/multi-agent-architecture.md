@@ -18,8 +18,8 @@
 生成独立 prompt 文件，在当前 session 中用 subagent 执行。适合日常使用。
 
 ```bash
-dqg-run <project> orchestrate <phase> --plan
-dqg-run <project> orchestrate <phase>
+qualix-run <project> orchestrate <phase> --plan
+qualix-run <project> orchestrate <phase>
 ```
 
 生成的文件：
@@ -36,8 +36,8 @@ dqg-run <project> orchestrate <phase>
 通过 API 调用真正独立的 LLM 实例，支持不同模型+自动 fallback。适合 CI/CD 集成。
 
 ```bash
-dqg-run <project> agent-run <phase>
-dqg-run <project> agent-run <phase> \
+qualix-run <project> agent-run <phase>
+qualix-run <project> agent-run <phase> \
   --primary claude-opus-4-6 \
   --fallback deepseek-chat \
   --judge-model claude-sonnet-4-6
@@ -63,8 +63,8 @@ Fallback 机制：主模型调用失败（网络/限流/被墙）→ 自动切�
 Judge 不通过 → 自动触发 Worker 修正 → 再次 Judge → 循环直到通过或达上限。支持多 Judge 并行投票。
 
 ```bash
-dqg-run <project> adaptive <phase>
-dqg-run <project> adaptive <phase> \
+qualix-run <project> adaptive <phase>
+qualix-run <project> adaptive <phase> \
   --primary claude-opus-4-6 \
   --judge-models claude-sonnet-4-6,deepseek-chat \
   --max-iter 3 --threshold 3.5

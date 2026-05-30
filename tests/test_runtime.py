@@ -4,10 +4,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from dqg.runtime.events import EventType
-from dqg.runtime.execution_context import ExecutionContext
-from dqg.runtime.lifecycle import LifecycleRegistry
-from dqg.runtime.result import PhaseResult, RuntimeEvent
+from qualix.runtime.events import EventType
+from qualix.runtime.execution_context import ExecutionContext
+from qualix.runtime.lifecycle import LifecycleRegistry
+from qualix.runtime.result import PhaseResult, RuntimeEvent
 
 # ---------------------------------------------------------------------------
 # PhaseResult 测试
@@ -239,7 +239,7 @@ class TestExecutionContext:
 class TestGlobalRegistration:
     def test_handlers_registered_on_import(self):
         """Import runtime 包后，全局 registry 应该有 handler."""
-        from dqg.runtime.lifecycle import get_registry
+        from qualix.runtime.lifecycle import get_registry
 
         reg = get_registry()
         # execute handlers
@@ -257,7 +257,7 @@ class TestGlobalRegistration:
         assert "review_chain" in handler_names
 
     def test_coverage_matrix_only_for_a5(self):
-        from dqg.runtime.lifecycle import get_registry
+        from qualix.runtime.lifecycle import get_registry
 
         reg = get_registry()
         a5_handlers = {h.name for h in reg.get_handlers("execute", "Q04")}
@@ -268,8 +268,8 @@ class TestGlobalRegistration:
 
 def test_persist_inputs_writes_coverage_report(tmp_path):
     """handle_persist_inputs 应把 ctx.coverage_report 写入 _inputs.json."""
-    from dqg.json_utils import load_json
-    from dqg.runtime.handlers.handlers_execute import handle_persist_inputs
+    from qualix.json_utils import load_json
+    from qualix.runtime.handlers.handlers_execute import handle_persist_inputs
 
     internal = tmp_path / "_internal"
     ctx = ExecutionContext(
@@ -293,8 +293,8 @@ def test_persist_inputs_writes_coverage_report(tmp_path):
 
 def test_persist_inputs_omits_coverage_report_when_none(tmp_path):
     """coverage_report=None 时不写字段，保持向后兼容."""
-    from dqg.json_utils import load_json
-    from dqg.runtime.handlers.handlers_execute import handle_persist_inputs
+    from qualix.json_utils import load_json
+    from qualix.runtime.handlers.handlers_execute import handle_persist_inputs
 
     internal = tmp_path / "_internal"
     ctx = ExecutionContext(
@@ -314,8 +314,8 @@ def test_persist_inputs_omits_coverage_report_when_none(tmp_path):
 
 def test_guardrail_coverage_evidence_trusts_structured_data():
     """ReportSemanticGuardrail 在 structured_data 存在时优先用 JSON，避免 markdown 表格截断误报."""
-    from dqg.quality.guardrail import GuardrailContext
-    from dqg.quality.guardrail.semantic_guardrail import ReportSemanticGuardrail
+    from qualix.quality.guardrail import GuardrailContext
+    from qualix.quality.guardrail.semantic_guardrail import ReportSemanticGuardrail
 
     # structured_data 里 evidence 含 [文件:行号] → 合格；report 表格里被截断只剩 "COVERED EUT-001 applyXxx" → 没行号
     structured_data = {
@@ -348,8 +348,8 @@ def test_guardrail_coverage_evidence_trusts_structured_data():
 
 def test_guardrail_coverage_evidence_catches_real_inflation():
     """structured_data 中 COVERED 但 evidence 真的缺行号 → 正确告警."""
-    from dqg.quality.guardrail import GuardrailContext
-    from dqg.quality.guardrail.semantic_guardrail import ReportSemanticGuardrail
+    from qualix.quality.guardrail import GuardrailContext
+    from qualix.quality.guardrail.semantic_guardrail import ReportSemanticGuardrail
 
     structured_data = {
         "audit_items": [
@@ -377,7 +377,7 @@ def test_guardrail_coverage_evidence_catches_real_inflation():
 
 def test_mock_strip_meta_sections_removes_discussion_lines():
     """_strip_meta_sections 应同时剥离 # 元章节和讨论性行（含「未扫描到/例如/风险」等）."""
-    from dqg.runtime.handlers.handlers_detection import _strip_meta_sections
+    from qualix.runtime.handlers.handlers_detection import _strip_meta_sections
 
     report = (
         "# 审计明细\n"
@@ -398,10 +398,10 @@ def test_mock_strip_meta_sections_removes_discussion_lines():
 
 def test_fabrication_fallback_across_phases(tmp_path, monkeypatch):
     """_get_code_repos 在当前 Phase 无 _inputs.json 时回退其他 Phase."""
-    from dqg.core.state_machine import PHASE_DEFS, internal_dir
-    from dqg.json_utils import save_json
-    from dqg.quality.guardrail import GuardrailContext
-    from dqg.quality.guardrail.fabrication_detector import FabricationDetectorGuardrail
+    from qualix.core.state_machine import PHASE_DEFS, internal_dir
+    from qualix.json_utils import save_json
+    from qualix.quality.guardrail import GuardrailContext
+    from qualix.quality.guardrail.fabrication_detector import FabricationDetectorGuardrail
 
     # 在 Q05 目录下种 _inputs.json，Q06 无
     q05_dir = internal_dir(tmp_path, "demo", PHASE_DEFS["Q05"])

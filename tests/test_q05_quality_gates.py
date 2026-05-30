@@ -8,9 +8,9 @@ from typing import TYPE_CHECKING
 import pytest
 from pydantic import ValidationError
 
-from dqg.runtime.execution_context import ExecutionContext
-from dqg.runtime.result import PhaseResult
-from dqg.schemas.phase_b import AssertionType, EutItem, RiskTier, RouteType
+from qualix.runtime.execution_context import ExecutionContext
+from qualix.runtime.result import PhaseResult
+from qualix.schemas.phase_b import AssertionType, EutItem, RiskTier, RouteType
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -110,7 +110,7 @@ class TestWeakAssertGateQ05:
     """Q05 弱断言 gate: high-risk >= 1 触发 BLOCKED."""
 
     def test_q05_high_risk_1_triggers_blocked(self, tmp_path: Path):
-        from dqg.runtime.handlers_detection import handle_weak_assert_gate
+        from qualix.runtime.handlers_detection import handle_weak_assert_gate
 
         ctx = _make_ctx(tmp_path, "Q05b")
         payload = {
@@ -130,7 +130,7 @@ class TestWeakAssertGateQ05:
 
     def test_q06_high_risk_1_no_block(self, tmp_path: Path):
         """Q06 同样 high_risk=1 不触发 BLOCKED（阈值为 3 才 WARNING）."""
-        from dqg.runtime.handlers_detection import handle_weak_assert_gate
+        from qualix.runtime.handlers_detection import handle_weak_assert_gate
 
         ctx = _make_ctx(tmp_path, "Q06")
         payload = {
@@ -150,7 +150,7 @@ class TestWeakAssertGateQ05:
 
     def test_q06_high_risk_3_triggers_warning(self, tmp_path: Path):
         """Q06 high_risk=3 触发 WARNING 但不 BLOCKED."""
-        from dqg.runtime.handlers_detection import handle_weak_assert_gate
+        from qualix.runtime.handlers_detection import handle_weak_assert_gate
 
         ctx = _make_ctx(tmp_path, "Q06")
         payload = {
@@ -170,7 +170,7 @@ class TestWeakAssertGateQ05:
 
     def test_no_json_file_noop(self, tmp_path: Path):
         """_weak_assert_context.json 不存在时静默跳过."""
-        from dqg.runtime.handlers_detection import handle_weak_assert_gate
+        from qualix.runtime.handlers_detection import handle_weak_assert_gate
 
         ctx = _make_ctx(tmp_path, "Q05")
         result = PhaseResult(phase_id="Q05")
@@ -190,7 +190,7 @@ class TestMockCoincidenceQ05:
     """Q05 Mock 巧合正确检测: Q05 跳过（测试代码用 Mock 是正常的）."""
 
     def test_q05_coincidence_skipped(self, tmp_path: Path):
-        from dqg.runtime.handlers_detection import handle_mock_coincidence_check
+        from qualix.runtime.handlers_detection import handle_mock_coincidence_check
 
         ctx = _make_ctx(tmp_path, "Q05")
         result = PhaseResult(phase_id="Q05")
@@ -202,7 +202,7 @@ class TestMockCoincidenceQ05:
 
     def test_q06_coincidence_hit_warning_only(self, tmp_path: Path):
         """Q06 同样 coincidence hit 只触发 WARNING."""
-        from dqg.runtime.handlers_detection import handle_mock_coincidence_check
+        from qualix.runtime.handlers_detection import handle_mock_coincidence_check
 
         ctx = _make_ctx(tmp_path, "Q06")
         # Q06 report file is ut_audit_report.md
@@ -226,7 +226,7 @@ class TestWeakAssertScanQ05:
     """Q05 finalize 扫描 handler: 从 structured JSON 提取测试文件并扫描."""
 
     def test_scans_test_files_from_structured_json(self, tmp_path: Path):
-        from dqg.runtime.handlers_detection import handle_weak_assert_scan_q05
+        from qualix.runtime.handlers_detection import handle_weak_assert_scan_q05
 
         # 构造 code_repo 和测试文件
         repo = tmp_path / "repo"
@@ -289,7 +289,7 @@ class OrderServiceTest {
 
     def test_no_code_repo_noop(self, tmp_path: Path):
         """code_repo 为 None 时静默跳过."""
-        from dqg.runtime.handlers_detection import handle_weak_assert_scan_q05
+        from qualix.runtime.handlers_detection import handle_weak_assert_scan_q05
 
         ctx = _make_ctx(tmp_path, "Q05b")
         ctx.code_repo = None
@@ -300,7 +300,7 @@ class OrderServiceTest {
 
     def test_no_structured_json_noop(self, tmp_path: Path):
         """phase_b_structured.json 不存在时静默跳过."""
-        from dqg.runtime.handlers_detection import handle_weak_assert_scan_q05
+        from qualix.runtime.handlers_detection import handle_weak_assert_scan_q05
 
         repo = tmp_path / "repo"
         repo.mkdir()
@@ -313,7 +313,7 @@ class OrderServiceTest {
 
     def test_no_covered_by_noop(self, tmp_path: Path):
         """test_cases 中没有 covered_by 时静默跳过."""
-        from dqg.runtime.handlers_detection import handle_weak_assert_scan_q05
+        from qualix.runtime.handlers_detection import handle_weak_assert_scan_q05
 
         repo = tmp_path / "repo"
         repo.mkdir()
@@ -354,7 +354,7 @@ class TestEutImplementationCompleteness:
     """C9: 升级后的方法级实现完整性检查."""
 
     def _call(self, data: dict, test_files: list) -> list[str]:
-        from dqg.quality.checks.q05_structure_checks import _check_eut_implementation_completeness
+        from qualix.quality.checks.q05_structure_checks import _check_eut_implementation_completeness
 
         return _check_eut_implementation_completeness(data, test_files)
 
@@ -463,7 +463,7 @@ class TestGitDiffCoverage:
     """C10: _check_q05_git_diff_coverage."""
 
     def _call(self, eut_items: list, diff_files: list) -> list[str]:
-        from dqg.quality.checks.q05_structure_checks import _check_q05_git_diff_coverage
+        from qualix.quality.checks.q05_structure_checks import _check_q05_git_diff_coverage
 
         data = {"eut_items": eut_items}
         target_modules_data = {"git_diff_files": diff_files}
@@ -519,7 +519,7 @@ class TestGitDiffCoverage:
 
     def test_no_target_modules_data_noop(self):
         """target_modules_data 为 None → 直接返回空."""
-        from dqg.quality.checks.q05_structure_checks import _check_q05_git_diff_coverage
+        from qualix.quality.checks.q05_structure_checks import _check_q05_git_diff_coverage
 
         assert _check_q05_git_diff_coverage({"eut_items": []}, None) == []
 
@@ -533,7 +533,7 @@ class TestEutMethodAlignment:
     """check_eut_method_alignment: @Test 方法体必须含 EUT then 业务关键词."""
 
     def _call(self, eut_items: list, java_src: str, tmp_path) -> list[str]:
-        from dqg.quality.checks.q05_structure_checks import check_eut_method_alignment
+        from qualix.quality.checks.q05_structure_checks import check_eut_method_alignment
 
         tf = tmp_path / "FooServiceTest.java"
         tf.write_text(java_src, encoding="utf-8")
@@ -573,7 +573,7 @@ class TestEutMethodAlignment:
 
     def test_empty_euts_noop(self, tmp_path):
         """空 eut_items → 直接返回空."""
-        from dqg.quality.checks.q05_structure_checks import check_eut_method_alignment
+        from qualix.quality.checks.q05_structure_checks import check_eut_method_alignment
 
         assert check_eut_method_alignment({"eut_items": []}, []) == []
 
@@ -590,7 +590,7 @@ class TestEutThenPhantomMethods:
         return {"eut_id": eid, "when": "OrderService.doSomething", "then": then}
 
     def _call(self, eut_items: list, prod_methods: list, tmp_path) -> list[str]:
-        from dqg.quality.checks.q05_structure_checks import (
+        from qualix.quality.checks.q05_structure_checks import (
             check_eut_then_phantom_methods,
         )
 
@@ -632,6 +632,6 @@ class TestEutThenPhantomMethods:
 
     def test_empty_code_repos_noop(self, tmp_path):
         """code_repos 为空 → 直接返回空."""
-        from dqg.quality.checks.q05_structure_checks import check_eut_then_phantom_methods
+        from qualix.quality.checks.q05_structure_checks import check_eut_then_phantom_methods
 
         assert check_eut_then_phantom_methods({"eut_items": []}, []) == []

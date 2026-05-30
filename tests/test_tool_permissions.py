@@ -1,6 +1,6 @@
-"""Tests for dqg.security.tool_permissions."""
+"""Tests for qualix.security.tool_permissions."""
 
-from dqg.security.tool_permissions import filter_tools_by_role
+from qualix.security.tool_permissions import filter_tools_by_role
 
 
 def _make_tool(name: str):

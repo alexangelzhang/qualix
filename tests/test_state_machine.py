@@ -1,8 +1,8 @@
-"""Tests for dqg.state_machine — Phase 状态机."""
+"""Tests for qualix.state_machine — Phase 状态机."""
 
 from pathlib import Path
 
-from dqg.core.state_machine import (
+from qualix.core.state_machine import (
     PHASE_ORDER,
     PhaseStatus,
     ProjectState,
@@ -210,7 +210,7 @@ class TestGetParallelGroups:
 class TestResetPhase:
     def test_reset_from_approved_clears_all_fields(self):
         """reset 必须清所有执行/评审/审批字段，否则会残留污染下轮 execute."""
-        from dqg.core.state_machine import reset_phase
+        from qualix.core.state_machine import reset_phase
 
         state = ProjectState(project_id="TEST")
         ps = state.phases["Q06"]
@@ -246,7 +246,7 @@ class TestResetPhase:
 
     def test_reset_already_clean_returns_info(self):
         """真正的 not_started（字段全默认）应返回 info，且不改动 state."""
-        from dqg.core.state_machine import reset_phase
+        from qualix.core.state_machine import reset_phase
 
         state = ProjectState(project_id="TEST")
         errors = reset_phase(state, "Q06")
@@ -254,7 +254,7 @@ class TestResetPhase:
 
     def test_reset_not_started_but_dirty_fields_still_resets(self):
         """status 是 not_started 但残留了其他字段（比如部分 reset 过）仍需真正 reset."""
-        from dqg.core.state_machine import reset_phase
+        from qualix.core.state_machine import reset_phase
 
         state = ProjectState(project_id="TEST")
         ps = state.phases["Q06"]
@@ -270,7 +270,7 @@ class TestResetPhase:
         assert state.phases["Q06"].judge_score is None
 
     def test_reset_unknown_phase(self):
-        from dqg.core.state_machine import reset_phase
+        from qualix.core.state_machine import reset_phase
 
         state = ProjectState(project_id="TEST")
         errors = reset_phase(state, "QXX")

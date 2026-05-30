@@ -1,4 +1,4 @@
-"""Tests for dqg.quality.judge.guard_telemetry."""
+"""Tests for qualix.quality.judge.guard_telemetry."""
 
 from __future__ import annotations
 
@@ -6,9 +6,9 @@ import json
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
-from dqg.agents.judge_vote import JudgeVote
-from dqg.constants import GUARD_EVENT_FILENAME, GUARD_PAIR_DIRNAME
-from dqg.quality.judge.guard_telemetry import log_guard_event, save_guard_pair
+from qualix.agents.judge_vote import JudgeVote
+from qualix.constants import GUARD_EVENT_FILENAME, GUARD_PAIR_DIRNAME
+from qualix.quality.judge.guard_telemetry import log_guard_event, save_guard_pair
 
 
 def _make_vote(*, model: str = "m", overall: float = 3.0, verdict: str = "PASS", raw: str = "hello") -> JudgeVote:

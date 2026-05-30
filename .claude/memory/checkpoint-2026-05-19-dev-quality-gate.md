@@ -1,7 +1,7 @@
 ---
 date: 2026-05-19
-session_topic: dev-quality-gate session auto-checkpoint
-project: dev-quality-gate
+session_topic: qualix session auto-checkpoint
+project: qualix
 status: in-progress
 auto_generated: true
 ---

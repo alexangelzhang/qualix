@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from dqg.constants import WIKI_COMPILE_CONTEXT_LIMIT, WIKI_LINT_FILE_EXCERPT_LIMIT, WIKI_LINT_TOTAL_EXCERPT_LIMIT
-from dqg.memory.wiki_layer import WikiManager
+from qualix.constants import WIKI_COMPILE_CONTEXT_LIMIT, WIKI_LINT_FILE_EXCERPT_LIMIT, WIKI_LINT_TOTAL_EXCERPT_LIMIT
+from qualix.memory.wiki_layer import WikiManager
 
 
 def test_compile_wiki_prefers_plain_text_summary(tmp_path: Path) -> None:

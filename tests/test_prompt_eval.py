@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from dqg.json_utils import save_json
-from dqg.tracking.prompt_eval import compute_prompt_metrics, format_comparison_table, run_prompt_eval_case
+from qualix.json_utils import save_json
+from qualix.tracking.prompt_eval import compute_prompt_metrics, format_comparison_table, run_prompt_eval_case
 
 
 def test_compute_prompt_metrics_includes_manifest_hashes(tmp_path) -> None:

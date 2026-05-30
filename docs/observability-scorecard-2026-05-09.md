@@ -33,7 +33,7 @@ DQG 不追求在每一维都打满——某些维度（比如 playground）对 D
 | 维度 | 之前 | 之后 | 本轮贡献 |
 |------|------|------|---------|
 | LLM 调用追踪 | ★★★☆☆ | ★★★★☆ | P0 加 prompt/response excerpt + P2 加 trace_run_id + span_path 分层 |
-| Prompt 管理 | ★★☆☆☆ | ★★★☆☆ | P2 版本库骨架 + `dqg-run observe prompt-versions` 查询 CLI |
+| Prompt 管理 | ★★☆☆☆ | ★★★☆☆ | P2 版本库骨架 + `qualix-run observe prompt-versions` 查询 CLI |
 | 评估框架 | ★★★★☆ | ★★★★★ | P1-b `_eval_metric_runs.jsonl` + bootstrap 式实证分位数 |
 | 监控告警 | ★★★☆☆ | ★★★★☆ | P3 Z-score/IQR 接入 `observability_alerts.extra_alerts` 钩子 |
 | 成本追踪 | ★★☆☆☆ | ★★★★☆ | P1-a `estimate_llm_call_cost_usd` + 按 `(phase, model)` 聚合 + Dashboard 展示（提了两档）|

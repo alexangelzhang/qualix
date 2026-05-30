@@ -7,17 +7,17 @@ rd-gate（DQG）is an AI-native development quality gate framework. 7 AI Agents 
 ## 入口
 
 - `/dqg-starter` — 快速启动（command 文件自包含启动逻辑）
-- `dqg-run <project_id> startup` — CLI 启动
+- `qualix-run <project_id> startup` — CLI 启动
 
 ### CLI 命令结构
 
-两个入口：`dqg`（全局命令，无需 project_id）和 `dqg-run`（项目命令）。
+两个入口：`dqg`（全局命令，无需 project_id）和 `qualix-run`（项目命令）。
 
 ```
 dqg                              # 全局命令
 ├── init / dashboard / version / experiment / cache
 
-dqg-run <project_id>             # 项目命令
+qualix-run <project_id>             # 项目命令
 ├── phase:   execute / finalize / approve / skip / reset / auto / dag
 ├── review:  judge [--replay] / critique / preference / golden
 ├── query:   status / next / detail / log / startup
@@ -58,14 +58,14 @@ Q02 可 skip（已有技术方案时）。Q03 先于 Q04。Q05a/Q05b/Q06 与 Q02
 
 每个 Phase 的执行步骤（强制，不可跳步）：
 
-1. 启动: `dqg-run <project_id> execute <phase>`
+1. 启动: `qualix-run <project_id> execute <phase>`
 2. 读取对应 skill 文件，按 Step 0-6 顺序执行
 3. 产物 + 推理日志写入 `output/<project_id>/<phase_dir>/`（worktree 环境自动重定向到主仓库，避免产物随 worktree 清理丢失）
 4. 自检: 对照 gate checklist 逐项检查
 5. Judge/Critique: 切换批评者视角审视输出
 6. 修正: 根据发现修正报告
-7. 校验: `dqg-run <project_id> finalize <phase>`（PhaseGuardrail 统一门控）
-8. 确认: `dqg-run <project_id> approve <phase>`
+7. 校验: `qualix-run <project_id> finalize <phase>`（PhaseGuardrail 统一门控）
+8. 确认: `qualix-run <project_id> approve <phase>`
 
 ### Orchestrator 模式
 
@@ -73,7 +73,7 @@ Q02 可 skip（已有技术方案时）。Q03 先于 Q04。Q05a/Q05b/Q06 与 Q02
 
 ### 并行调度
 
-同一批 available phases 无互相依赖时可并行执行（如 Q02 + Q05）。Orchestrator 同时派发多个 SubAgent，各 Phase 写不同子目录不冲突。CLI 模式: `dqg-run <project_id> dag --max-parallel 2`。
+同一批 available phases 无互相依赖时可并行执行（如 Q02 + Q05）。Orchestrator 同时派发多个 SubAgent，各 Phase 写不同子目录不冲突。CLI 模式: `qualix-run <project_id> dag --max-parallel 2`。
 
 ### RunStatus（执行结果分类）
 
@@ -130,7 +130,7 @@ Phase 执行时自动注入以下增强上下文（`context/loading/upstream_col
 | `_guardrail_results.json` | PhaseGuardrail 执行结果（含 Phase 级挂载，如 Q05 分支覆盖、Q03/Q06 RationalizationProbe） |
 | `_gate_verdict.json` | GateVerdict 统一卡控裁决（HARD/SOFT，含 Guardrail + Phase Constraints + Finalize handler errors） |
 
-Finalize 后自动跑一次 `guard_precision_report`，汇总到 `docs/system-health-reports/guard_precision.md`（T9），可用 `dqg-run observe guard-precision` 手动刷新。
+Finalize 后自动跑一次 `guard_precision_report`，汇总到 `docs/system-health-reports/guard_precision.md`（T9），可用 `qualix-run observe guard-precision` 手动刷新。
 
 ## 工作规范
 
@@ -272,7 +272,7 @@ Finalize 后自动跑一次 `guard_precision_report`，汇总到 `docs/system-he
 
 | 命令 | 用途 |
 |------|------|
-| `dqg-run <pid> judge <phase> --replay` | 重跑 Judge（当前 rubric），与历史 `_judge_iter*.json` 对比，输出 MATCH/DRIFT/REGRESSION/IMPROVEMENT |
+| `qualix-run <pid> judge <phase> --replay` | 重跑 Judge（当前 rubric），与历史 `_judge_iter*.json` 对比，输出 MATCH/DRIFT/REGRESSION/IMPROVEMENT |
 | `python scripts/check_harness_regression.py` | 手动触发 harness regression 套件（无参数时自动读 git diff --cached） |
 
 ## 项目级规则豁免（`.dqg/rule_overrides.yaml`）
@@ -289,7 +289,7 @@ warn_only:
   - semantic_guardrail   # 将 HARD block 降为 SOFT（允许 --force approve）
 ```
 
-匹配规则：按 `CheckItem.name` 精确匹配（大小写不敏感）。可通过 `dqg-run <pid> finalize <phase> --json` 查看 `_gate_verdict.json` 中的 check name。
+匹配规则：按 `CheckItem.name` 精确匹配（大小写不敏感）。可通过 `qualix-run <pid> finalize <phase> --json` 查看 `_gate_verdict.json` 中的 check name。
 
 ## 多平台支持
 

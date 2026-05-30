@@ -1,4 +1,4 @@
-"""Tests for dqg.schemas — 数据契约校验."""
+"""Tests for qualix.schemas — 数据契约校验."""
 
 import json
 from pathlib import Path
@@ -6,12 +6,12 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 
-from dqg.schemas import PhaseAOutput, validate_phase_output
-from dqg.schemas.phase_a5 import CoverageStatus, PhaseA5Output, ReqCoverageItem
-from dqg.schemas.phase_a6 import FailureModeItem, FailureModeStatus, PhaseA6Output, QualityIssue, Severity
-from dqg.schemas.phase_b import EutItem, PhaseBOutput, RiskTier, RouteType, TCItem
-from dqg.schemas.phase_c import AuditStatus, CoverageGate, EutAuditItem, FindingItem, PhaseCOutput
-from dqg.schemas.phase_q01 import Gap, OpenItem, Requirement, SemanticExpectation
+from qualix.schemas import PhaseAOutput, validate_phase_output
+from qualix.schemas.phase_a5 import CoverageStatus, PhaseA5Output, ReqCoverageItem
+from qualix.schemas.phase_a6 import FailureModeItem, FailureModeStatus, PhaseA6Output, QualityIssue, Severity
+from qualix.schemas.phase_b import EutItem, PhaseBOutput, RiskTier, RouteType, TCItem
+from qualix.schemas.phase_c import AuditStatus, CoverageGate, EutAuditItem, FindingItem, PhaseCOutput
+from qualix.schemas.phase_q01 import Gap, OpenItem, Requirement, SemanticExpectation
 
 
 class TestPhaseASchema:
