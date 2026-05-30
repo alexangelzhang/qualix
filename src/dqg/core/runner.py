@@ -270,6 +270,24 @@ def _build_parser() -> argparse.ArgumentParser:
         help="apply 时真正写入 SKILL.md（默认 dry-run）",
     )
 
+    # ci-gate：读取 _gate_verdict.json 输出结构化结论（零 LLM，适合 CI 调用）
+    p_ci = sub.add_parser("ci-gate", help="CI/CD 质量门禁：读取已有 verdict，决定 exit code")
+    p_ci.add_argument("phase", nargs="?", default=None, help="Phase ID（如 Q06），与 --all-phases 二选一")
+    p_ci.add_argument("--all-phases", action="store_true", help="检查所有已完成 Phase")
+    p_ci.add_argument(
+        "--fail-on",
+        dest="fail_on",
+        default="hard",
+        choices=["hard", "soft", "any"],
+        help="失败级别（hard=默认，soft=SOFT 也 fail，any=任何失败都 fail）",
+    )
+    p_ci.add_argument("--pr-comment", action="store_true", dest="pr_comment",
+                      help="输出 GitHub PR Comment 格式 Markdown")
+
+    # evidence-audit：SE → EUT → Test → Coverage 链路健康度
+    p_eaudit = sub.add_parser("evidence-audit", help="展示 SE → EUT → Coverage 链路健康度")
+    p_eaudit.add_argument("--phase", default="Q06", help="Phase ID（默认 Q06）")
+
     # spec：Phase 规范（JSON Schema + contract），代码为单一事实源
     p_spec = sub.add_parser("spec", help="输出 Phase 规范（JSON Schema + phase_contract），供 Agent 解析")
     p_spec.add_argument("--phase", required=True, help="Phase ID (Q01-Q07)")
@@ -361,6 +379,16 @@ def _dispatch(cmd: str) -> callable:
         from dqg.commands.skill_evolve import cmd_skill_evolve
 
         return cmd_skill_evolve
+
+    if cmd == "ci-gate":
+        from dqg.commands.ci import cmd_ci_gate
+
+        return cmd_ci_gate
+
+    if cmd == "evidence-audit":
+        from dqg.commands.ci import cmd_evidence_audit
+
+        return cmd_evidence_audit
 
     if cmd == "spec":
         from dqg.commands.phase_spec import cmd_spec

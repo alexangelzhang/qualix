@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+# DQG Quality Gate — 通用 shell 脚本
+# 零外部依赖（除了 Python 和已安装的 dqg），适用于任何 CI 平台。
+#
+# 用法：
+#   ./ci/run-gate.sh <project-id> <phase> [fail-on] [--pr-comment]
+#
+# 示例：
+#   ./ci/run-gate.sh mrs Q06
+#   ./ci/run-gate.sh mrs Q06 soft
+#   ./ci/run-gate.sh mrs Q06 hard --pr-comment
+#   DQG_ALL_PHASES=1 ./ci/run-gate.sh mrs
+#
+# 环境变量：
+#   DQG_ALL_PHASES=1      检查所有 Phase
+#   DQG_FAIL_ON           失败级别（hard/soft/any），默认 hard
+#   DQG_OUTPUT_DIR        output 目录，默认 output
+
+set -euo pipefail
+
+PROJECT_ID="${1:-}"
+PHASE="${2:-Q06}"
+FAIL_ON="${3:-${DQG_FAIL_ON:-hard}}"
+PR_COMMENT="${4:-}"
+
+if [ -z "$PROJECT_ID" ]; then
+  echo "用法: $0 <project-id> [phase] [fail-on] [--pr-comment]" >&2
+  exit 2
+fi
+
+# 检查 dqg-run 是否可用
+if ! command -v dqg-run &>/dev/null; then
+  echo "ERROR: dqg-run 未找到，请先执行 pip install -e ." >&2
+  exit 2
+fi
+
+# 构造参数
+if [ "${DQG_ALL_PHASES:-0}" = "1" ]; then
+  PHASE_FLAG="--all-phases"
+else
+  PHASE_FLAG="$PHASE"
+fi
+
+PR_FLAG=""
+if [ "$PR_COMMENT" = "--pr-comment" ]; then
+  PR_FLAG="--pr-comment"
+fi
+
+echo "==== DQG Quality Gate ===="
+echo "Project: $PROJECT_ID  Phase: ${DQG_ALL_PHASES:-0 == 1 and 'ALL' or $PHASE}  Fail-on: $FAIL_ON"
+echo ""
+
+# 运行 gate
+dqg-run "$PROJECT_ID" ci-gate $PHASE_FLAG \
+  --fail-on "$FAIL_ON" \
+  $PR_FLAG
+EXIT_CODE=$?
+
+echo ""
+if [ $EXIT_CODE -eq 0 ]; then
+  echo "==== PASS ===="
+else
+  echo "==== FAIL (exit $EXIT_CODE) ===="
+fi
+
+exit $EXIT_CODE

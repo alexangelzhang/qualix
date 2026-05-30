@@ -1,0 +1,54 @@
+# DQG Quality Gate — GitLab CI 模板
+#
+# 使用方式（在项目的 .gitlab-ci.yml 中）：
+#
+#   include:
+#     - project: 'nr-car-service/dev-quality-gate'
+#       ref: main
+#       file: 'dev-quality-gate/ci/gitlab/dqg-gate.yml'
+#
+#   dqg-quality-gate:
+#     extends: .dqg-quality-gate
+#     variables:
+#       DQG_PROJECT_ID: your-project-id
+#       DQG_PHASE: Q06
+#
+
+.dqg-install: &dqg-install
+  - pip install -e "${DQG_REPO_PATH:-dev-quality-gate/dev-quality-gate}" --quiet
+
+.dqg-quality-gate:
+  stage: test
+  image: python:3.11-slim
+  variables:
+    DQG_PROJECT_ID: ""        # 必填：DQG 项目 ID
+    DQG_PHASE: "Q06"          # 可选：Phase ID，默认 Q06
+    DQG_FAIL_ON: "hard"       # 可选：hard / soft / any
+    DQG_OUTPUT_DIR: "output"  # 可选：output 目录路径
+  script:
+    - *dqg-install
+    - |
+      dqg-run "$DQG_PROJECT_ID" ci-gate "$DQG_PHASE" \
+        --fail-on "$DQG_FAIL_ON" \
+        --pr-comment > dqg_gate_report.md 2>/dev/null || true
+      # 也输出 JSON 供后续 job 消费
+      dqg-run "$DQG_PROJECT_ID" ci-gate "$DQG_PHASE" \
+        --fail-on "$DQG_FAIL_ON" \
+        --json > dqg_verdict.json 2>/dev/null
+      EXIT_CODE=$?
+      cat dqg_gate_report.md
+      exit $EXIT_CODE
+  artifacts:
+    when: always
+    paths:
+      - dqg_verdict.json
+      - dqg_gate_report.md
+    expire_in: 7 days
+  allow_failure: false
+
+# 仅产生警告，不阻断流水线
+.dqg-quality-gate-soft:
+  extends: .dqg-quality-gate
+  variables:
+    DQG_FAIL_ON: "soft"
+  allow_failure: true
