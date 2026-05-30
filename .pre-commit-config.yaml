@@ -1,0 +1,34 @@
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.9.10
+    hooks:
+      - id: ruff
+        args: [--fix, --exit-non-zero-on-fix, --config, dev-quality-gate/pyproject.toml]
+        files: ^dev-quality-gate/
+      - id: ruff-format
+        args: [--config, dev-quality-gate/pyproject.toml]
+        files: ^dev-quality-gate/
+
+  - repo: local
+    hooks:
+      - id: check-arch
+        name: Architecture rules (CLAUDE.md)
+        entry: python dev-quality-gate/scripts/check_arch.py
+        language: python
+        pass_filenames: true
+        types: [python]
+        files: ^dev-quality-gate/src/dqg/
+
+      - id: schema-prompt-sync
+        name: Schema vs SKILL required fields (Q03/Q06)
+        entry: python dev-quality-gate/scripts/check_schema_prompt_sync.py
+        language: system
+        pass_filenames: false
+        files: ^dev-quality-gate/(skills/.*/SKILL\.md|src/dqg/schemas/phase_(q03|q06)\.py)$
+
+      - id: harness-regression
+        name: Harness regression guard
+        entry: python dev-quality-gate/scripts/check_harness_regression.py
+        language: python
+        pass_filenames: true
+        files: ^dev-quality-gate/(skills/|src/dqg/quality/|src/dqg/core/phase_registry\.py)

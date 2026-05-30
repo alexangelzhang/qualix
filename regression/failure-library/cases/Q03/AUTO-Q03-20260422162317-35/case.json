@@ -8,12 +8,12 @@
   "fix_target": "src/dqg/schemas/phase_q03.py",
   "tags": [
     "auto-generated",
-    "project:kind-care"
+    "project:demo"
   ],
   "created_at": "2026-04-22",
   "status": "open",
   "source": {
-    "project_id": "kind-care",
+    "project_id": "demo-project",
     "auto_generated": true,
     "validation_error": "Field required [type=missing, input_value={'id': 'API-005', 'dimens...'系统触发条件表'}, input_type=dict]"
   },

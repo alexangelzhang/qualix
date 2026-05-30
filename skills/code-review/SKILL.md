@@ -305,7 +305,7 @@ Step 7: 检查是否所有入口都经过了这些保护点
   "findings": [
     {
       "finding_id": "FIND-001",
-      "file_path": "car-mrs-domain/src/main/java/com/xiaomi/cnzone/car/mrs/domain/service/MrOrderMainService.java",
+      "file_path": "your-module/src/main/java/com/example/service/OrderService.java",
       "description": "applyEarlyDeliveryAuthStore 无分布式锁，幂等检查与 BPM 创建之间存在竞态窗口",
       "severity": "BLOCKER",
       "related_req": "SE-002",

@@ -106,14 +106,14 @@ Q06 最常见的失败模式是产出 JSON 时 schema 校验不过。先锁定�
       "evidence": "assertEquals('expected', actual) [XxxTest.java:52]; verify(mock).call() [XxxTest.java:58]",
       "recommendation": "",
       "test_location": {
-        "file": "com/xiaomi/service/XxxTest.java",
+        "file": "com/example/service/XxxTest.java",
         "line_start": 52,
         "class_name": "XxxTest",
         "method_name": "method1",
         "repo": "car-mrs"
       },
       "production_location": {
-        "file": "com/xiaomi/service/Xxx.java",
+        "file": "com/example/service/Xxx.java",
         "line_start": 88,
         "class_name": "Xxx",
         "method_name": "targetMethod",

@@ -23,7 +23,7 @@ class TestSourceLocation:
 
     def test_full_fields(self):
         loc = SourceLocation(
-            file="com/xiaomi/service/OrderServiceTest.java",
+            file="com/example/service/OrderServiceTest.java",
             line_start=45,
             line_end=72,
             class_name="OrderServiceTest",

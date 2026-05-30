@@ -112,9 +112,9 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://git.n.xiaomi.com/nr-car-service/dev-quality-gate"
-Issues = "https://git.n.xiaomi.com/nr-car-service/dev-quality-gate/-/issues"
-Source = "https://git.n.xiaomi.com/nr-car-service/dev-quality-gate"
+Homepage = "https://github.com/your-org/rd-gate"
+Issues = "https://github.com/your-org/rd-gate/-/issues"
+Source = "https://github.com/your-org/rd-gate"
 
 [tool.hatch.version]
 path = "VERSION"
@@ -1823,8 +1823,8 @@ def test_detect_glab_absent(monkeypatch):
 
 
 def test_parse_issue_url():
-    out = "creating issue...\nhttps://git.n.xiaomi.com/nr-car-service/dev-quality-gate/-/issues/42\n"
-    assert parse_issue_url_from_stdout(out) == "https://git.n.xiaomi.com/nr-car-service/dev-quality-gate/-/issues/42"
+    out = "creating issue...\nhttps://github.com/your-org/rd-gate/-/issues/42\n"
+    assert parse_issue_url_from_stdout(out) == "https://github.com/your-org/rd-gate/-/issues/42"
 
 
 def test_parse_issue_url_none():
@@ -1843,7 +1843,7 @@ def test_upload_via_glab_success(mock_run, tmp_path):
     bundle.write_bytes(b"x")
     mock_run.return_value = MagicMock(
         returncode=0,
-        stdout="created: https://git.n.xiaomi.com/nr-car-service/dev-quality-gate/-/issues/7\n",
+        stdout="created: https://github.com/your-org/rd-gate/-/issues/7\n",
         stderr="",
     )
     ok, url, err = upload_via_glab(
@@ -1894,12 +1894,12 @@ def resolve_issues_url() -> str:
     try:
         meta = _metadata("dev-quality-gate")
     except Exception:
-        return "https://git.n.xiaomi.com/nr-car-service/dev-quality-gate/-/issues"
+        return "https://github.com/your-org/rd-gate/-/issues"
     for entry in meta.get_all("Project-URL") or []:
         label, _, url = entry.partition(",")
         if label.strip().lower() == "issues":
             return url.strip()
-    return "https://git.n.xiaomi.com/nr-car-service/dev-quality-gate/-/issues"
+    return "https://github.com/your-org/rd-gate/-/issues"
 
 
 def _repo_path_from_url(url: str) -> str:

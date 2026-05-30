@@ -8,12 +8,12 @@
   "fix_target": "skills/tech-quality-review/SKILL.md",
   "tags": [
     "auto-generated",
-    "project:finance-model"
+    "project:demo"
   ],
   "created_at": "2026-04-26",
   "status": "open",
   "source": {
-    "project_id": "finance-model",
+    "project_id": "demo-project",
     "auto_generated": true,
     "validation_error": "failure_modes.2.status"
   },

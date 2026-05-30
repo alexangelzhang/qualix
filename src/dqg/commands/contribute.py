@@ -29,7 +29,7 @@ def _issues_url() -> str:
 
         return resolve_issues_url()
     except Exception:
-        return "https://git.n.xiaomi.com/nr-car-service/dev-quality-gate/-/issues"
+        return "https://github.com/your-org/rd-gate/issues"
 
 
 def _repo_path_from_url(url: str) -> str:
@@ -97,7 +97,7 @@ def _build_mr_description(cases: list[dict[str, Any]]) -> str:
         "2. 确认 `fix_target` 指向正确的 skill 文件",
         "3. 合并后案例将随下次 `install.sh` 分发给所有用户",
         "",
-        "🤖 Generated with [DQG](https://git.n.xiaomi.com/nr-car-service/dev-quality-gate)",
+        "🤖 Generated with [DQG](https://github.com/your-org/rd-gate)",
     ]
     return "\n".join(lines)
 

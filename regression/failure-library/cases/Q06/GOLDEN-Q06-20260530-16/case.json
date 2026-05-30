@@ -8,13 +8,13 @@
   "fix_target": "skills/unit-test-audit/SKILL.md",
   "tags": [
     "golden-sample",
-    "project:failure-cause",
+    "project:demo",
     "pattern:partial"
   ],
   "created_at": "2026-05-30",
   "status": "open",
   "source": {
-    "project_id": "failure-cause",
+    "project_id": "demo-project",
     "audit_item_id": "AUDIT-044",
     "eut_id": "EUT-044",
     "auto_generated": true,

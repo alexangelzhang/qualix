@@ -1,6 +1,6 @@
 # Golden Sample — AUDIT-041
 
-- 项目: failure-cause (sfp-fault-service)
+- 项目: demo-project
 - Phase: Q06
 - 审计状态: WRONG_TARGET
 

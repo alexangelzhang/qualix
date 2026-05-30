@@ -8,12 +8,12 @@
   "fix_target": "skills/unit-test-audit/SKILL.md",
   "tags": [
     "auto-generated",
-    "project:finance-model"
+    "project:demo"
   ],
   "created_at": "2026-04-29",
   "status": "open",
   "source": {
-    "project_id": "finance-model",
+    "project_id": "demo-project",
     "auto_generated": true,
     "validation_error": "Phase Q06 审计了 EUT-057, EUT-058, EUT-062, EUT-064, EUT-065，但 Phase Q05 中不存在"
   },

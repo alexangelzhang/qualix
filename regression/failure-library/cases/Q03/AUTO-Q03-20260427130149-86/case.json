@@ -8,12 +8,12 @@
   "fix_target": "src/dqg/schemas/phase_q03.py",
   "tags": [
     "auto-generated",
-    "project:finance-model"
+    "project:demo"
   ],
   "created_at": "2026-04-27",
   "status": "open",
   "source": {
-    "project_id": "finance-model",
+    "project_id": "demo-project",
     "auto_generated": true,
     "validation_error": "Field required [type=missing, input_value={'path': '定时生成', ...', 'assessment': 'RISK'}, input_type=dict]"
   },

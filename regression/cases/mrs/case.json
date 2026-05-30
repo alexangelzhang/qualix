@@ -1,9 +1,0 @@
-{
-  "case_id": "mrs",
-  "sample_type": "medium-retrofit",
-  "actual_dir": "output",
-  "include": [
-    "mrs_knowledge/meta.json",
-    "mrs_knowledge/test_baseline.json"
-  ]
-}

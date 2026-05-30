@@ -27,9 +27,9 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project.urls]
-Homepage = "https://git.n.xiaomi.com/nr-car-service/dev-quality-gate"
-Issues = "https://git.n.xiaomi.com/nr-car-service/dev-quality-gate/-/issues"
-Source = "https://git.n.xiaomi.com/nr-car-service/dev-quality-gate"
+Homepage = "https://github.com/your-org/rd-gate"
+Issues = "https://github.com/your-org/rd-gate/-/issues"
+Source = "https://github.com/your-org/rd-gate"
 
 [tool.hatch.version]
 path = "VERSION"

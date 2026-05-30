@@ -235,8 +235,8 @@ glab 缺失提示：
 ```
 ⚠  未检测到 glab CLI 或未登录 (`glab auth status` 失败)
    bundle 已生成，请手动上传到:
-   https://git.n.xiaomi.com/nr-car-service/dev-quality-gate/-/issues/new
-   安装 glab 后可启用自动上传: brew install glab && glab auth login -h git.n.xiaomi.com
+   https://github.com/your-org/rd-gate/-/issues/new
+   安装 glab 后可启用自动上传: brew install glab && glab auth login -h your-gitlab-host
 ```
 
 #### 边界
@@ -256,9 +256,9 @@ glab 缺失提示：
   dynamic = ["version"]
 
   [project.urls]
-  Homepage = "https://git.n.xiaomi.com/nr-car-service/dev-quality-gate"
-  Issues = "https://git.n.xiaomi.com/nr-car-service/dev-quality-gate/-/issues"
-  Source = "https://git.n.xiaomi.com/nr-car-service/dev-quality-gate"
+  Homepage = "https://github.com/your-org/rd-gate"
+  Issues = "https://github.com/your-org/rd-gate/-/issues"
+  Source = "https://github.com/your-org/rd-gate"
 
   [tool.hatch.version]
   path = "VERSION"

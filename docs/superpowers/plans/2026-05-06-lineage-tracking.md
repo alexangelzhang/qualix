@@ -55,7 +55,7 @@ class TestSourceLocation:
 
     def test_full_fields(self):
         loc = SourceLocation(
-            file="com/xiaomi/service/OrderServiceTest.java",
+            file="com/example/service/OrderServiceTest.java",
             line_start=45,
             line_end=72,
             class_name="OrderServiceTest",
@@ -548,7 +548,7 @@ git commit -m "feat: finalize gate — downgrade COVERED to PARTIAL when test_lo
   "requirement": "BR-001",
   "priority": "P0",
   "test_location": {
-    "file": "com/xiaomi/service/MrOrderMainServiceTest.java",
+    "file": "com/example/service/MrOrderMainServiceTest.java",
     "line_start": 45,
     "line_end": 72,
     "class_name": "MrOrderMainServiceTest",
@@ -556,7 +556,7 @@ git commit -m "feat: finalize gate — downgrade COVERED to PARTIAL when test_lo
     "repo": "car-mrs"
   },
   "production_location": {
-    "file": "com/xiaomi/service/MrOrderMainService.java",
+    "file": "com/example/service/MrOrderMainService.java",
     "line_start": 120,
     "line_end": 145,
     "class_name": "MrOrderMainService",
@@ -611,14 +611,14 @@ git commit -m "feat: update Q05 skill prompt with location fields"
   "evidence": "assertEquals('expected', actual) [XxxTest.java:52]; verify(mock).call() [XxxTest.java:58]",
   "recommendation": "",
   "test_location": {
-    "file": "com/xiaomi/service/XxxTest.java",
+    "file": "com/example/service/XxxTest.java",
     "line_start": 52,
     "class_name": "XxxTest",
     "method_name": "method1",
     "repo": "car-mrs"
   },
   "production_location": {
-    "file": "com/xiaomi/service/Xxx.java",
+    "file": "com/example/service/Xxx.java",
     "line_start": 88,
     "class_name": "Xxx",
     "method_name": "targetMethod",

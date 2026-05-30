@@ -9,12 +9,12 @@
   "tags": [
     "judge-extracted",
     "dim:eut_coverage",
-    "project:shuangzhou-v4"
+    "project:demo"
   ],
   "created_at": "2026-04-29",
   "status": "open",
   "source": {
-    "project_id": "shuangzhou-v4",
+    "project_id": "demo-project",
     "judge_extracted": true,
     "dimension": "eut_coverage",
     "dim_score": 3,

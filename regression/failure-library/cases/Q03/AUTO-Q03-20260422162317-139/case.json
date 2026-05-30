@@ -8,12 +8,12 @@
   "fix_target": "skills/tech-quality-review/SKILL.md",
   "tags": [
     "auto-generated",
-    "project:kind-care"
+    "project:demo"
   ],
   "created_at": "2026-04-22",
   "status": "open",
   "source": {
-    "project_id": "kind-care",
+    "project_id": "demo-project",
     "auto_generated": true,
     "validation_error": "issues.46.issue_id"
   },

@@ -87,7 +87,7 @@ Q01 ──→ Q02(可选) ──→ Q03 ──→ Q04 ──→ Q07
 ### 普通用户（推荐）
 
 ```bash
-git clone https://git.n.xiaomi.com/nr-car-service/dev-quality-gate.git
+git clone https://github.com/your-org/rd-gate.git
 cd dev-quality-gate
 ./scripts/install.sh
 ```

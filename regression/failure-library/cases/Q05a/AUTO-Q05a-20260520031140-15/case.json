@@ -8,12 +8,12 @@
   "fix_target": "skills/unit-test-design/SKILL.md",
   "tags": [
     "auto-generated",
-    "project:home-replace-renewal"
+    "project:demo"
   ],
   "created_at": "2026-05-20",
   "status": "open",
   "source": {
-    "project_id": "home-replace-renewal",
+    "project_id": "demo-project",
     "auto_generated": true,
     "validation_error": "Value error, assertThrows 必须指定具体业务异常类，不能用 Exception/RuntimeException/Throwable: 'assertThrows(RuntimeException.class, () -> service.logisticExchangeMark(\"SVC001\", \"INVALID_TYPE\"))'。请改为具体类（如 MafSrvAftersaleException.class、BusinessException.class）。 [type=value_error, input_value='assertThrows(RuntimeExce...C001\", \"INVALID_TYPE\"))', input_type=str]"
   },

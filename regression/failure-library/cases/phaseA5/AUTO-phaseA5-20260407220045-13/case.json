@@ -8,12 +8,12 @@
   "fix_target": "skills/tech-coverage-audit.md",
   "tags": [
     "auto-generated",
-    "project:damage-assessment"
+    "project:demo"
   ],
   "created_at": "2026-04-07",
   "status": "open",
   "source": {
-    "project_id": "damage-assessment",
+    "project_id": "demo-project",
     "auto_generated": true,
     "validation_error": "Phase A.5 引用了 SE-026，但 Phase A 中不存在"
   },

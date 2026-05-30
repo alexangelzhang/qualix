@@ -293,8 +293,8 @@ Step 1.1 + 1.2 的结果必须输出为结构化 JSON：
 **产出位置：直接写到业务仓库的 `src/test/java` 对应包目录下，不生成 patch 文件。**
 
 每个测试类放在被测类同一 Maven 模块的 `src/test/java` 下，包路径与被测类一致。例如：
-- 被测类: `car-mrs-domain/src/main/java/com/xiaomi/.../service/MrOrderMainService.java`
-- 测试类: `car-mrs-domain/src/test/java/com/xiaomi/.../service/MrOrderMainServiceTest.java`
+- 被测类: `car-mrs-domain/src/main/java/com/example/service/OrderService.java`
+- 测试类: `car-mrs-domain/src/test/java/com/example/service/OrderServiceTest.java`
 
 **3.1 写行为断言**：`assertEquals` 校验关键业务字段（金额、状态、ID、时间戳）。金额类断言必须精确到分。
 

@@ -8,12 +8,12 @@
   "fix_target": "skills/requirement-structuring/SKILL.md",
   "tags": [
     "auto-generated",
-    "project:xiaoshu-chuku"
+    "project:demo"
   ],
   "created_at": "2026-05-06",
   "status": "open",
   "source": {
-    "project_id": "xiaoshu-chuku",
+    "project_id": "demo-project",
     "auto_generated": true,
     "validation_error": "requirements.2.req_id"
   },

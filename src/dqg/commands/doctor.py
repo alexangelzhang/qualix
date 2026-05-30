@@ -199,12 +199,12 @@ def resolve_issues_url() -> str:
     try:
         meta = _metadata("dev-quality-gate")
     except Exception:
-        return "https://git.n.xiaomi.com/nr-car-service/dev-quality-gate/-/issues"
+        return "https://github.com/your-org/rd-gate/issues"
     for entry in meta.get_all("Project-URL") or []:
         label, _, url = entry.partition(",")
         if label.strip().lower() == "issues":
             return url.strip()
-    return "https://git.n.xiaomi.com/nr-car-service/dev-quality-gate/-/issues"
+    return "https://github.com/your-org/rd-gate/issues"
 
 
 def _repo_path_from_url(url: str) -> str:
@@ -348,7 +348,7 @@ def run_doctor(
     if not ok:
         print(f"\n⚠ {reason}")
         print(f"  bundle 已生成，请手动上传到:\n    {issues_url}")
-        print("  安装 glab 后可启用自动上传: brew install glab && glab auth login -h git.n.xiaomi.com")
+        print("  安装 glab 后可启用自动上传: brew install glab && glab auth login -h github.com")
         return 0
 
     if title is None:

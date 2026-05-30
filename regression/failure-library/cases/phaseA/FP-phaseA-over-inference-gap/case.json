@@ -12,7 +12,7 @@
   ],
   "status": "fixed",
   "source": {
-    "project_id": "damage-assessment",
+    "project_id": "demo-project",
     "manual": true
   },
   "expected": {

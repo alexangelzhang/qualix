@@ -9,12 +9,12 @@
   "tags": [
     "judge-extracted",
     "dim:dyn_state_machine",
-    "project:shuangzhou-v4"
+    "project:demo"
   ],
   "created_at": "2026-04-23",
   "status": "open",
   "source": {
-    "project_id": "shuangzhou-v4",
+    "project_id": "demo-project",
     "judge_extracted": true,
     "dimension": "dyn_state_machine",
     "dim_score": 3,

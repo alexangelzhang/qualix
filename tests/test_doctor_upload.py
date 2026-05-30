@@ -13,9 +13,9 @@ def test_detect_glab_absent(monkeypatch):
 def test_parse_issue_url():
     from dqg.commands.doctor import parse_issue_url_from_stdout
 
-    out = "creating issue...\nhttps://git.n.xiaomi.com/nr-car-service/dev-quality-gate/-/issues/42\n"
+    out = "creating issue...\nhttps://github.com/your-org/rd-gate/-/issues/42\n"
     parsed = parse_issue_url_from_stdout(out)
-    assert parsed == "https://git.n.xiaomi.com/nr-car-service/dev-quality-gate/-/issues/42"
+    assert parsed == "https://github.com/your-org/rd-gate/-/issues/42"
 
 
 def test_parse_issue_url_none():
@@ -29,7 +29,7 @@ def test_resolve_issues_url_from_metadata():
 
     url = resolve_issues_url()
     # URL 来自 pyproject.toml 的 [project.urls].Issues
-    assert "git.n.xiaomi.com" in url
+    assert "github.com" in url
     assert "dev-quality-gate" in url
 
 
@@ -37,11 +37,11 @@ def test_repo_path_from_url():
     from dqg.commands.doctor import _repo_path_from_url
 
     assert (
-        _repo_path_from_url("https://git.n.xiaomi.com/nr-car-service/dev-quality-gate/-/issues")
+        _repo_path_from_url("https://github.com/your-org/rd-gate/-/issues")
         == "nr-car-service/dev-quality-gate"
     )
     assert (
-        _repo_path_from_url("https://git.n.xiaomi.com/nr-car-service/dev-quality-gate/issues")
+        _repo_path_from_url("https://github.com/your-org/rd-gate/issues")
         == "nr-car-service/dev-quality-gate"
     )
 
@@ -54,7 +54,7 @@ def test_upload_via_glab_success(mock_run, tmp_path):
     bundle.write_bytes(b"x")
     mock_run.return_value = MagicMock(
         returncode=0,
-        stdout="created: https://git.n.xiaomi.com/nr-car-service/dev-quality-gate/-/issues/7\n",
+        stdout="created: https://github.com/your-org/rd-gate/-/issues/7\n",
         stderr="",
     )
     ok, url, err = upload_via_glab(
@@ -110,7 +110,7 @@ def test_run_doctor_no_upload(tmp_path, capsys):
     captured = capsys.readouterr()
     assert "Bundle" in captured.out or "bundle" in captured.out
     # Should mention issue URL for manual upload
-    assert "git.n.xiaomi.com" in captured.out
+    assert "github.com" in captured.out
 
 
 def test_run_doctor_redact_false_with_upload_rejected(tmp_path, capsys):

@@ -8,12 +8,12 @@
   "fix_target": "skills/tech-coverage-audit/SKILL.md",
   "tags": [
     "auto-generated",
-    "project:shuangzhou-v4"
+    "project:demo"
   ],
   "created_at": "2026-04-28",
   "status": "open",
   "source": {
-    "project_id": "shuangzhou-v4",
+    "project_id": "demo-project",
     "auto_generated": true,
     "validation_error": "REGRESSION: req_coverage 数量从 8 减少到 6。重跑时产物数量不得减少，新版必须是旧版超集。请检查是否遗漏了旧版中的内容。"
   },

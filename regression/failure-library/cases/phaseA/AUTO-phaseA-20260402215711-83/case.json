@@ -8,12 +8,12 @@
   "fix_target": "src/dqg/schemas/phase_a.py",
   "tags": [
     "auto-generated",
-    "project:damage-assessment"
+    "project:demo"
   ],
   "created_at": "2026-04-02",
   "status": "open",
   "source": {
-    "project_id": "damage-assessment",
+    "project_id": "demo-project",
     "auto_generated": true,
     "validation_error": "Field required [type=missing, input_value={'id': 'GAP-005', 'bound'...状态范围未定义'}, input_type=dict]"
   },

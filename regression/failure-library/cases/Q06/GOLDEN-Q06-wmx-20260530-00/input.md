@@ -1,4 +1,4 @@
-# AUDIT-037 — wmx-logistic-exchange
+# AUDIT-037 — demo-project
 
 特批信息查询异常时主流程不崩溃
 

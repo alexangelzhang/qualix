@@ -1,9 +1,0 @@
-{
-  "case_id": "rights-platform",
-  "sample_type": "platform-refactor",
-  "actual_dir": "output",
-  "include": [
-    "rights-platform/state.json",
-    "rights-platform/phaseD/review_report.md"
-  ]
-}

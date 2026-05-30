@@ -16,7 +16,7 @@ DQG Q05/Q06 产出的质量问题目前只有文本描述，没有结构化的�
 
 ```python
 class SourceLocation(BaseModel):
-    file: str           # 相对路径，如 com/xiaomi/service/OrderServiceTest.java
+    file: str           # 相对路径，如 com/example/service/OrderServiceTest.java
     line_start: int     # 1-based
     line_end: int | None = None
     class_name: str = ""
@@ -57,7 +57,7 @@ production_location: SourceLocation | None = None
   "status": "COVERED",
   "covered_by": "MrOrderMainServiceTest#testApplyEarlyDelivery_success",
   "test_location": {
-    "file": "com/xiaomi/service/MrOrderMainServiceTest.java",
+    "file": "com/example/service/MrOrderMainServiceTest.java",
     "line_start": 45,
     "line_end": 72,
     "class_name": "MrOrderMainServiceTest",
@@ -65,7 +65,7 @@ production_location: SourceLocation | None = None
     "repo": "car-mrs"
   },
   "production_location": {
-    "file": "com/xiaomi/service/MrOrderMainService.java",
+    "file": "com/example/service/MrOrderMainService.java",
     "line_start": 120,
     "line_end": 145,
     "class_name": "MrOrderMainService",
@@ -85,14 +85,14 @@ production_location: SourceLocation | None = None
   "status": "COVERED",
   "evidence": "assertEquals('APPROVED', status) [XxxTest.java:52]",
   "test_location": {
-    "file": "com/xiaomi/service/OrderServiceTest.java",
+    "file": "com/example/service/OrderServiceTest.java",
     "line_start": 52,
     "class_name": "OrderServiceTest",
     "method_name": "testApprove_success",
     "repo": "car-mrs"
   },
   "production_location": {
-    "file": "com/xiaomi/service/OrderService.java",
+    "file": "com/example/service/OrderService.java",
     "line_start": 88,
     "class_name": "OrderService",
     "method_name": "approve",

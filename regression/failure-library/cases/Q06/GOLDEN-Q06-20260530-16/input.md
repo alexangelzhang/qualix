@@ -1,6 +1,6 @@
 # Golden Sample — AUDIT-044
 
-- 项目: failure-cause (sfp-fault-service)
+- 项目: demo-project
 - Phase: Q06
 - 审计状态: PARTIAL
 
