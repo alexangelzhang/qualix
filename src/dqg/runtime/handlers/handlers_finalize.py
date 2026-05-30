@@ -465,6 +465,29 @@ def handle_results_tsv(ctx: ExecutionContext, result: PhaseResult) -> None:
         f.write(f"{ctx.project_id}\t{ctx.phase_id}\t{score}\t{ts}\n")
 
 
+def handle_q05b_coverage_increase(ctx: "ExecutionContext", result: "PhaseResult") -> None:
+    """Q05b finalize：覆盖率净增检查（fail-open，无报告时跳过）。"""
+    try:
+        from dqg.quality.checks.test_execution_gate import check_q05b_coverage_increase
+
+        warnings = check_q05b_coverage_increase(ctx.output_dir, ctx.project_id)
+        for w in warnings:
+            result.warnings.append(w)
+    except Exception as e:
+        result.warnings.append(f"q05b_coverage_increase: 检查失败（非阻断）: {e}")
+
+
+def handle_semantic_coverage(ctx: "ExecutionContext", result: "PhaseResult") -> None:
+    """Q06 finalize：计算语义覆盖率 vs 行覆盖率对比报告（fail-open）。"""
+    try:
+        from dqg.quality.checks.semantic_coverage import compute_and_save_semantic_coverage
+
+        saved_path = compute_and_save_semantic_coverage(ctx.output_dir, ctx.project_id)
+        _emit_handler(result, EventType.QUALITY_REPORT_READY, {"semantic_coverage_path": str(saved_path)})
+    except Exception as e:
+        result.warnings.append(f"semantic_coverage: 计算失败（非阻断）: {e}")
+
+
 def handle_evidence_graph(ctx: "ExecutionContext", result: "PhaseResult") -> None:
     """Q06 finalize 后构建 SE→EUT→Coverage 链路图并持久化（fail-open）."""
     try:
@@ -567,5 +590,25 @@ def register_finalize_handlers() -> None:
         stage="finalize",
         order=96,
         phases={"Q06"},
+        required=False,
+    )
+
+    # A3：语义覆盖率 vs 行覆盖率对比报告（Q06，order=97，fail-open）
+    register_handler(
+        "semantic_coverage",
+        handle_semantic_coverage,
+        stage="finalize",
+        order=97,
+        phases={"Q06"},
+        required=False,
+    )
+
+    # A2：Q05b 覆盖率净增检查（Q05b，order=73，fail-open，无报告时跳过）
+    register_handler(
+        "q05b_coverage_increase",
+        handle_q05b_coverage_increase,
+        stage="finalize",
+        order=73,
+        phases={"Q05b"},
         required=False,
     )

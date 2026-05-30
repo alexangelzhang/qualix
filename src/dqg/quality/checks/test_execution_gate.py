@@ -308,3 +308,53 @@ def check_q05_test_execution(
         errors.append("BLOCKED: Q05 未在任何业务仓库中发现新增测试文件")
 
     return errors
+
+
+def check_q05b_coverage_increase(output_dir: Path, project_id: str) -> list[str]:
+    """Q05b 覆盖率净增检查：新增测试后覆盖率不应下降。
+
+    返回 SOFT 级警告（不阻断 finalize，无覆盖率报告时返回 []）。
+    """
+    from dqg.constants import PHASE_DIR_MAP
+    from dqg.json_utils import load_json
+
+    q05b_dir = output_dir / project_id / PHASE_DIR_MAP.get("Q05b", "Q05b")
+    inputs = load_json(q05b_dir / "_inputs.json") or {}
+    coverage_report = inputs.get("coverage_report")
+    if not coverage_report:
+        return []
+
+    from pathlib import Path as _Path
+    report_path = _Path(coverage_report)
+    if not report_path.exists():
+        return [f"WARNING: coverage_report 路径不存在: {coverage_report}"]
+
+    try:
+        from dqg.quality.checks.coverage_gate import parse_jacoco_xml
+        current = parse_jacoco_xml(report_path)
+    except Exception as e:
+        return [f"WARNING: 覆盖率报告解析失败: {e}"]
+
+    if not current:
+        return []
+
+    try:
+        from dqg.quality.checks.coverage_gate import compute_incremental_coverage
+        blast_path = q05b_dir / "_internal" / "_blast_radius.json"
+        blast = load_json(blast_path) or {}
+        changed_files = blast.get("changed_files", [])
+        if not changed_files:
+            return []
+        incremental = compute_incremental_coverage(report_path, changed_files)
+        if incremental is None:
+            return []
+        line_delta = incremental.get("line_delta", 0)
+        if line_delta < -0.02:
+            return [
+                f"WARNING: 新增测试后增量行覆盖率下降 {abs(line_delta) * 100:.1f}%，"
+                "请检查新增测试是否覆盖到目标代码"
+            ]
+    except Exception:
+        pass
+
+    return []
