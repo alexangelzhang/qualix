@@ -21,7 +21,7 @@ dqg-run <project_id>             # 项目命令
 ├── phase:   execute / finalize / approve / skip / reset / auto / dag
 ├── review:  judge [--replay] / critique / preference / golden
 ├── query:   status / next / detail / log / startup
-├── ops:     metrics / observe / regression
+├── ops:     metrics / observe / regression / skill-evolve
 ├── tools:   wiki-compile / wiki-lint / orchestrate / cache
 ├── agent:   agent-run / adaptive
 ├── lab:     render (HTML 可视化, PoC: Q05)

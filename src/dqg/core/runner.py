@@ -243,6 +243,24 @@ def _build_parser() -> argparse.ArgumentParser:
         help="multi-judge: 逗号分隔的模型列表（默认 deepseek-chat,claude-opus-4-6）",
     )
 
+    # skill-evolve：从 failure-library 提炼 skill 改进建议
+    p_skill = sub.add_parser("skill-evolve", help="从 failure-library 提炼 skill 改进建议")
+    p_skill.add_argument(
+        "skill_action",
+        nargs="?",
+        default="analyze",
+        choices=["analyze", "suggest", "apply"],
+    )
+    p_skill.add_argument("--phase", default=None, help="指定 Phase ID，默认全部")
+    p_skill.add_argument("--top", type=int, default=10, help="analyze 时每 phase 展示 top N 问题（默认 10）")
+    p_skill.add_argument(
+        "--no-dry-run",
+        dest="dry_run",
+        action="store_false",
+        default=True,
+        help="apply 时真正写入 SKILL.md（默认 dry-run）",
+    )
+
     # spec：Phase 规范（JSON Schema + contract），代码为单一事实源
     p_spec = sub.add_parser("spec", help="输出 Phase 规范（JSON Schema + phase_contract），供 Agent 解析")
     p_spec.add_argument("--phase", required=True, help="Phase ID (Q01-Q07)")
@@ -324,6 +342,11 @@ def _dispatch(cmd: str) -> callable:
         from dqg.commands.ops import cmd_metrics, cmd_observe, cmd_regression
 
         return {"metrics": cmd_metrics, "observe": cmd_observe, "regression": cmd_regression}[cmd]
+
+    if cmd == "skill-evolve":
+        from dqg.commands.skill_evolve import cmd_skill_evolve
+
+        return cmd_skill_evolve
 
     if cmd == "spec":
         from dqg.commands.phase_spec import cmd_spec

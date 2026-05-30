@@ -159,6 +159,12 @@ dqg-run PROJ log
 
 # 度量采集
 dqg-run PROJ metrics
+
+# Skill 演化：从 failure-library 提炼改进建议
+dqg-run PROJ skill-evolve analyze            # 各 Phase top 失败模式（按 lesson 去重）
+dqg-run PROJ skill-evolve suggest --phase Q06  # 生成 SKILL.md 建议文件
+dqg-run PROJ skill-evolve apply --phase Q06    # dry-run 预览改动
+dqg-run PROJ skill-evolve apply --phase Q06 --no-dry-run  # 真正写入
 ```
 
 ## 项目结构
