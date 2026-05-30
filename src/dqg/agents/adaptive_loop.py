@@ -604,36 +604,46 @@ class AdaptiveLoop:
             "4. 直接输出 Markdown 报告内容，不要输出 JSON 或 tool_call。\n\n"
         )
         if i == 0:
-            # P0-C: 第1轮默认走 TwoPhaseWorker（Collector→Writer），失败 fallback 单阶段
+            # C 线 1M Context：大 context 模型直接单阶段 Worker（context 够大，无需 Collector→Writer 分离）
+            # P0-C：小/中 context 模型走 TwoPhaseWorker，失败 fallback 单阶段
+            from dqg.core.model_registry import get_model_profile
+            from dqg.context.loading.context_loader import resolve_context_strategy, ContextStrategy
+            _worker_profile = get_model_profile(worker_model)
+            _worker_strategy = resolve_context_strategy(_worker_profile.context_window)
+            _force_single_phase = (_worker_strategy == ContextStrategy.FULL)
+
             _two_phase_ok = False
-            try:
-                from dqg.agents.two_phase_worker import run_two_phase_worker
+            if _force_single_phase:
+                log.info("C 线 1M Context：使用单阶段 Worker（model=%s context_window=%d）", worker_model, _worker_profile.context_window)
+            else:
+                try:
+                    from dqg.agents.two_phase_worker import run_two_phase_worker
 
-                _tp_result = run_two_phase_worker(
-                    output_dir=self.output_dir,
-                    project_id=project_id,
-                    phase_id=phase_id,
-                    skill_content=worker_prompt,
-                    context_files=context_files,
-                    worker_model=worker_model,
-                    fallback=fallback,
-                )
-                if _tp_result.get("status") == "success":
-                    from dqg.agents.agent import AgentResult
-
-                    record.worker_result = AgentResult(
-                        agent_name=f"two-phase-worker-iter{i + 1}",
-                        role="worker",
-                        status="success",
-                        content=_tp_result["report_content"],
+                    _tp_result = run_two_phase_worker(
+                        output_dir=self.output_dir,
+                        project_id=project_id,
+                        phase_id=phase_id,
+                        skill_content=worker_prompt,
+                        context_files=context_files,
+                        worker_model=worker_model,
+                        fallback=fallback,
                     )
-                    report_path.write_text(record.worker_result.content, encoding="utf-8")
-                    _two_phase_ok = True
-                    log.info("TwoPhaseWorker succeeded for iter %d", i + 1)
-                else:
-                    log.warning("TwoPhaseWorker failed (%s), falling back to single-phase", _tp_result.get("error", ""))
-            except Exception as _tp_err:
-                log.warning("TwoPhaseWorker exception, falling back to single-phase: %s", _tp_err)
+                    if _tp_result.get("status") == "success":
+                        from dqg.agents.agent import AgentResult
+
+                        record.worker_result = AgentResult(
+                            agent_name=f"two-phase-worker-iter{i + 1}",
+                            role="worker",
+                            status="success",
+                            content=_tp_result["report_content"],
+                        )
+                        report_path.write_text(record.worker_result.content, encoding="utf-8")
+                        _two_phase_ok = True
+                        log.info("TwoPhaseWorker succeeded for iter %d", i + 1)
+                    else:
+                        log.warning("TwoPhaseWorker failed (%s), falling back to single-phase", _tp_result.get("error", ""))
+                except Exception as _tp_err:
+                    log.warning("TwoPhaseWorker exception, falling back to single-phase: %s", _tp_err)
 
             if not _two_phase_ok:
                 worker = Agent(

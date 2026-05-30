@@ -16,12 +16,36 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from pathlib import Path
 
+from enum import Enum
+
 from dqg.constants import (
     BUG_CASE_RELEVANCE_SEED_LIMIT,
     EVIDENCE_PACK_HEADER,
 )
 from dqg.core.model_registry import ModelProfile, get_model_profile
 from dqg.core.state_machine import PHASE_DEFS, load_state
+
+
+class ContextStrategy(Enum):
+    """上下文加载策略，根据模型 context window 自动选择。
+
+    FULL     ≥ 800K token：全文直注，跳过 doc_summary 压缩，不做 chunk 分割
+    STANDARD ≥ 100K token：现有逻辑但去掉 0.6 reasoning sandwich 乘数
+    COMPACT  < 100K token：保留所有压缩 hack（为旧 32K 模型兜底）
+    """
+
+    FULL = "full"
+    STANDARD = "standard"
+    COMPACT = "compact"
+
+
+def resolve_context_strategy(context_window: int) -> ContextStrategy:
+    """根据模型 context window 大小选择加载策略。"""
+    if context_window >= 800_000:
+        return ContextStrategy.FULL
+    if context_window >= 100_000:
+        return ContextStrategy.STANDARD
+    return ContextStrategy.COMPACT
 
 from .evidence_renderer import render_chunk_body, render_key_quotes
 
@@ -237,6 +261,25 @@ def _assemble_context(
 
     all_chunks.sort(key=lambda c: c.priority)
 
+    # C 线 1M Context 重架构：FULL 策略下不做 chunk 分割和自动压缩
+    strategy = resolve_context_strategy(model.context_window)
+    if strategy == ContextStrategy.FULL:
+        # 1M context：整体注入，不分块，不压缩
+        selected = all_chunks
+        used_tokens = sum(c.token_estimate for c in selected)
+        return LoadedContext(
+            phase_id=target_phase,
+            model=model,
+            chunks=selected,
+            truncated=False,
+            total_tokens=used_tokens,
+            budget_tokens=budget,
+            verification_targets=verification_targets,
+            _source_files=source_files or [],
+            _output_dir=output_dir,
+        )
+
+    # STANDARD / COMPACT：保留原有分块 + 压缩逻辑
     max_chunk_tokens = budget // 3
     expanded: list[ContextChunk] = []
     for chunk in all_chunks:
@@ -307,16 +350,20 @@ def load_context(
 
     model = get_model_profile(model_name)
     budget = model.available_for_context
+    strategy = resolve_context_strategy(model.context_window)
 
     phase_def = PHASE_DEFS.get(target_phase)
     if not phase_def:
         return LoadedContext(phase_id=target_phase, model=model, budget_tokens=budget)
 
-    # Reasoning Sandwich：根据 reasoning_profile 动态调整 budget
+    # Reasoning Sandwich：COMPACT/STANDARD 模式下根据 reasoning_profile 调整 budget
+    # FULL 模式（1M context）跳过 0.6 乘数——context 够大不需要压缩
     reasoning_profile = phase_def.get("reasoning_profile", {})
     execution_level = reasoning_profile.get("execution", "standard")
-    if execution_level == "standard" and reasoning_profile:
+    if strategy == ContextStrategy.COMPACT and execution_level == "standard" and reasoning_profile:
         budget = int(budget * 0.6)
+    # STANDARD 模式：去掉 0.6 乘数，给模型更多推理空间（200K 下已经够）
+    # FULL 模式：不做任何 budget 压缩
 
     state = load_state(output_dir, project_id)
     upstream_phases = phase_def["depends_on"]
