@@ -154,7 +154,7 @@ def test_render_empty_signs_fields_uses_lesson():
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd /Users/zhangyiqian/git_dev/dev-quality-gate/dev-quality-gate && python -m pytest tests/test_signs_pattern.py -v`
+Run: `cd /path/to/rd-gate && python -m pytest tests/test_signs_pattern.py -v`
 Expected: FAIL — `_render_single_case` does not exist
 
 - [ ] **Step 3: Implement Signs-format rendering**

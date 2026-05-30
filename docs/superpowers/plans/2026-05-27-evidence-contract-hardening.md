@@ -90,7 +90,7 @@ def test_verify_se_sources_line_oob(tmp_path):
 - [ ] **Step 2: 运行测试确认失败**
 
 ```bash
-cd /Users/zhangyiqian/git_dev/dev-quality-gate/dev-quality-gate
+cd /path/to/rd-gate
 python -m pytest tests/test_evidence_contract.py -v 2>&1 | head -30
 ```
 Expected: `ImportError: cannot import name 'verify_se_sources'`

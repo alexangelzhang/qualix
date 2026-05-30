@@ -81,7 +81,7 @@ class TestSourceLocation:
 - [ ] **Step 2: 运行测试，确认失败**
 
 ```bash
-cd /Users/zhangyiqian/git_dev/dev-quality-gate/dev-quality-gate
+cd /path/to/rd-gate
 python -m pytest tests/test_lineage_tracking.py -v
 ```
 

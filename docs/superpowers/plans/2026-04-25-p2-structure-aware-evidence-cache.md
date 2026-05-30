@@ -138,7 +138,7 @@ def test_empty_file_list(tmp_path: Path):
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd /Users/zhangyiqian/git_dev/dev-quality-gate/dev-quality-gate && python -m pytest tests/test_evidence_cache.py -v`
+Run: `cd /path/to/rd-gate && python -m pytest tests/test_evidence_cache.py -v`
 Expected: FAIL — module does not exist
 
 - [ ] **Step 3: Implement EvidencePackCache**
@@ -285,7 +285,7 @@ class EvidencePackCache:
 
 - [ ] **Step 4: Run tests**
 
-Run: `cd /Users/zhangyiqian/git_dev/dev-quality-gate/dev-quality-gate && python -m pytest tests/test_evidence_cache.py -v`
+Run: `cd /path/to/rd-gate && python -m pytest tests/test_evidence_cache.py -v`
 Expected: ALL PASS
 
 - [ ] **Step 5: Commit**

@@ -84,7 +84,7 @@ def test_analyze_data_patterns_includes_top_lessons():
 - [ ] **Step 2: 运行测试确认失败**
 
 ```bash
-cd /Users/zhangyiqian/git_dev/dev-quality-gate/dev-quality-gate
+cd /path/to/rd-gate
 python -m pytest tests/test_p1_loop_quality.py::test_write_data_patterns_uses_phase_id \
   tests/test_p1_loop_quality.py::test_analyze_data_patterns_includes_top_lessons -v 2>&1 | tail -10
 ```

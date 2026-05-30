@@ -72,7 +72,7 @@ def extract_skeleton(
 
 - [ ] **Step 2: Verify no import errors**
 
-Run: `cd /Users/zhangyiqian/git_dev/dev-quality-gate/dev-quality-gate && python -c "from dqg.languages.base import LanguageProvider; print('OK')"`
+Run: `cd /path/to/rd-gate && python -c "from dqg.languages.base import LanguageProvider; print('OK')"`
 Expected: OK
 
 - [ ] **Step 3: Commit**

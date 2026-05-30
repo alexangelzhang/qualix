@@ -12,7 +12,7 @@ DQG 当前只能 `git clone` 后在仓库内运行，工具源码与用户项目
 
 目标是建立物理分发边界：用户项目 cwd 看不到 DQG 源码，Claude 读不到就不会改。
 
-VAF(`vibe-agentic-flow`) 已用 `install.sh + ~/.vcb` 验证过这种模式；DQG 借鉴它的拷贝流程，补上 Python 包安装环节。
+VAF (a reference implementation) 已用 `install.sh + ~/.vcb` 验证过这种模式；DQG 借鉴它的拷贝流程，补上 Python 包安装环节。
 
 ## 关键决策概览
 
@@ -376,4 +376,4 @@ glab 缺失提示：
 
 - ROADMAP §F 规模化分发边界
 - docs/distribution-gap.md 诊断文档
-- VAF 仓库 install.sh（`~/git_dev/vibe-agentic-flow/install.sh`）
+- VAF 仓库 install.sh（`https://github.com/your-org/rd-gate/blob/main/install.sh`）

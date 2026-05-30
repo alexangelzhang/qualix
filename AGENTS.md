@@ -2,7 +2,7 @@
 
 ## 项目概述
 
-dev-quality-gate（DQG）是研发质量门禁框架，由 7 个 AI Agent 驱动，覆盖从需求到代码的全链路防漏。
+rd-gate（DQG）is an AI-native development quality gate framework. 7 AI Agents cover the full chain from requirements to code coverage.
 
 ## 入口
 

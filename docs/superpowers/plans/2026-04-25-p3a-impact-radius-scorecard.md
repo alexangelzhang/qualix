@@ -138,7 +138,7 @@ def test_risk_score_factors_breakdown():
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd /Users/zhangyiqian/git_dev/dev-quality-gate/dev-quality-gate && python -m pytest tests/test_risk_score.py -v`
+Run: `cd /path/to/rd-gate && python -m pytest tests/test_risk_score.py -v`
 Expected: FAIL — `compute_risk_score` does not exist
 
 - [ ] **Step 3: Implement compute_risk_score**

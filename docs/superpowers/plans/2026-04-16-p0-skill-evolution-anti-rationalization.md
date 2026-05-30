@@ -216,7 +216,7 @@ def test_structured_chat_result_fields():
 
 - [ ] **Step 7: Run tests**
 
-Run: `cd /Users/zhangyiqian/Dev/dev-quality-gate && python -m pytest tests/test_llm_backends_structured.py -v`
+Run: `cd /path/to/rd-gate && python -m pytest tests/test_llm_backends_structured.py -v`
 Expected: All PASS
 
 - [ ] **Step 8: Commit**

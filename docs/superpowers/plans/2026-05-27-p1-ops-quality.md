@@ -106,7 +106,7 @@ def test_non_strict_profile_context_warns_only(tmp_path):
 - [ ] **Step 2: 运行测试确认失败**
 
 ```bash
-cd /Users/zhangyiqian/git_dev/dev-quality-gate/dev-quality-gate
+cd /path/to/rd-gate
 python -m pytest tests/test_p1_ops_quality.py::test_strict_profile_context_blocks_when_section_missing \
   tests/test_p1_ops_quality.py::test_non_strict_profile_context_warns_only -v 2>&1 | tail -10
 ```

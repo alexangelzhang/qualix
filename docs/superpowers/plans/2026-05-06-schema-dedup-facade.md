@@ -99,7 +99,7 @@ class TestOldImportPathsStillWork:
 - [ ] **Step 2: 运行测试，确认当前通过**
 
 ```bash
-cd /Users/zhangyiqian/git_dev/dev-quality-gate/dev-quality-gate
+cd /path/to/rd-gate
 python -m pytest tests/test_schema_facade.py -v
 ```
 

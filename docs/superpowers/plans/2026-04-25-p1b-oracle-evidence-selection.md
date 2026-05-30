@@ -108,7 +108,7 @@ def test_priority_ids_with_no_matches_falls_back():
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd /Users/zhangyiqian/git_dev/dev-quality-gate/dev-quality-gate && python -m pytest tests/test_evidence_priority.py -v`
+Run: `cd /path/to/rd-gate && python -m pytest tests/test_evidence_priority.py -v`
 Expected: FAIL — `render_key_quotes()` does not accept `priority_ids`
 
 - [ ] **Step 3: Implement priority-boosted selection**

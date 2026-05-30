@@ -15,7 +15,7 @@
 - Spec: `docs/superpowers/specs/2026-05-11-dqg-tool-distribution-design.md`
 - 诊断: `docs/distribution-gap.md`
 - ROADMAP §F
-- VAF install.sh 模式: `~/git_dev/vibe-agentic-flow/install.sh`
+- VAF install.sh 模式: `https://github.com/your-org/rd-gate/blob/main/install.sh`
 
 ## File Structure
 
@@ -94,7 +94,7 @@ def test_package_version_matches_file():
 
 - [ ] **Step 3: 跑测试确认失败**
 
-Run: `cd /Users/zhangyiqian/git_dev/dev-quality-gate/dev-quality-gate && python -m pytest tests/test_version.py -v`
+Run: `cd /path/to/rd-gate && python -m pytest tests/test_version.py -v`
 Expected: FAIL（VERSION 文件不存在或 pyproject 还没改 dynamic）
 
 - [ ] **Step 4: 修改 pyproject.toml**
@@ -141,7 +141,7 @@ __version__ = _meta_version("dev-quality-gate")
 
 - [ ] **Step 6: 重新安装并跑测试**
 
-Run: `cd /Users/zhangyiqian/git_dev/dev-quality-gate/dev-quality-gate && pip install -e . && python -m pytest tests/test_version.py -v`
+Run: `cd /path/to/rd-gate && pip install -e . && python -m pytest tests/test_version.py -v`
 Expected: PASS
 
 - [ ] **Step 7: Commit**

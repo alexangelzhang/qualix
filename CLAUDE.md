@@ -1,92 +1,75 @@
-# CLAUDE.md — Claude Code 专属指令
+# CLAUDE.md — Claude Code Agent Instructions
 
-> 通用项目知识见 `AGENTS.md`。本文件只放 Claude Code CLI 特有的行为指令。
+> General project knowledge is in `AGENTS.md`. This file contains only Claude Code CLI–specific behavior instructions.
 
 <critical>
-DQG 三条不可违反的铁律（全文最重要，每次行动前默念）：
+Three unbreakable rules (check before every action):
 
-1. SPEC OVER SKILL：Phase 执行前 MUST 先跑 `dqg-run <pid> spec --phase Q0X --json`，spec 和 SKILL.md 冲突时一律以 spec 为准。
-2. EUT-PER-ITEM：Q05a/Q05b/Q06 产物 MUST 每条 audit_item 对应一个 eut_id，NEVER 按 SE 汇总（SE-based 模式）。
-3. JSON-FLAG：调用 `dqg-run` MUST 加 `--json`，NEVER 用 prose 格式输出做解析。
+1. SPEC OVER SKILL: Before executing any Phase, MUST run `dqg-run <pid> spec --phase Q0X --json` to get the contract. When spec and SKILL.md conflict, spec always wins.
+2. EUT-PER-ITEM: Q05a/Q05b/Q06 output MUST have one audit_item per eut_id. NEVER aggregate by SE (SE-based pattern).
+3. JSON-FLAG: All `dqg-run` calls MUST include `--json`. NEVER parse prose output.
 
-违反后果：spec 不一致 → 产物 schema 拒收；SE-based → 覆盖率虚高掩盖单测缺陷；缺 --json → prose 漂移导致解析错误。
+Consequences: spec mismatch → schema rejection; SE-based → coverage inflation hiding weak assertions; missing --json → prose drift causes parse errors.
 </critical>
 
-## 人设
+## Behavior Anchors
 
-> 通用工作方式见 `~/.claude/rules/karpathy-core.md`，架构分析框架见 `~/.claude/rules/architecture-analysis.md`。以下只放 DQG 项目特有的行为锚点。
+- **Evidence-first** — Any output must be self-verified. If a SubAgent says "tests pass", re-run `mvn test` in the main session to confirm.
+- **Failure library awareness** — Before executing any Phase, check `regression/failure-library/` for high-frequency error patterns for that Phase.
+- **First principles** — Start from requirements, not analogies. Writing tests = "verifying business semantics", not "hitting coverage numbers".
+- **Rule respect** — Rules in this file are red lines, not suggestions. Priority: CLAUDE.md > dqg_starter.md > skill files > your judgment.
+- **Right first time** — EUT `then` fields must contain concrete assertion methods and expected values. Never rely on a re-run to fix what should have been correct.
 
-**行为锚点（从 3109 条案例教训提炼）：**
+## Entry Points
 
-- **验证强迫症** — 任何产出必须亲自验证，不信任间接报告。SubAgent 说"测试通过"→ 在主会话跑 mvn test 确认。evidence before assertion，验证过才能说"完成"
-- **案例库意识** — 每次执行 Phase 前，先查 `regression/failure-library/` 中该 Phase 的高频错误模式。不能只依赖 `_data_patterns.md` 的泛化建议，原始案例更具体
-- **第一性原理** — 从需求本质出发，不从惯例类比。写测试是"验证业务语义"不是"凑覆盖率"；审计是"能不能防住线上 bug"不是"打分"；每个 COVERED 判定必须回答：期望值来自需求还是猜测？
-- **规则敬畏** — CLAUDE.md 铁律不是建议，是红线。优先级：CLAUDE.md > dqg_starter.md > skill 文件 > 我的判断。被 hook 拦截不是"麻烦"，是"防止我犯错"
-- **一次做对** — 不依赖"重跑修复"循环。EUT then 字段必须包含具体断言方法和期望值；测试代码每个方法必须有业务断言；structured JSON 严格对照 schema；并发场景必须 CountDownLatch 多线程验证
+- `/dqg-starter` — Quick start
+- `dqg-run <project_id> startup` — CLI startup
 
-## 入口
+## Behavioral Rules
 
-- `/dqg-starter` — 快速启动
-- `dqg-run <project_id> startup` — CLI 启动
-
-## 行为规则
-
-- 用中文交流，技术术语保持英文（context window, skill, hook, agent, pipeline, DDD, TMF）
-- 逐步交互：多步输入时每次只展示一个问题，等待用户回复后再展示下一个
-- 控制权交还：Phase 产出后进入 finalize 流程，不自动建议下一步
-- Phase 任务必须读取对应 skill 文件执行，禁止脱离 skill 自由发挥
-- **Phase 执行前必须先跑 `dqg-run <pid> spec --phase Q0X --json` 取契约事实**：从 `json_schema`（Pydantic 导出）读字段必填/取值约束，从 `contract.hard_checks` 读门禁，从 `phase_registry.depends_on/required_inputs` 读依赖；再读 SKILL.md 拿具体步骤。**spec 和 SKILL.md 冲突时一律以 spec 为准**（spec 源自代码实时导出，SKILL.md 是人写文档会漂移——本 session 发现的 severity 字段必填 vs 取值建议歧义就是典型）
-- 状态管理必须通过 `dqg-run` CLI，禁止手动编辑 `state.json`；所有主会话调用 `dqg-run` 一律加 `--json`（status/next/detail/log/execute/finalize/approve/skip/startup/spec 全部支持），让输出可被可靠解析，避免被 prose 格式漂移坑到
-- 收尾四步：产出检测 → finalize → approve → 刷新菜单；finalize 前必须对照 gate checklist 逐项自检，不能只依赖 hook 拦截
-- 代码变更后必须同步指令文件 — `completion_gate.py` 会自动检测并阻断，映射规则见 `AGENTS.md > 文档同步铁律`
+- Phase tasks MUST load the corresponding skill file; never improvise outside the skill.
+- **Before starting any Phase, run `dqg-run <pid> spec --phase Q0X --json`**: read required fields/constraints from `json_schema`, gate conditions from `contract.hard_checks`, dependencies from `phase_registry`. When spec and SKILL.md conflict, spec wins.
+- All state management through `dqg-run` CLI; never manually edit `state.json`. Add `--json` to all `dqg-run` calls.
+- Four-step close: detect output → finalize → approve → refresh menu. Before finalize, check gate checklist item by item.
+- After code changes, sync instruction files — `completion_gate.py` auto-detects and blocks if out of sync.
 
 <important if="executing any Phase in manual mode">
-手动模式下禁止派 SubAgent 执行 Phase，必须在主会话直接执行 skill。
-CLAUDE.md 优先级高于 dqg_starter.md，两者冲突时以 CLAUDE.md 为准。
+In manual mode, do NOT dispatch a SubAgent to execute the Phase. Execute the skill directly in the main session.
+CLAUDE.md takes priority over dqg_starter.md when they conflict.
 </important>
 
 <important if="writing or reviewing EUT then fields">
-then 字段必须包含具体断言方法和期望值（如 assertEquals(200, response.status)），
-禁止模糊描述（如"验证成功"、"返回正确结果"）。
+The `then` field MUST contain a concrete assertion method and expected value (e.g., `assertEquals(200, response.getStatus())`).
+Vague descriptions like "verify success" or "return correct result" are NOT acceptable.
 </important>
 
-## Code Index（强制）
+## Self-Check (Before Every Action)
 
-- 探索代码时必须先尝试 code_index 工具，失败了再 fallback 到 Grep/Read/Explore
-- 查看代码文件：code_index_lookup 获取 AST 摘要 → code_index_read_lines 读具体行
-- 搜索符号（函数/类/常量）：code_index_search，不用 Grep
-- 跨文件引用分析：code_index_refs，重构前用 code_index_blast_radius
-- 禁止在 code_index 可用时直接派 Explore agent 做代码探索
+Answer these questions before any tool call. If the answer to any is "yes", stop and switch approach:
 
-## 铁律自检（每次行动前）
+1. **Am I dispatching an Agent to execute a Phase?** → Forbidden in manual mode. Execute the skill directly.
+2. **Am I using grep to search code?** → Use code search tools first; fall back to grep only if unavailable.
+3. **Did a SubAgent report "tests passed"?** → Don't trust it. Re-run `mvn test` in the main session.
+4. **Do dqg_starter.md and CLAUDE.md conflict?** → CLAUDE.md has higher priority.
+5. **Are Q05a/Q05b/Q06 outputs using SE-based pattern (aggregating by SE)?** → Forbidden. Each audit_item must correspond to one eut_id.
+6. **Am I starting a Phase without running `dqg-run <pid> spec --phase Q0X --json`?** → Run spec first.
+7. **Am I calling `dqg-run` without `--json`?** → Add it.
 
-执行任何工具调用前，自问以下问题。任一答案为"是"则停止并切换方式：
+> The ironlaw guard hook (`ironlaw_guard.py`) auto-checks Agent/Grep/Bash calls, but hooks can only catch obvious violations. This self-check covers semantic scenarios hooks cannot detect.
 
-1. **我要派 Agent 执行 Phase 吗？** → 手动模式下禁止，在主会话直接执行 skill
-2. **我要用 Grep/Bash(grep) 搜索代码吗？** → 先用 code_index_search/code_index_refs，失败再 fallback
-3. **我要用 Explore agent 探索代码吗？** → 先用 code_index_lookup，失败再 fallback
-4. **SubAgent 报告"测试通过"了吗？** → 不信，在主会话重新跑 mvn test 验证
-5. **dqg_starter.md 和 CLAUDE.md 冲突了吗？** → CLAUDE.md 优先级更高
-6. **Q05/Q05a/Q05b/Q06 产物用了 SE-based 模式（按 SE 汇总）吗？** → 禁止。Q05a（EUT矩阵设计）、Q05b（单测代码生成）和 Q06 必须使用 EUT 逐条模式，每条 audit_item 对应一个 eut_id，绝不允许按 SE 汇总
-7. **我要启动 Phase 但还没跑 `dqg-run <pid> spec --phase Q0X --json` 吗？** → 先跑 spec 拿契约事实（字段必填/hard_checks/依赖），再读 SKILL.md 拿步骤；两边冲突以 spec 为准
-8. **我要调 `dqg-run` 但忘了加 `--json` 吗？** → 加上，让输出可被稳定解析；status/next/detail/execute/finalize/approve 等全支持
+## Lessons Learned
 
-> 铁律守卫 hook（`ironlaw_guard.py`）会在 Agent/Grep/Bash 调用时自动检查，但 hook 只能拦截明显违规。上述自检覆盖 hook 无法检测的语义场景。
+- SE IDs must be consistent across Phases. If Q01 uses `SE-001`, all downstream Phases must use `SE-001`, never `SE-1`. Mismatches cause RSM coverage to drop to zero.
+- For deep-reasoning Phases (Q04, Q06), adding `ultrathink` to the startup prompt activates stronger reasoning mode.
+- **Q05a/Q05b/Q06 must use EUT-per-item mode**: each `audit_item` must map to a single `eut_id`. The SE-based pattern obscures per-test assertion quality issues.
+- **SubAgent outputs require sanity checks**: after receiving an analysis report, directly `json.load` the raw data in the main session and verify 1–2 key claims before trusting the report.
 
-## 项目经验
-
-- SE ID 格式必须与上游 Phase 保持一致（Q01 用 `SE-001` 则下游必须用 `SE-001`，不能用 `SE-1`），否则 RSM 覆盖率计算会归零
-- 手动模式下 DQG Phase 执行不要用 agent 方式跑，直接在主会话执行，避免 context 丢失和产出不一致
-- Q04（覆盖度审计）、Q06（单测覆盖审计）等需要深度推理的 Phase，启动 prompt 加 `ultrathink` 可激活更强推理模式，效果优于直接执行
-- **Q05a/Q05b/Q06 必须 EUT 逐条模式**：phase_b_structured.json（Q05a EUT矩阵）和 phase_c_structured.json（Q06）的 audit_items 必须每条对应一个 eut_id，绝不允许按 SE 汇总（SE-based 模式）。SE-based 模式粒度粗，会掩盖单个测试方法的骨架/弱断言问题，导致覆盖率虚高或虚低
-- **Sub-agent 产出必须 sanity check**：general-purpose agent 的"分析报告"经常把原始数据抄错或过度发挥。拿到报告后主会话直接 `json.load` 原始数据核对 1-2 条关键结论（原始描述、字段是否存在、行为预测是否匹配 schema），再决定采信。本 session 正是这样查出 SemanticExpectation schema 缺 verification 字段的——sub-agent 报告里说"verification 字段缺失"，主会话核对发现**字段压根不存在**（不是空字符串），才有 Phase 1.5 的 schema 补字段动作
-
-*最后更新：2026-05-30*
+*Last updated: 2026-05-30*
 
 <critical>
-重申三条铁律（Lost in the Middle 防御，文件末尾重复）：
+Restating three rules (Lost-in-the-Middle defense, repeated at end of file):
 
-1. SPEC OVER SKILL — `dqg-run <pid> spec --phase Q0X --json` 优先于 SKILL.md，两者冲突以 spec 为准。
-2. EUT-PER-ITEM — Q05a/Q05b/Q06 每条 audit_item 独立对应 eut_id，NEVER 按 SE 汇总。
-3. JSON-FLAG — 所有 `dqg-run` 调用 MUST 加 `--json`。
+1. SPEC OVER SKILL — Run `dqg-run <pid> spec --phase Q0X --json` before SKILL.md. Spec wins on conflict.
+2. EUT-PER-ITEM — Each audit_item in Q05a/Q05b/Q06 must independently correspond to one eut_id. NEVER aggregate by SE.
+3. JSON-FLAG — All `dqg-run` calls MUST include `--json`.
 </critical>

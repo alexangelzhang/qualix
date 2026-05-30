@@ -71,7 +71,7 @@ def test_agent_run_separates_dynamic_context(monkeypatch, tmp_path: Path) -> Non
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd /Users/zhangyiqian/git_dev/dev-quality-gate/dev-quality-gate && python -m pytest tests/test_agent_evidence_pack.py::test_agent_run_separates_dynamic_context -v`
+Run: `cd /path/to/rd-gate && python -m pytest tests/test_agent_evidence_pack.py::test_agent_run_separates_dynamic_context -v`
 Expected: FAIL — `Agent.run()` does not accept `dynamic_context_files`
 
 - [ ] **Step 3: Add `_build_dynamic_payload` method and update `run()` signature**
@@ -145,7 +145,7 @@ Also update the cache lookup/store calls and prompt_hash computation to use the 
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `cd /Users/zhangyiqian/git_dev/dev-quality-gate/dev-quality-gate && python -m pytest tests/test_agent_evidence_pack.py -v`
+Run: `cd /path/to/rd-gate && python -m pytest tests/test_agent_evidence_pack.py -v`
 Expected: ALL PASS (including existing tests — they don't pass dynamic_context_files, so behavior unchanged)
 
 - [ ] **Step 5: Commit**
@@ -165,12 +165,12 @@ git commit -m "feat(agent): add dynamic_context_files param for cache-friendly m
 
 - [ ] **Step 1: Run all agent-related tests**
 
-Run: `cd /Users/zhangyiqian/git_dev/dev-quality-gate/dev-quality-gate && python -m pytest tests/test_agent_evidence_pack.py tests/test_agent_cache.py tests/test_adaptive_loop_cache.py tests/test_adaptive_loop_guard.py -v`
+Run: `cd /path/to/rd-gate && python -m pytest tests/test_agent_evidence_pack.py tests/test_agent_cache.py tests/test_adaptive_loop_cache.py tests/test_adaptive_loop_guard.py -v`
 Expected: ALL PASS — the `dynamic_context_files` param defaults to None, so all existing call sites are unaffected.
 
 - [ ] **Step 2: Run full test suite**
 
-Run: `cd /Users/zhangyiqian/git_dev/dev-quality-gate/dev-quality-gate && python -m pytest tests/ -x -q`
+Run: `cd /path/to/rd-gate && python -m pytest tests/ -x -q`
 Expected: ALL PASS
 
 ---
@@ -320,7 +320,7 @@ def test_static_prefix_identical_across_iterations(loop_env, monkeypatch):
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd /Users/zhangyiqian/git_dev/dev-quality-gate/dev-quality-gate && python -m pytest tests/test_adaptive_cache_prefix.py::test_static_prefix_identical_across_iterations -v`
+Run: `cd /path/to/rd-gate && python -m pytest tests/test_adaptive_cache_prefix.py::test_static_prefix_identical_across_iterations -v`
 Expected: FAIL — AdaptiveLoop still prepends handoff to context_files
 
 - [ ] **Step 3: Modify `_execute_iteration` to separate static/dynamic context**
@@ -349,12 +349,12 @@ This keeps `context_files` (the static evidence) identical across iterations, an
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `cd /Users/zhangyiqian/git_dev/dev-quality-gate/dev-quality-gate && python -m pytest tests/test_adaptive_cache_prefix.py -v`
+Run: `cd /path/to/rd-gate && python -m pytest tests/test_adaptive_cache_prefix.py -v`
 Expected: PASS
 
 - [ ] **Step 5: Run full test suite**
 
-Run: `cd /Users/zhangyiqian/git_dev/dev-quality-gate/dev-quality-gate && python -m pytest tests/ -x -q`
+Run: `cd /path/to/rd-gate && python -m pytest tests/ -x -q`
 Expected: ALL PASS
 
 - [ ] **Step 6: Commit**
@@ -427,7 +427,7 @@ def test_cache_tokens_reported_in_telemetry(loop_env, monkeypatch):
 
 - [ ] **Step 2: Run test to verify it passes (or fails)**
 
-Run: `cd /Users/zhangyiqian/git_dev/dev-quality-gate/dev-quality-gate && python -m pytest tests/test_adaptive_cache_prefix.py::test_cache_tokens_reported_in_telemetry -v`
+Run: `cd /path/to/rd-gate && python -m pytest tests/test_adaptive_cache_prefix.py::test_cache_tokens_reported_in_telemetry -v`
 
 Check: The `token_usage` dict in `AgentResult` already accumulates whatever the backend returns. If the test passes, no code change needed. If it fails, update the token accumulation in `Agent.run()` (line 328) to also capture cache tokens:
 
@@ -466,7 +466,7 @@ def extract_llm_call(result: AgentResult) -> dict[str, int | str | bool | float]
 
 - [ ] **Step 4: Run tests**
 
-Run: `cd /Users/zhangyiqian/git_dev/dev-quality-gate/dev-quality-gate && python -m pytest tests/test_adaptive_cache_prefix.py tests/test_agent_evidence_pack.py -v`
+Run: `cd /path/to/rd-gate && python -m pytest tests/test_adaptive_cache_prefix.py tests/test_agent_evidence_pack.py -v`
 Expected: ALL PASS
 
 - [ ] **Step 5: Commit**
@@ -547,12 +547,12 @@ def test_message_bytes_prefix_stable(monkeypatch, tmp_path):
 
 - [ ] **Step 2: Run test**
 
-Run: `cd /Users/zhangyiqian/git_dev/dev-quality-gate/dev-quality-gate && python -m pytest tests/test_adaptive_cache_prefix.py::test_message_bytes_prefix_stable -v`
+Run: `cd /path/to/rd-gate && python -m pytest tests/test_adaptive_cache_prefix.py::test_message_bytes_prefix_stable -v`
 Expected: PASS
 
 - [ ] **Step 3: Run full test suite**
 
-Run: `cd /Users/zhangyiqian/git_dev/dev-quality-gate/dev-quality-gate && python -m pytest tests/ -x -q`
+Run: `cd /path/to/rd-gate && python -m pytest tests/ -x -q`
 Expected: ALL PASS
 
 - [ ] **Step 4: Commit**
