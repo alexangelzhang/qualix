@@ -1,0 +1,3080 @@
+{
+  "project_id": "failure-cause",
+  "artifact_version": "1.1",
+  "schema_version": "1.1",
+  "target_modules": {
+    "code_repos": [
+      "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service"
+    ],
+    "base_ref": "cb038f7f",
+    "head_ref": "HEAD",
+    "real_diff_files": [
+      "sfp-fault-service-acl/src/main/java/com/mi/asp/fault/acl/user/gateway/MasterUserGatewayImpl.java",
+      "sfp-fault-service-api/src/main/java/com/mi/asp/fault/api/base/dto/request/FileUploadParam.java",
+      "sfp-fault-service-api/src/main/java/com/mi/asp/fault/api/bpm/dto/request/BpmTableDataParam.java",
+      "sfp-fault-service-api/src/main/java/com/mi/asp/fault/api/fault/dto/request/FaultDetailParam.java",
+      "sfp-fault-service-api/src/main/java/com/mi/asp/fault/api/fault/dto/request/FaultEditParam.java",
+      "sfp-fault-service-api/src/main/java/com/mi/asp/fault/api/fault/dto/request/FaultListParam.java",
+      "sfp-fault-service-api/src/main/java/com/mi/asp/fault/api/fault/dto/request/PageFaultMetaListParam.java",
+      "sfp-fault-service-api/src/main/java/com/mi/asp/fault/api/fault/dto/request/common/FaultReasonOptionsQueryParam.java",
+      "sfp-fault-service-api/src/main/java/com/mi/asp/fault/api/fault/dto/response/FaultDetailBrandClassDTO.java",
+      "sfp-fault-service-api/src/main/java/com/mi/asp/fault/api/fault/dto/response/FaultDetailDTO.java",
+      "sfp-fault-service-api/src/main/java/com/mi/asp/fault/api/fault/dto/response/FaultDetailSkuDTO.java",
+      "sfp-fault-service-api/src/main/java/com/mi/asp/fault/api/fault/facade/FaultFacade.java",
+      "sfp-fault-service-api/src/main/java/com/mi/asp/fault/api/fault/facade/FaultListFacade.java",
+      "sfp-fault-service-api/src/main/java/com/mi/asp/fault/api/fault/facade/FaultQueryFacade.java",
+      "sfp-fault-service-api/src/main/java/com/mi/asp/fault/api/fault/service/FaultService.java",
+      "sfp-fault-service-api/src/main/java/com/mi/asp/fault/api/faultreason/dto/request/FaultReasonBrandClassConfigParam.java",
+      "sfp-fault-service-api/src/main/java/com/mi/asp/fault/api/faultreason/dto/request/FaultReasonListParam.java",
+      "sfp-fault-service-api/src/main/java/com/mi/asp/fault/api/faultreason/dto/request/FaultReasonParam.java",
+      "sfp-fault-service-api/src/main/java/com/mi/asp/fault/api/faultreason/dto/request/FaultReasonQueryParam.java",
+      "sfp-fault-service-api/src/main/java/com/mi/asp/fault/api/faultreason/dto/response/BrandClassFaultReasonConfigDto.java",
+      "sfp-fault-service-api/src/main/java/com/mi/asp/fault/api/faultreason/dto/response/CategoryTreeWithFaultReasonDTO.java",
+      "sfp-fault-service-api/src/main/java/com/mi/asp/fault/api/faultreason/dto/response/FaultReasonBrandClassDTO.java",
+      "sfp-fault-service-api/src/main/java/com/mi/asp/fault/api/faultreason/dto/response/FaultReasonByBrandClassDTO.java",
+      "sfp-fault-service-api/src/main/java/com/mi/asp/fault/api/faultreason/dto/response/FaultReasonByCodeDTO.java",
+      "sfp-fault-service-api/src/main/java/com/mi/asp/fault/api/faultreason/dto/response/FaultReasonDTO.java",
+      "sfp-fault-service-api/src/main/java/com/mi/asp/fault/api/faultreason/dto/response/FaultReasonDetailDTO.java",
+      "sfp-fault-service-api/src/main/java/com/mi/asp/fault/api/faultreason/dto/response/ReasonSkuItemDTO.java",
+      "sfp-fault-service-api/src/main/java/com/mi/asp/fault/api/faultreason/facade/FaultReasonFacade.java",
+      "sfp-fault-service-api/src/main/java/com/mi/asp/fault/api/faultreason/service/FaultReasonService.java",
+      "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/base/enums/YesOrNoIntEnum.java",
+      "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/binlog/command/BinLogCommandHandler.java",
+      "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/binlog/command/FaultReasonBinLogCommandHandler.java",
+      "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/binlog/command/RelationshipExtBinLogCommandHandler.java",
+      "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/bpm/handler/SingleFaultBpmHandler.java",
+      "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/bpm/handler/SingleFaultReasonBpmHandler.java",
+      "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/bpm/service/FaultBpmApprovalServiceImpl.java",
+      "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/controller/FaultController.java",
+      "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/controller/FaultDetailController.java",
+      "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/controller/FaultReasonController.java",
+      "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/fault/facade/FaultAccessFacadeImpl.java",
+      "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/fault/facade/FaultFacadeImpl.java",
+      "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/fault/facade/FaultListFacadeImpl.java",
+      "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/fault/facade/FaultQueryServiceImpl.java",
+      "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/fault/service/FaultEditServiceImpl.java",
+      "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/fault/service/FaultServiceImpl.java",
+      "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImpl.java",
+      "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/faultreason/service/FaultReasonServiceImpl.java",
+      "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/faulttype/command/UpdateFaultTypeCommandHandler.java",
+      "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/log/facade/LogManagementFacadeImpl.java",
+      "sfp-fault-service-bootstrap/src/main/java/com/mi/asp/fault/config/DubboConfiguration.java",
+      "sfp-fault-service-domain/src/main/java/com/mi/asp/fault/domain/base/constants/BaseConstants.java",
+      "sfp-fault-service-domain/src/main/java/com/mi/asp/fault/domain/base/enums/BizExceptionEnum.java",
+      "sfp-fault-service-domain/src/main/java/com/mi/asp/fault/domain/base/utils/EntityUtils.java",
+      "sfp-fault-service-domain/src/main/java/com/mi/asp/fault/domain/bpm/constants/FaultBpmConstant.java",
+      "sfp-fault-service-domain/src/main/java/com/mi/asp/fault/domain/bpm/dto/SingleFaultReasonFormDataDTO.java",
+      "sfp-fault-service-domain/src/main/java/com/mi/asp/fault/domain/bpm/enums/FaultBpmBizTypeEnum.java",
+      "sfp-fault-service-domain/src/main/java/com/mi/asp/fault/domain/bpm/enums/FaultCallBpmEnum.java",
+      "sfp-fault-service-domain/src/main/java/com/mi/asp/fault/domain/bpm/model/BpmApprove.java",
+      "sfp-fault-service-domain/src/main/java/com/mi/asp/fault/domain/bpm/model/SingleFaultBpmTableData.java",
+      "sfp-fault-service-domain/src/main/java/com/mi/asp/fault/domain/bpm/model/SingleFaultReasonBpmTableData.java",
+      "sfp-fault-service-domain/src/main/java/com/mi/asp/fault/domain/bpm/repository/BpmApproveQueryRepository.java",
+      "sfp-fault-service-domain/src/main/java/com/mi/asp/fault/domain/fault/constants/FaultConstant.java",
+      "sfp-fault-service-domain/src/main/java/com/mi/asp/fault/domain/fault/dto/FaultReasonRelationDTO.java",
+      "sfp-fault-service-domain/src/main/java/com/mi/asp/fault/domain/fault/dto/FaultReasonRelationInsertParam.java",
+      "sfp-fault-service-domain/src/main/java/com/mi/asp/fault/domain/fault/dto/FaultRelationshipExtDTO.java",
+      "sfp-fault-service-domain/src/main/java/com/mi/asp/fault/domain/fault/enums/RelationshipTypeEnum.java",
+      "sfp-fault-service-domain/src/main/java/com/mi/asp/fault/domain/fault/gateway/MasterUserGateway.java",
+      "sfp-fault-service-domain/src/main/java/com/mi/asp/fault/domain/fault/model/FaultBrandClassExportExcel.java",
+      "sfp-fault-service-domain/src/main/java/com/mi/asp/fault/domain/fault/model/FaultBrandClassImportExcel.java",
+      "sfp-fault-service-domain/src/main/java/com/mi/asp/fault/domain/fault/repository/FaultDetailRepository.java",
+      "sfp-fault-service-domain/src/main/java/com/mi/asp/fault/domain/fault/repository/FaultRepository.java",
+      "sfp-fault-service-domain/src/main/java/com/mi/asp/fault/domain/faultext/repository/FaultExtOperationRepository.java",
+      "sfp-fault-service-domain/src/main/java/com/mi/asp/fault/domain/faultext/repository/FaultExtQueryRepository.java",
+      "sfp-fault-service-domain/src/main/java/com/mi/asp/fault/domain/faultreason/model/BaseFaultReason.java",
+      "sfp-fault-service-domain/src/main/java/com/mi/asp/fault/domain/faultreason/model/BaseFaultReasonBrandClassConfig.java",
+      "sfp-fault-service-domain/src/main/java/com/mi/asp/fault/domain/faultreason/model/BaseFaultReasonRelation.java",
+      "sfp-fault-service-domain/src/main/java/com/mi/asp/fault/domain/faultreason/repository/FaultReasonBrandClassConfigRepository.java",
+      "sfp-fault-service-domain/src/main/java/com/mi/asp/fault/domain/faultreason/repository/FaultReasonRelationRepository.java",
+      "sfp-fault-service-domain/src/main/java/com/mi/asp/fault/domain/faultreason/repository/FaultReasonRepository.java",
+      "sfp-fault-service-domain/src/main/java/com/mi/asp/fault/domain/log/enums/LogBizTypeEnum.java",
+      "sfp-fault-service-infrastructure/src/main/java/com/mi/asp/fault/infrastructure/base/SpfSequence.java",
+      "sfp-fault-service-infrastructure/src/main/java/com/mi/asp/fault/infrastructure/convert/fault/FaultDTOConvertor.java",
+      "sfp-fault-service-infrastructure/src/main/java/com/mi/asp/fault/infrastructure/convert/faultreason/BaseFaultReasonBrandClassConfigConvertor.java",
+      "sfp-fault-service-infrastructure/src/main/java/com/mi/asp/fault/infrastructure/convert/faultreason/FaultReasonDTOConvertor.java",
+      "sfp-fault-service-infrastructure/src/main/java/com/mi/asp/fault/infrastructure/convert/faultreason/FaultReasonDoConvertor.java",
+      "sfp-fault-service-infrastructure/src/main/java/com/mi/asp/fault/infrastructure/convert/faultreason/FaultReasonRelationConvertor.java",
+      "sfp-fault-service-infrastructure/src/main/java/com/mi/asp/fault/infrastructure/convert/faultreason/FaultReasonRelationDoConvertor.java",
+      "sfp-fault-service-infrastructure/src/main/java/com/mi/asp/fault/infrastructure/domain/faultext/BaseFaultRelationshipExtVO.java",
+      "sfp-fault-service-infrastructure/src/main/java/com/mi/asp/fault/infrastructure/domain/faultreason/BaseFaultReasonBrandClassConfigDO.java",
+      "sfp-fault-service-infrastructure/src/main/java/com/mi/asp/fault/infrastructure/domain/faultreason/BaseFaultReasonRelationDO.java",
+      "sfp-fault-service-infrastructure/src/main/java/com/mi/asp/fault/infrastructure/domain/faultreason/FaultReasonBrandClassVO.java",
+      "sfp-fault-service-infrastructure/src/main/java/com/mi/asp/fault/infrastructure/domain/faultreason/FaultReasonRelationVO.java",
+      "sfp-fault-service-infrastructure/src/main/java/com/mi/asp/fault/infrastructure/mapper/bpm/BpmApproveMapper.java",
+      "sfp-fault-service-infrastructure/src/main/java/com/mi/asp/fault/infrastructure/mapper/fault/BaseFaultBrandClassMapper.java",
+      "sfp-fault-service-infrastructure/src/main/java/com/mi/asp/fault/infrastructure/mapper/fault/BaseFaultMapper.java",
+      "sfp-fault-service-infrastructure/src/main/java/com/mi/asp/fault/infrastructure/mapper/fault/BaseFaultReasonBrandclassConfigMapper.java",
+      "sfp-fault-service-infrastructure/src/main/java/com/mi/asp/fault/infrastructure/mapper/faultext/BaseFaultRelationshipExtMapper.java",
+      "sfp-fault-service-infrastructure/src/main/java/com/mi/asp/fault/infrastructure/mapper/faultext/BaseFaultRelationshipExtOperationMapper.java",
+      "sfp-fault-service-infrastructure/src/main/java/com/mi/asp/fault/infrastructure/mapper/faultreason/BaseFaultReasonBrandClassConfigMapper.java",
+      "sfp-fault-service-infrastructure/src/main/java/com/mi/asp/fault/infrastructure/mapper/faultreason/BaseFaultReasonMapper.java",
+      "sfp-fault-service-infrastructure/src/main/java/com/mi/asp/fault/infrastructure/mapper/faultreason/BaseFaultReasonRelationMapper.java",
+      "sfp-fault-service-infrastructure/src/main/java/com/mi/asp/fault/infrastructure/repository/binlog/FaultBinlogRepositoryImpl.java",
+      "sfp-fault-service-infrastructure/src/main/java/com/mi/asp/fault/infrastructure/repository/bpm/BpmApproveQueryRepositoryImpl.java",
+      "sfp-fault-service-infrastructure/src/main/java/com/mi/asp/fault/infrastructure/repository/fault/FaultDetailRepositoryImpl.java",
+      "sfp-fault-service-infrastructure/src/main/java/com/mi/asp/fault/infrastructure/repository/fault/FaultRepositoryImpl.java",
+      "sfp-fault-service-infrastructure/src/main/java/com/mi/asp/fault/infrastructure/repository/faultext/FaultExtOperationRepositoryImpl.java",
+      "sfp-fault-service-infrastructure/src/main/java/com/mi/asp/fault/infrastructure/repository/faultext/FaultExtQueryRepositoryImpl.java",
+      "sfp-fault-service-infrastructure/src/main/java/com/mi/asp/fault/infrastructure/repository/faultreason/FaultReasonBrandClassConfigRepositoryImpl.java",
+      "sfp-fault-service-infrastructure/src/main/java/com/mi/asp/fault/infrastructure/repository/faultreason/FaultReasonRelationRepositoryImpl.java",
+      "sfp-fault-service-infrastructure/src/main/java/com/mi/asp/fault/infrastructure/repository/faultreason/FaultReasonRepositoryImpl.java"
+    ],
+    "included_diff_files": [
+      "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/binlog/command/FaultReasonBinLogCommandHandler.java",
+      "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/bpm/handler/SingleFaultReasonBpmHandler.java",
+      "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/bpm/service/FaultBpmApprovalServiceImpl.java",
+      "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/fault/facade/FaultAccessFacadeImpl.java",
+      "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/fault/facade/FaultFacadeImpl.java",
+      "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/fault/facade/FaultListFacadeImpl.java",
+      "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/fault/facade/FaultQueryServiceImpl.java",
+      "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/fault/service/FaultEditServiceImpl.java",
+      "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/fault/service/FaultServiceImpl.java",
+      "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImpl.java",
+      "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/faultreason/service/FaultReasonServiceImpl.java",
+      "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/faulttype/command/UpdateFaultTypeCommandHandler.java",
+      "sfp-fault-service-infrastructure/src/main/java/com/mi/asp/fault/infrastructure/repository/faultreason/FaultReasonBrandClassConfigRepositoryImpl.java",
+      "sfp-fault-service-infrastructure/src/main/java/com/mi/asp/fault/infrastructure/repository/faultreason/FaultReasonRelationRepositoryImpl.java",
+      "sfp-fault-service-infrastructure/src/main/java/com/mi/asp/fault/infrastructure/repository/faultreason/FaultReasonRepositoryImpl.java"
+    ],
+    "diff_files": [
+      "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/binlog/command/FaultReasonBinLogCommandHandler.java",
+      "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/bpm/handler/SingleFaultReasonBpmHandler.java",
+      "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/bpm/service/FaultBpmApprovalServiceImpl.java",
+      "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/fault/facade/FaultAccessFacadeImpl.java",
+      "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/fault/facade/FaultFacadeImpl.java",
+      "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/fault/facade/FaultListFacadeImpl.java",
+      "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/fault/facade/FaultQueryServiceImpl.java",
+      "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/fault/service/FaultEditServiceImpl.java",
+      "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/fault/service/FaultServiceImpl.java",
+      "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImpl.java",
+      "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/faultreason/service/FaultReasonServiceImpl.java",
+      "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/faulttype/command/UpdateFaultTypeCommandHandler.java",
+      "sfp-fault-service-infrastructure/src/main/java/com/mi/asp/fault/infrastructure/repository/faultreason/FaultReasonBrandClassConfigRepositoryImpl.java",
+      "sfp-fault-service-infrastructure/src/main/java/com/mi/asp/fault/infrastructure/repository/faultreason/FaultReasonRelationRepositoryImpl.java",
+      "sfp-fault-service-infrastructure/src/main/java/com/mi/asp/fault/infrastructure/repository/faultreason/FaultReasonRepositoryImpl.java"
+    ],
+    "excluded_diff_files": [
+      {
+        "path": "sfp-fault-service-acl/src/main/java/com/mi/asp/fault/acl/user/gateway/MasterUserGatewayImpl.java",
+        "reason": "辅助工具类或基础设施，无核心业务分支",
+        "evidence": "文件类型/命名：MasterUserGatewayImpl.java，辅助工具类或基础设施，无核心业务分支",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-api/src/main/java/com/mi/asp/fault/api/base/dto/request/FileUploadParam.java",
+        "reason": "纯数据传输对象，无分支业务逻辑",
+        "evidence": "文件类型/命名：FileUploadParam.java，纯数据传输对象，无分支业务逻辑",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-api/src/main/java/com/mi/asp/fault/api/bpm/dto/request/BpmTableDataParam.java",
+        "reason": "纯数据传输对象，无分支业务逻辑",
+        "evidence": "文件类型/命名：BpmTableDataParam.java，纯数据传输对象，无分支业务逻辑",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-api/src/main/java/com/mi/asp/fault/api/fault/dto/request/FaultDetailParam.java",
+        "reason": "纯数据传输对象，无分支业务逻辑",
+        "evidence": "文件类型/命名：FaultDetailParam.java，纯数据传输对象，无分支业务逻辑",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-api/src/main/java/com/mi/asp/fault/api/fault/dto/request/FaultEditParam.java",
+        "reason": "纯数据传输对象，无分支业务逻辑",
+        "evidence": "文件类型/命名：FaultEditParam.java，纯数据传输对象，无分支业务逻辑",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-api/src/main/java/com/mi/asp/fault/api/fault/dto/request/FaultListParam.java",
+        "reason": "纯数据传输对象，无分支业务逻辑",
+        "evidence": "文件类型/命名：FaultListParam.java，纯数据传输对象，无分支业务逻辑",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-api/src/main/java/com/mi/asp/fault/api/fault/dto/request/PageFaultMetaListParam.java",
+        "reason": "纯数据传输对象，无分支业务逻辑",
+        "evidence": "文件类型/命名：PageFaultMetaListParam.java，纯数据传输对象，无分支业务逻辑",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-api/src/main/java/com/mi/asp/fault/api/fault/dto/request/common/FaultReasonOptionsQueryParam.java",
+        "reason": "纯数据传输对象，无分支业务逻辑",
+        "evidence": "文件类型/命名：FaultReasonOptionsQueryParam.java，纯数据传输对象，无分支业务逻辑",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-api/src/main/java/com/mi/asp/fault/api/fault/dto/response/FaultDetailBrandClassDTO.java",
+        "reason": "纯数据传输对象，无分支业务逻辑",
+        "evidence": "文件类型/命名：FaultDetailBrandClassDTO.java，纯数据传输对象，无分支业务逻辑",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-api/src/main/java/com/mi/asp/fault/api/fault/dto/response/FaultDetailDTO.java",
+        "reason": "纯数据传输对象，无分支业务逻辑",
+        "evidence": "文件类型/命名：FaultDetailDTO.java，纯数据传输对象，无分支业务逻辑",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-api/src/main/java/com/mi/asp/fault/api/fault/dto/response/FaultDetailSkuDTO.java",
+        "reason": "纯数据传输对象，无分支业务逻辑",
+        "evidence": "文件类型/命名：FaultDetailSkuDTO.java，纯数据传输对象，无分支业务逻辑",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-api/src/main/java/com/mi/asp/fault/api/fault/facade/FaultFacade.java",
+        "reason": "接口定义，无实现逻辑",
+        "evidence": "文件类型/命名：FaultFacade.java，接口定义，无实现逻辑",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-api/src/main/java/com/mi/asp/fault/api/fault/facade/FaultListFacade.java",
+        "reason": "接口定义，无实现逻辑",
+        "evidence": "文件类型/命名：FaultListFacade.java，接口定义，无实现逻辑",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-api/src/main/java/com/mi/asp/fault/api/fault/facade/FaultQueryFacade.java",
+        "reason": "接口定义，无实现逻辑",
+        "evidence": "文件类型/命名：FaultQueryFacade.java，接口定义，无实现逻辑",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-api/src/main/java/com/mi/asp/fault/api/fault/service/FaultService.java",
+        "reason": "辅助工具类或基础设施，无核心业务分支",
+        "evidence": "文件类型/命名：FaultService.java，辅助工具类或基础设施，无核心业务分支",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-api/src/main/java/com/mi/asp/fault/api/faultreason/dto/request/FaultReasonBrandClassConfigParam.java",
+        "reason": "纯数据传输对象，无分支业务逻辑",
+        "evidence": "文件类型/命名：FaultReasonBrandClassConfigParam.java，纯数据传输对象，无分支业务逻辑",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-api/src/main/java/com/mi/asp/fault/api/faultreason/dto/request/FaultReasonListParam.java",
+        "reason": "纯数据传输对象，无分支业务逻辑",
+        "evidence": "文件类型/命名：FaultReasonListParam.java，纯数据传输对象，无分支业务逻辑",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-api/src/main/java/com/mi/asp/fault/api/faultreason/dto/request/FaultReasonParam.java",
+        "reason": "纯数据传输对象，无分支业务逻辑",
+        "evidence": "文件类型/命名：FaultReasonParam.java，纯数据传输对象，无分支业务逻辑",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-api/src/main/java/com/mi/asp/fault/api/faultreason/dto/request/FaultReasonQueryParam.java",
+        "reason": "纯数据传输对象，无分支业务逻辑",
+        "evidence": "文件类型/命名：FaultReasonQueryParam.java，纯数据传输对象，无分支业务逻辑",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-api/src/main/java/com/mi/asp/fault/api/faultreason/dto/response/BrandClassFaultReasonConfigDto.java",
+        "reason": "Spring配置类，无业务逻辑",
+        "evidence": "文件类型/命名：BrandClassFaultReasonConfigDto.java，Spring配置类，无业务逻辑",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-api/src/main/java/com/mi/asp/fault/api/faultreason/dto/response/CategoryTreeWithFaultReasonDTO.java",
+        "reason": "纯数据传输对象，无分支业务逻辑",
+        "evidence": "文件类型/命名：CategoryTreeWithFaultReasonDTO.java，纯数据传输对象，无分支业务逻辑",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-api/src/main/java/com/mi/asp/fault/api/faultreason/dto/response/FaultReasonBrandClassDTO.java",
+        "reason": "纯数据传输对象，无分支业务逻辑",
+        "evidence": "文件类型/命名：FaultReasonBrandClassDTO.java，纯数据传输对象，无分支业务逻辑",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-api/src/main/java/com/mi/asp/fault/api/faultreason/dto/response/FaultReasonByBrandClassDTO.java",
+        "reason": "纯数据传输对象，无分支业务逻辑",
+        "evidence": "文件类型/命名：FaultReasonByBrandClassDTO.java，纯数据传输对象，无分支业务逻辑",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-api/src/main/java/com/mi/asp/fault/api/faultreason/dto/response/FaultReasonByCodeDTO.java",
+        "reason": "纯数据传输对象，无分支业务逻辑",
+        "evidence": "文件类型/命名：FaultReasonByCodeDTO.java，纯数据传输对象，无分支业务逻辑",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-api/src/main/java/com/mi/asp/fault/api/faultreason/dto/response/FaultReasonDTO.java",
+        "reason": "纯数据传输对象，无分支业务逻辑",
+        "evidence": "文件类型/命名：FaultReasonDTO.java，纯数据传输对象，无分支业务逻辑",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-api/src/main/java/com/mi/asp/fault/api/faultreason/dto/response/FaultReasonDetailDTO.java",
+        "reason": "纯数据传输对象，无分支业务逻辑",
+        "evidence": "文件类型/命名：FaultReasonDetailDTO.java，纯数据传输对象，无分支业务逻辑",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-api/src/main/java/com/mi/asp/fault/api/faultreason/dto/response/ReasonSkuItemDTO.java",
+        "reason": "纯数据传输对象，无分支业务逻辑",
+        "evidence": "文件类型/命名：ReasonSkuItemDTO.java，纯数据传输对象，无分支业务逻辑",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-api/src/main/java/com/mi/asp/fault/api/faultreason/facade/FaultReasonFacade.java",
+        "reason": "接口定义，无实现逻辑",
+        "evidence": "文件类型/命名：FaultReasonFacade.java，接口定义，无实现逻辑",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-api/src/main/java/com/mi/asp/fault/api/faultreason/service/FaultReasonService.java",
+        "reason": "辅助工具类或基础设施，无核心业务分支",
+        "evidence": "文件类型/命名：FaultReasonService.java，辅助工具类或基础设施，无核心业务分支",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/base/enums/YesOrNoIntEnum.java",
+        "reason": "常量/枚举定义，无可测分支",
+        "evidence": "文件类型/命名：YesOrNoIntEnum.java，常量/枚举定义，无可测分支",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/binlog/command/BinLogCommandHandler.java",
+        "reason": "辅助工具类或基础设施，无核心业务分支",
+        "evidence": "文件类型/命名：BinLogCommandHandler.java，辅助工具类或基础设施，无核心业务分支",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/binlog/command/RelationshipExtBinLogCommandHandler.java",
+        "reason": "辅助工具类或基础设施，无核心业务分支",
+        "evidence": "文件类型/命名：RelationshipExtBinLogCommandHandler.java，辅助工具类或基础设施，无核心业务分支",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/bpm/handler/SingleFaultBpmHandler.java",
+        "reason": "辅助工具类或基础设施，无核心业务分支",
+        "evidence": "文件类型/命名：SingleFaultBpmHandler.java，辅助工具类或基础设施，无核心业务分支",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/controller/FaultController.java",
+        "reason": "REST控制器，通过集成测试/接口测试覆盖",
+        "evidence": "文件类型/命名：FaultController.java，REST控制器，通过集成测试/接口测试覆盖",
+        "decision_owner": "测试负责人",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/controller/FaultDetailController.java",
+        "reason": "REST控制器，通过集成测试/接口测试覆盖",
+        "evidence": "文件类型/命名：FaultDetailController.java，REST控制器，通过集成测试/接口测试覆盖",
+        "decision_owner": "测试负责人",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/controller/FaultReasonController.java",
+        "reason": "REST控制器，通过集成测试/接口测试覆盖",
+        "evidence": "文件类型/命名：FaultReasonController.java，REST控制器，通过集成测试/接口测试覆盖",
+        "decision_owner": "测试负责人",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/log/facade/LogManagementFacadeImpl.java",
+        "reason": "辅助工具类或基础设施，无核心业务分支",
+        "evidence": "文件类型/命名：LogManagementFacadeImpl.java，辅助工具类或基础设施，无核心业务分支",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-bootstrap/src/main/java/com/mi/asp/fault/config/DubboConfiguration.java",
+        "reason": "Spring配置类，无业务逻辑",
+        "evidence": "文件类型/命名：DubboConfiguration.java，Spring配置类，无业务逻辑",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-domain/src/main/java/com/mi/asp/fault/domain/base/constants/BaseConstants.java",
+        "reason": "常量/枚举定义，无可测分支",
+        "evidence": "文件类型/命名：BaseConstants.java，常量/枚举定义，无可测分支",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-domain/src/main/java/com/mi/asp/fault/domain/base/enums/BizExceptionEnum.java",
+        "reason": "常量/枚举定义，无可测分支",
+        "evidence": "文件类型/命名：BizExceptionEnum.java，常量/枚举定义，无可测分支",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-domain/src/main/java/com/mi/asp/fault/domain/base/utils/EntityUtils.java",
+        "reason": "辅助工具类或基础设施，无核心业务分支",
+        "evidence": "文件类型/命名：EntityUtils.java，辅助工具类或基础设施，无核心业务分支",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-domain/src/main/java/com/mi/asp/fault/domain/bpm/constants/FaultBpmConstant.java",
+        "reason": "常量/枚举定义，无可测分支",
+        "evidence": "文件类型/命名：FaultBpmConstant.java，常量/枚举定义，无可测分支",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-domain/src/main/java/com/mi/asp/fault/domain/bpm/dto/SingleFaultReasonFormDataDTO.java",
+        "reason": "纯数据传输对象，无分支业务逻辑",
+        "evidence": "文件类型/命名：SingleFaultReasonFormDataDTO.java，纯数据传输对象，无分支业务逻辑",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-domain/src/main/java/com/mi/asp/fault/domain/bpm/enums/FaultBpmBizTypeEnum.java",
+        "reason": "常量/枚举定义，无可测分支",
+        "evidence": "文件类型/命名：FaultBpmBizTypeEnum.java，常量/枚举定义，无可测分支",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-domain/src/main/java/com/mi/asp/fault/domain/bpm/enums/FaultCallBpmEnum.java",
+        "reason": "常量/枚举定义，无可测分支",
+        "evidence": "文件类型/命名：FaultCallBpmEnum.java，常量/枚举定义，无可测分支",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-domain/src/main/java/com/mi/asp/fault/domain/bpm/model/BpmApprove.java",
+        "reason": "Domain模型，字段赋值无分支",
+        "evidence": "文件类型/命名：BpmApprove.java，Domain模型，字段赋值无分支",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-domain/src/main/java/com/mi/asp/fault/domain/bpm/model/SingleFaultBpmTableData.java",
+        "reason": "Domain模型，字段赋值无分支",
+        "evidence": "文件类型/命名：SingleFaultBpmTableData.java，Domain模型，字段赋值无分支",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-domain/src/main/java/com/mi/asp/fault/domain/bpm/model/SingleFaultReasonBpmTableData.java",
+        "reason": "Domain模型，字段赋值无分支",
+        "evidence": "文件类型/命名：SingleFaultReasonBpmTableData.java，Domain模型，字段赋值无分支",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-domain/src/main/java/com/mi/asp/fault/domain/bpm/repository/BpmApproveQueryRepository.java",
+        "reason": "Repository接口，无实现逻辑",
+        "evidence": "文件类型/命名：BpmApproveQueryRepository.java，Repository接口，无实现逻辑",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-domain/src/main/java/com/mi/asp/fault/domain/fault/constants/FaultConstant.java",
+        "reason": "常量/枚举定义，无可测分支",
+        "evidence": "文件类型/命名：FaultConstant.java，常量/枚举定义，无可测分支",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-domain/src/main/java/com/mi/asp/fault/domain/fault/dto/FaultReasonRelationDTO.java",
+        "reason": "纯数据传输对象，无分支业务逻辑",
+        "evidence": "文件类型/命名：FaultReasonRelationDTO.java，纯数据传输对象，无分支业务逻辑",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-domain/src/main/java/com/mi/asp/fault/domain/fault/dto/FaultReasonRelationInsertParam.java",
+        "reason": "纯数据传输对象，无分支业务逻辑",
+        "evidence": "文件类型/命名：FaultReasonRelationInsertParam.java，纯数据传输对象，无分支业务逻辑",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-domain/src/main/java/com/mi/asp/fault/domain/fault/dto/FaultRelationshipExtDTO.java",
+        "reason": "纯数据传输对象，无分支业务逻辑",
+        "evidence": "文件类型/命名：FaultRelationshipExtDTO.java，纯数据传输对象，无分支业务逻辑",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-domain/src/main/java/com/mi/asp/fault/domain/fault/enums/RelationshipTypeEnum.java",
+        "reason": "常量/枚举定义，无可测分支",
+        "evidence": "文件类型/命名：RelationshipTypeEnum.java，常量/枚举定义，无可测分支",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-domain/src/main/java/com/mi/asp/fault/domain/fault/gateway/MasterUserGateway.java",
+        "reason": "辅助工具类或基础设施，无核心业务分支",
+        "evidence": "文件类型/命名：MasterUserGateway.java，辅助工具类或基础设施，无核心业务分支",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-domain/src/main/java/com/mi/asp/fault/domain/fault/model/FaultBrandClassExportExcel.java",
+        "reason": "纯数据传输对象，无分支业务逻辑",
+        "evidence": "文件类型/命名：FaultBrandClassExportExcel.java，纯数据传输对象，无分支业务逻辑",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-domain/src/main/java/com/mi/asp/fault/domain/fault/model/FaultBrandClassImportExcel.java",
+        "reason": "纯数据传输对象，无分支业务逻辑",
+        "evidence": "文件类型/命名：FaultBrandClassImportExcel.java，纯数据传输对象，无分支业务逻辑",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-domain/src/main/java/com/mi/asp/fault/domain/fault/repository/FaultDetailRepository.java",
+        "reason": "Repository接口，无实现逻辑",
+        "evidence": "文件类型/命名：FaultDetailRepository.java，Repository接口，无实现逻辑",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-domain/src/main/java/com/mi/asp/fault/domain/fault/repository/FaultRepository.java",
+        "reason": "Repository接口，无实现逻辑",
+        "evidence": "文件类型/命名：FaultRepository.java，Repository接口，无实现逻辑",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-domain/src/main/java/com/mi/asp/fault/domain/faultext/repository/FaultExtOperationRepository.java",
+        "reason": "Repository接口，无实现逻辑",
+        "evidence": "文件类型/命名：FaultExtOperationRepository.java，Repository接口，无实现逻辑",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-domain/src/main/java/com/mi/asp/fault/domain/faultext/repository/FaultExtQueryRepository.java",
+        "reason": "Repository接口，无实现逻辑",
+        "evidence": "文件类型/命名：FaultExtQueryRepository.java，Repository接口，无实现逻辑",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-domain/src/main/java/com/mi/asp/fault/domain/faultreason/model/BaseFaultReason.java",
+        "reason": "Domain模型，字段赋值无分支",
+        "evidence": "文件类型/命名：BaseFaultReason.java，Domain模型，字段赋值无分支",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-domain/src/main/java/com/mi/asp/fault/domain/faultreason/model/BaseFaultReasonBrandClassConfig.java",
+        "reason": "Spring配置类，无业务逻辑",
+        "evidence": "文件类型/命名：BaseFaultReasonBrandClassConfig.java，Spring配置类，无业务逻辑",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-domain/src/main/java/com/mi/asp/fault/domain/faultreason/model/BaseFaultReasonRelation.java",
+        "reason": "Domain模型，字段赋值无分支",
+        "evidence": "文件类型/命名：BaseFaultReasonRelation.java，Domain模型，字段赋值无分支",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-domain/src/main/java/com/mi/asp/fault/domain/faultreason/repository/FaultReasonBrandClassConfigRepository.java",
+        "reason": "Repository接口，无实现逻辑",
+        "evidence": "文件类型/命名：FaultReasonBrandClassConfigRepository.java，Repository接口，无实现逻辑",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-domain/src/main/java/com/mi/asp/fault/domain/faultreason/repository/FaultReasonRelationRepository.java",
+        "reason": "Repository接口，无实现逻辑",
+        "evidence": "文件类型/命名：FaultReasonRelationRepository.java，Repository接口，无实现逻辑",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-domain/src/main/java/com/mi/asp/fault/domain/faultreason/repository/FaultReasonRepository.java",
+        "reason": "Repository接口，无实现逻辑",
+        "evidence": "文件类型/命名：FaultReasonRepository.java，Repository接口，无实现逻辑",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-domain/src/main/java/com/mi/asp/fault/domain/log/enums/LogBizTypeEnum.java",
+        "reason": "常量/枚举定义，无可测分支",
+        "evidence": "文件类型/命名：LogBizTypeEnum.java，常量/枚举定义，无可测分支",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-infrastructure/src/main/java/com/mi/asp/fault/infrastructure/base/SpfSequence.java",
+        "reason": "辅助工具类或基础设施，无核心业务分支",
+        "evidence": "文件类型/命名：SpfSequence.java，辅助工具类或基础设施，无核心业务分支",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-infrastructure/src/main/java/com/mi/asp/fault/infrastructure/convert/fault/FaultDTOConvertor.java",
+        "reason": "纯字段映射转换，无分支逻辑",
+        "evidence": "文件类型/命名：FaultDTOConvertor.java，纯字段映射转换，无分支逻辑",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-infrastructure/src/main/java/com/mi/asp/fault/infrastructure/convert/faultreason/BaseFaultReasonBrandClassConfigConvertor.java",
+        "reason": "纯字段映射转换，无分支逻辑",
+        "evidence": "文件类型/命名：BaseFaultReasonBrandClassConfigConvertor.java，纯字段映射转换，无分支逻辑",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-infrastructure/src/main/java/com/mi/asp/fault/infrastructure/convert/faultreason/FaultReasonDTOConvertor.java",
+        "reason": "纯字段映射转换，无分支逻辑",
+        "evidence": "文件类型/命名：FaultReasonDTOConvertor.java，纯字段映射转换，无分支逻辑",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-infrastructure/src/main/java/com/mi/asp/fault/infrastructure/convert/faultreason/FaultReasonDoConvertor.java",
+        "reason": "纯字段映射转换，无分支逻辑",
+        "evidence": "文件类型/命名：FaultReasonDoConvertor.java，纯字段映射转换，无分支逻辑",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-infrastructure/src/main/java/com/mi/asp/fault/infrastructure/convert/faultreason/FaultReasonRelationConvertor.java",
+        "reason": "纯字段映射转换，无分支逻辑",
+        "evidence": "文件类型/命名：FaultReasonRelationConvertor.java，纯字段映射转换，无分支逻辑",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-infrastructure/src/main/java/com/mi/asp/fault/infrastructure/convert/faultreason/FaultReasonRelationDoConvertor.java",
+        "reason": "纯字段映射转换，无分支逻辑",
+        "evidence": "文件类型/命名：FaultReasonRelationDoConvertor.java，纯字段映射转换，无分支逻辑",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-infrastructure/src/main/java/com/mi/asp/fault/infrastructure/domain/faultext/BaseFaultRelationshipExtVO.java",
+        "reason": "纯数据传输对象，无分支业务逻辑",
+        "evidence": "文件类型/命名：BaseFaultRelationshipExtVO.java，纯数据传输对象，无分支业务逻辑",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-infrastructure/src/main/java/com/mi/asp/fault/infrastructure/domain/faultreason/BaseFaultReasonBrandClassConfigDO.java",
+        "reason": "纯数据传输对象，无分支业务逻辑",
+        "evidence": "文件类型/命名：BaseFaultReasonBrandClassConfigDO.java，纯数据传输对象，无分支业务逻辑",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-infrastructure/src/main/java/com/mi/asp/fault/infrastructure/domain/faultreason/BaseFaultReasonRelationDO.java",
+        "reason": "纯数据传输对象，无分支业务逻辑",
+        "evidence": "文件类型/命名：BaseFaultReasonRelationDO.java，纯数据传输对象，无分支业务逻辑",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-infrastructure/src/main/java/com/mi/asp/fault/infrastructure/domain/faultreason/FaultReasonBrandClassVO.java",
+        "reason": "纯数据传输对象，无分支业务逻辑",
+        "evidence": "文件类型/命名：FaultReasonBrandClassVO.java，纯数据传输对象，无分支业务逻辑",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-infrastructure/src/main/java/com/mi/asp/fault/infrastructure/domain/faultreason/FaultReasonRelationVO.java",
+        "reason": "纯数据传输对象，无分支业务逻辑",
+        "evidence": "文件类型/命名：FaultReasonRelationVO.java，纯数据传输对象，无分支业务逻辑",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-infrastructure/src/main/java/com/mi/asp/fault/infrastructure/mapper/bpm/BpmApproveMapper.java",
+        "reason": "MyBatis Mapper接口，无Java业务分支，通过集成测试覆盖",
+        "evidence": "文件类型/命名：BpmApproveMapper.java，MyBatis Mapper接口，无Java业务分支，通过集成测试覆盖",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-infrastructure/src/main/java/com/mi/asp/fault/infrastructure/mapper/fault/BaseFaultBrandClassMapper.java",
+        "reason": "MyBatis Mapper接口，无Java业务分支，通过集成测试覆盖",
+        "evidence": "文件类型/命名：BaseFaultBrandClassMapper.java，MyBatis Mapper接口，无Java业务分支，通过集成测试覆盖",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-infrastructure/src/main/java/com/mi/asp/fault/infrastructure/mapper/fault/BaseFaultMapper.java",
+        "reason": "MyBatis Mapper接口，无Java业务分支，通过集成测试覆盖",
+        "evidence": "文件类型/命名：BaseFaultMapper.java，MyBatis Mapper接口，无Java业务分支，通过集成测试覆盖",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-infrastructure/src/main/java/com/mi/asp/fault/infrastructure/mapper/fault/BaseFaultReasonBrandclassConfigMapper.java",
+        "reason": "MyBatis Mapper接口，无Java业务分支，通过集成测试覆盖",
+        "evidence": "文件类型/命名：BaseFaultReasonBrandclassConfigMapper.java，MyBatis Mapper接口，无Java业务分支，通过集成测试覆盖",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-infrastructure/src/main/java/com/mi/asp/fault/infrastructure/mapper/faultext/BaseFaultRelationshipExtMapper.java",
+        "reason": "MyBatis Mapper接口，无Java业务分支，通过集成测试覆盖",
+        "evidence": "文件类型/命名：BaseFaultRelationshipExtMapper.java，MyBatis Mapper接口，无Java业务分支，通过集成测试覆盖",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-infrastructure/src/main/java/com/mi/asp/fault/infrastructure/mapper/faultext/BaseFaultRelationshipExtOperationMapper.java",
+        "reason": "MyBatis Mapper接口，无Java业务分支，通过集成测试覆盖",
+        "evidence": "文件类型/命名：BaseFaultRelationshipExtOperationMapper.java，MyBatis Mapper接口，无Java业务分支，通过集成测试覆盖",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-infrastructure/src/main/java/com/mi/asp/fault/infrastructure/mapper/faultreason/BaseFaultReasonBrandClassConfigMapper.java",
+        "reason": "MyBatis Mapper接口，无Java业务分支，通过集成测试覆盖",
+        "evidence": "文件类型/命名：BaseFaultReasonBrandClassConfigMapper.java，MyBatis Mapper接口，无Java业务分支，通过集成测试覆盖",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-infrastructure/src/main/java/com/mi/asp/fault/infrastructure/mapper/faultreason/BaseFaultReasonMapper.java",
+        "reason": "MyBatis Mapper接口，无Java业务分支，通过集成测试覆盖",
+        "evidence": "文件类型/命名：BaseFaultReasonMapper.java，MyBatis Mapper接口，无Java业务分支，通过集成测试覆盖",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-infrastructure/src/main/java/com/mi/asp/fault/infrastructure/mapper/faultreason/BaseFaultReasonRelationMapper.java",
+        "reason": "MyBatis Mapper接口，无Java业务分支，通过集成测试覆盖",
+        "evidence": "文件类型/命名：BaseFaultReasonRelationMapper.java，MyBatis Mapper接口，无Java业务分支，通过集成测试覆盖",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-infrastructure/src/main/java/com/mi/asp/fault/infrastructure/repository/binlog/FaultBinlogRepositoryImpl.java",
+        "reason": "辅助工具类或基础设施，无核心业务分支",
+        "evidence": "文件类型/命名：FaultBinlogRepositoryImpl.java，辅助工具类或基础设施，无核心业务分支",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-infrastructure/src/main/java/com/mi/asp/fault/infrastructure/repository/bpm/BpmApproveQueryRepositoryImpl.java",
+        "reason": "辅助工具类或基础设施，无核心业务分支",
+        "evidence": "文件类型/命名：BpmApproveQueryRepositoryImpl.java，辅助工具类或基础设施，无核心业务分支",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-infrastructure/src/main/java/com/mi/asp/fault/infrastructure/repository/fault/FaultDetailRepositoryImpl.java",
+        "reason": "辅助工具类或基础设施，无核心业务分支",
+        "evidence": "文件类型/命名：FaultDetailRepositoryImpl.java，辅助工具类或基础设施，无核心业务分支",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-infrastructure/src/main/java/com/mi/asp/fault/infrastructure/repository/fault/FaultRepositoryImpl.java",
+        "reason": "辅助工具类或基础设施，无核心业务分支",
+        "evidence": "文件类型/命名：FaultRepositoryImpl.java，辅助工具类或基础设施，无核心业务分支",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-infrastructure/src/main/java/com/mi/asp/fault/infrastructure/repository/faultext/FaultExtOperationRepositoryImpl.java",
+        "reason": "辅助工具类或基础设施，无核心业务分支",
+        "evidence": "文件类型/命名：FaultExtOperationRepositoryImpl.java，辅助工具类或基础设施，无核心业务分支",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "sfp-fault-service-infrastructure/src/main/java/com/mi/asp/fault/infrastructure/repository/faultext/FaultExtQueryRepositoryImpl.java",
+        "reason": "辅助工具类或基础设施，无核心业务分支",
+        "evidence": "文件类型/命名：FaultExtQueryRepositoryImpl.java，辅助工具类或基础设施，无核心业务分支",
+        "decision_owner": "开发者",
+        "risk_tier": "T3"
+      }
+    ],
+    "scope_conflicts": [],
+    "req_mappings": [
+      {
+        "id": "REQ-001",
+        "class_name": "FaultReasonFacadeImpl",
+        "method_name": "batchUpdateConfigStatus",
+        "repo": "sfp-fault-service",
+        "found": true,
+        "evidence": "FaultReasonFacadeImpl.java:252"
+      },
+      {
+        "id": "REQ-002",
+        "class_name": "FaultReasonServiceImpl",
+        "method_name": "queryFaultReason",
+        "repo": "sfp-fault-service",
+        "found": true,
+        "evidence": "FaultReasonServiceImpl.java:55"
+      },
+      {
+        "id": "REQ-003",
+        "class_name": "FaultReasonFacadeImpl",
+        "method_name": "updateBaseFaultReason",
+        "repo": "sfp-fault-service",
+        "found": true,
+        "evidence": "FaultReasonFacadeImpl.java:717"
+      },
+      {
+        "id": "BR-002",
+        "class_name": "FaultReasonFacadeImpl",
+        "method_name": "batchUpdateConfigStatus",
+        "repo": "sfp-fault-service",
+        "found": true,
+        "evidence": "FaultReasonFacadeImpl.java:260"
+      },
+      {
+        "id": "BR-003",
+        "class_name": "UpdateFaultTypeCommandHandler",
+        "method_name": "execute",
+        "repo": "sfp-fault-service",
+        "found": true,
+        "evidence": "UpdateFaultTypeCommandHandler.java:35"
+      },
+      {
+        "id": "BR-005",
+        "class_name": "FaultReasonFacadeImpl",
+        "method_name": "validateFaultReasonNameParam",
+        "repo": "sfp-fault-service",
+        "found": true,
+        "evidence": "FaultReasonFacadeImpl.java:918"
+      },
+      {
+        "id": "BR-006",
+        "class_name": "FaultReasonFacadeImpl",
+        "method_name": "validateReasonBrandClassParam",
+        "repo": "sfp-fault-service",
+        "found": true,
+        "evidence": "FaultReasonFacadeImpl.java:836"
+      },
+      {
+        "id": "BR-007",
+        "class_name": "FaultReasonFacadeImpl",
+        "method_name": "updateBaseFaultReason",
+        "repo": "sfp-fault-service",
+        "found": true,
+        "evidence": "FaultReasonFacadeImpl.java:740"
+      },
+      {
+        "id": "REQ-004",
+        "class_name": "FaultReasonBinLogCommandHandler",
+        "method_name": "handle",
+        "repo": "sfp-fault-service",
+        "found": true,
+        "evidence": "FaultReasonBinLogCommandHandler.java:43"
+      },
+      {
+        "id": "REQ-006",
+        "class_name": "FaultReasonFacadeImpl",
+        "method_name": "batchUpdateBaseFaultReason",
+        "repo": "sfp-fault-service",
+        "found": true,
+        "evidence": "FaultReasonFacadeImpl.java:1480"
+      },
+      {
+        "id": "REQ-008",
+        "class_name": "FaultBpmApprovalServiceImpl",
+        "method_name": "approveBaseFaultReason",
+        "repo": "sfp-fault-service",
+        "found": true,
+        "evidence": "FaultBpmApprovalServiceImpl.java:50"
+      },
+      {
+        "id": "BR-013",
+        "class_name": "FaultBpmApprovalServiceImpl",
+        "method_name": "approveBaseFaultReason",
+        "repo": "sfp-fault-service",
+        "found": true,
+        "evidence": "FaultBpmApprovalServiceImpl.java:55"
+      }
+    ],
+    "se_mappings": [
+      {
+        "id": "SE-001",
+        "class_name": "FaultReasonFacadeImpl",
+        "method_name": "updateBaseFaultReason",
+        "repo": "sfp-fault-service",
+        "found": true,
+        "evidence": "FaultReasonFacadeImpl.java:918"
+      },
+      {
+        "id": "SE-002",
+        "class_name": "FaultReasonFacadeImpl",
+        "method_name": "validateReasonUpdateParam",
+        "repo": "sfp-fault-service",
+        "found": true,
+        "evidence": "FaultReasonFacadeImpl.java:836"
+      },
+      {
+        "id": "SE-003",
+        "class_name": "FaultQueryServiceImpl",
+        "method_name": "queryFaultInfoList",
+        "repo": "sfp-fault-service",
+        "found": true,
+        "evidence": "FaultQueryServiceImpl.java"
+      },
+      {
+        "id": "SE-007",
+        "class_name": "FaultServiceImpl",
+        "method_name": "importFaultBrandClassData",
+        "repo": "sfp-fault-service",
+        "found": true,
+        "evidence": "FaultServiceImpl.java"
+      }
+    ]
+  },
+  "non_testable_items": [
+    {
+      "id": "REQ-007",
+      "reason": "批量导出为数据格式化，无核心分支逻辑，通过集成测试或手工测试覆盖",
+      "testability": "not_backend_testable",
+      "evidence": "FaultListFacadeImpl export methods are data assembly only"
+    },
+    {
+      "id": "REQ-009",
+      "reason": "故障与非故障互斥规则由系统配置文件控制，无Java分支可单元测试",
+      "testability": "config_only",
+      "evidence": "prd.md:629 says 系统配置文件实现"
+    },
+    {
+      "id": "REQ-010",
+      "reason": "XMS三元关系为跨系统接口，数据库层通过集成测试覆盖",
+      "testability": "external_system",
+      "evidence": "XMS is a separate system"
+    },
+    {
+      "id": "REQ-011",
+      "reason": "灰度切换由后端配置管理，具体实现机制尚待确认（GAP-001）",
+      "testability": "config_only",
+      "evidence": "GAP-001: 灰度实现机制未描述"
+    },
+    {
+      "id": "SE-006",
+      "reason": "灰度路由正确性依赖灰度开关配置，单元测试不可控",
+      "testability": "config_only",
+      "evidence": "SE-006依赖灰度配置实现（GAP-001未解决）"
+    },
+    {
+      "id": "SE-005",
+      "reason": "SKU互斥的服务端拦截，需要集成测试验证端到端流程",
+      "testability": "not_backend_testable",
+      "evidence": "SKU mutual exclusion requires full request context"
+    },
+    {
+      "id": "SE-008",
+      "reason": "故障类与非故障类互斥由配置文件实现，不在本Java仓库范围内",
+      "testability": "config_only",
+      "evidence": "AS工单系统配置，不在sfp-fault-service中"
+    },
+    {
+      "id": "FaultFacadeImpl.handleExcelImport",
+      "reason": "Excel导入主流程，通过集成测试覆盖（需要实际文件）",
+      "testability": "not_backend_testable",
+      "evidence": "FaultFacadeImpl.java method handleExcelImport - Excel导入主流程，通过集成测试覆盖（需要实际文件）"
+    },
+    {
+      "id": "FaultFacadeImpl.addFaultReasonRelations",
+      "reason": "批量新建故障原因关联，boundary分支为null防御，集成测试覆盖更合适",
+      "testability": "not_backend_testable",
+      "evidence": "FaultFacadeImpl.java method addFaultReasonRelations - 批量新建故障原因关联，boundary分支为null防御，集成测试覆盖更合适"
+    },
+    {
+      "id": "FaultFacadeImpl.collectTemplate2ReasonCodes",
+      "reason": "内部数据收集helper，boundary分支为集合空判断，无独立业务语义",
+      "testability": "not_backend_testable",
+      "evidence": "FaultFacadeImpl.java method collectTemplate2ReasonCodes - 内部数据收集helper，boundary分支为集合空判断，无独立业务语义"
+    },
+    {
+      "id": "FaultFacadeImpl.updateFaultEditInfo",
+      "reason": "故障编辑信息更新的内部封装，由FaultFacadeImpl.updateBaseFaultInfo的EUT间接覆盖",
+      "testability": "not_backend_testable",
+      "evidence": "FaultFacadeImpl.java method updateFaultEditInfo - 故障编辑信息更新的内部封装，由FaultFacadeImpl.updateBaseFaultInfo"
+    },
+    {
+      "id": "FaultFacadeImpl.batchAdd",
+      "reason": "批量新建主流程，需要集成测试（Excel文件+数据库）",
+      "testability": "not_backend_testable",
+      "evidence": "FaultFacadeImpl.java method batchAdd - 批量新建主流程，需要集成测试（Excel文件+数据库）"
+    },
+    {
+      "id": "FaultFacadeImpl.updateBaseFaultBrandClassById",
+      "reason": "基础设施层更新，由集成测试覆盖",
+      "testability": "not_backend_testable",
+      "evidence": "FaultFacadeImpl.java method updateBaseFaultBrandClassById - 基础设施层更新，由集成测试覆盖"
+    },
+    {
+      "id": "FaultFacadeImpl.buildFaultReasonRelationBatch",
+      "reason": "数据批量构建helper，纯数据组装，boundary为null检查",
+      "testability": "not_backend_testable",
+      "evidence": "FaultFacadeImpl.java method buildFaultReasonRelationBatch - 数据批量构建helper，纯数据组装，boundary为null检查"
+    },
+    {
+      "id": "FaultFacadeImpl.validateTemplate2FaultReason",
+      "reason": "模版2验证逻辑，需完整文件上下文，集成测试覆盖",
+      "testability": "not_backend_testable",
+      "evidence": "FaultFacadeImpl.java method validateTemplate2FaultReason - 模版2验证逻辑，需完整文件上下文，集成测试覆盖"
+    },
+    {
+      "id": "FaultFacadeImpl.buildFaultBrandClassInfo",
+      "reason": "数据组装helper，defense分支为null防御，无独立业务语义",
+      "testability": "not_backend_testable",
+      "evidence": "FaultFacadeImpl.java method buildFaultBrandClassInfo - 数据组装helper，defense分支为null防御，无独立业务语义"
+    },
+    {
+      "id": "FaultFacadeImpl.collectTemplate2RelationKeys",
+      "reason": "内部key收集，boundary为空集合，无独立业务语义",
+      "testability": "not_backend_testable",
+      "evidence": "FaultFacadeImpl.java method collectTemplate2RelationKeys - 内部key收集，boundary为空集合，无独立业务语义"
+    },
+    {
+      "id": "FaultFacadeImpl.hasExistingReasonRelation",
+      "reason": "内部查询helper，boundary为empty，由FaultFacadeImpl主方法EUT覆盖",
+      "testability": "not_backend_testable",
+      "evidence": "FaultFacadeImpl.java method hasExistingReasonRelation - 内部查询helper，boundary为empty，由FaultFacadeImpl主方法EUT覆盖"
+    },
+    {
+      "id": "FaultFacadeImpl.updateBaseFaultInfo",
+      "reason": "故障信息更新，由已有EUT（EUT-018）间接覆盖BPM分支",
+      "testability": "not_backend_testable",
+      "evidence": "FaultFacadeImpl.java method updateBaseFaultInfo - 故障信息更新，由已有EUT（EUT-018）间接覆盖BPM分支"
+    },
+    {
+      "id": "FaultFacadeImpl.listFaultTree",
+      "reason": "故障树查询，boundary分支为空集合防御，无核心业务规则",
+      "testability": "not_backend_testable",
+      "evidence": "FaultFacadeImpl.java method listFaultTree - 故障树查询，boundary分支为空集合防御，无核心业务规则"
+    },
+    {
+      "id": "FaultFacadeImpl.startBpmProcess",
+      "reason": "BPM流程启动，外部系统调用，集成测试覆盖",
+      "testability": "external_system",
+      "evidence": "FaultFacadeImpl.java method startBpmProcess - BPM流程启动，外部系统调用，集成测试覆盖"
+    },
+    {
+      "id": "FaultFacadeImpl.getFaultDetailById",
+      "reason": "故障详情查询，已有FaultQueryServiceImpl覆盖类似路径",
+      "testability": "not_backend_testable",
+      "evidence": "FaultFacadeImpl.java method getFaultDetailById - 故障详情查询，已有FaultQueryServiceImpl覆盖类似路径"
+    },
+    {
+      "id": "FaultFacadeImpl.getFaultDetailByLeafFaultCode",
+      "reason": "按code查询详情，boundary分支为null防御，无独立业务语义",
+      "testability": "not_backend_testable",
+      "evidence": "FaultFacadeImpl.java method getFaultDetailByLeafFaultCode - 按code查询详情，boundary分支为null防御，无独立业务语义"
+    },
+    {
+      "id": "FaultFacadeImpl.validate",
+      "reason": "Excel行校验，需要完整文件上下文，集成测试覆盖",
+      "testability": "not_backend_testable",
+      "evidence": "FaultFacadeImpl.java method validate - Excel行校验，需要完整文件上下文，集成测试覆盖"
+    },
+    {
+      "id": "FaultFacadeImpl.parseHeaderAndSetTemplateType",
+      "reason": "模版头解析，需要Excel文件上下文，集成测试覆盖",
+      "testability": "not_backend_testable",
+      "evidence": "FaultFacadeImpl.java method parseHeaderAndSetTemplateType - 模版头解析，需要Excel文件上下文，集成测试覆盖"
+    },
+    {
+      "id": "FaultFacadeImpl.validateImportTemplateHeaderAndExampleRow",
+      "reason": "Excel表头校验，需要文件上下文",
+      "testability": "not_backend_testable",
+      "evidence": "FaultFacadeImpl.java method validateImportTemplateHeaderAndExampleRow - Excel表头校验，需要文件上下文"
+    },
+    {
+      "id": "FaultFacadeImpl.readHeadRows",
+      "reason": "Excel读取helper，需要文件上下文",
+      "testability": "not_backend_testable",
+      "evidence": "FaultFacadeImpl.java method readHeadRows - Excel读取helper，需要文件上下文"
+    },
+    {
+      "id": "FaultFacadeImpl.rowContains",
+      "reason": "Excel行检查helper，内部工具方法",
+      "testability": "not_backend_testable",
+      "evidence": "FaultFacadeImpl.java method rowContains - Excel行检查helper，内部工具方法"
+    },
+    {
+      "id": "FaultFacadeImpl.invoke",
+      "reason": "模版行处理，需要文件上下文",
+      "testability": "not_backend_testable",
+      "evidence": "FaultFacadeImpl.java method invoke - 模版行处理，需要文件上下文"
+    },
+    {
+      "id": "FaultFacadeImpl.manualImport",
+      "reason": "手动导入主流程，集成测试覆盖",
+      "testability": "not_backend_testable",
+      "evidence": "FaultFacadeImpl.java method manualImport - 手动导入主流程，集成测试覆盖"
+    },
+    {
+      "id": "FaultFacadeImpl.initSelf",
+      "reason": "内部初始化方法，无独立业务语义",
+      "testability": "not_backend_testable",
+      "evidence": "FaultFacadeImpl.java method initSelf - 内部初始化方法，无独立业务语义"
+    },
+    {
+      "id": "FaultFacadeImpl.initSelfExcel",
+      "reason": "Excel导入初始化，需要文件上下文",
+      "testability": "not_backend_testable",
+      "evidence": "FaultFacadeImpl.java method initSelfExcel - Excel导入初始化，需要文件上下文"
+    },
+    {
+      "id": "FaultFacadeImpl.dbFaultErrorCheck",
+      "reason": "数据库错误校验helper，由主流程EUT间接覆盖",
+      "testability": "not_backend_testable",
+      "evidence": "FaultFacadeImpl.java method dbFaultErrorCheck - 数据库错误校验helper，由主流程EUT间接覆盖"
+    },
+    {
+      "id": "FaultFacadeImpl.dbFaultNameConsistencyCheck",
+      "reason": "名称一致性校验helper，由主流程EUT间接覆盖",
+      "testability": "not_backend_testable",
+      "evidence": "FaultFacadeImpl.java method dbFaultNameConsistencyCheck - 名称一致性校验helper，由主流程EUT间接覆盖"
+    },
+    {
+      "id": "FaultFacadeImpl.appendTemplate2RowDupErrors",
+      "reason": "重复错误追加helper，内部工具方法",
+      "testability": "not_backend_testable",
+      "evidence": "FaultFacadeImpl.java method appendTemplate2RowDupErrors - 重复错误追加helper，内部工具方法"
+    },
+    {
+      "id": "FaultFacadeImpl.buildTemplate2DbDuplicateContext",
+      "reason": "重复上下文构建helper，内部工具方法",
+      "testability": "not_backend_testable",
+      "evidence": "FaultFacadeImpl.java method buildTemplate2DbDuplicateContext - 重复上下文构建helper，内部工具方法"
+    },
+    {
+      "id": "FaultFacadeImpl.buildDbFaultNameToCodeByKey",
+      "reason": "名称-code映射构建helper，内部工具方法",
+      "testability": "not_backend_testable",
+      "evidence": "FaultFacadeImpl.java method buildDbFaultNameToCodeByKey - 名称-code映射构建helper，内部工具方法"
+    },
+    {
+      "id": "FaultFacadeImpl.buildFaultBrandClassBaseInfo",
+      "reason": "基础信息构建helper，内部工具方法",
+      "testability": "not_backend_testable",
+      "evidence": "FaultFacadeImpl.java method buildFaultBrandClassBaseInfo - 基础信息构建helper，内部工具方法"
+    },
+    {
+      "id": "FaultFacadeImpl.checkHaveBpmReasonSku",
+      "reason": "原因SKU BPM检查，由FaultReasonFacadeImpl的EUT覆盖类似逻辑",
+      "testability": "not_backend_testable",
+      "evidence": "FaultFacadeImpl.java method checkHaveBpmReasonSku - 原因SKU BPM检查，由FaultReasonFacadeImpl的EUT覆盖类似逻辑"
+    },
+    {
+      "id": "FaultFacadeImpl.checkOneLevelNameConsistency",
+      "reason": "一级名称一致性校验，Excel批量导入内部校验",
+      "testability": "not_backend_testable",
+      "evidence": "FaultFacadeImpl.java method checkOneLevelNameConsistency - 一级名称一致性校验，Excel批量导入内部校验"
+    },
+    {
+      "id": "FaultFacadeImpl.collectAllSkuIds",
+      "reason": "SKU ID收集helper，内部工具方法",
+      "testability": "not_backend_testable",
+      "evidence": "FaultFacadeImpl.java method collectAllSkuIds - SKU ID收集helper，内部工具方法"
+    },
+    {
+      "id": "FaultFacadeImpl.collectDuplicatedReasonsInDb",
+      "reason": "DB重复原因收集helper，由主流程EUT间接覆盖",
+      "testability": "not_backend_testable",
+      "evidence": "FaultFacadeImpl.java method collectDuplicatedReasonsInDb - DB重复原因收集helper，由主流程EUT间接覆盖"
+    },
+    {
+      "id": "FaultFacadeImpl.getAllDBMutualBrandFault",
+      "reason": "互斥故障查询，boundary分支为空集合防御",
+      "testability": "not_backend_testable",
+      "evidence": "FaultFacadeImpl.java method getAllDBMutualBrandFault - 互斥故障查询，boundary分支为空集合防御"
+    },
+    {
+      "id": "FaultFacadeImpl.loadExistingBrandClassMap",
+      "reason": "品类map加载helper，内部工具方法",
+      "testability": "not_backend_testable",
+      "evidence": "FaultFacadeImpl.java method loadExistingBrandClassMap - 品类map加载helper，内部工具方法"
+    },
+    {
+      "id": "FaultFacadeImpl.queryReasonNameToCode",
+      "reason": "名称-code查询helper，内部工具方法",
+      "testability": "not_backend_testable",
+      "evidence": "FaultFacadeImpl.java method queryReasonNameToCode - 名称-code查询helper，内部工具方法"
+    },
+    {
+      "id": "FaultFacadeImpl.addLog",
+      "reason": "日志追加helper，无业务分支，side effect",
+      "testability": "not_backend_testable",
+      "evidence": "FaultFacadeImpl.java method addLog - 日志追加helper，无业务分支，side effect"
+    },
+    {
+      "id": "FaultFacadeImpl.addUpdateFaultBrandLog",
+      "reason": "品类日志追加，无业务分支，side effect",
+      "testability": "not_backend_testable",
+      "evidence": "FaultFacadeImpl.java method addUpdateFaultBrandLog - 品类日志追加，无业务分支，side effect"
+    },
+    {
+      "id": "FaultListFacadeImpl.checkFaultNeedMiTest",
+      "reason": "米测校验，boundary为null防御，由queryFaultList主流程覆盖",
+      "testability": "not_backend_testable",
+      "evidence": "FaultListFacadeImpl.java method checkFaultNeedMiTest - 米测校验，boundary为null防御，由queryFaultList主流程覆盖"
+    },
+    {
+      "id": "FaultListFacadeImpl.fillFaultInfo",
+      "reason": "故障信息填充helper，defense分支为null防御，由queryFaultList覆盖",
+      "testability": "not_backend_testable",
+      "evidence": "FaultListFacadeImpl.java method fillFaultInfo - 故障信息填充helper，defense分支为null防御，由queryFaultList覆盖"
+    },
+    {
+      "id": "FaultListFacadeImpl.convertWithBatchDataV2",
+      "reason": "批量数据转换，boundary为空集合，由queryFaultList覆盖",
+      "testability": "not_backend_testable",
+      "evidence": "FaultListFacadeImpl.java method convertWithBatchDataV2 - 批量数据转换，boundary为空集合，由queryFaultList覆盖"
+    },
+    {
+      "id": "FaultListFacadeImpl.batchQueryReasonSkuMap",
+      "reason": "原因SKU批量查询，boundary为空集合，由主流程覆盖",
+      "testability": "not_backend_testable",
+      "evidence": "FaultListFacadeImpl.java method batchQueryReasonSkuMap - 原因SKU批量查询，boundary为空集合，由主流程覆盖"
+    },
+    {
+      "id": "FaultListFacadeImpl.queryFaultBrandClassSkuByTime",
+      "reason": "按时间查询故障品类SKU，exception分支需要时间参数，集成测试覆盖",
+      "testability": "not_backend_testable",
+      "evidence": "FaultListFacadeImpl.java method queryFaultBrandClassSkuByTime - 按时间查询故障品类SKU，exception分支需要时间参数，集成测试覆盖"
+    },
+    {
+      "id": "FaultListFacadeImpl.batchBuildFaultReasonListMap",
+      "reason": "故障原因列表批量构建，boundary为空集合，无独立业务语义",
+      "testability": "not_backend_testable",
+      "evidence": "FaultListFacadeImpl.java method batchBuildFaultReasonListMap - 故障原因列表批量构建，boundary为空集合，无独立业务语义"
+    },
+    {
+      "id": "FaultListFacadeImpl.enrichBaseFaultBrandClassSkuDTO",
+      "reason": "DTO数据填充，boundary为null防御，无独立业务语义",
+      "testability": "not_backend_testable",
+      "evidence": "FaultListFacadeImpl.java method enrichBaseFaultBrandClassSkuDTO - DTO数据填充，boundary为null防御，无独立业务语义"
+    },
+    {
+      "id": "FaultListFacadeImpl.batchGetFaultDetailsV2",
+      "reason": "批量获取故障详情，boundary为空集合，无独立业务语义",
+      "testability": "not_backend_testable",
+      "evidence": "FaultListFacadeImpl.java method batchGetFaultDetailsV2 - 批量获取故障详情，boundary为空集合，无独立业务语义"
+    },
+    {
+      "id": "FaultBpmApprovalServiceImpl.getRunningBpmByBizType",
+      "reason": "查询运行中BPM，boundary为empty，由主EUT间接覆盖",
+      "testability": "not_backend_testable",
+      "evidence": "FaultBpmApprovalServiceImpl.java method getRunningBpmByBizType - 查询运行中BPM，boundary为empty，由主EUT间接覆盖"
+    },
+    {
+      "id": "FaultBpmApprovalServiceImpl.invokeFaultBpmCallback",
+      "reason": "BPM回调调用，外部系统集成，集成测试覆盖",
+      "testability": "external_system",
+      "evidence": "FaultBpmApprovalServiceImpl.java method invokeFaultBpmCallback - BPM回调调用，外部系统集成，集成测试覆盖"
+    },
+    {
+      "id": "FaultBpmApprovalServiceImpl.startFaultApprovalBpm",
+      "reason": "BPM审批启动，外部系统调用，集成测试覆盖",
+      "testability": "external_system",
+      "evidence": "FaultBpmApprovalServiceImpl.java method startFaultApprovalBpm - BPM审批启动，外部系统调用，集成测试覆盖"
+    },
+    {
+      "id": "FaultReasonFacadeImpl.addConfigCore",
+      "reason": "配置核心写入，由batchUpdateConfigStatus的EUT间接覆盖",
+      "testability": "not_backend_testable",
+      "evidence": "FaultReasonFacadeImpl.java method addConfigCore - 配置核心写入，由batchUpdateConfigStatus的EUT间接覆盖"
+    },
+    {
+      "id": "FaultReasonFacadeImpl.beforeCheck",
+      "reason": "前置检查helper，由主方法EUT覆盖",
+      "testability": "not_backend_testable",
+      "evidence": "FaultReasonFacadeImpl.java method beforeCheck - 前置检查helper，由主方法EUT覆盖"
+    },
+    {
+      "id": "FaultReasonFacadeImpl.buildBrandClassItemRemark",
+      "reason": "品类条目备注构建，无分支业务逻辑",
+      "testability": "not_backend_testable",
+      "evidence": "FaultReasonFacadeImpl.java method buildBrandClassItemRemark - 品类条目备注构建，无分支业务逻辑"
+    },
+    {
+      "id": "FaultReasonFacadeImpl.buildCategoryData",
+      "reason": "品类数据构建helper，无分支业务逻辑",
+      "testability": "not_backend_testable",
+      "evidence": "FaultReasonFacadeImpl.java method buildCategoryData - 品类数据构建helper，无分支业务逻辑"
+    },
+    {
+      "id": "FaultReasonFacadeImpl.buildFaultData",
+      "reason": "故障数据构建helper，无分支业务逻辑",
+      "testability": "not_backend_testable",
+      "evidence": "FaultReasonFacadeImpl.java method buildFaultData - 故障数据构建helper，无分支业务逻辑"
+    },
+    {
+      "id": "FaultReasonFacadeImpl.buildFaultReasonBpmRemark",
+      "reason": "BPM备注构建，无分支业务逻辑",
+      "testability": "not_backend_testable",
+      "evidence": "FaultReasonFacadeImpl.java method buildFaultReasonBpmRemark - BPM备注构建，无分支业务逻辑"
+    },
+    {
+      "id": "FaultReasonFacadeImpl.buildFaultReasonRemark",
+      "reason": "故障原因备注构建，无分支业务逻辑",
+      "testability": "not_backend_testable",
+      "evidence": "FaultReasonFacadeImpl.java method buildFaultReasonRemark - 故障原因备注构建，无分支业务逻辑"
+    },
+    {
+      "id": "FaultReasonFacadeImpl.buildFaultReasonSystemRemark",
+      "reason": "系统备注构建，无分支业务逻辑",
+      "testability": "not_backend_testable",
+      "evidence": "FaultReasonFacadeImpl.java method buildFaultReasonSystemRemark - 系统备注构建，无分支业务逻辑"
+    },
+    {
+      "id": "FaultReasonFacadeImpl.buildSingleReasonBrandClassField",
+      "reason": "单条原因品类字段构建，无分支业务逻辑",
+      "testability": "not_backend_testable",
+      "evidence": "FaultReasonFacadeImpl.java method buildSingleReasonBrandClassField - 单条原因品类字段构建，无分支业务逻辑"
+    },
+    {
+      "id": "FaultReasonFacadeImpl.buildSingleReasonSkuField",
+      "reason": "单条原因SKU字段构建，无分支业务逻辑",
+      "testability": "not_backend_testable",
+      "evidence": "FaultReasonFacadeImpl.java method buildSingleReasonSkuField - 单条原因SKU字段构建，无分支业务逻辑"
+    },
+    {
+      "id": "FaultReasonFacadeImpl.checkHaveBpmFaultSku",
+      "reason": "故障现象SKU BPM检查，内部helper，由updateBaseFaultReason EUT覆盖",
+      "testability": "not_backend_testable",
+      "evidence": "FaultReasonFacadeImpl.java method checkHaveBpmFaultSku - 故障现象SKU BPM检查，内部helper，由updateBaseFaultReason EUT覆"
+    },
+    {
+      "id": "FaultReasonFacadeImpl.createFaultReasonBrandLog",
+      "reason": "品类日志创建，无分支业务逻辑，side effect",
+      "testability": "not_backend_testable",
+      "evidence": "FaultReasonFacadeImpl.java method createFaultReasonBrandLog - 品类日志创建，无分支业务逻辑，side effect"
+    },
+    {
+      "id": "FaultReasonFacadeImpl.createFaultReasonLog",
+      "reason": "故障原因日志创建，无分支业务逻辑，side effect",
+      "testability": "not_backend_testable",
+      "evidence": "FaultReasonFacadeImpl.java method createFaultReasonLog - 故障原因日志创建，无分支业务逻辑，side effect"
+    },
+    {
+      "id": "FaultReasonFacadeImpl.getAllValidBrandClassFaultReasonConfig",
+      "reason": "查询所有有效品类配置，boundary分支为空返回，无核心业务规则",
+      "testability": "not_backend_testable",
+      "evidence": "FaultReasonFacadeImpl.java method getAllValidBrandClassFaultReasonConfig - 查询所有有效品类配置，boundary分支为空返回，无核心业务规则"
+    },
+    {
+      "id": "FaultReasonFacadeImpl.getFaultInfoMap",
+      "reason": "故障信息map获取，内部工具方法",
+      "testability": "not_backend_testable",
+      "evidence": "FaultReasonFacadeImpl.java method getFaultInfoMap - 故障信息map获取，内部工具方法"
+    },
+    {
+      "id": "FaultReasonFacadeImpl.getFaultReasonByThirdFaultCode",
+      "reason": "按品类code查询原因，boundary分支，无核心业务规则",
+      "testability": "not_backend_testable",
+      "evidence": "FaultReasonFacadeImpl.java method getFaultReasonByThirdFaultCode - 按品类code查询原因，boundary分支，无核心业务规则"
+    },
+    {
+      "id": "FaultReasonFacadeImpl.getFaultReasonDetailByCode",
+      "reason": "按code查询原因详情，boundary分支，无核心业务规则",
+      "testability": "not_backend_testable",
+      "evidence": "FaultReasonFacadeImpl.java method getFaultReasonDetailByCode - 按code查询原因详情，boundary分支，无核心业务规则"
+    },
+    {
+      "id": "FaultReasonFacadeImpl.getUserEmailPrefix",
+      "reason": "用户邮箱前缀获取，无分支业务逻辑",
+      "testability": "not_backend_testable",
+      "evidence": "FaultReasonFacadeImpl.java method getUserEmailPrefix - 用户邮箱前缀获取，无分支业务逻辑"
+    },
+    {
+      "id": "FaultReasonFacadeImpl.getValue",
+      "reason": "内部值获取方法，工具方法",
+      "testability": "not_backend_testable",
+      "evidence": "FaultReasonFacadeImpl.java method getValue - 内部值获取方法，工具方法"
+    },
+    {
+      "id": "FaultReasonFacadeImpl.isBrandClassChanged",
+      "reason": "品类变更检查，boundary分支，内部工具",
+      "testability": "not_backend_testable",
+      "evidence": "FaultReasonFacadeImpl.java method isBrandClassChanged - 品类变更检查，boundary分支，内部工具"
+    },
+    {
+      "id": "FaultReasonFacadeImpl.listFaultReasonOptions",
+      "reason": "故障原因选项列表，boundary分支为空集合，查询方法无核心校验逻辑",
+      "testability": "not_backend_testable",
+      "evidence": "FaultReasonFacadeImpl.java method listFaultReasonOptions - 故障原因选项列表，boundary分支为空集合，查询方法无核心校验逻辑"
+    },
+    {
+      "id": "FaultReasonFacadeImpl.queryFaultReasonBrandClassList",
+      "reason": "按品类查询故障原因，查询方法，boundary为空",
+      "testability": "not_backend_testable",
+      "evidence": "FaultReasonFacadeImpl.java method queryFaultReasonBrandClassList - 按品类查询故障原因，查询方法，boundary为空"
+    },
+    {
+      "id": "FaultReasonFacadeImpl.startFaultReasonBpmProcess",
+      "reason": "BPM流程启动，外部系统调用，由EUT-001间接覆盖Happy Path，集成测试覆盖Exception",
+      "testability": "external_system",
+      "evidence": "FaultReasonFacadeImpl.java method startFaultReasonBpmProcess - BPM流程启动，外部系统调用，由EUT-001间接覆盖Happy Path，集成测试覆盖Except"
+    },
+    {
+      "id": "FaultReasonFacadeImpl.updateBaseFaultReasonRelationById",
+      "reason": "关系记录更新，基础设施层，由集成测试覆盖",
+      "testability": "not_backend_testable",
+      "evidence": "FaultReasonFacadeImpl.java method updateBaseFaultReasonRelationById - 关系记录更新，基础设施层，由集成测试覆盖"
+    },
+    {
+      "id": "FaultReasonFacadeImpl.updateBpmBaseFaultReasonInfo",
+      "reason": "BPM回调信息更新，外部系统集成，集成测试覆盖",
+      "testability": "external_system",
+      "evidence": "FaultReasonFacadeImpl.java method updateBpmBaseFaultReasonInfo - BPM回调信息更新，外部系统集成，集成测试覆盖"
+    },
+    {
+      "id": "FaultReasonFacadeImpl.updateConfigCore",
+      "reason": "配置核心更新，由batchUpdateConfigStatus EUT间接覆盖",
+      "testability": "not_backend_testable",
+      "evidence": "FaultReasonFacadeImpl.java method updateConfigCore - 配置核心更新，由batchUpdateConfigStatus EUT间接覆盖"
+    },
+    {
+      "id": "FaultReasonFacadeImpl.updateFaultReasonEditInfo",
+      "reason": "故障原因编辑信息更新，由updateBaseFaultReason EUT间接覆盖",
+      "testability": "not_backend_testable",
+      "evidence": "FaultReasonFacadeImpl.java method updateFaultReasonEditInfo - 故障原因编辑信息更新，由updateBaseFaultReason EUT间接覆盖"
+    },
+    {
+      "id": "FaultReasonFacadeImpl.validateFaultReasonNameParam",
+      "reason": "名称重复校验，由EUT-004覆盖Exception分支",
+      "testability": "not_backend_testable",
+      "evidence": "FaultReasonFacadeImpl.java method validateFaultReasonNameParam - 名称重复校验，由EUT-004覆盖Exception分支"
+    },
+    {
+      "id": "FaultReasonFacadeImpl.validateReasonBrandClassParam",
+      "reason": "品类校验，由EUT-005覆盖Exception分支",
+      "testability": "not_backend_testable",
+      "evidence": "FaultReasonFacadeImpl.java method validateReasonBrandClassParam - 品类校验，由EUT-005覆盖Exception分支"
+    },
+    {
+      "id": "FaultReasonBrandClassConfigRepositoryImpl.batchInsertConfig",
+      "reason": "基础设施层批量写入，boundary为empty，通过集成测试覆盖",
+      "testability": "not_backend_testable",
+      "evidence": "FaultReasonBrandClassConfigRepositoryImpl.java method batchInsertConfig - 基础设施层批量写入，boundary为empty，通过集成测试覆盖"
+    },
+    {
+      "id": "FaultReasonBrandClassConfigRepositoryImpl.batchUpdateConfigStatus",
+      "reason": "基础设施层批量更新，boundary为empty，通过集成测试覆盖",
+      "testability": "not_backend_testable",
+      "evidence": "FaultReasonBrandClassConfigRepositoryImpl.java method batchUpdateConfigStatus - 基础设施层批量更新，boundary为empty，通过集成测试覆盖"
+    },
+    {
+      "id": "FaultReasonBrandClassConfigRepositoryImpl.queryConfigByThirdBrandClassIdList",
+      "reason": "基础设施层查询，boundary为empty，通过集成测试覆盖",
+      "testability": "not_backend_testable",
+      "evidence": "FaultReasonBrandClassConfigRepositoryImpl.java method queryConfigByThirdBrandClassIdList - 基础设施层查询，boundary为empty，通过集成测试覆盖"
+    },
+    {
+      "id": "FaultReasonRelationRepositoryImpl.pageQueryByFaultReasonCode",
+      "reason": "基础设施层分页查询，boundary分支，通过集成测试覆盖",
+      "testability": "not_backend_testable",
+      "evidence": "FaultReasonRelationRepositoryImpl.java method pageQueryByFaultReasonCode - 基础设施层分页查询，boundary分支，通过集成测试覆盖"
+    },
+    {
+      "id": "FaultReasonRepositoryImpl.batchGetOrCreateReasonCodesByNames",
+      "reason": "批量获取或创建，boundary为empty，通过集成测试覆盖",
+      "testability": "not_backend_testable",
+      "evidence": "FaultReasonRepositoryImpl.java method batchGetOrCreateReasonCodesByNames - 批量获取或创建，boundary为empty，通过集成测试覆盖"
+    },
+    {
+      "id": "FaultReasonRepositoryImpl.batchInsertRelations",
+      "reason": "基础设施层批量写入，通过集成测试覆盖",
+      "testability": "not_backend_testable",
+      "evidence": "FaultReasonRepositoryImpl.java method batchInsertRelations - 基础设施层批量写入，通过集成测试覆盖"
+    },
+    {
+      "id": "FaultReasonRepositoryImpl.existsConfigByBrandClassId",
+      "reason": "基础设施层exists查询，无分支，通过集成测试覆盖",
+      "testability": "not_backend_testable",
+      "evidence": "FaultReasonRepositoryImpl.java method existsConfigByBrandClassId - 基础设施层exists查询，无分支，通过集成测试覆盖"
+    },
+    {
+      "id": "FaultReasonRepositoryImpl.getByCode",
+      "reason": "按code查询，基础设施层，通过集成测试覆盖",
+      "testability": "not_backend_testable",
+      "evidence": "FaultReasonRepositoryImpl.java method getByCode - 按code查询，基础设施层，通过集成测试覆盖"
+    },
+    {
+      "id": "FaultReasonRepositoryImpl.getRelationByBrandClassIdsAndStatus",
+      "reason": "关系查询，基础设施层，通过集成测试覆盖",
+      "testability": "not_backend_testable",
+      "evidence": "FaultReasonRepositoryImpl.java method getRelationByBrandClassIdsAndStatus - 关系查询，基础设施层，通过集成测试覆盖"
+    },
+    {
+      "id": "FaultReasonRepositoryImpl.getValidById",
+      "reason": "按ID查询有效记录，基础设施层，通过集成测试覆盖",
+      "testability": "not_backend_testable",
+      "evidence": "FaultReasonRepositoryImpl.java method getValidById - 按ID查询有效记录，基础设施层，通过集成测试覆盖"
+    },
+    {
+      "id": "FaultReasonRepositoryImpl.listByBrandClassIdAndSkuIdAndFaultId",
+      "reason": "多条件查询，基础设施层，通过集成测试覆盖",
+      "testability": "not_backend_testable",
+      "evidence": "FaultReasonRepositoryImpl.java method listByBrandClassIdAndSkuIdAndFaultId - 多条件查询，基础设施层，通过集成测试覆盖"
+    },
+    {
+      "id": "FaultReasonRepositoryImpl.listByIds",
+      "reason": "按ID列表查询，基础设施层，通过集成测试覆盖",
+      "testability": "not_backend_testable",
+      "evidence": "FaultReasonRepositoryImpl.java method listByIds - 按ID列表查询，基础设施层，通过集成测试覆盖"
+    },
+    {
+      "id": "FaultReasonRepositoryImpl.listFaultReasonRelationByCondition",
+      "reason": "条件查询，基础设施层，通过集成测试覆盖",
+      "testability": "not_backend_testable",
+      "evidence": "FaultReasonRepositoryImpl.java method listFaultReasonRelationByCondition - 条件查询，基础设施层，通过集成测试覆盖"
+    },
+    {
+      "id": "FaultReasonRepositoryImpl.listFaultReasonRelationByThirdBrandClassId",
+      "reason": "按品类查询，基础设施层，通过集成测试覆盖",
+      "testability": "not_backend_testable",
+      "evidence": "FaultReasonRepositoryImpl.java method listFaultReasonRelationByThirdBrandClassId - 按品类查询，基础设施层，通过集成测试覆盖"
+    },
+    {
+      "id": "FaultReasonRepositoryImpl.listReasonRelations",
+      "reason": "关系查询，基础设施层，通过集成测试覆盖",
+      "testability": "not_backend_testable",
+      "evidence": "FaultReasonRepositoryImpl.java method listReasonRelations - 关系查询，基础设施层，通过集成测试覆盖"
+    },
+    {
+      "id": "FaultReasonRepositoryImpl.listReasonRelationsByRelationKeys",
+      "reason": "按keys查询，基础设施层，通过集成测试覆盖",
+      "testability": "not_backend_testable",
+      "evidence": "FaultReasonRepositoryImpl.java method listReasonRelationsByRelationKeys - 按keys查询，基础设施层，通过集成测试覆盖"
+    },
+    {
+      "id": "FaultReasonRepositoryImpl.listReasonRelationsByRelationKeysAndCondition",
+      "reason": "按keys+条件查询，基础设施层，通过集成测试覆盖",
+      "testability": "not_backend_testable",
+      "evidence": "FaultReasonRepositoryImpl.java method listReasonRelationsByRelationKeysAndCondition - 按keys+条件查询，基础设施层，通过集成测试覆盖"
+    },
+    {
+      "id": "FaultReasonRepositoryImpl.queryByCodes",
+      "reason": "按codes查询，基础设施层，通过集成测试覆盖",
+      "testability": "not_backend_testable",
+      "evidence": "FaultReasonRepositoryImpl.java method queryByCodes - 按codes查询，基础设施层，通过集成测试覆盖"
+    },
+    {
+      "id": "FaultReasonRepositoryImpl.queryByNames",
+      "reason": "按names查询，基础设施层，通过集成测试覆盖",
+      "testability": "not_backend_testable",
+      "evidence": "FaultReasonRepositoryImpl.java method queryByNames - 按names查询，基础设施层，通过集成测试覆盖"
+    },
+    {
+      "id": "FaultReasonRepositoryImpl.searchByName",
+      "reason": "按名称搜索，基础设施层，通过集成测试覆盖",
+      "testability": "not_backend_testable",
+      "evidence": "FaultReasonRepositoryImpl.java method searchByName - 按名称搜索，基础设施层，通过集成测试覆盖"
+    },
+    {
+      "id": "FaultReasonRepositoryImpl.selectReasonCodesWithFaultCode",
+      "reason": "按故障code查询原因codes，基础设施层，通过集成测试覆盖",
+      "testability": "not_backend_testable",
+      "evidence": "FaultReasonRepositoryImpl.java method selectReasonCodesWithFaultCode - 按故障code查询原因codes，基础设施层，通过集成测试覆盖"
+    },
+    {
+      "id": "FaultReasonRepositoryImpl.selectRelationKeysWithReasonSku",
+      "reason": "查询有SKU的关系keys，基础设施层，通过集成测试覆盖",
+      "testability": "not_backend_testable",
+      "evidence": "FaultReasonRepositoryImpl.java method selectRelationKeysWithReasonSku - 查询有SKU的关系keys，基础设施层，通过集成测试覆盖"
+    },
+    {
+      "id": "FaultReasonServiceImpl.getFaultReasonListByParam",
+      "reason": "内部查询helper，由queryFaultReason主流程覆盖",
+      "testability": "not_backend_testable",
+      "evidence": "FaultReasonServiceImpl.java method getFaultReasonListByParam - 内部查询helper，由queryFaultReason主流程覆盖"
+    },
+    {
+      "id": "FaultReasonServiceImpl.listReasonRelations",
+      "reason": "关系查询，boundary为empty，由集成测试覆盖",
+      "testability": "not_backend_testable",
+      "evidence": "FaultReasonServiceImpl.java method listReasonRelations - 关系查询，boundary为empty，由集成测试覆盖"
+    },
+    {
+      "id": "FaultReasonServiceImpl.queryFaultReasonByCode",
+      "reason": "按code查询，boundary为empty，无核心校验逻辑",
+      "testability": "not_backend_testable",
+      "evidence": "FaultReasonServiceImpl.java method queryFaultReasonByCode - 按code查询，boundary为empty，无核心校验逻辑"
+    },
+    {
+      "id": "FaultServiceImpl.assemblePageFaultListDTOFromBaseFaults",
+      "reason": "分页DTO组装，内部工具方法，由queryFault主流程覆盖",
+      "testability": "not_backend_testable",
+      "evidence": "FaultServiceImpl.java method assemblePageFaultListDTOFromBaseFaults - 分页DTO组装，内部工具方法，由queryFault主流程覆盖"
+    },
+    {
+      "id": "FaultServiceImpl.batchAdd",
+      "reason": "批量新建，需要完整数据上下文，集成测试覆盖",
+      "testability": "not_backend_testable",
+      "evidence": "FaultServiceImpl.java method batchAdd - 批量新建，需要完整数据上下文，集成测试覆盖"
+    },
+    {
+      "id": "FaultServiceImpl.buildFaultTreeFlat",
+      "reason": "故障树平铺构建，内部工具方法",
+      "testability": "not_backend_testable",
+      "evidence": "FaultServiceImpl.java method buildFaultTreeFlat - 故障树平铺构建，内部工具方法"
+    },
+    {
+      "id": "FaultServiceImpl.checkAToBMutual",
+      "reason": "A到B互斥检查，boundary分支，由集成测试覆盖",
+      "testability": "not_backend_testable",
+      "evidence": "FaultServiceImpl.java method checkAToBMutual - A到B互斥检查，boundary分支，由集成测试覆盖"
+    },
+    {
+      "id": "FaultServiceImpl.checkBToAMutual",
+      "reason": "B到A互斥检查，boundary分支，由集成测试覆盖",
+      "testability": "not_backend_testable",
+      "evidence": "FaultServiceImpl.java method checkBToAMutual - B到A互斥检查，boundary分支，由集成测试覆盖"
+    },
+    {
+      "id": "FaultServiceImpl.checkFaultNeedMiTest",
+      "reason": "米测需求校验，boundary分支，内部工具",
+      "testability": "not_backend_testable",
+      "evidence": "FaultServiceImpl.java method checkFaultNeedMiTest - 米测需求校验，boundary分支，内部工具"
+    },
+    {
+      "id": "FaultServiceImpl.checkFaultsMutual",
+      "reason": "互斥故障校验，复杂互斥逻辑，集成测试覆盖",
+      "testability": "not_backend_testable",
+      "evidence": "FaultServiceImpl.java method checkFaultsMutual - 互斥故障校验，复杂互斥逻辑，集成测试覆盖"
+    },
+    {
+      "id": "FaultServiceImpl.fillReturnInfo",
+      "reason": "返回信息填充，内部工具方法",
+      "testability": "not_backend_testable",
+      "evidence": "FaultServiceImpl.java method fillReturnInfo - 返回信息填充，内部工具方法"
+    },
+    {
+      "id": "FaultServiceImpl.genFaultInfoList",
+      "reason": "故障信息列表生成，exception分支，由集成测试覆盖",
+      "testability": "not_backend_testable",
+      "evidence": "FaultServiceImpl.java method genFaultInfoList - 故障信息列表生成，exception分支，由集成测试覆盖"
+    },
+    {
+      "id": "FaultServiceImpl.getCheckMutualParam",
+      "reason": "互斥参数获取，内部工具方法",
+      "testability": "not_backend_testable",
+      "evidence": "FaultServiceImpl.java method getCheckMutualParam - 互斥参数获取，内部工具方法"
+    },
+    {
+      "id": "FaultServiceImpl.getFault",
+      "reason": "故障查询，boundary为null，由集成测试覆盖",
+      "testability": "not_backend_testable",
+      "evidence": "FaultServiceImpl.java method getFault - 故障查询，boundary为null，由集成测试覆盖"
+    },
+    {
+      "id": "FaultServiceImpl.getFaultByParam",
+      "reason": "按参数查询故障，boundary为null，由集成测试覆盖",
+      "testability": "not_backend_testable",
+      "evidence": "FaultServiceImpl.java method getFaultByParam - 按参数查询故障，boundary为null，由集成测试覆盖"
+    },
+    {
+      "id": "FaultServiceImpl.getFaultMetaById",
+      "reason": "按ID查询故障元数据，boundary为null，由集成测试覆盖",
+      "testability": "not_backend_testable",
+      "evidence": "FaultServiceImpl.java method getFaultMetaById - 按ID查询故障元数据，boundary为null，由集成测试覆盖"
+    },
+    {
+      "id": "FaultServiceImpl.getFaultUseType",
+      "reason": "故障用途类型获取，内部工具方法",
+      "testability": "not_backend_testable",
+      "evidence": "FaultServiceImpl.java method getFaultUseType - 故障用途类型获取，内部工具方法"
+    },
+    {
+      "id": "FaultServiceImpl.getMiHomeCheckType",
+      "reason": "米家检测类型获取，内部工具方法",
+      "testability": "not_backend_testable",
+      "evidence": "FaultServiceImpl.java method getMiHomeCheckType - 米家检测类型获取，内部工具方法"
+    },
+    {
+      "id": "FaultServiceImpl.getUseType",
+      "reason": "用途类型获取，内部工具方法",
+      "testability": "not_backend_testable",
+      "evidence": "FaultServiceImpl.java method getUseType - 用途类型获取，内部工具方法"
+    },
+    {
+      "id": "FaultServiceImpl.isFaultAndNoFaultTypeMixedMutual",
+      "reason": "故障和非故障类型混入检查，边界检查方法，由集成测试覆盖",
+      "testability": "not_backend_testable",
+      "evidence": "FaultServiceImpl.java method isFaultAndNoFaultTypeMixedMutual - 故障和非故障类型混入检查，边界检查方法，由集成测试覆盖"
+    },
+    {
+      "id": "FaultServiceImpl.isSameParentFault",
+      "reason": "同父级故障检查，boundary分支，由集成测试覆盖",
+      "testability": "not_backend_testable",
+      "evidence": "FaultServiceImpl.java method isSameParentFault - 同父级故障检查，boundary分支，由集成测试覆盖"
+    },
+    {
+      "id": "FaultServiceImpl.listFaultTree",
+      "reason": "故障树列表，boundary分支，查询方法",
+      "testability": "not_backend_testable",
+      "evidence": "FaultServiceImpl.java method listFaultTree - 故障树列表，boundary分支，查询方法"
+    },
+    {
+      "id": "FaultServiceImpl.pageFaultMetaList",
+      "reason": "故障元数据分页，查询方法，boundary分支",
+      "testability": "not_backend_testable",
+      "evidence": "FaultServiceImpl.java method pageFaultMetaList - 故障元数据分页，查询方法，boundary分支"
+    },
+    {
+      "id": "FaultServiceImpl.parseMutualTypeIdSet",
+      "reason": "互斥类型ID集合解析，内部工具方法",
+      "testability": "not_backend_testable",
+      "evidence": "FaultServiceImpl.java method parseMutualTypeIdSet - 互斥类型ID集合解析，内部工具方法"
+    },
+    {
+      "id": "FaultServiceImpl.queryFaultMetaByStep",
+      "reason": "按步骤查询故障元数据，exception分支，集成测试覆盖",
+      "testability": "not_backend_testable",
+      "evidence": "FaultServiceImpl.java method queryFaultMetaByStep - 按步骤查询故障元数据，exception分支，集成测试覆盖"
+    },
+    {
+      "id": "FaultServiceImpl.queryFaultMetaData",
+      "reason": "故障元数据查询，boundary分支，由集成测试覆盖",
+      "testability": "not_backend_testable",
+      "evidence": "FaultServiceImpl.java method queryFaultMetaData - 故障元数据查询，boundary分支，由集成测试覆盖"
+    },
+    {
+      "id": "FaultServiceImpl.queryFaultMetaDataFlat",
+      "reason": "平铺故障元数据查询，boundary分支，由集成测试覆盖",
+      "testability": "not_backend_testable",
+      "evidence": "FaultServiceImpl.java method queryFaultMetaDataFlat - 平铺故障元数据查询，boundary分支，由集成测试覆盖"
+    },
+    {
+      "id": "FaultServiceImpl.queryFaultTypeList",
+      "reason": "故障类型列表查询，boundary分支，由集成测试覆盖",
+      "testability": "not_backend_testable",
+      "evidence": "FaultServiceImpl.java method queryFaultTypeList - 故障类型列表查询，boundary分支，由集成测试覆盖"
+    },
+    {
+      "id": "UpdateFaultTypeCommandHandler.beforeCheck",
+      "reason": "前置检查，boundary分支，由execute EUT覆盖",
+      "testability": "not_backend_testable",
+      "evidence": "UpdateFaultTypeCommandHandler.java method beforeCheck - 前置检查，boundary分支，由execute EUT覆盖"
+    },
+    {
+      "id": "UpdateFaultTypeCommandHandler.handle",
+      "reason": "handle委托execute，无独立业务逻辑",
+      "testability": "not_backend_testable",
+      "evidence": "UpdateFaultTypeCommandHandler.java method handle - handle委托execute，无独立业务逻辑"
+    },
+    {
+      "id": "FaultEditServiceImpl.updateBaseFaultBrandClassById",
+      "reason": "品类记录更新，基础设施调用，由EUT-EUT-027 覆盖",
+      "testability": "not_backend_testable",
+      "evidence": "FaultEditServiceImpl.java method updateBaseFaultBrandClassById - 品类记录更新，基础设施调用，由EUT-EUT-027 覆盖"
+    }
+  ],
+  "eut_items": [
+    {
+      "eut_id": "EUT-001",
+      "bound_item": "REQ-003",
+      "route_type": "Happy Path",
+      "given": "FaultReasonDetailDTO: faultReasonId=1001, faultReasonName='外机主板', brandClassList=[空调品类-制热效果差-原因A(有效)]; bpmBusinessLine=null",
+      "when": "FaultReasonFacadeImpl.updateBaseFaultReason(editParam)",
+      "then": "返回 Result.success，updateFaultReasonEditInfo 被调用一次；数据库 base_fault_reason、base_fault_reason_relation 均更新",
+      "risk_tier": "T1",
+      "repo": "sfp-fault-service",
+      "target_class": "FaultReasonFacadeImpl",
+      "target_method": "updateBaseFaultReason",
+      "source": "q01/structured.json:REQ-003",
+      "branch_ids": [
+        "B-001",
+        "B-002"
+      ],
+      "outcome_ids": [
+        "O-001",
+        "O-002"
+      ],
+      "assertion_blueprint": {
+        "assertion_type": "returnValue+sideEffect",
+        "assert_target": "Result",
+        "expected_value": "Result.success且updateFaultReasonEditInfo被调用1次"
+      }
+    },
+    {
+      "eut_id": "EUT-002",
+      "bound_item": "REQ-008",
+      "route_type": "Exception",
+      "given": "FaultReasonDetailDTO: faultReasonId=1001, faultReasonName='外机主板', bpmBusinessLine='xxx'; bpmApproveQueryRepository返回非null(存在审批中任务)",
+      "when": "FaultReasonFacadeImpl.updateBaseFaultReason(editParam)",
+      "then": "返回 Result.fail，errorMessage='请完成当前故障原因对应的审批中的数据再进行修改！'；startFaultReasonBpmProcess 未被调用",
+      "risk_tier": "T1",
+      "repo": "sfp-fault-service",
+      "target_class": "FaultReasonFacadeImpl",
+      "target_method": "updateBaseFaultReason",
+      "source": "q01/structured.json:REQ-008",
+      "branch_ids": [
+        "B-003"
+      ],
+      "outcome_ids": [
+        "O-003"
+      ],
+      "assertion_blueprint": {
+        "assertion_type": "returnValue+methodNotCalled",
+        "assert_target": "Result.fail+startBpm未调用",
+        "expected_value": "fail且errorMessage含「审批中」"
+      }
+    },
+    {
+      "eut_id": "EUT-003",
+      "bound_item": "BR-007",
+      "route_type": "Exception",
+      "given": "hasReasonSku=true；checkHaveBpmFaultSku返回true（故障现象审批中含SKU）; bpmBusinessLine=null",
+      "when": "FaultReasonFacadeImpl.updateBaseFaultReason(editParam)",
+      "then": "返回 Result.fail，errorMessage='当前有审核中的故障现象SKU，请清除故障原因SKU!'；updateFaultReasonEditInfo未被调用",
+      "risk_tier": "T1",
+      "repo": "sfp-fault-service",
+      "target_class": "FaultReasonFacadeImpl",
+      "target_method": "updateBaseFaultReason",
+      "source": "q01/structured.json:BR-007",
+      "branch_ids": [
+        "B-004"
+      ],
+      "outcome_ids": [
+        "O-004"
+      ],
+      "assertion_blueprint": {
+        "assertion_type": "returnValue+methodNotCalled",
+        "assert_target": "Result.fail+updateFaultReasonEditInfo未调用",
+        "expected_value": "fail且errorMessage含「清除故障原因SKU」"
+      }
+    },
+    {
+      "eut_id": "EUT-004",
+      "bound_item": "BR-005",
+      "route_type": "Exception",
+      "given": "bpmBusinessLine非空；faultReasonName='外机主板'; listBrandClassByReasonName返回非空（其他品类已使用该名称）",
+      "when": "FaultReasonFacadeImpl.updateBaseFaultReason(editParam) → validateFaultReasonNameParam",
+      "then": "返回 Result.fail，errorMessage 包含「故障原因已存在」和品类名称；BPM流程未启动",
+      "risk_tier": "T1",
+      "repo": "sfp-fault-service",
+      "target_class": "FaultReasonFacadeImpl",
+      "target_method": "updateBaseFaultReason",
+      "source": "q01/structured.json:BR-005",
+      "branch_ids": [
+        "B-006"
+      ],
+      "outcome_ids": [
+        "O-006"
+      ],
+      "assertion_blueprint": {
+        "assertion_type": "returnValue",
+        "assert_target": "Result.fail",
+        "expected_value": "fail且message含「故障原因已存在」"
+      }
+    },
+    {
+      "eut_id": "EUT-005",
+      "bound_item": "BR-006",
+      "route_type": "Exception",
+      "given": "brandClassList=[空调品类-制热效果差: 当前只有1个有效原因A]; 本次提交将原因A状态改为无效(0)",
+      "when": "FaultReasonFacadeImpl.validateReasonUpdateParam(reasonDetailDTO)内部validateReasonBrandClassParam",
+      "then": "抛出 SfpFaultBizException，errorMessage 包含品类名称和「必须至少存在一个有效的故障原因」；数据不写入",
+      "risk_tier": "T1",
+      "repo": "sfp-fault-service",
+      "target_class": "FaultReasonFacadeImpl",
+      "target_method": "validateReasonUpdateParam",
+      "source": "q01/structured.json:BR-006",
+      "branch_ids": [
+        "B-009",
+        "B-010"
+      ],
+      "outcome_ids": [
+        "O-009",
+        "O-010"
+      ],
+      "assertion_blueprint": {
+        "assertion_type": "throwsException+noWrite",
+        "assert_target": "SfpFaultBizException",
+        "expected_value": "FAULT_REASON_LEAST_ONE_VALID错误码，数据库未写入"
+      }
+    },
+    {
+      "eut_id": "EUT-006",
+      "bound_item": "BR-005",
+      "route_type": "Boundary",
+      "given": "reasonDetailDTO.faultReasonId=1001; faultReasonName=空字符串",
+      "when": "FaultReasonFacadeImpl.validateReasonUpdateParam(reasonDetailDTO)",
+      "then": "抛出 SfpFaultBizException，errorCode=REASON_NAME_REQUIRED",
+      "risk_tier": "T1",
+      "repo": "sfp-fault-service",
+      "target_class": "FaultReasonFacadeImpl",
+      "target_method": "validateReasonUpdateParam",
+      "source": "q01/structured.json:BR-005",
+      "branch_ids": [
+        "B-008"
+      ],
+      "outcome_ids": [
+        "O-008"
+      ],
+      "assertion_blueprint": {
+        "assertion_type": "throwsException",
+        "assert_target": "SfpFaultBizException",
+        "expected_value": "errorCode=REASON_NAME_REQUIRED"
+      }
+    },
+    {
+      "eut_id": "EUT-007",
+      "bound_item": "REQ-001",
+      "route_type": "Happy Path",
+      "given": "categoryIds=[1001,1002]; status=ENABLED; 两个品类均无审核中数据",
+      "when": "FaultReasonFacadeImpl.batchUpdateConfigStatus(param)",
+      "then": "返回 Result.success(2)；base_fault_reason_brand_class_config 中两条记录状态改为有效；操作日志写入",
+      "risk_tier": "T1",
+      "repo": "sfp-fault-service",
+      "target_class": "FaultReasonFacadeImpl",
+      "target_method": "batchUpdateConfigStatus",
+      "source": "q01/structured.json:REQ-001",
+      "branch_ids": [
+        "B-011",
+        "B-012"
+      ],
+      "outcome_ids": [
+        "O-011",
+        "O-012"
+      ],
+      "assertion_blueprint": {
+        "assertion_type": "returnValue+sideEffect",
+        "assert_target": "Result.success(2)+DB状态变更",
+        "expected_value": "成功且影响行数=2"
+      }
+    },
+    {
+      "eut_id": "EUT-008",
+      "bound_item": "BR-002",
+      "route_type": "Exception",
+      "given": "categoryIds=[1001]; status=DISABLED; 品类1001下有审核中数据",
+      "when": "FaultReasonFacadeImpl.batchUpdateConfigStatus(param)",
+      "then": "返回 Result.fail，errorMessage='品类下已提交故障原因数据，无法取消设置'；数据库状态未变更",
+      "risk_tier": "T1",
+      "repo": "sfp-fault-service",
+      "target_class": "FaultReasonFacadeImpl",
+      "target_method": "batchUpdateConfigStatus",
+      "source": "q01/structured.json:BR-002",
+      "branch_ids": [
+        "B-013"
+      ],
+      "outcome_ids": [
+        "O-013"
+      ],
+      "assertion_blueprint": {
+        "assertion_type": "returnValue+noWrite",
+        "assert_target": "Result.fail+DB未变更",
+        "expected_value": "fail且DB状态不变"
+      }
+    },
+    {
+      "eut_id": "EUT-009",
+      "bound_item": "REQ-006",
+      "route_type": "Happy Path",
+      "given": "FaultReasonListParam: 包含3条故障原因状态变更（均不触发最后一个有效原因置无效）",
+      "when": "FaultReasonFacadeImpl.batchUpdateBaseFaultReason(reasonListParam)",
+      "then": "返回 Result.success；所有3条数据库记录状态按请求更新",
+      "risk_tier": "T1",
+      "repo": "sfp-fault-service",
+      "target_class": "FaultReasonFacadeImpl",
+      "target_method": "batchUpdateBaseFaultReason",
+      "source": "q01/structured.json:REQ-006",
+      "branch_ids": [
+        "B-014",
+        "B-016"
+      ],
+      "outcome_ids": [
+        "O-014",
+        "O-016"
+      ],
+      "assertion_blueprint": {
+        "assertion_type": "returnValue+sideEffect",
+        "assert_target": "Result.success+DB更新3条",
+        "expected_value": "成功且影响3行"
+      }
+    },
+    {
+      "eut_id": "EUT-010",
+      "bound_item": "BR-006",
+      "route_type": "Exception",
+      "given": "批量修改中某品类-故障现象只有1个有效原因，本次将其置为无效",
+      "when": "FaultReasonFacadeImpl.batchUpdateBaseFaultReason(reasonListParam)内部validateReasonBrandClassParam",
+      "then": "抛出SfpFaultBizException或返回fail；包含该品类-故障现象的提示；所有本批次数据不写入",
+      "risk_tier": "T1",
+      "repo": "sfp-fault-service",
+      "target_class": "FaultReasonFacadeImpl",
+      "target_method": "batchUpdateBaseFaultReason",
+      "source": "q01/structured.json:BR-006",
+      "branch_ids": [
+        "B-015"
+      ],
+      "outcome_ids": [
+        "O-015"
+      ],
+      "assertion_blueprint": {
+        "assertion_type": "throwsException+noWrite",
+        "assert_target": "SfpFaultBizException+DB未写入",
+        "expected_value": "错误提示含品类名，无数据写入"
+      }
+    },
+    {
+      "eut_id": "EUT-011",
+      "bound_item": "BR-003",
+      "route_type": "Happy Path",
+      "given": "brandClassId=1001(空调品类，已开启故障原因); faultId=101",
+      "when": "FaultReasonServiceImpl.checkNeedFaultReason(1001, 101)",
+      "then": "返回 Result.success(true)",
+      "risk_tier": "T1",
+      "repo": "sfp-fault-service",
+      "target_class": "FaultReasonServiceImpl",
+      "target_method": "checkNeedFaultReason",
+      "source": "q01/structured.json:BR-003",
+      "branch_ids": [
+        "B-017"
+      ],
+      "outcome_ids": [
+        "O-017"
+      ],
+      "assertion_blueprint": {
+        "assertion_type": "returnValue",
+        "assert_target": "Result<Boolean>",
+        "expected_value": "Result.success(true)"
+      }
+    },
+    {
+      "eut_id": "EUT-012",
+      "bound_item": "BR-003",
+      "route_type": "Happy Path",
+      "given": "brandClassId=2002(手机品类，未开启故障原因); faultId=201",
+      "when": "FaultReasonServiceImpl.checkNeedFaultReason(2002, 201)",
+      "then": "返回 Result.success(false)",
+      "risk_tier": "T1",
+      "repo": "sfp-fault-service",
+      "target_class": "FaultReasonServiceImpl",
+      "target_method": "checkNeedFaultReason",
+      "source": "q01/structured.json:BR-003",
+      "branch_ids": [
+        "B-018"
+      ],
+      "outcome_ids": [
+        "O-018"
+      ],
+      "assertion_blueprint": {
+        "assertion_type": "returnValue",
+        "assert_target": "Result<Boolean>",
+        "expected_value": "Result.success(false)"
+      }
+    },
+    {
+      "eut_id": "EUT-013",
+      "bound_item": "BR-003",
+      "route_type": "Boundary",
+      "given": "brandClassId=null; faultId=101",
+      "when": "FaultReasonServiceImpl.checkNeedFaultReason(null, 101)",
+      "then": "返回 Result.success(false) 或合理默认值，不抛出NullPointerException",
+      "risk_tier": "T2",
+      "repo": "sfp-fault-service",
+      "target_class": "FaultReasonServiceImpl",
+      "target_method": "checkNeedFaultReason",
+      "source": "q01/structured.json:BR-003",
+      "branch_ids": [
+        "B-019"
+      ],
+      "outcome_ids": [
+        "O-019"
+      ],
+      "assertion_blueprint": {
+        "assertion_type": "noException+returnValue",
+        "assert_target": "Result",
+        "expected_value": "不抛NPE，返回false或空结果"
+      }
+    },
+    {
+      "eut_id": "EUT-014",
+      "bound_item": "REQ-002",
+      "route_type": "Happy Path",
+      "given": "FaultReasonParam: brandClassId=1001, faultCode='F001', status=VALID",
+      "when": "FaultReasonServiceImpl.queryFaultReason(param)",
+      "then": "返回 Result.success，data列表非空（size>=1）；每条FaultReasonDTO含非空faultReasonCode、faultReasonName、status=1",
+      "risk_tier": "T1",
+      "repo": "sfp-fault-service",
+      "target_class": "FaultReasonServiceImpl",
+      "target_method": "queryFaultReason",
+      "source": "q01/structured.json:REQ-002",
+      "branch_ids": [
+        "B-020",
+        "B-022"
+      ],
+      "outcome_ids": [
+        "O-020",
+        "O-022"
+      ],
+      "assertion_blueprint": {
+        "assertion_type": "assertEquals+assertThat",
+        "assert_target": "List<FaultReasonDTO>",
+        "expected_value": "size>=1 AND each.status==1 AND each.faultReasonName!=null"
+      }
+    },
+    {
+      "eut_id": "EUT-015",
+      "bound_item": "REQ-002",
+      "route_type": "Boundary",
+      "given": "FaultReasonParam: brandClassId=9999（无数据品类）; faultCode='F999'",
+      "when": "FaultReasonServiceImpl.queryFaultReason(param)",
+      "then": "返回 Result.success，data为空列表 []；assertNotNull(result.getData()) and assertEquals(0, result.getData().size())",
+      "risk_tier": "T2",
+      "repo": "sfp-fault-service",
+      "target_class": "FaultReasonServiceImpl",
+      "target_method": "queryFaultReason",
+      "source": "q01/structured.json:REQ-002",
+      "branch_ids": [
+        "B-021"
+      ],
+      "outcome_ids": [
+        "O-021"
+      ],
+      "assertion_blueprint": {
+        "assertion_type": "assertEquals",
+        "assert_target": "List<FaultReasonDTO>.size",
+        "expected_value": "assertEquals(0, result.getData().size())"
+      }
+    },
+    {
+      "eut_id": "EUT-016",
+      "bound_item": "BR-003",
+      "route_type": "Exception",
+      "given": "UpdateFaultTypeCommand: brandClassIds=[1001(已开启故障原因)]; engineerLevel=SECOND(第2级)",
+      "when": "UpdateFaultTypeCommandHandler.execute(command)",
+      "then": "抛出 SfpFaultBizException，errorCode 指示冲突；base_fault_type 记录未更新",
+      "risk_tier": "T1",
+      "repo": "sfp-fault-service",
+      "target_class": "UpdateFaultTypeCommandHandler",
+      "target_method": "handle",
+      "source": "q01/structured.json:BR-003",
+      "branch_ids": [
+        "B-024",
+        "B-025",
+        "B-053"
+      ],
+      "outcome_ids": [
+        "O-024",
+        "O-025",
+        "O-053"
+      ],
+      "assertion_blueprint": {
+        "assertion_type": "throwsException+noWrite",
+        "assert_target": "SfpFaultBizException+DB未更新",
+        "expected_value": "抛出异常，类型管理记录不变"
+      }
+    },
+    {
+      "eut_id": "EUT-017",
+      "bound_item": "BR-003",
+      "route_type": "Happy Path",
+      "given": "UpdateFaultTypeCommand: brandClassIds=[2002(未开启故障原因)]; engineerLevel=SECOND(第2级)",
+      "when": "UpdateFaultTypeCommandHandler.execute(command)",
+      "then": "execute方法正常返回（不抛异常）；verify(faultTypeRepository).updateEngineerLevel(any())调用1次；DB中品类2002的engineerLevel记录=SECOND",
+      "risk_tier": "T1",
+      "repo": "sfp-fault-service",
+      "target_class": "UpdateFaultTypeCommandHandler",
+      "target_method": "handle",
+      "source": "q01/structured.json:BR-003",
+      "branch_ids": [
+        "B-023"
+      ],
+      "outcome_ids": [
+        "O-023"
+      ],
+      "assertion_blueprint": {
+        "assertion_type": "verify+noException",
+        "assert_target": "faultTypeRepository.updateEngineerLevel",
+        "expected_value": "verify(faultTypeRepository).updateEngineerLevel(argThat(cmd->cmd.contains(2002)))"
+      }
+    },
+    {
+      "eut_id": "EUT-018",
+      "bound_item": "REQ-008",
+      "route_type": "Happy Path",
+      "given": "FaultBpmCallBackParam: bizType=FAULT_REASON_UPDATE; approved=true; formJson含faultReasonCode+新名称",
+      "when": "FaultBpmApprovalServiceImpl.approveBaseFaultReason(param)",
+      "then": "返回成功；base_fault_reason 中对应记录 faultReasonName 更新为新名称；审批记录状态改为APPROVED",
+      "risk_tier": "T1",
+      "repo": "sfp-fault-service",
+      "target_class": "FaultBpmApprovalServiceImpl",
+      "target_method": "invokeFaultBpmCallback",
+      "source": "q01/structured.json:REQ-008",
+      "branch_ids": [
+        "B-026",
+        "B-028"
+      ],
+      "outcome_ids": [
+        "O-026",
+        "O-028"
+      ],
+      "assertion_blueprint": {
+        "assertion_type": "sideEffect",
+        "assert_target": "base_fault_reason.faultReasonName+审批记录",
+        "expected_value": "名称已更新，审批状态=APPROVED"
+      }
+    },
+    {
+      "eut_id": "EUT-019",
+      "bound_item": "REQ-008",
+      "route_type": "Exception",
+      "given": "FaultBpmCallBackParam: bizType=FAULT_REASON_UPDATE; formJson=malformed JSON",
+      "when": "FaultBpmApprovalServiceImpl.approveBaseFaultReason(param)",
+      "then": "返回 Result.fail 或 assertThrows(SfpFaultBizException.class)；verify(faultReasonRepository, never()).updateReasonName(any())；base_fault_reason未更新",
+      "risk_tier": "T1",
+      "repo": "sfp-fault-service",
+      "target_class": "FaultBpmApprovalServiceImpl",
+      "target_method": "invokeFaultBpmCallback",
+      "source": "q01/structured.json:REQ-008",
+      "branch_ids": [
+        "B-027"
+      ],
+      "outcome_ids": [
+        "O-027"
+      ],
+      "assertion_blueprint": {
+        "assertion_type": "assertThrows+verify.never",
+        "assert_target": "faultReasonRepository.updateReasonName",
+        "expected_value": "verify(faultReasonRepository, never()).updateReasonName(any())"
+      }
+    },
+    {
+      "eut_id": "EUT-020",
+      "bound_item": "SE-001",
+      "route_type": "Concurrent",
+      "given": "两个并发请求同时创建故障原因 name='外机主板'（base_fault_reason 初始无该名称）",
+      "when": "并发调用 FaultReasonFacadeImpl.updateBaseFaultReason × 2",
+      "then": "assertEquals(1, successCount.get())；assertEquals(1, failCount.get())；assertEquals(1, faultReasonRepository.countByName('外机主板'))",
+      "risk_tier": "T1",
+      "repo": "sfp-fault-service",
+      "target_class": "FaultReasonFacadeImpl",
+      "target_method": "updateBaseFaultReason",
+      "source": "q01/structured.json:SE-001",
+      "branch_ids": [
+        "B-005"
+      ],
+      "outcome_ids": [
+        "O-005"
+      ],
+      "assertion_blueprint": {
+        "assertion_type": "assertEquals+dbCount",
+        "assert_target": "successCount+faultReasonRepository.countByName",
+        "expected_value": "1次成功+1次失败+DB行数=1"
+      }
+    },
+    {
+      "eut_id": "EUT-021",
+      "bound_item": "SE-002",
+      "route_type": "Boundary",
+      "given": "空调品类-制热效果差下有2个有效原因A(id=1)和B(id=2)；先置B为无效，再置A为无效",
+      "when": "FaultReasonFacadeImpl.updateBaseFaultReason × 2次(先B后A)",
+      "then": "第2次操作后，base_fault_reason表中原因A的causeStatus=0（无效）；再恢复原因A为有效后causeStatus=1（有效）",
+      "risk_tier": "T1",
+      "repo": "sfp-fault-service",
+      "target_class": "FaultReasonFacadeImpl",
+      "target_method": "updateBaseFaultReason",
+      "source": "q01/structured.json:SE-002",
+      "branch_ids": [
+        "B-007"
+      ],
+      "outcome_ids": [
+        "O-007"
+      ],
+      "assertion_blueprint": {
+        "assertion_type": "dbState",
+        "assert_target": "base_fault_reason.causeStatus",
+        "expected_value": "最后一个有效原因置无效后底表状态=0，恢复后=1"
+      }
+    },
+    {
+      "eut_id": "EUT-022",
+      "bound_item": "REQ-004",
+      "route_type": "Happy Path",
+      "given": "BinLog事件: 故障原因关系表状态从1变为0（最后一个有效关系置无效）",
+      "when": "FaultReasonBinLogCommandHandler.handle(event)",
+      "then": "触发底表状态聚合更新；base_fault_reason.causeStatus由1更新为0；日志记录操作",
+      "risk_tier": "T1",
+      "repo": "sfp-fault-service",
+      "target_class": "FaultReasonBinLogCommandHandler",
+      "target_method": "handle",
+      "source": "q01/structured.json:REQ-004",
+      "branch_ids": [
+        "B-029"
+      ],
+      "outcome_ids": [
+        "O-029"
+      ],
+      "assertion_blueprint": {
+        "assertion_type": "sideEffect",
+        "assert_target": "base_fault_reason.causeStatus更新",
+        "expected_value": "底表状态=0"
+      }
+    },
+    {
+      "eut_id": "EUT-023",
+      "bound_item": "REQ-004",
+      "route_type": "Boundary",
+      "given": "BinLog事件: payload为null或格式异常",
+      "when": "FaultReasonBinLogCommandHandler.handle(null_or_malformed_event)",
+      "then": "不抛出RuntimeException；verify(faultReasonRepository, never()).updateCauseStatus(any())；verify(log).warn(anyString()) OR verify(log).error(anyString())",
+      "risk_tier": "T2",
+      "repo": "sfp-fault-service",
+      "target_class": "FaultReasonBinLogCommandHandler",
+      "target_method": "handle",
+      "source": "q01/structured.json:REQ-004",
+      "branch_ids": [
+        "B-030"
+      ],
+      "outcome_ids": [
+        "O-030"
+      ],
+      "assertion_blueprint": {
+        "assertion_type": "assertDoesNotThrow+verify.never",
+        "assert_target": "faultReasonRepository.updateCauseStatus",
+        "expected_value": "verify(faultReasonRepository, never()).updateCauseStatus(any())"
+      }
+    },
+    {
+      "eut_id": "EUT-024",
+      "bound_item": "BR-008",
+      "route_type": "Boundary",
+      "given": "先将故障现象（base_fault_relationship_ext）状态置为0；故障原因关系（base_fault_reason_relation）状态保持为1",
+      "when": "查询 FaultQueryServiceImpl.queryFaultInfoList(包含该品类)",
+      "then": "returned 故障现象对应的故障原因关系状态仍=1（有效）；两层状态独立，不相互影响",
+      "risk_tier": "T1",
+      "repo": "sfp-fault-service",
+      "target_class": "FaultServiceImpl",
+      "target_method": "queryFaultInfoList",
+      "source": "q01/structured.json:SE-003",
+      "branch_ids": [],
+      "outcome_ids": [],
+      "assertion_blueprint": {
+        "assertion_type": "dbState+queryResult",
+        "assert_target": "查询结果中故障原因状态字段",
+        "expected_value": "故障原因关系状态=1不受故障现象状态影响"
+      }
+    },
+    {
+      "eut_id": "EUT-025",
+      "bound_item": "SE-007",
+      "route_type": "Boundary",
+      "given": "FaultService.importFaultReason: 导入Excel包含5001行数据",
+      "when": "FaultServiceImpl.importFaultBrandClassData（含5001行）",
+      "then": "返回 Result.fail，errorMessage 包含「最多支持5000条数据」；数据库无写入",
+      "risk_tier": "T1",
+      "repo": "sfp-fault-service",
+      "target_class": "FaultServiceImpl",
+      "target_method": "batchAdd",
+      "source": "q01/structured.json:SE-007",
+      "branch_ids": [],
+      "outcome_ids": [],
+      "assertion_blueprint": {
+        "assertion_type": "returnValue+noWrite",
+        "assert_target": "Result.fail+DB未写入",
+        "expected_value": "拦截且提示超出5000条"
+      }
+    },
+    {
+      "eut_id": "EUT-026",
+      "bound_item": "REQ-002",
+      "route_type": "Happy Path",
+      "given": "FaultListParam: brandClassId=1001(空调,已开启故障原因); pageNo=1; pageSize=10; status=VALID",
+      "when": "FaultListFacadeImpl.queryFaultList(param)",
+      "then": "assertNotNull(result); assertTrue(result.getData().getRecords().stream().anyMatch(dto -> dto.getFaultReasonList()!=null && !dto.getFaultReasonList().isEmpty()))",
+      "risk_tier": "T1",
+      "repo": "sfp-fault-service",
+      "target_class": "FaultListFacadeImpl",
+      "target_method": "queryFaultList",
+      "source": "q01/structured.json:REQ-002",
+      "branch_ids": [
+        "B-031",
+        "B-032",
+        "B-033",
+        "B-055"
+      ],
+      "outcome_ids": [
+        "O-031",
+        "O-032",
+        "O-033",
+        "O-055"
+      ],
+      "assertion_blueprint": {
+        "assertion_type": "assertTrue+assertThat",
+        "assert_target": "PageResult.records[].faultReasonList",
+        "expected_value": "anyMatch(dto->dto.getFaultReasonList()!=null && !dto.getFaultReasonList().isEmpty())"
+      }
+    },
+    {
+      "eut_id": "EUT-027",
+      "bound_item": "REQ-003",
+      "route_type": "Happy Path",
+      "given": "FaultDetailDTO含3条brandClassList; FaultEditServiceImpl mock FaultDetailRepository",
+      "when": "FaultEditServiceImpl.updateBaseFaultBrandClassById(faultDetailDTO)",
+      "then": "verify(faultDetailRepository).updateBrandClassById(any())被调用3次；不抛出异常",
+      "risk_tier": "T2",
+      "repo": "sfp-fault-service",
+      "target_class": "FaultEditServiceImpl",
+      "target_method": "updateBaseFaultBrandClassById",
+      "source": "q01/structured.json:REQ-003",
+      "branch_ids": [
+        "B-034",
+        "B-035"
+      ],
+      "outcome_ids": [
+        "O-034",
+        "O-035"
+      ],
+      "assertion_blueprint": {
+        "assertion_type": "verify",
+        "assert_target": "faultDetailRepository.updateBrandClassById",
+        "expected_value": "verify(faultDetailRepository, times(3)).updateBrandClassById(any())"
+      }
+    },
+    {
+      "eut_id": "EUT-028",
+      "bound_item": "REQ-008",
+      "route_type": "Happy Path",
+      "given": "FaultBpmCallBackParam: bizType=FAULT_REASON_UPDATE; approved=true; formJson含新故障原因名称",
+      "when": "SingleFaultReasonBpmHandler.bpmCallbackProcess(param)",
+      "then": "返回FaultBpmCallbackDTO.isSuccess=true；verify(faultReasonRepository).updateReasonName(eq(newName)) 调用1次",
+      "risk_tier": "T1",
+      "repo": "sfp-fault-service",
+      "target_class": "SingleFaultReasonBpmHandler",
+      "target_method": "bpmCallbackProcess",
+      "source": "q01/structured.json:REQ-008",
+      "branch_ids": [
+        "B-036",
+        "B-037"
+      ],
+      "outcome_ids": [
+        "O-036",
+        "O-037"
+      ],
+      "assertion_blueprint": {
+        "assertion_type": "returnValue+verify",
+        "assert_target": "FaultBpmCallbackDTO.isSuccess + faultReasonRepository.updateReasonName",
+        "expected_value": "isSuccess==true AND verify(faultReasonRepository).updateReasonName(eq(newName))"
+      }
+    },
+    {
+      "eut_id": "EUT-029",
+      "bound_item": "REQ-002",
+      "route_type": "Happy Path",
+      "given": "FaultDetailParam: faultId=1001, brandClassId=2001（空调品类，已开启故障原因）",
+      "when": "FaultAccessFacadeImpl.queryFaultDetailById(param)",
+      "then": "返回 Result.success，FaultDetailDTO.faultId=1001且FaultDetailDTO.faultReasonList!=null；assertNotNull(result.getData())；assertEquals(1001, result.getData().getFaultId())",
+      "risk_tier": "T2",
+      "repo": "sfp-fault-service",
+      "target_class": "FaultFacadeImpl",
+      "target_method": "getFaultDetailById",
+      "source": "q01/structured.json:REQ-002",
+      "branch_ids": [
+        "B-038",
+        "B-060"
+      ],
+      "outcome_ids": [
+        "O-038",
+        "O-060"
+      ],
+      "assertion_blueprint": {
+        "assertion_type": "assertNotNull+assertEquals",
+        "assert_target": "FaultDetailDTO.faultId + faultReasonList",
+        "expected_value": "assertNotNull(result) AND assertEquals(1001, result.getFaultId()) AND result.getFaultReasonList()!=null"
+      }
+    },
+    {
+      "eut_id": "EUT-030",
+      "bound_item": "REQ-008",
+      "route_type": "Exception",
+      "given": "FaultEditParam: formJson含故障原因修改; BPM服务不可用，抛出异常",
+      "when": "FaultFacadeImpl.updateBaseFaultInfo(editParam)",
+      "then": "捕获BPM异常，返回 Result.fail；verify(faultBpmApprovalService).startBpmProcess(any())被调用；base_fault未更新",
+      "risk_tier": "T1",
+      "repo": "sfp-fault-service",
+      "target_class": "FaultFacadeImpl",
+      "target_method": "updateBaseFaultInfo",
+      "source": "q01/structured.json:REQ-008",
+      "branch_ids": [
+        "B-041",
+        "B-040"
+      ],
+      "outcome_ids": [
+        "O-041",
+        "O-040"
+      ],
+      "assertion_blueprint": {
+        "assertion_type": "returnValue+verify",
+        "assert_target": "Result.fail + faultBpmApprovalService.startBpmProcess验证",
+        "expected_value": "Result.fail AND verify(faultBpmApprovalService).startBpmProcess(any()) throws exception"
+      }
+    },
+    {
+      "eut_id": "EUT-031",
+      "bound_item": "REQ-002",
+      "route_type": "Exception",
+      "given": "FaultListParam: brandClassId=1001; 外部SKU查询服务抛出RuntimeException",
+      "when": "FaultListFacadeImpl.queryFaultBrandClassSkuByTime(param)",
+      "then": "捕获异常，不向上传播RuntimeException；返回空结果或降级结果；verify(log).error(contains('queryFaultBrandClassSkuByTime'))",
+      "risk_tier": "T1",
+      "repo": "sfp-fault-service",
+      "target_class": "FaultListFacadeImpl",
+      "target_method": "queryFaultBrandClassSkuByTime",
+      "source": "q01/structured.json:REQ-002",
+      "branch_ids": [
+        "B-043",
+        "B-057"
+      ],
+      "outcome_ids": [
+        "O-043",
+        "O-057"
+      ],
+      "assertion_blueprint": {
+        "assertion_type": "assertDoesNotThrow+verify",
+        "assert_target": "log.error调用",
+        "expected_value": "assertDoesNotThrow(()->facade.queryFaultBrandClassSkuByTime(param)) AND verify(log).error(anyString())"
+      }
+    },
+    {
+      "eut_id": "EUT-032",
+      "bound_item": "REQ-005",
+      "route_type": "Exception",
+      "given": "Excel文件：模版2格式，第3行数据品类-故障现象-故障原因关系重复（与DB已有数据重复）",
+      "when": "FaultFacadeImpl.handleExcelImport(file, param)",
+      "then": "返回ImportResultDTO.errors非空；errors.stream().anyMatch(e->e.getRowNum()==3 && e.getMessage().contains('已存在'))；verify(faultReasonRelationRepository, never()).batchInsert(any())",
+      "risk_tier": "T1",
+      "repo": "sfp-fault-service",
+      "target_class": "FaultFacadeImpl",
+      "target_method": "handleExcelImport",
+      "source": "q01/structured.json:REQ-005",
+      "branch_ids": [
+        "B-042",
+        "B-056"
+      ],
+      "outcome_ids": [
+        "O-042",
+        "O-056"
+      ],
+      "assertion_blueprint": {
+        "assertion_type": "assertThat+verify.never",
+        "assert_target": "ImportResultDTO.errors + faultReasonRelationRepository.batchInsert",
+        "expected_value": "errors.anyMatch(e->row==3 && msg.contains('已存在')) AND verify(repo, never()).batchInsert(any())"
+      }
+    },
+    {
+      "eut_id": "EUT-033",
+      "bound_item": "SE-007",
+      "route_type": "Exception",
+      "given": "FaultListParam: step参数=999（无效步骤值）",
+      "when": "FaultServiceImpl.queryFaultMetaByStep(999, param)",
+      "then": "assertThrows(SfpFaultBizException.class); verify(faultReasonRelationRepository, never()).batchInsertRelations(any()); assertEquals(original_count, faultServiceImpl.countByName('外机主板'))",
+      "risk_tier": "T1",
+      "repo": "sfp-fault-service",
+      "target_class": "FaultServiceImpl",
+      "target_method": "queryFaultMetaByStep",
+      "source": "q01/structured.json:SE-007",
+      "branch_ids": [
+        "B-045",
+        "B-044"
+      ],
+      "outcome_ids": [
+        "O-045",
+        "O-044"
+      ],
+      "assertion_blueprint": {
+        "assertion_type": "assertThrows+verify.never+assertEquals",
+        "assert_target": "SfpFaultBizException + faultReasonRelationRepository.batchInsertRelations + DB count",
+        "expected_value": "assertThrows + never().batchInsertRelations() + DB unchanged"
+      }
+    },
+    {
+      "eut_id": "EUT-034",
+      "bound_item": "REQ-002",
+      "route_type": "Exception",
+      "given": "FaultReasonParam: brandClassId=1001; faultCode='F001'; faultReasonRepository.queryFaultReasonList抛出DataAccessException",
+      "when": "FaultReasonServiceImpl.queryFaultReason(param)",
+      "then": "assertThrows(SfpFaultBizException.class, ()->faultService.queryFaultMetaByStep(999, param)); verify(faultRepository, never()).queryByStep(eq(999)); error code=PARAM_ERROR",
+      "risk_tier": "T1",
+      "repo": "sfp-fault-service",
+      "target_class": "FaultReasonServiceImpl",
+      "target_method": "queryFaultReason",
+      "source": "q01/structured.json:REQ-002",
+      "branch_ids": [],
+      "outcome_ids": [],
+      "assertion_blueprint": {
+        "assertion_type": "assertThrows+verify.never+errorCode",
+        "assert_target": "SfpFaultBizException.errorCode + faultRepository.queryByStep not called",
+        "expected_value": "assertThrows with PARAM_ERROR AND verify(faultRepository, never()).queryByStep(eq(999))"
+      }
+    },
+    {
+      "eut_id": "EUT-035",
+      "bound_item": "REQ-001",
+      "route_type": "Boundary",
+      "given": "brandClassIdList=[] (空列表)",
+      "when": "FaultReasonBrandClassConfigRepositoryImpl.queryConfigByThirdBrandClassIdList([])",
+      "then": "返回空列表 []；不抛出异常；assertEquals(0, result.size())",
+      "risk_tier": "T2",
+      "repo": "sfp-fault-service",
+      "target_class": "FaultReasonBrandClassConfigRepositoryImpl",
+      "target_method": "queryConfigByThirdBrandClassIdList",
+      "source": "q01/structured.json:REQ-001",
+      "branch_ids": [
+        "B-049",
+        "B-048"
+      ],
+      "outcome_ids": [
+        "O-049",
+        "O-048"
+      ],
+      "assertion_blueprint": {
+        "assertion_type": "assertEquals",
+        "assert_target": "List<Config>.size",
+        "expected_value": "assertEquals(0, result.size()) AND assertDoesNotThrow"
+      }
+    },
+    {
+      "eut_id": "EUT-036",
+      "bound_item": "REQ-003",
+      "route_type": "Boundary",
+      "given": "faultReasonCode=null 或空字符串; pageNo=1; pageSize=10",
+      "when": "FaultReasonRelationRepositoryImpl.pageQueryByFaultReasonCode(null, 1, 10)",
+      "then": "assertDoesNotThrow(()->repo.pageQueryByFaultReasonCode(null,1,10)); assertNotNull(result); assertEquals(0, result.getTotal())",
+      "risk_tier": "T2",
+      "repo": "sfp-fault-service",
+      "target_class": "FaultReasonRelationRepositoryImpl",
+      "target_method": "pageQueryByFaultReasonCode",
+      "source": "q01/structured.json:REQ-003",
+      "branch_ids": [
+        "B-051",
+        "B-050"
+      ],
+      "outcome_ids": [
+        "O-051",
+        "O-050"
+      ],
+      "assertion_blueprint": {
+        "assertion_type": "assertDoesNotThrow+assertEquals",
+        "assert_target": "Page.total + no NPE",
+        "expected_value": "assertDoesNotThrow AND assertEquals(0, page.getTotal())"
+      }
+    },
+    {
+      "eut_id": "EUT-037",
+      "bound_item": "BR-001",
+      "route_type": "Exception",
+      "given": "FaultReasonBrandClassConfigParam: brandClassIds=[1001(已配置故障现象但未配故障原因)]; status=ENABLED",
+      "when": "FaultReasonFacadeImpl.batchUpdateConfigStatus(param)",
+      "then": "返回 Result.fail；errorMessage包含「品类XX，已设置或已配置(仅)故障现象」；DB不写入",
+      "risk_tier": "T1",
+      "repo": "sfp-fault-service",
+      "target_class": "FaultReasonFacadeImpl",
+      "target_method": "batchUpdateConfigStatus",
+      "source": "q01/structured.json:BR-001",
+      "branch_ids": [],
+      "outcome_ids": [],
+      "assertion_blueprint": {
+        "assertion_type": "returnValue",
+        "assert_target": "Result.fail with error message",
+        "expected_value": "Result.fail AND message.contains('已设置或已配置')"
+      }
+    },
+    {
+      "eut_id": "EUT-038",
+      "bound_item": "BR-004",
+      "route_type": "Happy Path",
+      "given": "FaultReasonListParam: brandClassId=1001(空调,已开启故障原因); faultCode='F001'; 品类下有3个故障原因(2个有效,1个无效)",
+      "when": "FaultReasonFacadeImpl.queryFaultReasonBrandClassList(reasonListParam)",
+      "then": "返回 Result.success；data中含2条有效记录；每条包含faultReasonCode、faultReasonName、reasonBrandClassStatus",
+      "risk_tier": "T1",
+      "repo": "sfp-fault-service",
+      "target_class": "FaultReasonFacadeImpl",
+      "target_method": "queryFaultReasonBrandClassList",
+      "source": "q01/structured.json:BR-004",
+      "branch_ids": [],
+      "outcome_ids": [],
+      "assertion_blueprint": {
+        "assertion_type": "assertThat+assertEquals",
+        "assert_target": "List<FaultReasonBrandClassDTO>.size and status",
+        "expected_value": "size==2 AND each.reasonBrandClassStatus==1"
+      }
+    },
+    {
+      "eut_id": "EUT-039",
+      "bound_item": "BR-009",
+      "route_type": "Exception",
+      "given": "DB已存在品类A-故障现象B-故障原因C的关系（status=0无效）；尝试新建相同关系",
+      "when": "FaultReasonFacadeImpl.batchUpdateBaseFaultReason(参数含品类A-故障现象B-故障原因C新增)",
+      "then": "返回 Result.fail 或抛出SfpFaultBizException；errorMessage包含「重复」；DB不新增记录",
+      "risk_tier": "T1",
+      "repo": "sfp-fault-service",
+      "target_class": "FaultReasonFacadeImpl",
+      "target_method": "batchUpdateBaseFaultReason",
+      "source": "q01/structured.json:BR-009",
+      "branch_ids": [],
+      "outcome_ids": [],
+      "assertion_blueprint": {
+        "assertion_type": "returnValue+dbRowCount",
+        "assert_target": "Result.fail + DB row count",
+        "expected_value": "Result.fail AND faultReasonRelationRepository.countByKey(A,B,C)==1（无新增）"
+      }
+    },
+    {
+      "eut_id": "EUT-040",
+      "bound_item": "BR-010",
+      "route_type": "Exception",
+      "given": "上传模版1数据，其中brand=1001（已开启故障原因品类）",
+      "when": "FaultFacadeImpl.handleExcelImport(template1File, param)",
+      "then": "assertTrue(importResult.hasErrors()); importResult.getErrors().stream().anyMatch(e->e.getMessage().contains('请删除数据使用')); verify(faultRepository, never()).batchInsert(any())",
+      "risk_tier": "T1",
+      "repo": "sfp-fault-service",
+      "target_class": "FaultFacadeImpl",
+      "target_method": "handleExcelImport",
+      "source": "q01/structured.json:BR-010",
+      "branch_ids": [],
+      "outcome_ids": [],
+      "assertion_blueprint": {
+        "assertion_type": "assertTrue+verify.never",
+        "assert_target": "importResult.errors[0].message + faultRepository.batchInsert",
+        "expected_value": "hasErrors() AND error.contains('请删除数据使用') AND never().batchInsert(any())"
+      }
+    },
+    {
+      "eut_id": "EUT-041",
+      "bound_item": "BR-011",
+      "route_type": "Exception",
+      "given": "上传模版2数据，表格中第2行和第5行为同一个「品类+故障现象+故障原因」",
+      "when": "FaultFacadeImpl.handleExcelImport(template2File, param)",
+      "then": "assertTrue(importResult.hasErrors()); importResult.getErrors().stream().anyMatch(e->e.getRowNum()==5 && e.getMessage().contains('第2行重复')); verify(faultRepository, never()).batchInsert(any())",
+      "risk_tier": "T1",
+      "repo": "sfp-fault-service",
+      "target_class": "FaultFacadeImpl",
+      "target_method": "handleExcelImport",
+      "source": "q01/structured.json:BR-011",
+      "branch_ids": [],
+      "outcome_ids": [],
+      "assertion_blueprint": {
+        "assertion_type": "assertTrue+verify.never",
+        "assert_target": "importResult.errors[row=5] + faultRepository.batchInsert",
+        "expected_value": "error row=5 msg contains '第2行重复' AND never().batchInsert(any())"
+      }
+    },
+    {
+      "eut_id": "EUT-042",
+      "bound_item": "BR-012",
+      "route_type": "Happy Path",
+      "given": "上传模版2，其中故障原因名称「新原因X」不存在于DB；品类+故障现象+故障原因组合也不重复",
+      "when": "FaultFacadeImpl.handleExcelImport(template2File_newReason, param)",
+      "then": "assertFalse(importResult.hasErrors()); verify(faultReasonRepository).batchInsert(argThat(list->list.stream().anyMatch(r->r.getFaultReasonName().equals('新原因X')))); verify(faultReasonRelationRepository).batchInsertRelations(any())",
+      "risk_tier": "T1",
+      "repo": "sfp-fault-service",
+      "target_class": "FaultFacadeImpl",
+      "target_method": "handleExcelImport",
+      "source": "q01/structured.json:BR-012",
+      "branch_ids": [],
+      "outcome_ids": [],
+      "assertion_blueprint": {
+        "assertion_type": "verify+assertFalse",
+        "assert_target": "faultReasonRepository.batchInsert + faultReasonRelationRepository.batchInsertRelations",
+        "expected_value": "verify(faultReasonRepository).batchInsert(containsNewReasonX) AND verify(relationRepo).batchInsertRelations(any())"
+      }
+    },
+    {
+      "eut_id": "EUT-043",
+      "bound_item": "BR-013",
+      "route_type": "Exception",
+      "given": "品类1001下已有一个审批中的FAULT_REASON_UPDATE任务；再次提交修改故障原因名称请求",
+      "when": "FaultReasonFacadeImpl.updateBaseFaultReason(editParam_withBpmLine)",
+      "then": "返回 Result.fail；errorMessage='请完成当前故障原因对应的审批中的数据再进行修改！'；BPM进程未重复启动",
+      "risk_tier": "T1",
+      "repo": "sfp-fault-service",
+      "target_class": "FaultReasonFacadeImpl",
+      "target_method": "updateBaseFaultReason",
+      "source": "q01/structured.json:BR-013",
+      "branch_ids": [],
+      "outcome_ids": [],
+      "assertion_blueprint": {
+        "assertion_type": "returnValue",
+        "assert_target": "Result.fail with duplicate BPM prevention message",
+        "expected_value": "Result.fail AND message='请完成当前故障原因对应的审批中的数据再进行修改！'"
+      }
+    },
+    {
+      "eut_id": "EUT-044",
+      "bound_item": "BR-014",
+      "route_type": "Exception",
+      "given": "XMS三元关系导入: 品类1001-故障现象F001-故障原因C001（品类-故障现象-故障原因关系不存在于DB）",
+      "when": "FaultReasonFacadeImpl.queryFaultReasonBrandClassList(param) (used by XMS)",
+      "then": "返回 Result.fail；errorMessage包含「品类-故障现象对应故障原因不存在」或空结果；verify(faultReasonRelationRepository, never()).insert(any())",
+      "risk_tier": "T2",
+      "repo": "sfp-fault-service",
+      "target_class": "FaultReasonFacadeImpl",
+      "target_method": "queryFaultReasonBrandClassList",
+      "source": "q01/structured.json:BR-014",
+      "branch_ids": [],
+      "outcome_ids": [],
+      "assertion_blueprint": {
+        "assertion_type": "returnValue+verify.never",
+        "assert_target": "Result + faultReasonRelationRepository.insert",
+        "expected_value": "empty or fail result AND never().insert(any())"
+      }
+    },
+    {
+      "eut_id": "EUT-045",
+      "bound_item": "REQ-005",
+      "route_type": "Happy Path",
+      "given": "上传模版2文件: 5行有效数据，故障原因已存在，品类-故障现象-故障原因组合不重复，品类已开启故障原因",
+      "when": "FaultFacadeImpl.handleExcelImport(validTemplate2File, param)",
+      "then": "assertFalse(importResult.hasErrors()); verify(faultReasonRelationRepository, times(5)).batchInsertRelations(any()); faultReasonRepository.count() unchanged",
+      "risk_tier": "T1",
+      "repo": "sfp-fault-service",
+      "target_class": "FaultFacadeImpl",
+      "target_method": "handleExcelImport",
+      "source": "q01/structured.json:REQ-005",
+      "branch_ids": [],
+      "outcome_ids": [],
+      "assertion_blueprint": {
+        "assertion_type": "assertFalse+verify",
+        "assert_target": "importResult.errors + faultReasonRelationRepository.batchInsertRelations",
+        "expected_value": "no errors AND verify(relationRepo, times(5)).batchInsertRelations(any())"
+      }
+    },
+    {
+      "eut_id": "EUT-046",
+      "bound_item": "SE-004",
+      "route_type": "Boundary",
+      "given": "品类1001下所有关系均为已驳回（REJECTED）或无效（status=0）；尝试禁用品类",
+      "when": "FaultReasonFacadeImpl.batchUpdateConfigStatus([1001], DISABLED)",
+      "then": "返回 Result.success；base_fault_reason_brand_class_config 中品类1001状态=DISABLED；操作日志写入",
+      "risk_tier": "T1",
+      "repo": "sfp-fault-service",
+      "target_class": "FaultReasonFacadeImpl",
+      "target_method": "batchUpdateConfigStatus",
+      "source": "q01/structured.json:SE-004",
+      "branch_ids": [],
+      "outcome_ids": [],
+      "assertion_blueprint": {
+        "assertion_type": "returnValue+sideEffect",
+        "assert_target": "Result.success + DB状态=DISABLED",
+        "expected_value": "Result.success AND configRepository.findById(1001).getStatus()==DISABLED"
+      }
+    },
+    {
+      "eut_id": "EUT-047",
+      "bound_item": "REQ-002",
+      "route_type": "Boundary",
+      "given": "FaultAccessFacadeImpl: 触发 ID不存在，返回null或empty 分支场景",
+      "when": "FaultAccessFacadeImpl.queryFaultDetailById(...)",
+      "then": "verify(faultaccessfacadeimpRepository) 交互符合预期；ID不存在，返回null或empty",
+      "risk_tier": "T2",
+      "repo": "sfp-fault-service",
+      "target_class": "FaultFacadeImpl",
+      "target_method": "getFaultDetailById",
+      "source": "q01/structured.json:REQ-002",
+      "branch_ids": [
+        "B-039"
+      ],
+      "outcome_ids": [
+        "O-039"
+      ],
+      "assertion_blueprint": {
+        "assertion_type": "assertNotNull+assertEquals",
+        "assert_target": "FaultDetailDTO.faultId + faultReasonList",
+        "expected_value": "assertNotNull(result.getData()) AND assertEquals(1001, result.getData().getFaultId())"
+      }
+    },
+    {
+      "eut_id": "EUT-048",
+      "bound_item": "REQ-003",
+      "route_type": "Boundary",
+      "given": "FaultReasonServiceImpl: 触发 按code列表批量查询故障原因成功, codes为空，返回空列表 分支场景",
+      "when": "FaultReasonServiceImpl.queryFaultReasonByCode(...)",
+      "then": "verify(faultreasonserviceimRepository) 交互符合预期；按code列表批量查询故障原因成功",
+      "risk_tier": "T2",
+      "repo": "sfp-fault-service",
+      "target_class": "FaultReasonServiceImpl",
+      "target_method": "queryFaultReasonByCode",
+      "source": "q01/structured.json:REQ-003",
+      "branch_ids": [
+        "B-046",
+        "B-047"
+      ],
+      "outcome_ids": [
+        "O-046",
+        "O-047"
+      ],
+      "assertion_blueprint": {
+        "assertion_type": "assertNotNull+verify",
+        "assert_target": "FaultBpmApprovalServiceImpl.invokeFaultBpmCallback result + bpmRepository",
+        "expected_value": "assertNotNull(result) AND verify(bpmRepository).getBpmApproveByKeyContent(any())"
+      }
+    },
+    {
+      "eut_id": "EUT-049",
+      "bound_item": "REQ-003",
+      "route_type": "Boundary",
+      "given": "FaultReasonRepositoryImpl mock setup: faultReasonCode='R001' exists in DB; brandClassIds=[1001]",
+      "when": "FaultReasonRepositoryImpl.listFaultReasonRelationByCondition(brandClassIds, faultCodes, reasonCodes)",
+      "then": "assertNotNull(result); assertEquals(1, result.size()); verify(baseFaultReasonRelationMapper).selectList(any())",
+      "risk_tier": "T2",
+      "repo": "sfp-fault-service",
+      "target_class": "FaultReasonRepositoryImpl",
+      "target_method": "listFaultReasonRelationByCondition",
+      "source": "q01/structured.json:REQ-003",
+      "branch_ids": [],
+      "outcome_ids": [],
+      "assertion_blueprint": {
+        "assertion_type": "assertEquals+verify",
+        "assert_target": "result.size + baseFaultReasonRelationMapper.selectList",
+        "expected_value": "assertEquals(1, result.size()) AND verify(mapper).selectList(any())"
+      }
+    },
+    {
+      "eut_id": "EUT-050",
+      "bound_item": "SE-003",
+      "route_type": "Boundary",
+      "given": "DB state: base_fault_relationship_ext.status=0 (故障现象置无效); base_fault_reason_relation.relationStatus=1 (故障原因关系有效)",
+      "when": "FaultServiceImpl.queryFaultInfoList(param) 或直接查询 base_fault_reason_relation 表状态",
+      "then": "查询 base_fault_reason_relation.relationStatus 仍=1；assertNotEquals(faultRelationshipExt.status, faultReasonRelation.relationStatus)",
+      "risk_tier": "T1",
+      "repo": "sfp-fault-service",
+      "target_class": "FaultServiceImpl",
+      "target_method": "queryFaultInfoList",
+      "source": "q01/structured.json:SE-003",
+      "branch_ids": [],
+      "outcome_ids": [],
+      "assertion_blueprint": {
+        "assertion_type": "assertEquals+assertNotEquals",
+        "assert_target": "base_fault_reason_relation.relationStatus",
+        "expected_value": "assertEquals(1, faultReasonRelationStatus) AND故障现象状态变更不影响故障原因关系状态"
+      }
+    },
+    {
+      "eut_id": "EUT-051",
+      "bound_item": "REQ-003",
+      "route_type": "Boundary",
+      "given": "FaultReasonServiceImpl mock，checkNeedFaultReason repository抛出RuntimeException",
+      "when": "FaultReasonServiceImpl.checkNeedFaultReason(1001, 101)",
+      "then": "assertThrows(RuntimeException.class)或者被包装成SfpFaultBizException向上抛出；调用方感知到异常",
+      "risk_tier": "T2",
+      "repo": "sfp-fault-service",
+      "target_class": "FaultReasonServiceImpl",
+      "target_method": "checkNeedFaultReason",
+      "source": "q01/structured.json:REQ-003",
+      "branch_ids": [
+        "B-052"
+      ],
+      "outcome_ids": [
+        "O-052"
+      ],
+      "assertion_blueprint": {
+        "assertion_type": "assertThrows",
+        "assert_target": "RuntimeException or SfpFaultBizException",
+        "expected_value": "assertThrows(Exception.class, ()->service.checkNeedFaultReason(1001, 101)) when repo throws"
+      }
+    },
+    {
+      "eut_id": "EUT-052",
+      "bound_item": "REQ-008",
+      "route_type": "Boundary",
+      "given": "FaultBpmApprovalServiceImpl: invokeFaultBpmCallback传入null参数",
+      "when": "FaultBpmApprovalServiceImpl.invokeFaultBpmCallback(null)",
+      "then": "不抛出NPE；返回空结果或fail；assertDoesNotThrow或assertNotNull(result)；verify(bpmRepository, never()).save(any())",
+      "risk_tier": "T2",
+      "repo": "sfp-fault-service",
+      "target_class": "FaultBpmApprovalServiceImpl",
+      "target_method": "invokeFaultBpmCallback",
+      "source": "q01/structured.json:REQ-008",
+      "branch_ids": [
+        "B-054"
+      ],
+      "outcome_ids": [
+        "O-054"
+      ],
+      "assertion_blueprint": {
+        "assertion_type": "assertDoesNotThrow+verify.never",
+        "assert_target": "Exception handling + bpmRepository.save not called",
+        "expected_value": "assertDoesNotThrow(()->service.invokeFaultBpmCallback(null)) AND verify(bpmRepository, never()).save(any())"
+      }
+    },
+    {
+      "eut_id": "EUT-053",
+      "bound_item": "REQ-002",
+      "route_type": "Boundary",
+      "given": "FaultServiceImpl.queryFaultMetaByStep: faultType为null",
+      "when": "FaultServiceImpl.queryFaultMetaByStep(null, null)",
+      "then": "返回 Result.fail 或空列表；不抛出NPE；assertEquals(0, result.getData()?.size() ?: 0)",
+      "risk_tier": "T2",
+      "repo": "sfp-fault-service",
+      "target_class": "FaultServiceImpl",
+      "target_method": "queryFaultMetaByStep",
+      "source": "q01/structured.json:REQ-002",
+      "branch_ids": [
+        "B-058"
+      ],
+      "outcome_ids": [
+        "O-058"
+      ],
+      "assertion_blueprint": {
+        "assertion_type": "assertDoesNotThrow+assertEquals",
+        "assert_target": "Result + no NPE",
+        "expected_value": "assertDoesNotThrow(()->service.queryFaultMetaByStep(null, null)) AND result != null"
+      }
+    },
+    {
+      "eut_id": "EUT-054",
+      "bound_item": "REQ-002",
+      "route_type": "Boundary",
+      "given": "FaultReasonServiceImpl.queryFaultReasonByCode: DB抛出DataAccessException",
+      "when": "FaultReasonServiceImpl.queryFaultReasonByCode(codes)",
+      "then": "assertThrows(SfpFaultBizException.class 或 RuntimeException)；异常消息非空",
+      "risk_tier": "T2",
+      "repo": "sfp-fault-service",
+      "target_class": "FaultReasonServiceImpl",
+      "target_method": "queryFaultReasonByCode",
+      "source": "q01/structured.json:REQ-002",
+      "branch_ids": [
+        "B-059"
+      ],
+      "outcome_ids": [
+        "O-059"
+      ],
+      "assertion_blueprint": {
+        "assertion_type": "assertThrows",
+        "assert_target": "SfpFaultBizException",
+        "expected_value": "assertThrows(Exception.class, ()->service.queryFaultReasonByCode(codes)) when DB throws"
+      }
+    }
+  ]
+}

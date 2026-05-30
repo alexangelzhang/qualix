@@ -1,0 +1,31 @@
+{
+  "case_id": "GOLDEN-Q06-20260530-07",
+  "phase": "Q06",
+  "error_type": "FN",
+  "severity": "medium",
+  "title": "queryFaultBrandClassSkuByTime 无故障原因数据时返回空列表",
+  "root_cause": "SKILL_RULE",
+  "fix_target": "skills/unit-test-audit/SKILL.md",
+  "tags": [
+    "golden-sample",
+    "project:failure-cause",
+    "pattern:partial"
+  ],
+  "created_at": "2026-05-30",
+  "status": "open",
+  "source": {
+    "project_id": "failure-cause",
+    "audit_item_id": "AUDIT-031",
+    "eut_id": "EUT-031",
+    "auto_generated": true,
+    "origin": "golden-sample-extraction"
+  },
+  "expected": {
+    "content": "补充 assertTrue(result.getData().isEmpty()) 确认无数据时返回空列表而非 null"
+  },
+  "actual": {
+    "content": "status=PARTIAL: queryFaultBrandClassSkuByTime 无故障原因数据时返回空列表"
+  },
+  "lesson": "验证了不为null但未验证为空集合，边界语义不完整",
+  "case_category": "ASSERTION_QUALITY"
+}

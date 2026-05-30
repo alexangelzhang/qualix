@@ -1,0 +1,1342 @@
+{
+  "project_id": "failure-cause",
+  "artifact_version": "1.1",
+  "schema_version": "1.1",
+  "audit_items": [
+    {
+      "id": "AUDIT-001",
+      "eut_id": "EUT-001",
+      "bound_item": "REQ-003",
+      "description": "updateBaseFaultReason 无BPM流程场景调用 updateFaultReasonEditInfo",
+      "status": "COVERED",
+      "test_class": "FaultReasonFacadeImplEutTest",
+      "test_method": "updateBaseFaultReason_noBpm_noBpmLine_callsUpdateFaultReasonEditInfo",
+      "evidence": "assertEquals(0, result.getCode()); [sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImplEutTest.java:711]",
+      "recommendation": "",
+      "test_location": {
+        "file": "sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImplEutTest.java",
+        "line_start": 711,
+        "class_name": "FaultReasonFacadeImplEutTest",
+        "method_name": "updateBaseFaultReason_noBpm_noBpmLine_callsUpdateFaultReasonEditInfo",
+        "repo": "sfp-fault-service"
+      },
+      "production_location": {
+        "file": "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImpl.java",
+        "class_name": "FaultReasonFacadeImpl",
+        "method_name": "updateBaseFaultReason",
+        "repo": "sfp-fault-service"
+      }
+    },
+    {
+      "id": "AUDIT-002",
+      "eut_id": "EUT-002",
+      "bound_item": "REQ-008",
+      "description": "updateBaseFaultReason 存在BPM流程时返回 fail",
+      "status": "COVERED",
+      "test_class": "FaultReasonFacadeImplEutTest",
+      "test_method": "updateBaseFaultReason_existingBpmProcess_returnsFail",
+      "evidence": "void updateBaseFaultReason_existingBpmProcess_returnsFail() { [sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImplEutTest.java:113] [sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImplEutTest.java:126] [sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImplEutTest.java:128]",
+      "recommendation": "",
+      "test_location": {
+        "file": "sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImplEutTest.java",
+        "line_start": 113,
+        "class_name": "FaultReasonFacadeImplEutTest",
+        "method_name": "updateBaseFaultReason_existingBpmProcess_returnsFail",
+        "repo": "sfp-fault-service"
+      },
+      "production_location": {
+        "file": "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImpl.java",
+        "class_name": "FaultReasonFacadeImpl",
+        "method_name": "updateBaseFaultReason",
+        "repo": "sfp-fault-service"
+      }
+    },
+    {
+      "id": "AUDIT-003",
+      "eut_id": "EUT-003",
+      "bound_item": "BR-007",
+      "description": "updateBaseFaultReason 故障原因SKU与BPM SKU冲突时返回 fail",
+      "status": "COVERED",
+      "test_class": "FaultReasonFacadeImplEutTest",
+      "test_method": "updateBaseFaultReason_reasonSkuConflictsWithFaultBpmSku_returnsFail",
+      "evidence": "void updateBaseFaultReason_reasonSkuConflictsWithFaultBpmSku_returnsFail() { [sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImplEutTest.java:134] [sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImplEutTest.java:170]",
+      "recommendation": "",
+      "test_location": {
+        "file": "sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImplEutTest.java",
+        "line_start": 134,
+        "class_name": "FaultReasonFacadeImplEutTest",
+        "method_name": "updateBaseFaultReason_reasonSkuConflictsWithFaultBpmSku_returnsFail",
+        "repo": "sfp-fault-service"
+      },
+      "production_location": {
+        "file": "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImpl.java",
+        "class_name": "FaultReasonFacadeImpl",
+        "method_name": "updateBaseFaultReason",
+        "repo": "sfp-fault-service"
+      }
+    },
+    {
+      "id": "AUDIT-004",
+      "eut_id": "EUT-004",
+      "bound_item": "BR-005",
+      "description": "updateBaseFaultReason 重复故障原因名称时返回 fail",
+      "status": "COVERED",
+      "test_class": "FaultReasonFacadeImplEutTest",
+      "test_method": "updateBaseFaultReason_duplicateReasonName_returnsFail",
+      "evidence": "void updateBaseFaultReason_duplicateReasonName_returnsFail() { [sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImplEutTest.java:177] [sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImplEutTest.java:200]",
+      "recommendation": "",
+      "test_location": {
+        "file": "sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImplEutTest.java",
+        "line_start": 177,
+        "class_name": "FaultReasonFacadeImplEutTest",
+        "method_name": "updateBaseFaultReason_duplicateReasonName_returnsFail",
+        "repo": "sfp-fault-service"
+      },
+      "production_location": {
+        "file": "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImpl.java",
+        "class_name": "FaultReasonFacadeImpl",
+        "method_name": "updateBaseFaultReason",
+        "repo": "sfp-fault-service"
+      }
+    },
+    {
+      "id": "AUDIT-005",
+      "eut_id": "EUT-005",
+      "bound_item": "BR-006",
+      "description": "validateReasonUpdateParam 最后有效故障原因被置无效时抛出异常",
+      "status": "COVERED",
+      "test_class": "FaultReasonFacadeImplEutTest",
+      "test_method": "validateReasonUpdateParam_lastValidReasonSetInvalid_throwsException",
+      "evidence": "assertEquals(GeneralCodes.InternalError.getCode(), result.getCode()); [sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImplEutTest.java:247]",
+      "recommendation": "",
+      "test_location": {
+        "file": "sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImplEutTest.java",
+        "line_start": 247,
+        "class_name": "FaultReasonFacadeImplEutTest",
+        "method_name": "validateReasonUpdateParam_lastValidReasonSetInvalid_throwsException",
+        "repo": "sfp-fault-service"
+      },
+      "production_location": {
+        "file": "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImpl.java",
+        "class_name": "FaultReasonFacadeImpl",
+        "method_name": "validateReasonUpdateParam",
+        "repo": "sfp-fault-service"
+      }
+    },
+    {
+      "id": "AUDIT-006",
+      "eut_id": "EUT-006",
+      "bound_item": "BR-005",
+      "description": "validateReasonUpdateParam 故障原因名称为空时返回 fail",
+      "status": "COVERED",
+      "test_class": "FaultReasonFacadeImplEutTest",
+      "test_method": "validateReasonUpdateParam_emptyReasonName_returnsFail",
+      "evidence": "void validateReasonUpdateParam_emptyReasonName_returnsFail() { [sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImplEutTest.java:254] [sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImplEutTest.java:266]",
+      "recommendation": "",
+      "test_location": {
+        "file": "sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImplEutTest.java",
+        "line_start": 254,
+        "class_name": "FaultReasonFacadeImplEutTest",
+        "method_name": "validateReasonUpdateParam_emptyReasonName_returnsFail",
+        "repo": "sfp-fault-service"
+      },
+      "production_location": {
+        "file": "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImpl.java",
+        "class_name": "FaultReasonFacadeImpl",
+        "method_name": "validateReasonUpdateParam",
+        "repo": "sfp-fault-service"
+      }
+    },
+    {
+      "id": "AUDIT-007",
+      "eut_id": "EUT-007",
+      "bound_item": "REQ-001",
+      "description": "batchUpdateConfigStatus 空品类列表时返回零条更新",
+      "status": "COVERED",
+      "test_class": "FaultReasonFacadeImplEutTest",
+      "test_method": "batchUpdateConfigStatus_emptyBrandClassIdList_returnsZero",
+      "evidence": "assertEquals(0, result.getCode()); [sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImplEutTest.java:668] [sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImplEutTest.java:669] [sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImplEutTest.java:670]",
+      "recommendation": "",
+      "test_location": {
+        "file": "sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImplEutTest.java",
+        "line_start": 668,
+        "class_name": "FaultReasonFacadeImplEutTest",
+        "method_name": "batchUpdateConfigStatus_emptyBrandClassIdList_returnsZero",
+        "repo": "sfp-fault-service"
+      },
+      "production_location": {
+        "file": "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImpl.java",
+        "class_name": "FaultReasonFacadeImpl",
+        "method_name": "batchUpdateConfigStatus",
+        "repo": "sfp-fault-service"
+      }
+    },
+    {
+      "id": "AUDIT-008",
+      "eut_id": "EUT-008",
+      "bound_item": "BR-002",
+      "description": "batchUpdateConfigStatus 禁用时存在审批数据则返回 fail",
+      "status": "COVERED",
+      "test_class": "FaultReasonFacadeImplEutTest",
+      "test_method": "batchUpdateConfigStatus_disableWithExistingApprovalData_returnsFail",
+      "evidence": "void batchUpdateConfigStatus_disableWithExistingApprovalData_returnsFail() { [sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImplEutTest.java:301] [sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImplEutTest.java:331]",
+      "recommendation": "",
+      "test_location": {
+        "file": "sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImplEutTest.java",
+        "line_start": 301,
+        "class_name": "FaultReasonFacadeImplEutTest",
+        "method_name": "batchUpdateConfigStatus_disableWithExistingApprovalData_returnsFail",
+        "repo": "sfp-fault-service"
+      },
+      "production_location": {
+        "file": "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImpl.java",
+        "class_name": "FaultReasonFacadeImpl",
+        "method_name": "batchUpdateConfigStatus",
+        "repo": "sfp-fault-service"
+      }
+    },
+    {
+      "id": "AUDIT-009",
+      "eut_id": "EUT-009",
+      "bound_item": "REQ-006",
+      "description": "batchUpdateBaseFaultReason 有效数据批量更新返回成功",
+      "status": "COVERED",
+      "test_class": "FaultReasonFacadeImplEutTest",
+      "test_method": "batchUpdateBaseFaultReason_validData_returnsSuccess",
+      "evidence": "assertEquals(0, result.getCode()); [sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImplEutTest.java:378] [sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImplEutTest.java:379]",
+      "recommendation": "",
+      "test_location": {
+        "file": "sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImplEutTest.java",
+        "line_start": 378,
+        "class_name": "FaultReasonFacadeImplEutTest",
+        "method_name": "batchUpdateBaseFaultReason_validData_returnsSuccess",
+        "repo": "sfp-fault-service"
+      },
+      "production_location": {
+        "file": "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImpl.java",
+        "class_name": "FaultReasonFacadeImpl",
+        "method_name": "batchUpdateBaseFaultReason",
+        "repo": "sfp-fault-service"
+      }
+    },
+    {
+      "id": "AUDIT-010",
+      "eut_id": "EUT-010",
+      "bound_item": "BR-006",
+      "description": "batchUpdateBaseFaultReason 最后有效原因被置无效时返回 fail",
+      "status": "COVERED",
+      "test_class": "FaultReasonFacadeImplEutTest",
+      "test_method": "batchUpdateBaseFaultReason_lastValidReasonSetInvalid_returnsFail",
+      "evidence": "void batchUpdateBaseFaultReason_lastValidReasonSetInvalid_returnsFail() { [sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImplEutTest.java:385] [sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImplEutTest.java:417] [sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImplEutTest.java:418]",
+      "recommendation": "",
+      "test_location": {
+        "file": "sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImplEutTest.java",
+        "line_start": 385,
+        "class_name": "FaultReasonFacadeImplEutTest",
+        "method_name": "batchUpdateBaseFaultReason_lastValidReasonSetInvalid_returnsFail",
+        "repo": "sfp-fault-service"
+      },
+      "production_location": {
+        "file": "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImpl.java",
+        "class_name": "FaultReasonFacadeImpl",
+        "method_name": "batchUpdateBaseFaultReason",
+        "repo": "sfp-fault-service"
+      }
+    },
+    {
+      "id": "AUDIT-011",
+      "eut_id": "EUT-011",
+      "bound_item": "BR-003",
+      "description": "checkNeedFaultReason 有故障原因配置的品类返回 true",
+      "status": "COVERED",
+      "test_class": "FaultReasonServiceImplEutTest",
+      "test_method": "checkNeedFaultReason_categoryWithFaultReason_returnsTrue",
+      "evidence": "assertEquals(Boolean.TRUE, result.getData()); [sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/service/FaultReasonServiceImplEutTest.java:84] [sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/service/FaultReasonServiceImplEutTest.java:85]",
+      "recommendation": "",
+      "test_location": {
+        "file": "sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/service/FaultReasonServiceImplEutTest.java",
+        "line_start": 84,
+        "class_name": "FaultReasonServiceImplEutTest",
+        "method_name": "checkNeedFaultReason_categoryWithFaultReason_returnsTrue",
+        "repo": "sfp-fault-service"
+      },
+      "production_location": {
+        "file": "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/faultreason/service/FaultReasonServiceImpl.java",
+        "class_name": "FaultReasonServiceImpl",
+        "method_name": "checkNeedFaultReason",
+        "repo": "sfp-fault-service"
+      }
+    },
+    {
+      "id": "AUDIT-012",
+      "eut_id": "EUT-012",
+      "bound_item": "BR-003",
+      "description": "checkNeedFaultReason 无故障原因配置的品类返回 false",
+      "status": "COVERED",
+      "test_class": "FaultReasonServiceImplEutTest",
+      "test_method": "checkNeedFaultReason_categoryWithoutFaultReason_returnsFalse",
+      "evidence": "assertEquals(Boolean.FALSE, result.getData()); [sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/service/FaultReasonServiceImplEutTest.java:99]",
+      "recommendation": "",
+      "test_location": {
+        "file": "sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/service/FaultReasonServiceImplEutTest.java",
+        "line_start": 99,
+        "class_name": "FaultReasonServiceImplEutTest",
+        "method_name": "checkNeedFaultReason_categoryWithoutFaultReason_returnsFalse",
+        "repo": "sfp-fault-service"
+      },
+      "production_location": {
+        "file": "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/faultreason/service/FaultReasonServiceImpl.java",
+        "class_name": "FaultReasonServiceImpl",
+        "method_name": "checkNeedFaultReason",
+        "repo": "sfp-fault-service"
+      }
+    },
+    {
+      "id": "AUDIT-013",
+      "eut_id": "EUT-013",
+      "bound_item": "BR-003",
+      "description": "checkNeedFaultReason brandClassId 为 null 时抛出异常",
+      "status": "COVERED",
+      "test_class": "FaultReasonServiceImplEutTest",
+      "test_method": "checkNeedFaultReason_nullBrandClassId_throwsException",
+      "evidence": "assertThrows(SfpFaultBizException.class, [sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/service/FaultReasonServiceImplEutTest.java:108]",
+      "recommendation": "",
+      "test_location": {
+        "file": "sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/service/FaultReasonServiceImplEutTest.java",
+        "line_start": 108,
+        "class_name": "FaultReasonServiceImplEutTest",
+        "method_name": "checkNeedFaultReason_nullBrandClassId_throwsException",
+        "repo": "sfp-fault-service"
+      },
+      "production_location": {
+        "file": "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/faultreason/service/FaultReasonServiceImpl.java",
+        "class_name": "FaultReasonServiceImpl",
+        "method_name": "checkNeedFaultReason",
+        "repo": "sfp-fault-service"
+      }
+    },
+    {
+      "id": "AUDIT-014",
+      "eut_id": "EUT-014",
+      "bound_item": "REQ-002",
+      "description": "queryFaultReason 有效参数返回非空故障原因列表",
+      "status": "COVERED",
+      "test_class": "FaultReasonServiceImplEutTest",
+      "test_method": "queryFaultReason_validParam_returnsNonEmptyList",
+      "evidence": "assertFalse(result.getData().isEmpty()); [sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/service/FaultReasonServiceImplEutTest.java:144] [sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/service/FaultReasonServiceImplEutTest.java:145]",
+      "recommendation": "",
+      "test_location": {
+        "file": "sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/service/FaultReasonServiceImplEutTest.java",
+        "line_start": 144,
+        "class_name": "FaultReasonServiceImplEutTest",
+        "method_name": "queryFaultReason_validParam_returnsNonEmptyList",
+        "repo": "sfp-fault-service"
+      },
+      "production_location": {
+        "file": "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/faultreason/service/FaultReasonServiceImpl.java",
+        "class_name": "FaultReasonServiceImpl",
+        "method_name": "queryFaultReason",
+        "repo": "sfp-fault-service"
+      }
+    },
+    {
+      "id": "AUDIT-015",
+      "eut_id": "EUT-015",
+      "bound_item": "REQ-002",
+      "description": "queryFaultReason 无品类数据时返回空列表或成功",
+      "status": "COVERED",
+      "test_class": "FaultReasonServiceImplEutTest",
+      "test_method": "queryFaultReason_noBrandClassData_returnsEmptyOrSuccess",
+      "evidence": "assertEquals(0, result.getCode()); [sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/service/FaultReasonServiceImplEutTest.java:167] [sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/service/FaultReasonServiceImplEutTest.java:168]",
+      "recommendation": "",
+      "test_location": {
+        "file": "sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/service/FaultReasonServiceImplEutTest.java",
+        "line_start": 167,
+        "class_name": "FaultReasonServiceImplEutTest",
+        "method_name": "queryFaultReason_noBrandClassData_returnsEmptyOrSuccess",
+        "repo": "sfp-fault-service"
+      },
+      "production_location": {
+        "file": "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/faultreason/service/FaultReasonServiceImpl.java",
+        "class_name": "FaultReasonServiceImpl",
+        "method_name": "queryFaultReason",
+        "repo": "sfp-fault-service"
+      }
+    },
+    {
+      "id": "AUDIT-016",
+      "eut_id": "EUT-016",
+      "bound_item": "BR-003",
+      "description": "handle 软件故障且品类需要故障原因时抛出 SfpFaultBizException",
+      "status": "COVERED",
+      "test_class": "UpdateFaultTypeCommandHandlerEutTest",
+      "test_method": "handle_softwareFaultWithFaultReasonEnabledCategory_throwsSfpFaultBizException",
+      "evidence": "SfpFaultBizException ex = assertThrows(SfpFaultBizException.class, [sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faulttype/command/UpdateFaultTypeCommandHandlerEutTest.java:72] [sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faulttype/command/UpdateFaultTypeCommandHandlerEutTest.java:77]",
+      "recommendation": "",
+      "test_location": {
+        "file": "sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faulttype/command/UpdateFaultTypeCommandHandlerEutTest.java",
+        "line_start": 72,
+        "class_name": "UpdateFaultTypeCommandHandlerEutTest",
+        "method_name": "handle_softwareFaultWithFaultReasonEnabledCategory_throwsSfpFaultBizException",
+        "repo": "sfp-fault-service"
+      },
+      "production_location": {
+        "file": "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/faulttype/command/UpdateFaultTypeCommandHandler.java",
+        "class_name": "UpdateFaultTypeCommandHandler",
+        "method_name": "handle",
+        "repo": "sfp-fault-service"
+      }
+    },
+    {
+      "id": "AUDIT-017",
+      "eut_id": "EUT-017",
+      "bound_item": "BR-003",
+      "description": "handle 软件故障且品类无需故障原因时成功更新",
+      "status": "COVERED",
+      "test_class": "UpdateFaultTypeCommandHandlerEutTest",
+      "test_method": "handle_softwareFaultWithNoFaultReasonCategory_updatesSuccessfully",
+      "evidence": "verify(faultTypeRepository).update(any(FaultType.class)); [sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faulttype/command/UpdateFaultTypeCommandHandlerEutTest.java:105]",
+      "recommendation": "",
+      "test_location": {
+        "file": "sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faulttype/command/UpdateFaultTypeCommandHandlerEutTest.java",
+        "line_start": 105,
+        "class_name": "UpdateFaultTypeCommandHandlerEutTest",
+        "method_name": "handle_softwareFaultWithNoFaultReasonCategory_updatesSuccessfully",
+        "repo": "sfp-fault-service"
+      },
+      "production_location": {
+        "file": "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/faulttype/command/UpdateFaultTypeCommandHandler.java",
+        "class_name": "UpdateFaultTypeCommandHandler",
+        "method_name": "handle",
+        "repo": "sfp-fault-service"
+      }
+    },
+    {
+      "id": "AUDIT-018",
+      "eut_id": "EUT-018",
+      "bound_item": "REQ-008",
+      "description": "invokeFaultBpmCallback 有效bizType审批时回调标志为 true",
+      "status": "COVERED",
+      "test_class": "FaultBpmApprovalServiceImplEutTest",
+      "test_method": "invokeFaultBpmCallback_validBizTypeApproved_callbackFlagTrue",
+      "evidence": "verify(faultReasonFacade).updateBpmBaseFaultReasonInfo(any(FaultBpmCallBackParam.class)); [sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/bpm/service/FaultBpmApprovalServiceImplEutTest.java:73]",
+      "recommendation": "",
+      "test_location": {
+        "file": "sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/bpm/service/FaultBpmApprovalServiceImplEutTest.java",
+        "line_start": 73,
+        "class_name": "FaultBpmApprovalServiceImplEutTest",
+        "method_name": "invokeFaultBpmCallback_validBizTypeApproved_callbackFlagTrue",
+        "repo": "sfp-fault-service"
+      },
+      "production_location": {
+        "file": "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/bpm/service/FaultBpmApprovalServiceImpl.java",
+        "class_name": "FaultBpmApprovalServiceImpl",
+        "method_name": "invokeFaultBpmCallback",
+        "repo": "sfp-fault-service"
+      }
+    },
+    {
+      "id": "AUDIT-019",
+      "eut_id": "EUT-019",
+      "bound_item": "REQ-008",
+      "description": "invokeFaultBpmCallback 入参为 null 时提前返回，不触发后续处理",
+      "status": "PARTIAL",
+      "test_class": "FaultBpmApprovalServiceImplEutTest",
+      "test_method": "invokeFaultBpmCallback_nullParam_returnsNullWithoutProcessing",
+      "evidence": "assertNull(result); verify(faultReasonFacade, never()).updateBpmBaseFaultReasonInfo(any()) [FaultBpmApprovalServiceImplEutTest.java:84,85] — 仅验证返回 null 和无调用，未验证 Result.fail 业务错误码",
+      "recommendation": "补充对 Result.fail 返回码的断言，确认方法返回业务失败语义而非静默 null",
+      "test_location": {
+        "file": "sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/bpm/service/FaultBpmApprovalServiceImplEutTest.java",
+        "line_start": 84,
+        "class_name": "FaultBpmApprovalServiceImplEutTest",
+        "method_name": "invokeFaultBpmCallback_nullParam_returnsNullWithoutProcessing",
+        "repo": "sfp-fault-service"
+      },
+      "production_location": {
+        "file": "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/bpm/service/FaultBpmApprovalServiceImpl.java",
+        "class_name": "FaultBpmApprovalServiceImpl",
+        "method_name": "invokeFaultBpmCallback",
+        "repo": "sfp-fault-service"
+      }
+    },
+    {
+      "id": "AUDIT-020",
+      "eut_id": "EUT-020",
+      "bound_item": "SE-001",
+      "description": "updateBaseFaultReason 并发名称检查场景不报错",
+      "status": "COVERED",
+      "test_class": "FaultReasonFacadeImplEutTest",
+      "test_method": "updateBaseFaultReason_concurrentNameCheck_runsWithoutError",
+      "evidence": "assertEquals(0, result.getCode()); [sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImplEutTest.java:832]",
+      "recommendation": "",
+      "test_location": {
+        "file": "sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImplEutTest.java",
+        "line_start": 832,
+        "class_name": "FaultReasonFacadeImplEutTest",
+        "method_name": "updateBaseFaultReason_concurrentNameCheck_runsWithoutError",
+        "repo": "sfp-fault-service"
+      },
+      "production_location": {
+        "file": "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImpl.java",
+        "class_name": "FaultReasonFacadeImpl",
+        "method_name": "updateBaseFaultReason",
+        "repo": "sfp-fault-service"
+      }
+    },
+    {
+      "id": "AUDIT-021",
+      "eut_id": "EUT-021",
+      "bound_item": "SE-002",
+      "description": "updateBaseFaultReason 状态聚合校验至少有一条有效故障原因",
+      "status": "COVERED",
+      "test_class": "FaultReasonFacadeImplEutTest",
+      "test_method": "updateBaseFaultReason_statusAggregation_validatesMinOneActive",
+      "evidence": "assertEquals(0, result.getCode()); [sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImplEutTest.java:852] [sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImplEutTest.java:853]",
+      "recommendation": "",
+      "test_location": {
+        "file": "sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImplEutTest.java",
+        "line_start": 852,
+        "class_name": "FaultReasonFacadeImplEutTest",
+        "method_name": "updateBaseFaultReason_statusAggregation_validatesMinOneActive",
+        "repo": "sfp-fault-service"
+      },
+      "production_location": {
+        "file": "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImpl.java",
+        "class_name": "FaultReasonFacadeImpl",
+        "method_name": "updateBaseFaultReason",
+        "repo": "sfp-fault-service"
+      }
+    },
+    {
+      "id": "AUDIT-022",
+      "eut_id": "EUT-022",
+      "bound_item": "REQ-004",
+      "description": "handle code字段变更时触发同步并返回 true",
+      "status": "COVERED",
+      "test_class": "FaultReasonBinLogCommandHandlerEutTest",
+      "test_method": "handle_codeFieldChanged_triggersSync_returnsTrue",
+      "evidence": "assertEquals(Boolean.TRUE, result); [sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/binlog/command/FaultReasonBinLogCommandHandlerEutTest.java:80] [sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/binlog/command/FaultReasonBinLogCommandHandlerEutTest.java:81]",
+      "recommendation": "",
+      "test_location": {
+        "file": "sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/binlog/command/FaultReasonBinLogCommandHandlerEutTest.java",
+        "line_start": 80,
+        "class_name": "FaultReasonBinLogCommandHandlerEutTest",
+        "method_name": "handle_codeFieldChanged_triggersSync_returnsTrue",
+        "repo": "sfp-fault-service"
+      },
+      "production_location": {
+        "file": "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/binlog/command/FaultReasonBinLogCommandHandler.java",
+        "class_name": "FaultReasonBinLogCommandHandler",
+        "method_name": "handle",
+        "repo": "sfp-fault-service"
+      }
+    },
+    {
+      "id": "AUDIT-023",
+      "eut_id": "EUT-023",
+      "bound_item": "REQ-004",
+      "description": "handle 非schema字段变更时跳过同步返回 false",
+      "status": "COVERED",
+      "test_class": "FaultReasonBinLogCommandHandlerEutTest",
+      "test_method": "handle_nonSchemaFieldChanged_skipsSync_returnsFalse",
+      "evidence": "assertEquals(Boolean.FALSE, result); [sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/binlog/command/FaultReasonBinLogCommandHandlerEutTest.java:104] [sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/binlog/command/FaultReasonBinLogCommandHandlerEutTest.java:105]",
+      "recommendation": "",
+      "test_location": {
+        "file": "sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/binlog/command/FaultReasonBinLogCommandHandlerEutTest.java",
+        "line_start": 104,
+        "class_name": "FaultReasonBinLogCommandHandlerEutTest",
+        "method_name": "handle_nonSchemaFieldChanged_skipsSync_returnsFalse",
+        "repo": "sfp-fault-service"
+      },
+      "production_location": {
+        "file": "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/binlog/command/FaultReasonBinLogCommandHandler.java",
+        "class_name": "FaultReasonBinLogCommandHandler",
+        "method_name": "handle",
+        "repo": "sfp-fault-service"
+      }
+    },
+    {
+      "id": "AUDIT-024",
+      "eut_id": "EUT-024",
+      "bound_item": "BR-008",
+      "description": "queryFaultInfoList 有效参数调用 repository 查询",
+      "status": "WRONG_TARGET",
+      "test_class": "FaultServiceImplEutTest",
+      "test_method": "queryFaultInfoList_validParam_callsRepository",
+      "evidence": "assertEquals(FaultServiceImpl.class, faultServiceImpl.getClass()) [FaultServiceImplEutTest.java:71] — 空洞断言，仅验证类存在，未验证 queryFaultInfoList 的业务返回结果",
+      "recommendation": "替换为对 queryFaultInfoList 返回值的业务断言，如 assertNotNull(result.getData()) 并验证 repository mock 被调用",
+      "test_location": {
+        "file": "sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/fault/service/FaultServiceImplEutTest.java",
+        "line_start": 71,
+        "class_name": "FaultServiceImplEutTest",
+        "method_name": "queryFaultInfoList_validParam_callsRepository",
+        "repo": "sfp-fault-service"
+      },
+      "production_location": {
+        "file": "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/fault/service/FaultServiceImpl.java",
+        "class_name": "FaultServiceImpl",
+        "method_name": "queryFaultInfoList",
+        "repo": "sfp-fault-service"
+      }
+    },
+    {
+      "id": "AUDIT-025",
+      "eut_id": "EUT-025",
+      "bound_item": "SE-007",
+      "description": "queryFaultMetaByStep 全null参数时返回 fail",
+      "status": "WRONG_TARGET",
+      "test_class": "FaultServiceImplEutTest",
+      "test_method": "queryFaultMetaByStep_nullAll_returnsFail",
+      "evidence": "assertEquals(FaultServiceImpl.class, faultServiceImpl.getClass()); assertFalse(result == null) [FaultServiceImplEutTest.java:81,82] — 空洞断言，未验证 result 的错误码或业务失败语义",
+      "recommendation": "补充对 result.getCode() 非0或 result.isError() 的业务断言",
+      "test_location": {
+        "file": "sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/fault/service/FaultServiceImplEutTest.java",
+        "line_start": 81,
+        "class_name": "FaultServiceImplEutTest",
+        "method_name": "queryFaultMetaByStep_nullAll_returnsFail",
+        "repo": "sfp-fault-service"
+      },
+      "production_location": {
+        "file": "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/fault/service/FaultServiceImpl.java",
+        "class_name": "FaultServiceImpl",
+        "method_name": "batchAdd",
+        "repo": "sfp-fault-service"
+      }
+    },
+    {
+      "id": "AUDIT-026",
+      "eut_id": "EUT-026",
+      "bound_item": "REQ-002",
+      "description": "queryFaultList 含故障原因数据时填充响应",
+      "status": "COVERED",
+      "test_class": "FaultListFacadeImplEutTest",
+      "test_method": "queryFaultList_withFaultReasonData_enrichesResponse",
+      "evidence": "assertEquals(0, result.getCode()); [sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/fault/facade/FaultListFacadeImplEutTest.java:123] [sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/fault/facade/FaultListFacadeImplEutTest.java:124]",
+      "recommendation": "",
+      "test_location": {
+        "file": "sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/fault/facade/FaultListFacadeImplEutTest.java",
+        "line_start": 123,
+        "class_name": "FaultListFacadeImplEutTest",
+        "method_name": "queryFaultList_withFaultReasonData_enrichesResponse",
+        "repo": "sfp-fault-service"
+      },
+      "production_location": {
+        "file": "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/fault/facade/FaultListFacadeImpl.java",
+        "class_name": "FaultListFacadeImpl",
+        "method_name": "queryFaultList",
+        "repo": "sfp-fault-service"
+      }
+    },
+    {
+      "id": "AUDIT-027",
+      "eut_id": "EUT-027",
+      "bound_item": "REQ-003",
+      "description": "updateBaseFaultBrandClassById 含品类列表时不抛异常",
+      "status": "WRONG_TARGET",
+      "test_class": "FaultEditServiceImplEutTest",
+      "test_method": "updateFaultEditInfo_withBrandClassList_noException",
+      "evidence": "assertEquals(FaultEditServiceImpl.class, faultEditServiceImpl.getClass()); assertFalse(faultEditServiceImpl == null) [FaultEditServiceImplEutTest.java:49,50] — 空洞断言，仅验证类存在，未验证业务更新结果",
+      "recommendation": "补充对方法返回值或 repository 调用的验证",
+      "test_location": {
+        "file": "sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/fault/service/FaultEditServiceImplEutTest.java",
+        "line_start": 49,
+        "class_name": "FaultEditServiceImplEutTest",
+        "method_name": "updateFaultEditInfo_withBrandClassList_noException",
+        "repo": "sfp-fault-service"
+      },
+      "production_location": {
+        "file": "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/fault/service/FaultEditServiceImpl.java",
+        "class_name": "FaultEditServiceImpl",
+        "method_name": "updateBaseFaultBrandClassById",
+        "repo": "sfp-fault-service"
+      }
+    },
+    {
+      "id": "AUDIT-028",
+      "eut_id": "EUT-028",
+      "bound_item": "REQ-008",
+      "description": "SingleFaultReasonBpmHandler bpmCallbackProcess 存在且可实例化",
+      "status": "WRONG_TARGET",
+      "test_class": "SingleFaultReasonBpmHandlerEutTest",
+      "test_method": "singleFaultReasonBpmHandler_exists_and_instantiatable",
+      "evidence": "assertEquals(\"SingleFaultReasonBpmHandler\", cls.getSimpleName()) [SingleFaultReasonBpmHandlerEutTest.java:33,36] — 仅验证类名字符串，未验证 bpmCallbackProcess 的业务回调逻辑",
+      "recommendation": "替换为对 bpmCallbackProcess 方法实际执行结果的断言",
+      "test_location": {
+        "file": "sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/bpm/handler/SingleFaultReasonBpmHandlerEutTest.java",
+        "line_start": 33,
+        "class_name": "SingleFaultReasonBpmHandlerEutTest",
+        "method_name": "singleFaultReasonBpmHandler_exists_and_instantiatable",
+        "repo": "sfp-fault-service"
+      },
+      "production_location": {
+        "file": "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/bpm/handler/SingleFaultReasonBpmHandler.java",
+        "class_name": "SingleFaultReasonBpmHandler",
+        "method_name": "bpmCallbackProcess",
+        "repo": "sfp-fault-service"
+      }
+    },
+    {
+      "id": "AUDIT-029",
+      "eut_id": "EUT-029",
+      "bound_item": "REQ-002",
+      "description": "getFaultDetailById null结果时优雅处理",
+      "status": "WRONG_TARGET",
+      "test_class": "FaultFacadeImplEutTest",
+      "test_method": "queryFaultDetailById_nullResult_handledGracefully",
+      "evidence": "assertEquals(FaultFacadeImpl.class, faultFacadeImpl.getClass()) [FaultFacadeImplEutTest.java:72] — 空洞断言，仅验证类存在，未验证 null 结果的处理逻辑",
+      "recommendation": "补充调用 getFaultDetailById 并验证返回值为 null 或业务降级处理",
+      "test_location": {
+        "file": "sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/fault/facade/FaultFacadeImplEutTest.java",
+        "line_start": 72,
+        "class_name": "FaultFacadeImplEutTest",
+        "method_name": "queryFaultDetailById_nullResult_handledGracefully",
+        "repo": "sfp-fault-service"
+      },
+      "production_location": {
+        "file": "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/fault/facade/FaultFacadeImpl.java",
+        "class_name": "FaultFacadeImpl",
+        "method_name": "getFaultDetailById",
+        "repo": "sfp-fault-service"
+      }
+    },
+    {
+      "id": "AUDIT-030",
+      "eut_id": "EUT-030",
+      "bound_item": "REQ-008",
+      "description": "updateBaseFaultInfo BPM服务异常时返回 fail",
+      "status": "WRONG_TARGET",
+      "test_class": "FaultFacadeImplEutTest",
+      "test_method": "updateBaseFaultInfo_bpmServiceException_returnsFail",
+      "evidence": "assertEquals(FaultFacadeImpl.class, faultFacadeImpl.getClass()); assertFalse(result == null) [FaultFacadeImplEutTest.java:89,90] — 空洞断言，assertFalse(result==null) 不验证错误码，无法证明返回了 fail",
+      "recommendation": "将断言改为 assertTrue(result.isError()) 或 assertNotEquals(0, result.getCode())",
+      "test_location": {
+        "file": "sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/fault/facade/FaultFacadeImplEutTest.java",
+        "line_start": 89,
+        "class_name": "FaultFacadeImplEutTest",
+        "method_name": "updateBaseFaultInfo_bpmServiceException_returnsFail",
+        "repo": "sfp-fault-service"
+      },
+      "production_location": {
+        "file": "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/fault/facade/FaultFacadeImpl.java",
+        "class_name": "FaultFacadeImpl",
+        "method_name": "updateBaseFaultInfo",
+        "repo": "sfp-fault-service"
+      }
+    },
+    {
+      "id": "AUDIT-031",
+      "eut_id": "EUT-031",
+      "bound_item": "REQ-002",
+      "description": "queryFaultBrandClassSkuByTime 无故障原因数据时返回空列表",
+      "status": "PARTIAL",
+      "test_class": "FaultListFacadeImplEutTest",
+      "test_method": "queryFaultList_noFaultReasonData_returnsEmptyList",
+      "evidence": "assertEquals(0, result.getCode()); assertFalse(result.getData() == null) [FaultListFacadeImplEutTest.java:145,146] — 断言 code=0 但未验证降级逻辑的具体语义，未验证 getData() 是否为空列表",
+      "recommendation": "补充 assertTrue(result.getData().isEmpty()) 确认无数据时返回空列表而非 null",
+      "test_location": {
+        "file": "sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/fault/facade/FaultListFacadeImplEutTest.java",
+        "line_start": 145,
+        "class_name": "FaultListFacadeImplEutTest",
+        "method_name": "queryFaultList_noFaultReasonData_returnsEmptyList",
+        "repo": "sfp-fault-service"
+      },
+      "production_location": {
+        "file": "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/fault/facade/FaultListFacadeImpl.java",
+        "class_name": "FaultListFacadeImpl",
+        "method_name": "queryFaultBrandClassSkuByTime",
+        "repo": "sfp-fault-service"
+      }
+    },
+    {
+      "id": "AUDIT-032",
+      "eut_id": "EUT-032",
+      "bound_item": "REQ-005",
+      "description": "FaultFacadeImpl handleExcelImport 方法存在且可调用",
+      "status": "WRONG_TARGET",
+      "test_class": "FaultFacadeImplEutTest",
+      "test_method": "faultFacadeImpl_class_hasHandleExcelImport",
+      "evidence": "assertEquals(FaultFacadeImpl.class, faultFacadeImpl.getClass()); assertFalse(faultFacadeImpl == null) [FaultFacadeImplEutTest.java:99,100] — 空洞断言，未验证 handleExcelImport 的业务逻辑",
+      "recommendation": "替换为真实调用 handleExcelImport 并验证返回结果",
+      "test_location": {
+        "file": "sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/fault/facade/FaultFacadeImplEutTest.java",
+        "line_start": 99,
+        "class_name": "FaultFacadeImplEutTest",
+        "method_name": "faultFacadeImpl_class_hasHandleExcelImport",
+        "repo": "sfp-fault-service"
+      },
+      "production_location": {
+        "file": "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/fault/facade/FaultFacadeImpl.java",
+        "class_name": "FaultFacadeImpl",
+        "method_name": "handleExcelImport",
+        "repo": "sfp-fault-service"
+      }
+    },
+    {
+      "id": "AUDIT-033",
+      "eut_id": "EUT-033",
+      "bound_item": "SE-007",
+      "description": "queryFaultMetaByStep 负数 parentId 参数返回错误",
+      "status": "WRONG_TARGET",
+      "test_class": "FaultServiceImplEutTest",
+      "test_method": "queryFaultMetaByStep_negativeParentId_returnsError",
+      "evidence": "assertEquals(FaultServiceImpl.class, faultServiceImpl.getClass()); assertFalse(result == null) [FaultServiceImplEutTest.java:94,95] — 空洞断言，未验证错误码",
+      "recommendation": "补充 assertNotEquals(0, result.getCode()) 或异常类型断言",
+      "test_location": {
+        "file": "sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/fault/service/FaultServiceImplEutTest.java",
+        "line_start": 94,
+        "class_name": "FaultServiceImplEutTest",
+        "method_name": "queryFaultMetaByStep_negativeParentId_returnsError",
+        "repo": "sfp-fault-service"
+      },
+      "production_location": {
+        "file": "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/fault/service/FaultServiceImpl.java",
+        "class_name": "FaultServiceImpl",
+        "method_name": "queryFaultMetaByStep",
+        "repo": "sfp-fault-service"
+      }
+    },
+    {
+      "id": "AUDIT-034",
+      "eut_id": "EUT-034",
+      "bound_item": "REQ-002",
+      "description": "queryFaultReason repository抛异常时向上传播",
+      "status": "COVERED",
+      "test_class": "FaultReasonServiceImplEutTest",
+      "test_method": "queryFaultReason_repositoryThrows_propagatesException",
+      "evidence": "assertThrows(RuntimeException.class, () -> faultReasonService.queryFaultReason(param)); [sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/service/FaultReasonServiceImplEutTest.java:184]",
+      "recommendation": "",
+      "test_location": {
+        "file": "sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/service/FaultReasonServiceImplEutTest.java",
+        "line_start": 184,
+        "class_name": "FaultReasonServiceImplEutTest",
+        "method_name": "queryFaultReason_repositoryThrows_propagatesException",
+        "repo": "sfp-fault-service"
+      },
+      "production_location": {
+        "file": "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/faultreason/service/FaultReasonServiceImpl.java",
+        "class_name": "FaultReasonServiceImpl",
+        "method_name": "queryFaultReason",
+        "repo": "sfp-fault-service"
+      }
+    },
+    {
+      "id": "AUDIT-035",
+      "eut_id": "EUT-035",
+      "bound_item": "REQ-001",
+      "description": "queryConfigByThirdBrandClassIdList 含故障原因codes过滤器时正确传递给 repository",
+      "status": "COVERED",
+      "test_class": "FaultListFacadeImplEutTest",
+      "test_method": "queryFaultList_withFaultReasonCodesFilter_passesFilterToRepo",
+      "evidence": "assertEquals(0, result.getCode()); [sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/fault/facade/FaultListFacadeImplEutTest.java:184] [sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/fault/facade/FaultListFacadeImplEutTest.java:185]",
+      "recommendation": "",
+      "test_location": {
+        "file": "sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/fault/facade/FaultListFacadeImplEutTest.java",
+        "line_start": 184,
+        "class_name": "FaultListFacadeImplEutTest",
+        "method_name": "queryFaultList_withFaultReasonCodesFilter_passesFilterToRepo",
+        "repo": "sfp-fault-service"
+      },
+      "production_location": {
+        "file": "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/faultreason/repository/FaultReasonBrandClassConfigRepositoryImpl.java",
+        "class_name": "FaultReasonBrandClassConfigRepositoryImpl",
+        "method_name": "queryConfigByThirdBrandClassIdList",
+        "repo": "sfp-fault-service"
+      }
+    },
+    {
+      "id": "AUDIT-036",
+      "eut_id": "EUT-036",
+      "bound_item": "REQ-003",
+      "description": "pageQueryByFaultReasonCode repository 可实例化",
+      "status": "WRONG_TARGET",
+      "test_class": "FaultReasonRepositoryEutTest",
+      "test_method": "pageQueryByFaultReasonCode_repositoryInstantiatable",
+      "evidence": "assertEquals(FaultReasonRelationRepositoryImpl.class, faultReasonRelationRepository.getClass()); assertFalse(faultReasonRelationRepository == null) [FaultReasonRepositoryEutTest.java:30,31] — 空洞断言，仅验证类存在，未验证 pageQueryByFaultReasonCode 查询逻辑",
+      "recommendation": "替换为真实调用并验证分页查询返回结果",
+      "test_location": {
+        "file": "sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonRepositoryEutTest.java",
+        "line_start": 30,
+        "class_name": "FaultReasonRepositoryEutTest",
+        "method_name": "pageQueryByFaultReasonCode_repositoryInstantiatable",
+        "repo": "sfp-fault-service"
+      },
+      "production_location": {
+        "file": "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/faultreason/repository/FaultReasonRelationRepositoryImpl.java",
+        "class_name": "FaultReasonRelationRepositoryImpl",
+        "method_name": "pageQueryByFaultReasonCode",
+        "repo": "sfp-fault-service"
+      }
+    },
+    {
+      "id": "AUDIT-037",
+      "eut_id": "EUT-037",
+      "bound_item": "BR-001",
+      "description": "batchUpdateConfigStatus listFaultReasonOptions null参数时抛出异常",
+      "status": "COVERED",
+      "test_class": "FaultReasonFacadeImplEutTest",
+      "test_method": "listFaultReasonOptions_nullParam_throwsException",
+      "evidence": "assertThrows(SfpFaultBizException.class, () -> { [sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImplEutTest.java:592]",
+      "recommendation": "",
+      "test_location": {
+        "file": "sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImplEutTest.java",
+        "line_start": 592,
+        "class_name": "FaultReasonFacadeImplEutTest",
+        "method_name": "listFaultReasonOptions_nullParam_throwsException",
+        "repo": "sfp-fault-service"
+      },
+      "production_location": {
+        "file": "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImpl.java",
+        "class_name": "FaultReasonFacadeImpl",
+        "method_name": "batchUpdateConfigStatus",
+        "repo": "sfp-fault-service"
+      }
+    },
+    {
+      "id": "AUDIT-038",
+      "eut_id": "EUT-038",
+      "bound_item": "BR-004",
+      "description": "queryFaultReasonBrandClassList 按品类ID直接返回列表",
+      "status": "COVERED",
+      "test_class": "FaultReasonFacadeImplEutTest",
+      "test_method": "queryFaultReasonByBrandClassId_returnsListDirectly",
+      "evidence": "assertEquals(0, result.getCode()); [sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImplEutTest.java:772] [sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImplEutTest.java:773]",
+      "recommendation": "",
+      "test_location": {
+        "file": "sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImplEutTest.java",
+        "line_start": 772,
+        "class_name": "FaultReasonFacadeImplEutTest",
+        "method_name": "queryFaultReasonByBrandClassId_returnsListDirectly",
+        "repo": "sfp-fault-service"
+      },
+      "production_location": {
+        "file": "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImpl.java",
+        "class_name": "FaultReasonFacadeImpl",
+        "method_name": "queryFaultReasonBrandClassList",
+        "repo": "sfp-fault-service"
+      }
+    },
+    {
+      "id": "AUDIT-039",
+      "eut_id": "EUT-039",
+      "bound_item": "BR-009",
+      "description": "batchUpdateBaseFaultReason 重复关联时返回 fail",
+      "status": "PARTIAL",
+      "test_class": "FaultReasonFacadeImplEutTest",
+      "test_method": "batchUpdateBaseFaultReason_duplicateRelation_returnsFail",
+      "evidence": "assertEquals(0, result.getCode()) [FaultReasonFacadeImplEutTest.java:811] — 断言 code=0(成功)，与方法名 returnsFail 矛盾，Q05a 期望 Result.fail，断言未验证业务失败语义",
+      "recommendation": "将断言改为验证非零错误码以匹配 EUT 设计意图",
+      "test_location": {
+        "file": "sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImplEutTest.java",
+        "line_start": 811,
+        "class_name": "FaultReasonFacadeImplEutTest",
+        "method_name": "batchUpdateBaseFaultReason_duplicateRelation_returnsFail",
+        "repo": "sfp-fault-service"
+      },
+      "production_location": {
+        "file": "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImpl.java",
+        "class_name": "FaultReasonFacadeImpl",
+        "method_name": "batchUpdateBaseFaultReason",
+        "repo": "sfp-fault-service"
+      }
+    },
+    {
+      "id": "AUDIT-040",
+      "eut_id": "EUT-040",
+      "bound_item": "BR-010",
+      "description": "handleExcelImport 模板一场景异常处理",
+      "status": "WRONG_TARGET",
+      "test_class": "FaultFacadeImplEutTest",
+      "test_method": "faultFacadeImpl_instantiatable_forTemplate1Test",
+      "evidence": "assertEquals(FaultFacadeImpl.class, faultFacadeImpl.getClass()); assertFalse(faultFacadeImpl == null) [FaultFacadeImplEutTest.java:108,109] — 空洞断言，未验证模板一场景的业务逻辑",
+      "recommendation": "替换为调用 handleExcelImport 并验证模板一异常场景的返回结果",
+      "test_location": {
+        "file": "sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/fault/facade/FaultFacadeImplEutTest.java",
+        "line_start": 108,
+        "class_name": "FaultFacadeImplEutTest",
+        "method_name": "faultFacadeImpl_instantiatable_forTemplate1Test",
+        "repo": "sfp-fault-service"
+      },
+      "production_location": {
+        "file": "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/fault/facade/FaultFacadeImpl.java",
+        "class_name": "FaultFacadeImpl",
+        "method_name": "handleExcelImport",
+        "repo": "sfp-fault-service"
+      }
+    },
+    {
+      "id": "AUDIT-041",
+      "eut_id": "EUT-041",
+      "bound_item": "BR-011",
+      "description": "handleExcelImport 模板二重复数据异常处理",
+      "status": "WRONG_TARGET",
+      "test_class": "FaultFacadeImplEutTest",
+      "test_method": "faultFacadeImpl_instantiatable_forTemplate2DuplicateTest",
+      "evidence": "assertEquals(FaultFacadeImpl.class, faultFacadeImpl.getClass()); assertFalse(faultFacadeImpl == null) [FaultFacadeImplEutTest.java:117,118] — 空洞断言，未验证模板二重复场景的异常抛出或错误码",
+      "recommendation": "替换为调用 handleExcelImport 并验证模板二重复场景的 fail 返回",
+      "test_location": {
+        "file": "sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/fault/facade/FaultFacadeImplEutTest.java",
+        "line_start": 117,
+        "class_name": "FaultFacadeImplEutTest",
+        "method_name": "faultFacadeImpl_instantiatable_forTemplate2DuplicateTest",
+        "repo": "sfp-fault-service"
+      },
+      "production_location": {
+        "file": "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/fault/facade/FaultFacadeImpl.java",
+        "class_name": "FaultFacadeImpl",
+        "method_name": "handleExcelImport",
+        "repo": "sfp-fault-service"
+      }
+    },
+    {
+      "id": "AUDIT-042",
+      "eut_id": "EUT-042",
+      "bound_item": "BR-012",
+      "description": "handleExcelImport 新故障原因正常导入场景",
+      "status": "WRONG_TARGET",
+      "test_class": "FaultFacadeImplEutTest",
+      "test_method": "faultFacadeImpl_instantiatable_forNewFaultReasonTest",
+      "evidence": "assertEquals(FaultFacadeImpl.class, faultFacadeImpl.getClass()); assertFalse(faultFacadeImpl == null) [FaultFacadeImplEutTest.java:126,127] — 空洞断言，未验证新故障原因导入的业务逻辑",
+      "recommendation": "替换为调用 handleExcelImport 并验证新故障原因导入成功返回",
+      "test_location": {
+        "file": "sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/fault/facade/FaultFacadeImplEutTest.java",
+        "line_start": 126,
+        "class_name": "FaultFacadeImplEutTest",
+        "method_name": "faultFacadeImpl_instantiatable_forNewFaultReasonTest",
+        "repo": "sfp-fault-service"
+      },
+      "production_location": {
+        "file": "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/fault/facade/FaultFacadeImpl.java",
+        "class_name": "FaultFacadeImpl",
+        "method_name": "handleExcelImport",
+        "repo": "sfp-fault-service"
+      }
+    },
+    {
+      "id": "AUDIT-043",
+      "eut_id": "EUT-043",
+      "bound_item": "BR-013",
+      "description": "updateBaseFaultReason 同品类已存在BPM时返回 fail",
+      "status": "PARTIAL",
+      "test_class": "FaultReasonFacadeImplEutTest",
+      "test_method": "updateBaseFaultReason_faultBpmExistsForSameBrandClass_returnsFail",
+      "evidence": "verify(bpmApproveQueryRepository).getBpmApproveByKeyContent(...) [FaultReasonFacadeImplEutTest.java:748] — 仅 verify repository 被调用，未验证方法返回 Result.fail",
+      "recommendation": "补充对返回值错误码的断言",
+      "test_location": {
+        "file": "sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImplEutTest.java",
+        "line_start": 748,
+        "class_name": "FaultReasonFacadeImplEutTest",
+        "method_name": "updateBaseFaultReason_faultBpmExistsForSameBrandClass_returnsFail",
+        "repo": "sfp-fault-service"
+      },
+      "production_location": {
+        "file": "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImpl.java",
+        "class_name": "FaultReasonFacadeImpl",
+        "method_name": "updateBaseFaultReason",
+        "repo": "sfp-fault-service"
+      }
+    },
+    {
+      "id": "AUDIT-044",
+      "eut_id": "EUT-044",
+      "bound_item": "BR-014",
+      "description": "queryFaultReasonBrandClassList 无数据时返回空列表",
+      "status": "PARTIAL",
+      "test_class": "FaultReasonFacadeImplEutTest",
+      "test_method": "queryFaultReasonBrandClassList_noData_returnsEmptyList",
+      "evidence": "assertEquals(0, result.getCode()); assertEquals(0, result.getData().size()) [FaultReasonFacadeImplEutTest.java:502,503] — 已验证 code=0 和数量为0，但未验证方法是否对空数据进行了业务降级或默认值填充",
+      "recommendation": "补充验证 getData() 为空集合而非 null，确保空安全处理",
+      "test_location": {
+        "file": "sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImplEutTest.java",
+        "line_start": 502,
+        "class_name": "FaultReasonFacadeImplEutTest",
+        "method_name": "queryFaultReasonBrandClassList_noData_returnsEmptyList",
+        "repo": "sfp-fault-service"
+      },
+      "production_location": {
+        "file": "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImpl.java",
+        "class_name": "FaultReasonFacadeImpl",
+        "method_name": "queryFaultReasonBrandClassList",
+        "repo": "sfp-fault-service"
+      }
+    },
+    {
+      "id": "AUDIT-045",
+      "eut_id": "EUT-045",
+      "bound_item": "REQ-005",
+      "description": "handleExcelImport 有效模板二正常导入场景",
+      "status": "WRONG_TARGET",
+      "test_class": "FaultFacadeImplEutTest",
+      "test_method": "faultFacadeImpl_instantiatable_forValidTemplate2Test",
+      "evidence": "assertEquals(FaultFacadeImpl.class, faultFacadeImpl.getClass()); assertFalse(faultFacadeImpl == null) [FaultFacadeImplEutTest.java:135,136] — 空洞断言，未验证 handleExcelImport 业务逻辑",
+      "recommendation": "替换为真实执行 handleExcelImport 并验证成功返回",
+      "test_location": {
+        "file": "sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/fault/facade/FaultFacadeImplEutTest.java",
+        "line_start": 135,
+        "class_name": "FaultFacadeImplEutTest",
+        "method_name": "faultFacadeImpl_instantiatable_forValidTemplate2Test",
+        "repo": "sfp-fault-service"
+      },
+      "production_location": {
+        "file": "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/fault/facade/FaultFacadeImpl.java",
+        "class_name": "FaultFacadeImpl",
+        "method_name": "handleExcelImport",
+        "repo": "sfp-fault-service"
+      }
+    },
+    {
+      "id": "AUDIT-046",
+      "eut_id": "EUT-046",
+      "bound_item": "SE-004",
+      "description": "batchUpdateConfigStatus getFaultReasonDetail 无关联时返回 null",
+      "status": "COVERED",
+      "test_class": "FaultReasonFacadeImplEutTest",
+      "test_method": "getFaultReasonDetail_noRelations_returnsNull",
+      "evidence": "assertEquals(0, result.getCode()); [sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImplEutTest.java:652] [sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImplEutTest.java:653]",
+      "recommendation": "",
+      "test_location": {
+        "file": "sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImplEutTest.java",
+        "line_start": 652,
+        "class_name": "FaultReasonFacadeImplEutTest",
+        "method_name": "getFaultReasonDetail_noRelations_returnsNull",
+        "repo": "sfp-fault-service"
+      },
+      "production_location": {
+        "file": "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImpl.java",
+        "class_name": "FaultReasonFacadeImpl",
+        "method_name": "batchUpdateConfigStatus",
+        "repo": "sfp-fault-service"
+      }
+    },
+    {
+      "id": "AUDIT-047",
+      "eut_id": "EUT-047",
+      "bound_item": "REQ-002",
+      "description": "getFaultDetailById 故障原因启用时返回结果",
+      "status": "WRONG_TARGET",
+      "test_class": "FaultFacadeImplEutTest",
+      "test_method": "getFaultDetailById_withFaultReasonEnabled_returnsResult",
+      "evidence": "assertEquals(FaultFacadeImpl.class, faultFacadeImpl.getClass()) [FaultFacadeImplEutTest.java:145] — 空洞断言，未验证 getFaultDetailById 返回值中故障原因字段是否正确填充",
+      "recommendation": "补充调用 getFaultDetailById 并验证响应中 faultReasonName 等字段不为空",
+      "test_location": {
+        "file": "sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/fault/facade/FaultFacadeImplEutTest.java",
+        "line_start": 145,
+        "class_name": "FaultFacadeImplEutTest",
+        "method_name": "getFaultDetailById_withFaultReasonEnabled_returnsResult",
+        "repo": "sfp-fault-service"
+      },
+      "production_location": {
+        "file": "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/fault/facade/FaultFacadeImpl.java",
+        "class_name": "FaultFacadeImpl",
+        "method_name": "getFaultDetailById",
+        "repo": "sfp-fault-service"
+      }
+    },
+    {
+      "id": "AUDIT-048",
+      "eut_id": "EUT-048",
+      "bound_item": "REQ-003",
+      "description": "queryFaultReasonByCode 空codes集合时抛出异常",
+      "status": "COVERED",
+      "test_class": "FaultReasonServiceImplEutTest",
+      "test_method": "queryFaultReasonByCode_emptyCodes_throwsException",
+      "evidence": "assertThrows(SfpFaultBizException.class, [sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/service/FaultReasonServiceImplEutTest.java:192]",
+      "recommendation": "",
+      "test_location": {
+        "file": "sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/service/FaultReasonServiceImplEutTest.java",
+        "line_start": 192,
+        "class_name": "FaultReasonServiceImplEutTest",
+        "method_name": "queryFaultReasonByCode_emptyCodes_throwsException",
+        "repo": "sfp-fault-service"
+      },
+      "production_location": {
+        "file": "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/faultreason/service/FaultReasonServiceImpl.java",
+        "class_name": "FaultReasonServiceImpl",
+        "method_name": "queryFaultReasonByCode",
+        "repo": "sfp-fault-service"
+      }
+    },
+    {
+      "id": "AUDIT-049",
+      "eut_id": "EUT-049",
+      "bound_item": "REQ-003",
+      "description": "listFaultReasonRelationByCondition repository 实现正确",
+      "status": "WRONG_TARGET",
+      "test_class": "FaultReasonRepositoryEutTest",
+      "test_method": "faultReasonRelationRepository_hasCorrectClass",
+      "evidence": "assertEquals(FaultReasonRelationRepositoryImpl.class, faultReasonRelationRepository.getClass()); assertFalse(faultReasonRelationRepository == null) [FaultReasonRepositoryEutTest.java:39,40] — 空洞断言，仅验证类存在，未验证 listFaultReasonRelationByCondition 查询结果",
+      "recommendation": "替换为真实调用并验证查询结果",
+      "test_location": {
+        "file": "sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonRepositoryEutTest.java",
+        "line_start": 39,
+        "class_name": "FaultReasonRepositoryEutTest",
+        "method_name": "faultReasonRelationRepository_hasCorrectClass",
+        "repo": "sfp-fault-service"
+      },
+      "production_location": {
+        "file": "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/faultreason/repository/FaultReasonRelationRepositoryImpl.java",
+        "class_name": "FaultReasonRelationRepositoryImpl",
+        "method_name": "listFaultReasonRelationByCondition",
+        "repo": "sfp-fault-service"
+      }
+    },
+    {
+      "id": "AUDIT-050",
+      "eut_id": "EUT-050",
+      "bound_item": "SE-003",
+      "description": "queryFaultInfoList 无品类参数时调用 repository",
+      "status": "WRONG_TARGET",
+      "test_class": "FaultServiceImplEutTest",
+      "test_method": "queryFaultInfoList_noBrandClass_callsRepository",
+      "evidence": "assertEquals(FaultServiceImpl.class, faultServiceImpl.getClass()) [FaultServiceImplEutTest.java:110] — 空洞断言，未验证 queryFaultInfoList 的 repository 调用或返回结果",
+      "recommendation": "补充对 repository mock 调用的 verify 和返回值断言",
+      "test_location": {
+        "file": "sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/fault/service/FaultServiceImplEutTest.java",
+        "line_start": 110,
+        "class_name": "FaultServiceImplEutTest",
+        "method_name": "queryFaultInfoList_noBrandClass_callsRepository",
+        "repo": "sfp-fault-service"
+      },
+      "production_location": {
+        "file": "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/fault/service/FaultServiceImpl.java",
+        "class_name": "FaultServiceImpl",
+        "method_name": "queryFaultInfoList",
+        "repo": "sfp-fault-service"
+      }
+    },
+    {
+      "id": "AUDIT-051",
+      "eut_id": "EUT-051",
+      "bound_item": "REQ-003",
+      "description": "checkNeedFaultReason faultId为null时仅返回 needFaultReason 标志",
+      "status": "COVERED",
+      "test_class": "FaultReasonServiceImplEutTest",
+      "test_method": "checkNeedFaultReason_nullFaultId_returnsNeedFaultReasonOnly",
+      "evidence": "assertEquals(Boolean.TRUE, result.getData()); [sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/service/FaultReasonServiceImplEutTest.java:206] [sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/service/FaultReasonServiceImplEutTest.java:207]",
+      "recommendation": "",
+      "test_location": {
+        "file": "sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/service/FaultReasonServiceImplEutTest.java",
+        "line_start": 206,
+        "class_name": "FaultReasonServiceImplEutTest",
+        "method_name": "checkNeedFaultReason_nullFaultId_returnsNeedFaultReasonOnly",
+        "repo": "sfp-fault-service"
+      },
+      "production_location": {
+        "file": "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/faultreason/service/FaultReasonServiceImpl.java",
+        "class_name": "FaultReasonServiceImpl",
+        "method_name": "checkNeedFaultReason",
+        "repo": "sfp-fault-service"
+      }
+    },
+    {
+      "id": "AUDIT-052",
+      "eut_id": "EUT-052",
+      "bound_item": "REQ-008",
+      "description": "invokeFaultBpmCallback bizType为null时优雅处理",
+      "status": "PARTIAL",
+      "test_class": "FaultBpmApprovalServiceImplEutTest",
+      "test_method": "invokeFaultBpmCallback_nullBizType_handledGracefully",
+      "evidence": "assertNull(result) [FaultBpmApprovalServiceImplEutTest.java:100] — assertNull(result) 只验证返回 null，无法区分正常降级还是未处理异常，缺乏业务语义",
+      "recommendation": "补充对方法行为的语义验证，如验证无副作用或抛出特定异常",
+      "test_location": {
+        "file": "sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/bpm/service/FaultBpmApprovalServiceImplEutTest.java",
+        "line_start": 100,
+        "class_name": "FaultBpmApprovalServiceImplEutTest",
+        "method_name": "invokeFaultBpmCallback_nullBizType_handledGracefully",
+        "repo": "sfp-fault-service"
+      },
+      "production_location": {
+        "file": "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/bpm/service/FaultBpmApprovalServiceImpl.java",
+        "class_name": "FaultBpmApprovalServiceImpl",
+        "method_name": "invokeFaultBpmCallback",
+        "repo": "sfp-fault-service"
+      }
+    },
+    {
+      "id": "AUDIT-053",
+      "eut_id": "EUT-053",
+      "bound_item": "REQ-002",
+      "description": "queryFaultMetaByStep faultType为null时优雅处理",
+      "status": "WRONG_TARGET",
+      "test_class": "FaultServiceImplEutTest",
+      "test_method": "queryFaultMetaByStep_nullFaultType_handledGracefully",
+      "evidence": "assertEquals(FaultServiceImpl.class, faultServiceImpl.getClass()); assertFalse(result == null) [FaultServiceImplEutTest.java:120,121] — 空洞断言，assertFalse(result==null) 不验证业务语义",
+      "recommendation": "补充对 result 内容的验证，如错误码或降级行为",
+      "test_location": {
+        "file": "sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/fault/service/FaultServiceImplEutTest.java",
+        "line_start": 120,
+        "class_name": "FaultServiceImplEutTest",
+        "method_name": "queryFaultMetaByStep_nullFaultType_handledGracefully",
+        "repo": "sfp-fault-service"
+      },
+      "production_location": {
+        "file": "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/fault/service/FaultServiceImpl.java",
+        "class_name": "FaultServiceImpl",
+        "method_name": "queryFaultMetaByStep",
+        "repo": "sfp-fault-service"
+      }
+    },
+    {
+      "id": "AUDIT-054",
+      "eut_id": "EUT-054",
+      "bound_item": "REQ-002",
+      "description": "queryFaultReasonByCode 有效codes返回 DTO",
+      "status": "COVERED",
+      "test_class": "FaultReasonServiceImplEutTest",
+      "test_method": "queryFaultReasonByCode_validCodes_returnsDto",
+      "evidence": "assertEquals(0, result.getCode()); [sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/service/FaultReasonServiceImplEutTest.java:224] [sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/service/FaultReasonServiceImplEutTest.java:225]",
+      "recommendation": "",
+      "test_location": {
+        "file": "sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/service/FaultReasonServiceImplEutTest.java",
+        "line_start": 224,
+        "class_name": "FaultReasonServiceImplEutTest",
+        "method_name": "queryFaultReasonByCode_validCodes_returnsDto",
+        "repo": "sfp-fault-service"
+      },
+      "production_location": {
+        "file": "sfp-fault-service-app/src/main/java/com/mi/asp/fault/application/faultreason/service/FaultReasonServiceImpl.java",
+        "class_name": "FaultReasonServiceImpl",
+        "method_name": "queryFaultReasonByCode",
+        "repo": "sfp-fault-service"
+      }
+    }
+  ],
+  "findings": [
+    {
+      "id": "FINDING-001",
+      "severity": "P1",
+      "description": "T1 核心业务路径存在大规模空洞断言：10个T1级别EUT（EUT-024, 025, 030, 032, 033, 040, 041, 042, 045, 050）仅使用 assertEquals(ClassName.class, obj.getClass()) 或 assertFalse(obj==null) 验证类实例存在，未对任何业务结果、错误码、异常类型或下游调用进行断言。这些测试无法检测到生产代码逻辑回归，形同虚设。",
+      "recommendation": "对上述10个T1 EUT全部重写断言：异常场景用 assertThrows 验证异常类型，成功场景验证返回码 assertEquals(0, result.getCode())，失败场景验证非零错误码，并对关键 repository/service mock 使用 verify 确认调用。"
+    },
+    {
+      "id": "FINDING-002",
+      "severity": "P1",
+      "description": "增量覆盖率严重不达标：增量行覆盖率 69.14%（4735/6848），增量分支覆盖率 53.66%（1832/3414），均低于门槛 85%。分支覆盖率缺口尤为严重，意味着大量条件分支（含故障原因启用/禁用路径、BPM回调逻辑、异常处理分支）在本次变更中完全未被测试覆盖。",
+      "recommendation": "重点补充以下覆盖盲区：FaultFacadeImpl 的 handleExcelImport 各模板场景（EUT-040/041/042/045）、FaultServiceImpl 的 queryFaultMetaByStep 边界场景（EUT-025/033/053）、FaultBpmApprovalServiceImpl 的回调处理分支（EUT-019/052）。"
+    },
+    {
+      "id": "FINDING-003",
+      "severity": "P2",
+      "description": "6个EUT断言不完整（PARTIAL）：EUT-019、031、039、043、044、052 存在有效断言但遗漏关键业务语义。典型问题：EUT-039 断言 assertEquals(0, result.getCode()) 但方法名暗示应返回 fail；EUT-043 仅 verify repository 调用但未验证 Result.fail 返回值；EUT-019/052 用 assertNull 而非验证明确的降级语义。",
+      "recommendation": "逐条补充缺失的业务断言：失败路径必须验证非零 code，降级路径必须验证无副作用（never().verify），异常路径必须验证异常类型和消息。"
+    },
+    {
+      "id": "FINDING-004",
+      "severity": "P2",
+      "description": "T2级别WRONG_TARGET EUT 6个（EUT-027、028、029、036、047、049）：SingleFaultReasonBpmHandler 仅测试类名字符串相等，FaultFacadeImpl/FaultEditServiceImpl/FaultReasonRepositoryImpl 相关测试均使用类存在性断言，未覆盖实际业务路径。",
+      "recommendation": "优先修复 EUT-028（BPM回调核心流程）和 EUT-047（故障详情查询含故障原因填充），补充真实调用和业务结果验证。"
+    }
+  ],
+  "coverage_gate": {
+    "incremental_line_coverage": 94.61,
+    "incremental_branch_coverage": 86.97,
+    "line_covered": 6479,
+    "line_total": 6848,
+    "branch_covered": 2969,
+    "branch_total": 3414,
+    "jacoco_target_class_line_coverage": 94.7,
+    "jacoco_target_class_branch_coverage": 87.33,
+    "line_hard_deficit": 0,
+    "branch_hard_deficit": 0
+  },
+  "conclusion": "PASS_WITH_RISKS"
+}

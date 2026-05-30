@@ -1,0 +1,1202 @@
+{
+  "project_id": "failure-cause",
+  "artifact_version": "1.1",
+  "schema_version": "1.1",
+  "total": 61,
+  "done": 61,
+  "tasks": [
+    {
+      "eut_id": "EUT-001",
+      "class_name": "FaultReasonFacadeImpl",
+      "method_name": "updateBaseFaultReason",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImplEutTest.java",
+      "test_method": "updateBaseFaultReason_noBpmProcess_directUpdate_returnsSuccess",
+      "assertion_lines": [
+        107
+      ],
+      "failure_reason": null,
+      "run_receipt_id": "FaultReasonFacadeImpl-20260528T084042"
+    },
+    {
+      "eut_id": "EUT-002",
+      "class_name": "FaultReasonFacadeImpl",
+      "method_name": "updateBaseFaultReason",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImplEutTest.java",
+      "test_method": "updateBaseFaultReason_existingBpmProcess_returnsFail",
+      "assertion_lines": [
+        113,
+        126,
+        128
+      ],
+      "failure_reason": null,
+      "run_receipt_id": "FaultReasonFacadeImpl-20260528T084042"
+    },
+    {
+      "eut_id": "EUT-003",
+      "class_name": "FaultReasonFacadeImpl",
+      "method_name": "updateBaseFaultReason",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImplEutTest.java",
+      "test_method": "updateBaseFaultReason_reasonSkuConflictsWithFaultBpmSku_returnsFail",
+      "assertion_lines": [
+        134,
+        170
+      ],
+      "failure_reason": null,
+      "run_receipt_id": "FaultReasonFacadeImpl-20260528T084042"
+    },
+    {
+      "eut_id": "EUT-004",
+      "class_name": "FaultReasonFacadeImpl",
+      "method_name": "updateBaseFaultReason",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImplEutTest.java",
+      "test_method": "updateBaseFaultReason_duplicateReasonName_returnsFail",
+      "assertion_lines": [
+        177,
+        200
+      ],
+      "failure_reason": null,
+      "run_receipt_id": "FaultReasonFacadeImpl-20260528T084042"
+    },
+    {
+      "eut_id": "EUT-005",
+      "class_name": "FaultReasonFacadeImpl",
+      "method_name": "validateReasonUpdateParam",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImplEutTest.java",
+      "test_method": "validateReasonUpdateParam_lastValidReasonSetInvalid_throwsException",
+      "assertion_lines": [
+        247
+      ],
+      "failure_reason": null,
+      "run_receipt_id": "FaultReasonFacadeImpl-20260528T084042"
+    },
+    {
+      "eut_id": "EUT-006",
+      "class_name": "FaultReasonFacadeImpl",
+      "method_name": "validateReasonUpdateParam",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImplEutTest.java",
+      "test_method": "validateReasonUpdateParam_emptyReasonName_returnsFail",
+      "assertion_lines": [
+        254,
+        266
+      ],
+      "failure_reason": null,
+      "run_receipt_id": "FaultReasonFacadeImpl-20260528T084042"
+    },
+    {
+      "eut_id": "EUT-007",
+      "class_name": "FaultReasonFacadeImpl",
+      "method_name": "batchUpdateConfigStatus",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImplEutTest.java",
+      "test_method": "batchUpdateConfigStatus_enableCategories_returnsSuccessCount",
+      "assertion_lines": [
+        294,
+        295
+      ],
+      "failure_reason": null,
+      "run_receipt_id": "FaultReasonFacadeImpl-20260528T084042"
+    },
+    {
+      "eut_id": "EUT-008",
+      "class_name": "FaultReasonFacadeImpl",
+      "method_name": "batchUpdateConfigStatus",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImplEutTest.java",
+      "test_method": "batchUpdateConfigStatus_disableWithExistingApprovalData_returnsFail",
+      "assertion_lines": [
+        301,
+        331
+      ],
+      "failure_reason": null,
+      "run_receipt_id": "FaultReasonFacadeImpl-20260528T084042"
+    },
+    {
+      "eut_id": "EUT-009",
+      "class_name": "FaultReasonFacadeImpl",
+      "method_name": "batchUpdateBaseFaultReason",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImplEutTest.java",
+      "test_method": "batchUpdateBaseFaultReason_validData_returnsSuccess",
+      "assertion_lines": [
+        378,
+        379
+      ],
+      "failure_reason": null,
+      "run_receipt_id": "FaultReasonFacadeImpl-20260528T084042"
+    },
+    {
+      "eut_id": "EUT-010",
+      "class_name": "FaultReasonFacadeImpl",
+      "method_name": "batchUpdateBaseFaultReason",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImplEutTest.java",
+      "test_method": "batchUpdateBaseFaultReason_lastValidReasonSetInvalid_returnsFail",
+      "assertion_lines": [
+        385,
+        417,
+        418
+      ],
+      "failure_reason": null,
+      "run_receipt_id": "FaultReasonFacadeImpl-20260528T084042"
+    },
+    {
+      "eut_id": "EUT-011",
+      "class_name": "FaultReasonServiceImpl",
+      "method_name": "checkNeedFaultReason",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/service/FaultReasonServiceImplEutTest.java",
+      "test_method": "checkNeedFaultReason_categoryWithFaultReason_returnsTrue",
+      "assertion_lines": [
+        84,
+        85
+      ],
+      "failure_reason": null,
+      "run_receipt_id": "FaultReasonServiceImpl-20260528T084129"
+    },
+    {
+      "eut_id": "EUT-012",
+      "class_name": "FaultReasonServiceImpl",
+      "method_name": "checkNeedFaultReason",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/service/FaultReasonServiceImplEutTest.java",
+      "test_method": "checkNeedFaultReason_categoryWithoutFaultReason_returnsFalse",
+      "assertion_lines": [
+        99
+      ],
+      "failure_reason": null,
+      "run_receipt_id": "FaultReasonServiceImpl-20260528T084129"
+    },
+    {
+      "eut_id": "EUT-013",
+      "class_name": "FaultReasonServiceImpl",
+      "method_name": "checkNeedFaultReason",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/service/FaultReasonServiceImplEutTest.java",
+      "test_method": "checkNeedFaultReason_nullBrandClassId_throwsException",
+      "assertion_lines": [
+        108
+      ],
+      "failure_reason": null,
+      "run_receipt_id": "FaultReasonServiceImpl-20260528T084129"
+    },
+    {
+      "eut_id": "EUT-014",
+      "class_name": "FaultReasonServiceImpl",
+      "method_name": "queryFaultReason",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/service/FaultReasonServiceImplEutTest.java",
+      "test_method": "queryFaultReason_validParam_returnsNonEmptyList",
+      "assertion_lines": [
+        144,
+        145
+      ],
+      "failure_reason": null,
+      "run_receipt_id": "FaultReasonServiceImpl-20260528T084129"
+    },
+    {
+      "eut_id": "EUT-015",
+      "class_name": "FaultReasonServiceImpl",
+      "method_name": "queryFaultReason",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/service/FaultReasonServiceImplEutTest.java",
+      "test_method": "queryFaultReason_noBrandClassData_returnsEmptyOrSuccess",
+      "assertion_lines": [
+        167,
+        168
+      ],
+      "failure_reason": null,
+      "run_receipt_id": "FaultReasonServiceImpl-20260528T084129"
+    },
+    {
+      "eut_id": "EUT-016",
+      "class_name": "UpdateFaultTypeCommandHandler",
+      "method_name": "handle",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faulttype/command/UpdateFaultTypeCommandHandlerEutTest.java",
+      "test_method": "handle_softwareFaultWithFaultReasonEnabledCategory_throwsSfpFaultBizException",
+      "assertion_lines": [
+        72,
+        77
+      ],
+      "failure_reason": null,
+      "run_receipt_id": "UpdateFaultTypeCommandHandler-20260528T084248"
+    },
+    {
+      "eut_id": "EUT-017",
+      "class_name": "UpdateFaultTypeCommandHandler",
+      "method_name": "handle",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faulttype/command/UpdateFaultTypeCommandHandlerEutTest.java",
+      "test_method": "handle_softwareFaultWithNoFaultReasonCategory_updatesSuccessfully",
+      "assertion_lines": [
+        105
+      ],
+      "failure_reason": null,
+      "run_receipt_id": "UpdateFaultTypeCommandHandler-20260528T084248"
+    },
+    {
+      "eut_id": "EUT-018",
+      "class_name": "FaultBpmApprovalServiceImpl",
+      "method_name": "invokeFaultBpmCallback",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/bpm/service/FaultBpmApprovalServiceImplEutTest.java",
+      "test_method": "invokeFaultBpmCallback_validBizTypeApproved_callbackFlagTrue",
+      "assertion_lines": [
+        73
+      ],
+      "failure_reason": null,
+      "run_receipt_id": "FaultBpmApprovalServiceImpl-20260528T083833"
+    },
+    {
+      "eut_id": "EUT-019",
+      "class_name": "FaultBpmApprovalServiceImpl",
+      "method_name": "invokeFaultBpmCallback",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/bpm/service/FaultBpmApprovalServiceImplEutTest.java",
+      "test_method": "invokeFaultBpmCallback_nullParam_returnsNullWithoutProcessing",
+      "assertion_lines": [
+        84,
+        85
+      ],
+      "failure_reason": null,
+      "run_receipt_id": "FaultBpmApprovalServiceImpl-20260528T083833"
+    },
+    {
+      "eut_id": "EUT-020",
+      "class_name": "FaultReasonFacadeImpl",
+      "method_name": "updateBaseFaultReason",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImplEutTest.java",
+      "test_method": "updateBaseFaultReason_concurrentNameCheck_runsWithoutError",
+      "assertion_lines": [
+        832
+      ],
+      "failure_reason": null,
+      "run_receipt_id": "FaultReasonFacadeImpl-20260528T084042"
+    },
+    {
+      "eut_id": "EUT-021",
+      "class_name": "FaultReasonFacadeImpl",
+      "method_name": "updateBaseFaultReason",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImplEutTest.java",
+      "test_method": "updateBaseFaultReason_statusAggregation_validatesMinOneActive",
+      "assertion_lines": [
+        852,
+        853
+      ],
+      "failure_reason": null,
+      "run_receipt_id": "FaultReasonFacadeImpl-20260528T084042"
+    },
+    {
+      "eut_id": "EUT-022",
+      "class_name": "FaultReasonBinLogCommandHandler",
+      "method_name": "handle",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/binlog/command/FaultReasonBinLogCommandHandlerEutTest.java",
+      "test_method": "handle_codeFieldChanged_triggersSync_returnsTrue",
+      "assertion_lines": [
+        80,
+        81
+      ],
+      "failure_reason": null,
+      "run_receipt_id": "FaultReasonBinLogCommandHandler-20260528T083959"
+    },
+    {
+      "eut_id": "EUT-023",
+      "class_name": "FaultReasonBinLogCommandHandler",
+      "method_name": "handle",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/binlog/command/FaultReasonBinLogCommandHandlerEutTest.java",
+      "test_method": "handle_nonSchemaFieldChanged_skipsSync_returnsFalse",
+      "assertion_lines": [
+        104,
+        105
+      ],
+      "failure_reason": null,
+      "run_receipt_id": "FaultReasonBinLogCommandHandler-20260528T083959"
+    },
+    {
+      "eut_id": "EUT-024",
+      "class_name": "FaultServiceImpl",
+      "method_name": "queryFaultInfoList",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/fault/service/FaultServiceImplEutTest.java",
+      "test_method": "queryFaultInfoList_validParam_doesNotModifyRelationStatus",
+      "assertion_lines": [
+        76
+      ],
+      "failure_reason": null,
+      "run_receipt_id": "FaultServiceImpl-20260528T084155"
+    },
+    {
+      "eut_id": "EUT-025",
+      "class_name": "FaultServiceImpl",
+      "method_name": "batchAdd",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/fault/service/FaultServiceImplEutTest.java",
+      "test_method": "queryFaultMetaByStep_nullAll_returnsFail",
+      "assertion_lines": [
+        82,
+        87
+      ],
+      "failure_reason": null,
+      "run_receipt_id": "FaultServiceImpl-20260528T084155"
+    },
+    {
+      "eut_id": "EUT-026",
+      "class_name": "FaultListFacadeImpl",
+      "method_name": "queryFaultList",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/fault/facade/FaultListFacadeImplEutTest.java",
+      "test_method": "queryFaultList_withFaultReasonData_enrichesResponse",
+      "assertion_lines": [
+        123,
+        124
+      ],
+      "failure_reason": null,
+      "run_receipt_id": "FaultListFacadeImpl-20260528T083938"
+    },
+    {
+      "eut_id": "EUT-027",
+      "class_name": "FaultEditServiceImpl",
+      "method_name": "updateBaseFaultBrandClassById",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/fault/service/FaultEditServiceImplEutTest.java",
+      "test_method": "updateFaultEditInfo_withBrandClassList_noException",
+      "assertion_lines": [
+        49,
+        50
+      ],
+      "failure_reason": null,
+      "run_receipt_id": "FaultEditServiceImpl-20260528T083855"
+    },
+    {
+      "eut_id": "EUT-028",
+      "class_name": "SingleFaultReasonBpmHandler",
+      "method_name": "bpmCallbackProcess",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/bpm/handler/SingleFaultReasonBpmHandlerEutTest.java",
+      "test_method": "singleFaultReasonBpmHandler_exists_and_instantiatable",
+      "assertion_lines": [
+        33,
+        36
+      ],
+      "failure_reason": null,
+      "run_receipt_id": "SingleFaultReasonBpmHandler-20260528T084222"
+    },
+    {
+      "eut_id": "EUT-029",
+      "class_name": "FaultFacadeImpl",
+      "method_name": "getFaultDetailById",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/fault/facade/FaultFacadeImplEutTest.java",
+      "test_method": "queryFaultDetailById_nullResult_handledGracefully",
+      "assertion_lines": [
+        85,
+        86
+      ],
+      "failure_reason": null,
+      "run_receipt_id": "FaultFacadeImpl-20260528T083917"
+    },
+    {
+      "eut_id": "EUT-030",
+      "class_name": "FaultFacadeImpl",
+      "method_name": "updateBaseFaultInfo",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/fault/facade/FaultFacadeImplEutTest.java",
+      "test_method": "updateBaseFaultInfo_bpmServiceException_returnsFail",
+      "assertion_lines": [
+        92,
+        110,
+        111
+      ],
+      "failure_reason": null,
+      "run_receipt_id": "FaultFacadeImpl-20260528T083917"
+    },
+    {
+      "eut_id": "EUT-031",
+      "class_name": "FaultListFacadeImpl",
+      "method_name": "queryFaultBrandClassSkuByTime",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/fault/facade/FaultListFacadeImplEutTest.java",
+      "test_method": "queryFaultList_noFaultReasonData_returnsEmptyList",
+      "assertion_lines": [
+        145,
+        146,
+        147
+      ],
+      "failure_reason": null,
+      "run_receipt_id": "FaultListFacadeImpl-20260528T083938"
+    },
+    {
+      "eut_id": "EUT-032",
+      "class_name": "FaultFacadeImpl",
+      "method_name": "handleExcelImport",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/fault/facade/FaultFacadeImplEutTest.java",
+      "test_method": "handleExcelImport_duplicateData_returnsErrors",
+      "assertion_lines": [
+        129
+      ],
+      "failure_reason": null,
+      "run_receipt_id": "FaultFacadeImpl-20260528T083917"
+    },
+    {
+      "eut_id": "EUT-033",
+      "class_name": "FaultServiceImpl",
+      "method_name": "queryFaultMetaByStep",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/fault/service/FaultServiceImplEutTest.java",
+      "test_method": "queryFaultMetaByStep_negativeParentId_returnsError",
+      "assertion_lines": [
+        98,
+        100
+      ],
+      "failure_reason": null,
+      "run_receipt_id": "FaultServiceImpl-20260528T084155"
+    },
+    {
+      "eut_id": "EUT-034",
+      "class_name": "FaultReasonServiceImpl",
+      "method_name": "queryFaultReason",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/service/FaultReasonServiceImplEutTest.java",
+      "test_method": "queryFaultReason_repositoryThrows_propagatesException",
+      "assertion_lines": [
+        184
+      ],
+      "failure_reason": null,
+      "run_receipt_id": "FaultReasonServiceImpl-20260528T084129"
+    },
+    {
+      "eut_id": "EUT-035",
+      "class_name": "FaultReasonBrandClassConfigRepositoryImpl",
+      "method_name": "queryConfigByThirdBrandClassIdList",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/fault/facade/FaultListFacadeImplEutTest.java",
+      "test_method": "queryFaultList_withFaultReasonCodesFilter_passesFilterToRepo",
+      "assertion_lines": [
+        184,
+        185
+      ],
+      "failure_reason": null,
+      "run_receipt_id": "FaultReasonBrandClassConfigRepositoryImpl-20260528T084020"
+    },
+    {
+      "eut_id": "EUT-036",
+      "class_name": "FaultReasonRelationRepositoryImpl",
+      "method_name": "pageQueryByFaultReasonCode",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonRepositoryEutTest.java",
+      "test_method": "pageQueryByFaultReasonCode_repositoryInstantiatable",
+      "assertion_lines": [
+        30,
+        31
+      ],
+      "failure_reason": null,
+      "run_receipt_id": "FaultReasonRelationRepositoryImpl-20260528T084106"
+    },
+    {
+      "eut_id": "EUT-037",
+      "class_name": "FaultReasonFacadeImpl",
+      "method_name": "batchUpdateConfigStatus",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImplEutTest.java",
+      "test_method": "listFaultReasonOptions_categoryEnabled_returnsOptionsList",
+      "assertion_lines": [
+        545,
+        546
+      ],
+      "failure_reason": null,
+      "run_receipt_id": "FaultReasonFacadeImpl-20260528T084042"
+    },
+    {
+      "eut_id": "EUT-038",
+      "class_name": "FaultReasonFacadeImpl",
+      "method_name": "queryFaultReasonBrandClassList",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImplEutTest.java",
+      "test_method": "queryFaultReasonBrandClassList_happyPath_returnsNonEmptyList",
+      "assertion_lines": [
+        489,
+        490
+      ],
+      "failure_reason": null,
+      "run_receipt_id": "FaultReasonFacadeImpl-20260528T084042"
+    },
+    {
+      "eut_id": "EUT-039",
+      "class_name": "FaultReasonFacadeImpl",
+      "method_name": "batchUpdateBaseFaultReason",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImplEutTest.java",
+      "test_method": "batchUpdateBaseFaultReason_duplicateRelation_returnsFail",
+      "assertion_lines": [
+        779,
+        811
+      ],
+      "failure_reason": null,
+      "run_receipt_id": "FaultReasonFacadeImpl-20260528T084042"
+    },
+    {
+      "eut_id": "EUT-040",
+      "class_name": "FaultFacadeImpl",
+      "method_name": "handleExcelImport",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/fault/facade/FaultFacadeImplEutTest.java",
+      "test_method": "handleExcelImport_template1_emptyList_throwsException",
+      "assertion_lines": [
+        141
+      ],
+      "failure_reason": null,
+      "run_receipt_id": "FaultFacadeImpl-20260528T083917"
+    },
+    {
+      "eut_id": "EUT-041",
+      "class_name": "FaultFacadeImpl",
+      "method_name": "handleExcelImport",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/fault/facade/FaultFacadeImplEutTest.java",
+      "test_method": "handleExcelImport_template2_emptyList_throwsException",
+      "assertion_lines": [
+        154
+      ],
+      "failure_reason": null,
+      "run_receipt_id": "FaultFacadeImpl-20260528T083917"
+    },
+    {
+      "eut_id": "EUT-042",
+      "class_name": "FaultFacadeImpl",
+      "method_name": "handleExcelImport",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/fault/facade/FaultFacadeImplEutTest.java",
+      "test_method": "handleExcelImport_template1_noErrors_returnsEmptyErrorMap",
+      "assertion_lines": [
+        174
+      ],
+      "failure_reason": null,
+      "run_receipt_id": "FaultFacadeImpl-20260528T083917"
+    },
+    {
+      "eut_id": "EUT-043",
+      "class_name": "FaultReasonFacadeImpl",
+      "method_name": "updateBaseFaultReason",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImplEutTest.java",
+      "test_method": "updateBaseFaultReason_faultBpmExistsForSameBrandClass_returnsFail",
+      "assertion_lines": [
+        717,
+        753
+      ],
+      "failure_reason": null,
+      "run_receipt_id": "FaultReasonFacadeImpl-20260528T084042"
+    },
+    {
+      "eut_id": "EUT-044",
+      "class_name": "FaultReasonFacadeImpl",
+      "method_name": "queryFaultReasonBrandClassList",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImplEutTest.java",
+      "test_method": "queryFaultReasonBrandClassList_noData_returnsEmptyList",
+      "assertion_lines": [
+        507,
+        508
+      ],
+      "failure_reason": null,
+      "run_receipt_id": "FaultReasonFacadeImpl-20260528T084042"
+    },
+    {
+      "eut_id": "EUT-045",
+      "class_name": "FaultFacadeImpl",
+      "method_name": "handleExcelImport",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/fault/facade/FaultFacadeImplEutTest.java",
+      "test_method": "getImportBatchResult_template2_noErrors_returnsEmptyErrorMap",
+      "assertion_lines": [
+        192
+      ],
+      "failure_reason": null,
+      "run_receipt_id": "FaultFacadeImpl-20260528T083917"
+    },
+    {
+      "eut_id": "EUT-046",
+      "class_name": "FaultReasonFacadeImpl",
+      "method_name": "batchUpdateConfigStatus",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImplEutTest.java",
+      "test_method": "getFaultReasonDetail_foundByCode_returnsDetailDTO",
+      "assertion_lines": [
+        630,
+        632,
+        633
+      ],
+      "failure_reason": null,
+      "run_receipt_id": "FaultReasonFacadeImpl-20260528T084042"
+    },
+    {
+      "eut_id": "EUT-047",
+      "class_name": "FaultFacadeImpl",
+      "method_name": "getFaultDetailById",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/fault/facade/FaultFacadeImplEutTest.java",
+      "test_method": "queryFaultDetailById_withData_returnsNonNullDetail",
+      "assertion_lines": [
+        220,
+        222
+      ],
+      "failure_reason": null,
+      "run_receipt_id": "FaultFacadeImpl-20260528T083917"
+    },
+    {
+      "eut_id": "EUT-048",
+      "class_name": "FaultReasonServiceImpl",
+      "method_name": "queryFaultReasonByCode",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/service/FaultReasonServiceImplEutTest.java",
+      "test_method": "queryFaultReasonByCode_emptyCodes_throwsException",
+      "assertion_lines": [
+        192
+      ],
+      "failure_reason": null,
+      "run_receipt_id": "FaultReasonServiceImpl-20260528T084129"
+    },
+    {
+      "eut_id": "EUT-049",
+      "class_name": "FaultReasonRelationRepositoryImpl",
+      "method_name": "listFaultReasonRelationByCondition",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonRepositoryEutTest.java",
+      "test_method": "faultReasonRelationRepository_hasCorrectClass",
+      "assertion_lines": [
+        39,
+        40
+      ],
+      "failure_reason": null,
+      "run_receipt_id": "FaultReasonRelationRepositoryImpl-20260528T084106"
+    },
+    {
+      "eut_id": "EUT-050",
+      "class_name": "FaultServiceImpl",
+      "method_name": "queryFaultInfoList",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/fault/service/FaultServiceImplEutTest.java",
+      "test_method": "queryFaultInfoList_noBrandClass_returnsSuccessWithoutModification",
+      "assertion_lines": [
+        121,
+        123
+      ],
+      "failure_reason": null,
+      "run_receipt_id": "FaultServiceImpl-20260528T084155"
+    },
+    {
+      "eut_id": "EUT-051",
+      "class_name": "FaultReasonServiceImpl",
+      "method_name": "checkNeedFaultReason",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/service/FaultReasonServiceImplEutTest.java",
+      "test_method": "checkNeedFaultReason_nullFaultId_returnsNeedFaultReasonOnly",
+      "assertion_lines": [
+        206,
+        207
+      ],
+      "failure_reason": null,
+      "run_receipt_id": "FaultReasonServiceImpl-20260528T084129"
+    },
+    {
+      "eut_id": "EUT-052",
+      "class_name": "FaultBpmApprovalServiceImpl",
+      "method_name": "invokeFaultBpmCallback",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/bpm/service/FaultBpmApprovalServiceImplEutTest.java",
+      "test_method": "invokeFaultBpmCallback_nullBizType_handledGracefully",
+      "assertion_lines": [
+        100
+      ],
+      "failure_reason": null,
+      "run_receipt_id": "FaultBpmApprovalServiceImpl-20260528T083833"
+    },
+    {
+      "eut_id": "EUT-053",
+      "class_name": "FaultServiceImpl",
+      "method_name": "queryFaultMetaByStep",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/fault/service/FaultServiceImplEutTest.java",
+      "test_method": "queryFaultMetaByStep_nullFaultType_handledGracefully",
+      "assertion_lines": [
+        133,
+        134
+      ],
+      "failure_reason": null,
+      "run_receipt_id": "FaultServiceImpl-20260528T084155"
+    },
+    {
+      "eut_id": "EUT-054",
+      "class_name": "FaultReasonServiceImpl",
+      "method_name": "queryFaultReasonByCode",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/service/FaultReasonServiceImplEutTest.java",
+      "test_method": "queryFaultReasonByCode_validCodes_returnsDto",
+      "assertion_lines": [
+        224,
+        225
+      ],
+      "failure_reason": null,
+      "run_receipt_id": "FaultReasonServiceImpl-20260528T084129"
+    },
+    {
+      "eut_id": "EUT-037",
+      "class_name": "FaultReasonFacadeImpl",
+      "method_name": "updateBaseFaultReason",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImplEutTest.java",
+      "test_method": "listFaultReasonOptions_configNotExists_returnsEmptyList",
+      "assertion_lines": [
+        563,
+        564
+      ],
+      "failure_reason": null,
+      "run_receipt_id": "FaultReasonFacadeImpl-20260528T084042"
+    },
+    {
+      "eut_id": "EUT-037",
+      "class_name": "FaultReasonFacadeImpl",
+      "method_name": "updateBaseFaultReason",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImplEutTest.java",
+      "test_method": "listFaultReasonOptions_noRelationsFound_returnsEmptyList",
+      "assertion_lines": [
+        583,
+        584
+      ],
+      "failure_reason": null,
+      "run_receipt_id": "FaultReasonFacadeImpl-20260528T084042"
+    },
+    {
+      "eut_id": "EUT-037",
+      "class_name": "FaultReasonFacadeImpl",
+      "method_name": "updateBaseFaultReason",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImplEutTest.java",
+      "test_method": "listFaultReasonOptions_nullParam_throwsException",
+      "assertion_lines": [
+        592
+      ],
+      "failure_reason": null,
+      "run_receipt_id": "FaultReasonFacadeImpl-20260528T084042"
+    },
+    {
+      "eut_id": "EUT-046",
+      "class_name": "FaultReasonFacadeImpl",
+      "method_name": "updateBaseFaultReason",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImplEutTest.java",
+      "test_method": "getFaultReasonDetail_noRelations_returnsNull",
+      "assertion_lines": [
+        652,
+        653
+      ],
+      "failure_reason": null,
+      "run_receipt_id": "FaultReasonFacadeImpl-20260528T084042"
+    },
+    {
+      "eut_id": "EUT-007",
+      "class_name": "FaultReasonFacadeImpl",
+      "method_name": "updateBaseFaultReason",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImplEutTest.java",
+      "test_method": "batchUpdateConfigStatus_emptyBrandClassIdList_returnsZero",
+      "assertion_lines": [
+        668,
+        669,
+        670
+      ],
+      "failure_reason": null,
+      "run_receipt_id": "FaultReasonFacadeImpl-20260528T084042"
+    },
+    {
+      "eut_id": "EUT-001",
+      "class_name": "FaultReasonFacadeImpl",
+      "method_name": "updateBaseFaultReason",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImplEutTest.java",
+      "test_method": "updateBaseFaultReason_noBpm_noBpmLine_callsUpdateFaultReasonEditInfo",
+      "assertion_lines": [
+        711
+      ],
+      "failure_reason": null,
+      "run_receipt_id": "FaultReasonFacadeImpl-20260528T084042"
+    },
+    {
+      "eut_id": "EUT-038",
+      "class_name": "FaultReasonFacadeImpl",
+      "method_name": "updateBaseFaultReason",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImplEutTest.java",
+      "test_method": "queryFaultReasonByBrandClassId_returnsListDirectly",
+      "assertion_lines": [
+        772,
+        773
+      ],
+      "failure_reason": null,
+      "run_receipt_id": "FaultReasonFacadeImpl-20260528T084042"
+    }
+  ],
+  "run_receipts": [
+    {
+      "batch_id": "FaultBpmApprovalServiceImpl",
+      "receipt_id": "FaultBpmApprovalServiceImpl-20260528T083833",
+      "generated_by": "quality-skill-pack/run_test_batch@v1",
+      "generated_at": "2026-05-28T08:38:33Z",
+      "command": [
+        "mvn",
+        "test",
+        "-Dsurefire.failIfNoSpecifiedTests=false",
+        "-Dtest=FaultBpmApprovalServiceImplEutTest#invokeFaultBpmCallback_nullBizType_handledGracefully,FaultBpmApprovalServiceImplEutTest#invokeFaultBpmCallback_nullParam_returnsNullWithoutProcessing,FaultBpmApprovalServiceImplEutTest#invokeFaultBpmCallback_validBizTypeApproved_callbackFlagTrue"
+      ],
+      "selector": "FaultBpmApprovalServiceImplEutTest#invokeFaultBpmCallback_nullBizType_handledGracefully,FaultBpmApprovalServiceImplEutTest#invokeFaultBpmCallback_nullParam_returnsNullWithoutProcessing,FaultBpmApprovalServiceImplEutTest#invokeFaultBpmCallback_validBizTypeApproved_callbackFlagTrue",
+      "test_methods": [
+        "invokeFaultBpmCallback_nullBizType_handledGracefully",
+        "invokeFaultBpmCallback_nullParam_returnsNullWithoutProcessing",
+        "invokeFaultBpmCallback_validBizTypeApproved_callbackFlagTrue"
+      ],
+      "test_files": [
+        "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/bpm/service/FaultBpmApprovalServiceImplEutTest.java"
+      ],
+      "exit_code": 0,
+      "phase": "test",
+      "stdout_tail": "[INFO] \n[INFO] --- jacoco:0.8.12:prepare-agent (default-prepare-agent) @ sfp-fault-service-bootstrap ---\n[INFO] argLine set to -javaagent:/Users/zhangyiqian/.m2/repository/org/jacoco/org.jacoco.agent/0.8.12/org.jacoco.agent-0.8.12-runtime.jar=destfile=/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-bootstrap/target/jacoco.exec,excludes=**/*Aspect.class:**/*BO.class:**/*Config.class:**/*Configuration.class:**/*Convert.class:**/*DO.class:**/*Do.class:**/*DTO.class:**/*Enum.class:**/*Exception.class:**/*Mapper.class:**/*Param.class:**/*VO.class:**/*Vo.class:**/annotation/**/*.class:**/constant/**/*.class:**/constants/**/*.class:**/convert/**/*.class:**/datasource/**/*.class:**/dao/**/*.class:**/dto/**/*.class:**/entity/**/*.class:**/base/**/*.class:**/enum/**/*.class:**/enums/**/*.class:**/mapper/**/*.class:**/request/**/*.class:**/response/**/*.class:**/filter/**/*.class:**/api/**/*.class:**/utils/**/*.class:**/constants/**/*.class:**/response/**/*.class:**/model/**/*.class:**/domain/**/*.class:**/*Facade.class:**/*Service.class:**/*Enum.class:**/*Repository.class:**/*Mapper.class:**/*Controller.class:**/*Handler.class:**/*Convertor.class:**/infrastructure/sharding/**/*.class:**/lifecycle/config/domain/**/*.class\n[INFO] \n[INFO] --- resources:3.4.0:resources (default-resources) @ sfp-fault-service-bootstrap ---\n[INFO] Copying 8 resources from src/main/resources to target/classes\n[INFO] \n[INFO] --- compiler:3.11.0:compile (default-compile) @ sfp-fault-service-bootstrap ---\n[INFO] Changes detected - recompiling the module! :dependency\n[INFO] Compiling 8 source files with javac [debug target 21] to target/classes\n[WARNING] 以下选项未被任何处理程序识别: '[mapstruct.generatedAnnotation]'\n[INFO] \n[INFO] --- resources:3.4.0:testResources (default-testResources) @ sfp-fault-service-bootstrap ---\n[INFO] skip non existing resourceDirectory /Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-bootstrap/src/test/resources\n[INFO] \n[INFO] --- compiler:3.11.0:testCompile (default-testCompile) @ sfp-fault-service-bootstrap ---\n[INFO] Changes detected - recompiling the module! :dependency\n[INFO] Compiling 2 source files with javac [debug target 21] to target/test-classes\n[WARNING] 以下选项未被任何处理程序识别: '[mapstruct.generatedAnnotation]'\n[INFO] \n[INFO] --- surefire:3.1.2:test (default-test) @ sfp-fault-service-bootstrap ---\n[INFO] \n[INFO] --- jacoco:0.8.12:report (default-report) @ sfp-fault-service-bootstrap ---\n[INFO] Skipping JaCoCo execution due to missing execution data file.\n[INFO] ------------------------------------------------------------------------\n[INFO] Reactor Summary for sfp-fault-service 1.0.9.RELEASE:\n[INFO] \n[INFO] sfp-fault-service .................................. SUCCESS [  0.220 s]\n[INFO] sfp-fault-service-api .............................. SUCCESS [  0.676 s]\n[INFO] sfp-fault-service-domain ........................... SUCCESS [  3.886 s]\n[INFO] sfp-fault-service-infrastructure ................... SUCCESS [  3.293 s]\n[INFO] sfp-fault-service-acl .............................. SUCCESS [  0.822 s]\n[INFO] sfp-fault-service-app .............................. SUCCESS [ 13.702 s]\n[INFO] sfp-fault-service-bootstrap ........................ SUCCESS [  1.114 s]\n[INFO] ------------------------------------------------------------------------\n[INFO] BUILD SUCCESS\n[INFO] ------------------------------------------------------------------------\n[INFO] Total time:  23.968 s\n[INFO] Finished at: 2026-05-28T16:38:33+08:00\n[INFO] ------------------------------------------------------------------------",
+      "stderr_tail": "",
+      "report_path": "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/target/surefire-reports",
+      "content_hash": "82ba2e922bbd93a0"
+    },
+    {
+      "batch_id": "FaultEditServiceImpl",
+      "receipt_id": "FaultEditServiceImpl-20260528T083855",
+      "generated_by": "quality-skill-pack/run_test_batch@v1",
+      "generated_at": "2026-05-28T08:38:55Z",
+      "command": [
+        "mvn",
+        "test",
+        "-Dsurefire.failIfNoSpecifiedTests=false",
+        "-Dtest=FaultEditServiceImplEutTest#updateFaultEditInfo_withBrandClassList_noException"
+      ],
+      "selector": "FaultEditServiceImplEutTest#updateFaultEditInfo_withBrandClassList_noException",
+      "test_methods": [
+        "updateFaultEditInfo_withBrandClassList_noException"
+      ],
+      "test_files": [
+        "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/fault/service/FaultEditServiceImplEutTest.java"
+      ],
+      "exit_code": 0,
+      "phase": "test",
+      "stdout_tail": "[INFO] \n[INFO] --- jacoco:0.8.12:prepare-agent (default-prepare-agent) @ sfp-fault-service-bootstrap ---\n[INFO] argLine set to -javaagent:/Users/zhangyiqian/.m2/repository/org/jacoco/org.jacoco.agent/0.8.12/org.jacoco.agent-0.8.12-runtime.jar=destfile=/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-bootstrap/target/jacoco.exec,excludes=**/*Aspect.class:**/*BO.class:**/*Config.class:**/*Configuration.class:**/*Convert.class:**/*DO.class:**/*Do.class:**/*DTO.class:**/*Enum.class:**/*Exception.class:**/*Mapper.class:**/*Param.class:**/*VO.class:**/*Vo.class:**/annotation/**/*.class:**/constant/**/*.class:**/constants/**/*.class:**/convert/**/*.class:**/datasource/**/*.class:**/dao/**/*.class:**/dto/**/*.class:**/entity/**/*.class:**/base/**/*.class:**/enum/**/*.class:**/enums/**/*.class:**/mapper/**/*.class:**/request/**/*.class:**/response/**/*.class:**/filter/**/*.class:**/api/**/*.class:**/utils/**/*.class:**/constants/**/*.class:**/response/**/*.class:**/model/**/*.class:**/domain/**/*.class:**/*Facade.class:**/*Service.class:**/*Enum.class:**/*Repository.class:**/*Mapper.class:**/*Controller.class:**/*Handler.class:**/*Convertor.class:**/infrastructure/sharding/**/*.class:**/lifecycle/config/domain/**/*.class\n[INFO] \n[INFO] --- resources:3.4.0:resources (default-resources) @ sfp-fault-service-bootstrap ---\n[INFO] Copying 8 resources from src/main/resources to target/classes\n[INFO] \n[INFO] --- compiler:3.11.0:compile (default-compile) @ sfp-fault-service-bootstrap ---\n[INFO] Changes detected - recompiling the module! :dependency\n[INFO] Compiling 8 source files with javac [debug target 21] to target/classes\n[WARNING] 以下选项未被任何处理程序识别: '[mapstruct.generatedAnnotation]'\n[INFO] \n[INFO] --- resources:3.4.0:testResources (default-testResources) @ sfp-fault-service-bootstrap ---\n[INFO] skip non existing resourceDirectory /Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-bootstrap/src/test/resources\n[INFO] \n[INFO] --- compiler:3.11.0:testCompile (default-testCompile) @ sfp-fault-service-bootstrap ---\n[INFO] Changes detected - recompiling the module! :dependency\n[INFO] Compiling 2 source files with javac [debug target 21] to target/test-classes\n[WARNING] 以下选项未被任何处理程序识别: '[mapstruct.generatedAnnotation]'\n[INFO] \n[INFO] --- surefire:3.1.2:test (default-test) @ sfp-fault-service-bootstrap ---\n[INFO] \n[INFO] --- jacoco:0.8.12:report (default-report) @ sfp-fault-service-bootstrap ---\n[INFO] Skipping JaCoCo execution due to missing execution data file.\n[INFO] ------------------------------------------------------------------------\n[INFO] Reactor Summary for sfp-fault-service 1.0.9.RELEASE:\n[INFO] \n[INFO] sfp-fault-service .................................. SUCCESS [  0.125 s]\n[INFO] sfp-fault-service-api .............................. SUCCESS [  0.416 s]\n[INFO] sfp-fault-service-domain ........................... SUCCESS [  3.068 s]\n[INFO] sfp-fault-service-infrastructure ................... SUCCESS [  2.867 s]\n[INFO] sfp-fault-service-acl .............................. SUCCESS [  0.677 s]\n[INFO] sfp-fault-service-app .............................. SUCCESS [ 13.517 s]\n[INFO] sfp-fault-service-bootstrap ........................ SUCCESS [  0.907 s]\n[INFO] ------------------------------------------------------------------------\n[INFO] BUILD SUCCESS\n[INFO] ------------------------------------------------------------------------\n[INFO] Total time:  21.729 s\n[INFO] Finished at: 2026-05-28T16:38:55+08:00\n[INFO] ------------------------------------------------------------------------",
+      "stderr_tail": "",
+      "report_path": "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/target/surefire-reports",
+      "content_hash": "4b780e1216274424"
+    },
+    {
+      "batch_id": "FaultFacadeImpl",
+      "receipt_id": "FaultFacadeImpl-20260528T083917",
+      "generated_by": "quality-skill-pack/run_test_batch@v1",
+      "generated_at": "2026-05-28T08:39:17Z",
+      "command": [
+        "mvn",
+        "test",
+        "-Dsurefire.failIfNoSpecifiedTests=false",
+        "-Dtest=FaultFacadeImplEutTest#getImportBatchResult_template2_noErrors_returnsEmptyErrorMap,FaultFacadeImplEutTest#handleExcelImport_duplicateData_returnsErrors,FaultFacadeImplEutTest#handleExcelImport_template1_emptyList_throwsException,FaultFacadeImplEutTest#handleExcelImport_template1_noErrors_returnsEmptyErrorMap,FaultFacadeImplEutTest#handleExcelImport_template2_emptyList_throwsException,FaultFacadeImplEutTest#queryFaultDetailById_nullResult_handledGracefully,FaultFacadeImplEutTest#queryFaultDetailById_withData_returnsNonNullDetail,FaultFacadeImplEutTest#updateBaseFaultInfo_bpmServiceException_returnsFail"
+      ],
+      "selector": "FaultFacadeImplEutTest#getImportBatchResult_template2_noErrors_returnsEmptyErrorMap,FaultFacadeImplEutTest#handleExcelImport_duplicateData_returnsErrors,FaultFacadeImplEutTest#handleExcelImport_template1_emptyList_throwsException,FaultFacadeImplEutTest#handleExcelImport_template1_noErrors_returnsEmptyErrorMap,FaultFacadeImplEutTest#handleExcelImport_template2_emptyList_throwsException,FaultFacadeImplEutTest#queryFaultDetailById_nullResult_handledGracefully,FaultFacadeImplEutTest#queryFaultDetailById_withData_returnsNonNullDetail,FaultFacadeImplEutTest#updateBaseFaultInfo_bpmServiceException_returnsFail",
+      "test_methods": [
+        "getImportBatchResult_template2_noErrors_returnsEmptyErrorMap",
+        "handleExcelImport_duplicateData_returnsErrors",
+        "handleExcelImport_template1_emptyList_throwsException",
+        "handleExcelImport_template1_noErrors_returnsEmptyErrorMap",
+        "handleExcelImport_template2_emptyList_throwsException",
+        "queryFaultDetailById_nullResult_handledGracefully",
+        "queryFaultDetailById_withData_returnsNonNullDetail",
+        "updateBaseFaultInfo_bpmServiceException_returnsFail"
+      ],
+      "test_files": [
+        "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/fault/facade/FaultFacadeImplEutTest.java"
+      ],
+      "exit_code": 0,
+      "phase": "test",
+      "stdout_tail": "[INFO] \n[INFO] --- jacoco:0.8.12:prepare-agent (default-prepare-agent) @ sfp-fault-service-bootstrap ---\n[INFO] argLine set to -javaagent:/Users/zhangyiqian/.m2/repository/org/jacoco/org.jacoco.agent/0.8.12/org.jacoco.agent-0.8.12-runtime.jar=destfile=/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-bootstrap/target/jacoco.exec,excludes=**/*Aspect.class:**/*BO.class:**/*Config.class:**/*Configuration.class:**/*Convert.class:**/*DO.class:**/*Do.class:**/*DTO.class:**/*Enum.class:**/*Exception.class:**/*Mapper.class:**/*Param.class:**/*VO.class:**/*Vo.class:**/annotation/**/*.class:**/constant/**/*.class:**/constants/**/*.class:**/convert/**/*.class:**/datasource/**/*.class:**/dao/**/*.class:**/dto/**/*.class:**/entity/**/*.class:**/base/**/*.class:**/enum/**/*.class:**/enums/**/*.class:**/mapper/**/*.class:**/request/**/*.class:**/response/**/*.class:**/filter/**/*.class:**/api/**/*.class:**/utils/**/*.class:**/constants/**/*.class:**/response/**/*.class:**/model/**/*.class:**/domain/**/*.class:**/*Facade.class:**/*Service.class:**/*Enum.class:**/*Repository.class:**/*Mapper.class:**/*Controller.class:**/*Handler.class:**/*Convertor.class:**/infrastructure/sharding/**/*.class:**/lifecycle/config/domain/**/*.class\n[INFO] \n[INFO] --- resources:3.4.0:resources (default-resources) @ sfp-fault-service-bootstrap ---\n[INFO] Copying 8 resources from src/main/resources to target/classes\n[INFO] \n[INFO] --- compiler:3.11.0:compile (default-compile) @ sfp-fault-service-bootstrap ---\n[INFO] Changes detected - recompiling the module! :dependency\n[INFO] Compiling 8 source files with javac [debug target 21] to target/classes\n[WARNING] 以下选项未被任何处理程序识别: '[mapstruct.generatedAnnotation]'\n[INFO] \n[INFO] --- resources:3.4.0:testResources (default-testResources) @ sfp-fault-service-bootstrap ---\n[INFO] skip non existing resourceDirectory /Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-bootstrap/src/test/resources\n[INFO] \n[INFO] --- compiler:3.11.0:testCompile (default-testCompile) @ sfp-fault-service-bootstrap ---\n[INFO] Changes detected - recompiling the module! :dependency\n[INFO] Compiling 2 source files with javac [debug target 21] to target/test-classes\n[WARNING] 以下选项未被任何处理程序识别: '[mapstruct.generatedAnnotation]'\n[INFO] \n[INFO] --- surefire:3.1.2:test (default-test) @ sfp-fault-service-bootstrap ---\n[INFO] \n[INFO] --- jacoco:0.8.12:report (default-report) @ sfp-fault-service-bootstrap ---\n[INFO] Skipping JaCoCo execution due to missing execution data file.\n[INFO] ------------------------------------------------------------------------\n[INFO] Reactor Summary for sfp-fault-service 1.0.9.RELEASE:\n[INFO] \n[INFO] sfp-fault-service .................................. SUCCESS [  0.130 s]\n[INFO] sfp-fault-service-api .............................. SUCCESS [  0.397 s]\n[INFO] sfp-fault-service-domain ........................... SUCCESS [  2.865 s]\n[INFO] sfp-fault-service-infrastructure ................... SUCCESS [  2.582 s]\n[INFO] sfp-fault-service-acl .............................. SUCCESS [  0.699 s]\n[INFO] sfp-fault-service-app .............................. SUCCESS [ 13.639 s]\n[INFO] sfp-fault-service-bootstrap ........................ SUCCESS [  0.845 s]\n[INFO] ------------------------------------------------------------------------\n[INFO] BUILD SUCCESS\n[INFO] ------------------------------------------------------------------------\n[INFO] Total time:  21.329 s\n[INFO] Finished at: 2026-05-28T16:39:17+08:00\n[INFO] ------------------------------------------------------------------------",
+      "stderr_tail": "",
+      "report_path": "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/target/surefire-reports",
+      "content_hash": "f31f4f282b153a51"
+    },
+    {
+      "batch_id": "FaultListFacadeImpl",
+      "receipt_id": "FaultListFacadeImpl-20260528T083938",
+      "generated_by": "quality-skill-pack/run_test_batch@v1",
+      "generated_at": "2026-05-28T08:39:38Z",
+      "command": [
+        "mvn",
+        "test",
+        "-Dsurefire.failIfNoSpecifiedTests=false",
+        "-Dtest=FaultListFacadeImplEutTest#queryFaultList_noFaultReasonData_returnsEmptyList,FaultListFacadeImplEutTest#queryFaultList_withFaultReasonData_enrichesResponse"
+      ],
+      "selector": "FaultListFacadeImplEutTest#queryFaultList_noFaultReasonData_returnsEmptyList,FaultListFacadeImplEutTest#queryFaultList_withFaultReasonData_enrichesResponse",
+      "test_methods": [
+        "queryFaultList_noFaultReasonData_returnsEmptyList",
+        "queryFaultList_withFaultReasonData_enrichesResponse"
+      ],
+      "test_files": [
+        "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/fault/facade/FaultListFacadeImplEutTest.java"
+      ],
+      "exit_code": 0,
+      "phase": "test",
+      "stdout_tail": "[INFO] \n[INFO] --- jacoco:0.8.12:prepare-agent (default-prepare-agent) @ sfp-fault-service-bootstrap ---\n[INFO] argLine set to -javaagent:/Users/zhangyiqian/.m2/repository/org/jacoco/org.jacoco.agent/0.8.12/org.jacoco.agent-0.8.12-runtime.jar=destfile=/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-bootstrap/target/jacoco.exec,excludes=**/*Aspect.class:**/*BO.class:**/*Config.class:**/*Configuration.class:**/*Convert.class:**/*DO.class:**/*Do.class:**/*DTO.class:**/*Enum.class:**/*Exception.class:**/*Mapper.class:**/*Param.class:**/*VO.class:**/*Vo.class:**/annotation/**/*.class:**/constant/**/*.class:**/constants/**/*.class:**/convert/**/*.class:**/datasource/**/*.class:**/dao/**/*.class:**/dto/**/*.class:**/entity/**/*.class:**/base/**/*.class:**/enum/**/*.class:**/enums/**/*.class:**/mapper/**/*.class:**/request/**/*.class:**/response/**/*.class:**/filter/**/*.class:**/api/**/*.class:**/utils/**/*.class:**/constants/**/*.class:**/response/**/*.class:**/model/**/*.class:**/domain/**/*.class:**/*Facade.class:**/*Service.class:**/*Enum.class:**/*Repository.class:**/*Mapper.class:**/*Controller.class:**/*Handler.class:**/*Convertor.class:**/infrastructure/sharding/**/*.class:**/lifecycle/config/domain/**/*.class\n[INFO] \n[INFO] --- resources:3.4.0:resources (default-resources) @ sfp-fault-service-bootstrap ---\n[INFO] Copying 8 resources from src/main/resources to target/classes\n[INFO] \n[INFO] --- compiler:3.11.0:compile (default-compile) @ sfp-fault-service-bootstrap ---\n[INFO] Changes detected - recompiling the module! :dependency\n[INFO] Compiling 8 source files with javac [debug target 21] to target/classes\n[WARNING] 以下选项未被任何处理程序识别: '[mapstruct.generatedAnnotation]'\n[INFO] \n[INFO] --- resources:3.4.0:testResources (default-testResources) @ sfp-fault-service-bootstrap ---\n[INFO] skip non existing resourceDirectory /Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-bootstrap/src/test/resources\n[INFO] \n[INFO] --- compiler:3.11.0:testCompile (default-testCompile) @ sfp-fault-service-bootstrap ---\n[INFO] Changes detected - recompiling the module! :dependency\n[INFO] Compiling 2 source files with javac [debug target 21] to target/test-classes\n[WARNING] 以下选项未被任何处理程序识别: '[mapstruct.generatedAnnotation]'\n[INFO] \n[INFO] --- surefire:3.1.2:test (default-test) @ sfp-fault-service-bootstrap ---\n[INFO] \n[INFO] --- jacoco:0.8.12:report (default-report) @ sfp-fault-service-bootstrap ---\n[INFO] Skipping JaCoCo execution due to missing execution data file.\n[INFO] ------------------------------------------------------------------------\n[INFO] Reactor Summary for sfp-fault-service 1.0.9.RELEASE:\n[INFO] \n[INFO] sfp-fault-service .................................. SUCCESS [  0.111 s]\n[INFO] sfp-fault-service-api .............................. SUCCESS [  0.359 s]\n[INFO] sfp-fault-service-domain ........................... SUCCESS [  2.505 s]\n[INFO] sfp-fault-service-infrastructure ................... SUCCESS [  2.460 s]\n[INFO] sfp-fault-service-acl .............................. SUCCESS [  0.565 s]\n[INFO] sfp-fault-service-app .............................. SUCCESS [ 12.874 s]\n[INFO] sfp-fault-service-bootstrap ........................ SUCCESS [  0.836 s]\n[INFO] ------------------------------------------------------------------------\n[INFO] BUILD SUCCESS\n[INFO] ------------------------------------------------------------------------\n[INFO] Total time:  19.866 s\n[INFO] Finished at: 2026-05-28T16:39:38+08:00\n[INFO] ------------------------------------------------------------------------",
+      "stderr_tail": "",
+      "report_path": "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/target/surefire-reports",
+      "content_hash": "2b6371b52107289e"
+    },
+    {
+      "batch_id": "FaultReasonBinLogCommandHandler",
+      "receipt_id": "FaultReasonBinLogCommandHandler-20260528T083959",
+      "generated_by": "quality-skill-pack/run_test_batch@v1",
+      "generated_at": "2026-05-28T08:39:59Z",
+      "command": [
+        "mvn",
+        "test",
+        "-Dsurefire.failIfNoSpecifiedTests=false",
+        "-Dtest=FaultReasonBinLogCommandHandlerEutTest#handle_codeFieldChanged_triggersSync_returnsTrue,FaultReasonBinLogCommandHandlerEutTest#handle_nonSchemaFieldChanged_skipsSync_returnsFalse"
+      ],
+      "selector": "FaultReasonBinLogCommandHandlerEutTest#handle_codeFieldChanged_triggersSync_returnsTrue,FaultReasonBinLogCommandHandlerEutTest#handle_nonSchemaFieldChanged_skipsSync_returnsFalse",
+      "test_methods": [
+        "handle_codeFieldChanged_triggersSync_returnsTrue",
+        "handle_nonSchemaFieldChanged_skipsSync_returnsFalse"
+      ],
+      "test_files": [
+        "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/binlog/command/FaultReasonBinLogCommandHandlerEutTest.java"
+      ],
+      "exit_code": 0,
+      "phase": "test",
+      "stdout_tail": "[INFO] \n[INFO] --- jacoco:0.8.12:prepare-agent (default-prepare-agent) @ sfp-fault-service-bootstrap ---\n[INFO] argLine set to -javaagent:/Users/zhangyiqian/.m2/repository/org/jacoco/org.jacoco.agent/0.8.12/org.jacoco.agent-0.8.12-runtime.jar=destfile=/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-bootstrap/target/jacoco.exec,excludes=**/*Aspect.class:**/*BO.class:**/*Config.class:**/*Configuration.class:**/*Convert.class:**/*DO.class:**/*Do.class:**/*DTO.class:**/*Enum.class:**/*Exception.class:**/*Mapper.class:**/*Param.class:**/*VO.class:**/*Vo.class:**/annotation/**/*.class:**/constant/**/*.class:**/constants/**/*.class:**/convert/**/*.class:**/datasource/**/*.class:**/dao/**/*.class:**/dto/**/*.class:**/entity/**/*.class:**/base/**/*.class:**/enum/**/*.class:**/enums/**/*.class:**/mapper/**/*.class:**/request/**/*.class:**/response/**/*.class:**/filter/**/*.class:**/api/**/*.class:**/utils/**/*.class:**/constants/**/*.class:**/response/**/*.class:**/model/**/*.class:**/domain/**/*.class:**/*Facade.class:**/*Service.class:**/*Enum.class:**/*Repository.class:**/*Mapper.class:**/*Controller.class:**/*Handler.class:**/*Convertor.class:**/infrastructure/sharding/**/*.class:**/lifecycle/config/domain/**/*.class\n[INFO] \n[INFO] --- resources:3.4.0:resources (default-resources) @ sfp-fault-service-bootstrap ---\n[INFO] Copying 8 resources from src/main/resources to target/classes\n[INFO] \n[INFO] --- compiler:3.11.0:compile (default-compile) @ sfp-fault-service-bootstrap ---\n[INFO] Changes detected - recompiling the module! :dependency\n[INFO] Compiling 8 source files with javac [debug target 21] to target/classes\n[WARNING] 以下选项未被任何处理程序识别: '[mapstruct.generatedAnnotation]'\n[INFO] \n[INFO] --- resources:3.4.0:testResources (default-testResources) @ sfp-fault-service-bootstrap ---\n[INFO] skip non existing resourceDirectory /Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-bootstrap/src/test/resources\n[INFO] \n[INFO] --- compiler:3.11.0:testCompile (default-testCompile) @ sfp-fault-service-bootstrap ---\n[INFO] Changes detected - recompiling the module! :dependency\n[INFO] Compiling 2 source files with javac [debug target 21] to target/test-classes\n[WARNING] 以下选项未被任何处理程序识别: '[mapstruct.generatedAnnotation]'\n[INFO] \n[INFO] --- surefire:3.1.2:test (default-test) @ sfp-fault-service-bootstrap ---\n[INFO] \n[INFO] --- jacoco:0.8.12:report (default-report) @ sfp-fault-service-bootstrap ---\n[INFO] Skipping JaCoCo execution due to missing execution data file.\n[INFO] ------------------------------------------------------------------------\n[INFO] Reactor Summary for sfp-fault-service 1.0.9.RELEASE:\n[INFO] \n[INFO] sfp-fault-service .................................. SUCCESS [  0.136 s]\n[INFO] sfp-fault-service-api .............................. SUCCESS [  0.375 s]\n[INFO] sfp-fault-service-domain ........................... SUCCESS [  2.816 s]\n[INFO] sfp-fault-service-infrastructure ................... SUCCESS [  2.601 s]\n[INFO] sfp-fault-service-acl .............................. SUCCESS [  0.614 s]\n[INFO] sfp-fault-service-app .............................. SUCCESS [ 12.437 s]\n[INFO] sfp-fault-service-bootstrap ........................ SUCCESS [  0.780 s]\n[INFO] ------------------------------------------------------------------------\n[INFO] BUILD SUCCESS\n[INFO] ------------------------------------------------------------------------\n[INFO] Total time:  19.908 s\n[INFO] Finished at: 2026-05-28T16:39:59+08:00\n[INFO] ------------------------------------------------------------------------",
+      "stderr_tail": "",
+      "report_path": "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/target/surefire-reports",
+      "content_hash": "a99449be96fec092"
+    },
+    {
+      "batch_id": "FaultReasonBrandClassConfigRepositoryImpl",
+      "receipt_id": "FaultReasonBrandClassConfigRepositoryImpl-20260528T084020",
+      "generated_by": "quality-skill-pack/run_test_batch@v1",
+      "generated_at": "2026-05-28T08:40:20Z",
+      "command": [
+        "mvn",
+        "test",
+        "-Dsurefire.failIfNoSpecifiedTests=false",
+        "-Dtest=FaultListFacadeImplEutTest#queryFaultList_withFaultReasonCodesFilter_passesFilterToRepo"
+      ],
+      "selector": "FaultListFacadeImplEutTest#queryFaultList_withFaultReasonCodesFilter_passesFilterToRepo",
+      "test_methods": [
+        "queryFaultList_withFaultReasonCodesFilter_passesFilterToRepo"
+      ],
+      "test_files": [
+        "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/fault/facade/FaultListFacadeImplEutTest.java"
+      ],
+      "exit_code": 0,
+      "phase": "test",
+      "stdout_tail": "[INFO] \n[INFO] --- jacoco:0.8.12:prepare-agent (default-prepare-agent) @ sfp-fault-service-bootstrap ---\n[INFO] argLine set to -javaagent:/Users/zhangyiqian/.m2/repository/org/jacoco/org.jacoco.agent/0.8.12/org.jacoco.agent-0.8.12-runtime.jar=destfile=/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-bootstrap/target/jacoco.exec,excludes=**/*Aspect.class:**/*BO.class:**/*Config.class:**/*Configuration.class:**/*Convert.class:**/*DO.class:**/*Do.class:**/*DTO.class:**/*Enum.class:**/*Exception.class:**/*Mapper.class:**/*Param.class:**/*VO.class:**/*Vo.class:**/annotation/**/*.class:**/constant/**/*.class:**/constants/**/*.class:**/convert/**/*.class:**/datasource/**/*.class:**/dao/**/*.class:**/dto/**/*.class:**/entity/**/*.class:**/base/**/*.class:**/enum/**/*.class:**/enums/**/*.class:**/mapper/**/*.class:**/request/**/*.class:**/response/**/*.class:**/filter/**/*.class:**/api/**/*.class:**/utils/**/*.class:**/constants/**/*.class:**/response/**/*.class:**/model/**/*.class:**/domain/**/*.class:**/*Facade.class:**/*Service.class:**/*Enum.class:**/*Repository.class:**/*Mapper.class:**/*Controller.class:**/*Handler.class:**/*Convertor.class:**/infrastructure/sharding/**/*.class:**/lifecycle/config/domain/**/*.class\n[INFO] \n[INFO] --- resources:3.4.0:resources (default-resources) @ sfp-fault-service-bootstrap ---\n[INFO] Copying 8 resources from src/main/resources to target/classes\n[INFO] \n[INFO] --- compiler:3.11.0:compile (default-compile) @ sfp-fault-service-bootstrap ---\n[INFO] Changes detected - recompiling the module! :dependency\n[INFO] Compiling 8 source files with javac [debug target 21] to target/classes\n[WARNING] 以下选项未被任何处理程序识别: '[mapstruct.generatedAnnotation]'\n[INFO] \n[INFO] --- resources:3.4.0:testResources (default-testResources) @ sfp-fault-service-bootstrap ---\n[INFO] skip non existing resourceDirectory /Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-bootstrap/src/test/resources\n[INFO] \n[INFO] --- compiler:3.11.0:testCompile (default-testCompile) @ sfp-fault-service-bootstrap ---\n[INFO] Changes detected - recompiling the module! :dependency\n[INFO] Compiling 2 source files with javac [debug target 21] to target/test-classes\n[WARNING] 以下选项未被任何处理程序识别: '[mapstruct.generatedAnnotation]'\n[INFO] \n[INFO] --- surefire:3.1.2:test (default-test) @ sfp-fault-service-bootstrap ---\n[INFO] \n[INFO] --- jacoco:0.8.12:report (default-report) @ sfp-fault-service-bootstrap ---\n[INFO] Skipping JaCoCo execution due to missing execution data file.\n[INFO] ------------------------------------------------------------------------\n[INFO] Reactor Summary for sfp-fault-service 1.0.9.RELEASE:\n[INFO] \n[INFO] sfp-fault-service .................................. SUCCESS [  0.117 s]\n[INFO] sfp-fault-service-api .............................. SUCCESS [  0.380 s]\n[INFO] sfp-fault-service-domain ........................... SUCCESS [  2.876 s]\n[INFO] sfp-fault-service-infrastructure ................... SUCCESS [  2.357 s]\n[INFO] sfp-fault-service-acl .............................. SUCCESS [  0.489 s]\n[INFO] sfp-fault-service-app .............................. SUCCESS [ 13.374 s]\n[INFO] sfp-fault-service-bootstrap ........................ SUCCESS [  0.925 s]\n[INFO] ------------------------------------------------------------------------\n[INFO] BUILD SUCCESS\n[INFO] ------------------------------------------------------------------------\n[INFO] Total time:  20.670 s\n[INFO] Finished at: 2026-05-28T16:40:20+08:00\n[INFO] ------------------------------------------------------------------------",
+      "stderr_tail": "",
+      "report_path": "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/target/surefire-reports",
+      "content_hash": "bad5a4068b1f6546"
+    },
+    {
+      "batch_id": "FaultReasonFacadeImpl",
+      "receipt_id": "FaultReasonFacadeImpl-20260528T084042",
+      "generated_by": "quality-skill-pack/run_test_batch@v1",
+      "generated_at": "2026-05-28T08:40:42Z",
+      "command": [
+        "mvn",
+        "test",
+        "-Dsurefire.failIfNoSpecifiedTests=false",
+        "-Dtest=FaultReasonFacadeImplEutTest#batchUpdateBaseFaultReason_duplicateRelation_returnsFail,FaultReasonFacadeImplEutTest#batchUpdateBaseFaultReason_lastValidReasonSetInvalid_returnsFail,FaultReasonFacadeImplEutTest#batchUpdateBaseFaultReason_validData_returnsSuccess,FaultReasonFacadeImplEutTest#batchUpdateConfigStatus_disableWithExistingApprovalData_returnsFail,FaultReasonFacadeImplEutTest#batchUpdateConfigStatus_emptyBrandClassIdList_returnsZero,FaultReasonFacadeImplEutTest#batchUpdateConfigStatus_enableCategories_returnsSuccessCount,FaultReasonFacadeImplEutTest#getFaultReasonDetail_foundByCode_returnsDetailDTO,FaultReasonFacadeImplEutTest#getFaultReasonDetail_noRelations_returnsNull,FaultReasonFacadeImplEutTest#listFaultReasonOptions_categoryEnabled_returnsOptionsList,FaultReasonFacadeImplEutTest#listFaultReasonOptions_configNotExists_returnsEmptyList,FaultReasonFacadeImplEutTest#listFaultReasonOptions_noRelationsFound_returnsEmptyList,FaultReasonFacadeImplEutTest#listFaultReasonOptions_nullParam_throwsException,FaultReasonFacadeImplEutTest#queryFaultReasonBrandClassList_happyPath_returnsNonEmptyList,FaultReasonFacadeImplEutTest#queryFaultReasonBrandClassList_noData_returnsEmptyList,FaultReasonFacadeImplEutTest#queryFaultReasonByBrandClassId_returnsListDirectly,FaultReasonFacadeImplEutTest#updateBaseFaultReason_concurrentNameCheck_runsWithoutError,FaultReasonFacadeImplEutTest#updateBaseFaultReason_duplicateReasonName_returnsFail,FaultReasonFacadeImplEutTest#updateBaseFaultReason_existingBpmProcess_returnsFail,FaultReasonFacadeImplEutTest#updateBaseFaultReason_faultBpmExistsForSameBrandClass_returnsFail,FaultReasonFacadeImplEutTest#updateBaseFaultReason_noBpmProcess_directUpdate_returnsSuccess,FaultReasonFacadeImplEutTest#updateBaseFaultReason_noBpm_noBpmLine_callsUpdateFaultReasonEditInfo,FaultReasonFacadeImplEutTest#updateBaseFaultReason_reasonSkuConflictsWithFaultBpmSku_returnsFail,FaultReasonFacadeImplEutTest#updateBaseFaultReason_statusAggregation_validatesMinOneActive,FaultReasonFacadeImplEutTest#validateReasonUpdateParam_emptyReasonName_returnsFail,FaultReasonFacadeImplEutTest#validateReasonUpdateParam_lastValidReasonSetInvalid_throwsException"
+      ],
+      "selector": "FaultReasonFacadeImplEutTest#batchUpdateBaseFaultReason_duplicateRelation_returnsFail,FaultReasonFacadeImplEutTest#batchUpdateBaseFaultReason_lastValidReasonSetInvalid_returnsFail,FaultReasonFacadeImplEutTest#batchUpdateBaseFaultReason_validData_returnsSuccess,FaultReasonFacadeImplEutTest#batchUpdateConfigStatus_disableWithExistingApprovalData_returnsFail,FaultReasonFacadeImplEutTest#batchUpdateConfigStatus_emptyBrandClassIdList_returnsZero,FaultReasonFacadeImplEutTest#batchUpdateConfigStatus_enableCategories_returnsSuccessCount,FaultReasonFacadeImplEutTest#getFaultReasonDetail_foundByCode_returnsDetailDTO,FaultReasonFacadeImplEutTest#getFaultReasonDetail_noRelations_returnsNull,FaultReasonFacadeImplEutTest#listFaultReasonOptions_categoryEnabled_returnsOptionsList,FaultReasonFacadeImplEutTest#listFaultReasonOptions_configNotExists_returnsEmptyList,FaultReasonFacadeImplEutTest#listFaultReasonOptions_noRelationsFound_returnsEmptyList,FaultReasonFacadeImplEutTest#listFaultReasonOptions_nullParam_throwsException,FaultReasonFacadeImplEutTest#queryFaultReasonBrandClassList_happyPath_returnsNonEmptyList,FaultReasonFacadeImplEutTest#queryFaultReasonBrandClassList_noData_returnsEmptyList,FaultReasonFacadeImplEutTest#queryFaultReasonByBrandClassId_returnsListDirectly,FaultReasonFacadeImplEutTest#updateBaseFaultReason_concurrentNameCheck_runsWithoutError,FaultReasonFacadeImplEutTest#updateBaseFaultReason_duplicateReasonName_returnsFail,FaultReasonFacadeImplEutTest#updateBaseFaultReason_existingBpmProcess_returnsFail,FaultReasonFacadeImplEutTest#updateBaseFaultReason_faultBpmExistsForSameBrandClass_returnsFail,FaultReasonFacadeImplEutTest#updateBaseFaultReason_noBpmProcess_directUpdate_returnsSuccess,FaultReasonFacadeImplEutTest#updateBaseFaultReason_noBpm_noBpmLine_callsUpdateFaultReasonEditInfo,FaultReasonFacadeImplEutTest#updateBaseFaultReason_reasonSkuConflictsWithFaultBpmSku_returnsFail,FaultReasonFacadeImplEutTest#updateBaseFaultReason_statusAggregation_validatesMinOneActive,FaultReasonFacadeImplEutTest#validateReasonUpdateParam_emptyReasonName_returnsFail,FaultReasonFacadeImplEutTest#validateReasonUpdateParam_lastValidReasonSetInvalid_throwsException",
+      "test_methods": [
+        "batchUpdateBaseFaultReason_duplicateRelation_returnsFail",
+        "batchUpdateBaseFaultReason_lastValidReasonSetInvalid_returnsFail",
+        "batchUpdateBaseFaultReason_validData_returnsSuccess",
+        "batchUpdateConfigStatus_disableWithExistingApprovalData_returnsFail",
+        "batchUpdateConfigStatus_emptyBrandClassIdList_returnsZero",
+        "batchUpdateConfigStatus_enableCategories_returnsSuccessCount",
+        "getFaultReasonDetail_foundByCode_returnsDetailDTO",
+        "getFaultReasonDetail_noRelations_returnsNull",
+        "listFaultReasonOptions_categoryEnabled_returnsOptionsList",
+        "listFaultReasonOptions_configNotExists_returnsEmptyList",
+        "listFaultReasonOptions_noRelationsFound_returnsEmptyList",
+        "listFaultReasonOptions_nullParam_throwsException",
+        "queryFaultReasonBrandClassList_happyPath_returnsNonEmptyList",
+        "queryFaultReasonBrandClassList_noData_returnsEmptyList",
+        "queryFaultReasonByBrandClassId_returnsListDirectly",
+        "updateBaseFaultReason_concurrentNameCheck_runsWithoutError",
+        "updateBaseFaultReason_duplicateReasonName_returnsFail",
+        "updateBaseFaultReason_existingBpmProcess_returnsFail",
+        "updateBaseFaultReason_faultBpmExistsForSameBrandClass_returnsFail",
+        "updateBaseFaultReason_noBpmProcess_directUpdate_returnsSuccess",
+        "updateBaseFaultReason_noBpm_noBpmLine_callsUpdateFaultReasonEditInfo",
+        "updateBaseFaultReason_reasonSkuConflictsWithFaultBpmSku_returnsFail",
+        "updateBaseFaultReason_statusAggregation_validatesMinOneActive",
+        "validateReasonUpdateParam_emptyReasonName_returnsFail",
+        "validateReasonUpdateParam_lastValidReasonSetInvalid_throwsException"
+      ],
+      "test_files": [
+        "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonFacadeImplEutTest.java"
+      ],
+      "exit_code": 0,
+      "phase": "test",
+      "stdout_tail": "[INFO] \n[INFO] --- jacoco:0.8.12:prepare-agent (default-prepare-agent) @ sfp-fault-service-bootstrap ---\n[INFO] argLine set to -javaagent:/Users/zhangyiqian/.m2/repository/org/jacoco/org.jacoco.agent/0.8.12/org.jacoco.agent-0.8.12-runtime.jar=destfile=/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-bootstrap/target/jacoco.exec,excludes=**/*Aspect.class:**/*BO.class:**/*Config.class:**/*Configuration.class:**/*Convert.class:**/*DO.class:**/*Do.class:**/*DTO.class:**/*Enum.class:**/*Exception.class:**/*Mapper.class:**/*Param.class:**/*VO.class:**/*Vo.class:**/annotation/**/*.class:**/constant/**/*.class:**/constants/**/*.class:**/convert/**/*.class:**/datasource/**/*.class:**/dao/**/*.class:**/dto/**/*.class:**/entity/**/*.class:**/base/**/*.class:**/enum/**/*.class:**/enums/**/*.class:**/mapper/**/*.class:**/request/**/*.class:**/response/**/*.class:**/filter/**/*.class:**/api/**/*.class:**/utils/**/*.class:**/constants/**/*.class:**/response/**/*.class:**/model/**/*.class:**/domain/**/*.class:**/*Facade.class:**/*Service.class:**/*Enum.class:**/*Repository.class:**/*Mapper.class:**/*Controller.class:**/*Handler.class:**/*Convertor.class:**/infrastructure/sharding/**/*.class:**/lifecycle/config/domain/**/*.class\n[INFO] \n[INFO] --- resources:3.4.0:resources (default-resources) @ sfp-fault-service-bootstrap ---\n[INFO] Copying 8 resources from src/main/resources to target/classes\n[INFO] \n[INFO] --- compiler:3.11.0:compile (default-compile) @ sfp-fault-service-bootstrap ---\n[INFO] Changes detected - recompiling the module! :dependency\n[INFO] Compiling 8 source files with javac [debug target 21] to target/classes\n[WARNING] 以下选项未被任何处理程序识别: '[mapstruct.generatedAnnotation]'\n[INFO] \n[INFO] --- resources:3.4.0:testResources (default-testResources) @ sfp-fault-service-bootstrap ---\n[INFO] skip non existing resourceDirectory /Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-bootstrap/src/test/resources\n[INFO] \n[INFO] --- compiler:3.11.0:testCompile (default-testCompile) @ sfp-fault-service-bootstrap ---\n[INFO] Changes detected - recompiling the module! :dependency\n[INFO] Compiling 2 source files with javac [debug target 21] to target/test-classes\n[WARNING] 以下选项未被任何处理程序识别: '[mapstruct.generatedAnnotation]'\n[INFO] \n[INFO] --- surefire:3.1.2:test (default-test) @ sfp-fault-service-bootstrap ---\n[INFO] \n[INFO] --- jacoco:0.8.12:report (default-report) @ sfp-fault-service-bootstrap ---\n[INFO] Skipping JaCoCo execution due to missing execution data file.\n[INFO] ------------------------------------------------------------------------\n[INFO] Reactor Summary for sfp-fault-service 1.0.9.RELEASE:\n[INFO] \n[INFO] sfp-fault-service .................................. SUCCESS [  0.116 s]\n[INFO] sfp-fault-service-api .............................. SUCCESS [  0.365 s]\n[INFO] sfp-fault-service-domain ........................... SUCCESS [  2.889 s]\n[INFO] sfp-fault-service-infrastructure ................... SUCCESS [  2.710 s]\n[INFO] sfp-fault-service-acl .............................. SUCCESS [  0.602 s]\n[INFO] sfp-fault-service-app .............................. SUCCESS [ 13.631 s]\n[INFO] sfp-fault-service-bootstrap ........................ SUCCESS [  1.040 s]\n[INFO] ------------------------------------------------------------------------\n[INFO] BUILD SUCCESS\n[INFO] ------------------------------------------------------------------------\n[INFO] Total time:  21.506 s\n[INFO] Finished at: 2026-05-28T16:40:42+08:00\n[INFO] ------------------------------------------------------------------------",
+      "stderr_tail": "",
+      "report_path": "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/target/surefire-reports",
+      "content_hash": "0d27b7a0c0e84d69"
+    },
+    {
+      "batch_id": "FaultReasonRelationRepositoryImpl",
+      "receipt_id": "FaultReasonRelationRepositoryImpl-20260528T084106",
+      "generated_by": "quality-skill-pack/run_test_batch@v1",
+      "generated_at": "2026-05-28T08:41:06Z",
+      "command": [
+        "mvn",
+        "test",
+        "-Dsurefire.failIfNoSpecifiedTests=false",
+        "-Dtest=FaultReasonRepositoryEutTest#faultReasonRelationRepository_hasCorrectClass,FaultReasonRepositoryEutTest#pageQueryByFaultReasonCode_repositoryInstantiatable"
+      ],
+      "selector": "FaultReasonRepositoryEutTest#faultReasonRelationRepository_hasCorrectClass,FaultReasonRepositoryEutTest#pageQueryByFaultReasonCode_repositoryInstantiatable",
+      "test_methods": [
+        "faultReasonRelationRepository_hasCorrectClass",
+        "pageQueryByFaultReasonCode_repositoryInstantiatable"
+      ],
+      "test_files": [
+        "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/facade/FaultReasonRepositoryEutTest.java"
+      ],
+      "exit_code": 0,
+      "phase": "test",
+      "stdout_tail": "[INFO] \n[INFO] --- jacoco:0.8.12:prepare-agent (default-prepare-agent) @ sfp-fault-service-bootstrap ---\n[INFO] argLine set to -javaagent:/Users/zhangyiqian/.m2/repository/org/jacoco/org.jacoco.agent/0.8.12/org.jacoco.agent-0.8.12-runtime.jar=destfile=/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-bootstrap/target/jacoco.exec,excludes=**/*Aspect.class:**/*BO.class:**/*Config.class:**/*Configuration.class:**/*Convert.class:**/*DO.class:**/*Do.class:**/*DTO.class:**/*Enum.class:**/*Exception.class:**/*Mapper.class:**/*Param.class:**/*VO.class:**/*Vo.class:**/annotation/**/*.class:**/constant/**/*.class:**/constants/**/*.class:**/convert/**/*.class:**/datasource/**/*.class:**/dao/**/*.class:**/dto/**/*.class:**/entity/**/*.class:**/base/**/*.class:**/enum/**/*.class:**/enums/**/*.class:**/mapper/**/*.class:**/request/**/*.class:**/response/**/*.class:**/filter/**/*.class:**/api/**/*.class:**/utils/**/*.class:**/constants/**/*.class:**/response/**/*.class:**/model/**/*.class:**/domain/**/*.class:**/*Facade.class:**/*Service.class:**/*Enum.class:**/*Repository.class:**/*Mapper.class:**/*Controller.class:**/*Handler.class:**/*Convertor.class:**/infrastructure/sharding/**/*.class:**/lifecycle/config/domain/**/*.class\n[INFO] \n[INFO] --- resources:3.4.0:resources (default-resources) @ sfp-fault-service-bootstrap ---\n[INFO] Copying 8 resources from src/main/resources to target/classes\n[INFO] \n[INFO] --- compiler:3.11.0:compile (default-compile) @ sfp-fault-service-bootstrap ---\n[INFO] Changes detected - recompiling the module! :dependency\n[INFO] Compiling 8 source files with javac [debug target 21] to target/classes\n[WARNING] 以下选项未被任何处理程序识别: '[mapstruct.generatedAnnotation]'\n[INFO] \n[INFO] --- resources:3.4.0:testResources (default-testResources) @ sfp-fault-service-bootstrap ---\n[INFO] skip non existing resourceDirectory /Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-bootstrap/src/test/resources\n[INFO] \n[INFO] --- compiler:3.11.0:testCompile (default-testCompile) @ sfp-fault-service-bootstrap ---\n[INFO] Changes detected - recompiling the module! :dependency\n[INFO] Compiling 2 source files with javac [debug target 21] to target/test-classes\n[WARNING] 以下选项未被任何处理程序识别: '[mapstruct.generatedAnnotation]'\n[INFO] \n[INFO] --- surefire:3.1.2:test (default-test) @ sfp-fault-service-bootstrap ---\n[INFO] \n[INFO] --- jacoco:0.8.12:report (default-report) @ sfp-fault-service-bootstrap ---\n[INFO] Skipping JaCoCo execution due to missing execution data file.\n[INFO] ------------------------------------------------------------------------\n[INFO] Reactor Summary for sfp-fault-service 1.0.9.RELEASE:\n[INFO] \n[INFO] sfp-fault-service .................................. SUCCESS [  0.121 s]\n[INFO] sfp-fault-service-api .............................. SUCCESS [  0.360 s]\n[INFO] sfp-fault-service-domain ........................... SUCCESS [  2.976 s]\n[INFO] sfp-fault-service-infrastructure ................... SUCCESS [  2.556 s]\n[INFO] sfp-fault-service-acl .............................. SUCCESS [  0.786 s]\n[INFO] sfp-fault-service-app .............................. SUCCESS [ 14.790 s]\n[INFO] sfp-fault-service-bootstrap ........................ SUCCESS [  0.867 s]\n[INFO] ------------------------------------------------------------------------\n[INFO] BUILD SUCCESS\n[INFO] ------------------------------------------------------------------------\n[INFO] Total time:  22.601 s\n[INFO] Finished at: 2026-05-28T16:41:06+08:00\n[INFO] ------------------------------------------------------------------------",
+      "stderr_tail": "",
+      "report_path": "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/target/surefire-reports",
+      "content_hash": "e3e23eecaf9c64c4"
+    },
+    {
+      "batch_id": "FaultReasonServiceImpl",
+      "receipt_id": "FaultReasonServiceImpl-20260528T084129",
+      "generated_by": "quality-skill-pack/run_test_batch@v1",
+      "generated_at": "2026-05-28T08:41:29Z",
+      "command": [
+        "mvn",
+        "test",
+        "-Dsurefire.failIfNoSpecifiedTests=false",
+        "-Dtest=FaultReasonServiceImplEutTest#checkNeedFaultReason_categoryWithFaultReason_returnsTrue,FaultReasonServiceImplEutTest#checkNeedFaultReason_categoryWithoutFaultReason_returnsFalse,FaultReasonServiceImplEutTest#checkNeedFaultReason_nullBrandClassId_throwsException,FaultReasonServiceImplEutTest#checkNeedFaultReason_nullFaultId_returnsNeedFaultReasonOnly,FaultReasonServiceImplEutTest#queryFaultReasonByCode_emptyCodes_throwsException,FaultReasonServiceImplEutTest#queryFaultReasonByCode_validCodes_returnsDto,FaultReasonServiceImplEutTest#queryFaultReason_noBrandClassData_returnsEmptyOrSuccess,FaultReasonServiceImplEutTest#queryFaultReason_repositoryThrows_propagatesException,FaultReasonServiceImplEutTest#queryFaultReason_validParam_returnsNonEmptyList"
+      ],
+      "selector": "FaultReasonServiceImplEutTest#checkNeedFaultReason_categoryWithFaultReason_returnsTrue,FaultReasonServiceImplEutTest#checkNeedFaultReason_categoryWithoutFaultReason_returnsFalse,FaultReasonServiceImplEutTest#checkNeedFaultReason_nullBrandClassId_throwsException,FaultReasonServiceImplEutTest#checkNeedFaultReason_nullFaultId_returnsNeedFaultReasonOnly,FaultReasonServiceImplEutTest#queryFaultReasonByCode_emptyCodes_throwsException,FaultReasonServiceImplEutTest#queryFaultReasonByCode_validCodes_returnsDto,FaultReasonServiceImplEutTest#queryFaultReason_noBrandClassData_returnsEmptyOrSuccess,FaultReasonServiceImplEutTest#queryFaultReason_repositoryThrows_propagatesException,FaultReasonServiceImplEutTest#queryFaultReason_validParam_returnsNonEmptyList",
+      "test_methods": [
+        "checkNeedFaultReason_categoryWithFaultReason_returnsTrue",
+        "checkNeedFaultReason_categoryWithoutFaultReason_returnsFalse",
+        "checkNeedFaultReason_nullBrandClassId_throwsException",
+        "checkNeedFaultReason_nullFaultId_returnsNeedFaultReasonOnly",
+        "queryFaultReasonByCode_emptyCodes_throwsException",
+        "queryFaultReasonByCode_validCodes_returnsDto",
+        "queryFaultReason_noBrandClassData_returnsEmptyOrSuccess",
+        "queryFaultReason_repositoryThrows_propagatesException",
+        "queryFaultReason_validParam_returnsNonEmptyList"
+      ],
+      "test_files": [
+        "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faultreason/service/FaultReasonServiceImplEutTest.java"
+      ],
+      "exit_code": 0,
+      "phase": "test",
+      "stdout_tail": "[INFO] \n[INFO] --- jacoco:0.8.12:prepare-agent (default-prepare-agent) @ sfp-fault-service-bootstrap ---\n[INFO] argLine set to -javaagent:/Users/zhangyiqian/.m2/repository/org/jacoco/org.jacoco.agent/0.8.12/org.jacoco.agent-0.8.12-runtime.jar=destfile=/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-bootstrap/target/jacoco.exec,excludes=**/*Aspect.class:**/*BO.class:**/*Config.class:**/*Configuration.class:**/*Convert.class:**/*DO.class:**/*Do.class:**/*DTO.class:**/*Enum.class:**/*Exception.class:**/*Mapper.class:**/*Param.class:**/*VO.class:**/*Vo.class:**/annotation/**/*.class:**/constant/**/*.class:**/constants/**/*.class:**/convert/**/*.class:**/datasource/**/*.class:**/dao/**/*.class:**/dto/**/*.class:**/entity/**/*.class:**/base/**/*.class:**/enum/**/*.class:**/enums/**/*.class:**/mapper/**/*.class:**/request/**/*.class:**/response/**/*.class:**/filter/**/*.class:**/api/**/*.class:**/utils/**/*.class:**/constants/**/*.class:**/response/**/*.class:**/model/**/*.class:**/domain/**/*.class:**/*Facade.class:**/*Service.class:**/*Enum.class:**/*Repository.class:**/*Mapper.class:**/*Controller.class:**/*Handler.class:**/*Convertor.class:**/infrastructure/sharding/**/*.class:**/lifecycle/config/domain/**/*.class\n[INFO] \n[INFO] --- resources:3.4.0:resources (default-resources) @ sfp-fault-service-bootstrap ---\n[INFO] Copying 8 resources from src/main/resources to target/classes\n[INFO] \n[INFO] --- compiler:3.11.0:compile (default-compile) @ sfp-fault-service-bootstrap ---\n[INFO] Changes detected - recompiling the module! :dependency\n[INFO] Compiling 8 source files with javac [debug target 21] to target/classes\n[WARNING] 以下选项未被任何处理程序识别: '[mapstruct.generatedAnnotation]'\n[INFO] \n[INFO] --- resources:3.4.0:testResources (default-testResources) @ sfp-fault-service-bootstrap ---\n[INFO] skip non existing resourceDirectory /Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-bootstrap/src/test/resources\n[INFO] \n[INFO] --- compiler:3.11.0:testCompile (default-testCompile) @ sfp-fault-service-bootstrap ---\n[INFO] Changes detected - recompiling the module! :dependency\n[INFO] Compiling 2 source files with javac [debug target 21] to target/test-classes\n[WARNING] 以下选项未被任何处理程序识别: '[mapstruct.generatedAnnotation]'\n[INFO] \n[INFO] --- surefire:3.1.2:test (default-test) @ sfp-fault-service-bootstrap ---\n[INFO] \n[INFO] --- jacoco:0.8.12:report (default-report) @ sfp-fault-service-bootstrap ---\n[INFO] Skipping JaCoCo execution due to missing execution data file.\n[INFO] ------------------------------------------------------------------------\n[INFO] Reactor Summary for sfp-fault-service 1.0.9.RELEASE:\n[INFO] \n[INFO] sfp-fault-service .................................. SUCCESS [  0.141 s]\n[INFO] sfp-fault-service-api .............................. SUCCESS [  0.387 s]\n[INFO] sfp-fault-service-domain ........................... SUCCESS [  3.241 s]\n[INFO] sfp-fault-service-infrastructure ................... SUCCESS [  2.768 s]\n[INFO] sfp-fault-service-acl .............................. SUCCESS [  0.600 s]\n[INFO] sfp-fault-service-app .............................. SUCCESS [ 14.070 s]\n[INFO] sfp-fault-service-bootstrap ........................ SUCCESS [  0.877 s]\n[INFO] ------------------------------------------------------------------------\n[INFO] BUILD SUCCESS\n[INFO] ------------------------------------------------------------------------\n[INFO] Total time:  22.241 s\n[INFO] Finished at: 2026-05-28T16:41:29+08:00\n[INFO] ------------------------------------------------------------------------",
+      "stderr_tail": "",
+      "report_path": "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/target/surefire-reports",
+      "content_hash": "ddeb1a23521b33f4"
+    },
+    {
+      "batch_id": "FaultServiceImpl",
+      "receipt_id": "FaultServiceImpl-20260528T084155",
+      "generated_by": "quality-skill-pack/run_test_batch@v1",
+      "generated_at": "2026-05-28T08:41:55Z",
+      "command": [
+        "mvn",
+        "test",
+        "-Dsurefire.failIfNoSpecifiedTests=false",
+        "-Dtest=FaultServiceImplEutTest#queryFaultInfoList_noBrandClass_returnsSuccessWithoutModification,FaultServiceImplEutTest#queryFaultInfoList_validParam_doesNotModifyRelationStatus,FaultServiceImplEutTest#queryFaultMetaByStep_negativeParentId_returnsError,FaultServiceImplEutTest#queryFaultMetaByStep_nullAll_returnsFail,FaultServiceImplEutTest#queryFaultMetaByStep_nullFaultType_handledGracefully"
+      ],
+      "selector": "FaultServiceImplEutTest#queryFaultInfoList_noBrandClass_returnsSuccessWithoutModification,FaultServiceImplEutTest#queryFaultInfoList_validParam_doesNotModifyRelationStatus,FaultServiceImplEutTest#queryFaultMetaByStep_negativeParentId_returnsError,FaultServiceImplEutTest#queryFaultMetaByStep_nullAll_returnsFail,FaultServiceImplEutTest#queryFaultMetaByStep_nullFaultType_handledGracefully",
+      "test_methods": [
+        "queryFaultInfoList_noBrandClass_returnsSuccessWithoutModification",
+        "queryFaultInfoList_validParam_doesNotModifyRelationStatus",
+        "queryFaultMetaByStep_negativeParentId_returnsError",
+        "queryFaultMetaByStep_nullAll_returnsFail",
+        "queryFaultMetaByStep_nullFaultType_handledGracefully"
+      ],
+      "test_files": [
+        "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/fault/service/FaultServiceImplEutTest.java"
+      ],
+      "exit_code": 0,
+      "phase": "test",
+      "stdout_tail": "[INFO] \n[INFO] --- jacoco:0.8.12:prepare-agent (default-prepare-agent) @ sfp-fault-service-bootstrap ---\n[INFO] argLine set to -javaagent:/Users/zhangyiqian/.m2/repository/org/jacoco/org.jacoco.agent/0.8.12/org.jacoco.agent-0.8.12-runtime.jar=destfile=/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-bootstrap/target/jacoco.exec,excludes=**/*Aspect.class:**/*BO.class:**/*Config.class:**/*Configuration.class:**/*Convert.class:**/*DO.class:**/*Do.class:**/*DTO.class:**/*Enum.class:**/*Exception.class:**/*Mapper.class:**/*Param.class:**/*VO.class:**/*Vo.class:**/annotation/**/*.class:**/constant/**/*.class:**/constants/**/*.class:**/convert/**/*.class:**/datasource/**/*.class:**/dao/**/*.class:**/dto/**/*.class:**/entity/**/*.class:**/base/**/*.class:**/enum/**/*.class:**/enums/**/*.class:**/mapper/**/*.class:**/request/**/*.class:**/response/**/*.class:**/filter/**/*.class:**/api/**/*.class:**/utils/**/*.class:**/constants/**/*.class:**/response/**/*.class:**/model/**/*.class:**/domain/**/*.class:**/*Facade.class:**/*Service.class:**/*Enum.class:**/*Repository.class:**/*Mapper.class:**/*Controller.class:**/*Handler.class:**/*Convertor.class:**/infrastructure/sharding/**/*.class:**/lifecycle/config/domain/**/*.class\n[INFO] \n[INFO] --- resources:3.4.0:resources (default-resources) @ sfp-fault-service-bootstrap ---\n[INFO] Copying 8 resources from src/main/resources to target/classes\n[INFO] \n[INFO] --- compiler:3.11.0:compile (default-compile) @ sfp-fault-service-bootstrap ---\n[INFO] Changes detected - recompiling the module! :dependency\n[INFO] Compiling 8 source files with javac [debug target 21] to target/classes\n[WARNING] 以下选项未被任何处理程序识别: '[mapstruct.generatedAnnotation]'\n[INFO] \n[INFO] --- resources:3.4.0:testResources (default-testResources) @ sfp-fault-service-bootstrap ---\n[INFO] skip non existing resourceDirectory /Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-bootstrap/src/test/resources\n[INFO] \n[INFO] --- compiler:3.11.0:testCompile (default-testCompile) @ sfp-fault-service-bootstrap ---\n[INFO] Changes detected - recompiling the module! :dependency\n[INFO] Compiling 2 source files with javac [debug target 21] to target/test-classes\n[WARNING] 以下选项未被任何处理程序识别: '[mapstruct.generatedAnnotation]'\n[INFO] \n[INFO] --- surefire:3.1.2:test (default-test) @ sfp-fault-service-bootstrap ---\n[INFO] \n[INFO] --- jacoco:0.8.12:report (default-report) @ sfp-fault-service-bootstrap ---\n[INFO] Skipping JaCoCo execution due to missing execution data file.\n[INFO] ------------------------------------------------------------------------\n[INFO] Reactor Summary for sfp-fault-service 1.0.9.RELEASE:\n[INFO] \n[INFO] sfp-fault-service .................................. SUCCESS [  0.141 s]\n[INFO] sfp-fault-service-api .............................. SUCCESS [  0.435 s]\n[INFO] sfp-fault-service-domain ........................... SUCCESS [  3.497 s]\n[INFO] sfp-fault-service-infrastructure ................... SUCCESS [  2.960 s]\n[INFO] sfp-fault-service-acl .............................. SUCCESS [  0.721 s]\n[INFO] sfp-fault-service-app .............................. SUCCESS [ 15.507 s]\n[INFO] sfp-fault-service-bootstrap ........................ SUCCESS [  1.299 s]\n[INFO] ------------------------------------------------------------------------\n[INFO] BUILD SUCCESS\n[INFO] ------------------------------------------------------------------------\n[INFO] Total time:  24.719 s\n[INFO] Finished at: 2026-05-28T16:41:54+08:00\n[INFO] ------------------------------------------------------------------------",
+      "stderr_tail": "",
+      "report_path": "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/target/surefire-reports",
+      "content_hash": "3a89faa3a978b817"
+    },
+    {
+      "batch_id": "SingleFaultReasonBpmHandler",
+      "receipt_id": "SingleFaultReasonBpmHandler-20260528T084222",
+      "generated_by": "quality-skill-pack/run_test_batch@v1",
+      "generated_at": "2026-05-28T08:42:22Z",
+      "command": [
+        "mvn",
+        "test",
+        "-Dsurefire.failIfNoSpecifiedTests=false",
+        "-Dtest=SingleFaultReasonBpmHandlerEutTest#singleFaultReasonBpmHandler_exists_and_instantiatable"
+      ],
+      "selector": "SingleFaultReasonBpmHandlerEutTest#singleFaultReasonBpmHandler_exists_and_instantiatable",
+      "test_methods": [
+        "singleFaultReasonBpmHandler_exists_and_instantiatable"
+      ],
+      "test_files": [
+        "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/bpm/handler/SingleFaultReasonBpmHandlerEutTest.java"
+      ],
+      "exit_code": 0,
+      "phase": "test",
+      "stdout_tail": "[INFO] \n[INFO] --- jacoco:0.8.12:prepare-agent (default-prepare-agent) @ sfp-fault-service-bootstrap ---\n[INFO] argLine set to -javaagent:/Users/zhangyiqian/.m2/repository/org/jacoco/org.jacoco.agent/0.8.12/org.jacoco.agent-0.8.12-runtime.jar=destfile=/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-bootstrap/target/jacoco.exec,excludes=**/*Aspect.class:**/*BO.class:**/*Config.class:**/*Configuration.class:**/*Convert.class:**/*DO.class:**/*Do.class:**/*DTO.class:**/*Enum.class:**/*Exception.class:**/*Mapper.class:**/*Param.class:**/*VO.class:**/*Vo.class:**/annotation/**/*.class:**/constant/**/*.class:**/constants/**/*.class:**/convert/**/*.class:**/datasource/**/*.class:**/dao/**/*.class:**/dto/**/*.class:**/entity/**/*.class:**/base/**/*.class:**/enum/**/*.class:**/enums/**/*.class:**/mapper/**/*.class:**/request/**/*.class:**/response/**/*.class:**/filter/**/*.class:**/api/**/*.class:**/utils/**/*.class:**/constants/**/*.class:**/response/**/*.class:**/model/**/*.class:**/domain/**/*.class:**/*Facade.class:**/*Service.class:**/*Enum.class:**/*Repository.class:**/*Mapper.class:**/*Controller.class:**/*Handler.class:**/*Convertor.class:**/infrastructure/sharding/**/*.class:**/lifecycle/config/domain/**/*.class\n[INFO] \n[INFO] --- resources:3.4.0:resources (default-resources) @ sfp-fault-service-bootstrap ---\n[INFO] Copying 8 resources from src/main/resources to target/classes\n[INFO] \n[INFO] --- compiler:3.11.0:compile (default-compile) @ sfp-fault-service-bootstrap ---\n[INFO] Changes detected - recompiling the module! :dependency\n[INFO] Compiling 8 source files with javac [debug target 21] to target/classes\n[WARNING] 以下选项未被任何处理程序识别: '[mapstruct.generatedAnnotation]'\n[INFO] \n[INFO] --- resources:3.4.0:testResources (default-testResources) @ sfp-fault-service-bootstrap ---\n[INFO] skip non existing resourceDirectory /Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-bootstrap/src/test/resources\n[INFO] \n[INFO] --- compiler:3.11.0:testCompile (default-testCompile) @ sfp-fault-service-bootstrap ---\n[INFO] Changes detected - recompiling the module! :dependency\n[INFO] Compiling 2 source files with javac [debug target 21] to target/test-classes\n[WARNING] 以下选项未被任何处理程序识别: '[mapstruct.generatedAnnotation]'\n[INFO] \n[INFO] --- surefire:3.1.2:test (default-test) @ sfp-fault-service-bootstrap ---\n[INFO] \n[INFO] --- jacoco:0.8.12:report (default-report) @ sfp-fault-service-bootstrap ---\n[INFO] Skipping JaCoCo execution due to missing execution data file.\n[INFO] ------------------------------------------------------------------------\n[INFO] Reactor Summary for sfp-fault-service 1.0.9.RELEASE:\n[INFO] \n[INFO] sfp-fault-service .................................. SUCCESS [  0.234 s]\n[INFO] sfp-fault-service-api .............................. SUCCESS [  0.788 s]\n[INFO] sfp-fault-service-domain ........................... SUCCESS [  4.755 s]\n[INFO] sfp-fault-service-infrastructure ................... SUCCESS [  3.554 s]\n[INFO] sfp-fault-service-acl .............................. SUCCESS [  0.750 s]\n[INFO] sfp-fault-service-app .............................. SUCCESS [ 14.293 s]\n[INFO] sfp-fault-service-bootstrap ........................ SUCCESS [  1.231 s]\n[INFO] ------------------------------------------------------------------------\n[INFO] BUILD SUCCESS\n[INFO] ------------------------------------------------------------------------\n[INFO] Total time:  25.960 s\n[INFO] Finished at: 2026-05-28T16:42:22+08:00\n[INFO] ------------------------------------------------------------------------",
+      "stderr_tail": "",
+      "report_path": "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/target/surefire-reports",
+      "content_hash": "7c6203b0c1db9e08"
+    },
+    {
+      "batch_id": "UpdateFaultTypeCommandHandler",
+      "receipt_id": "UpdateFaultTypeCommandHandler-20260528T084248",
+      "generated_by": "quality-skill-pack/run_test_batch@v1",
+      "generated_at": "2026-05-28T08:42:48Z",
+      "command": [
+        "mvn",
+        "test",
+        "-Dsurefire.failIfNoSpecifiedTests=false",
+        "-Dtest=UpdateFaultTypeCommandHandlerEutTest#handle_softwareFaultWithFaultReasonEnabledCategory_throwsSfpFaultBizException,UpdateFaultTypeCommandHandlerEutTest#handle_softwareFaultWithNoFaultReasonCategory_updatesSuccessfully"
+      ],
+      "selector": "UpdateFaultTypeCommandHandlerEutTest#handle_softwareFaultWithFaultReasonEnabledCategory_throwsSfpFaultBizException,UpdateFaultTypeCommandHandlerEutTest#handle_softwareFaultWithNoFaultReasonCategory_updatesSuccessfully",
+      "test_methods": [
+        "handle_softwareFaultWithFaultReasonEnabledCategory_throwsSfpFaultBizException",
+        "handle_softwareFaultWithNoFaultReasonCategory_updatesSuccessfully"
+      ],
+      "test_files": [
+        "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-app/src/test/java/com/mi/asp/fault/application/faulttype/command/UpdateFaultTypeCommandHandlerEutTest.java"
+      ],
+      "exit_code": 0,
+      "phase": "test",
+      "stdout_tail": "[INFO] \n[INFO] --- jacoco:0.8.12:prepare-agent (default-prepare-agent) @ sfp-fault-service-bootstrap ---\n[INFO] argLine set to -javaagent:/Users/zhangyiqian/.m2/repository/org/jacoco/org.jacoco.agent/0.8.12/org.jacoco.agent-0.8.12-runtime.jar=destfile=/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-bootstrap/target/jacoco.exec,excludes=**/*Aspect.class:**/*BO.class:**/*Config.class:**/*Configuration.class:**/*Convert.class:**/*DO.class:**/*Do.class:**/*DTO.class:**/*Enum.class:**/*Exception.class:**/*Mapper.class:**/*Param.class:**/*VO.class:**/*Vo.class:**/annotation/**/*.class:**/constant/**/*.class:**/constants/**/*.class:**/convert/**/*.class:**/datasource/**/*.class:**/dao/**/*.class:**/dto/**/*.class:**/entity/**/*.class:**/base/**/*.class:**/enum/**/*.class:**/enums/**/*.class:**/mapper/**/*.class:**/request/**/*.class:**/response/**/*.class:**/filter/**/*.class:**/api/**/*.class:**/utils/**/*.class:**/constants/**/*.class:**/response/**/*.class:**/model/**/*.class:**/domain/**/*.class:**/*Facade.class:**/*Service.class:**/*Enum.class:**/*Repository.class:**/*Mapper.class:**/*Controller.class:**/*Handler.class:**/*Convertor.class:**/infrastructure/sharding/**/*.class:**/lifecycle/config/domain/**/*.class\n[INFO] \n[INFO] --- resources:3.4.0:resources (default-resources) @ sfp-fault-service-bootstrap ---\n[INFO] Copying 8 resources from src/main/resources to target/classes\n[INFO] \n[INFO] --- compiler:3.11.0:compile (default-compile) @ sfp-fault-service-bootstrap ---\n[INFO] Changes detected - recompiling the module! :dependency\n[INFO] Compiling 8 source files with javac [debug target 21] to target/classes\n[WARNING] 以下选项未被任何处理程序识别: '[mapstruct.generatedAnnotation]'\n[INFO] \n[INFO] --- resources:3.4.0:testResources (default-testResources) @ sfp-fault-service-bootstrap ---\n[INFO] skip non existing resourceDirectory /Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/sfp-fault-service-bootstrap/src/test/resources\n[INFO] \n[INFO] --- compiler:3.11.0:testCompile (default-testCompile) @ sfp-fault-service-bootstrap ---\n[INFO] Changes detected - recompiling the module! :dependency\n[INFO] Compiling 2 source files with javac [debug target 21] to target/test-classes\n[WARNING] 以下选项未被任何处理程序识别: '[mapstruct.generatedAnnotation]'\n[INFO] \n[INFO] --- surefire:3.1.2:test (default-test) @ sfp-fault-service-bootstrap ---\n[INFO] \n[INFO] --- jacoco:0.8.12:report (default-report) @ sfp-fault-service-bootstrap ---\n[INFO] Skipping JaCoCo execution due to missing execution data file.\n[INFO] ------------------------------------------------------------------------\n[INFO] Reactor Summary for sfp-fault-service 1.0.9.RELEASE:\n[INFO] \n[INFO] sfp-fault-service .................................. SUCCESS [  0.137 s]\n[INFO] sfp-fault-service-api .............................. SUCCESS [  0.418 s]\n[INFO] sfp-fault-service-domain ........................... SUCCESS [  3.249 s]\n[INFO] sfp-fault-service-infrastructure ................... SUCCESS [  3.202 s]\n[INFO] sfp-fault-service-acl .............................. SUCCESS [  0.726 s]\n[INFO] sfp-fault-service-app .............................. SUCCESS [ 16.056 s]\n[INFO] sfp-fault-service-bootstrap ........................ SUCCESS [  1.670 s]\n[INFO] ------------------------------------------------------------------------\n[INFO] BUILD SUCCESS\n[INFO] ------------------------------------------------------------------------\n[INFO] Total time:  25.625 s\n[INFO] Finished at: 2026-05-28T16:42:48+08:00\n[INFO] ------------------------------------------------------------------------",
+      "stderr_tail": "",
+      "report_path": "/Users/zhangyiqian/private-dev/sfp-fault-service-20260331/sfp-fault-service/target/surefire-reports",
+      "content_hash": "452ab4f883d9216c"
+    }
+  ]
+}

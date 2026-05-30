@@ -1,0 +1,31 @@
+{
+  "case_id": "GOLDEN-Q06-20260530-00",
+  "phase": "Q06",
+  "error_type": "FN",
+  "severity": "medium",
+  "title": "invokeFaultBpmCallback 入参为 null 时提前返回，不触发后续处理",
+  "root_cause": "SKILL_RULE",
+  "fix_target": "skills/unit-test-audit/SKILL.md",
+  "tags": [
+    "golden-sample",
+    "project:failure-cause",
+    "pattern:partial"
+  ],
+  "created_at": "2026-05-30",
+  "status": "open",
+  "source": {
+    "project_id": "failure-cause",
+    "audit_item_id": "AUDIT-019",
+    "eut_id": "EUT-019",
+    "auto_generated": true,
+    "origin": "golden-sample-extraction"
+  },
+  "expected": {
+    "content": "补充对 Result.fail 返回码的断言，确认方法返回业务失败语义而非静默 null"
+  },
+  "actual": {
+    "content": "status=PARTIAL: invokeFaultBpmCallback 入参为 null 时提前返回，不触发后续处理"
+  },
+  "lesson": "有断言但未验证业务返回码/错误语义",
+  "case_category": "ASSERTION_QUALITY"
+}

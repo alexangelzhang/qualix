@@ -1,0 +1,31 @@
+{
+  "case_id": "GOLDEN-Q06-20260530-20",
+  "phase": "Q06",
+  "error_type": "WRONG",
+  "severity": "medium",
+  "title": "queryFaultInfoList 无品类参数时调用 repository",
+  "root_cause": "SKILL_RULE",
+  "fix_target": "skills/unit-test-audit/SKILL.md",
+  "tags": [
+    "golden-sample",
+    "project:failure-cause",
+    "pattern:wrong_target"
+  ],
+  "created_at": "2026-05-30",
+  "status": "open",
+  "source": {
+    "project_id": "failure-cause",
+    "audit_item_id": "AUDIT-050",
+    "eut_id": "EUT-050",
+    "auto_generated": true,
+    "origin": "golden-sample-extraction"
+  },
+  "expected": {
+    "content": "补充对 repository mock 调用的 verify 和返回值断言"
+  },
+  "actual": {
+    "content": "status=WRONG_TARGET: queryFaultInfoList 无品类参数时调用 repository"
+  },
+  "lesson": "仅 verify mock 调用次数，未验证业务参数和返回值",
+  "case_category": "ASSERTION_QUALITY"
+}

@@ -1,0 +1,31 @@
+{
+  "case_id": "GOLDEN-Q06-20260530-05",
+  "phase": "Q06",
+  "error_type": "WRONG",
+  "severity": "medium",
+  "title": "getFaultDetailById null结果时优雅处理",
+  "root_cause": "SKILL_RULE",
+  "fix_target": "skills/unit-test-audit/SKILL.md",
+  "tags": [
+    "golden-sample",
+    "project:failure-cause",
+    "pattern:wrong_target"
+  ],
+  "created_at": "2026-05-30",
+  "status": "open",
+  "source": {
+    "project_id": "failure-cause",
+    "audit_item_id": "AUDIT-029",
+    "eut_id": "EUT-029",
+    "auto_generated": true,
+    "origin": "golden-sample-extraction"
+  },
+  "expected": {
+    "content": "补充调用 getFaultDetailById 并验证返回值为 null 或业务降级处理"
+  },
+  "actual": {
+    "content": "status=WRONG_TARGET: getFaultDetailById null结果时优雅处理"
+  },
+  "lesson": "测试验证的是实现细节而非业务语义",
+  "case_category": "ASSERTION_QUALITY"
+}
