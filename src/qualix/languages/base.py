@@ -1,6 +1,6 @@
 """LanguageProvider 抽象基类 + 共享数据类型.
 
-每种语言实现一个 Provider，覆盖 DQG 质量门控的全部语言特定能力。
+每种语言实现一个 Provider，覆盖 Qualix 质量门控的全部语言特定能力。
 """
 
 from __future__ import annotations
@@ -156,7 +156,7 @@ class CoverageResult:
 
 
 class LanguageProvider(ABC):
-    """语言 Provider — 覆盖 DQG 质量门控的全部语言特定能力."""
+    """语言 Provider — 覆盖 Qualix 质量门控的全部语言特定能力."""
 
     @property
     @abstractmethod

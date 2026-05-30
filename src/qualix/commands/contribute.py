@@ -1,4 +1,4 @@
-"""qualix-run contribute — 把本地新积累的 failure-library 案例贡献回 DQG repo.
+"""qualix-run contribute — 把本地新积累的 failure-library 案例贡献回 Qualix repo.
 
 触发时机：
 1. qualix-run contribute          手动批量贡献
@@ -20,7 +20,7 @@ from qualix.json_utils import dump_json_str, load_json_strict
 
 
 def _failure_library_cases() -> Path:
-    return Path.home() / ".dqg" / "regression" / "failure-library" / "cases"
+    return Path.home() / ".qualix" / "regression" / "failure-library" / "cases"
 
 
 def _issues_url() -> str:
@@ -29,7 +29,7 @@ def _issues_url() -> str:
 
         return resolve_issues_url()
     except Exception:
-        return "https://github.com/your-org/rd-gate/issues"
+        return "https://github.com/alexangelzhang/qualix/issues"
 
 
 def _repo_path_from_url(url: str) -> str:
@@ -78,7 +78,7 @@ def mark_contributed(case_files: list[str]) -> None:
 
 def _build_mr_description(cases: list[dict[str, Any]]) -> str:
     lines = [
-        "## DQG failure-library 案例贡献",
+        "## Qualix failure-library 案例贡献",
         "",
         f"本 MR 由 `qualix-run contribute` 自动生成，包含 {len(cases)} 条新案例。",
         "",
@@ -97,7 +97,7 @@ def _build_mr_description(cases: list[dict[str, Any]]) -> str:
         "2. 确认 `fix_target` 指向正确的 skill 文件",
         "3. 合并后案例将随下次 `install.sh` 分发给所有用户",
         "",
-        "🤖 Generated with [DQG](https://github.com/your-org/rd-gate)",
+        "Generated with [Qualix](https://github.com/alexangelzhang/qualix)",
     ]
     return "\n".join(lines)
 

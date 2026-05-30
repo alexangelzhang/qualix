@@ -1,7 +1,7 @@
-"""DQG bitable 上报模块.
+"""Qualix bitable 上报模块.
 
-bitable token 由 DQG 维护者统一预置，用户无需配置。
-依赖 DQG feishu client（~/.dqg/feishu_token.json），不依赖 larkkit。
+bitable token 由 Qualix 维护者统一预置，用户无需配置。
+依赖 Qualix feishu client（~/.qualix/feishu_token.json），不依赖 larkkit。
 失败静默，不阻断主流程。
 """
 
@@ -10,7 +10,7 @@ from __future__ import annotations
 import time
 from typing import Any
 
-# ============ DQG 公共埋点表（维护者统一预置）============
+# ============ Qualix 公共埋点表（维护者统一预置）============
 _BASE_TOKEN = "FQtabFSMTauogmstiydc46PFnRf"
 _TABLE_ID = "tblN5rGXczqUBk3p"
 

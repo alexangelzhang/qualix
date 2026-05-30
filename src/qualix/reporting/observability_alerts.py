@@ -91,7 +91,7 @@ def write_alerts(output_dir: Path, label: str, alerts: list[dict[str, Any]]) -> 
         insert_observe_alerts(output_dir, label, alerts)
     except Exception:
         pass
-    lines = [f"# DQG 告警 — {label}", ""]
+    lines = [f"# Qualix 告警 — {label}", ""]
     if not alerts:
         lines.append("- 无异常告警")
     else:
@@ -110,27 +110,27 @@ def write_prometheus_snapshot(output_dir: Path, payload: dict[str, Any], alerts:
     root.mkdir(parents=True, exist_ok=True)
     path = root / f"{payload['label']}.prom"
     lines = [
-        "# HELP dqg_project_phase_approval_rate Phase approval rate by project.",
-        "# TYPE dqg_project_phase_approval_rate gauge",
-        "# HELP dqg_project_avg_duration_seconds Average finalize duration by project.",
-        "# TYPE dqg_project_avg_duration_seconds gauge",
-        "# HELP dqg_project_gap_closure_rate GAP closure rate by project.",
-        "# TYPE dqg_project_gap_closure_rate gauge",
-        "# HELP dqg_project_block_count BLOCK count by project.",
-        "# TYPE dqg_project_block_count gauge",
-        "# HELP dqg_phase_failure_rate Phase failure rate by project and phase.",
-        "# TYPE dqg_phase_failure_rate gauge",
-        "# HELP dqg_alert_count Alert count in this report.",
-        "# TYPE dqg_alert_count gauge",
+        "# HELP qualix_project_phase_approval_rate Phase approval rate by project.",
+        "# TYPE qualix_project_phase_approval_rate gauge",
+        "# HELP qualix_project_avg_duration_seconds Average finalize duration by project.",
+        "# TYPE qualix_project_avg_duration_seconds gauge",
+        "# HELP qualix_project_gap_closure_rate GAP closure rate by project.",
+        "# TYPE qualix_project_gap_closure_rate gauge",
+        "# HELP qualix_project_block_count BLOCK count by project.",
+        "# TYPE qualix_project_block_count gauge",
+        "# HELP qualix_phase_failure_rate Phase failure rate by project and phase.",
+        "# TYPE qualix_phase_failure_rate gauge",
+        "# HELP qualix_alert_count Alert count in this report.",
+        "# TYPE qualix_alert_count gauge",
     ]
     for item in payload["projects"]:
         project = item["project_id"]
-        lines.append(f'dqg_project_phase_approval_rate{{project="{project}"}} {item["phase_approval_rate"]}')
-        lines.append(f'dqg_project_avg_duration_seconds{{project="{project}"}} {item["avg_duration_seconds"]}')
-        lines.append(f'dqg_project_gap_closure_rate{{project="{project}"}} {item["gap_closure_rate"]}')
-        lines.append(f'dqg_project_block_count{{project="{project}"}} {item["block_count"]}')
+        lines.append(f'qualix_project_phase_approval_rate{{project="{project}"}} {item["phase_approval_rate"]}')
+        lines.append(f'qualix_project_avg_duration_seconds{{project="{project}"}} {item["avg_duration_seconds"]}')
+        lines.append(f'qualix_project_gap_closure_rate{{project="{project}"}} {item["gap_closure_rate"]}')
+        lines.append(f'qualix_project_block_count{{project="{project}"}} {item["block_count"]}')
         for phase, stat in item["phase_stats"].items():
-            lines.append(f'dqg_phase_failure_rate{{project="{project}",phase="{phase}"}} {stat["failure_rate"]}')
-    lines.append(f"dqg_alert_count {len(alerts)}")
+            lines.append(f'qualix_phase_failure_rate{{project="{project}",phase="{phase}"}} {stat["failure_rate"]}')
+    lines.append(f"qualix_alert_count {len(alerts)}")
     path.write_text("\n".join(lines).strip() + "\n", encoding="utf-8")
     return path

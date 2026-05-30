@@ -23,7 +23,7 @@ log = get_logger(__name__)
 _SENTINEL_INSTRUCTION: Final[str] = (
     "\n\n---\n"
     "**FALLBACK**: If JSON output fails for any reason, output ONLY one of these lines as the very last line:\n"
-    "`DQG_VERDICT:PASS:X.X` or `DQG_VERDICT:FAIL:X.X` (where X.X is the overall score 1.0–5.0)"
+    "`QUALIX_VERDICT:PASS:X.X` or `QUALIX_VERDICT:FAIL:X.X` (where X.X is the overall score 1.0–5.0)"
 )
 
 JUDGE_RESPONSE_SCHEMA: Final[dict[str, Any]] = {
@@ -52,16 +52,16 @@ class JudgeResult:
 
 
 def _extract_sentinel_verdict(raw_output: str) -> tuple[str, float] | None:
-    """检查 raw_output 最后 5 个非空行是否含 DQG_VERDICT sentinel.
+    """检查 raw_output 最后 5 个非空行是否含 QUALIX_VERDICT sentinel.
 
-    支持带 score 格式（DQG_VERDICT:PASS:4.2）和无 score 旧格式（DQG_VERDICT:PASS）。
+    支持带 score 格式（QUALIX_VERDICT:PASS:4.2）和无 score 旧格式（QUALIX_VERDICT:PASS）。
     返回 (verdict, score) 或 None。
     """
     if not raw_output:
         return None
     last_lines = [ln.strip() for ln in raw_output.splitlines() if ln.strip()][-5:]
     for line in last_lines:
-        for prefix, verdict in (("DQG_VERDICT:PASS", "PASS"), ("DQG_VERDICT:FAIL", "FAIL")):
+        for prefix, verdict in (("QUALIX_VERDICT:PASS", "PASS"), ("QUALIX_VERDICT:FAIL", "FAIL")):
             if line.startswith(prefix):
                 parts = line.split(":")
                 score = 0.0

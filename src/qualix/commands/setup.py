@@ -16,11 +16,11 @@ from qualix.json_utils import load_json_strict, save_json
 # version
 # ---------------------------------------------------------------------------
 
-DQG_VERSION = "0.2.0"
+QUALIX_VERSION = "0.2.0"
 
 
 def cmd_version(args, output_dir: Path) -> int:
-    """显示 DQG 版本."""
+    """显示 Qualix 版本."""
     from qualix.commands.cli_json import cli_envelope, cli_json_mode, print_cli_json
 
     if cli_json_mode(args):
@@ -30,11 +30,11 @@ def cmd_version(args, output_dir: Path) -> int:
                 project_id=args.project_id,
                 success=True,
                 exit_code=0,
-                extra={"dqg_version": DQG_VERSION},
+                extra={"qualix_version": QUALIX_VERSION},
             )
         )
     else:
-        print(f"DQG (Dev Quality Gate) v{DQG_VERSION}")
+        print(f"Qualix v{QUALIX_VERSION}")
     return 0
 
 
@@ -87,13 +87,13 @@ def cmd_init(args, output_dir: Path) -> int:
     save_json(
         version_path,
         {
-            "dqg_version": DQG_VERSION,
+            "qualix_version": QUALIX_VERSION,
             "initialized_at": datetime.now().isoformat(),
             "profile_id": profile_id,
         },
     )
     if not cli_json_mode(args):
-        print(f"  ✓ version.json 已创建 (v{DQG_VERSION})")
+        print(f"  ✓ version.json 已创建 (v{QUALIX_VERSION})")
 
     # 汇总
     phase_dirs = [PHASE_DEFS[pid]["dir_suffix"] for pid in PHASE_ORDER]
@@ -157,7 +157,7 @@ def cmd_doctor(args, output_dir: Path) -> int:
 
 
 def cmd_update(args, output_dir: Path) -> int:
-    """更新 DQG 到最新版本."""
+    """更新 Qualix 到最新版本."""
     from qualix.commands.cli_json import cli_envelope, cli_json_mode, print_cli_json
 
     base_dir = output_dir.parent
@@ -196,21 +196,21 @@ def cmd_update(args, output_dir: Path) -> int:
     version_bump: dict[str, Any] = {"version_path_exists": version_path.exists()}
     if version_path.exists():
         ver_data = load_json_strict(version_path)
-        old_ver = ver_data.get("dqg_version", "unknown")
-        version_bump["old_dqg_version"] = old_ver
-        if old_ver != DQG_VERSION:
+        old_ver = ver_data.get("qualix_version", "unknown")
+        version_bump["old_qualix_version"] = old_ver
+        if old_ver != QUALIX_VERSION:
             version_bump["updated"] = True
-            version_bump["new_dqg_version"] = DQG_VERSION
-            ver_data["dqg_version"] = DQG_VERSION
+            version_bump["new_qualix_version"] = QUALIX_VERSION
+            ver_data["qualix_version"] = QUALIX_VERSION
             ver_data["updated_at"] = datetime.now().isoformat()
             save_json(version_path, ver_data)
             if not cli_json_mode(args):
-                print(f"  版本变更: {old_ver} → {DQG_VERSION}")
+                print(f"  版本变更: {old_ver} → {QUALIX_VERSION}")
                 print("  ✓ version.json 已更新")
         else:
             version_bump["updated"] = False
             if not cli_json_mode(args):
-                print(f"  ✓ 已是最新版本 (v{DQG_VERSION})")
+                print(f"  ✓ 已是最新版本 (v{QUALIX_VERSION})")
     else:
         version_bump["hint"] = f"qualix-run {project_id} init"
         if not cli_json_mode(args):
@@ -223,7 +223,7 @@ def cmd_update(args, output_dir: Path) -> int:
                 project_id=project_id,
                 success=True,
                 exit_code=0,
-                extra={"git_pull_stdout": pull_out, "version": version_bump, "dqg_version": DQG_VERSION},
+                extra={"git_pull_stdout": pull_out, "version": version_bump, "qualix_version": QUALIX_VERSION},
             )
         )
     return 0

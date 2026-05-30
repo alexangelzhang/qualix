@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# DQG Quality Gate — 通用 shell 脚本
-# 零外部依赖（除了 Python 和已安装的 dqg），适用于任何 CI 平台。
+# Qualix Quality Gate — 通用 shell 脚本
+# 零外部依赖（除了 Python 和已安装的 qualix），适用于任何 CI 平台。
 #
 # 用法：
 #   ./ci/run-gate.sh <project-id> <phase> [fail-on] [--pr-comment]
@@ -9,18 +9,18 @@
 #   ./ci/run-gate.sh mrs Q06
 #   ./ci/run-gate.sh mrs Q06 soft
 #   ./ci/run-gate.sh mrs Q06 hard --pr-comment
-#   DQG_ALL_PHASES=1 ./ci/run-gate.sh mrs
+#   QUALIX_ALL_PHASES=1 ./ci/run-gate.sh mrs
 #
 # 环境变量：
-#   DQG_ALL_PHASES=1      检查所有 Phase
-#   DQG_FAIL_ON           失败级别（hard/soft/any），默认 hard
-#   DQG_OUTPUT_DIR        output 目录，默认 output
+#   QUALIX_ALL_PHASES=1      检查所有 Phase
+#   QUALIX_FAIL_ON           失败级别（hard/soft/any），默认 hard
+#   QUALIX_OUTPUT_DIR        output 目录，默认 output
 
 set -euo pipefail
 
 PROJECT_ID="${1:-}"
 PHASE="${2:-Q06}"
-FAIL_ON="${3:-${DQG_FAIL_ON:-hard}}"
+FAIL_ON="${3:-${QUALIX_FAIL_ON:-hard}}"
 PR_COMMENT="${4:-}"
 
 if [ -z "$PROJECT_ID" ]; then
@@ -35,7 +35,7 @@ if ! command -v qualix-run &>/dev/null; then
 fi
 
 # 构造参数
-if [ "${DQG_ALL_PHASES:-0}" = "1" ]; then
+if [ "${QUALIX_ALL_PHASES:-0}" = "1" ]; then
   PHASE_FLAG="--all-phases"
 else
   PHASE_FLAG="$PHASE"
@@ -46,8 +46,8 @@ if [ "$PR_COMMENT" = "--pr-comment" ]; then
   PR_FLAG="--pr-comment"
 fi
 
-echo "==== DQG Quality Gate ===="
-echo "Project: $PROJECT_ID  Phase: ${DQG_ALL_PHASES:-0 == 1 and 'ALL' or $PHASE}  Fail-on: $FAIL_ON"
+echo "==== Qualix Quality Gate ===="
+echo "Project: $PROJECT_ID  Phase: ${QUALIX_ALL_PHASES:-0 == 1 and 'ALL' or $PHASE}  Fail-on: $FAIL_ON"
 echo ""
 
 # 运行 gate

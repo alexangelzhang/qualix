@@ -1,4 +1,4 @@
-# DQG Judge 评审维度手册
+# Qualix Judge 评审维度手册
 
 > 每个 Phase 的 Judge 按 1-5 Likert 量表逐维度打分，3.5 分以下自动不通过。
 > 动态维度根据项目 SE 分布自动追加（最多 3 个），追加后权重自动归一化。
@@ -162,6 +162,6 @@
 
 ---
 
-*生成自 `src/dqg/quality/judge.py` 的 `_JUDGE_RUBRICS` + `_ANTI_RATIONALIZATION_SECTION` + `src/dqg/quality/dynamic_rubric.py`*
+*生成自 `src/qualix/quality/judge.py` 的 `_JUDGE_RUBRICS` + `_ANTI_RATIONALIZATION_SECTION` + `src/qualix/quality/dynamic_rubric.py`*
 
 *最后更新：2026-04-09*

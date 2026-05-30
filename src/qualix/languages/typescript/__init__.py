@@ -1,4 +1,4 @@
-"""DQG TypeScript Language Provider."""
+"""Qualix TypeScript Language Provider."""
 
 from qualix.languages.typescript.provider import TypeScriptProvider
 

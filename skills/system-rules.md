@@ -1,5 +1,5 @@
 ---
-name: dqg-system-rules
+name: qualix-system-rules
 description: "所有 Phase Agent 必须遵守的通用规则"
 ---
 

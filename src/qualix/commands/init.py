@@ -1,10 +1,10 @@
 """qualix-run init — workspace-level 初始化命令.
 
-在用户项目目录创建 .dqg/ 工作区：
-- .dqg/output/        运行时输出
-- .dqg/settings.yaml  版本 pin + profile + code_repos
+在用户项目目录创建 .qualix/ 工作区：
+- .qualix/output/        运行时输出
+- .qualix/settings.yaml  版本 pin + profile + code_repos
 - CLAUDE.md           guardrail 章节（marker 包裹, 幂等替换）
-- .gitignore          追加 .dqg/output/
+- .gitignore          追加 .qualix/output/
 """
 
 from __future__ import annotations
@@ -12,25 +12,25 @@ from __future__ import annotations
 import shutil
 from pathlib import Path
 
-GUARDRAIL_BEGIN = "<!-- DQG-GUARDRAIL-BEGIN -->"
-GUARDRAIL_END = "<!-- DQG-GUARDRAIL-END -->"
+GUARDRAIL_BEGIN = "<!-- QUALIX-GUARDRAIL-BEGIN -->"
+GUARDRAIL_END = "<!-- QUALIX-GUARDRAIL-END -->"
 
 _GUARDRAIL_BODY = """\
-## DQG 使用规约
+## Qualix 使用规约
 
-DQG 是通过 install.sh 安装的工具，**不要修改它的源码**。
+Qualix 是通过 install.sh 或 pip 安装的工具，**不要修改它的源码**。
 
-遇到 DQG 报错时：
+遇到 Qualix 报错时：
 1. 跑 `qualix-run doctor` 生成 issue bundle
-2. 把 bundle 提交给 DQG 维护者
+2. 把 bundle 提交到 Qualix issue 或交给维护者
 
 相关资源：
 - `qualix-run --help` — CLI 完整参数
 - `qualix-run path <skills|references|profiles>` — 查看内置资源"""
 
 
-def _get_dqg_version() -> str:
-    """获取已安装的 DQG 版本号."""
+def _get_qualix_version() -> str:
+    """获取已安装的 Qualix 版本号."""
     try:
         from importlib.metadata import version as _version
 
@@ -39,15 +39,15 @@ def _get_dqg_version() -> str:
         pass
     # fallback: 从 setup.py 常量读
     try:
-        from qualix.commands.setup import DQG_VERSION
+        from qualix.commands.setup import QUALIX_VERSION
 
-        return DQG_VERSION
+        return QUALIX_VERSION
     except Exception:
         return "unknown"
 
 
 def _install_claude_commands(project_root: Path) -> list[str]:
-    """把 DQG 内置 claude_commands 复制到 project_root/.claude/commands/，返回已安装文件名列表."""
+    """把 Qualix 内置 claude_commands 复制到 project_root/.claude/commands/，返回已安装文件名列表."""
     from qualix.core.resource_resolver import ResourceResolver
 
     try:
@@ -89,15 +89,15 @@ def _detect_profile(project_root: Path, code_repos: list[str]) -> str:
     return None
 
 
-def _settings_yaml(profile: str, dqg_version: str, code_repos: list[str] | None = None) -> str:
+def _settings_yaml(profile: str, qualix_version: str, code_repos: list[str] | None = None) -> str:
     if code_repos:
         repos_lines = "\n".join(f"  - {r}" for r in code_repos)
         repos_block = f"code_repos:\n{repos_lines}\n"
     else:
         repos_block = "code_repos: []   # 填写代码仓绝对路径\n"
     return (
-        "# DQG 项目配置 — 由 qualix-run init 生成\n"
-        f'dqg_version: "{dqg_version}"   # 自动写入，勿手改\n'
+        "# Qualix 项目配置 — 由 qualix-run init 生成\n"
+        f'qualix_version: "{qualix_version}"   # 自动写入，勿手改\n'
         f"profile: {profile}\n"
         f"{repos_block}"
     )
@@ -142,24 +142,24 @@ def _append_gitignore(gitignore: Path, entry: str) -> None:
 
 def run_init(project_root: Path, profile: str | None, force: bool) -> int:
     """执行 workspace 初始化，返回 exit code."""
-    dqg_root = project_root / ".dqg"
+    qualix_root = project_root / ".qualix"
 
-    if dqg_root.exists() and not force:
-        print(f"错误: {dqg_root} 已存在。使用 --force 覆盖（只重置配置文件，output/ 产物不受影响）")
+    if qualix_root.exists() and not force:
+        print(f"错误: {qualix_root} 已存在。使用 --force 覆盖（只重置配置文件，output/ 产物不受影响）")
         return 1
 
-    if dqg_root.exists() and force:
+    if qualix_root.exists() and force:
         # 只删配置文件，保留 output/（项目产物）
         for name in ("settings.yaml", "last-run.json"):
-            f = dqg_root / name
+            f = qualix_root / name
             if f.exists():
                 f.unlink()
 
-    # 创建 .dqg/output/（幂等）
-    (dqg_root / "output").mkdir(parents=True, exist_ok=True)
+    # 创建 .qualix/output/（幂等）
+    (qualix_root / "output").mkdir(parents=True, exist_ok=True)
 
     # 自动扫描子目录 git 仓库
-    dqg_version = _get_dqg_version()
+    qualix_version = _get_qualix_version()
     code_repos = _detect_code_repos(project_root)
 
     # 自动推断 profile
@@ -170,20 +170,20 @@ def run_init(project_root: Path, profile: str | None, force: bool) -> int:
     else:
         auto_detected = False
 
-    (dqg_root / "settings.yaml").write_text(_settings_yaml(profile, dqg_version, code_repos))
+    (qualix_root / "settings.yaml").write_text(_settings_yaml(profile, qualix_version, code_repos))
 
     # 注入 CLAUDE.md guardrail
     _inject_guardrail(project_root / "CLAUDE.md")
 
     # 追加 .gitignore
-    _append_gitignore(project_root / ".gitignore", ".dqg/output/")
+    _append_gitignore(project_root / ".gitignore", ".qualix/output/")
 
     # 安装 Claude Code slash commands
     installed_commands = _install_claude_commands(project_root)
 
-    print("✓ .dqg/ 工作区已创建")
+    print("✓ .qualix/ 工作区已创建")
     print("✓ CLAUDE.md guardrail 已注入")
-    print("✓ .gitignore 已追加 .dqg/output/")
+    print("✓ .gitignore 已追加 .qualix/output/")
     if auto_detected:
         print(f"✓ 自动识别技术栈: {profile}")
     else:
@@ -193,14 +193,14 @@ def run_init(project_root: Path, profile: str | None, force: bool) -> int:
         for r in code_repos:
             print(f"    - {r}")
     else:
-        print("  未检测到子目录 git 仓库，请手动编辑 .dqg/settings.yaml 填写 code_repos")
+        print("  未检测到子目录 git 仓库，请手动编辑 .qualix/settings.yaml 填写 code_repos")
     if installed_commands:
         print(f"✓ Claude Code slash commands 已安装: {', '.join(installed_commands)}")
     print("\n下一步：")
     if not code_repos:
-        print("  1. 编辑 .dqg/settings.yaml 填写 code_repos")
+        print("  1. 编辑 .qualix/settings.yaml 填写 code_repos")
         print("  2. 运行 qualix-run <project_id> startup 开始")
     else:
-        print("  1. 确认 .dqg/settings.yaml 中的 profile 和 code_repos 是否正确")
+        print("  1. 确认 .qualix/settings.yaml 中的 profile 和 code_repos 是否正确")
         print("  2. 运行 qualix-run <project_id> startup 开始")
     return 0

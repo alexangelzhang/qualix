@@ -1,0 +1,53 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ironlaw_rules",
+  "description": "铁律守卫规则元数据注册表 schema",
+  "type": "object",
+  "required": ["rules"],
+  "additionalProperties": false,
+  "properties": {
+    "rules": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "why", "matchers", "enabled", "opt_out"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "description": "规则唯一 ID，小写下划线，对应 Python check 函数名"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 4,
+            "description": "人类可读规则名称"
+          },
+          "why": {
+            "type": "string",
+            "minLength": 10,
+            "description": "规则存在的理由，展示在拦截提示末尾"
+          },
+          "matchers": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "enum": ["*", "Agent", "Bash", "Edit", "Grep", "Read", "Write", "mcp__*"]
+            },
+            "description": "该规则匹配的工具名列表，\"*\" 表示所有工具"
+          },
+          "enabled": {
+            "type": "boolean",
+            "description": "false 时全局禁用此规则"
+          },
+          "opt_out": {
+            "type": "boolean",
+            "description": "true 表示允许项目级 .dqg/ironlaw_overrides.yaml 禁用；false 为安全底线不可禁用"
+          }
+        }
+      }
+    }
+  }
+}

@@ -2,7 +2,7 @@
 
 > Date: 2026-04-15
 > Status: Approved
-> Source: dqg-new-knowledge-crossref-2026-04-15.md (Memento Reflect-Write + AgentSpec DSL)
+> Source: qualix-new-knowledge-crossref-2026-04-15.md (Memento Reflect-Write + AgentSpec DSL)
 
 ---
 
@@ -143,14 +143,14 @@ support count 基于 fingerprint 去重的历史 bug case 聚类：
 **Layer 2: Holdout Replay Eval**（新增）
 
 当前缺口：仓库没有"带着新 skill 重跑 case"的能力。regression runner（`regression.py`）
-只做 actual_dir vs expected snapshot 比对，不会执行 DQG pipeline。
+只做 actual_dir vs expected snapshot 比对，不会执行 Qualix pipeline。
 
 需要新增 Replay Executor：
 
 ```python
-# New: src/dqg/tracking/replay_executor.py
+# New: src/qualix/tracking/replay_executor.py
 class ReplayExecutor:
-    """Execute DQG pipeline on holdout cases with skill override.
+    """Execute Qualix pipeline on holdout cases with skill override.
 
     Hard constraints:
     - All output goes to a temporary directory (tempfile.mkdtemp), never to real output/
@@ -179,7 +179,7 @@ class ReplayExecutor:
             consolidates both paths and accepts an optional override.
 
         Isolation guarantees:
-            - output_dir = tempfile.mkdtemp(prefix="dqg_holdout_")
+            - output_dir = tempfile.mkdtemp(prefix="qualix_holdout_")
             - task_store writes disabled (no _judge_iter*.json, no _adaptive_summary.json)
             - safe-finalize whitelist: only read-only checks run
             - no bug case generation from holdout runs
@@ -211,7 +211,7 @@ regression/holdout/
 需要新增统一的 JudgeRunner：
 
 ```python
-# New: src/dqg/quality/judge_runner.py
+# New: src/qualix/quality/judge_runner.py
 class JudgeRunner:
     """Unified Judge execution with canonical output schema.
 
@@ -273,13 +273,13 @@ class JudgeRunner:
 
 **Backend 扩展点**（新增）：
 
-当前 `src/dqg/agents/llm_backends.py` 暴露的是通用 `chat(messages, **kwargs)`，
+当前 `src/qualix/agents/llm_backends.py` 暴露的是通用 `chat(messages, **kwargs)`，
 Anthropic/OpenAI/Gemini 实现都没有承接 response_format / JSON mode 参数。
 
 需要扩展 backend 接口：
 
 ```python
-# Modified: src/dqg/agents/llm_backends.py
+# Modified: src/qualix/agents/llm_backends.py
 
 @dataclass
 class StructuredChatResult:
@@ -343,15 +343,15 @@ Baseline 来源：
 **新增统一入口：`resolve_worker_prompt()`**
 
 ```python
-# New function in src/dqg/context/skill_loader.py
+# New function in src/qualix/context/skill_loader.py
 def resolve_worker_prompt(phase: str, skill_override: str | None = None) -> str:
     """Unified skill resolution for ALL execution paths.
 
     Consolidates (all callers must migrate to this function):
-    - src/dqg/commands/agents.py (cmd_agent_run): currently read_text() directly
-    - src/dqg/commands/adaptive.py (cmd_adaptive): currently read_text() directly
-    - src/dqg/agents/agent_orchestrator.py (dag_scheduler): currently load_skill_progressive()
-    - src/dqg/tracking/replay_executor.py (holdout): new caller
+    - src/qualix/commands/agents.py (cmd_agent_run): currently read_text() directly
+    - src/qualix/commands/adaptive.py (cmd_adaptive): currently read_text() directly
+    - src/qualix/agents/agent_orchestrator.py (dag_scheduler): currently load_skill_progressive()
+    - src/qualix/tracking/replay_executor.py (holdout): new caller
 
     Args:
         phase: Phase identifier (e.g., "A", "B", "C")
@@ -362,7 +362,7 @@ def resolve_worker_prompt(phase: str, skill_override: str | None = None) -> str:
     """
     # Step 1: resolve phase → skill_path from PHASE_DEFS (authoritative source)
     # PHASE_DEFS[phase]["skill"] is the canonical path, SKILL_FILE_MAP is fallback only
-    from dqg.core.phase_registry import PHASE_DEFS
+    from qualix.core.phase_registry import PHASE_DEFS
     skill_path = Path(PHASE_DEFS[phase]["skill"])
 
     # Step 2: override replaces SKILL.md path but still goes through progressive loader
@@ -385,19 +385,19 @@ def resolve_worker_prompt(phase: str, skill_override: str | None = None) -> str:
 
 | 文件 | 当前调用方式 | 迁移动作 |
 |------|-------------|---------|
-| `src/dqg/commands/agents.py` | `read_text()` 直接读 skill（含 cmd_adaptive） | 替换为 `resolve_worker_prompt(phase)` |
-| `src/dqg/agents/dag_scheduler.py` | `load_skill_progressive(path, phase)` | 替换为 `resolve_worker_prompt(phase)` |
-| `src/dqg/tracking/replay_executor.py` | 新代码 | 直接用 `resolve_worker_prompt(phase, override)` |
+| `src/qualix/commands/agents.py` | `read_text()` 直接读 skill（含 cmd_adaptive） | 替换为 `resolve_worker_prompt(phase)` |
+| `src/qualix/agents/dag_scheduler.py` | `load_skill_progressive(path, phase)` | 替换为 `resolve_worker_prompt(phase)` |
+| `src/qualix/tracking/replay_executor.py` | 新代码 | 直接用 `resolve_worker_prompt(phase, override)` |
 
-> 注意：`src/dqg/commands/adaptive.py` 不存在，cmd_adaptive 实际在 `commands/agents.py` 中。
-> `src/dqg/agents/agent_orchestrator.py` 不是 DAG 调用点，真实调用在 `dag_scheduler.py`。
+> 注意：`src/qualix/commands/adaptive.py` 不存在，cmd_adaptive 实际在 `commands/agents.py` 中。
+> `src/qualix/agents/agent_orchestrator.py` 不是 DAG 调用点，真实调用在 `dag_scheduler.py`。
 
 **Rollback 策略：Patch-Level Transactional Rollback**
 - 写入前对目标文件做 `git stash`-style 快照（保存 original content + file path）
 - verify 失败时精确还原每个被修改的文件（不影响并发修改的其他文件）
 - rollback 后记录 revert 原因到 evolution lineage，降级为人审
 
-#### New File: `src/dqg/tracking/skill_reflector.py`
+#### New File: `src/qualix/tracking/skill_reflector.py`
 
 ```python
 """Reflect→Write→Verify loop for automatic skill evolution."""
@@ -459,7 +459,7 @@ class SkillReflector:
         return EvolutionOutcome(action="AUTO_MERGED", changes=write_result.changes)
 ```
 
-#### Modified: `src/dqg/agents/adaptive_loop.py`
+#### Modified: `src/qualix/agents/adaptive_loop.py`
 
 在 `run_adaptive_loop()` 的 max_iterations 耗尽分支中新增：
 
@@ -471,7 +471,7 @@ if all_failed and iteration == max_iterations:
     summary["skill_evolution"] = evolution_outcome.to_dict()
 ```
 
-#### Modified: `src/dqg/tracking/skill_evolution.py`
+#### Modified: `src/qualix/tracking/skill_evolution.py`
 
 新增 `auto_apply_suggestions()` 方法：
 
@@ -492,7 +492,7 @@ def auto_apply_suggestions(self, suggestions: list[SkillSuggestion], skill_path:
 ### Problem
 
 Anti-Rationalization Table（8 条放水借口 + 反驳）嵌入 Judge prompt，靠 LLM 自觉遵守。
-AgentSpec 证明运行时约束可达 90%+ 阻止率。DQG 需要从"劝说型"升级为"强制型"。
+AgentSpec 证明运行时约束可达 90%+ 阻止率。Qualix 需要从"劝说型"升级为"强制型"。
 
 ### Design
 
@@ -563,7 +563,7 @@ REJUDGE_WARNING = """
 """
 ```
 
-#### New File: `src/dqg/quality/rationalization_guard.py`
+#### New File: `src/qualix/quality/rationalization_guard.py`
 
 ```python
 """Runtime anti-rationalization enforcement layer."""
@@ -608,7 +608,7 @@ class RationalizationGuard:
                           action="BLOCK_AND_REJUDGE")
 ```
 
-#### Modified: `src/dqg/agents/adaptive_loop.py`
+#### Modified: `src/qualix/agents/adaptive_loop.py`
 
 变更点 1 — `_run_single_judge()` 收口为 JudgeRunner 的 thin wrapper：
 
@@ -711,11 +711,11 @@ if primary_vote.health == "HEALTHY":
 > 通过 guard 后才进入 secondary validation + consensus 流程。
 > 不对每个 secondary vote 单独 guard（secondary 是独立评审，不受 primary 放水影响）。
 
-#### Modified: `src/dqg/quality/judge.py`
+#### Modified: `src/qualix/quality/judge.py`
 
 新增重审 prompt 模板 `REJUDGE_WARNING`（见上文）。
 
-#### Modified: `src/dqg/constants.py`
+#### Modified: `src/qualix/constants.py`
 
 新增：
 ```python
@@ -731,20 +731,20 @@ RATIONALIZATION_MAX_REJUDGE = 1  # 最多因放水重审 1 次（防止无限循
 
 | File | Action | Feature | Review 修正 |
 |------|--------|---------|------------|
-| `src/dqg/tracking/skill_reflector.py` | NEW | Skill Evolution | persist→cluster→write + patch rollback + fingerprint + judge health gate |
-| `src/dqg/tracking/replay_executor.py` | NEW | Skill Evolution | holdout replay with isolation + safe-finalize whitelist |
-| `src/dqg/quality/rationalization_guard.py` | NEW | Anti-Rationalization | — |
-| `src/dqg/quality/judge_runner.py` | NEW | Both | 统一 Judge 执行 + canonical schema + structured output |
-| `src/dqg/agents/adaptive_loop.py` | MODIFY | Both | _run_single_judge 收口为 JudgeRunner wrapper + guard |
-| `src/dqg/agents/llm_backends.py` | MODIFY | Both | 新增 chat_structured() → StructuredChatResult |
-| `src/dqg/tracking/skill_evolution.py` | MODIFY | Skill Evolution | — |
-| `src/dqg/quality/judge.py` | MODIFY | Anti-Rationalization | — |
-| `src/dqg/constants.py` | MODIFY | Both | CONTEXT/SCHEMA 不纳入 auto-merge |
-| `src/dqg/context/skill_loader.py` | MODIFY | Skill Evolution | 新增 resolve_worker_prompt() 统一入口 |
-| `src/dqg/core/phase_registry.py` | MODIFY | Skill Evolution | required_report_sections（含别名） |
-| `src/dqg/runtime/phase_contract.py` | MODIFY | Skill Evolution | 纳入 structure_contract 字段 |
-| `src/dqg/commands/agents.py` | MODIFY | Skill Evolution | 迁移到 resolve_worker_prompt()（含 cmd_adaptive） |
-| `src/dqg/agents/dag_scheduler.py` | MODIFY | Skill Evolution | 迁移到 resolve_worker_prompt() |
+| `src/qualix/tracking/skill_reflector.py` | NEW | Skill Evolution | persist→cluster→write + patch rollback + fingerprint + judge health gate |
+| `src/qualix/tracking/replay_executor.py` | NEW | Skill Evolution | holdout replay with isolation + safe-finalize whitelist |
+| `src/qualix/quality/rationalization_guard.py` | NEW | Anti-Rationalization | — |
+| `src/qualix/quality/judge_runner.py` | NEW | Both | 统一 Judge 执行 + canonical schema + structured output |
+| `src/qualix/agents/adaptive_loop.py` | MODIFY | Both | _run_single_judge 收口为 JudgeRunner wrapper + guard |
+| `src/qualix/agents/llm_backends.py` | MODIFY | Both | 新增 chat_structured() → StructuredChatResult |
+| `src/qualix/tracking/skill_evolution.py` | MODIFY | Skill Evolution | — |
+| `src/qualix/quality/judge.py` | MODIFY | Anti-Rationalization | — |
+| `src/qualix/constants.py` | MODIFY | Both | CONTEXT/SCHEMA 不纳入 auto-merge |
+| `src/qualix/context/skill_loader.py` | MODIFY | Skill Evolution | 新增 resolve_worker_prompt() 统一入口 |
+| `src/qualix/core/phase_registry.py` | MODIFY | Skill Evolution | required_report_sections（含别名） |
+| `src/qualix/runtime/phase_contract.py` | MODIFY | Skill Evolution | 纳入 structure_contract 字段 |
+| `src/qualix/commands/agents.py` | MODIFY | Skill Evolution | 迁移到 resolve_worker_prompt()（含 cmd_adaptive） |
+| `src/qualix/agents/dag_scheduler.py` | MODIFY | Skill Evolution | 迁移到 resolve_worker_prompt() |
 | `regression/holdout/` | NEW DIR | Skill Evolution | 可回放 holdout case + suite_baseline.json |
 
 ## Review 决策记录

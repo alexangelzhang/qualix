@@ -6,13 +6,13 @@
 
 ## 背景
 
-DQG Q05/Q06 产出的质量问题目前只有文本描述，没有结构化的源码坐标。`EutAuditItem.evidence` 字段虽然有 `[文件名:行号]` 的文本约定，但格式不稳定，agent 消费时需要脆弱的正则解析。
+Qualix Q05/Q06 产出的质量问题目前只有文本描述，没有结构化的源码坐标。`EutAuditItem.evidence` 字段虽然有 `[文件名:行号]` 的文本约定，但格式不稳定，agent 消费时需要脆弱的正则解析。
 
 目标：为每条审计判定和测试用例附加结构化的双坐标（测试代码位置 + 被测生产代码位置），同时服务于人工 review（可点击跳转）和自动修复 agent（直接读取坐标）。
 
 ## 数据模型
 
-### 新增 `SourceLocation`（`src/dqg/schemas/location.py`）
+### 新增 `SourceLocation`（`src/qualix/schemas/location.py`）
 
 ```python
 class SourceLocation(BaseModel):
@@ -24,14 +24,14 @@ class SourceLocation(BaseModel):
     repo: str = ""      # 多仓库场景必填
 ```
 
-### Q05 `TCItem` 新增字段（`src/dqg/schemas/phase_q05.py`）
+### Q05 `TCItem` 新增字段（`src/qualix/schemas/phase_q05.py`）
 
 ```python
 test_location: SourceLocation | None = None       # 测试代码位置
 production_location: SourceLocation | None = None  # 被测生产代码位置
 ```
 
-### Q06 `EutAuditItem` 新增字段（`src/dqg/schemas/phase_q06.py`）
+### Q06 `EutAuditItem` 新增字段（`src/qualix/schemas/phase_q06.py`）
 
 ```python
 test_location: SourceLocation | None = None
@@ -123,13 +123,13 @@ production_location: SourceLocation | None = None
 
 | 文件 | 类型 | 说明 |
 |------|------|------|
-| `src/dqg/schemas/location.py` | 新建 | `SourceLocation` 模型 |
-| `src/dqg/schemas/phase_q05.py` | 修改 | `TCItem` 加两个可选字段 |
-| `src/dqg/schemas/phase_q06.py` | 修改 | `EutAuditItem`、`FindingItem` 加字段 |
-| `src/dqg/schemas/__init__.py` | 修改 | 导出 `SourceLocation` |
+| `src/qualix/schemas/location.py` | 新建 | `SourceLocation` 模型 |
+| `src/qualix/schemas/phase_q05.py` | 修改 | `TCItem` 加两个可选字段 |
+| `src/qualix/schemas/phase_q06.py` | 修改 | `EutAuditItem`、`FindingItem` 加字段 |
+| `src/qualix/schemas/__init__.py` | 修改 | 导出 `SourceLocation` |
 | `skills/unit-test-generation/SKILL.md` | 修改 | 更新 JSON 格式示例 + 新增 IRON LAW |
 | `skills/unit-test-audit/SKILL.md` | 修改 | 更新 JSON 格式示例 + 新增 IRON LAW |
-| `src/dqg/quality/checks/auto_checks.py` | 修改 | 追加 location 校验规则 |
+| `src/qualix/quality/checks/auto_checks.py` | 修改 | 追加 location 校验规则 |
 
 ## Out of Scope
 

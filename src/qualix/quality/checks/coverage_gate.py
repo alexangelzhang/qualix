@@ -512,7 +512,7 @@ def check_phase_c_coverage(
     优先尝试增量模式（仅检查 blast radius 内文件），fallback 到全量模式。
 
     Args:
-        output_dir: DQG 输出目录
+        output_dir: Qualix 输出目录
         project_id: 项目 ID
         code_repo: 代码仓库路径
         coverage_report: 覆盖率报告路径（优先使用）

@@ -155,7 +155,7 @@ class GateVerdict:
 
 
 def load_rule_overrides(base_dir: Path) -> dict[str, set[str]]:
-    """读取 <base_dir>/.dqg/rule_overrides.yaml 的项目级规则豁免配置.
+    """读取 <base_dir>/.qualix/rule_overrides.yaml 的项目级规则豁免配置.
 
     格式::
 
@@ -169,7 +169,7 @@ def load_rule_overrides(base_dir: Path) -> dict[str, set[str]]:
     """
     import yaml
 
-    override_path = base_dir / ".dqg" / "rule_overrides.yaml"
+    override_path = base_dir / ".qualix" / "rule_overrides.yaml"
     if not override_path.exists():
         return {}
     try:

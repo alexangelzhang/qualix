@@ -1,0 +1,54 @@
+# ironlaw_guard.py 规则元数据注册表
+# 格式：id 对应 RULES 列表里的 name 字段
+# opt_out: true 表示允许项目级禁用（在 .dqg/ironlaw_overrides.yaml 的 disable 列表里加 id）
+# opt_out: false 表示安全底线，不可禁用
+
+rules:
+  - id: truncation_params
+    name: "工具参数不含 _message/_status"
+    why: "这些是工具输出截断时的警告字段，不是工具参数。混入会导致 API 调用失败且难以调试。"
+    matchers: ["*"]
+    enabled: true
+    opt_out: false
+
+  - id: grep_over_code_index
+    name: "搜索代码符号优先用 code_index"
+    why: "code_index 有 AST 感知和缓存；grep 扫描全文会遗漏类型信息，并在大仓库产生大量 IO。"
+    matchers: ["Grep", "Bash"]
+    enabled: true
+    opt_out: true
+
+  - id: agent_qualix_manual
+    name: "手动模式禁止派 SubAgent 执行 Phase"
+    why: "SubAgent 有独立 context，产出质量不可控且主会话无法实时验证。"
+    matchers: ["Agent"]
+    enabled: true
+    opt_out: false
+
+  - id: no_skip_hooks
+    name: "禁止 git commit --no-verify"
+    why: "pre-commit hook 包含 ruff/arch/schema 检查，跳过会让 lint 错误遗留进代码库。"
+    matchers: ["Bash"]
+    enabled: true
+    opt_out: false
+
+  - id: se_id_format
+    name: "SE ID 必须三位数格式 (SE-001)"
+    why: "RSM 覆盖率计算用字符串精确匹配，SE-1 和 SE-001 会被视为不同 ID 导致覆盖率归零。"
+    matchers: ["Write", "Edit"]
+    enabled: true
+    opt_out: false
+
+  - id: q01_plain_text
+    name: "Q01 应优先用 blocks.raw.json"
+    why: "plain_text.txt 会丢失表格结构，blocks.raw.json 保留 markdown 表格可精确提取需求。"
+    matchers: ["Read"]
+    enabled: true
+    opt_out: true
+
+  - id: bootstrap_context_guard
+    name: "写 Phase 产物前确认已读 _bootstrap_context.md"
+    why: "未读取 bootstrap context 产物会缺少 PROFILE_CONTEXT 章节、decision_owner 等必填内容。"
+    matchers: ["Write"]
+    enabled: true
+    opt_out: true

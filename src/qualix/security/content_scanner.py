@@ -3,7 +3,7 @@
 在 append_persistent_memory 和 write_to_wiki 入口拦截，
 检测 prompt injection、凭证泄露、不可见 unicode 字符。
 
-参考 Hermes Agent 的 _scan_memory_content 模式，适配 DQG 场景。
+参考 Hermes Agent 的 _scan_memory_content 模式，适配 Qualix 场景。
 """
 
 from __future__ import annotations
@@ -29,7 +29,7 @@ _THREAT_PATTERNS: list[tuple[str, str]] = [
     # SSH / 后门
     (r"authorized_keys", "ssh_backdoor"),
     (r"\$HOME/\.ssh|~/\.ssh", "ssh_access"),
-    # DQG 特有：篡改 Phase 状态或 skill
+    # Qualix 特有：篡改 Phase 状态或 skill
     (r"state\.json", "state_tampering"),
     (r"PhaseStatus\.(APPROVED|SKIPPED)", "status_bypass"),
 ]

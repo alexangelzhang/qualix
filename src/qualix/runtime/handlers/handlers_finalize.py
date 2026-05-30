@@ -346,7 +346,7 @@ def handle_score_calibration(ctx: ExecutionContext, result: PhaseResult) -> None
         result.add_artifact("score_calibration", str(ctx.internal_dir / "_score_calibration.json"))
         if not calibration["consistent"]:
             result.add_warning(
-                f"Score drift: DQG={calibration['dqg_score']:.1f} vs DeepEval={calibration['deepeval_score']:.1f} "
+                f"Score drift: Qualix={calibration['qualix_score']:.1f} vs DeepEval={calibration['deepeval_score']:.1f} "
                 f"(drift={calibration['drift']:.1f})"
             )
 
@@ -423,7 +423,7 @@ def handle_session_failure_notes(ctx: ExecutionContext, result: PhaseResult) -> 
     """将本次执行产生的 warnings 追加到 failure-library 自动会话记录.
 
     每次 finalize 后，若存在 warnings，追加到
-    ~/.dqg/regression/failure-library/<phase_id>/AUTO-session.md。
+    ~/.qualix/regression/failure-library/<phase_id>/AUTO-session.md。
     供下次执行前通过 bitlesson 检索历史踩坑。
     """
     from datetime import UTC, datetime

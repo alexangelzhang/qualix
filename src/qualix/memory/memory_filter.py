@@ -1,4 +1,4 @@
-"""Memory 分级：解析 .dqg/MEMORY.md 条目，按类型和项目绑定过滤.
+"""Memory 分级：解析 .qualix/MEMORY.md 条目，按类型和项目绑定过滤.
 
 Memory 条目格式约定：
 - 普通条目：`- 规则描述`

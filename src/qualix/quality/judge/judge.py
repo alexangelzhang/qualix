@@ -192,7 +192,7 @@ def build_judge_prompt(
             "```",
             "",
             "**FALLBACK**: 如果无法写入 JSON 文件，在输出末尾另起一行写入：",
-            "`DQG_VERDICT:PASS:X.X` 或 `DQG_VERDICT:FAIL:X.X`（X.X 为 overall_score 1.0–5.0）",
+            "`QUALIX_VERDICT:PASS:X.X` 或 `QUALIX_VERDICT:FAIL:X.X`（X.X 为 overall_score 1.0–5.0）",
             "",
             "## 开始评审",
             "",

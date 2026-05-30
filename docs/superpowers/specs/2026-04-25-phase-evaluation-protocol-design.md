@@ -7,7 +7,7 @@
 
 ### 问题
 
-DQG 有 7 个 Phase × 3 个角色 = 21 个 agent 实例，但只有 3 套人格。
+Qualix 有 7 个 Phase × 3 个角色 = 21 个 agent 实例，但只有 3 套人格。
 Worker 通过 skill 文件获得 Phase 专属指令，但 Judge 和 Critique 共享通用 prompt。
 
 Q01 Judge（审需求）和 Q07 Judge（审代码）用同一个"10 年质量负责人"视角。
@@ -48,7 +48,7 @@ class PhaseProtocol:
     critique: AgentProtocol
 ```
 
-存储位置：`src/dqg/quality/evaluation_protocols.py`
+存储位置：`src/qualix/quality/evaluation_protocols.py`
 
 ### 两层架构
 

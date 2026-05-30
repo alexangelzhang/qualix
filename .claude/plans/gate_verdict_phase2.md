@@ -60,7 +60,7 @@ class GateVerdict:
 
 ## 实施步骤
 
-### Step 1: 新建 `src/dqg/runtime/gate_verdict.py`（~120 行）
+### Step 1: 新建 `src/qualix/runtime/gate_verdict.py`（~120 行）
 
 - `CheckItem` + `GateVerdict` 数据类
 - `build_verdict(result: PhaseResult, ...) -> GateVerdict` — 从各检查源收集
@@ -107,9 +107,9 @@ class GateVerdict:
 
 | 文件 | 操作 | 说明 |
 |------|------|------|
-| `src/dqg/runtime/gate_verdict.py` | 新建 | GateVerdict 核心 |
-| `src/dqg/runtime/phase_runtime.py` | 修改 | finalize 末尾汇总 verdict |
-| `src/dqg/commands/phase.py` | 修改 | approve 读 verdict |
+| `src/qualix/runtime/gate_verdict.py` | 新建 | GateVerdict 核心 |
+| `src/qualix/runtime/phase_runtime.py` | 修改 | finalize 末尾汇总 verdict |
+| `src/qualix/commands/phase.py` | 修改 | approve 读 verdict |
 | `tests/test_gate_verdict.py` | 新建 | 单元测试 |
 | `AGENTS.md` | 修改 | 文档同步 |
 | `ROADMAP.md` | 修改 | 文档同步 |

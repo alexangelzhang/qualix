@@ -1,4 +1,4 @@
-"""Pluggable DQG profiles."""
+"""Pluggable Qualix profiles."""
 
 from __future__ import annotations
 
@@ -29,7 +29,7 @@ _resolver = ResourceResolver()
 
 
 @dataclass(frozen=True)
-class DqgProfile:
+class QualixProfile:
     profile_id: str
     name: str
     description: str
@@ -52,10 +52,18 @@ def _repo_root() -> Path:
         return _resolver.global_root
 
 
-def _load_profile(path: Path) -> DqgProfile:
+def _repo_root_for_profile(path: Path) -> Path:
+    """Resolve relative profile paths from the project root that owns profile.json."""
+    for candidate in [path.parent, *path.parents]:
+        if (candidate / "profiles").exists() and (candidate / "references").exists():
+            return candidate
+    return _repo_root()
+
+
+def _load_profile(path: Path) -> QualixProfile:
     data = load_json_strict(path)
-    root = _repo_root()
-    return DqgProfile(
+    root = _repo_root_for_profile(path)
+    return QualixProfile(
         profile_id=data["profile_id"],
         name=data["name"],
         description=data["description"],
@@ -68,14 +76,14 @@ def _load_profile(path: Path) -> DqgProfile:
 
 
 @lru_cache(maxsize=1)
-def list_profiles() -> list[DqgProfile]:
+def list_profiles() -> list[QualixProfile]:
     profiles = []
     for path in sorted(_profiles_root().glob("*/profile.json")):
         profiles.append(_load_profile(path))
     return profiles
 
 
-def get_profile(profile_id: str | None = None) -> DqgProfile:
+def get_profile(profile_id: str | None = None) -> QualixProfile:
     target = profile_id or "java-ddd-tmf"
     for profile in list_profiles():
         if profile.profile_id == target:
@@ -85,7 +93,7 @@ def get_profile(profile_id: str | None = None) -> DqgProfile:
 
 def validate_profile_file(path: Path, repo_root: Path | None = None) -> list[str]:
     """Validate one profile.json and return human-readable schema issues."""
-    root = repo_root or _repo_root()
+    root = repo_root or _repo_root_for_profile(path)
     issues: list[str] = []
 
     try:
@@ -129,12 +137,11 @@ def validate_profile_file(path: Path, repo_root: Path | None = None) -> list[str
 
 def validate_all_profiles(profiles_root: Path | None = None, repo_root: Path | None = None) -> dict[str, list[str]]:
     """Validate all profile.json files and return only profiles with issues."""
-    root = repo_root or _repo_root()
     profile_root = profiles_root or _profiles_root()
     issues_by_profile: dict[str, list[str]] = {}
 
     for path in sorted(profile_root.glob("*/profile.json")):
-        issues = validate_profile_file(path, repo_root=root)
+        issues = validate_profile_file(path, repo_root=repo_root)
         if issues:
             issues_by_profile[path.parent.name] = issues
 
@@ -158,7 +165,7 @@ def _load_profile_context_cached(
     return dump_json_str(payload)
 
 
-def load_profile_context(profile: DqgProfile) -> str:
+def load_profile_context(profile: QualixProfile) -> str:
     payload = profile_to_payload(profile)
     payload_json = dump_json_str(payload)
     baseline_mtime_ns = profile.baseline_path.stat().st_mtime_ns
@@ -172,7 +179,7 @@ def load_profile_context(profile: DqgProfile) -> str:
     )
 
 
-def profile_to_payload(profile: DqgProfile) -> dict[str, Any]:
+def profile_to_payload(profile: QualixProfile) -> dict[str, Any]:
     return {
         "profile_id": profile.profile_id,
         "version": profile.version,
@@ -185,7 +192,7 @@ def profile_to_payload(profile: DqgProfile) -> dict[str, Any]:
     }
 
 
-def render_profile_context_markdown(profile: DqgProfile) -> str:
+def render_profile_context_markdown(profile: QualixProfile) -> str:
     lines = [
         "## PROFILE_CONTEXT",
         "",
@@ -256,7 +263,7 @@ def compute_rule_hash(profile_id: str) -> dict[str, str]:
 _L0_CACHE: dict[str, str] = {}
 
 
-def compress_to_l0(profile: DqgProfile) -> str:
+def compress_to_l0(profile: QualixProfile) -> str:
     """将 profile 的 baseline + risk catalog 压缩为 L0 元规则.
 
     L0 层只保留最精炼的规则摘要，而非全文注入。
@@ -344,7 +351,7 @@ def _extract_l0_rules(text: str) -> list[str]:
     return lines
 
 
-def load_profile_context_l0(profile: DqgProfile) -> str:
+def load_profile_context_l0(profile: QualixProfile) -> str:
     """加载 L0 压缩版 profile context（用于 token 紧张场景）."""
     l0 = compress_to_l0(profile)
     payload = profile_to_payload(profile)
@@ -367,7 +374,7 @@ _PHASE_RELEVANT_SECTIONS: dict[str, set[str]] = {
 }
 
 
-def compress_to_l1(profile: DqgProfile, phase_id: str | None = None) -> str:
+def compress_to_l1(profile: QualixProfile, phase_id: str | None = None) -> str:
     """L1 压缩：在 L0 基础上按 Phase 过滤相关 sections + 去掉空标题."""
     l0 = compress_to_l0(profile)
     relevant_kw = _PHASE_RELEVANT_SECTIONS.get(phase_id or "")
@@ -392,7 +399,7 @@ def compress_to_l1(profile: DqgProfile, phase_id: str | None = None) -> str:
     return "\n".join(filtered)
 
 
-def load_profile_context_l1(profile: DqgProfile, phase_id: str | None = None) -> str:
+def load_profile_context_l1(profile: QualixProfile, phase_id: str | None = None) -> str:
     """加载 L1 压缩版 profile context（Phase 感知过滤）."""
     l1 = compress_to_l1(profile, phase_id)
     parts = [f"# Profile: {profile.profile_id} ({profile.name})", l1]

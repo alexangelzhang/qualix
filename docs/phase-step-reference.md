@@ -1,4 +1,4 @@
-# DQG Phase & Step 速查表
+# Qualix Phase & Step 速查表
 
 > 全流程 6 个 Phase，约 55 个 Step。每个 Phase 末尾有统一的"自检 → Judge/Critique → 修正"三步闭环。
 
@@ -88,7 +88,7 @@ Q01 需求结构化（起点）
 | 5 | Judge/Critique | 切换到批评者视角审视输出 |
 | 6 | 修正 | 根据 Step 5 发现的问题修正 |
 
-**产出**: `eut_matrix.md`, `temp/*DqgTest.java`
+**产出**: `eut_matrix.md`, `temp/*QualixTest.java`
 **放行**: EUT 覆盖所有 REQ/BR/SE, 强断言, 异常路径有测试
 
 ---

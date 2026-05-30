@@ -1,7 +1,7 @@
 """last_run.py — 记录最近一次 qualix-run 调用的 marker.
 
-写入 .dqg/last-run.json（原子写），供 qualix-run doctor 读取。
-若 .dqg/ 目录不存在则静默跳过，不污染非 DQG 工作区。
+写入 .qualix/last-run.json（原子写），供 qualix-run doctor 读取。
+若 .qualix/ 目录不存在则静默跳过，不污染非 Qualix 工作区。
 """
 
 from __future__ import annotations
@@ -13,7 +13,7 @@ from typing import Any
 
 from qualix.json_utils import dump_json_str, load_json_strict
 
-_LAST_RUN_RELATIVE = ".dqg/last-run.json"
+_LAST_RUN_RELATIVE = ".qualix/last-run.json"
 _STDERR_TAIL_MAX = 4096
 
 
@@ -23,8 +23,8 @@ def write_last_run(
     exit_code: int,
     stderr_tail: str,
 ) -> None:
-    """Atomically write marker to .dqg/last-run.json, or skip if .dqg/ missing."""
-    target_dir = project_root / ".dqg"
+    """Atomically write marker to .qualix/last-run.json, or skip if .qualix/ missing."""
+    target_dir = project_root / ".qualix"
     if not target_dir.exists():
         return
     path = project_root / _LAST_RUN_RELATIVE
@@ -41,7 +41,7 @@ def write_last_run(
 
 
 def read_last_run(project_root: Path) -> dict[str, Any] | None:
-    """Read .dqg/last-run.json; return None if missing."""
+    """Read .qualix/last-run.json; return None if missing."""
     path = project_root / _LAST_RUN_RELATIVE
     if not path.exists():
         return None

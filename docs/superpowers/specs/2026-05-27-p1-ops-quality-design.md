@@ -28,13 +28,13 @@ Warning 不阻断 approve，不能接 CI 门禁。加 `--strict-profile-context`
 
 ### 设计
 
-**ExecutionContext** (`src/dqg/runtime/execution_context.py`):
+**ExecutionContext** (`src/qualix/runtime/execution_context.py`):
 
 ```python
 strict_profile_context: bool = False   # 新增字段
 ```
 
-**cmd_finalize** (`src/dqg/commands/phase.py`)，在 finalize 子命令的 argparse 里追加：
+**cmd_finalize** (`src/qualix/commands/phase.py`)，在 finalize 子命令的 argparse 里追加：
 
 ```python
 parser_finalize.add_argument(
@@ -79,7 +79,7 @@ else:
 
 ### 设计
 
-**新文件** `src/dqg/commands/task_cmd.py`：
+**新文件** `src/qualix/commands/task_cmd.py`：
 
 ```python
 def cmd_task_list(args, output_dir: Path) -> int:
@@ -151,7 +151,7 @@ sp_task_resume.add_argument("--json", action="store_true")
 
 #### A. PhaseRunRecord 加 force_approved 字段
 
-`src/dqg/reporting/telemetry.py::PhaseRunRecord` 新增：
+`src/qualix/reporting/telemetry.py::PhaseRunRecord` 新增：
 
 ```python
 force_approved: bool = False   # approve --force 时为 True
@@ -208,7 +208,7 @@ force_approve_rate = round(force_count / len(approve_records), 4) if approve_rec
 `observability.py::generate_report` 返回的 payload 中追加：
 
 ```python
-from dqg.reporting.guard_precision_report import build_guard_precision_summary
+from qualix.reporting.guard_precision_report import build_guard_precision_summary
 guard_precision = build_guard_precision_summary(output_dir)
 payload["guard_precision"] = guard_precision
 ```

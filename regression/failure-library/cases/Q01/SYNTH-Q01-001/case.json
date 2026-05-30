@@ -1,0 +1,23 @@
+{
+  "case_id": "SYNTH-Q01-001",
+  "phase": "Q01",
+  "error_type": "FN",
+  "severity": "medium",
+  "title": "Synthetic example: missing boundary rule when PRD says values must be unique per account",
+  "root_cause": "SKILL_RULE",
+  "fix_target": "skills/requirement-structuring/SKILL.md",
+  "tags": ["synthetic", "boundary", "uniqueness"],
+  "created_at": "2026-05-31",
+  "status": "open",
+  "expected": {
+    "item_type": "BR",
+    "item_id": "BR-001",
+    "content": "Each account can create at most one active rule with the same rule_code. Duplicate active rule_code values must be rejected."
+  },
+  "actual": {
+    "item_type": null,
+    "content": "The requirement was summarized as generic rule creation and did not extract the uniqueness constraint."
+  },
+  "lesson": "When a PRD says a value is unique within a business scope, extract it as an explicit validation rule with scope and rejection behavior.",
+  "case_category": "STRUCTURED_SCHEMA"
+}

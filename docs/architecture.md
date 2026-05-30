@@ -1,10 +1,10 @@
 # Architecture
 
-> 本文件从 AGENTS.md 拆分，仅在开发 DQG 框架本身时需要参考。
+> 本文件从 AGENTS.md 拆分，仅在开发 Qualix 框架本身时需要参考。
 
 **项目类型**：CLI 框架 + AI Agent Pipeline
 **主要语言**：Python 3.11+
-**入口点**：`src/dqg/core/runner.py`（CLI）、`dqg_starter.md`（AI IDE）
+**入口点**：`src/qualix/core/runner.py`（CLI）、`qualix_starter.md`（AI IDE）
 
 ## 包结构
 | 子包 | 职责 | 关键模块 |

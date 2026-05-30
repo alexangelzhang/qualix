@@ -16,10 +16,10 @@
 
 | 操作 | 路径 | 职责 |
 |------|------|------|
-| CREATE | `src/dqg/quality/checks/evidence_contract.py` | 纯函数：`verify_se_sources` + `check_eut_code_target_traceability` |
-| MODIFY | `src/dqg/runtime/handlers/handlers_finalize.py` | 新增 `handle_se_source_evidence` handler + 注册 |
-| MODIFY | `src/dqg/quality/checks/finalize_checks.py` | Q05a 分支调用 `check_eut_code_target_traceability` |
-| MODIFY | `src/dqg/quality/checks/q06_structure_checks.py` | 新增 `_check_covered_evidence_fields` + 在 `run_q06_structure_checks` 调用 |
+| CREATE | `src/qualix/quality/checks/evidence_contract.py` | 纯函数：`verify_se_sources` + `check_eut_code_target_traceability` |
+| MODIFY | `src/qualix/runtime/handlers/handlers_finalize.py` | 新增 `handle_se_source_evidence` handler + 注册 |
+| MODIFY | `src/qualix/quality/checks/finalize_checks.py` | Q05a 分支调用 `check_eut_code_target_traceability` |
+| MODIFY | `src/qualix/quality/checks/q06_structure_checks.py` | 新增 `_check_covered_evidence_fields` + 在 `run_q06_structure_checks` 调用 |
 | CREATE | `tests/test_evidence_contract.py` | 10 条单测 |
 | MODIFY | `ROADMAP.md` | 标记 Evidence Contract P0 已完成，方案 B 加入未来规划 |
 
@@ -30,7 +30,7 @@
 ### 纯函数 `verify_se_sources` + 单测（TDD）
 
 **Files:**
-- Create: `src/dqg/quality/checks/evidence_contract.py`
+- Create: `src/qualix/quality/checks/evidence_contract.py`
 - Create: `tests/test_evidence_contract.py`
 
 - [ ] **Step 1: 写失败测试**
@@ -42,7 +42,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 import pytest
-from dqg.quality.checks.evidence_contract import verify_se_sources
+from qualix.quality.checks.evidence_contract import verify_se_sources
 
 
 def _write_ingest_file(tmp_path: Path, filename: str, lines: list[str]) -> None:
@@ -90,14 +90,14 @@ def test_verify_se_sources_line_oob(tmp_path):
 - [ ] **Step 2: 运行测试确认失败**
 
 ```bash
-cd /path/to/rd-gate
+cd /path/to/qualix
 python -m pytest tests/test_evidence_contract.py -v 2>&1 | head -30
 ```
 Expected: `ImportError: cannot import name 'verify_se_sources'`
 
 - [ ] **Step 3: 实现 `verify_se_sources`**
 
-新建 `src/dqg/quality/checks/evidence_contract.py`：
+新建 `src/qualix/quality/checks/evidence_contract.py`：
 
 ```python
 """Evidence Contract 验证器：SE.source 跨引用 + EUT code_target grep."""
@@ -109,7 +109,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from dqg.log import get_logger
+from qualix.log import get_logger
 
 log = get_logger(__name__)
 
@@ -225,7 +225,7 @@ Expected: 4 PASSED
 - [ ] **Step 5: 提交**
 
 ```bash
-git add src/dqg/quality/checks/evidence_contract.py tests/test_evidence_contract.py
+git add src/qualix/quality/checks/evidence_contract.py tests/test_evidence_contract.py
 git commit -m "feat(evidence-contract): verify_se_sources 纯函数 + 4 条单测"
 ```
 
@@ -234,7 +234,7 @@ git commit -m "feat(evidence-contract): verify_se_sources 纯函数 + 4 条单�
 ### `handle_se_source_evidence` handler
 
 **Files:**
-- Modify: `src/dqg/runtime/handlers/handlers_finalize.py`
+- Modify: `src/qualix/runtime/handlers/handlers_finalize.py`
 
 - [ ] **Step 6: 写 handler 测试**
 
@@ -265,7 +265,7 @@ def _make_result():
 def test_handler_writes_evidence_file_and_blocks_on_invalid_source(tmp_path):
     """handle_se_source_evidence: 行号超出 → BLOCKED + evidence 文件落盘."""
     import json, time
-    from dqg.runtime.handlers.handlers_finalize import handle_se_source_evidence
+    from qualix.runtime.handlers.handlers_finalize import handle_se_source_evidence
 
     ctx = _make_ctx(tmp_path)
     # 写 phase_a_structured.json
@@ -308,9 +308,9 @@ Expected: `ImportError: cannot import name 'handle_se_source_evidence'`
 ```python
 def handle_se_source_evidence(ctx: ExecutionContext, result: PhaseResult) -> None:
     """Q01: 校验每条 SE.source 指向的 ingest 文件行号真实存在，落盘 _se_source_evidence.json."""
-    from dqg.json_utils import load_json
-    from dqg.quality.checks.evidence_contract import verify_se_sources
-    from dqg.text_utils import STRUCTURED_JSON_MAP
+    from qualix.json_utils import load_json
+    from qualix.quality.checks.evidence_contract import verify_se_sources
+    from qualix.text_utils import STRUCTURED_JSON_MAP
 
     json_fname = STRUCTURED_JSON_MAP.get("Q01", "phase_a_structured.json")
     if not ctx.phase_root:
@@ -363,7 +363,7 @@ Expected: all passed, 0 failed
 - [ ] **Step 11: 提交**
 
 ```bash
-git add src/dqg/runtime/handlers/handlers_finalize.py tests/test_evidence_contract.py
+git add src/qualix/runtime/handlers/handlers_finalize.py tests/test_evidence_contract.py
 git commit -m "feat(evidence-contract): handle_se_source_evidence handler (Q01 finalize, order=57)"
 ```
 
@@ -372,8 +372,8 @@ git commit -m "feat(evidence-contract): handle_se_source_evidence handler (Q01 f
 ## Task 2：EUT → SE.code_target grep（Q05a）
 
 **Files:**
-- Modify: `src/dqg/quality/checks/evidence_contract.py`
-- Modify: `src/dqg/quality/checks/finalize_checks.py`
+- Modify: `src/qualix/quality/checks/evidence_contract.py`
+- Modify: `src/qualix/quality/checks/finalize_checks.py`
 - Modify: `tests/test_evidence_contract.py`
 
 - [ ] **Step 1: 写失败测试**
@@ -383,7 +383,7 @@ git commit -m "feat(evidence-contract): handle_se_source_evidence handler (Q01 f
 ```python
 def test_check_eut_code_target_found(tmp_path):
     """SE.code_target 类名在 code_repo 中能 grep 到 → 无 warning."""
-    from dqg.quality.checks.evidence_contract import check_eut_code_target_traceability
+    from qualix.quality.checks.evidence_contract import check_eut_code_target_traceability
 
     # 建 Q01 产物
     q01_dir = tmp_path / "test" / "Q01"
@@ -417,7 +417,7 @@ def test_check_eut_code_target_found(tmp_path):
 
 def test_check_eut_code_target_not_found(tmp_path):
     """SE.code_target 在 code_repo 中 grep 不到 → WARNING."""
-    from dqg.quality.checks.evidence_contract import check_eut_code_target_traceability
+    from qualix.quality.checks.evidence_contract import check_eut_code_target_traceability
     import json
 
     q01_dir = tmp_path / "test" / "Q01"
@@ -449,7 +449,7 @@ def test_check_eut_code_target_not_found(tmp_path):
 
 def test_check_eut_code_target_empty_skips(tmp_path):
     """SE.code_target='' → skip, 无 warning."""
-    from dqg.quality.checks.evidence_contract import check_eut_code_target_traceability
+    from qualix.quality.checks.evidence_contract import check_eut_code_target_traceability
     import json
 
     q01_dir = tmp_path / "test" / "Q01"
@@ -496,10 +496,10 @@ def check_eut_code_target_traceability(
     SE.code_target 为空时跳过（SE 未定义 impl 目标）。
     grep 不到始终是 WARNING（不 BLOCKED），因为 TDD 场景下 impl 可能尚未存在。
     """
-    from dqg.constants import STRUCTURED_JSON_MAP
-    from dqg.core.phase_registry import PHASE_DEFS
-    from dqg.core.state_machine import phase_dir as _phase_dir
-    from dqg.json_utils import load_json
+    from qualix.constants import STRUCTURED_JSON_MAP
+    from qualix.core.phase_registry import PHASE_DEFS
+    from qualix.core.state_machine import phase_dir as _phase_dir
+    from qualix.json_utils import load_json
 
     if not code_repos:
         return []
@@ -581,7 +581,7 @@ Expected: 3 PASSED
 ```python
     # Q05a: EUT → SE.code_target 可追溯性检查（始终 WARNING）
     if phase_id == "Q05a":
-        from dqg.quality.checks.evidence_contract import check_eut_code_target_traceability
+        from qualix.quality.checks.evidence_contract import check_eut_code_target_traceability
 
         phase_def_q05a = PHASE_DEFS.get("Q05a")
         if phase_def_q05a:
@@ -603,8 +603,8 @@ Expected: all passed
 - [ ] **Step 7: 提交**
 
 ```bash
-git add src/dqg/quality/checks/evidence_contract.py \
-        src/dqg/quality/checks/finalize_checks.py \
+git add src/qualix/quality/checks/evidence_contract.py \
+        src/qualix/quality/checks/finalize_checks.py \
         tests/test_evidence_contract.py
 git commit -m "feat(evidence-contract): check_eut_code_target_traceability (Q05a WARNING)"
 ```
@@ -614,7 +614,7 @@ git commit -m "feat(evidence-contract): check_eut_code_target_traceability (Q05a
 ## Task 3：Q06 COVERED 证据字段强制
 
 **Files:**
-- Modify: `src/dqg/quality/checks/q06_structure_checks.py`
+- Modify: `src/qualix/quality/checks/q06_structure_checks.py`
 - Modify: `tests/test_evidence_contract.py`
 
 - [ ] **Step 1: 写失败测试**
@@ -624,7 +624,7 @@ git commit -m "feat(evidence-contract): check_eut_code_target_traceability (Q05a
 ```python
 def test_covered_no_evidence_warns(tmp_path):
     """COVERED + test_class='' + test_location=None → WARNING."""
-    from dqg.quality.checks.q06_structure_checks import _check_covered_evidence_fields
+    from qualix.quality.checks.q06_structure_checks import _check_covered_evidence_fields
 
     data = {
         "audit_items": [
@@ -637,7 +637,7 @@ def test_covered_no_evidence_warns(tmp_path):
 
 def test_covered_with_test_class_passes(tmp_path):
     """COVERED + test_class 有值 → 无 error."""
-    from dqg.quality.checks.q06_structure_checks import _check_covered_evidence_fields
+    from qualix.quality.checks.q06_structure_checks import _check_covered_evidence_fields
 
     data = {
         "audit_items": [
@@ -650,7 +650,7 @@ def test_covered_with_test_class_passes(tmp_path):
 
 def test_covered_test_location_file_not_found_blocks(tmp_path):
     """COVERED + test_location.file 在 code_repo 中找不到 → BLOCKED."""
-    from dqg.quality.checks.q06_structure_checks import _check_covered_evidence_fields
+    from qualix.quality.checks.q06_structure_checks import _check_covered_evidence_fields
 
     repo = tmp_path / "repo"
     repo.mkdir()
@@ -755,7 +755,7 @@ Expected: all passed, 0 failed
 - [ ] **Step 7: 提交**
 
 ```bash
-git add src/dqg/quality/checks/q06_structure_checks.py tests/test_evidence_contract.py
+git add src/qualix/quality/checks/q06_structure_checks.py tests/test_evidence_contract.py
 git commit -m "feat(evidence-contract): _check_covered_evidence_fields (Q06 G10)"
 ```
 
@@ -776,7 +776,7 @@ git commit -m "feat(evidence-contract): _check_covered_evidence_fields (Q06 G10)
 - SE.source 跨引用校验：`handle_se_source_evidence`（Q01 finalize order=57）读取 ingest 文件行号，source 非空但无效 → BLOCKED，落盘 `_internal/_se_source_evidence.json`
 - EUT → SE.code_target grep：`check_eut_code_target_traceability`（Q05a finalize）grep 代码仓库，未找到 → WARNING
 - Q06 COVERED 证据字段：`_check_covered_evidence_fields`（G10）无 test_class 且无 test_location → WARNING，test_location.file 不存在 → BLOCKED
-- 实现：`src/dqg/quality/checks/evidence_contract.py` + 10 条单测（`tests/test_evidence_contract.py`）
+- 实现：`src/qualix/quality/checks/evidence_contract.py` + 10 条单测（`tests/test_evidence_contract.py`）
 ```
 
 在同一 §C 的 `P1` 规划块末尾追加（方案 B 记录）：

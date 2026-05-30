@@ -229,7 +229,7 @@ def load_sidecar_context(
             )
 
     # Memory 文件
-    mem_file = Path(".dqg/MEMORY.md")
+    mem_file = Path(".qualix/MEMORY.md")
     if mem_file.exists():
         mem_text = mem_file.read_text(encoding="utf-8")
         if mem_text and mem_text.strip():
@@ -240,7 +240,7 @@ def load_sidecar_context(
             if filtered_mem.strip():
                 all_chunks.append(
                     ContextChunk(
-                        source="Persistent Memory (.dqg/MEMORY.md)",
+                        source="Persistent Memory (.qualix/MEMORY.md)",
                         content=filtered_mem,
                         token_estimate=estimate_tokens(filtered_mem),
                         priority=-3,

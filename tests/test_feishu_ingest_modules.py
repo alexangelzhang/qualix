@@ -8,17 +8,17 @@ from qualix.ingest.feishu.mention_graph import resolve_mention_target
 
 
 def test_parse_feishu_url_docx_and_wiki() -> None:
-    assert parse_feishu_url("https://mi.feishu.cn/docx/AAA123") == ("docx", "AAA123")
-    assert parse_feishu_url("https://mi.feishu.cn/wiki/BBB456") == ("wiki", "BBB456")
+    assert parse_feishu_url("https://example.feishu.cn/docx/AAA123") == ("docx", "AAA123")
+    assert parse_feishu_url("https://example.feishu.cn/wiki/BBB456") == ("wiki", "BBB456")
 
 
 def test_parse_feishu_reference_url_supports_sheet_and_bitable() -> None:
-    assert parse_feishu_reference_url("https://mi.feishu.cn/sheets/SSS111") == ("sheets", "SSS111")
-    assert parse_feishu_reference_url("https://mi.feishu.cn/base/BASE222") == ("bitable", "BASE222")
+    assert parse_feishu_reference_url("https://example.feishu.cn/sheets/SSS111") == ("sheets", "SSS111")
+    assert parse_feishu_reference_url("https://example.feishu.cn/base/BASE222") == ("bitable", "BASE222")
 
 
 def test_normalize_url_strips_query_and_fragment() -> None:
-    assert normalize_url("https://mi.feishu.cn/docx/AAA123?a=1#x") == "https://mi.feishu.cn/docx/AAA123"
+    assert normalize_url("https://example.feishu.cn/docx/AAA123?a=1#x") == "https://example.feishu.cn/docx/AAA123"
 
 
 def test_error_strategy_basics() -> None:
@@ -44,8 +44,8 @@ def test_append_raw_image_key_assets_deduplicates() -> None:
 
 def test_resolve_mention_target_token_only() -> None:
     mention = {"token": "DOC_1", "obj_type": "22"}
-    url, ref_type, token, reason = resolve_mention_target(mention, "https", "mi.feishu.cn")
-    assert url == "https://mi.feishu.cn/docx/DOC_1"
+    url, ref_type, token, reason = resolve_mention_target(mention, "https", "example.feishu.cn")
+    assert url == "https://example.feishu.cn/docx/DOC_1"
     assert ref_type == "docx"
     assert token == "DOC_1"
     assert reason == "token_only_docx_guess"
@@ -61,7 +61,7 @@ def test_collect_mention_docs() -> None:
                     {
                         "mention_doc": {
                             "token": "TOKEN_1",
-                            "url": "https://mi.feishu.cn/docx/TOKEN_1",
+                            "url": "https://example.feishu.cn/docx/TOKEN_1",
                             "title": "Doc",
                             "obj_type": "22",
                         }

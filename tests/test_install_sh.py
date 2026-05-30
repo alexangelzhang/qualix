@@ -15,7 +15,7 @@ def test_install_sh_exists_and_executable():
 
 def test_install_sh_dry_run(tmp_path):
     """dry-run 只打印计划，不实际落盘."""
-    output_root = tmp_path / "fake-home" / ".dqg"
+    output_root = tmp_path / "fake-home" / ".qualix"
     result = subprocess.run(
         [
             str(INSTALL_SH),
@@ -30,13 +30,13 @@ def test_install_sh_dry_run(tmp_path):
     )
     assert result.returncode == 0, result.stderr
     assert "安装计划" in result.stdout
-    assert "DQG version" in result.stdout
+    assert "Qualix version" in result.stdout
     assert not output_root.exists(), "dry-run 不应该创建目录"
 
 
 def test_install_sh_real_copy(tmp_path):
     """--skip-pip 模式下只拷资源，验证拷贝完整."""
-    output_root = tmp_path / "fake-home" / ".dqg"
+    output_root = tmp_path / "fake-home" / ".qualix"
     result = subprocess.run(
         [
             str(INSTALL_SH),

@@ -6,7 +6,7 @@ from qualix.agents.agent import AgentResult, extract_llm_call
 
 
 def test_maybe_sample_agent_payload_full_rate(monkeypatch) -> None:
-    monkeypatch.setenv("DQG_TELEMETRY_PAYLOAD_SAMPLE_RATE", "1")
+    monkeypatch.setenv("QUALIX_TELEMETRY_PAYLOAD_SAMPLE_RATE", "1")
     monkeypatch.setattr("qualix.reporting.telemetry_payload.random.random", lambda: 0.0)
 
     from qualix.reporting.telemetry_payload import maybe_sample_agent_payload
@@ -17,7 +17,7 @@ def test_maybe_sample_agent_payload_full_rate(monkeypatch) -> None:
 
 
 def test_maybe_sample_disabled(monkeypatch) -> None:
-    monkeypatch.setenv("DQG_TELEMETRY_PAYLOAD_SAMPLE_RATE", "0")
+    monkeypatch.setenv("QUALIX_TELEMETRY_PAYLOAD_SAMPLE_RATE", "0")
     from qualix.reporting.telemetry_payload import maybe_sample_agent_payload
 
     p, r = maybe_sample_agent_payload([{"role": "user", "content": "hello"}], "world")

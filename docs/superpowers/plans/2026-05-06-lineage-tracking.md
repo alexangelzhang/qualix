@@ -14,11 +14,11 @@
 
 | 文件 | 操作 |
 |------|------|
-| `src/dqg/schemas/location.py` | 新建 |
-| `src/dqg/schemas/__init__.py` | 修改（导出 `SourceLocation`） |
-| `src/dqg/schemas/phase_q05.py` | 修改（`TCItem` 加两个可选字段） |
-| `src/dqg/schemas/phase_q06.py` | 修改（`EutAuditItem`、`FindingItem` 加字段） |
-| `src/dqg/quality/checks/auto_checks.py` | 修改（追加 location 校验规则） |
+| `src/qualix/schemas/location.py` | 新建 |
+| `src/qualix/schemas/__init__.py` | 修改（导出 `SourceLocation`） |
+| `src/qualix/schemas/phase_q05.py` | 修改（`TCItem` 加两个可选字段） |
+| `src/qualix/schemas/phase_q06.py` | 修改（`EutAuditItem`、`FindingItem` 加字段） |
+| `src/qualix/quality/checks/auto_checks.py` | 修改（追加 location 校验规则） |
 | `skills/unit-test-generation/SKILL.md` | 修改（JSON 示例 + IRON LAW） |
 | `skills/unit-test-audit/SKILL.md` | 修改（JSON 示例 + IRON LAW） |
 | `tests/test_lineage_tracking.py` | 新建 |
@@ -28,7 +28,7 @@
 ## Task 1: 新建 `SourceLocation` 模型
 
 **Files:**
-- Create: `src/dqg/schemas/location.py`
+- Create: `src/qualix/schemas/location.py`
 - Test: `tests/test_lineage_tracking.py`
 
 - [ ] **Step 1: 写失败测试**
@@ -39,7 +39,7 @@
 """Tests for SourceLocation model."""
 import pytest
 from pydantic import ValidationError
-from dqg.schemas.location import SourceLocation
+from qualix.schemas.location import SourceLocation
 
 
 class TestSourceLocation:
@@ -81,13 +81,13 @@ class TestSourceLocation:
 - [ ] **Step 2: 运行测试，确认失败**
 
 ```bash
-cd /path/to/rd-gate
+cd /path/to/qualix
 python -m pytest tests/test_lineage_tracking.py -v
 ```
 
 期望：`ImportError` 或 `ModuleNotFoundError`（`location.py` 尚未创建）
 
-- [ ] **Step 3: 创建 `src/dqg/schemas/location.py`**
+- [ ] **Step 3: 创建 `src/qualix/schemas/location.py`**
 
 ```python
 from __future__ import annotations
@@ -125,7 +125,7 @@ python -m pytest tests/test_lineage_tracking.py::TestSourceLocation -v
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/dqg/schemas/location.py tests/test_lineage_tracking.py
+git add src/qualix/schemas/location.py tests/test_lineage_tracking.py
 git commit -m "feat: add SourceLocation model for lineage tracking"
 ```
 
@@ -134,18 +134,18 @@ git commit -m "feat: add SourceLocation model for lineage tracking"
 ## Task 2: 更新 `schemas/__init__.py` 导出 `SourceLocation`
 
 **Files:**
-- Modify: `src/dqg/schemas/__init__.py`
+- Modify: `src/qualix/schemas/__init__.py`
 
 - [ ] **Step 1: 读取当前 `__init__.py` 内容**
 
-读取 `src/dqg/schemas/__init__.py` 确认现有导入列表。
+读取 `src/qualix/schemas/__init__.py` 确认现有导入列表。
 
 - [ ] **Step 2: 在现有 import 列表末尾追加**
 
-在 `src/dqg/schemas/__init__.py` 的 import 区块末尾加一行：
+在 `src/qualix/schemas/__init__.py` 的 import 区块末尾加一行：
 
 ```python
-from dqg.schemas.location import SourceLocation
+from qualix.schemas.location import SourceLocation
 ```
 
 并在 `__all__`（如有）中加入 `"SourceLocation"`。如果没有 `__all__`，只加 import 即可。
@@ -153,15 +153,15 @@ from dqg.schemas.location import SourceLocation
 - [ ] **Step 3: 验证导入正常**
 
 ```bash
-python -c "from dqg.schemas import SourceLocation; print(SourceLocation)"
+python -c "from qualix.schemas import SourceLocation; print(SourceLocation)"
 ```
 
-期望：打印 `<class 'dqg.schemas.location.SourceLocation'>`
+期望：打印 `<class 'qualix.schemas.location.SourceLocation'>`
 
 - [ ] **Step 4: Commit**
 
 ```bash
-git add src/dqg/schemas/__init__.py
+git add src/qualix/schemas/__init__.py
 git commit -m "feat: export SourceLocation from schemas package"
 ```
 
@@ -170,7 +170,7 @@ git commit -m "feat: export SourceLocation from schemas package"
 ## Task 3: 更新 Q05 `TCItem` schema
 
 **Files:**
-- Modify: `src/dqg/schemas/phase_q05.py`
+- Modify: `src/qualix/schemas/phase_q05.py`
 - Test: `tests/test_lineage_tracking.py`
 
 - [ ] **Step 1: 写失败测试**
@@ -178,7 +178,7 @@ git commit -m "feat: export SourceLocation from schemas package"
 在 `tests/test_lineage_tracking.py` 追加：
 
 ```python
-from dqg.schemas.phase_q05 import TCItem
+from qualix.schemas.phase_q05 import TCItem
 
 
 class TestTCItemWithLocation:
@@ -189,13 +189,13 @@ class TestTCItemWithLocation:
         assert item.production_location is None
 
     def test_tc_item_with_test_location(self):
-        from dqg.schemas.location import SourceLocation
+        from qualix.schemas.location import SourceLocation
         loc = SourceLocation(file="OrderServiceTest.java", line_start=45)
         item = TCItem(id="TC-001", repo="car-mrs", test_location=loc)
         assert item.test_location.line_start == 45
 
     def test_tc_item_with_both_locations(self):
-        from dqg.schemas.location import SourceLocation
+        from qualix.schemas.location import SourceLocation
         item = TCItem(
             id="TC-001",
             repo="car-mrs",
@@ -226,12 +226,12 @@ python -m pytest tests/test_lineage_tracking.py::TestTCItemWithLocation -v
 
 期望：`AttributeError: 'TCItem' object has no attribute 'test_location'`
 
-- [ ] **Step 3: 修改 `src/dqg/schemas/phase_q05.py`**
+- [ ] **Step 3: 修改 `src/qualix/schemas/phase_q05.py`**
 
 在 `TCItem` 类的字段列表末尾追加两个字段（在 `br: str = ""` 之后）：
 
 ```python
-from dqg.schemas.location import SourceLocation  # 加到文件顶部 import 区
+from qualix.schemas.location import SourceLocation  # 加到文件顶部 import 区
 
 # 在 TCItem 类末尾追加：
 test_location: SourceLocation | None = None
@@ -257,7 +257,7 @@ python -m pytest tests/ -v --tb=short 2>&1 | tail -20
 - [ ] **Step 6: Commit**
 
 ```bash
-git add src/dqg/schemas/phase_q05.py tests/test_lineage_tracking.py
+git add src/qualix/schemas/phase_q05.py tests/test_lineage_tracking.py
 git commit -m "feat: add test_location and production_location to TCItem"
 ```
 
@@ -266,7 +266,7 @@ git commit -m "feat: add test_location and production_location to TCItem"
 ## Task 4: 更新 Q06 `EutAuditItem` 和 `FindingItem` schema
 
 **Files:**
-- Modify: `src/dqg/schemas/phase_q06.py`
+- Modify: `src/qualix/schemas/phase_q06.py`
 - Test: `tests/test_lineage_tracking.py`
 
 - [ ] **Step 1: 写失败测试**
@@ -274,8 +274,8 @@ git commit -m "feat: add test_location and production_location to TCItem"
 在 `tests/test_lineage_tracking.py` 追加：
 
 ```python
-from dqg.schemas.phase_q06 import EutAuditItem, FindingItem
-from dqg.schemas.location import SourceLocation
+from qualix.schemas.phase_q06 import EutAuditItem, FindingItem
+from qualix.schemas.location import SourceLocation
 
 
 class TestEutAuditItemWithLocation:
@@ -335,11 +335,11 @@ python -m pytest tests/test_lineage_tracking.py::TestEutAuditItemWithLocation te
 
 期望：`AttributeError`（字段不存在）
 
-- [ ] **Step 3: 修改 `src/dqg/schemas/phase_q06.py`**
+- [ ] **Step 3: 修改 `src/qualix/schemas/phase_q06.py`**
 
 在文件顶部 import 区追加：
 ```python
-from dqg.schemas.location import SourceLocation
+from qualix.schemas.location import SourceLocation
 ```
 
 在 `EutAuditItem` 类末尾（`issues` 字段之后）追加：
@@ -372,7 +372,7 @@ python -m pytest tests/ -v --tb=short 2>&1 | tail -20
 - [ ] **Step 6: Commit**
 
 ```bash
-git add src/dqg/schemas/phase_q06.py tests/test_lineage_tracking.py
+git add src/qualix/schemas/phase_q06.py tests/test_lineage_tracking.py
 git commit -m "feat: add location fields to EutAuditItem and FindingItem"
 ```
 
@@ -381,7 +381,7 @@ git commit -m "feat: add location fields to EutAuditItem and FindingItem"
 ## Task 5: Finalize Gate — location 校验规则
 
 **Files:**
-- Modify: `src/dqg/quality/checks/auto_checks.py`
+- Modify: `src/qualix/quality/checks/auto_checks.py`
 - Test: `tests/test_lineage_tracking.py`
 
 - [ ] **Step 1: 写失败测试**
@@ -392,7 +392,7 @@ git commit -m "feat: add location fields to EutAuditItem and FindingItem"
 import json
 import tempfile
 from pathlib import Path
-from dqg.quality.auto_checks import auto_derive_checks
+from qualix.quality.auto_checks import auto_derive_checks
 
 
 def _write_q06_json(tmpdir: Path, data: dict) -> Path:
@@ -520,7 +520,7 @@ python -m pytest tests/ -v --tb=short 2>&1 | tail -20
 - [ ] **Step 7: Commit**
 
 ```bash
-git add src/dqg/quality/checks/auto_checks.py tests/test_lineage_tracking.py
+git add src/qualix/quality/checks/auto_checks.py tests/test_lineage_tracking.py
 git commit -m "feat: finalize gate — downgrade COVERED to PARTIAL when test_location missing"
 ```
 
@@ -666,7 +666,7 @@ python -m pytest tests/ -v --tb=short
 - [ ] **Step 2: 运行 Ruff lint**
 
 ```bash
-python -m ruff check src/dqg/schemas/location.py src/dqg/schemas/phase_q05.py src/dqg/schemas/phase_q06.py src/dqg/quality/checks/auto_checks.py
+python -m ruff check src/qualix/schemas/location.py src/qualix/schemas/phase_q05.py src/qualix/schemas/phase_q06.py src/qualix/quality/checks/auto_checks.py
 ```
 
 期望：无 lint 错误
@@ -674,7 +674,7 @@ python -m ruff check src/dqg/schemas/location.py src/dqg/schemas/phase_q05.py sr
 - [ ] **Step 3: 如有 lint 错误，修复后重新运行**
 
 ```bash
-python -m ruff check --fix src/dqg/schemas/location.py src/dqg/schemas/phase_q05.py src/dqg/schemas/phase_q06.py src/dqg/quality/checks/auto_checks.py
+python -m ruff check --fix src/qualix/schemas/location.py src/qualix/schemas/phase_q05.py src/qualix/schemas/phase_q06.py src/qualix/quality/checks/auto_checks.py
 python -m pytest tests/ -v --tb=short 2>&1 | tail -10
 ```
 

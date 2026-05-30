@@ -1,6 +1,6 @@
 # 报告格式规范（Report Format Specification）
 
-> 本文件定义 DQG 所有 Phase 报告产物的格式规范。`report_quality_checks.py` 基于这些规范做确定性检测。
+> 本文件定义 Qualix 所有 Phase 报告产物的格式规范。`report_quality_checks.py` 基于这些规范做确定性检测。
 > 所有 SKILL.md 和模板文件引用本规范，修改格式要求时只改本文件。
 
 ## 0. PROFILE_CONTEXT 章节

@@ -14,8 +14,8 @@
 
 | Action | File | Responsibility |
 |--------|------|----------------|
-| Modify | `src/dqg/tracking/bug_cases.py` | Add Signs-format rendering in `render_cases_for_prompt()` |
-| Modify | `src/dqg/tracking/bug_cases.py` | Add `validate_case_schema()` for new fields |
+| Modify | `src/qualix/tracking/bug_cases.py` | Add Signs-format rendering in `render_cases_for_prompt()` |
+| Modify | `src/qualix/tracking/bug_cases.py` | Add `validate_case_schema()` for new fields |
 | Create | `tests/test_signs_pattern.py` | Signs rendering + schema validation tests |
 
 ---
@@ -23,7 +23,7 @@
 ### Task 1: Add Signs-format rendering to `render_cases_for_prompt()`
 
 **Files:**
-- Modify: `src/dqg/tracking/bug_cases.py:146-181`
+- Modify: `src/qualix/tracking/bug_cases.py:146-181`
 - Create: `tests/test_signs_pattern.py`
 
 - [ ] **Step 1: Write the failing test**
@@ -69,7 +69,7 @@ def _make_case(
 
 def test_render_signs_format():
     """Cases with trigger/do/why should render in Signs format."""
-    from dqg.tracking.bug_cases import _render_single_case
+    from qualix.tracking.bug_cases import _render_single_case
 
     case = _make_case(
         title="公共接口变更未更新调用方",
@@ -88,7 +88,7 @@ def test_render_signs_format():
 
 def test_render_legacy_lesson_fallback():
     """Cases without trigger/do/why should fall back to lesson format."""
-    from dqg.tracking.bug_cases import _render_single_case
+    from qualix.tracking.bug_cases import _render_single_case
 
     case = _make_case(
         title="遗漏异常处理分析",
@@ -106,7 +106,7 @@ def test_render_mixed_cases():
     """render_cases_for_prompt should handle mix of Signs and legacy cases."""
     from unittest.mock import patch
 
-    from dqg.tracking.bug_cases import render_cases_for_prompt
+    from qualix.tracking.bug_cases import render_cases_for_prompt
 
     cases = [
         _make_case(
@@ -125,7 +125,7 @@ def test_render_mixed_cases():
         ),
     ]
 
-    with patch("dqg.tracking.bug_cases.load_cases_by_phase", return_value=cases):
+    with patch("qualix.tracking.bug_cases.load_cases_by_phase", return_value=cases):
         rendered = render_cases_for_prompt("Q03")
 
     assert "Trigger:" in rendered  # Signs case
@@ -136,7 +136,7 @@ def test_render_mixed_cases():
 
 def test_render_empty_signs_fields_uses_lesson():
     """If trigger/do/why are empty strings, fall back to lesson."""
-    from dqg.tracking.bug_cases import _render_single_case
+    from qualix.tracking.bug_cases import _render_single_case
 
     case = _make_case(
         title="Partial case",
@@ -154,12 +154,12 @@ def test_render_empty_signs_fields_uses_lesson():
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd /path/to/rd-gate && python -m pytest tests/test_signs_pattern.py -v`
+Run: `cd /path/to/qualix && python -m pytest tests/test_signs_pattern.py -v`
 Expected: FAIL — `_render_single_case` does not exist
 
 - [ ] **Step 3: Implement Signs-format rendering**
 
-In `src/dqg/tracking/bug_cases.py`, add a helper function before `render_cases_for_prompt()`:
+In `src/qualix/tracking/bug_cases.py`, add a helper function before `render_cases_for_prompt()`:
 
 ```python
 def _render_single_case(case: dict[str, Any], index: int) -> str:
@@ -233,7 +233,7 @@ Expected: ALL PASS
 - [ ] **Step 6: Commit**
 
 ```bash
-git add src/dqg/tracking/bug_cases.py tests/test_signs_pattern.py
+git add src/qualix/tracking/bug_cases.py tests/test_signs_pattern.py
 git commit -m "feat(bug_cases): add Signs pattern (Trigger→Do→Why) rendering for failure cases"
 ```
 
@@ -242,7 +242,7 @@ git commit -m "feat(bug_cases): add Signs pattern (Trigger→Do→Why) rendering
 ### Task 2: Add `validate_case_schema()` for new fields
 
 **Files:**
-- Modify: `src/dqg/tracking/bug_cases.py`
+- Modify: `src/qualix/tracking/bug_cases.py`
 - Test: `tests/test_signs_pattern.py`
 
 - [ ] **Step 1: Write the failing test**
@@ -252,7 +252,7 @@ Add to `tests/test_signs_pattern.py`:
 ```python
 def test_validate_case_schema_valid_signs():
     """Valid Signs case should pass validation."""
-    from dqg.tracking.bug_cases import validate_case_schema
+    from qualix.tracking.bug_cases import validate_case_schema
 
     case = _make_case(
         trigger_pattern="修改了公共接口",
@@ -265,7 +265,7 @@ def test_validate_case_schema_valid_signs():
 
 def test_validate_case_schema_partial_signs():
     """Partial Signs fields (only trigger, missing do/why) should warn."""
-    from dqg.tracking.bug_cases import validate_case_schema
+    from qualix.tracking.bug_cases import validate_case_schema
 
     case = _make_case(
         trigger_pattern="有 trigger",
@@ -279,7 +279,7 @@ def test_validate_case_schema_partial_signs():
 
 def test_validate_case_schema_legacy_ok():
     """Legacy case with lesson but no Signs fields is valid."""
-    from dqg.tracking.bug_cases import validate_case_schema
+    from qualix.tracking.bug_cases import validate_case_schema
 
     case = _make_case(lesson="some lesson")
     errors = validate_case_schema(case)
@@ -288,7 +288,7 @@ def test_validate_case_schema_legacy_ok():
 
 def test_validate_case_schema_no_lesson_no_signs():
     """Case with neither lesson nor Signs fields should warn."""
-    from dqg.tracking.bug_cases import validate_case_schema
+    from qualix.tracking.bug_cases import validate_case_schema
 
     case = _make_case()
     errors = validate_case_schema(case)
@@ -303,7 +303,7 @@ Expected: FAIL — `validate_case_schema` does not exist
 
 - [ ] **Step 3: Implement validate_case_schema**
 
-In `src/dqg/tracking/bug_cases.py`, add:
+In `src/qualix/tracking/bug_cases.py`, add:
 
 ```python
 _SIGNS_FIELDS = ("trigger_pattern", "wrong_action", "why_failed")
@@ -347,7 +347,7 @@ Expected: ALL PASS
 - [ ] **Step 6: Commit**
 
 ```bash
-git add src/dqg/tracking/bug_cases.py tests/test_signs_pattern.py
+git add src/qualix/tracking/bug_cases.py tests/test_signs_pattern.py
 git commit -m "feat(bug_cases): add validate_case_schema for Signs field consistency checks"
 ```
 

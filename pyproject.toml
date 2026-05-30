@@ -2,7 +2,12 @@
 name = "qualix"
 dynamic = ["version"]
 description = "AI-native development quality gate — full-chain coverage from requirements to code"
+readme = "README.md"
 requires-python = ">=3.11"
+license = "Apache-2.0"
+authors = [
+    { name = "Alex Zhang" },
+]
 dependencies = [
     "pydantic>=2.0",
     "pyyaml>=6.0",
@@ -27,9 +32,9 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project.urls]
-Homepage = "https://github.com/your-org/qualix"
-Issues = "https://github.com/your-org/qualix/issues"
-Source = "https://github.com/your-org/qualix"
+Homepage = "https://github.com/alexangelzhang/qualix"
+Issues = "https://github.com/alexangelzhang/qualix/issues"
+Source = "https://github.com/alexangelzhang/qualix"
 
 [tool.hatch.version]
 path = "VERSION"

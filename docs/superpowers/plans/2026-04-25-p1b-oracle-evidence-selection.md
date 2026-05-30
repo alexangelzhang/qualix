@@ -14,9 +14,9 @@
 
 | Action | File | Responsibility |
 |--------|------|----------------|
-| Modify | `src/dqg/context/evidence_renderer.py` | Add `priority_ids` param to `render_key_quotes()` for boosted selection |
-| Modify | `src/dqg/context/context_loader.py` | Pass verification_targets IDs into `render_key_quotes()` |
-| Modify | `src/dqg/runtime/phase_contract.py` | Add helper to extract flat ID set from verification_targets |
+| Modify | `src/qualix/context/evidence_renderer.py` | Add `priority_ids` param to `render_key_quotes()` for boosted selection |
+| Modify | `src/qualix/context/context_loader.py` | Pass verification_targets IDs into `render_key_quotes()` |
+| Modify | `src/qualix/runtime/phase_contract.py` | Add helper to extract flat ID set from verification_targets |
 | Create | `tests/test_evidence_priority.py` | Test priority-boosted quote selection |
 
 ---
@@ -24,7 +24,7 @@
 ### Task 1: Add `priority_ids` parameter to `render_key_quotes()`
 
 **Files:**
-- Modify: `src/dqg/context/evidence_renderer.py:123-161`
+- Modify: `src/qualix/context/evidence_renderer.py:123-161`
 - Create: `tests/test_evidence_priority.py`
 
 - [ ] **Step 1: Write the failing test**
@@ -44,7 +44,7 @@ def _make_chunk(source: str, content: str, file_path: str = "") -> SimpleNamespa
 
 def test_priority_ids_boost_relevant_quotes():
     """Quotes matching priority_ids should be selected first."""
-    from dqg.context.evidence_renderer import render_key_quotes
+    from qualix.context.evidence_renderer import render_key_quotes
 
     chunks = [
         _make_chunk("Phase A", (
@@ -80,7 +80,7 @@ def test_priority_ids_boost_relevant_quotes():
 
 def test_priority_ids_empty_falls_back_to_regex():
     """Empty priority_ids should behave identically to current regex selection."""
-    from dqg.context.evidence_renderer import render_key_quotes
+    from qualix.context.evidence_renderer import render_key_quotes
 
     chunks = [
         _make_chunk("Phase A", "REQ-001 需求内容\n\nBR-001 业务规则", "phase_a.json"),
@@ -94,7 +94,7 @@ def test_priority_ids_empty_falls_back_to_regex():
 
 def test_priority_ids_with_no_matches_falls_back():
     """If no quotes match priority_ids, fall back to regex selection."""
-    from dqg.context.evidence_renderer import render_key_quotes
+    from qualix.context.evidence_renderer import render_key_quotes
 
     chunks = [
         _make_chunk("Phase A", "REQ-001 需求内容\n\nBR-001 业务规则", "phase_a.json"),
@@ -108,12 +108,12 @@ def test_priority_ids_with_no_matches_falls_back():
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd /path/to/rd-gate && python -m pytest tests/test_evidence_priority.py -v`
+Run: `cd /path/to/qualix && python -m pytest tests/test_evidence_priority.py -v`
 Expected: FAIL — `render_key_quotes()` does not accept `priority_ids`
 
 - [ ] **Step 3: Implement priority-boosted selection**
 
-In `src/dqg/context/evidence_renderer.py`, update `render_key_quotes()`:
+In `src/qualix/context/evidence_renderer.py`, update `render_key_quotes()`:
 
 ```python
 def render_key_quotes(
@@ -189,7 +189,7 @@ Expected: ALL PASS
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/dqg/context/evidence_renderer.py tests/test_evidence_priority.py
+git add src/qualix/context/evidence_renderer.py tests/test_evidence_priority.py
 git commit -m "feat(evidence): add priority_ids param to render_key_quotes for Oracle-guided selection"
 ```
 
@@ -198,7 +198,7 @@ git commit -m "feat(evidence): add priority_ids param to render_key_quotes for O
 ### Task 2: Add helper to extract flat ID set from verification_targets
 
 **Files:**
-- Modify: `src/dqg/runtime/phase_contract.py`
+- Modify: `src/qualix/runtime/phase_contract.py`
 - Test: `tests/test_evidence_priority.py`
 
 - [ ] **Step 1: Write the failing test**
@@ -208,7 +208,7 @@ Add to `tests/test_evidence_priority.py`:
 ```python
 def test_extract_priority_ids_from_targets():
     """extract_priority_ids should return flat set of SE/BR/REQ IDs."""
-    from dqg.runtime.phase_contract import extract_priority_ids
+    from qualix.runtime.phase_contract import extract_priority_ids
 
     targets = [
         {"se_id": "SE-001", "mapping_target": "REQ-001", "source": "phase_a"},
@@ -227,7 +227,7 @@ def test_extract_priority_ids_from_targets():
 
 def test_extract_priority_ids_empty():
     """Empty targets should return empty set."""
-    from dqg.runtime.phase_contract import extract_priority_ids
+    from qualix.runtime.phase_contract import extract_priority_ids
 
     assert extract_priority_ids([]) == set()
     assert extract_priority_ids(None) == set()
@@ -240,7 +240,7 @@ Expected: FAIL — `extract_priority_ids` does not exist
 
 - [ ] **Step 3: Implement the helper**
 
-In `src/dqg/runtime/phase_contract.py`, add:
+In `src/qualix/runtime/phase_contract.py`, add:
 
 ```python
 def extract_priority_ids(targets: list[dict[str, str]] | None) -> set[str]:
@@ -273,7 +273,7 @@ Expected: ALL PASS
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/dqg/runtime/phase_contract.py tests/test_evidence_priority.py
+git add src/qualix/runtime/phase_contract.py tests/test_evidence_priority.py
 git commit -m "feat(contract): add extract_priority_ids helper for Oracle-guided evidence selection"
 ```
 
@@ -282,7 +282,7 @@ git commit -m "feat(contract): add extract_priority_ids helper for Oracle-guided
 ### Task 3: Wire priority_ids into the evidence rendering pipeline
 
 **Files:**
-- Modify: `src/dqg/context/context_loader.py:50-104` (render_evidence_pack)
+- Modify: `src/qualix/context/context_loader.py:50-104` (render_evidence_pack)
 - Test: `tests/test_evidence_priority.py`
 
 - [ ] **Step 1: Write the failing test**
@@ -294,13 +294,13 @@ def test_loaded_context_passes_priority_ids(monkeypatch, tmp_path):
     """LoadedContext.render_evidence_pack() should pass priority_ids to render_key_quotes."""
     from types import SimpleNamespace
 
-    from dqg.context.context_loader import LoadedContext
+    from qualix.context.context_loader import LoadedContext
 
     # Track render_key_quotes calls
     render_calls = []
     original_render = None
 
-    import dqg.context.evidence_renderer as er
+    import qualix.context.evidence_renderer as er
     original_render = er.render_key_quotes
 
     def spy_render(chunks, **kwargs):
@@ -346,7 +346,7 @@ Expected: FAIL — LoadedContext doesn't accept verification_targets or pass pri
 
 - [ ] **Step 3: Update LoadedContext**
 
-In `src/dqg/context/context_loader.py`:
+In `src/qualix/context/context_loader.py`:
 
 1. Add `verification_targets` field to `LoadedContext.__init__` (default `None`):
 
@@ -362,7 +362,7 @@ def __init__(self, ..., verification_targets: list[dict] | None = None):
 # Before the render_key_quotes call, add:
 priority_ids = None
 if self.verification_targets:
-    from dqg.runtime.phase_contract import extract_priority_ids
+    from qualix.runtime.phase_contract import extract_priority_ids
     priority_ids = extract_priority_ids(self.verification_targets)
 
 # Update the render_key_quotes call to include priority_ids:
@@ -386,7 +386,7 @@ key_quotes = render_key_quotes(self.chunks, priority_ids=priority_ids)
 contract_path = phase_root / "_internal" / "_phase_contract.json"
 verification_targets = None
 if contract_path.exists():
-    from dqg.json_utils import load_json
+    from qualix.json_utils import load_json
     contract = load_json(contract_path)
     if contract:
         verification_targets = contract.get("verification_targets")
@@ -407,7 +407,7 @@ Expected: ALL PASS
 - [ ] **Step 6: Commit**
 
 ```bash
-git add src/dqg/context/context_loader.py src/dqg/context/evidence_renderer.py tests/test_evidence_priority.py
+git add src/qualix/context/context_loader.py src/qualix/context/evidence_renderer.py tests/test_evidence_priority.py
 git commit -m "feat(evidence): wire Oracle-guided priority_ids through evidence rendering pipeline"
 ```
 

@@ -14,13 +14,13 @@
 
 | 操作 | 路径 | 职责 |
 |------|------|------|
-| MODIFY | `src/dqg/runtime/execution_context.py` | 加 `strict_profile_context: bool = False` |
-| MODIFY | `src/dqg/core/runner.py` | finalize 加 flag；新增 task 子命令 |
-| MODIFY | `src/dqg/commands/phase.py` | cmd_finalize 传 flag；cmd_approve 传 force_approved |
-| MODIFY | `src/dqg/runtime/handlers/handlers_finalize.py` | handle_profile_context_check 加严格模式 |
-| CREATE | `src/dqg/commands/task_cmd.py` | cmd_task 实现 list/resume |
-| MODIFY | `src/dqg/reporting/telemetry.py` | PhaseRunRecord 加 force_approved |
-| MODIFY | `src/dqg/reporting/observability.py` | 闭环时长/误报率/guard_precision |
+| MODIFY | `src/qualix/runtime/execution_context.py` | 加 `strict_profile_context: bool = False` |
+| MODIFY | `src/qualix/core/runner.py` | finalize 加 flag；新增 task 子命令 |
+| MODIFY | `src/qualix/commands/phase.py` | cmd_finalize 传 flag；cmd_approve 传 force_approved |
+| MODIFY | `src/qualix/runtime/handlers/handlers_finalize.py` | handle_profile_context_check 加严格模式 |
+| CREATE | `src/qualix/commands/task_cmd.py` | cmd_task 实现 list/resume |
+| MODIFY | `src/qualix/reporting/telemetry.py` | PhaseRunRecord 加 force_approved |
+| MODIFY | `src/qualix/reporting/observability.py` | 闭环时长/误报率/guard_precision |
 | CREATE | `tests/test_p1_ops_quality.py` | 7 条单测 |
 
 ---
@@ -28,10 +28,10 @@
 ## Task 1：--strict-profile-context 严格模式（P1-8）
 
 **Files:**
-- Modify: `src/dqg/runtime/execution_context.py:17-36`
-- Modify: `src/dqg/core/runner.py:62-68`（finalize 子命令）
-- Modify: `src/dqg/commands/phase.py:205-209`（cmd_finalize）
-- Modify: `src/dqg/runtime/handlers/handlers_finalize.py:228-248`
+- Modify: `src/qualix/runtime/execution_context.py:17-36`
+- Modify: `src/qualix/core/runner.py:62-68`（finalize 子命令）
+- Modify: `src/qualix/commands/phase.py:205-209`（cmd_finalize）
+- Modify: `src/qualix/runtime/handlers/handlers_finalize.py:228-248`
 - Test: `tests/test_p1_ops_quality.py`
 
 - [ ] **Step 1: 写失败测试**
@@ -51,7 +51,7 @@ from unittest.mock import MagicMock
 # ---------------------------------------------------------------------------
 
 def _make_ctx(tmp_path: Path, phase_id: str = "Q01", strict: bool = False):
-    from dqg.runtime.execution_context import ExecutionContext
+    from qualix.runtime.execution_context import ExecutionContext
 
     ctx = ExecutionContext(
         output_dir=tmp_path,
@@ -76,7 +76,7 @@ def _make_result():
 
 def test_strict_profile_context_blocks_when_section_missing(tmp_path):
     """--strict-profile-context 且报告缺 PROFILE_CONTEXT → BLOCKED."""
-    from dqg.runtime.handlers.handlers_finalize import handle_profile_context_check
+    from qualix.runtime.handlers.handlers_finalize import handle_profile_context_check
 
     ctx = _make_ctx(tmp_path, phase_id="Q01", strict=True)
     # 写一个不含 PROFILE_CONTEXT 的报告文件
@@ -91,7 +91,7 @@ def test_strict_profile_context_blocks_when_section_missing(tmp_path):
 
 def test_non_strict_profile_context_warns_only(tmp_path):
     """非严格模式下缺 PROFILE_CONTEXT → 仅 WARNING，不 BLOCKED。"""
-    from dqg.runtime.handlers.handlers_finalize import handle_profile_context_check
+    from qualix.runtime.handlers.handlers_finalize import handle_profile_context_check
 
     ctx = _make_ctx(tmp_path, phase_id="Q01", strict=False)
     (ctx.phase_root / "phase_a_report.md").write_text("# 报告\n\n无 profile context")
@@ -106,7 +106,7 @@ def test_non_strict_profile_context_warns_only(tmp_path):
 - [ ] **Step 2: 运行测试确认失败**
 
 ```bash
-cd /path/to/rd-gate
+cd /path/to/qualix
 python -m pytest tests/test_p1_ops_quality.py::test_strict_profile_context_blocks_when_section_missing \
   tests/test_p1_ops_quality.py::test_non_strict_profile_context_warns_only -v 2>&1 | tail -10
 ```
@@ -114,7 +114,7 @@ Expected: `TypeError: ExecutionContext.__init__() got unexpected keyword argumen
 
 - [ ] **Step 3: 在 ExecutionContext 加字段**
 
-读取 `src/dqg/runtime/execution_context.py`，在 `coverage_report: str | None = None` 之后（约 L27）插入：
+读取 `src/qualix/runtime/execution_context.py`，在 `coverage_report: str | None = None` 之后（约 L27）插入：
 
 ```python
     strict_profile_context: bool = False  # finalize --strict-profile-context 时为 True
@@ -122,7 +122,7 @@ Expected: `TypeError: ExecutionContext.__init__() got unexpected keyword argumen
 
 - [ ] **Step 4: 修改 handle_profile_context_check**
 
-读取 `src/dqg/runtime/handlers/handlers_finalize.py`，找到 `handle_profile_context_check` 函数（L228-248）。
+读取 `src/qualix/runtime/handlers/handlers_finalize.py`，找到 `handle_profile_context_check` 函数（L228-248）。
 将：
 
 ```python
@@ -165,7 +165,7 @@ Expected: `TypeError: ExecutionContext.__init__() got unexpected keyword argumen
 
 - [ ] **Step 5: 在 runner.py 的 finalize 子命令加 flag**
 
-读取 `src/dqg/core/runner.py`，找到 finalize 子命令（约 L62-68）：
+读取 `src/qualix/core/runner.py`，找到 finalize 子命令（约 L62-68）：
 
 ```python
     # finalize
@@ -190,7 +190,7 @@ Expected: `TypeError: ExecutionContext.__init__() got unexpected keyword argumen
 
 - [ ] **Step 6: 在 cmd_finalize 构造 ctx 时传入 flag**
 
-读取 `src/dqg/commands/phase.py`，找到 `cmd_finalize` 里的 `ctx = ExecutionContext(...)` 块（约 L205-209）：
+读取 `src/qualix/commands/phase.py`，找到 `cmd_finalize` 里的 `ctx = ExecutionContext(...)` 块（约 L205-209）：
 
 ```python
     ctx = ExecutionContext(
@@ -229,8 +229,8 @@ Expected: no new failures
 - [ ] **Step 9: 提交**
 
 ```bash
-git add src/dqg/runtime/execution_context.py src/dqg/runtime/handlers/handlers_finalize.py \
-        src/dqg/core/runner.py src/dqg/commands/phase.py tests/test_p1_ops_quality.py
+git add src/qualix/runtime/execution_context.py src/qualix/runtime/handlers/handlers_finalize.py \
+        src/qualix/core/runner.py src/qualix/commands/phase.py tests/test_p1_ops_quality.py
 git commit -m "feat(p1-8): --strict-profile-context 严格门禁（WARNING 升级为 BLOCKED）"
 ```
 
@@ -239,8 +239,8 @@ git commit -m "feat(p1-8): --strict-profile-context 严格门禁（WARNING 升�
 ## Task 2：Task store CLI（P1-5）
 
 **Files:**
-- Create: `src/dqg/commands/task_cmd.py`
-- Modify: `src/dqg/core/runner.py:188-228`（ops 区末尾加 task）
+- Create: `src/qualix/commands/task_cmd.py`
+- Modify: `src/qualix/core/runner.py:188-228`（ops 区末尾加 task）
 - Test: `tests/test_p1_ops_quality.py`
 
 - [ ] **Step 1: 写失败测试**
@@ -254,8 +254,8 @@ git commit -m "feat(p1-8): --strict-profile-context 严格门禁（WARNING 升�
 
 def test_cmd_task_list_returns_records(tmp_path):
     """cmd_task list 应返回已有 task runs."""
-    from dqg.commands.task_cmd import cmd_task
-    from dqg.runtime.task_store import create_task_run, complete_task_run
+    from qualix.commands.task_cmd import cmd_task
+    from qualix.runtime.task_store import create_task_run, complete_task_run
 
     # 创建两条 task run
     tid1 = create_task_run(tmp_path, task_type="adaptive", project_id="p1", phase_id="Q01")
@@ -276,7 +276,7 @@ def test_cmd_task_list_returns_records(tmp_path):
 
 def test_cmd_task_resume_no_tasks(tmp_path):
     """cmd_task resume 无可恢复 task 时应优雅返回（非 crash）."""
-    from dqg.commands.task_cmd import cmd_task
+    from qualix.commands.task_cmd import cmd_task
 
     args = type("A", (), {
         "project_id": "p1",
@@ -296,11 +296,11 @@ def test_cmd_task_resume_no_tasks(tmp_path):
 python -m pytest tests/test_p1_ops_quality.py::test_cmd_task_list_returns_records \
   tests/test_p1_ops_quality.py::test_cmd_task_resume_no_tasks -v 2>&1 | tail -8
 ```
-Expected: `ModuleNotFoundError: No module named 'dqg.commands.task_cmd'`
+Expected: `ModuleNotFoundError: No module named 'qualix.commands.task_cmd'`
 
 - [ ] **Step 3: 创建 task_cmd.py**
 
-新建 `src/dqg/commands/task_cmd.py`：
+新建 `src/qualix/commands/task_cmd.py`：
 
 ```python
 """qualix-run <pid> task list|resume — Task 管理 CLI."""
@@ -310,7 +310,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from dqg.log import get_logger
+from qualix.log import get_logger
 
 log = get_logger(__name__)
 
@@ -332,8 +332,8 @@ def _print_table(rows: list[dict[str, Any]]) -> None:
 
 def cmd_task(args, output_dir: Path) -> int:
     """qualix-run <pid> task list|resume."""
-    from dqg.commands.cli_json import cli_envelope, cli_json_mode, print_cli_json
-    from dqg.runtime.task_store import (
+    from qualix.commands.cli_json import cli_envelope, cli_json_mode, print_cli_json
+    from qualix.runtime.task_store import (
         get_latest_checkpoint,
         get_resumable_task,
         get_task_run,
@@ -428,7 +428,7 @@ def cmd_task(args, output_dir: Path) -> int:
 
 - [ ] **Step 4: 在 runner.py 注册 task 子命令**
 
-读取 `src/dqg/core/runner.py`，在 `# --- ops: metrics / observe / regression ---` 注释区（约 L188）之后、`# metrics` 之前插入：
+读取 `src/qualix/core/runner.py`，在 `# --- ops: metrics / observe / regression ---` 注释区（约 L188）之后、`# metrics` 之前插入：
 
 ```python
     # task
@@ -450,7 +450,7 @@ def cmd_task(args, output_dir: Path) -> int:
 
 ```python
     if cmd == "task":
-        from dqg.commands.task_cmd import cmd_task
+        from qualix.commands.task_cmd import cmd_task
 
         return cmd_task
 ```
@@ -473,7 +473,7 @@ Expected: no new failures
 - [ ] **Step 7: 提交**
 
 ```bash
-git add src/dqg/commands/task_cmd.py src/dqg/core/runner.py tests/test_p1_ops_quality.py
+git add src/qualix/commands/task_cmd.py src/qualix/core/runner.py tests/test_p1_ops_quality.py
 git commit -m "feat(p1-5): task store CLI（qualix-run <pid> task list/resume）"
 ```
 
@@ -482,9 +482,9 @@ git commit -m "feat(p1-5): task store CLI（qualix-run <pid> task list/resume）
 ## Task 3：四类运营口径（P1-9）
 
 **Files:**
-- Modify: `src/dqg/reporting/telemetry.py:22-39`（PhaseRunRecord）
-- Modify: `src/dqg/commands/phase.py:530-545`（cmd_approve telemetry）
-- Modify: `src/dqg/reporting/observability.py:91-136, 405-427, 220-312`
+- Modify: `src/qualix/reporting/telemetry.py:22-39`（PhaseRunRecord）
+- Modify: `src/qualix/commands/phase.py:530-545`（cmd_approve telemetry）
+- Modify: `src/qualix/reporting/observability.py:91-136, 405-427, 220-312`
 - Test: `tests/test_p1_ops_quality.py`
 
 - [ ] **Step 1: 写失败测试**
@@ -498,7 +498,7 @@ git commit -m "feat(p1-5): task store CLI（qualix-run <pid> task list/resume）
 
 def test_phase_run_record_has_force_approved_field():
     """PhaseRunRecord 应有 force_approved 字段，默认 False。"""
-    from dqg.reporting.telemetry import PhaseRunRecord
+    from qualix.reporting.telemetry import PhaseRunRecord
 
     r = PhaseRunRecord(project_id="p1", phase_id="Q01", phase_name="需求分析", action="approve", status="approved")
     assert hasattr(r, "force_approved"), "PhaseRunRecord 缺少 force_approved 字段"
@@ -508,8 +508,8 @@ def test_phase_run_record_has_force_approved_field():
 def test_closure_hours_computed(tmp_path):
     """_project_metrics 应计算 avg_closure_hours。"""
     from datetime import datetime, timezone, timedelta
-    from dqg.reporting.telemetry import PhaseRunRecord
-    from dqg.reporting.observability import _project_metrics
+    from qualix.reporting.telemetry import PhaseRunRecord
+    from qualix.reporting.observability import _project_metrics
 
     now = datetime.now(timezone.utc)
     records = [
@@ -530,8 +530,8 @@ def test_closure_hours_computed(tmp_path):
 
 def test_force_approve_rate_computed(tmp_path):
     """force_approve_rate 应等于 force_approved / total_approved。"""
-    from dqg.reporting.telemetry import PhaseRunRecord
-    from dqg.reporting.observability import _project_metrics
+    from qualix.reporting.telemetry import PhaseRunRecord
+    from qualix.reporting.observability import _project_metrics
 
     records = [
         PhaseRunRecord(project_id="p1", phase_id="Q01", phase_name="x", action="approve", status="approved", force_approved=True),
@@ -544,7 +544,7 @@ def test_force_approve_rate_computed(tmp_path):
 def test_generate_report_includes_guard_precision(tmp_path):
     """generate_report 的返回 payload 应含 guard_precision 字段。"""
     from datetime import date
-    from dqg.reporting.observability import generate_report
+    from qualix.reporting.observability import generate_report
 
     # 无记录也应能运行，payload 里有 guard_precision key
     try:
@@ -567,7 +567,7 @@ Expected: 4 FAILED
 
 - [ ] **Step 3: PhaseRunRecord 加 force_approved 字段**
 
-读取 `src/dqg/reporting/telemetry.py`，在 `llm_calls` 字段之后（约 L39）追加：
+读取 `src/qualix/reporting/telemetry.py`，在 `llm_calls` 字段之后（约 L39）追加：
 
 ```python
     force_approved: bool = False  # approve --force 时为 True，用于误报率统计
@@ -575,7 +575,7 @@ Expected: 4 FAILED
 
 - [ ] **Step 4: cmd_approve 传 force_approved**
 
-读取 `src/dqg/commands/phase.py`，找到 `append_record(` 调用（约 L534-545）：
+读取 `src/qualix/commands/phase.py`，找到 `append_record(` 调用（约 L534-545）：
 
 ```python
     append_record(
@@ -612,7 +612,7 @@ Expected: 4 FAILED
 
 - [ ] **Step 5: _project_metrics 加闭环时长和误报率**
 
-读取 `src/dqg/reporting/observability.py`。
+读取 `src/qualix/reporting/observability.py`。
 
 在 `_project_metrics` 函数（约 L91）中找到 `approve_records` 定义行（约 L93），在其下方追加：
 
@@ -654,7 +654,7 @@ Expected: 4 FAILED
 
 ```python
     try:
-        from dqg.reporting.guard_precision_report import build_guard_precision_summary
+        from qualix.reporting.guard_precision_report import build_guard_precision_summary
 
         payload["guard_precision"] = build_guard_precision_summary(output_dir)
     except Exception:
@@ -720,8 +720,8 @@ Expected: no new failures（`test_file_line_limit` 预存在，忽略）
 - [ ] **Step 10: 提交**
 
 ```bash
-git add src/dqg/reporting/telemetry.py src/dqg/commands/phase.py \
-        src/dqg/reporting/observability.py tests/test_p1_ops_quality.py
+git add src/qualix/reporting/telemetry.py src/qualix/commands/phase.py \
+        src/qualix/reporting/observability.py tests/test_p1_ops_quality.py
 git commit -m "feat(p1-9): 四类运营口径——闭环时长/误报率/Guard精度接入 observe 报告"
 ```
 

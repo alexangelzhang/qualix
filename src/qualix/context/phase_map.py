@@ -1,6 +1,6 @@
 """Phase-map 生成器：为上游 Phase 产物生成 ≤2KB 轻量索引.
 
-aider repo-map 思路的 DQG 移植：在 _upstream_context.md 之前注入一份
+aider repo-map 思路的 Qualix 移植：在 _upstream_context.md 之前注入一份
 结构性摘要（SE-id 列表、EUT 统计、覆盖率摘要），让 worker LLM 在读全文
 之前先建立全局感知，减少注意力稀释。
 """

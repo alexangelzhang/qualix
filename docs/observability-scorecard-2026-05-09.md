@@ -1,6 +1,6 @@
-# DQG 可观测性能力评分卡 · 2026-05-09
+# Qualix 可观测性能力评分卡 · 2026-05-09
 
-> **用途**：基线记录，用于对照 LangSmith / Langfuse 这两家业界成熟平台跟踪 DQG 可观测性能力的演进。
+> **用途**：基线记录，用于对照 LangSmith / Langfuse 这两家业界成熟平台跟踪 Qualix 可观测性能力的演进。
 >
 > **刷新频率**：可观测性相关功能成套落地后重评一次（上一次是 2026-05-09 的 P0-P3 包）。只做零星修改时不用重评。
 
@@ -12,11 +12,11 @@
 - **★★☆☆☆**：只有局部能力，或仅在特定场景可用
 - **★☆☆☆☆**：基本没有
 
-DQG 不追求在每一维都打满——某些维度（比如 playground）对 DQG 的工程化 prompt 装配机制意义不大，刻意留空。
+Qualix 不追求在每一维都打满——某些维度（比如 playground）对 Qualix 的工程化 prompt 装配机制意义不大，刻意留空。
 
 ## 9 维全景（2026-05-09）
 
-| 维度 | LangSmith | Langfuse | DQG 当前 | 核心差距 |
+| 维度 | LangSmith | Langfuse | Qualix 当前 | 核心差距 |
 |------|-----------|----------|----------|----------|
 | LLM 调用追踪 | ★★★★★ | ★★★★★ | **★★★★☆** | 仍差 per-step latency 分层（model / tool / prompt 装配三段独立计时）|
 | Prompt 管理 | ★★★★★ | ★★★★☆ | **★★★☆☆** | 仍差 playground（在线编辑）、部署流程（已写进 ROADMAP 待启动）|
@@ -26,7 +26,7 @@ DQG 不追求在每一维都打满——某些维度（比如 playground）对 D
 | 数据集管理 | ★★★★★ | ★★★★☆ | ★★★☆☆ | 仍差：版本化、从生产采样 |
 | 人工标注 | ★★★★☆ | ★★★★☆ | ★★☆☆☆ | approve/skip 是隐式反馈，缺结构化标注 UI + 评分维度 |
 | 回归检测 | ★★★★☆ | ★★★☆☆ | **★★★★☆** | regression.py + failure library + 周趋势做得不错；本轮 empirical baseline 间接降误报 |
-| 规则归因 | ★★☆☆☆ | ★★☆☆☆ | ★★★☆☆ | `rule_hash` + `rule_changes` 是 DQG 独有能力，通用平台没对应概念 |
+| 规则归因 | ★★☆☆☆ | ★★☆☆☆ | ★★★☆☆ | `rule_hash` + `rule_changes` 是 Qualix 独有能力，通用平台没对应概念 |
 
 ## 本轮（2026-05-09 P0-P3 包）的评分迁移
 
@@ -40,9 +40,9 @@ DQG 不追求在每一维都打满——某些维度（比如 playground）对 D
 
 未变动 4 项：数据集管理、人工标注、回归检测、规则归因——不是优先级，本轮未排期。
 
-## DQG 相对通用平台的独特优势
+## Qualix 相对通用平台的独特优势
 
-这几条是 LangSmith / Langfuse **不具备**的领域特化能力，应被视为 DQG 的结构性差异，不是需要"赶上"的差距：
+这几条是 LangSmith / Langfuse **不具备**的领域特化能力，应被视为 Qualix 的结构性差异，不是需要"赶上"的差距：
 
 1. **质量门禁语义**：可观测性围绕 Phase 质量门禁（Q01-Q07）设计，不是通用 LLM tracing。Judge/Critique 投票、共识机制、早停策略是领域特有
 2. **规则级归因**：`compute_rule_hash()` + `rule_changes` 能追踪到"哪条 baseline 规则变更导致指标退化"
@@ -56,7 +56,7 @@ DQG 不追求在每一维都打满——某些维度（比如 playground）对 D
 | 小工作量顺手做 | LLM tracing 的 per-step latency 分层 | 0.5 周 | 下次动 agent.py 时一并做 |
 | 架构级改动再动 | 成本归因到 rule（rule_hash 打通到 llm_call）| 1.5 周 | 等"成本异常告警"有明确需求再启动 |
 | 架构级改动再动 | 实时告警流（消息队列 / SSE）| 2+ 周 | 当前批处理日报模型够用，不启动 |
-| ROI 低，默认不做 | Prompt playground（在线编辑 UI） | 2+ 周 | DQG 的 prompt 是 skill 文件 + 工程化注入，和 LangSmith 的"一段字符串"不是一回事 |
+| ROI 低，默认不做 | Prompt playground（在线编辑 UI） | 2+ 周 | Qualix 的 prompt 是 skill 文件 + 工程化注入，和 LangSmith 的"一段字符串"不是一回事 |
 | ROI 低，默认不做 | Prompt 部署流程（label/灰度/回滚）| 2 周 | 已写进 ROADMAP §C "待启动"，详见该节启动条件与跳过条件 |
 | 次优先 | 数据集版本化 + 从生产采样 | 1.5 周 | 等 regression case 规模化（>500 条）再做 |
 | 次优先 | 人工标注结构化 UI + 多维评分 | 2+ 周 | 等对标注质量有量化要求时再做 |

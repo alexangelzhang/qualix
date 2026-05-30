@@ -44,7 +44,7 @@ def test_compile_wiki_truncates_long_summary(tmp_path: Path) -> None:
 
 def test_lint_wiki_collects_truncated_bundle(tmp_path: Path) -> None:
     output_dir = tmp_path / "output"
-    wiki_root = output_dir / ".dqg-wiki"
+    wiki_root = output_dir / ".qualix-wiki"
     wiki_root.mkdir(parents=True, exist_ok=True)
     wiki_root.joinpath("index.md").write_text("index\n" + ("x" * (WIKI_LINT_FILE_EXCERPT_LIMIT + 50)), encoding="utf-8")
     wiki_root.joinpath("notes.md").write_text("notes\n" + ("y" * (WIKI_LINT_FILE_EXCERPT_LIMIT + 50)), encoding="utf-8")

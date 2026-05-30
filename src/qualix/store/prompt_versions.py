@@ -15,7 +15,7 @@ log = get_logger(__name__)
 
 
 def _enabled() -> bool:
-    return os.environ.get("DQG_PROMPT_VERSION_STORE", "1").strip().lower() not in ("0", "false", "no")
+    return os.environ.get("QUALIX_PROMPT_VERSION_STORE", "1").strip().lower() not in ("0", "false", "no")
 
 
 def record_prompt_snapshot(

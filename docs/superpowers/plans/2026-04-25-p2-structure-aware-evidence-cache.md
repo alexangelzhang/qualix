@@ -14,9 +14,9 @@
 
 | Action | File | Responsibility |
 |--------|------|----------------|
-| Create | `src/dqg/cache/evidence_cache.py` | Evidence Pack structural cache: hash, store, lookup, stats |
-| Modify | `src/dqg/context/context_loader.py` | Integrate cache into `load_context()` and `render_evidence_pack()` |
-| Modify | `src/dqg/context/chunk_processor.py` | Upgrade `_file_cache` to mtime-aware LRU |
+| Create | `src/qualix/cache/evidence_cache.py` | Evidence Pack structural cache: hash, store, lookup, stats |
+| Modify | `src/qualix/context/context_loader.py` | Integrate cache into `load_context()` and `render_evidence_pack()` |
+| Modify | `src/qualix/context/chunk_processor.py` | Upgrade `_file_cache` to mtime-aware LRU |
 | Create | `tests/test_evidence_cache.py` | Cache hit/miss/invalidation tests |
 
 ---
@@ -24,7 +24,7 @@
 ### Task 1: Create `EvidencePackCache` with structural hashing
 
 **Files:**
-- Create: `src/dqg/cache/evidence_cache.py`
+- Create: `src/qualix/cache/evidence_cache.py`
 - Create: `tests/test_evidence_cache.py`
 
 - [ ] **Step 1: Write the failing test**
@@ -41,7 +41,7 @@ from pathlib import Path
 
 def test_cache_miss_then_hit(tmp_path: Path):
     """First call should miss, second with same files should hit."""
-    from dqg.cache.evidence_cache import EvidencePackCache
+    from qualix.cache.evidence_cache import EvidencePackCache
 
     cache = EvidencePackCache(tmp_path)
 
@@ -70,7 +70,7 @@ def test_cache_miss_then_hit(tmp_path: Path):
 
 def test_cache_invalidates_on_file_change(tmp_path: Path):
     """Modifying a source file should invalidate the cache."""
-    from dqg.cache.evidence_cache import EvidencePackCache
+    from qualix.cache.evidence_cache import EvidencePackCache
 
     cache = EvidencePackCache(tmp_path)
 
@@ -90,7 +90,7 @@ def test_cache_invalidates_on_file_change(tmp_path: Path):
 
 def test_cache_invalidates_on_file_added(tmp_path: Path):
     """Adding a new file to the input set should invalidate."""
-    from dqg.cache.evidence_cache import EvidencePackCache
+    from qualix.cache.evidence_cache import EvidencePackCache
 
     cache = EvidencePackCache(tmp_path)
 
@@ -109,7 +109,7 @@ def test_cache_invalidates_on_file_added(tmp_path: Path):
 
 def test_cache_stats(tmp_path: Path):
     """Stats should track hits and misses."""
-    from dqg.cache.evidence_cache import EvidencePackCache
+    from qualix.cache.evidence_cache import EvidencePackCache
 
     cache = EvidencePackCache(tmp_path)
     f1 = tmp_path / "x.md"
@@ -128,7 +128,7 @@ def test_cache_stats(tmp_path: Path):
 
 def test_empty_file_list(tmp_path: Path):
     """Empty file list should not crash."""
-    from dqg.cache.evidence_cache import EvidencePackCache
+    from qualix.cache.evidence_cache import EvidencePackCache
 
     cache = EvidencePackCache(tmp_path)
     assert cache.get("Q07", []) is None
@@ -138,12 +138,12 @@ def test_empty_file_list(tmp_path: Path):
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd /path/to/rd-gate && python -m pytest tests/test_evidence_cache.py -v`
+Run: `cd /path/to/qualix && python -m pytest tests/test_evidence_cache.py -v`
 Expected: FAIL — module does not exist
 
 - [ ] **Step 3: Implement EvidencePackCache**
 
-Create `src/dqg/cache/evidence_cache.py`:
+Create `src/qualix/cache/evidence_cache.py`:
 
 ```python
 """Structure-aware Evidence Pack cache.
@@ -157,8 +157,8 @@ from __future__ import annotations
 import hashlib
 from typing import TYPE_CHECKING, Any
 
-from dqg.json_utils import dump_json_str
-from dqg.log import get_logger
+from qualix.json_utils import dump_json_str
+from qualix.log import get_logger
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -196,7 +196,7 @@ class EvidencePackCache:
 
         struct_hash = self._structural_hash(phase_id, file_paths)
 
-        from dqg.store import get_connection
+        from qualix.store import get_connection
         import json
 
         with get_connection(self.output_dir) as conn:
@@ -228,7 +228,7 @@ class EvidencePackCache:
     def _has_empty_entry(self, phase_id: str) -> bool:
         """Check if there's a cached entry for empty file list."""
         struct_hash = self._structural_hash(phase_id, [])
-        from dqg.store import get_connection
+        from qualix.store import get_connection
         with get_connection(self.output_dir) as conn:
             row = conn.execute(
                 "SELECT 1 FROM query_cache WHERE query_hash = ? AND result_type = ?",
@@ -247,7 +247,7 @@ class EvidencePackCache:
         struct_hash = self._structural_hash(phase_id, file_paths)
 
         import time
-        from dqg.store import get_connection
+        from qualix.store import get_connection
 
         payload = {
             "structural_hash": struct_hash,
@@ -285,13 +285,13 @@ class EvidencePackCache:
 
 - [ ] **Step 4: Run tests**
 
-Run: `cd /path/to/rd-gate && python -m pytest tests/test_evidence_cache.py -v`
+Run: `cd /path/to/qualix && python -m pytest tests/test_evidence_cache.py -v`
 Expected: ALL PASS
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/dqg/cache/evidence_cache.py tests/test_evidence_cache.py
+git add src/qualix/cache/evidence_cache.py tests/test_evidence_cache.py
 git commit -m "feat(cache): add structure-aware Evidence Pack cache with file-signature hashing"
 ```
 
@@ -300,7 +300,7 @@ git commit -m "feat(cache): add structure-aware Evidence Pack cache with file-si
 ### Task 2: Integrate cache into `load_context()` pipeline
 
 **Files:**
-- Modify: `src/dqg/context/context_loader.py:247-304` (load_context function)
+- Modify: `src/qualix/context/context_loader.py:247-304` (load_context function)
 - Test: `tests/test_evidence_cache.py`
 
 - [ ] **Step 1: Write the failing test**
@@ -312,7 +312,7 @@ def test_load_context_uses_cache(monkeypatch, tmp_path: Path):
     """load_context should return cached Evidence Pack on second call with same files."""
     render_calls = []
 
-    from dqg.context.context_loader import LoadedContext
+    from qualix.context.context_loader import LoadedContext
     original_render = LoadedContext.render_evidence_pack
 
     def spy_render(self):
@@ -322,7 +322,7 @@ def test_load_context_uses_cache(monkeypatch, tmp_path: Path):
     monkeypatch.setattr(LoadedContext, "render_evidence_pack", spy_render)
 
     # Setup minimal project structure
-    from dqg.json_utils import save_json
+    from qualix.json_utils import save_json
     project_dir = tmp_path / "test-proj"
     (project_dir / "phaseA" / "_internal").mkdir(parents=True)
     save_json(project_dir / "state.json", {
@@ -336,7 +336,7 @@ def test_load_context_uses_cache(monkeypatch, tmp_path: Path):
     q01_report = q01_dir / "q01_report.md"
     q01_report.write_text("# Q01 Report\nREQ-001 需求内容", encoding="utf-8")
 
-    from dqg.context.context_loader import load_context
+    from qualix.context.context_loader import load_context
 
     # First call — should render
     ctx1 = load_context(tmp_path, "test-proj", "Q07")
@@ -358,14 +358,14 @@ Expected: FAIL — no cache integration yet
 
 - [ ] **Step 3: Integrate cache into LoadedContext**
 
-In `src/dqg/context/context_loader.py`, modify `render_evidence_pack()`:
+In `src/qualix/context/context_loader.py`, modify `render_evidence_pack()`:
 
 ```python
 def render_evidence_pack(self) -> str:
     """渲染 retrieval-first evidence pack（带结构缓存）."""
     # Check cache first
     if self._source_files and self._output_dir:
-        from dqg.cache.evidence_cache import EvidencePackCache
+        from qualix.cache.evidence_cache import EvidencePackCache
         cache = EvidencePackCache(self._output_dir)
         cached = cache.get(self.phase_id, self._source_files)
         if cached is not None:
@@ -376,7 +376,7 @@ def render_evidence_pack(self) -> str:
 
     # Store in cache
     if self._source_files and self._output_dir:
-        from dqg.cache.evidence_cache import EvidencePackCache
+        from qualix.cache.evidence_cache import EvidencePackCache
         cache = EvidencePackCache(self._output_dir)
         cache.put(self.phase_id, self._source_files, result,
                   token_count=self.total_tokens)
@@ -442,7 +442,7 @@ Expected: ALL PASS
 - [ ] **Step 6: Commit**
 
 ```bash
-git add src/dqg/context/context_loader.py tests/test_evidence_cache.py
+git add src/qualix/context/context_loader.py tests/test_evidence_cache.py
 git commit -m "feat(context): integrate Evidence Pack cache into load_context pipeline"
 ```
 
@@ -451,7 +451,7 @@ git commit -m "feat(context): integrate Evidence Pack cache into load_context pi
 ### Task 3: Upgrade `_file_cache` in chunk_processor to mtime-aware
 
 **Files:**
-- Modify: `src/dqg/context/chunk_processor.py:26-53`
+- Modify: `src/qualix/context/chunk_processor.py:26-53`
 - Test: `tests/test_evidence_cache.py`
 
 - [ ] **Step 1: Write the failing test**
@@ -462,7 +462,7 @@ Add to `tests/test_evidence_cache.py`:
 def test_file_cache_invalidates_on_mtime_change(tmp_path: Path):
     """chunk_processor._read_file_safe should re-read when mtime changes."""
     import time
-    from dqg.context.chunk_processor import _read_file_safe, _file_cache
+    from qualix.context.chunk_processor import _read_file_safe, _file_cache
 
     # Clear module-level cache
     _file_cache.clear()
@@ -489,7 +489,7 @@ Expected: FAIL — current cache returns stale "version-1"
 
 - [ ] **Step 3: Upgrade _file_cache to mtime-aware**
 
-In `src/dqg/context/chunk_processor.py`, replace the simple dict cache:
+In `src/qualix/context/chunk_processor.py`, replace the simple dict cache:
 
 ```python
 # Module-level file read cache: mtime-aware to avoid stale reads
@@ -540,7 +540,7 @@ Expected: ALL PASS
 - [ ] **Step 6: Commit**
 
 ```bash
-git add src/dqg/context/chunk_processor.py tests/test_evidence_cache.py
+git add src/qualix/context/chunk_processor.py tests/test_evidence_cache.py
 git commit -m "fix(chunk_processor): upgrade file cache to mtime-aware, prevent stale reads"
 ```
 
@@ -549,8 +549,8 @@ git commit -m "fix(chunk_processor): upgrade file cache to mtime-aware, prevent 
 ### Task 4: Add cache telemetry to observability pipeline
 
 **Files:**
-- Modify: `src/dqg/cache/evidence_cache.py`
-- Modify: `src/dqg/reporting/observability.py` (if needed)
+- Modify: `src/qualix/cache/evidence_cache.py`
+- Modify: `src/qualix/reporting/observability.py` (if needed)
 - Test: `tests/test_evidence_cache.py`
 
 - [ ] **Step 1: Write the failing test**
@@ -560,7 +560,7 @@ Add to `tests/test_evidence_cache.py`:
 ```python
 def test_cache_reports_savings(tmp_path: Path):
     """Cache should report estimated token savings on hit."""
-    from dqg.cache.evidence_cache import EvidencePackCache
+    from qualix.cache.evidence_cache import EvidencePackCache
 
     cache = EvidencePackCache(tmp_path)
     f1 = tmp_path / "big.md"
@@ -608,7 +608,7 @@ Expected: ALL PASS
 - [ ] **Step 4: Commit**
 
 ```bash
-git add src/dqg/cache/evidence_cache.py tests/test_evidence_cache.py
+git add src/qualix/cache/evidence_cache.py tests/test_evidence_cache.py
 git commit -m "feat(cache): add token savings telemetry to Evidence Pack cache"
 ```
 
@@ -626,7 +626,7 @@ Add to `tests/test_evidence_cache.py`:
 ```python
 def test_end_to_end_cache_across_phases(tmp_path: Path):
     """Verify cache works across multiple phases sharing upstream artifacts."""
-    from dqg.cache.evidence_cache import EvidencePackCache
+    from qualix.cache.evidence_cache import EvidencePackCache
 
     cache = EvidencePackCache(tmp_path)
 

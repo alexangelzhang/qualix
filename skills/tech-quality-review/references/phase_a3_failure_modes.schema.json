@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://dqg.local/schemas/phase_a3_failure_modes.schema.json",
+  "$id": "https://qualix.local/schemas/phase_a3_failure_modes.schema.json",
   "title": "Phase Q03 structured JSON — issues & failure_modes (machine contract)",
-  "description": "文档化契约，与 src/dqg/schemas/phase_q03.py（PhaseA6Output）对齐。产出文件名仍为 phase_a6_structured.json。禁止自造 severity/status 词汇。",
+  "description": "文档化契约，与 src/qualix/schemas/phase_q03.py（PhaseA6Output）对齐。产出文件名仍为 phase_a6_structured.json。禁止自造 severity/status 词汇。",
   "type": "object",
   "required": ["project_id", "issues", "failure_modes"],
   "additionalProperties": true,

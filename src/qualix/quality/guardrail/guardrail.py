@@ -1,6 +1,6 @@
 """PhaseGuardrail — 统一质量门控接口.
 
-借鉴 Agent SDK Guardrail 模式，将 DQG 现有三层检查
+借鉴 Agent SDK Guardrail 模式，将 Qualix 现有三层检查
 （finalize_checks / phase_constraints / rule_checks）
 统一为 PhaseGuardrail 接口。
 

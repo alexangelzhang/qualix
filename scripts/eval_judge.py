@@ -189,7 +189,7 @@ def main() -> None:
         print()
 
     results = []
-    with tempfile.TemporaryDirectory(prefix="dqg_eval_") as tmp_dir:
+    with tempfile.TemporaryDirectory(prefix="qualix_eval_") as tmp_dir:
         for i, case in enumerate(cases, 1):
             if args.verbose:
                 print(f"  [{i:2d}/{len(cases)}] {case['case_id']} ({case['error_type']}) ... ", end="", flush=True)

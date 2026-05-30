@@ -1,4 +1,4 @@
-"""JavaProvider — DQG Java 语言支持.
+"""JavaProvider — Qualix Java 语言支持.
 
 整合 AST 分析、断言强度映射、编译检查、弱断言检测。
 """

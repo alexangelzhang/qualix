@@ -7,26 +7,26 @@ from qualix.core.resource_resolver import ResourceResolver
 
 @pytest.fixture
 def tmp_project(tmp_path):
-    """模拟项目目录 + .dqg/"""
+    """模拟项目目录 + .qualix/"""
     project = tmp_path / "my-project"
     project.mkdir()
-    (project / ".dqg" / "skill-overrides").mkdir(parents=True)
-    (project / ".dqg" / "skill-overrides" / "Q01.md").write_text("override")
+    (project / ".qualix" / "skill-overrides").mkdir(parents=True)
+    (project / ".qualix" / "skill-overrides" / "Q01.md").write_text("override")
     return project
 
 
 @pytest.fixture
 def tmp_global(tmp_path):
-    """模拟 ~/.dqg/"""
-    global_dqg = tmp_path / "home" / ".dqg"
-    (global_dqg / "skills" / "Q01").mkdir(parents=True)
-    (global_dqg / "skills" / "Q01" / "SKILL.md").write_text("global skill")
-    (global_dqg / "references").mkdir(parents=True)
-    (global_dqg / "references" / "data.md").write_text("ref data")
-    (global_dqg / "profiles" / "java-ddd").mkdir(parents=True)
-    (global_dqg / "profiles" / "java-ddd" / "profile.json").write_text("{}")
-    (global_dqg / "regression").mkdir(parents=True)
-    return global_dqg
+    """模拟 ~/.qualix/"""
+    global_qualix = tmp_path / "home" / ".qualix"
+    (global_qualix / "skills" / "Q01").mkdir(parents=True)
+    (global_qualix / "skills" / "Q01" / "SKILL.md").write_text("global skill")
+    (global_qualix / "references").mkdir(parents=True)
+    (global_qualix / "references" / "data.md").write_text("ref data")
+    (global_qualix / "profiles" / "java-ddd").mkdir(parents=True)
+    (global_qualix / "profiles" / "java-ddd" / "profile.json").write_text("{}")
+    (global_qualix / "regression").mkdir(parents=True)
+    return global_qualix
 
 
 def test_resolve_project_override(tmp_project, tmp_global):
@@ -35,7 +35,7 @@ def test_resolve_project_override(tmp_project, tmp_global):
         global_root=tmp_global,
     )
     result = resolver.resolve("skill-overrides", "Q01.md")
-    assert result == tmp_project / ".dqg" / "skill-overrides" / "Q01.md"
+    assert result == tmp_project / ".qualix" / "skill-overrides" / "Q01.md"
 
 
 def test_resolve_global_fallback(tmp_project, tmp_global):
@@ -75,22 +75,22 @@ def test_list_category(tmp_project, tmp_global):
 
 
 def test_resolve_dir_project_override(tmp_project, tmp_global):
-    # project .dqg/profiles/ wins over global
-    (tmp_project / ".dqg" / "profiles").mkdir()
+    # project .qualix/profiles/ wins over global
+    (tmp_project / ".qualix" / "profiles").mkdir()
     resolver = ResourceResolver(project_root=tmp_project, global_root=tmp_global)
     result = resolver.resolve_dir("profiles")
-    assert result == tmp_project / ".dqg" / "profiles"
+    assert result == tmp_project / ".qualix" / "profiles"
 
 
 def test_list_category_project_overrides_global(tmp_project, tmp_global):
     # same name in both layers — project wins
-    (tmp_project / ".dqg" / "profiles" / "java-ddd").mkdir(parents=True)
-    (tmp_project / ".dqg" / "profiles" / "java-ddd" / "profile.json").write_text("{}")
+    (tmp_project / ".qualix" / "profiles" / "java-ddd").mkdir(parents=True)
+    (tmp_project / ".qualix" / "profiles" / "java-ddd" / "profile.json").write_text("{}")
     resolver = ResourceResolver(project_root=tmp_project, global_root=tmp_global)
     items = resolver.list_category("profiles")
     # java-ddd entry should point to project-level, not global
     assert len(items) == 1
-    assert items[0] == tmp_project / ".dqg" / "profiles" / "java-ddd"
+    assert items[0] == tmp_project / ".qualix" / "profiles" / "java-ddd"
 
 
 def test_resolve_rejects_path_traversal(tmp_project, tmp_global):
@@ -102,13 +102,13 @@ def test_resolve_rejects_path_traversal(tmp_project, tmp_global):
 
 
 def test_layer4_fallback_when_nothing_else_matches(tmp_path, capsys):
-    """When .dqg/, ~/.dqg/, importlib.resources all miss, fall back to DQG repo root."""
+    """When .qualix/, ~/.qualix/, importlib.resources all miss, fall back to Qualix repo root."""
     ResourceResolver._LAYER4_WARNED.clear()
     empty_project = tmp_path / "empty"
     empty_project.mkdir()
-    empty_global = tmp_path / "empty-home" / ".dqg"
+    empty_global = tmp_path / "empty-home" / ".qualix"
     resolver = ResourceResolver(project_root=empty_project, global_root=empty_global)
-    # Real category that exists in DQG repo
+    # Real category that exists in Qualix repo
     result = resolver.resolve_dir("profiles")
     # Must resolve — exact path will depend on test location, just assert it exists and is a dir
     assert result.is_dir()
@@ -121,7 +121,7 @@ def test_layer4_warning_only_once_per_category(tmp_path, capsys):
     ResourceResolver._LAYER4_WARNED.clear()
     empty_project = tmp_path / "empty2"
     empty_project.mkdir()
-    empty_global = tmp_path / "empty-home2" / ".dqg"
+    empty_global = tmp_path / "empty-home2" / ".qualix"
     resolver = ResourceResolver(project_root=empty_project, global_root=empty_global)
     resolver.resolve_dir("profiles")
     resolver.resolve_dir("profiles")

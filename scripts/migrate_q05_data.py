@@ -21,7 +21,7 @@ from pathlib import Path
 BASE = Path(__file__).parent.parent
 FAILURE_LIB = BASE / "regression" / "failure-library" / "cases"
 PROMPT_DIR = BASE / "regression" / "cases" / "prompt-eval"
-DB_PATH = BASE / "output" / ".dqg" / "store.db"
+DB_PATH = BASE / "output" / ".qualix" / "store.db"
 
 
 def _patch_case_json(path: Path, new_phase: str, new_id: str | None = None) -> None:

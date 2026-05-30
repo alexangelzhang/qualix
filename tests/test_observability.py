@@ -157,9 +157,9 @@ def test_write_prometheus_snapshot(tmp_path: Path) -> None:
     alerts = [{"rule": "PHASE_FAILURE_RATE"}]
     path = _write_prometheus_snapshot(output_dir, payload, alerts)
     text = path.read_text(encoding="utf-8")
-    assert 'dqg_project_phase_approval_rate{project="P1"} 0.5' in text
-    assert 'dqg_phase_failure_rate{project="P1",phase="Q03"} 0.5' in text
-    assert "dqg_alert_count 1" in text
+    assert 'qualix_project_phase_approval_rate{project="P1"} 0.5' in text
+    assert 'qualix_phase_failure_rate{project="P1",phase="Q03"} 0.5' in text
+    assert "qualix_alert_count 1" in text
 
 
 def test_weekly_report_includes_failure_library_trend(tmp_path: Path) -> None:

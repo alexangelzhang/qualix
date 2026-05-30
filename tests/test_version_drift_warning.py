@@ -5,9 +5,9 @@ import subprocess
 
 def test_drift_warning_prints(tmp_path):
     """settings.yaml 版本与 installed 不同时跑 qualix-run，应在 stderr 看到漂移 warning."""
-    (tmp_path / ".dqg").mkdir()
-    (tmp_path / ".dqg" / "settings.yaml").write_text(
-        'dqg_version: "0.0.1-ancient"\nprofile: java-ddd\ncode_repos: []\n'
+    (tmp_path / ".qualix").mkdir()
+    (tmp_path / ".qualix" / "settings.yaml").write_text(
+        'qualix_version: "0.0.1-ancient"\nprofile: java-ddd\ncode_repos: []\n'
     )
     # init 是 workspace-level，不需要 project_id；用它触发 main 启动序列
     result = subprocess.run(
@@ -30,8 +30,8 @@ def test_no_drift_warning_when_matching(tmp_path):
     except Exception:
         installed = "unknown"
 
-    (tmp_path / ".dqg").mkdir()
-    (tmp_path / ".dqg" / "settings.yaml").write_text(f'dqg_version: "{installed}"\nprofile: java-ddd\ncode_repos: []\n')
+    (tmp_path / ".qualix").mkdir()
+    (tmp_path / ".qualix" / "settings.yaml").write_text(f'qualix_version: "{installed}"\nprofile: java-ddd\ncode_repos: []\n')
     result = subprocess.run(
         ["qualix-run", "init", "--force"],
         capture_output=True,
@@ -43,7 +43,7 @@ def test_no_drift_warning_when_matching(tmp_path):
 
 
 def test_no_drift_warning_when_no_settings(tmp_path):
-    """没有 .dqg/settings.yaml 时不应打 warning."""
+    """没有 .qualix/settings.yaml 时不应打 warning."""
     result = subprocess.run(
         ["qualix-run", "init"],
         capture_output=True,

@@ -14,8 +14,8 @@
 
 | Action | File | Responsibility |
 |--------|------|----------------|
-| Modify | `src/dqg/agents/adaptive_loop.py` | Split context_files into static (evidence) vs dynamic (handoff); pass both to Agent |
-| Modify | `src/dqg/agents/agent.py` | Accept optional `dynamic_context_files` param; build messages with static prefix + dynamic suffix |
+| Modify | `src/qualix/agents/adaptive_loop.py` | Split context_files into static (evidence) vs dynamic (handoff); pass both to Agent |
+| Modify | `src/qualix/agents/agent.py` | Accept optional `dynamic_context_files` param; build messages with static prefix + dynamic suffix |
 | Create | `tests/test_adaptive_cache_prefix.py` | Verify message prefix stability across iterations |
 | Modify | `tests/test_agent_evidence_pack.py` | Add test for dynamic_context_files separation |
 
@@ -24,8 +24,8 @@
 ### Task 1: Add `dynamic_context_files` parameter to `Agent.run()`
 
 **Files:**
-- Modify: `src/dqg/agents/agent.py:244` (run method signature)
-- Modify: `src/dqg/agents/agent.py:120` (add `_build_dynamic_payload`)
+- Modify: `src/qualix/agents/agent.py:244` (run method signature)
+- Modify: `src/qualix/agents/agent.py:120` (add `_build_dynamic_payload`)
 - Test: `tests/test_agent_evidence_pack.py`
 
 - [ ] **Step 1: Write the failing test**
@@ -36,7 +36,7 @@ In `tests/test_agent_evidence_pack.py`, add a test that verifies dynamic_context
 def test_agent_run_separates_dynamic_context(monkeypatch, tmp_path: Path) -> None:
     """dynamic_context_files should produce a separate user message WITHOUT cache_control."""
     backend = _FakeBackend()
-    monkeypatch.setattr("dqg.agents.agent.create_backend", lambda *args, **kwargs: backend)
+    monkeypatch.setattr("qualix.agents.agent.create_backend", lambda *args, **kwargs: backend)
 
     static_file = tmp_path / "evidence.md"
     static_file.write_text("REQ-001 需求内容", encoding="utf-8")
@@ -71,12 +71,12 @@ def test_agent_run_separates_dynamic_context(monkeypatch, tmp_path: Path) -> Non
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd /path/to/rd-gate && python -m pytest tests/test_agent_evidence_pack.py::test_agent_run_separates_dynamic_context -v`
+Run: `cd /path/to/qualix && python -m pytest tests/test_agent_evidence_pack.py::test_agent_run_separates_dynamic_context -v`
 Expected: FAIL — `Agent.run()` does not accept `dynamic_context_files`
 
 - [ ] **Step 3: Add `_build_dynamic_payload` method and update `run()` signature**
 
-In `src/dqg/agents/agent.py`, add the dynamic payload builder and update `run()`:
+In `src/qualix/agents/agent.py`, add the dynamic payload builder and update `run()`:
 
 ```python
 # After _build_context_payload (line ~142), add:
@@ -145,13 +145,13 @@ Also update the cache lookup/store calls and prompt_hash computation to use the 
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `cd /path/to/rd-gate && python -m pytest tests/test_agent_evidence_pack.py -v`
+Run: `cd /path/to/qualix && python -m pytest tests/test_agent_evidence_pack.py -v`
 Expected: ALL PASS (including existing tests — they don't pass dynamic_context_files, so behavior unchanged)
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/dqg/agents/agent.py tests/test_agent_evidence_pack.py
+git add src/qualix/agents/agent.py tests/test_agent_evidence_pack.py
 git commit -m "feat(agent): add dynamic_context_files param for cache-friendly message separation"
 ```
 
@@ -165,12 +165,12 @@ git commit -m "feat(agent): add dynamic_context_files param for cache-friendly m
 
 - [ ] **Step 1: Run all agent-related tests**
 
-Run: `cd /path/to/rd-gate && python -m pytest tests/test_agent_evidence_pack.py tests/test_agent_cache.py tests/test_adaptive_loop_cache.py tests/test_adaptive_loop_guard.py -v`
+Run: `cd /path/to/qualix && python -m pytest tests/test_agent_evidence_pack.py tests/test_agent_cache.py tests/test_adaptive_loop_cache.py tests/test_adaptive_loop_guard.py -v`
 Expected: ALL PASS — the `dynamic_context_files` param defaults to None, so all existing call sites are unaffected.
 
 - [ ] **Step 2: Run full test suite**
 
-Run: `cd /path/to/rd-gate && python -m pytest tests/ -x -q`
+Run: `cd /path/to/qualix && python -m pytest tests/ -x -q`
 Expected: ALL PASS
 
 ---
@@ -178,7 +178,7 @@ Expected: ALL PASS
 ### Task 3: Update AdaptiveLoop to separate static vs dynamic context
 
 **Files:**
-- Modify: `src/dqg/agents/adaptive_loop.py:262-296` (_execute_iteration method)
+- Modify: `src/qualix/agents/adaptive_loop.py:262-296` (_execute_iteration method)
 - Test: `tests/test_adaptive_cache_prefix.py` (new)
 
 - [ ] **Step 1: Write the failing test**
@@ -209,7 +209,7 @@ class FakeBackend:
 
 def _make_judge_result(consensus="FAIL", avg_score=2.0):
     """Create a minimal VoteResult for testing."""
-    from dqg.agents.judge_vote import JudgeVote, VoteResult
+    from qualix.agents.judge_vote import JudgeVote, VoteResult
     vote = JudgeVote(model="fake", verdict=consensus, overall=avg_score, issues=["issue1"])
     return VoteResult(votes=[vote], consensus=consensus, avg_score=avg_score, disagreements=[])
 
@@ -222,7 +222,7 @@ def loop_env(tmp_path):
     output_dir.mkdir()
 
     # Create state.json
-    from dqg.json_utils import save_json
+    from qualix.json_utils import save_json
     state_dir = output_dir / project_id
     state_dir.mkdir()
     save_json(state_dir / "state.json", {"project_id": project_id, "current_phase": "Q07"})
@@ -247,13 +247,13 @@ def loop_env(tmp_path):
 def test_static_prefix_identical_across_iterations(loop_env, monkeypatch):
     """The system + context_payload messages must be byte-identical in iter 1 and iter 2."""
     backend = FakeBackend()
-    monkeypatch.setattr("dqg.agents.agent.create_backend", lambda *a, **kw: backend)
+    monkeypatch.setattr("qualix.agents.agent.create_backend", lambda *a, **kw: backend)
 
     # Capture Agent.run calls
     run_calls: list[dict] = []
     original_run = None
 
-    from dqg.agents.agent import Agent
+    from qualix.agents.agent import Agent
     original_run = Agent.run
 
     def patched_run(self, user_message, context_files=None, dynamic_context_files=None):
@@ -271,17 +271,17 @@ def test_static_prefix_identical_across_iterations(loop_env, monkeypatch):
         _make_judge_result("PASS", 4.0),
     ])
     monkeypatch.setattr(
-        "dqg.agents.adaptive_loop.multi_judge_vote",
+        "qualix.agents.adaptive_loop.multi_judge_vote",
         lambda *a, **kw: next(judge_results),
     )
 
     # Mock task_store
-    monkeypatch.setattr("dqg.agents.adaptive_loop.create_task_run", lambda *a, **kw: "task-1")
-    monkeypatch.setattr("dqg.agents.adaptive_loop.complete_task_run", lambda *a, **kw: None)
-    monkeypatch.setattr("dqg.agents.adaptive_loop.add_task_event", lambda *a, **kw: None)
-    monkeypatch.setattr("dqg.agents.adaptive_loop.save_checkpoint", lambda *a, **kw: None)
+    monkeypatch.setattr("qualix.agents.adaptive_loop.create_task_run", lambda *a, **kw: "task-1")
+    monkeypatch.setattr("qualix.agents.adaptive_loop.complete_task_run", lambda *a, **kw: None)
+    monkeypatch.setattr("qualix.agents.adaptive_loop.add_task_event", lambda *a, **kw: None)
+    monkeypatch.setattr("qualix.agents.adaptive_loop.save_checkpoint", lambda *a, **kw: None)
 
-    from dqg.agents.adaptive_loop import AdaptiveLoop
+    from qualix.agents.adaptive_loop import AdaptiveLoop
     loop = AdaptiveLoop(loop_env["output_dir"])
 
     loop.run(
@@ -320,12 +320,12 @@ def test_static_prefix_identical_across_iterations(loop_env, monkeypatch):
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd /path/to/rd-gate && python -m pytest tests/test_adaptive_cache_prefix.py::test_static_prefix_identical_across_iterations -v`
+Run: `cd /path/to/qualix && python -m pytest tests/test_adaptive_cache_prefix.py::test_static_prefix_identical_across_iterations -v`
 Expected: FAIL — AdaptiveLoop still prepends handoff to context_files
 
 - [ ] **Step 3: Modify `_execute_iteration` to separate static/dynamic context**
 
-In `src/dqg/agents/adaptive_loop.py`, change the fixer iteration (lines 276-296):
+In `src/qualix/agents/adaptive_loop.py`, change the fixer iteration (lines 276-296):
 
 Current code (iteration > 0):
 ```python
@@ -349,18 +349,18 @@ This keeps `context_files` (the static evidence) identical across iterations, an
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `cd /path/to/rd-gate && python -m pytest tests/test_adaptive_cache_prefix.py -v`
+Run: `cd /path/to/qualix && python -m pytest tests/test_adaptive_cache_prefix.py -v`
 Expected: PASS
 
 - [ ] **Step 5: Run full test suite**
 
-Run: `cd /path/to/rd-gate && python -m pytest tests/ -x -q`
+Run: `cd /path/to/qualix && python -m pytest tests/ -x -q`
 Expected: ALL PASS
 
 - [ ] **Step 6: Commit**
 
 ```bash
-git add src/dqg/agents/adaptive_loop.py tests/test_adaptive_cache_prefix.py
+git add src/qualix/agents/adaptive_loop.py tests/test_adaptive_cache_prefix.py
 git commit -m "feat(adaptive-loop): separate static/dynamic context for prompt cache hits on retries"
 ```
 
@@ -369,7 +369,7 @@ git commit -m "feat(adaptive-loop): separate static/dynamic context for prompt c
 ### Task 4: Verify cache token metrics in telemetry
 
 **Files:**
-- Modify: `src/dqg/agents/agent.py:45-57` (extract_llm_call)
+- Modify: `src/qualix/agents/agent.py:45-57` (extract_llm_call)
 - Test: `tests/test_adaptive_cache_prefix.py`
 
 - [ ] **Step 1: Write the failing test**
@@ -398,10 +398,10 @@ def test_cache_tokens_reported_in_telemetry(loop_env, monkeypatch):
             return "fake-cache-backend"
 
     backend = CacheAwareBackend()
-    monkeypatch.setattr("dqg.agents.agent.create_backend", lambda *a, **kw: backend)
+    monkeypatch.setattr("qualix.agents.agent.create_backend", lambda *a, **kw: backend)
 
-    from dqg.agents.agent import Agent
-    from dqg.agents.llm_backends import LLMConfig
+    from qualix.agents.agent import Agent
+    from qualix.agents.llm_backends import LLMConfig
 
     agent = Agent(
         name="test",
@@ -427,7 +427,7 @@ def test_cache_tokens_reported_in_telemetry(loop_env, monkeypatch):
 
 - [ ] **Step 2: Run test to verify it passes (or fails)**
 
-Run: `cd /path/to/rd-gate && python -m pytest tests/test_adaptive_cache_prefix.py::test_cache_tokens_reported_in_telemetry -v`
+Run: `cd /path/to/qualix && python -m pytest tests/test_adaptive_cache_prefix.py::test_cache_tokens_reported_in_telemetry -v`
 
 Check: The `token_usage` dict in `AgentResult` already accumulates whatever the backend returns. If the test passes, no code change needed. If it fails, update the token accumulation in `Agent.run()` (line 328) to also capture cache tokens:
 
@@ -444,7 +444,7 @@ And include them in the final `token_usage` dict (line 377).
 
 - [ ] **Step 3: Update `extract_llm_call` to surface cache metrics**
 
-In `src/dqg/agents/agent.py`, update `extract_llm_call()` (line 45):
+In `src/qualix/agents/agent.py`, update `extract_llm_call()` (line 45):
 
 ```python
 def extract_llm_call(result: AgentResult) -> dict[str, int | str | bool | float]:
@@ -466,13 +466,13 @@ def extract_llm_call(result: AgentResult) -> dict[str, int | str | bool | float]
 
 - [ ] **Step 4: Run tests**
 
-Run: `cd /path/to/rd-gate && python -m pytest tests/test_adaptive_cache_prefix.py tests/test_agent_evidence_pack.py -v`
+Run: `cd /path/to/qualix && python -m pytest tests/test_adaptive_cache_prefix.py tests/test_agent_evidence_pack.py -v`
 Expected: ALL PASS
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/dqg/agents/agent.py tests/test_adaptive_cache_prefix.py
+git add src/qualix/agents/agent.py tests/test_adaptive_cache_prefix.py
 git commit -m "feat(telemetry): surface cache_creation/cache_read token metrics in LLM call telemetry"
 ```
 
@@ -503,10 +503,10 @@ def test_message_bytes_prefix_stable(monkeypatch, tmp_path):
         def name(self):
             return "spy-backend"
 
-    monkeypatch.setattr("dqg.agents.agent.create_backend", lambda *a, **kw: SpyBackend())
+    monkeypatch.setattr("qualix.agents.agent.create_backend", lambda *a, **kw: SpyBackend())
 
-    from dqg.agents.agent import Agent
-    from dqg.agents.llm_backends import LLMConfig
+    from qualix.agents.agent import Agent
+    from qualix.agents.llm_backends import LLMConfig
 
     evidence = tmp_path / "evidence.md"
     evidence.write_text("REQ-001 需求\nBR-001 规则\nSE-001 语义期望", encoding="utf-8")
@@ -547,12 +547,12 @@ def test_message_bytes_prefix_stable(monkeypatch, tmp_path):
 
 - [ ] **Step 2: Run test**
 
-Run: `cd /path/to/rd-gate && python -m pytest tests/test_adaptive_cache_prefix.py::test_message_bytes_prefix_stable -v`
+Run: `cd /path/to/qualix && python -m pytest tests/test_adaptive_cache_prefix.py::test_message_bytes_prefix_stable -v`
 Expected: PASS
 
 - [ ] **Step 3: Run full test suite**
 
-Run: `cd /path/to/rd-gate && python -m pytest tests/ -x -q`
+Run: `cd /path/to/qualix && python -m pytest tests/ -x -q`
 Expected: ALL PASS
 
 - [ ] **Step 4: Commit**

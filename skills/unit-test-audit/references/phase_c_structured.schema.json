@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://dqg.local/schemas/phase_c_structured.schema.json",
+  "$id": "https://qualix.local/schemas/phase_c_structured.schema.json",
   "title": "Phase Q06 structured JSON — phase_c_structured.json",
-  "description": "与 src/dqg/schemas/phase_q06.py（PhaseCOutput）对齐。IRON LAW: audit_items 每条须有 eut_id（EUT 逐条），禁止按 SE 汇总代替多条 EUT。findings 每条须有 id 与 severity。",
+  "description": "与 src/qualix/schemas/phase_q06.py（PhaseCOutput）对齐。IRON LAW: audit_items 每条须有 eut_id（EUT 逐条），禁止按 SE 汇总代替多条 EUT。findings 每条须有 id 与 severity。",
   "type": "object",
   "required": ["project_id"],
   "additionalProperties": true,

@@ -112,7 +112,7 @@ def _ensure_prompt_versions_table(conn: sqlite3.Connection) -> None:
 
 # ---------------------------------------------------------------------------
 # Harness 层 Schema：通用基础设施表（LLM cache、代码索引、知识图谱）
-# 这些表不含 DQG 业务概念，可被任何 Domain App 复用
+# 这些表不含 Qualix 业务概念，可被任何 Domain App 复用
 # ---------------------------------------------------------------------------
 
 _HARNESS_SCHEMA = """
@@ -218,8 +218,8 @@ CREATE INDEX IF NOT EXISTS idx_metrics_timestamp ON metrics(timestamp);
 """
 
 # ---------------------------------------------------------------------------
-# Domain 层 Schema：DQG 质量门禁业务表
-# 这些表包含 Phase、Judge、Bug Case 等 DQG 特有概念
+# Domain 层 Schema：Qualix 质量门禁业务表
+# 这些表包含 Phase、Judge、Bug Case 等 Qualix 特有概念
 # ---------------------------------------------------------------------------
 
 _DOMAIN_SCHEMA = """

@@ -21,15 +21,16 @@ from pathlib import Path
 sys.path.insert(0, os.path.dirname(__file__))
 from hook_utils import inject, read_stdin
 
-# DQG output 目录相对项目根目录的路径（按 phase_service.py 约定）
+# Qualix output 目录相对项目根目录的路径（按 phase_service.py 约定）
 _OUTPUT_SUBDIR = "output"
 
 
 def _find_project_root() -> Path | None:
-    """从当前目录向上找到含 pyproject.toml 或 dqg_starter.md 的 DQG 项目根目录。"""
+    """从当前目录向上找到含 pyproject.toml 或 starter 的 Qualix 项目根目录。"""
     cwd = Path(os.getcwd())
     for candidate in [cwd, *cwd.parents]:
-        if (candidate / "dqg_starter.md").exists() or (candidate / "pyproject.toml").exists():
+        has_starter = (candidate / "qualix_starter.md").exists() or (candidate / "qualix_starter.md").exists()
+        if has_starter or (candidate / "pyproject.toml").exists():
             return candidate
     return None
 

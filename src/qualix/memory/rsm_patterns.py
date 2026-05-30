@@ -5,7 +5,7 @@
 用法：
     from qualix.memory.rsm_patterns import extract_gap_patterns, inject_patterns_for_phase_a
     patterns = extract_gap_patterns(output_dir, project_ids=["proj-a", "proj-b"])
-    inject_patterns_for_phase_a(patterns)  # 写入 .dqg/MEMORY.md
+    inject_patterns_for_phase_a(patterns)  # 写入 .qualix/MEMORY.md
 """
 
 from __future__ import annotations
@@ -133,11 +133,11 @@ def format_patterns_as_checklist(patterns: list[dict[str, Any]]) -> str:
 
 
 def save_patterns_to_memory(patterns: list[dict[str, Any]]) -> bool:
-    """将高频 GAP 模式沉淀到 .dqg/MEMORY.md（global 标签）."""
+    """将高频 GAP 模式沉淀到 .qualix/MEMORY.md（global 标签）."""
     if not patterns:
         return False
 
-    mem_dir = Path(".dqg")
+    mem_dir = Path(".qualix")
     mem_dir.mkdir(exist_ok=True)
     mem_file = mem_dir / "MEMORY.md"
 
@@ -168,7 +168,7 @@ def save_patterns_to_file(
     """保存模式到独立文件（供分析和审计）."""
     from qualix.json_utils import save_json
 
-    path = output_dir / ".dqg" / "rsm_patterns.json"
+    path = output_dir / ".qualix" / "rsm_patterns.json"
     path.parent.mkdir(parents=True, exist_ok=True)
     save_json(path, patterns)
     return path

@@ -3,7 +3,7 @@
 将 telemetry、preference、failure-library、metrics 等 JSONL 数据
 迁移到单个 SQLite 数据库，支持查询和聚合。
 
-数据库位置: output/.dqg/store.db
+数据库位置: output/.qualix/store.db
 
 实际实现已拆分到 store.core / store.telemetry / store.preferences /
 store.bug_cases / store.metrics / store.judge / store.experiments /

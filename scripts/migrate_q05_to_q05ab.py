@@ -28,7 +28,7 @@ from pathlib import Path
 
 
 def find_output_dir(base: Path) -> Path:
-    """找到 output 目录（兼容 DQG repo 内和 repo 外两种布局）."""
+    """找到 output 目录（兼容 Qualix repo 内和 repo 外两种布局）."""
     if (base / "output").is_dir():
         return base / "output"
     return base

@@ -1,4 +1,4 @@
-"""DQG 统一异常层次.
+"""Qualix 统一异常层次.
 
 替代 None / error list / raw exception 三种不一致的错误处理模式。
 """
@@ -6,11 +6,11 @@
 from __future__ import annotations
 
 
-class DQGError(Exception):
-    """DQG 基础异常."""
+class QualixError(Exception):
+    """Qualix 基础异常."""
 
 
-class PhaseError(DQGError):
+class PhaseError(QualixError):
     """Phase 执行相关错误."""
 
     def __init__(self, phase_id: str, message: str) -> None:
@@ -18,7 +18,7 @@ class PhaseError(DQGError):
         super().__init__(f"[Phase {phase_id}] {message}")
 
 
-class ValidationError(DQGError):
+class ValidationError(QualixError):
     """结构化产物校验失败."""
 
     def __init__(self, errors: list[str]) -> None:
@@ -27,15 +27,15 @@ class ValidationError(DQGError):
         super().__init__(summary)
 
 
-class StorageError(DQGError):
+class StorageError(QualixError):
     """存储层错误（SQLite / 文件 I/O）."""
 
 
-class ConfigError(DQGError):
+class ConfigError(QualixError):
     """配置错误（缺少环境变量、profile 不存在等）."""
 
 
-class LLMError(DQGError):
+class LLMError(QualixError):
     """LLM API 调用失败."""
 
     def __init__(self, model: str, message: str) -> None:

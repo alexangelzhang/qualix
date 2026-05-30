@@ -1,0 +1,54 @@
+# Qualix Quality Gate — GitLab CI 模板
+#
+# 使用方式（在项目的 .gitlab-ci.yml 中）：
+#
+#   include:
+#     - project: 'nr-car-service/qualix'
+#       ref: main
+#       file: 'qualix/ci/gitlab/qualix-gate.yml'
+#
+#   qualix-quality-gate:
+#     extends: .qualix-quality-gate
+#     variables:
+#       QUALIX_PROJECT_ID: your-project-id
+#       QUALIX_PHASE: Q06
+#
+
+.qualix-install: &qualix-install
+  - pip install -e "${QUALIX_REPO_PATH:-qualix/qualix}" --quiet
+
+.qualix-quality-gate:
+  stage: test
+  image: python:3.11-slim
+  variables:
+    QUALIX_PROJECT_ID: ""        # 必填：Qualix 项目 ID
+    QUALIX_PHASE: "Q06"          # 可选：Phase ID，默认 Q06
+    QUALIX_FAIL_ON: "hard"       # 可选：hard / soft / any
+    QUALIX_OUTPUT_DIR: "output"  # 可选：output 目录路径
+  script:
+    - *qualix-install
+    - |
+      qualix-run "$QUALIX_PROJECT_ID" ci-gate "$QUALIX_PHASE" \
+        --fail-on "$QUALIX_FAIL_ON" \
+        --pr-comment > qualix_gate_report.md 2>/dev/null || true
+      # 也输出 JSON 供后续 job 消费
+      qualix-run "$QUALIX_PROJECT_ID" ci-gate "$QUALIX_PHASE" \
+        --fail-on "$QUALIX_FAIL_ON" \
+        --json > qualix_verdict.json 2>/dev/null
+      EXIT_CODE=$?
+      cat qualix_gate_report.md
+      exit $EXIT_CODE
+  artifacts:
+    when: always
+    paths:
+      - qualix_verdict.json
+      - qualix_gate_report.md
+    expire_in: 7 days
+  allow_failure: false
+
+# 仅产生警告，不阻断流水线
+.qualix-quality-gate-soft:
+  extends: .qualix-quality-gate
+  variables:
+    QUALIX_FAIL_ON: "soft"
+  allow_failure: true

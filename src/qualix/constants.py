@@ -1,4 +1,4 @@
-"""DQG 全局常量集中管理.
+"""Qualix 全局常量集中管理.
 
 所有硬编码的 Phase ID、目录名、文件名映射、路径常量、数字阈值
 统一在此定义，其他模块通过 import 引用，禁止就地硬编码。
@@ -101,16 +101,16 @@ LEGACY_PHASE_ID_MAP: Final = MappingProxyType(
 # 目录 / 文件路径常量
 # ---------------------------------------------------------------------------
 
-DB_FILENAME = ".dqg/store.db"
-DASHBOARD_PID_FILE = ".dqg/dashboard.pid"
-MEMORY_FILE = ".dqg/MEMORY.md"
-MEMORY_SIDECAR_QUEUE = ".dqg/memory_sidecar_queue.jsonl"
-MEMORY_GARDEN_REPORT = ".dqg/_memory_garden_report.json"
+DB_FILENAME = ".qualix/store.db"
+DASHBOARD_PID_FILE = ".qualix/dashboard.pid"
+MEMORY_FILE = ".qualix/MEMORY.md"
+MEMORY_SIDECAR_QUEUE = ".qualix/memory_sidecar_queue.jsonl"
+MEMORY_GARDEN_REPORT = ".qualix/_memory_garden_report.json"
 # memory/garden: 同 Phase GAP 两两极性冲突检测的配对上限（O(n²) 保护）。
 # 超限后截断并发 log.info 告警，不抽样、不抛异常。GAP 数 >40 的场景目前罕见，
 # 真实出现后再考虑抽样策略或按 business_path 分桶。
 MEMORY_GAP_CONTRADICTION_MAX_PAIRS = 40
-WIKI_DIR = ".dqg-wiki"
+WIKI_DIR = ".qualix-wiki"
 CASES_DIR = "regression/failure-library/cases"
 GOLDEN_DIR = "regression/golden"
 PREFERENCE_LOG = "regression/preference_history.jsonl"

@@ -2,11 +2,11 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add three RDT-inspired optimizations to DQG's adaptive loop: ACT depth-adaptive review, anchor injection to prevent drift, and shared+routed Judge rubrics.
+**Goal:** Add three RDT-inspired optimizations to Qualix's adaptive loop: ACT depth-adaptive review, anchor injection to prevent drift, and shared+routed Judge rubrics.
 
 **Architecture:** Three independent modifications to existing modules — P1 adds depth config lookup in adaptive_loop using blast_radius risk_tier, P2 extends handoff_builder with anchor extraction and injects upstream context into fixer iterations, P3 splits judge rubrics into shared (40%) + routed (60%) layers with weight normalization when dynamic dimensions are appended.
 
-**Tech Stack:** Python 3.11+, pytest, existing DQG modules (constants, adaptive_loop, handoff_builder, judge_vote, judge_rubrics)
+**Tech Stack:** Python 3.11+, pytest, existing Qualix modules (constants, adaptive_loop, handoff_builder, judge_vote, judge_rubrics)
 
 ---
 
@@ -14,11 +14,11 @@
 
 | Action | File | Responsibility |
 |--------|------|---------------|
-| Modify | `src/dqg/constants.py` | Add `REVIEW_DEPTH_CONFIG`, `REVIEW_DEPTH_DEFAULT`, `SHARED_RUBRIC_DIMENSIONS` |
-| Modify | `src/dqg/agents/handoff_builder.py` | Add `extract_anchor_summary()`, extend `build_handoff_document()` with anchor section |
-| Modify | `src/dqg/agents/judge_vote.py` | Add `force_secondary` param to `multi_judge_vote()` |
-| Modify | `src/dqg/quality/judge_rubrics.py` | Add `PHASE_ROUTED_RUBRICS`, `compose_rubric()`, `_render_rubric()` |
-| Modify | `src/dqg/agents/adaptive_loop.py` | Wire depth config, anchor injection, and composed rubric |
+| Modify | `src/qualix/constants.py` | Add `REVIEW_DEPTH_CONFIG`, `REVIEW_DEPTH_DEFAULT`, `SHARED_RUBRIC_DIMENSIONS` |
+| Modify | `src/qualix/agents/handoff_builder.py` | Add `extract_anchor_summary()`, extend `build_handoff_document()` with anchor section |
+| Modify | `src/qualix/agents/judge_vote.py` | Add `force_secondary` param to `multi_judge_vote()` |
+| Modify | `src/qualix/quality/judge_rubrics.py` | Add `PHASE_ROUTED_RUBRICS`, `compose_rubric()`, `_render_rubric()` |
+| Modify | `src/qualix/agents/adaptive_loop.py` | Wire depth config, anchor injection, and composed rubric |
 | Create | `tests/test_review_depth.py` | P1 tests: depth config lookup, force_secondary |
 | Create | `tests/test_anchor_injection.py` | P2 tests: anchor extraction, handoff integration |
 | Create | `tests/test_compose_rubric.py` | P3 tests: rubric composition, weight normalization |
@@ -29,7 +29,7 @@
 ### Task 1: P1 — Review Depth Config Constants
 
 **Files:**
-- Modify: `src/dqg/constants.py` (append after line 211, after `ADAPTIVE_MAX_ITERATIONS`)
+- Modify: `src/qualix/constants.py` (append after line 211, after `ADAPTIVE_MAX_ITERATIONS`)
 - Create: `tests/test_review_depth.py`
 
 - [ ] **Step 1: Write the failing test for depth config lookup**
@@ -42,7 +42,7 @@ from __future__ import annotations
 
 def test_review_depth_config_has_all_tiers():
     """Every risk tier maps to a depth config."""
-    from dqg.constants import REVIEW_DEPTH_CONFIG
+    from qualix.constants import REVIEW_DEPTH_CONFIG
 
     for tier in ("LOW", "MEDIUM", "HIGH", "CRITICAL"):
         cfg = REVIEW_DEPTH_CONFIG[tier]
@@ -53,7 +53,7 @@ def test_review_depth_config_has_all_tiers():
 
 def test_review_depth_low_is_lightest():
     """LOW tier: 1 iteration, no secondary, skip critique."""
-    from dqg.constants import REVIEW_DEPTH_CONFIG
+    from qualix.constants import REVIEW_DEPTH_CONFIG
 
     cfg = REVIEW_DEPTH_CONFIG["LOW"]
     assert cfg["max_iterations"] == 1
@@ -63,7 +63,7 @@ def test_review_depth_low_is_lightest():
 
 def test_review_depth_high_forces_secondary():
     """HIGH tier: 3 iterations, force secondary."""
-    from dqg.constants import REVIEW_DEPTH_CONFIG
+    from qualix.constants import REVIEW_DEPTH_CONFIG
 
     cfg = REVIEW_DEPTH_CONFIG["HIGH"]
     assert cfg["max_iterations"] == 3
@@ -73,7 +73,7 @@ def test_review_depth_high_forces_secondary():
 
 def test_review_depth_default_is_medium():
     """Default fallback is MEDIUM."""
-    from dqg.constants import REVIEW_DEPTH_DEFAULT
+    from qualix.constants import REVIEW_DEPTH_DEFAULT
 
     assert REVIEW_DEPTH_DEFAULT == "MEDIUM"
 ```
@@ -85,7 +85,7 @@ Expected: FAIL with `ImportError: cannot import name 'REVIEW_DEPTH_CONFIG'`
 
 - [ ] **Step 3: Add constants to constants.py**
 
-Add after the `ADAPTIVE_MAX_ITERATIONS = 3` line (around line 211) in `src/dqg/constants.py`:
+Add after the `ADAPTIVE_MAX_ITERATIONS = 3` line (around line 211) in `src/qualix/constants.py`:
 
 ```python
 # ---------------------------------------------------------------------------
@@ -109,7 +109,7 @@ Expected: 4 passed
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/dqg/constants.py tests/test_review_depth.py
+git add src/qualix/constants.py tests/test_review_depth.py
 git commit -m "feat(p1): add REVIEW_DEPTH_CONFIG constants for ACT depth-adaptive review"
 ```
 
@@ -118,7 +118,7 @@ git commit -m "feat(p1): add REVIEW_DEPTH_CONFIG constants for ACT depth-adaptiv
 ### Task 2: P1 — force_secondary in multi_judge_vote
 
 **Files:**
-- Modify: `src/dqg/agents/judge_vote.py:146-254` (`multi_judge_vote` function)
+- Modify: `src/qualix/agents/judge_vote.py:146-254` (`multi_judge_vote` function)
 - Modify: `tests/test_review_depth.py` (append tests)
 
 - [ ] **Step 1: Write the failing test for force_secondary**
@@ -131,14 +131,14 @@ from unittest.mock import patch, MagicMock
 
 def test_force_secondary_skips_boundary_check():
     """force_secondary=True invokes secondary models regardless of primary score."""
-    from dqg.agents.judge_vote import multi_judge_vote, JudgeVote
+    from qualix.agents.judge_vote import multi_judge_vote, JudgeVote
 
     fake_vote = JudgeVote(
         model="primary", scores={}, overall=4.5, verdict="PASS",
         issues=[], duration=1.0, raw_output="clean output", health="HEALTHY",
     )
 
-    with patch("dqg.agents.judge_vote._run_single_judge", return_value=fake_vote) as mock_judge:
+    with patch("qualix.agents.judge_vote._run_single_judge", return_value=fake_vote) as mock_judge:
         result = multi_judge_vote(
             output_dir="/tmp",
             report_path="/tmp/report.md",
@@ -154,14 +154,14 @@ def test_force_secondary_skips_boundary_check():
 
 def test_no_force_secondary_skips_clear_pass():
     """Without force_secondary, clear PASS (4.5) skips secondary."""
-    from dqg.agents.judge_vote import multi_judge_vote, JudgeVote
+    from qualix.agents.judge_vote import multi_judge_vote, JudgeVote
 
     fake_vote = JudgeVote(
         model="primary", scores={}, overall=4.5, verdict="PASS",
         issues=[], duration=1.0, raw_output="clean output", health="HEALTHY",
     )
 
-    with patch("dqg.agents.judge_vote._run_single_judge", return_value=fake_vote):
+    with patch("qualix.agents.judge_vote._run_single_judge", return_value=fake_vote):
         result = multi_judge_vote(
             output_dir="/tmp",
             report_path="/tmp/report.md",
@@ -181,7 +181,7 @@ Expected: FAIL with `TypeError: multi_judge_vote() got an unexpected keyword arg
 
 - [ ] **Step 3: Add force_secondary parameter to multi_judge_vote**
 
-In `src/dqg/agents/judge_vote.py`, modify the `multi_judge_vote` function signature (line 146) and the boundary check logic (around line 233):
+In `src/qualix/agents/judge_vote.py`, modify the `multi_judge_vote` function signature (line 146) and the boundary check logic (around line 233):
 
 Change the function signature from:
 ```python
@@ -239,7 +239,7 @@ Expected: All existing tests pass
 - [ ] **Step 6: Commit**
 
 ```bash
-git add src/dqg/agents/judge_vote.py tests/test_review_depth.py
+git add src/qualix/agents/judge_vote.py tests/test_review_depth.py
 git commit -m "feat(p1): add force_secondary param to multi_judge_vote for HIGH/CRITICAL depth"
 ```
 
@@ -248,7 +248,7 @@ git commit -m "feat(p1): add force_secondary param to multi_judge_vote for HIGH/
 ### Task 3: P2 — Anchor Extraction from Upstream Context
 
 **Files:**
-- Modify: `src/dqg/agents/handoff_builder.py`
+- Modify: `src/qualix/agents/handoff_builder.py`
 - Create: `tests/test_anchor_injection.py`
 
 - [ ] **Step 1: Write the failing test for extract_anchor_summary**
@@ -291,7 +291,7 @@ SAMPLE_UPSTREAM = textwrap.dedent("""\
 
 def test_extract_anchor_summary_extracts_req_br_se():
     """Should extract REQ/BR/SE lines grouped by type."""
-    from dqg.agents.handoff_builder import extract_anchor_summary
+    from qualix.agents.handoff_builder import extract_anchor_summary
 
     result = extract_anchor_summary(SAMPLE_UPSTREAM)
     assert "REQ-001" in result
@@ -303,21 +303,21 @@ def test_extract_anchor_summary_extracts_req_br_se():
 
 def test_extract_anchor_summary_empty_input():
     """Empty input returns empty string."""
-    from dqg.agents.handoff_builder import extract_anchor_summary
+    from qualix.agents.handoff_builder import extract_anchor_summary
 
     assert extract_anchor_summary("") == ""
 
 
 def test_extract_anchor_summary_no_ids():
     """Input without REQ/BR/SE returns empty string."""
-    from dqg.agents.handoff_builder import extract_anchor_summary
+    from qualix.agents.handoff_builder import extract_anchor_summary
 
     assert extract_anchor_summary("just some random text\nno IDs here") == ""
 
 
 def test_extract_anchor_summary_truncates_to_max_tokens():
     """Long input gets truncated to max_tokens."""
-    from dqg.agents.handoff_builder import extract_anchor_summary
+    from qualix.agents.handoff_builder import extract_anchor_summary
 
     # Generate many REQ lines
     lines = [f"- REQ-{i:03d}: 需求描述 {i} " + "详细内容" * 20 for i in range(50)]
@@ -335,7 +335,7 @@ Expected: FAIL with `ImportError: cannot import name 'extract_anchor_summary'`
 
 - [ ] **Step 3: Implement extract_anchor_summary in handoff_builder.py**
 
-Add at the end of `src/dqg/agents/handoff_builder.py`:
+Add at the end of `src/qualix/agents/handoff_builder.py`:
 
 ```python
 import re
@@ -403,7 +403,7 @@ Expected: 4 passed
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/dqg/agents/handoff_builder.py tests/test_anchor_injection.py
+git add src/qualix/agents/handoff_builder.py tests/test_anchor_injection.py
 git commit -m "feat(p2): add extract_anchor_summary for anchor injection"
 ```
 
@@ -412,7 +412,7 @@ git commit -m "feat(p2): add extract_anchor_summary for anchor injection"
 ### Task 4: P2 — Wire Anchor into Handoff Document
 
 **Files:**
-- Modify: `src/dqg/agents/handoff_builder.py:11-75` (`build_handoff_document`)
+- Modify: `src/qualix/agents/handoff_builder.py:11-75` (`build_handoff_document`)
 - Modify: `tests/test_anchor_injection.py` (append tests)
 
 - [ ] **Step 1: Write the failing test for anchor in handoff**
@@ -422,13 +422,13 @@ Append to `tests/test_anchor_injection.py`:
 ```python
 def test_handoff_includes_anchor_section():
     """When anchor_facts is provided, handoff includes Anchor section between Goal and Progress."""
-    from dqg.agents.judge_vote import IterationRecord, VoteResult, JudgeVote
+    from qualix.agents.judge_vote import IterationRecord, VoteResult, JudgeVote
 
     vote = JudgeVote(model="m", scores={}, overall=2.5, verdict="FAIL", issues=[], duration=1.0)
     vr = VoteResult(votes=[vote], consensus="FAIL", avg_score=2.5, disagreements=[])
     prev = IterationRecord(iteration=1, judge_result=vr)
 
-    from dqg.agents.handoff_builder import build_handoff_document
+    from qualix.agents.handoff_builder import build_handoff_document
 
     anchor = "## Anchor（原始需求锚点 — 修正时不可偏离）\n\n### 核心需求 (REQ)\n- REQ-001: 测试需求"
     result = build_handoff_document(prev, 2, anchor_facts=anchor)
@@ -443,13 +443,13 @@ def test_handoff_includes_anchor_section():
 
 def test_handoff_without_anchor_unchanged():
     """When anchor_facts is None, handoff is unchanged from current behavior."""
-    from dqg.agents.judge_vote import IterationRecord, VoteResult, JudgeVote
+    from qualix.agents.judge_vote import IterationRecord, VoteResult, JudgeVote
 
     vote = JudgeVote(model="m", scores={}, overall=2.5, verdict="FAIL", issues=[], duration=1.0)
     vr = VoteResult(votes=[vote], consensus="FAIL", avg_score=2.5, disagreements=[])
     prev = IterationRecord(iteration=1, judge_result=vr)
 
-    from dqg.agents.handoff_builder import build_handoff_document
+    from qualix.agents.handoff_builder import build_handoff_document
 
     result = build_handoff_document(prev, 2, anchor_facts=None)
     assert "Anchor" not in result
@@ -464,7 +464,7 @@ Expected: FAIL with `TypeError: build_handoff_document() got an unexpected keywo
 
 - [ ] **Step 3: Modify build_handoff_document to accept anchor_facts**
 
-In `src/dqg/agents/handoff_builder.py`, change the function signature (line 11) from:
+In `src/qualix/agents/handoff_builder.py`, change the function signature (line 11) from:
 
 ```python
 def build_handoff_document(prev: "IterationRecord", next_iteration: int) -> str:
@@ -509,7 +509,7 @@ Expected: 6 passed
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/dqg/agents/handoff_builder.py tests/test_anchor_injection.py
+git add src/qualix/agents/handoff_builder.py tests/test_anchor_injection.py
 git commit -m "feat(p2): wire anchor_facts into handoff document between Goal and Progress"
 ```
 
@@ -518,7 +518,7 @@ git commit -m "feat(p2): wire anchor_facts into handoff document between Goal an
 ### Task 5: P3 — Shared Rubric Constants
 
 **Files:**
-- Modify: `src/dqg/constants.py` (append after `REVIEW_DEPTH_DEFAULT`)
+- Modify: `src/qualix/constants.py` (append after `REVIEW_DEPTH_DEFAULT`)
 - Create: `tests/test_compose_rubric.py`
 
 - [ ] **Step 1: Write the failing test for shared rubric dimensions**
@@ -531,7 +531,7 @@ from __future__ import annotations
 
 def test_shared_rubric_has_four_dimensions():
     """Shared rubric defines exactly 4 universal quality dimensions."""
-    from dqg.constants import SHARED_RUBRIC_DIMENSIONS
+    from qualix.constants import SHARED_RUBRIC_DIMENSIONS
 
     assert len(SHARED_RUBRIC_DIMENSIONS) == 4
     ids = {d["id"] for d in SHARED_RUBRIC_DIMENSIONS}
@@ -540,7 +540,7 @@ def test_shared_rubric_has_four_dimensions():
 
 def test_shared_rubric_weights_sum_to_040():
     """Shared rubric base weights sum to 0.40 (40%)."""
-    from dqg.constants import SHARED_RUBRIC_DIMENSIONS
+    from qualix.constants import SHARED_RUBRIC_DIMENSIONS
 
     total = sum(d["weight"] for d in SHARED_RUBRIC_DIMENSIONS)
     assert abs(total - 0.40) < 0.001
@@ -548,7 +548,7 @@ def test_shared_rubric_weights_sum_to_040():
 
 def test_shared_rubric_dimensions_have_rubric_scale():
     """Each shared dimension has a 1-5 rubric scale."""
-    from dqg.constants import SHARED_RUBRIC_DIMENSIONS
+    from qualix.constants import SHARED_RUBRIC_DIMENSIONS
 
     for dim in SHARED_RUBRIC_DIMENSIONS:
         assert "rubric" in dim
@@ -562,7 +562,7 @@ Expected: FAIL with `ImportError: cannot import name 'SHARED_RUBRIC_DIMENSIONS'`
 
 - [ ] **Step 3: Add SHARED_RUBRIC_DIMENSIONS to constants.py**
 
-Add after `REVIEW_DEPTH_DEFAULT` in `src/dqg/constants.py`:
+Add after `REVIEW_DEPTH_DEFAULT` in `src/qualix/constants.py`:
 
 ```python
 # ---------------------------------------------------------------------------
@@ -633,7 +633,7 @@ Expected: 3 passed
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/dqg/constants.py tests/test_compose_rubric.py
+git add src/qualix/constants.py tests/test_compose_rubric.py
 git commit -m "feat(p3): add SHARED_RUBRIC_DIMENSIONS constants for universal quality baseline"
 ```
 
@@ -642,7 +642,7 @@ git commit -m "feat(p3): add SHARED_RUBRIC_DIMENSIONS constants for universal qu
 ### Task 6: P3 — compose_rubric and Routed Rubrics
 
 **Files:**
-- Modify: `src/dqg/quality/judge_rubrics.py`
+- Modify: `src/qualix/quality/judge_rubrics.py`
 - Modify: `tests/test_compose_rubric.py` (append tests)
 
 - [ ] **Step 1: Write the failing tests for compose_rubric**
@@ -652,7 +652,7 @@ Append to `tests/test_compose_rubric.py`:
 ```python
 def test_compose_rubric_includes_shared_and_routed():
     """compose_rubric output contains both shared and routed dimension IDs."""
-    from dqg.quality.judge_rubrics import compose_rubric
+    from qualix.quality.judge_rubrics import compose_rubric
 
     result = compose_rubric("Q07")
     assert "source_citation" in result  # shared
@@ -661,7 +661,7 @@ def test_compose_rubric_includes_shared_and_routed():
 
 def test_compose_rubric_unknown_phase_only_shared():
     """Unknown phase ID returns only shared dimensions."""
-    from dqg.quality.judge_rubrics import compose_rubric
+    from qualix.quality.judge_rubrics import compose_rubric
 
     result = compose_rubric("Q99")
     assert "source_citation" in result
@@ -670,7 +670,7 @@ def test_compose_rubric_unknown_phase_only_shared():
 
 def test_compose_rubric_all_phases_have_routed():
     """Every known Phase (Q01-Q07) has routed rubric dimensions."""
-    from dqg.quality.judge_rubrics import compose_rubric, PHASE_ROUTED_RUBRICS
+    from qualix.quality.judge_rubrics import compose_rubric, PHASE_ROUTED_RUBRICS
 
     for phase_id in ("Q01", "Q03", "Q04", "Q05", "Q06", "Q07"):
         assert phase_id in PHASE_ROUTED_RUBRICS, f"{phase_id} missing from PHASE_ROUTED_RUBRICS"
@@ -680,7 +680,7 @@ def test_compose_rubric_all_phases_have_routed():
 
 def test_compose_rubric_with_dynamic_dimensions():
     """Dynamic dimensions are appended and weights are normalized."""
-    from dqg.quality.judge_rubrics import compose_rubric
+    from qualix.quality.judge_rubrics import compose_rubric
 
     dynamic = [{"id": "dyn_concurrency", "name": "并发安全", "weight": 0.15,
                 "rubric": {5: "好", 4: "较好", 3: "一般", 2: "差", 1: "很差"}}]
@@ -692,7 +692,7 @@ def test_compose_rubric_with_dynamic_dimensions():
 
 def test_compose_rubric_weights_normalized():
     """Weights in rendered rubric are normalized to sum to 100%."""
-    from dqg.quality.judge_rubrics import compose_rubric_structured
+    from qualix.quality.judge_rubrics import compose_rubric_structured
 
     dims = compose_rubric_structured("Q07")
     total = sum(d["weight"] for d in dims)
@@ -714,10 +714,10 @@ Expected: FAIL with `ImportError: cannot import name 'compose_rubric'`
 
 - [ ] **Step 3: Add PHASE_ROUTED_RUBRICS, compose_rubric, compose_rubric_structured to judge_rubrics.py**
 
-Add at the end of `src/dqg/quality/judge_rubrics.py`:
+Add at the end of `src/qualix/quality/judge_rubrics.py`:
 
 ```python
-from dqg.constants import SHARED_RUBRIC_DIMENSIONS
+from qualix.constants import SHARED_RUBRIC_DIMENSIONS
 
 # Phase → routed rubric dimensions (60% base weight).
 # These are the existing JUDGE_RUBRICS dimensions — we reference them directly.
@@ -819,7 +819,7 @@ Expected: 8 passed
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/dqg/quality/judge_rubrics.py tests/test_compose_rubric.py
+git add src/qualix/quality/judge_rubrics.py tests/test_compose_rubric.py
 git commit -m "feat(p3): add compose_rubric with shared+routed+dynamic weight normalization"
 ```
 
@@ -828,18 +828,18 @@ git commit -m "feat(p3): add compose_rubric with shared+routed+dynamic weight no
 ### Task 7: Wire P1 + P2 + P3 into Adaptive Loop
 
 **Files:**
-- Modify: `src/dqg/agents/adaptive_loop.py:62-199` (`run` method and `_execute_iteration`)
+- Modify: `src/qualix/agents/adaptive_loop.py:62-199` (`run` method and `_execute_iteration`)
 
 This is the integration task — wiring all three features into the adaptive loop.
 
 - [ ] **Step 1: Modify AdaptiveLoop.run() to resolve depth config from blast_radius**
 
-In `src/dqg/agents/adaptive_loop.py`, inside the `run()` method, after the `pd.mkdir(parents=True, exist_ok=True)` line (around line 85), add depth config resolution:
+In `src/qualix/agents/adaptive_loop.py`, inside the `run()` method, after the `pd.mkdir(parents=True, exist_ok=True)` line (around line 85), add depth config resolution:
 
 ```python
         # P1: ACT depth — resolve review depth from blast_radius risk_tier
-        from dqg.constants import REVIEW_DEPTH_CONFIG, REVIEW_DEPTH_DEFAULT
-        from dqg.json_utils import load_json as _load_json
+        from qualix.constants import REVIEW_DEPTH_CONFIG, REVIEW_DEPTH_DEFAULT
+        from qualix.json_utils import load_json as _load_json
 
         _blast_path = pd / "_internal" / "_blast_radius.json"
         _risk_tier = REVIEW_DEPTH_DEFAULT
@@ -949,7 +949,7 @@ Add the three new parameters to `_execute_iteration` signature:
             # P2: Extract anchor summary for handoff
             anchor_facts = None
             if upstream_path and upstream_path.exists():
-                from dqg.agents.handoff_builder import extract_anchor_summary
+                from qualix.agents.handoff_builder import extract_anchor_summary
                 try:
                     anchor_facts = extract_anchor_summary(
                         upstream_path.read_text(encoding="utf-8", errors="replace")
@@ -1031,7 +1031,7 @@ Expected: All existing tests pass (new params have defaults, backward compatible
 - [ ] **Step 6: Commit**
 
 ```bash
-git add src/dqg/agents/adaptive_loop.py
+git add src/qualix/agents/adaptive_loop.py
 git commit -m "feat: wire P1 depth config + P2 anchor injection + P3 force_secondary into adaptive loop"
 ```
 
@@ -1040,7 +1040,7 @@ git commit -m "feat: wire P1 depth config + P2 anchor injection + P3 force_secon
 ### Task 8: P3 — Wire compose_rubric into Adaptive Loop
 
 **Files:**
-- Modify: `src/dqg/agents/adaptive_loop.py` (`run` method)
+- Modify: `src/qualix/agents/adaptive_loop.py` (`run` method)
 
 - [ ] **Step 1: Add composed rubric resolution in run()**
 
@@ -1048,12 +1048,12 @@ In `AdaptiveLoop.run()`, after the P2 upstream context block, add rubric composi
 
 ```python
         # P3: Compose shared + routed rubric (replaces raw rubric string if phase_id known)
-        from dqg.quality.judge_rubrics import compose_rubric as _compose_rubric
+        from qualix.quality.judge_rubrics import compose_rubric as _compose_rubric
 
         if phase_id in ("Q01", "Q03", "Q04", "Q05", "Q06", "Q07"):
             _dynamic_dims = None
             try:
-                from dqg.quality.dynamic_rubric import generate_dynamic_dimensions
+                from qualix.quality.dynamic_rubric import generate_dynamic_dimensions
                 _dynamic_dims = generate_dynamic_dimensions(self.output_dir, project_id, phase_id)
             except Exception as e:
                 log.debug("Dynamic rubric generation failed: %s", e)
@@ -1070,7 +1070,7 @@ Expected: All tests pass
 - [ ] **Step 3: Commit**
 
 ```bash
-git add src/dqg/agents/adaptive_loop.py
+git add src/qualix/agents/adaptive_loop.py
 git commit -m "feat(p3): wire compose_rubric into adaptive loop for shared+routed judge rubrics"
 ```
 
@@ -1120,7 +1120,7 @@ def tmp_output(tmp_path):
 
 def test_p1_depth_config_resolves_from_blast_radius(tmp_output):
     """HIGH risk_tier → max_iterations=3, force_secondary=True."""
-    from dqg.constants import REVIEW_DEPTH_CONFIG
+    from qualix.constants import REVIEW_DEPTH_CONFIG
 
     cfg = REVIEW_DEPTH_CONFIG["HIGH"]
     assert cfg["max_iterations"] == 3
@@ -1132,7 +1132,7 @@ def test_p2_anchor_extracted_from_upstream(tmp_output):
     tmp_path, project_id = tmp_output
     upstream_path = tmp_path / project_id / "Q07" / "_upstream_context.md"
 
-    from dqg.agents.handoff_builder import extract_anchor_summary
+    from qualix.agents.handoff_builder import extract_anchor_summary
 
     text = upstream_path.read_text()
     anchor = extract_anchor_summary(text)
@@ -1143,7 +1143,7 @@ def test_p2_anchor_extracted_from_upstream(tmp_output):
 
 def test_p3_composed_rubric_has_shared_and_routed():
     """Q07 composed rubric includes both shared and routed dimensions."""
-    from dqg.quality.judge_rubrics import compose_rubric_structured
+    from qualix.quality.judge_rubrics import compose_rubric_structured
 
     dims = compose_rubric_structured("Q07")
     ids = {d["id"] for d in dims}
@@ -1160,8 +1160,8 @@ def test_p1_p2_p3_all_wired_in_adaptive_loop(tmp_output):
     tmp_path, project_id = tmp_output
 
     # We can't run the full loop (needs LLM), but we can verify the setup code runs
-    from dqg.constants import REVIEW_DEPTH_CONFIG, REVIEW_DEPTH_DEFAULT
-    from dqg.json_utils import load_json
+    from qualix.constants import REVIEW_DEPTH_CONFIG, REVIEW_DEPTH_DEFAULT
+    from qualix.json_utils import load_json
 
     blast_path = tmp_path / project_id / "Q07" / "_internal" / "_blast_radius.json"
     blast_data = load_json(blast_path)
@@ -1174,11 +1174,11 @@ def test_p1_p2_p3_all_wired_in_adaptive_loop(tmp_output):
     upstream_path = tmp_path / project_id / "Q07" / "_upstream_context.md"
     assert upstream_path.exists()
 
-    from dqg.agents.handoff_builder import extract_anchor_summary
+    from qualix.agents.handoff_builder import extract_anchor_summary
     anchor = extract_anchor_summary(upstream_path.read_text())
     assert "REQ-001" in anchor
 
-    from dqg.quality.judge_rubrics import compose_rubric
+    from qualix.quality.judge_rubrics import compose_rubric
     rubric = compose_rubric("Q07")
     assert "source_citation" in rubric
     assert "finding_validity" in rubric

@@ -5,14 +5,14 @@ from __future__ import annotations
 from unittest.mock import MagicMock, patch
 
 # ---------------------------------------------------------------------------
-# _DQGDeepEvalModel adapter
+# _QualixDeepEvalModel adapter
 # ---------------------------------------------------------------------------
 
 
-def test_dqg_model_generate_delegates_to_backend():
-    from src.qualix.quality.judge.score_calibration import _DQGDeepEvalModel
+def test_qualix_model_generate_delegates_to_backend():
+    from src.qualix.quality.judge.score_calibration import _QualixDeepEvalModel
 
-    model = _DQGDeepEvalModel("claude-haiku-4-5-20251001")
+    model = _QualixDeepEvalModel("claude-haiku-4-5-20251001")
     fake_backend = MagicMock()
     fake_backend.chat.return_value = ("The output is good.", {"total_tokens": 42})
     model._backend = fake_backend
@@ -22,10 +22,10 @@ def test_dqg_model_generate_delegates_to_backend():
     fake_backend.chat.assert_called_once_with([{"role": "user", "content": "Evaluate this report"}])
 
 
-def test_dqg_model_get_model_name():
-    from src.qualix.quality.judge.score_calibration import _DQGDeepEvalModel
+def test_qualix_model_get_model_name():
+    from src.qualix.quality.judge.score_calibration import _QualixDeepEvalModel
 
-    model = _DQGDeepEvalModel("claude-sonnet-4-6")
+    model = _QualixDeepEvalModel("claude-sonnet-4-6")
     assert model.get_model_name() == "claude-sonnet-4-6"
 
 
@@ -53,7 +53,7 @@ def test_run_deepeval_scoring_returns_none_on_import_error():
 
 
 def test_run_deepeval_scoring_maps_score_to_1_5():
-    """GEval 0-1 分映射到 DQG 1-5 分."""
+    """GEval 0-1 分映射到 Qualix 1-5 分."""
     from src.qualix.quality.judge.score_calibration import _run_deepeval_scoring
 
     mock_metric = MagicMock()
@@ -90,7 +90,7 @@ def test_run_deepeval_scoring_score_boundaries():
     """边界值：score=0 → 1.0, score=1 → 5.0."""
     from src.qualix.quality.judge.score_calibration import _run_deepeval_scoring
 
-    for geval_score, expected_dqg in [(0.0, 1.0), (1.0, 5.0)]:
+    for geval_score, expected_qualix in [(0.0, 1.0), (1.0, 5.0)]:
         mock_metric = MagicMock()
         mock_metric.score = geval_score
         with (
@@ -98,7 +98,7 @@ def test_run_deepeval_scoring_score_boundaries():
             patch("deepeval.test_case.LLMTestCase"),
         ):
             result = _run_deepeval_scoring("Q06", "report")
-        assert result == expected_dqg
+        assert result == expected_qualix
 
 
 # ---------------------------------------------------------------------------

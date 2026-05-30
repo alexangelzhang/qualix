@@ -29,7 +29,7 @@ def read_telemetry_span(span: dict[str, Any] | None, key: str, default: str = ""
 
 
 def telemetry_payload_sample_rate() -> float:
-    raw = os.environ.get("DQG_TELEMETRY_PAYLOAD_SAMPLE_RATE", str(_DEFAULT_SAMPLE_RATE)).strip()
+    raw = os.environ.get("QUALIX_TELEMETRY_PAYLOAD_SAMPLE_RATE", str(_DEFAULT_SAMPLE_RATE)).strip()
     try:
         return max(0.0, min(1.0, float(raw)))
     except ValueError:
@@ -39,8 +39,8 @@ def telemetry_payload_sample_rate() -> float:
 def telemetry_payload_max_chars() -> tuple[int, int]:
     """Returns (prompt_max, response_max)."""
     try:
-        p = int(os.environ.get("DQG_TELEMETRY_PAYLOAD_PROMPT_MAX", str(_DEFAULT_PROMPT_MAX)))
-        r = int(os.environ.get("DQG_TELEMETRY_PAYLOAD_RESPONSE_MAX", str(_DEFAULT_RESPONSE_MAX)))
+        p = int(os.environ.get("QUALIX_TELEMETRY_PAYLOAD_PROMPT_MAX", str(_DEFAULT_PROMPT_MAX)))
+        r = int(os.environ.get("QUALIX_TELEMETRY_PAYLOAD_RESPONSE_MAX", str(_DEFAULT_RESPONSE_MAX)))
         return max(0, p), max(0, r)
     except ValueError:
         return _DEFAULT_PROMPT_MAX, _DEFAULT_RESPONSE_MAX

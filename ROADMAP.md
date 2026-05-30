@@ -33,12 +33,12 @@
 
 已落地：
 
-- `dqg-regression run` 一键回放基线样例  
+- `qualix-regression run` 一键回放基线样例  
 - 基线样例集：`rights-platform`、`mrs`、接口新增、重构样例  
 - 失败样例库：`regression/cases/failure-library/`  
 - 失败样例元数据：`trigger_condition / error_type / fix_strategy / regression_case`  
 - 命令返回码门禁：任一回归失败返回非 0  
-- 周趋势统计：`dqg-regression trend --period weekly`
+- 周趋势统计：`qualix-regression trend --period weekly`
 
 验收结论（当前）：
 
@@ -90,7 +90,7 @@
 
 已落地：
 
-- 日报/周报：`dqg-observe report --period daily|weekly`  
+- 日报/周报：`qualix-observe report --period daily|weekly`  
 - 指标仓：`observability/metrics_history.jsonl`  
 - 告警规则：`BLOCK_SPIKE`、`PHASE_FAILURE_RATE`  
 - Prometheus 快照导出  
@@ -112,14 +112,14 @@
 
 - **Gap A — Phase finalize 提醒**：新增 `.claude/hooks/phase_finalize_reminder.py`（PostToolUse hook），检测 `qualix-run * execute` 完成后 Phase 仍处于 `in_progress` 时注入提醒，将"完成"从 AI 主观声明切换为状态机可验证状态；注册到 `.claude/settings.json` PostToolUse
 - **Gap D — SE-based 模式硬检测**：新增 `check_se_based_pattern()`（`finalize_checks.py`），Q05a/Q06 finalize 时自动检测 eut_id 以 SE- 开头、重复 eut_id、audit_items 数量 << SE 数量三类 SE-based 反模式；BLOCKED 级 hard-stop，将 CLAUDE.md 铁律第6条从软约束升级为机器强制
-- **Gap C — PreCompact Phase 进度断点**：`~/.claude/scripts/precompact_guard.py` 新增 `_write_dqg_phase_progress()`，PreCompact 时扫描 DQG output 目录，将 in_progress Phase + 已完成 EUT ID 列表写入 `output/<pid>/_phase_progress.json`；实现类 Ralph Loop 的 session 间进度定位
+- **Gap C — PreCompact Phase 进度断点**：`~/.claude/scripts/precompact_guard.py` 新增 `_write_qualix_phase_progress()`，PreCompact 时扫描 Qualix output 目录，将 in_progress Phase + 已完成 EUT ID 列表写入 `output/<pid>/_phase_progress.json`；实现类 Ralph Loop 的 session 间进度定位
 
 2026-05-27 完成（Evidence Contract 硬化 — 方案 A）：
 
 - **SE.source 跨引用校验**：`handle_se_source_evidence` handler（Q01 finalize, order=57, required=True）解析 `SE.source="file:N"`，验证 PRD ingest 文件第 N 行存在；source 非空但行号无效 → BLOCKED；source 空 → WARNING；成功落盘 `_internal/_se_source_evidence.json`（含 line_text + context_hash）
 - **EUT → SE.code_target grep**：`check_eut_code_target_traceability()`（Q05a finalize）从 bound_item → SE.code_target 提取类名，grep 代码仓库；未找到 → WARNING（TDD 兼容，非 BLOCKED）
 - **Q06 COVERED 证据字段（G10）**：`_check_covered_evidence_fields()`（Q06 finalize）检查 COVERED 条目：无 test_class 且无 test_location → WARNING；test_location.file 不存在于代码仓库 → BLOCKED
-- 实现：`src/dqg/quality/checks/evidence_contract.py`（新增）+ handlers_finalize.py + finalize_checks.py + q06_structure_checks.py；11 条单测（`tests/test_evidence_contract.py`），943 已有测试零回归
+- 实现：`src/qualix/quality/checks/evidence_contract.py`（新增）+ handlers_finalize.py + finalize_checks.py + q06_structure_checks.py；11 条单测（`tests/test_evidence_contract.py`），943 已有测试零回归
 - 方案 B（未来架构优化）见下方 P1 末尾
 
 2026-05-19 规划（统一 claim/evidence/verifier/gate 防幻觉架构）：
@@ -161,7 +161,7 @@
 - Worker 经验结晶（`context/skill_crystal.py`）— 从高分执行（score>=4.0）提取成功模式，结晶为可复用模板注入后续同 Phase 执行
 - DAG Preflight 增强（`runtime/preflight.py`）— 上游产物完整性检查（report + structured JSON 非空）+ 级联失败阻断（上游 tainted/parse_failed 时阻断下游），DAG 调度器每个 Phase 执行前自动运行
 - 静默失败修复（`runtime/handlers/handlers_finalize.py`）— `_async_write_json` 和 `_emit_handler` 的 `except: pass` 改为 `log.debug` 记录失败原因，消除调试盲区
-- CLI 命令整合 — 砍掉 4 个孤儿 entry point（dqg-orchestrate/dqg-metrics/dqg-observe/dqg-regression），收编为 `qualix-run` 子命令（metrics/observe/regression）；统一 Phase ID help 文本为 Q01-Q07；`dqg version` 去重委托 setup.py
+- CLI 命令整合 — 砍掉 4 个孤儿 entry point（qualix-orchestrate/qualix-metrics/qualix-observe/qualix-regression），收编为 `qualix-run` 子命令（metrics/observe/regression）；统一 Phase ID help 文本为 Q01-Q07；`qualix version` 去重委托 setup.py
 - 增量上下文检测（`context/loading/file_snapshot.py`）— sha256 + mtime 快照比对，上游 Phase 产物未变更时跳过重读，减少 DAG 模式和重跑场景的 IO 开销
 - 异构检测层（`runtime/handlers/handlers_detection.py`）— 四个 finalize handler：弱断言 gate（Q05 high-risk≥1 BLOCKED 左移卡控 / Q06 WARNING）、Q05 弱断言扫描（从 structured JSON 提取测试文件并生成 _weak_assert_context.json）、Mock 巧合正确检测（Q05 coincidence_hits BLOCKED / Q06 WARNING）、AI 产出标记（git blame + Co-Authored-By 推断代码来源）；EUT then 字段模糊检测（schema validator 拒绝"验证成功"等模糊描述，要求包含具体断言或值）
 - Skill Evolution 全自动闭环（`tracking/skill_auto_merge.py`）— 高置信度规则（3+ case 支撑）自动合入 SKILL.md + holdout 验证 + overfitting 自动 revert；低置信度仍走 HUMAN_REVIEW；`SKILL_AUTO_MERGE_ENABLED` 全局开关
@@ -278,7 +278,7 @@
     手工文件管理成本 > 系统化成本）
   - **工作量预估**：schema 改造 0.5 周 + skill_loader 改造 1 周 + CLI +
     UI 0.5 周。不包括历史数据迁移。
-  - **跳过条件**：DQG 的 prompt 是 skill 文件 + 工程化注入
+  - **跳过条件**：Qualix 的 prompt 是 skill 文件 + 工程化注入
     （EnumSource / Evidence Pack / Gene/Crystal），和 LangSmith
     "一段字符串" prompt 不是一回事，强上 deployment 可能和现有 skill
     加载链打架。这条不做决策时的默认状态是"不启动"。
@@ -336,13 +336,13 @@
 2026-04-23 新增（借鉴 LangChain Evaluating Skills 方法论）：
 
 - Prompt Fingerprint 基础设施 — `AgentResult.prompt_hash`（SHA256 前 16 位）+ `PhaseRunRecord.llm_calls` 聚合字段，自动捕获每次 LLM 调用的 model_id/prompt_hash/input_tokens/output_tokens/cache_hit，finalize 时从 `_adaptive_summary.json` 注入 telemetry；SQLite schema 同步扩展 + 存量 DB 自动迁移
-- Prompt Regression Test Set — `dqg-regression prompt-eval` 子命令，Q05/Q06 各有 curated test case（固定输入 + 已知正确输出），支持不同 prompt 版本的 A/B 指标对比；逻辑提取到 `tracking/prompt_eval.py`
-- Profile Rule Impact Measurement — `compute_rule_hash()` 按 Markdown 标题拆分规则块并计算 SHA256，`compare_with_baseline()` 扩展 `rule_changes` 归因字段，`dqg-regression rule-impact` 子命令输出规则变更→指标变化关联报告；逻辑提取到 `tracking/rule_impact.py`
+- Prompt Regression Test Set — `qualix-regression prompt-eval` 子命令，Q05/Q06 各有 curated test case（固定输入 + 已知正确输出），支持不同 prompt 版本的 A/B 指标对比；逻辑提取到 `tracking/prompt_eval.py`
+- Profile Rule Impact Measurement — `compute_rule_hash()` 按 Markdown 标题拆分规则块并计算 SHA256，`compare_with_baseline()` 扩展 `rule_changes` 归因字段，`qualix-regression rule-impact` 子命令输出规则变更→指标变化关联报告；逻辑提取到 `tracking/rule_impact.py`
 - Prompt-Level Observability — observe 报告新增"Prompt 效果"section：prompt 版本分布（top 10 hash）、token 成本分布（phase × model 汇总）、cache 命中率；旧数据 graceful 跳过
 
 仍需推进（P2）：
 
-- Hybrid search（BM25 + 语义融合）— memory/ 已有 FTS5，未来可参考 claude-context 的融合策略加语义搜索。DQG agent 在明确 Phase context 下工作，不像 IDE agent 需要全 codebase 检索，优先级低于 P1
+- Hybrid search（BM25 + 语义融合）— memory/ 已有 FTS5，未来可参考 claude-context 的融合策略加语义搜索。Qualix agent 在明确 Phase context 下工作，不像 IDE agent 需要全 codebase 检索，优先级低于 P1
 
 2026-04-08 进展补充：
 
@@ -377,7 +377,7 @@
 
 目标能力：
 
-- CI 中执行 `dqg-regression run` 与关键 Phase 校验  
+- CI 中执行 `qualix-regression run` 与关键 Phase 校验  
 - PR 阶段输出结构化质量结论（通过/有风险/阻断）  
 - 失败原因分层（内容质量 vs 报告规范）
 
@@ -422,60 +422,60 @@
 
 ## F. 规模化分发边界（P0，规模化前置条件）
 
-**定位**：解决"DQG 与用户项目代码边界模糊导致的 AI Agent 误改工具源码"问题。
+**定位**：解决"Qualix 与用户项目代码边界模糊导致的 AI Agent 误改工具源码"问题。
 
 **当前状态**：`已完成（P0，2026-05-11 交付 L1 备选 + L2 + L3 全部三层，走 install.sh 路线不发 PyPI）`
 
 > 详细症状诊断 + 三层修复路径见 [`docs/distribution-gap.md`](docs/distribution-gap.md)
-> 设计 + 实施细节见 [`docs/superpowers/specs/2026-05-11-dqg-tool-distribution-design.md`](docs/superpowers/specs/2026-05-11-dqg-tool-distribution-design.md) 和 [`docs/superpowers/plans/2026-05-11-dqg-tool-distribution.md`](docs/superpowers/plans/2026-05-11-dqg-tool-distribution.md)
+> 设计 + 实施细节见 [`docs/superpowers/specs/2026-05-11-qualix-tool-distribution-design.md`](docs/superpowers/specs/2026-05-11-qualix-tool-distribution-design.md) 和 [`docs/superpowers/plans/2026-05-11-qualix-tool-distribution.md`](docs/superpowers/plans/2026-05-11-qualix-tool-distribution.md)
 > 老用户迁移见 [`docs/migration-from-0.1.md`](docs/migration-from-0.1.md)
 
 ### 交付汇总（2026-05-11）
 
-- L1 备选：`install.sh` + `~/.dqg/` + `site-packages`（--dev/--dry-run/--skip-pip）
-- L2：`qualix-run init` 建 `.dqg/output/ + settings.yaml`，`qualix-run path <category>` 只读查看内置资源
+- L1 备选：`install.sh` + `~/.qualix/` + `site-packages`（--dev/--dry-run/--skip-pip）
+- L2：`qualix-run init` 建 `.qualix/output/ + settings.yaml`，`qualix-run path <category>` 只读查看内置资源
 - L3：CLAUDE.md guardrail 章节（marker 包裹、幂等替换）
 - 补强：`VERSION` 文件 + pyproject dynamic version、`ResourceResolver` 三层查找 + Layer-4 fallback、老路径 deprecation warning、版本漂移启动 warning、`qualix-run doctor` bundle 生成 + 脱敏 + glab 自动上传 + fallback 手动
 - 测试：848 passed / 0 新回归（22 新增测试全绿）
 
 ### 触发现象
 
-2026-05 第一个外部用户接入时观察到：用户的 Claude 在 DQG repo 里跑，发现 DQG 有 bug 后**直接修改 `src/dqg/` 源码**，而不是报 issue 给维护者。根因是现在 DQG 只能 `git clone` 使用，用户 cwd = DQG repo，工具和用户项目边界不存在。
+2026-05 第一个外部用户接入时观察到：用户的 Claude 在 Qualix repo 里跑，发现 Qualix 有 bug 后**直接修改 `src/qualix/` 源码**，而不是报 issue 给维护者。根因是现在 Qualix 只能 `git clone` 使用，用户 cwd = Qualix repo，工具和用户项目边界不存在。
 
 ### 为什么是 P0（不是 P1）
 
-在没有分发边界之前，其他 P1 工作（CI/PR 门禁、团队看板、飞书 Bot）**都在放大同一个问题**：每新增一个接入方，都会产生新的"Claude 改 DQG 代码"事件，用户的 patch 随下次升级全废。
+在没有分发边界之前，其他 P1 工作（CI/PR 门禁、团队看板、飞书 Bot）**都在放大同一个问题**：每新增一个接入方，都会产生新的"Claude 改 Qualix 代码"事件，用户的 patch 随下次升级全废。
 
 ### 修复路径（三层）
 
 - **L1 — PyPI 发布** `pip install qualix`，用户目录看不到源码。Claude 默认读不到源码 → 遇到错误只能汇报而非直接修
-- **L2 — `qualix-run init` 分离工作区**：用户项目下建 `.dqg/`（profile / SKILL overrides / output），工具本体用 `qualix-run path` 查询但不鼓励进入
-- **L3 — CLAUDE.md guardrail 样板**：`qualix-run init` 同时往用户项目的 `CLAUDE.md` 追加一段 "DQG 是 pip 装的工具，不要改它的源码；遇到错误执行 `qualix-run doctor` 收集信息 + 报告"
+- **L2 — `qualix-run init` 分离工作区**：用户项目下建 `.qualix/`（profile / SKILL overrides / output），工具本体用 `qualix-run path` 查询但不鼓励进入
+- **L3 — CLAUDE.md guardrail 样板**：`qualix-run init` 同时往用户项目的 `CLAUDE.md` 追加一段 "Qualix 是 pip 装的工具，不要改它的源码；遇到错误执行 `qualix-run doctor` 收集信息 + 报告"
 
 ### 验收标准
 
-- 用户 cwd 里 `ls` 看不到 DQG 源码
+- 用户 cwd 里 `ls` 看不到 Qualix 源码
 - `qualix-run doctor` 产出可上报的 issue bundle（错误 stack + 输入摘要 + 版本 + 相关 _internal/）
 - 新用户接入时，Claude Agent 默认行为是"读配置 + 跑 CLI"，而非"读源码 + 改源码"
 
 ### 工作量与依赖
 
 - `pyproject.toml` 资源声明 + 所有路径推导改 `importlib.resources`
-- `qualix-run init` 命令 + `.dqg/` 目录约定
+- `qualix-run init` 命令 + `.qualix/` 目录约定
 - 发 PyPI（version bump，当前是 0.1.0）
 - 迁移文档 + 升级指南
 - 预估：3-5 工作日，建议单独 session
 
 ### 从 VAF 借鉴（2026-05-10 补充）
 
-VAF（`~/git_dev/vibe-agentic-flow`）没发 PyPI 但通过 `install.sh + ~/.vcb/` 做硬了"工具/用户项目"边界，对 DQG 有 4 条可直接借鉴的点，按 ROI 排序：
+VAF（`~/git_dev/vibe-agentic-flow`）没发 PyPI 但通过 `install.sh + ~/.vcb/` 做硬了"工具/用户项目"边界，对 Qualix 有 4 条可直接借鉴的点，按 ROI 排序：
 
-1. **`install.sh` 模式作为 L1 备选**：`install.sh` 把 `skills/` / `references/` / `profiles/` 拷到 `~/.dqg/`，0.5 天即可拿到"用户 cwd 没源码"的物理边界，不必等 PyPI 改造（3-5 天）完成。详见 `docs/distribution-gap.md` §L1 备选
-2. **独立 `VERSION` 文件**：VAF 用 `VERSION` 纯文本（`2.3.1-rc.20260304`）做版本源，不和 `pyproject.toml` 耦合。DQG 当前 `version = "0.1.0"` 卡死一年没动 —— 根因是跟 PyPI 发布绑定的心理负担。加一个独立 VERSION 文件让版本号流转起来
-3. **双 starter 按角色分流**：VAF 根目录有 `vaf_starter.md` + `vaf_frontend_starter.md` 按角色分入口。DQG 当前只有 `dqg_starter.md`，新手/熟手/维护者挤同一份。拆为 `dqg_user_starter.md`（使用者视角）+ `dqg_dev_starter.md`（维护者视角），工作量 <1 小时但对规模化新用户体验影响大
-4. **`core/` 规则外置**：VAF 用 `core/rules/*.md` + `core/standards/*.md` + `core/templates/*.md` 把规则从代码里拽出来。DQG 的 `phase_registry.py` / `phase_contract.py` / `judge_rubrics.py` 现在是 Python 代码，用户改不了。长期演进方向是抽出 `core/rubrics/Q01.yaml` / `core/thresholds.yaml` 这类用户可定制的配置文件，Python 保留做运行时加载器。不用一次做完，下次改常量时顺手抽一个就是进了一步
+1. **`install.sh` 模式作为 L1 备选**：`install.sh` 把 `skills/` / `references/` / `profiles/` 拷到 `~/.qualix/`，0.5 天即可拿到"用户 cwd 没源码"的物理边界，不必等 PyPI 改造（3-5 天）完成。详见 `docs/distribution-gap.md` §L1 备选
+2. **独立 `VERSION` 文件**：VAF 用 `VERSION` 纯文本（`2.3.1-rc.20260304`）做版本源，不和 `pyproject.toml` 耦合。Qualix 当前 `version = "0.1.0"` 卡死一年没动 —— 根因是跟 PyPI 发布绑定的心理负担。加一个独立 VERSION 文件让版本号流转起来
+3. **双 starter 按角色分流**：VAF 根目录有 `vaf_starter.md` + `vaf_frontend_starter.md` 按角色分入口。Qualix 当前只有 `qualix_starter.md`，新手/熟手/维护者挤同一份。拆为 `qualix_user_starter.md`（使用者视角）+ `qualix_dev_starter.md`（维护者视角），工作量 <1 小时但对规模化新用户体验影响大
+4. **`core/` 规则外置**：VAF 用 `core/rules/*.md` + `core/standards/*.md` + `core/templates/*.md` 把规则从代码里拽出来。Qualix 的 `phase_registry.py` / `phase_contract.py` / `judge_rubrics.py` 现在是 Python 代码，用户改不了。长期演进方向是抽出 `core/rubrics/Q01.yaml` / `core/thresholds.yaml` 这类用户可定制的配置文件，Python 保留做运行时加载器。不用一次做完，下次改常量时顺手抽一个就是进了一步
 
-**DQG 比 VAF 强的地方**（对称看，不单向借鉴）：Multi-Judge + Anti-Rat/Overcorrection Guard + Bug Case Library 2000+ + Skill Evolution absorb 闭环 + 8 Tier 评分体系（`docs/evaluation-tiers.md`）都是 VAF 没有的。DQG 的问题是 **内在质量 > 外在交付**，VAF 相反。本节 4 条借鉴是补齐外在交付那一侧
+**Qualix 比 VAF 强的地方**（对称看，不单向借鉴）：Multi-Judge + Anti-Rat/Overcorrection Guard + Bug Case Library + Skill Evolution absorb 闭环 + 8 Tier 评分体系（`docs/evaluation-tiers.md`）都是 VAF 没有的。Qualix 的问题是 **内在质量 > 外在交付**，VAF 相反。本节 4 条借鉴是补齐外在交付那一侧
 
 ---
 
@@ -500,7 +500,7 @@ VAF（`~/git_dev/vibe-agentic-flow`）没发 PyPI 但通过 `install.sh + ~/.vcb
 - 增量分析模式（git diff）
 - 异常矩阵扩展（Java DDD+TMF，364 行）
 - Skill 自动迭代实验引擎（沙箱模式）
-- `dqg init` 初始化 + 看板自动启动
+- `qualix init` 初始化 + 看板自动启动
 - Judge/Critique 前置（finalize 前执行，不是 finalize 后）
 - 推理日志（`_reasoning_log.md`）强制交付 + finalize 硬性校验
 - 重跑防回退（产物数量减少自动告警）
@@ -517,7 +517,7 @@ VAF（`~/git_dev/vibe-agentic-flow`）没发 PyPI 但通过 `install.sh + ~/.vcb
 - 需求版本追踪（Zep 时序模式，自动标记新增/修改/删除/过期）
 - 跨项目知识网络（A-MEM 模式，自动建立跨项目相似链接）
 - 统一记忆层 API（`MemoryLayer`，一个入口搜索事实/图片/文本/代码）
-- `wiki_layer` 恢复并采用 excerpt/limit 策略，避免把 Phase Q01 文本和 `.dqg-wiki` 全文直接塞进 prompt
+- `wiki_layer` 恢复并采用 excerpt/limit 策略，避免把 Phase Q01 文本和 `.qualix-wiki` 全文直接塞进 prompt
 - 代码智能搜索（业务概念→代码关键词映射 + Java 结构索引 FTS5）
 - 需求粒度标准（Story + AC 分层模型）
 - BR 细节要求（禁止概括性描述，必须包含字段/枚举/校验/提示）
@@ -552,7 +552,7 @@ VAF（`~/git_dev/vibe-agentic-flow`）没发 PyPI 但通过 `install.sh + ~/.vcb
 - Q04 覆盖度结构化映射表（`coverage_matrix.py`，从 Phase Q01 自动生成 REQ/BR/SE→技术设计映射矩阵，LLM 填充而非自由审计）
 - 业务域变异测试推导（`business_mutations.py`，从 Phase Q01 SE 自动推导金额精度/状态机跳转/并发保护/空值注入等变异规则）
 - Harness/Domain 分层 Phase 0（`PHASE_DEFS` 提取到 `phase_registry.py`，store schema 拆为 `_HARNESS_SCHEMA` + `_DOMAIN_SCHEMA`）
-- Runtime Kernel Phase 0（`src/dqg/runtime/` 包：PhaseResult 结构化结果、EventType 生命周期事件、ExecutionContext 执行上下文、LifecycleRegistry handler 注册机制、execute/finalize sidecar 下沉为 11 个独立 handler）
+- Runtime Kernel Phase 0（`src/qualix/runtime/` 包：PhaseResult 结构化结果、EventType 生命周期事件、ExecutionContext 执行上下文、LifecycleRegistry handler 注册机制、execute/finalize sidecar 下沉为 11 个独立 handler）
 - 跨 session 进度文件（`_progress.json`，Phase 级 + 项目级，finalize 后自动生成，记录执行摘要/关键数字/下一步建议）
 - Session startup protocol（`session_startup.py`，标准化启动序列：读 state → 读 progress → 读 reasoning log → 输出 orientation summary）
 - Task store + resume 基础设施（`task_store.py`，SQLite task_runs/task_events/task_checkpoints 表，支持崩溃恢复和进度查询）
@@ -565,7 +565,7 @@ VAF（`~/git_dev/vibe-agentic-flow`）没发 PyPI 但通过 `install.sh + ~/.vcb
 - Phase B/D Judge rubric 补齐（B: EUT 覆盖/断言强度/可编译性/SE 追溯 4 维度；D: 发现有效率/需求对齐/严重级别/链路追踪 4 维度）
 - 覆盖率门禁代码化（`coverage_gate.py`，解析 JaCoCo XML，Phase Q06 finalize 时硬性校验 line >= 80% / branch >= 80%）
 - `commands/phase.py` 切换到 runtime 入口（cmd_execute/cmd_finalize 瘦身为薄壳，调用 runtime_execute/runtime_finalize + lifecycle handler）
-- `dqg_starter.md` 全面更新（Phase DAG、Q02、推理日志、Judge/Critique 前置、sidecar 说明、覆盖率门禁）
+- `qualix_starter.md` 全面更新（Phase DAG、Q02、推理日志、Judge/Critique 前置、sidecar 说明、覆盖率门禁）
 - 新增模块测试补齐（compile_check/blast_radius/coverage_matrix/dynamic_rubric/coverage_gate 共 21 条测试）
 - multi_agent.py judge prompt 统一到 quality/judge/judge.py（消除 Phase-A-only 的独立实现，dag_scheduler 自动获得全 Phase rubric）
 - cmd_auto 切换到 runtime 入口（execute/finalize handler 在 auto 模式下正常触发）
@@ -600,7 +600,7 @@ VAF（`~/git_dev/vibe-agentic-flow`）没发 PyPI 但通过 `install.sh + ~/.vcb
 - Java Provider 迁移（`languages/java/`，从 context/ 迁入 AST 分析器+断言映射，原位置 facade re-export 零破坏）
 - TypeScript Provider（`languages/typescript/`，tree-sitter-typescript AST 解析 expect().toXxx() 链式调用，Jest/Vitest 断言强度映射，5 种弱断言信号）
 - Pipeline Registry 驱动（handlers_execute 新增 language_detect handler，compile_check/weak_assert_context 支持 Provider 优先路径）
-- Profile 扩展（DqgProfile 新增 language 字段，新增 `typescript-service` profile）
+- Profile 扩展（QualixProfile 新增 language 字段，新增 `typescript-service` profile）
 - 端到端验证（service-cli 接入：detect→Jest 识别→tsc 编译→断言解析→弱断言报告）
 - LoopHealthMonitor（`agents/loop_health.py`，adaptive loop 3 维死循环检测：score stagnation / issue repetition / infra failure streak，支持 EARLY_STOP 早停省 token）
 - OutputCompletenessGuardrail（`quality/guardrail/output_completeness.py`，报告截断检测 + 按 Phase 最小长度门槛，注册为第 6 个 guardrail，零 LLM 成本前置拦截残缺报告）
@@ -624,7 +624,7 @@ VAF（`~/git_dev/vibe-agentic-flow`）没发 PyPI 但通过 `install.sh + ~/.vcb
 - 多凭证轮转（`credential_pool.py`，多 API key 配置 + 429 自动轮转 + least_used 策略 + 冷却机制）
 - Preflight 增强（`preflight.py`，adaptive/dag 每轮预检：checkpoint 恢复 + 产物完整性 + 依赖检查 + contract 存在性）
 - Harness Ablation Matrix（`harness_ablation.py`，24 个组件注册表 + compact/full/review-heavy 三种 profile + 成本估算 + ablation 报告）
-- DeepEval 评分校准层（`score_calibration.py`，Judge 评分一致性检测：DQG Judge vs DeepEval GEval 独立打分，drift > 1.0 触发告警；评分趋势监控：通胀/通缩检测）— **2026-05-10 更新**：`_run_deepeval_scoring` 已置为 no-op（`return None`），趋势检测保留。禁用原因：当时 GEval 绑 GPT-4/OpenAI，与 DQG 多 provider 策略冲突；且 Multi-Judge 投票 + Critique + Anti-Rat Guard 评审链已提供足够信号。**复活触发条件**见 §P2 DeepEval 集成条目
+- DeepEval 评分校准层（`score_calibration.py`，Judge 评分一致性检测：Qualix Judge vs DeepEval GEval 独立打分，drift > 1.0 触发告警；评分趋势监控：通胀/通缩检测）— **2026-05-10 更新**：`_run_deepeval_scoring` 已置为 no-op（`return None`），趋势检测保留。禁用原因：当时 GEval 绑 GPT-4/OpenAI，与 Qualix 多 provider 策略冲突；且 Multi-Judge 投票 + Critique + Anti-Rat Guard 评审链已提供足够信号。**复活触发条件**见 §P2 DeepEval 集成条目
 - 断线修复：DAG scheduler 接入 runtime（execute/finalize handler 在 dag 模式下正常触发）
 - 断线修复：score_calibration 注册为 finalize handler（order=95，自动触发一致性检测+趋势监控）
 - 断线修复：session_startup 接入 CLI startup 命令（orientation 输出到 stderr，不影响 JSON stdout）
@@ -700,7 +700,7 @@ VAF（`~/git_dev/vibe-agentic-flow`）没发 PyPI 但通过 `install.sh + ~/.vcb
 - ~~**跨模型泛化验证（golden × held-out 模型 runbook）**~~ → **2026-05-27 已完成**。`tracking/multi_model_judge.py`：MultiJudgeReport / ModelJudgeRun dataclass，`_compute_stats` 计算 score_range / score_stddev / verdict_agreement / fragile_dimensions / consistency_verdict（CONSISTENT / MARGINAL / DIVERGED）。CLI：`qualix-run PROJ regression multi-judge --phase Q03 --models a,b`，支持 `--json`。commit bbb6311f
 - ~~**Harness/Domain 分层 Phase 1**~~ → **2026-05-27 已完成**。新增 `ContextPolicy` dataclass + `_DEFAULT_POLICIES`（context_policy.py），upstream_collector 5 处 `if target_phase` 分支全部消除。新增 `PreCheckFn` + `register_pre_check` / `run_pre_checks`（lifecycle.py），Q06 compile pre-check 从 phase_runtime 迁移到 handlers_execute domain handler，phase_runtime 只调用泛化的 `run_pre_checks`。commit 3477ed5b
 - **Harness/Domain 分层 Phase 2** — `multi_agent.py` 的 `generate_critique_prompt` 硬编码 `phase_a_report.md`/`phase_a_structured.json` 路径改为从 `REPORT_MAP`/`STRUCTURED_JSON_MAP` 取值；`row_to_dict` 已有自动检测无需改动。顺手改，不专门立项
-- ~~**DeepEval 集成**~~ → **2026-05-27 已复活**。`_DQGDeepEvalModel(DeepEvalBaseLLM)` 适配器包装 `AnthropicBackend`，无需 OpenAI key。`_run_deepeval_scoring` 用 GEval 独立打分（GEval 0-1 → DQG 1-5），可选依赖 `pip install qualix[deepeval]`，默认模型 `claude-haiku-4-5-20251001`（可通过 `DQG_DEEPEVAL_MODEL` 覆盖）。commit 876529a0
+- ~~**DeepEval 集成**~~ → **2026-05-27 已复活**。`_QualixDeepEvalModel(DeepEvalBaseLLM)` 适配器包装 `AnthropicBackend`，无需 OpenAI key。`_run_deepeval_scoring` 用 GEval 独立打分（GEval 0-1 → Qualix 1-5），可选依赖 `pip install qualix[deepeval]`，默认模型 `claude-haiku-4-5-20251001`（可通过 `QUALIX_DEEPEVAL_MODEL` 覆盖）。commit 876529a0
 - ~~代码 Embedding + 语义搜索（替代 FTS5 n-gram）~~ → 已完成：`code_semantic_search.py` 基于 FTS5 + 概念映射 + 调用链实现，零新依赖
 - 指标正式入库（Prometheus/ClickHouse）— 等规模上来再做，当前 observability 报告够用
 - Dashboard 分层（管理视图/研发视图）
@@ -708,7 +708,7 @@ VAF（`~/git_dev/vibe-agentic-flow`）没发 PyPI 但通过 `install.sh + ~/.vcb
 - 规则与 profile 的版本治理平台化
 - VS Code / IntelliJ 插件（Phase 结果编辑器内高亮）
 - 渐进式采用（支持只跑单个 Phase 的单个维度）
-- **LSP（Language Server Protocol）集成**（最低优先级）— DQG Phase 产物（SE/EUT/GAP）通过 LSP 实时推送到编辑器，代码变更时触发增量 finalize；技术复杂度高、依赖编辑器插件生态；触发条件：插件用户数 > 50 且有明确的"边写代码边看门禁状态"需求
+- **LSP（Language Server Protocol）集成**（最低优先级）— Qualix Phase 产物（SE/EUT/GAP）通过 LSP 实时推送到编辑器，代码变更时触发增量 finalize；技术复杂度高、依赖编辑器插件生态；触发条件：插件用户数 > 50 且有明确的"边写代码边看门禁状态"需求
 
 ---
 
@@ -723,8 +723,8 @@ VAF（`~/git_dev/vibe-agentic-flow`）没发 PyPI 但通过 `install.sh + ~/.vcb
 
 ## 6. 近期执行建议（未来 2-4 周）
 
-1. 每周固定运行一次 `dqg-observe report --period weekly` 并复盘 failure library 趋势
-2. 每次规则改动在合并前强制执行 `dqg-regression run`
+1. 每周固定运行一次 `qualix-observe report --period weekly` 并复盘 failure library 趋势
+2. 每次规则改动在合并前强制执行 `qualix-regression run`
 3. 先选 1 条 CI 流水线试点接入，再逐步推广
 4. 将告警命中项纳入周会闭环（责任人 + 截止时间）
 
@@ -756,7 +756,7 @@ VAF（`~/git_dev/vibe-agentic-flow`）没发 PyPI 但通过 `install.sh + ~/.vcb
 
 ### 记忆置信度衰减（jcode 对齐，2026-05-09）
 
-参考：[jcode](https://github.com/1jehuang/jcode)。实现：`src/dqg/memory/confidence_decay.py`；项目级信任标量可由 `feedback_trust` 经 `recent_mean_trust_weight()` 聚合，与 `trust_level.py` 离散权重一致。
+参考：[jcode](https://github.com/1jehuang/jcode)。实现：`src/qualix/memory/confidence_decay.py`；项目级信任标量可由 `feedback_trust` 经 `recent_mean_trust_weight()` 聚合，与 `trust_level.py` 离散权重一致。
 
 **按记忆类型的半衰期（天）**：Correction 365、Preference 90、Fact 30。
 
@@ -768,11 +768,11 @@ VAF（`~/git_dev/vibe-agentic-flow`）没发 PyPI 但通过 `install.sh + ~/.vcb
 
 ### Adaptive loop、Skill Evolution 与 Harness 增强（规划中，2026-05-09）
 
-> 以下将 **AutoResearchClaw**（阶段目录版本化、空指标退化）、**Meta-Harness**（rubric 搜索、完整实验史、跨模型验证）等与 **DQG 现状** 对位，统一写入路线图，**不代表已排期开发**；实施时以 ISSUE 任务拆解为准。
+> 以下将 **AutoResearchClaw**（阶段目录版本化、空指标退化）、**Meta-Harness**（rubric 搜索、完整实验史、跨模型验证）等与 **Qualix 现状** 对位，统一写入路线图，**不代表已排期开发**；实施时以 ISSUE 任务拆解为准。
 
 #### 八项提案总览
 
-| # | 主题 | 价值摘要 | 与 DQG 现状 | 建议优先级 |
+| # | 主题 | 价值摘要 | 与 Qualix 现状 | 建议优先级 |
 |---|------|----------|-------------|------------|
 | 1 | **PIVOT/REFINE 版本化目录** | 多轮修正可对比、可回退到较优轮次、为 eval_baseline 提供历史序列 | Adaptive 循环内 Worker/Judge 产物多为 **覆盖写**（如 `_worker_output`、结构化 JSON） | P0–P1 |
 | 2 | **Evolution Store 时间衰减** | 老 lesson 自然降权；90 天硬过期减轻过时教训污染 context | `tracking/skill_evolution.py` 以 case **支撑数** 定置信，**无时间维度**；可与 `memory/confidence_decay.py` 思路对齐，注意与 Preference 半衰期 **口径统一** | P1 |
@@ -818,7 +818,7 @@ VAF（`~/git_dev/vibe-agentic-flow`）没发 PyPI 但通过 `install.sh + ~/.vcb
 
 ## 8. PhaseGuardrail 统一质量门控
 
-> 借鉴 Agent SDK Guardrail 模式，将 DQG 三层检查统一为 PhaseGuardrail 接口。
+> 借鉴 Agent SDK Guardrail 模式，将 Qualix 三层检查统一为 PhaseGuardrail 接口。
 
 ### 短期（已完成）
 
@@ -834,7 +834,7 @@ VAF（`~/git_dev/vibe-agentic-flow`）没发 PyPI 但通过 `install.sh + ~/.vcb
 
 | 项目 | 触发条件 | 说明 |
 |------|---------|------|
-| Agent SDK 迁移 | DQG 需要多 agent 协作时 | 每个 Phase 变成一个 Agent，用 AgentHooks 做前后置检查 |
+| Agent SDK 迁移 | Qualix 需要多 agent 协作时 | 每个 Phase 变成一个 Agent，用 AgentHooks 做前后置检查 |
 | RunHooks 全局 tracing | 迁移后 | 替代现有 telemetry/observability 散装逻辑，统一 tracing/cost 统计 |
 | AgentHooks 单 Phase 检查 | 迁移后 | 替代 sidecar handler，独立测试，层级区分 |
 | Guardrail 装饰器 | 迁移后 | `@input_guardrail` / `@output_guardrail` 直接挂在 Agent 上，`run_in_parallel=True` 不增加延迟 |
@@ -851,7 +851,7 @@ VAF（`~/git_dev/vibe-agentic-flow`）没发 PyPI 但通过 `install.sh + ~/.vcb
 | 项目 | 状态 | 说明 |
 |------|------|------|
 | DAG 调度器 | **已完成** | `agents/dag_scheduler.py`，ThreadPoolExecutor 并行，`qualix-run dag` 命令 |
-| Orchestrator 并行派发指令 | **已完成** | `dqg_starter.md` 步骤二新增并行调度规则，Orchestrator 同时派发多个 SubAgent |
+| Orchestrator 并行派发指令 | **已完成** | `qualix_starter.md` 步骤二新增并行调度规则，Orchestrator 同时派发多个 SubAgent |
 | 并行安全保证 | **已完成** | 各 Phase 写不同子目录不冲突，finalize 串行保护 state.json |
 
 ### 规划中
@@ -872,7 +872,7 @@ VAF（`~/git_dev/vibe-agentic-flow`）没发 PyPI 但通过 `install.sh + ~/.vcb
 | 项目 | 说明 |
 |------|------|
 | `save_json_atomic` | `json_utils` 新增原子写入（mktemp + os.replace）；`save_state()` 改用，crash 不损坏 state.json |
-| Judge sentinel fallback | JSON 解析失败时检查 raw_output 末 5 行的 `DQG_VERDICT:PASS/FAIL`；rubric 末尾注入 sentinel 指令 |
+| Judge sentinel fallback | JSON 解析失败时检查 raw_output 末 5 行的 `QUALIX_VERDICT:PASS/FAIL`；rubric 末尾注入 sentinel 指令 |
 | `write_planning_snapshot` | `approve_phase` 成功后将主产物冻结到 `_internal/planning_snapshot_<phase_id>.json`，下游只读 snapshot |
 | Q06 编译预检 | `runtime_execute` 在 handler 前跑 `mvn test-compile`；编译失败直接返回，跳过 LLM |
 | AnthropicBackend 429 重试 | 捕获 `RateLimitError`，指数退避 60s→120s 最多 2 次重试 |
@@ -895,6 +895,6 @@ VAF（`~/git_dev/vibe-agentic-flow`）没发 PyPI 但通过 `install.sh + ~/.vcb
 | 项目 | 说明 |
 |------|------|
 | ironlaw YAML 元数据 | `~/.claude/scripts/ironlaw_rules.yaml` 存规则 why/enabled/opt_out；hook 启动时读取并 enrich reason 输出 |
-| ironlaw per-project opt-out | `.dqg/ironlaw_overrides.yaml` 的 disable 列表，opt_out: true 的规则可被项目级禁用 |
-| GateVerdict rule_overrides | `gate_verdict.build_verdict()` 加 `rule_overrides` 参数；`.dqg/rule_overrides.yaml` 定义 disable/warn_only 两级豁免 |
+| ironlaw per-project opt-out | `.qualix/ironlaw_overrides.yaml` 的 disable 列表，opt_out: true 的规则可被项目级禁用 |
+| GateVerdict rule_overrides | `gate_verdict.build_verdict()` 加 `rule_overrides` 参数；`.qualix/rule_overrides.yaml` 定义 disable/warn_only 两级豁免 |
 | SKILL.md YAML frontmatter | `applies_to`/`hard_checks`/`evidence` 字段；`cmd_spec --phase` 输出中加 `skill_metadata` |

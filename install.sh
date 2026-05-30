@@ -39,9 +39,9 @@ def expand(raw: str) -> Path:
 def parse_args(argv: list[str]) -> argparse.Namespace:
     parser = RaiseArgumentParser(
         prog="install.sh",
-        description="把 DQG 资源和 Python 包安装到 ~/.dqg + site-packages",
+        description="Install Qualix resources and Python package into a user-level runtime directory",
     )
-    parser.add_argument("--output-root", default="~/.dqg")
+    parser.add_argument("--output-root", default="~/.qualix")
     parser.add_argument("--source-root", default=None)
     parser.add_argument("--dev", action="store_true", help="维护者模式：symlink + pip install -e")
     parser.add_argument("--dry-run", action="store_true")
@@ -123,7 +123,7 @@ def main() -> int:
     print("安装计划：")
     print(f"- 模式: {mode}")
     print(f"- 源目录: {source}")
-    print(f"- DQG version: {version}")
+    print(f"- Qualix version: {version}")
     print(f"- 目标根: {output_root}")
     print(f"- 资源条目: {', '.join(REQUIRED_RESOURCES)}")
     print(f"- pip 安装: {'跳过' if args.skip_pip else ('editable' if args.dev else 'normal')}")
@@ -147,21 +147,9 @@ def main() -> int:
 
     print("\n✓ 安装完成")
 
-    # 检测飞书认证状态（用于 bitable 上报）
-    import configparser as _cp
-    vaf_config = Path.home() / ".vaf" / "config"
-    larkkit_ok = False
-    if vaf_config.exists():
-        cfg = _cp.ConfigParser()
-        cfg.read(vaf_config)
-        larkkit_ok = bool(cfg.get("feishu", "user_token", fallback=""))
-
-    if larkkit_ok:
-        print("✓ 飞书认证已就绪，团队数据上报已启用")
-    else:
-        print("\n⚠️  飞书认证未初始化，团队执行数据将无法上报到共享看板")
-        print("   请运行以下命令登录（一次性）：")
-        print("   uvx larkkit auth login")
+    print("\n可选：如需 Feishu/Lark 文档摄入，可安装并登录 larkkit：")
+    print("  python -m pip install larkkit")
+    print("  uvx larkkit auth login")
 
     print("\n下一步：")
     print("  cd 你的项目目录")

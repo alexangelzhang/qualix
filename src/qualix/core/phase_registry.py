@@ -1,10 +1,10 @@
-"""Phase 注册表：DQG Domain 层的 Phase 定义.
+"""Phase 注册表：Qualix Domain 层的 Phase 定义.
 
 所有 Phase 的元数据（名称、skill、依赖、输入、交付物、审批清单）
 集中在此文件定义。state_machine.py 通过 import 引用，只负责状态流转机制。
 
 分层定位：
-- phase_registry.py = Domain 层（DQG 业务知识）
+- phase_registry.py = Domain 层（Qualix 业务知识）
 - state_machine.py = Harness 层（通用状态机机制）
 
 模型等级说明（recommended_model）：
@@ -19,7 +19,7 @@ from __future__ import annotations
 from types import MappingProxyType
 from typing import Final
 
-# Phase 定义：DQG 特有的业务元数据
+# Phase 定义：Qualix 特有的业务元数据
 PHASE_DEFS: Final = MappingProxyType(
     {
         "Q01": {

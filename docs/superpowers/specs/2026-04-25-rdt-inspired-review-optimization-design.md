@@ -1,13 +1,13 @@
 # RDT-Inspired Review Optimization Design
 
-> 三个借鉴 Recurrent Depth Transformer 设计模式的 DQG 审查优化。
+> 三个借鉴 Recurrent Depth Transformer 设计模式的 Qualix 审查优化。
 > P1: ACT 审查深度自适应 | P2: 锚点注入防漂移 | P3: 共享+路由 Judge
 
 ## 背景
 
-OpenMythos 的 RDT 架构在模型层有三个设计模式可翻译到 DQG 应用层：
+OpenMythos 的 RDT 架构在模型层有三个设计模式可翻译到 Qualix 应用层：
 
-| RDT 概念 | DQG 翻译 | 收益 |
+| RDT 概念 | Qualix 翻译 | 收益 |
 |----------|---------|------|
 | Adaptive Computation Time | 审查深度按 risk_tier 分级 | 直接省 token（LOW tier ~60-70%） |
 | 循环块锚点注入 B·e | Adaptive Loop 每轮重注入原始需求 | 防多轮修正漂移 |

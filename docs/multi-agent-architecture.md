@@ -29,7 +29,7 @@ qualix-run <project> orchestrate <phase>
 
 执行方式：主 session spawn 三个 subagent，依次执行 Worker → Judge → Critique。
 
-源码: `src/dqg/multi_agent.py`
+源码: `src/qualix/multi_agent.py`
 
 ## Phase 2: 真独立 Agent 模式
 
@@ -56,7 +56,7 @@ qualix-run <project> agent-run <phase> \
 
 Fallback 机制：主模型调用失败（网络/限流/被墙）→ 自动切换备用模型 → 结果标记为 `fallback`。
 
-源码: `src/dqg/agent_framework.py`
+源码: `src/qualix/agent_framework.py`
 
 ## Phase 3: 自适应循环模式
 
@@ -107,18 +107,18 @@ Anti-Rationalization Guard（运行时放水拦截）：
 - Layer 1: 关键词正则扫描（8 种放水模式，零成本）
 - Layer 2: LLM 确认（仅 Layer 1 命中时触发，haiku 级模型）
 - 拦截后重审 1 次，预算耗尽标记 GUARD_EXHAUSTED 降级手动 judge
-- 源码: `src/dqg/quality/rationalization_guard.py`
+- 源码: `src/qualix/quality/rationalization_guard.py`
 
 Skill Evolution 自动闭环（adaptive 耗尽后触发）：
 - Judge Health Gate: 区分 SEMANTIC_FAIL vs INFRA_FAILURE
 - 仅 SEMANTIC_FAIL 触发 Reflect→Persist→Cluster→Write pipeline
 - v1 仅 SKILL_RULE 可自动合并，其他类型降级人审
-- 源码: `src/dqg/tracking/skill_reflector.py`
+- 源码: `src/qualix/tracking/skill_reflector.py`
 
 JudgeRunner 统一执行：
 - 所有 Judge 调用统一走 `JudgeRunner`（canonical schema，structured output）
 - primary→fallback 模型链，双失败才标记 INFRA_FAILURE
-- 源码: `src/dqg/quality/judge_runner.py`
+- 源码: `src/qualix/quality/judge_runner.py`
 
 投票规则：
 - 全部 PASS → 共识 PASS
@@ -130,7 +130,7 @@ JudgeRunner 统一执行：
 - `_judge_iter1.json` / `_judge_iter2.json` — 每轮投票结果
 - `_adaptive_summary.json` — 循环总结
 
-源码: `src/dqg/adaptive_loop.py`
+源码: `src/qualix/adaptive_loop.py`
 
 ## Multi-Agent 编排
 

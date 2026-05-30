@@ -6,7 +6,7 @@
 
 **Architecture:** Foundation-first approach — build `StructuredChatResult` + `chat_structured()` in backend layer, then `JudgeRunner` as unified Judge executor, then `RationalizationGuard` and `SkillReflector` on top. Adaptive loop is the integration point where both features converge.
 
-**Tech Stack:** Python 3.11+, existing DQG framework (`dqg.agents`, `dqg.quality`, `dqg.tracking`), Anthropic/OpenAI SDKs for structured output.
+**Tech Stack:** Python 3.11+, existing Qualix framework (`qualix.agents`, `qualix.quality`, `qualix.tracking`), Anthropic/OpenAI SDKs for structured output.
 
 **Spec:** `docs/superpowers/specs/2026-04-15-p0-skill-evolution-anti-rationalization-design.md`
 
@@ -15,8 +15,8 @@
 ### Task 1: Foundation — Constants + StructuredChatResult + chat_structured()
 
 **Files:**
-- Modify: `src/dqg/constants.py`
-- Modify: `src/dqg/agents/llm_backends.py`
+- Modify: `src/qualix/constants.py`
+- Modify: `src/qualix/agents/llm_backends.py`
 - Test: `tests/test_llm_backends_structured.py`
 
 - [ ] **Step 1: Add anti-rationalization constants to `constants.py`**
@@ -186,7 +186,7 @@ def _extract_json(text: str) -> dict[str, Any] | None:
 import json
 import pytest
 from unittest.mock import patch, MagicMock
-from dqg.agents.llm_backends import (
+from qualix.agents.llm_backends import (
     StructuredChatResult, OpenAICompatibleBackend, _extract_json,
 )
 
@@ -216,13 +216,13 @@ def test_structured_chat_result_fields():
 
 - [ ] **Step 7: Run tests**
 
-Run: `cd /path/to/rd-gate && python -m pytest tests/test_llm_backends_structured.py -v`
+Run: `cd /path/to/qualix && python -m pytest tests/test_llm_backends_structured.py -v`
 Expected: All PASS
 
 - [ ] **Step 8: Commit**
 
 ```bash
-git add src/dqg/constants.py src/dqg/agents/llm_backends.py tests/test_llm_backends_structured.py
+git add src/qualix/constants.py src/qualix/agents/llm_backends.py tests/test_llm_backends_structured.py
 git commit -m "feat: add StructuredChatResult + chat_structured() + anti-rationalization constants"
 ```
 
@@ -231,7 +231,7 @@ git commit -m "feat: add StructuredChatResult + chat_structured() + anti-rationa
 ### Task 2: JudgeRunner — Unified Judge Execution
 
 **Files:**
-- Create: `src/dqg/quality/judge_runner.py`
+- Create: `src/qualix/quality/judge_runner.py`
 - Test: `tests/test_judge_runner.py`
 
 - [ ] **Step 1: Write failing test for JudgeRunner.normalize()**
@@ -240,7 +240,7 @@ git commit -m "feat: add StructuredChatResult + chat_structured() + anti-rationa
 # tests/test_judge_runner.py
 """Tests for JudgeRunner canonical schema normalization."""
 import pytest
-from dqg.quality.judge_runner import JudgeRunner, JudgeResult
+from qualix.quality.judge_runner import JudgeRunner, JudgeResult
 
 
 def test_normalize_adaptive_format():
@@ -291,7 +291,7 @@ Expected: FAIL with "ModuleNotFoundError" or "ImportError"
 - [ ] **Step 3: Implement JudgeRunner**
 
 ```python
-# src/dqg/quality/judge_runner.py
+# src/qualix/quality/judge_runner.py
 """Unified Judge execution with canonical output schema.
 
 Serves manual, adaptive, and holdout execution modes.
@@ -304,10 +304,10 @@ import time
 from dataclasses import dataclass, field
 from typing import Any
 
-from dqg.agents.llm_backends import (
+from qualix.agents.llm_backends import (
     LLMConfig, StructuredChatResult, create_backend, _extract_json,
 )
-from dqg.log import get_logger
+from qualix.log import get_logger
 
 log = get_logger(__name__)
 
@@ -458,7 +458,7 @@ Expected: All PASS
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/dqg/quality/judge_runner.py tests/test_judge_runner.py
+git add src/qualix/quality/judge_runner.py tests/test_judge_runner.py
 git commit -m "feat: add JudgeRunner with canonical schema + primary/fallback chain"
 ```
 
@@ -467,7 +467,7 @@ git commit -m "feat: add JudgeRunner with canonical schema + primary/fallback ch
 ### Task 3: RationalizationGuard — Two-Layer Detection
 
 **Files:**
-- Create: `src/dqg/quality/rationalization_guard.py`
+- Create: `src/qualix/quality/rationalization_guard.py`
 - Test: `tests/test_rationalization_guard.py`
 
 - [ ] **Step 1: Write failing tests**
@@ -477,7 +477,7 @@ git commit -m "feat: add JudgeRunner with canonical schema + primary/fallback ch
 """Tests for RationalizationGuard two-layer detection."""
 import pytest
 from unittest.mock import patch, MagicMock
-from dqg.quality.rationalization_guard import RationalizationGuard, GuardResult
+from qualix.quality.rationalization_guard import RationalizationGuard, GuardResult
 
 
 def test_scan_keywords_no_match():
@@ -536,7 +536,7 @@ Expected: FAIL with ImportError
 - [ ] **Step 3: Implement RationalizationGuard**
 
 ```python
-# src/dqg/quality/rationalization_guard.py
+# src/qualix/quality/rationalization_guard.py
 """Runtime anti-rationalization enforcement layer.
 
 Two-layer detection:
@@ -549,11 +549,11 @@ import re
 from dataclasses import dataclass, field
 from typing import Any
 
-from dqg.constants import (
+from qualix.constants import (
     RATIONALIZATION_PATTERNS,
     DEFAULT_RATIONALIZATION_CONFIRM_MODEL,
 )
-from dqg.log import get_logger
+from qualix.log import get_logger
 
 log = get_logger(__name__)
 
@@ -624,7 +624,7 @@ class RationalizationGuard:
     ) -> list[ConfirmResult]:
         """Layer 2: Lightweight LLM confirmation for keyword hits."""
         import os
-        from dqg.agents.llm_backends import create_backend
+        from qualix.agents.llm_backends import create_backend
 
         results = []
         api_key = os.environ.get("ANTHROPIC_API_KEY", "")
@@ -693,7 +693,7 @@ Expected: All PASS
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/dqg/quality/rationalization_guard.py tests/test_rationalization_guard.py
+git add src/qualix/quality/rationalization_guard.py tests/test_rationalization_guard.py
 git commit -m "feat: add RationalizationGuard with two-layer keyword+LLM detection"
 ```
 
@@ -702,7 +702,7 @@ git commit -m "feat: add RationalizationGuard with two-layer keyword+LLM detecti
 ### Task 4: Adaptive Loop Integration — JudgeRunner + Guard + Health Gate
 
 **Files:**
-- Modify: `src/dqg/agents/adaptive_loop.py`
+- Modify: `src/qualix/agents/adaptive_loop.py`
 - Test: `tests/test_adaptive_loop_guard.py`
 
 - [ ] **Step 1: Write failing tests for guard integration**
@@ -712,7 +712,7 @@ git commit -m "feat: add RationalizationGuard with two-layer keyword+LLM detecti
 """Tests for adaptive loop guard + JudgeRunner integration."""
 import pytest
 from unittest.mock import patch, MagicMock
-from dqg.agents.adaptive_loop import (
+from qualix.agents.adaptive_loop import (
     JudgeVote, _run_single_judge, _parse_judge_output,
 )
 
@@ -742,7 +742,7 @@ Expected: FAIL (JudgeVote missing raw_output/health fields)
 
 - [ ] **Step 3: Update `JudgeVote` dataclass**
 
-In `src/dqg/agents/adaptive_loop.py`, modify the `JudgeVote` dataclass (line 40-46):
+In `src/qualix/agents/adaptive_loop.py`, modify the `JudgeVote` dataclass (line 40-46):
 
 ```python
 @dataclass
@@ -771,7 +771,7 @@ def _run_single_judge(
     warning_override: str | None = None,
 ) -> JudgeVote | None:
     """Thin wrapper: delegates to JudgeRunner, handles round orchestration."""
-    from dqg.quality.judge_runner import JudgeRunner
+    from qualix.quality.judge_runner import JudgeRunner
 
     runner = JudgeRunner()
     result = runner.run(
@@ -807,8 +807,8 @@ In `multi_judge_vote()` (around line 159), after the primary vote is obtained an
 ```python
     # --- Guard: Anti-Rationalization check on primary vote ---
     if primary_vote is not None and primary_vote.raw_output:
-        from dqg.quality.rationalization_guard import RationalizationGuard, format_rejudge_warning
-        from dqg.constants import RATIONALIZATION_MAX_REJUDGE
+        from qualix.quality.rationalization_guard import RationalizationGuard, format_rejudge_warning
+        from qualix.constants import RATIONALIZATION_MAX_REJUDGE
 
         guard = RationalizationGuard()
         guard_result = guard.check(primary_vote.raw_output)
@@ -867,7 +867,7 @@ Expected: All PASS
 - [ ] **Step 8: Commit**
 
 ```bash
-git add src/dqg/agents/adaptive_loop.py tests/test_adaptive_loop_guard.py
+git add src/qualix/agents/adaptive_loop.py tests/test_adaptive_loop_guard.py
 git commit -m "feat: integrate JudgeRunner + RationalizationGuard into adaptive loop"
 ```
 
@@ -876,9 +876,9 @@ git commit -m "feat: integrate JudgeRunner + RationalizationGuard into adaptive 
 ### Task 5: resolve_worker_prompt() — Unified Skill Resolution
 
 **Files:**
-- Modify: `src/dqg/context/skill_loader.py`
-- Modify: `src/dqg/commands/agents.py`
-- Modify: `src/dqg/agents/dag_scheduler.py`
+- Modify: `src/qualix/context/skill_loader.py`
+- Modify: `src/qualix/commands/agents.py`
+- Modify: `src/qualix/agents/dag_scheduler.py`
 - Test: `tests/test_skill_loader_resolve.py`
 
 - [ ] **Step 1: Write failing test**
@@ -889,12 +889,12 @@ git commit -m "feat: integrate JudgeRunner + RationalizationGuard into adaptive 
 import pytest
 from pathlib import Path
 from unittest.mock import patch
-from dqg.context.skill_loader import resolve_worker_prompt
+from qualix.context.skill_loader import resolve_worker_prompt
 
 
 def test_resolve_worker_prompt_default():
     """Default resolution uses PHASE_DEFS skill path."""
-    with patch("dqg.context.skill_loader.load_skill_progressive") as mock_load:
+    with patch("qualix.context.skill_loader.load_skill_progressive") as mock_load:
         mock_load.return_value = "skill content"
         result = resolve_worker_prompt("A")
         assert result == "skill content"
@@ -908,7 +908,7 @@ def test_resolve_worker_prompt_with_override(tmp_path):
     """Override replaces SKILL.md path but still goes through progressive loader."""
     override_file = tmp_path / "custom_skill.md"
     override_file.write_text("custom content")
-    with patch("dqg.context.skill_loader.load_skill_progressive") as mock_load:
+    with patch("qualix.context.skill_loader.load_skill_progressive") as mock_load:
         mock_load.return_value = "loaded via progressive"
         result = resolve_worker_prompt("A", skill_override=str(override_file))
         assert result == "loaded via progressive"
@@ -940,7 +940,7 @@ def resolve_worker_prompt(phase: str, skill_override: str | None = None) -> str:
     Returns:
         Resolved skill content string
     """
-    from dqg.core.phase_registry import PHASE_DEFS
+    from qualix.core.phase_registry import PHASE_DEFS
 
     skill_path = Path(PHASE_DEFS[phase]["skill"])
 
@@ -957,11 +957,11 @@ Expected: All PASS
 
 - [ ] **Step 5: Migrate callers in `commands/agents.py`**
 
-Search for direct `read_text()` or `load_skill_progressive()` calls on skill files in `src/dqg/commands/agents.py` and replace with `resolve_worker_prompt(phase)`. The exact locations depend on the current code — grep for `SKILL_FILE_MAP` or `skill` + `read_text` in that file.
+Search for direct `read_text()` or `load_skill_progressive()` calls on skill files in `src/qualix/commands/agents.py` and replace with `resolve_worker_prompt(phase)`. The exact locations depend on the current code — grep for `SKILL_FILE_MAP` or `skill` + `read_text` in that file.
 
 - [ ] **Step 6: Migrate callers in `dag_scheduler.py`**
 
-Search for `load_skill_progressive()` calls in `src/dqg/agents/dag_scheduler.py` and replace with `resolve_worker_prompt(phase)`.
+Search for `load_skill_progressive()` calls in `src/qualix/agents/dag_scheduler.py` and replace with `resolve_worker_prompt(phase)`.
 
 - [ ] **Step 7: Run full test suite to verify no regressions**
 
@@ -971,7 +971,7 @@ Expected: No new failures
 - [ ] **Step 8: Commit**
 
 ```bash
-git add src/dqg/context/skill_loader.py src/dqg/commands/agents.py src/dqg/agents/dag_scheduler.py tests/test_skill_loader_resolve.py
+git add src/qualix/context/skill_loader.py src/qualix/commands/agents.py src/qualix/agents/dag_scheduler.py tests/test_skill_loader_resolve.py
 git commit -m "feat: add resolve_worker_prompt() and migrate all callers to unified skill resolution"
 ```
 
@@ -980,7 +980,7 @@ git commit -m "feat: add resolve_worker_prompt() and migrate all callers to unif
 ### Task 6: SkillReflector — Reflect→Write→Verify Loop
 
 **Files:**
-- Create: `src/dqg/tracking/skill_reflector.py`
+- Create: `src/qualix/tracking/skill_reflector.py`
 - Test: `tests/test_skill_reflector.py`
 
 - [ ] **Step 1: Write failing tests**
@@ -993,7 +993,7 @@ import json
 import pytest
 from pathlib import Path
 from unittest.mock import patch, MagicMock
-from dqg.tracking.skill_reflector import (
+from qualix.tracking.skill_reflector import (
     SkillReflector, ReflectResult, WriteResult, EvolutionOutcome,
     compute_case_fingerprint,
 )
@@ -1076,7 +1076,7 @@ Expected: FAIL with ImportError
 - [ ] **Step 3: Implement SkillReflector**
 
 ```python
-# src/dqg/tracking/skill_reflector.py
+# src/qualix/tracking/skill_reflector.py
 """Reflect→Write→Verify loop for automatic skill evolution.
 
 Triggered when adaptive loop exhausts all iterations with FAIL.
@@ -1093,10 +1093,10 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from dqg.constants import CASES_DIR, SKILL_FILE_MAP
-from dqg.json_utils import save_json
-from dqg.log import get_logger
-from dqg.tracking.skill_evolution import HIGH_CONFIDENCE_THRESHOLD
+from qualix.constants import CASES_DIR, SKILL_FILE_MAP
+from qualix.json_utils import save_json
+from qualix.log import get_logger
+from qualix.tracking.skill_evolution import HIGH_CONFIDENCE_THRESHOLD
 
 log = get_logger(__name__)
 
@@ -1303,7 +1303,7 @@ class SkillReflector:
 
     def _write_suggestion_file(self, reflect_result: ReflectResult) -> str:
         """Write suggestion file for human review."""
-        from dqg.constants import PHASE_DIR_MAP
+        from qualix.constants import PHASE_DIR_MAP
         suggestion_dir = Path("output") / self.project_id / PHASE_DIR_MAP.get(self.phase, self.phase)
         suggestion_dir.mkdir(parents=True, exist_ok=True)
         path = suggestion_dir / f"_skill_suggestions_{self.phase}.md"
@@ -1329,7 +1329,7 @@ Expected: All PASS
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/dqg/tracking/skill_reflector.py tests/test_skill_reflector.py
+git add src/qualix/tracking/skill_reflector.py tests/test_skill_reflector.py
 git commit -m "feat: add SkillReflector with reflect→persist→cluster→write pipeline"
 ```
 
@@ -1338,7 +1338,7 @@ git commit -m "feat: add SkillReflector with reflect→persist→cluster→write
 ### Task 7: Adaptive Loop — SkillReflector Integration + Judge Health Gate
 
 **Files:**
-- Modify: `src/dqg/agents/adaptive_loop.py`
+- Modify: `src/qualix/agents/adaptive_loop.py`
 - Test: `tests/test_adaptive_skill_evolution.py`
 
 - [ ] **Step 1: Write failing tests**
@@ -1348,7 +1348,7 @@ git commit -m "feat: add SkillReflector with reflect→persist→cluster→write
 """Tests for adaptive loop → SkillReflector integration."""
 import pytest
 from unittest.mock import patch, MagicMock
-from dqg.agents.adaptive_loop import judge_health_check, VoteResult, JudgeVote
+from qualix.agents.adaptive_loop import judge_health_check, VoteResult, JudgeVote
 
 
 def test_judge_health_check_healthy():
@@ -1378,7 +1378,7 @@ Expected: FAIL (judge_health_check not importable or missing health field)
 
 - [ ] **Step 3: Add SkillReflector trigger to adaptive loop**
 
-In `src/dqg/agents/adaptive_loop.py`, find the section where all iterations are exhausted with FAIL (the end of the adaptive loop's main iteration). Add after the loop exits:
+In `src/qualix/agents/adaptive_loop.py`, find the section where all iterations are exhausted with FAIL (the end of the adaptive loop's main iteration). Add after the loop exits:
 
 ```python
 # After adaptive loop exhausts all iterations
@@ -1387,7 +1387,7 @@ if all_failed:
     health = judge_health_check(all_judge_results)
     if health == "SEMANTIC_FAIL":
         log.info("All iterations FAIL with healthy judges → triggering SkillReflector")
-        from dqg.tracking.skill_reflector import SkillReflector
+        from qualix.tracking.skill_reflector import SkillReflector
         reflector = SkillReflector(phase=phase, project_id=project_id)
         # Collect judge issues from all iterations
         judge_dicts = []
@@ -1419,7 +1419,7 @@ Expected: No new failures
 - [ ] **Step 6: Commit**
 
 ```bash
-git add src/dqg/agents/adaptive_loop.py tests/test_adaptive_skill_evolution.py
+git add src/qualix/agents/adaptive_loop.py tests/test_adaptive_skill_evolution.py
 git commit -m "feat: integrate SkillReflector into adaptive loop with judge health gate"
 ```
 
@@ -1428,8 +1428,8 @@ git commit -m "feat: integrate SkillReflector into adaptive loop with judge heal
 ### Task 8: Phase Registry — required_report_sections + Structure Contract
 
 **Files:**
-- Modify: `src/dqg/core/phase_registry.py`
-- Modify: `src/dqg/runtime/phase_contract.py`
+- Modify: `src/qualix/core/phase_registry.py`
+- Modify: `src/qualix/runtime/phase_contract.py`
 - Test: `tests/test_report_structure_check.py`
 
 - [ ] **Step 1: Write failing test for structure check**
@@ -1438,7 +1438,7 @@ git commit -m "feat: integrate SkillReflector into adaptive loop with judge heal
 # tests/test_report_structure_check.py
 """Tests for report structure contract check."""
 import pytest
-from dqg.runtime.phase_contract import check_report_structure
+from qualix.runtime.phase_contract import check_report_structure
 
 
 def test_check_report_structure_all_present():
@@ -1564,7 +1564,7 @@ def check_report_structure(report_content: str, phase: str) -> dict[str, Any]:
         {"passed": bool, "missing": [str], "found": [str]}
     """
     import re
-    from dqg.core.phase_registry import PHASE_DEFS
+    from qualix.core.phase_registry import PHASE_DEFS
 
     phase_def = PHASE_DEFS.get(phase, {})
     required = phase_def.get("required_report_sections", [])
@@ -1609,7 +1609,7 @@ Expected: All PASS
 - [ ] **Step 6: Commit**
 
 ```bash
-git add src/dqg/core/phase_registry.py src/dqg/runtime/phase_contract.py tests/test_report_structure_check.py
+git add src/qualix/core/phase_registry.py src/qualix/runtime/phase_contract.py tests/test_report_structure_check.py
 git commit -m "feat: add required_report_sections to phase_registry + check_report_structure()"
 ```
 

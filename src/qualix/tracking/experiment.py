@@ -130,7 +130,7 @@ def generate_experiment_prompt(
             ]
         )
 
-    exp_dir = f"output/.dqg/experiments/cycle_{cycle:03d}"
+    exp_dir = f"output/.qualix/experiments/cycle_{cycle:03d}"
 
     # Benchmark 说明
     lines.extend(
@@ -183,7 +183,7 @@ def generate_experiment_prompt(
             "",
             "将实验结果记录到以下 JSON 文件：",
             "",
-            f"`output/.dqg/experiment_{phase_id.replace('.', '')}_{cycle:03d}.json`",
+            f"`output/.qualix/experiment_{phase_id.replace('.', '')}_{cycle:03d}.json`",
             "",
             "```json",
             "{",
@@ -232,9 +232,9 @@ def write_experiment_prompt(
     if not prompt:
         return None
 
-    dqg_dir = output_dir / ".dqg"
-    dqg_dir.mkdir(parents=True, exist_ok=True)
-    path = dqg_dir / f"experiment_{phase_id.replace('.', '')}_{cycle:03d}_prompt.md"
+    qualix_dir = output_dir / ".qualix"
+    qualix_dir.mkdir(parents=True, exist_ok=True)
+    path = qualix_dir / f"experiment_{phase_id.replace('.', '')}_{cycle:03d}_prompt.md"
     path.write_text(prompt, encoding="utf-8")
     return path
 
@@ -245,7 +245,7 @@ def load_experiment_result(
     cycle: int,
 ) -> dict[str, Any] | None:
     """加载实验结果 JSON."""
-    path = output_dir / ".dqg" / f"experiment_{phase_id.replace('.', '')}_{cycle:03d}.json"
+    path = output_dir / ".qualix" / f"experiment_{phase_id.replace('.', '')}_{cycle:03d}.json"
     if not path.exists():
         return None
     return load_json(path)

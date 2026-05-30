@@ -1,8 +1,8 @@
-"""DQG Runtime 包：执行引擎、生命周期管理、结构化结果.
+"""Qualix Runtime 包：执行引擎、生命周期管理、结构化结果.
 
 分层定位：
 - runtime/ = Harness 层（通用执行引擎 + lifecycle 机制）
-- handlers/ = Domain 层（DQG 特有的 sidecar 逻辑 + 流程完整性检查）
+- handlers/ = Domain 层（Qualix 特有的 sidecar 逻辑 + 流程完整性检查）
 
 Import 本包时自动注册所有 handler。
 """

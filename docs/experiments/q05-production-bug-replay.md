@@ -11,7 +11,7 @@
 ## 执行步骤（每 bug）
 
 1. 在目标 commit **之前** 检出代码，确认缺陷可复现（测试失败或手工步骤）。
-2. 仅使用当前 DQG Q05 skill 与三步范式（见 `skills/unit-test-generation/references/q05-three-step-paradigm.md`）生成/补充 EUT。
+2. 仅使用当前 Qualix Q05 skill 与三步范式（见 `skills/unit-test-generation/references/q05-three-step-paradigm.md`）生成/补充 EUT。
 3. 运行项目既有测试命令，记录是否失败（期望：在修复前 EUT 应失败）。
 4. 合并修复 commit 后再次运行，记录是否通过。
 

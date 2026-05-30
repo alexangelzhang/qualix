@@ -1,24 +1,24 @@
-# CONTEXT.md — DQG 领域术语表
+# CONTEXT.md — Qualix 领域术语表
 
 > 所有 agent/skill/文档必须使用本文件定义的术语。歧义时以本文件为准。
 
 ## 核心概念
 
 ### Phase
-DQG 流水线中的一个执行阶段，编号 Q01-Q07。每个 Phase 有独立的 Skill、产物目录和质量约束。
+Qualix 流水线中的一个执行阶段，编号 Q01-Q07。每个 Phase 有独立的 Skill、产物目录和质量约束。
 - _Avoid_: "步骤"、"stage"、"step"（Phase 是独立可调度单元，不是线性步骤）
 - Relationships: Phase 由 Skill 驱动，产出经 Finalize 校验，受 GateVerdict 卡控
 - Example: "Q03 Phase 依赖 Q02 完成后才能执行"
 
 ### Gate
-质量门禁——阻断不合格产出流入下游的检查点。DQG 的核心价值主张。
+质量门禁——阻断不合格产出流入下游的检查点。Qualix 的核心价值主张。
 - _Avoid_: "检查"、"validation"（Gate 强调阻断能力，不只是检查）
 - Relationships: Gate 由 GateVerdict 统一裁决，包含 HARD gate（不可绕过）和 SOFT gate（可降级）
 
 ### Skill
 Phase 对应的执行指令文件（`skills/*.md`），定义该 Phase 的完整执行步骤（Step 0-6）。Agent 必须严格按 Skill 执行，禁止自由发挥。
 - _Avoid_: "prompt"、"template"（Skill 是完整的执行规程，不是模板片段）
-- _Avoid_: 与 Claude Code 的 "superpowers skill" 混淆——DQG Skill 是 Phase 执行规程，superpowers skill 是 Claude Code 插件能力
+- _Avoid_: 与 Claude Code 的 "superpowers skill" 混淆——Qualix Skill 是 Phase 执行规程，superpowers skill 是 Claude Code 插件能力
 - Relationships: 每个 Phase 对应一个 Skill 文件，Skill 引用 Profile 和 Knowledge
 
 ### Profile
@@ -121,10 +121,10 @@ Guard 精度周报。聚合 `output/*/_guardrail_results.json`，按 guard 维�
 
 | 术语 | 歧义场景 | 裁决 |
 |------|---------|------|
-| Skill | DQG Phase Skill vs Claude Code superpowers skill | 在 DQG 语境下默认指 Phase Skill；提及 Claude Code 能力时必须加前缀 "superpowers skill" |
-| Agent | Orchestrator/SubAgent vs Claude Code agent tool | 在 DQG 语境下指 Orchestrator 或 SubAgent；提及工具时用 "Agent tool" |
-| Pipeline | DQG 执行流水线 vs CI/CD pipeline | DQG 语境下指 Phase DAG 执行流；CI/CD 时必须明确说 "CI pipeline" |
-| Profile | DQG 项目配置集 vs 用户 profile | DQG 语境下指项目配置集；其他场景需加限定词 |
+| Skill | Qualix Phase Skill vs Claude Code superpowers skill | 在 Qualix 语境下默认指 Phase Skill；提及 Claude Code 能力时必须加前缀 "superpowers skill" |
+| Agent | Orchestrator/SubAgent vs Claude Code agent tool | 在 Qualix 语境下指 Orchestrator 或 SubAgent；提及工具时用 "Agent tool" |
+| Pipeline | Qualix 执行流水线 vs CI/CD pipeline | Qualix 语境下指 Phase DAG 执行流；CI/CD 时必须明确说 "CI pipeline" |
+| Profile | Qualix 项目配置集 vs 用户 profile | Qualix 语境下指项目配置集；其他场景需加限定词 |
 | Gate | 质量门禁（概念）vs gate_verdict.py（实现）| 讨论概念用 "Gate"，讨论实现用 "GateVerdict" |
 
 *最后更新：2026-05-09*

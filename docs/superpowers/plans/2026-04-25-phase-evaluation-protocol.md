@@ -6,25 +6,25 @@
 
 **Architecture:** New `evaluation_protocols.py` defines static PhaseProtocol data per Phase. Gene store gets phase_id+agent_role tagging for filtered injection. A new finalize handler enforces checklist coverage as HARD gate via GateVerdict. Adaptive loop wires protocol into Judge/Critique prompts.
 
-**Tech Stack:** Python 3.11+, pytest, existing DQG modules (gene_store, gate_verdict, lifecycle, adaptive_loop)
+**Tech Stack:** Python 3.11+, pytest, existing Qualix modules (gene_store, gate_verdict, lifecycle, adaptive_loop)
 
 ## File Structure
 
 | Action | File | Responsibility |
 |--------|------|---------------|
-| Create | `src/dqg/quality/evaluation_protocols.py` | PhaseProtocol + AgentProtocol dataclasses + 7 Phase static configs + render functions |
+| Create | `src/qualix/quality/evaluation_protocols.py` | PhaseProtocol + AgentProtocol dataclasses + 7 Phase static configs + render functions |
 | Create | `tests/test_evaluation_protocols.py` | Protocol data integrity + render tests |
-| Modify | `src/dqg/quality/gene_store.py` | Add agent_role field to Gene, filter by phase_id+agent_role in load/match |
+| Modify | `src/qualix/quality/gene_store.py` | Add agent_role field to Gene, filter by phase_id+agent_role in load/match |
 | Create | `tests/test_gene_store_phase_filter.py` | Gene phase+role filtering tests |
-| Modify | `src/dqg/agents/adaptive_loop.py` | Inject protocol into Judge/Critique prompts |
-| Create | `src/dqg/runtime/handlers_protocol.py` | handle_protocol_compliance finalize handler |
+| Modify | `src/qualix/agents/adaptive_loop.py` | Inject protocol into Judge/Critique prompts |
+| Create | `src/qualix/runtime/handlers_protocol.py` | handle_protocol_compliance finalize handler |
 | Create | `tests/test_handlers_protocol.py` | Protocol compliance handler tests |
 | Create | `tests/test_protocol_integration.py` | End-to-end integration test |
 
 ### Task 1: PhaseProtocol Data Structures + 7 Phase Static Configs
 
 **Files:**
-- Create: `src/dqg/quality/evaluation_protocols.py`
+- Create: `src/qualix/quality/evaluation_protocols.py`
 - Create: `tests/test_evaluation_protocols.py`
 
 - [ ] **Step 1: Write failing tests**
@@ -45,7 +45,7 @@ Expected: FAIL with `ModuleNotFoundError`
 
 - [ ] **Step 3: Create evaluation_protocols.py**
 
-Create `src/dqg/quality/evaluation_protocols.py` with:
+Create `src/qualix/quality/evaluation_protocols.py` with:
 
 1. `AgentProtocol` frozen dataclass: `role_label`, `checklist` (tuple[str,...]), `red_lines` (tuple[str,...]), `domain_vocab` (dict), `focus_areas` (tuple), `not_applicable` (str)
 2. `PhaseProtocol` frozen dataclass: `phase_id`, `judge: AgentProtocol`, `critique: AgentProtocol`
@@ -62,14 +62,14 @@ Expected: 7 passed
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/dqg/quality/evaluation_protocols.py tests/test_evaluation_protocols.py
+git add src/qualix/quality/evaluation_protocols.py tests/test_evaluation_protocols.py
 git commit -m "feat: add PhaseProtocol data structures with 7 Phase evaluation protocols"
 ```
 
 ### Task 2: Gene Store — Add agent_role Field + Phase Filtering
 
 **Files:**
-- Modify: `src/dqg/quality/gene_store.py`
+- Modify: `src/qualix/quality/gene_store.py`
 - Create: `tests/test_gene_store_phase_filter.py`
 
 - [ ] **Step 1: Write failing tests**
@@ -105,7 +105,7 @@ def _make_gene(gene_id: str, phase_id: str, agent_role: str = "judge") -> dict:
 
 def test_load_genes_for_phase_and_role(tmp_path):
     """load_genes_for_phase filters by phase_id (existing behavior)."""
-    from dqg.quality.gene_store import load_genes_for_phase, save_genes
+    from qualix.quality.gene_store import load_genes_for_phase, save_genes
 
     save_genes(tmp_path, [_make_gene("G1", "Q03"), _make_gene("G2", "Q07")])
     q03_genes = load_genes_for_phase(tmp_path, "Q03")
@@ -115,7 +115,7 @@ def test_load_genes_for_phase_and_role(tmp_path):
 
 def test_load_genes_filters_by_agent_role(tmp_path):
     """load_genes_for_phase with agent_role filters correctly."""
-    from dqg.quality.gene_store import load_genes_for_phase, save_genes
+    from qualix.quality.gene_store import load_genes_for_phase, save_genes
 
     save_genes(tmp_path, [
         _make_gene("G1", "Q03", "judge"),
@@ -132,7 +132,7 @@ def test_load_genes_filters_by_agent_role(tmp_path):
 
 def test_load_genes_no_role_filter_returns_all(tmp_path):
     """Without agent_role filter, returns all genes for the phase."""
-    from dqg.quality.gene_store import load_genes_for_phase, save_genes
+    from qualix.quality.gene_store import load_genes_for_phase, save_genes
 
     save_genes(tmp_path, [
         _make_gene("G1", "Q03", "judge"),
@@ -144,7 +144,7 @@ def test_load_genes_no_role_filter_returns_all(tmp_path):
 
 def test_extract_genes_includes_agent_role():
     """Extracted genes include agent_role field."""
-    from dqg.quality.gene_store import extract_genes_from_preference
+    from qualix.quality.gene_store import extract_genes_from_preference
 
     preference = {
         "preferred": "v2",
@@ -166,7 +166,7 @@ Expected: FAIL (agent_role parameter not accepted)
 
 - [ ] **Step 3: Modify gene_store.py**
 
-Three changes to `src/dqg/quality/gene_store.py`:
+Three changes to `src/qualix/quality/gene_store.py`:
 
 3a. In `extract_genes_from_preference` (line 45), add `agent_role: str = "judge"` parameter. In the gene dict construction (around line 88), add `"agent_role": agent_role`.
 
@@ -191,14 +191,14 @@ Expected: All pass
 - [ ] **Step 6: Commit**
 
 ```bash
-git add src/dqg/quality/gene_store.py tests/test_gene_store_phase_filter.py
+git add src/qualix/quality/gene_store.py tests/test_gene_store_phase_filter.py
 git commit -m "feat: add agent_role to Gene store with phase+role filtering"
 ```
 
 ### Task 3: Wire Protocol into Adaptive Loop Judge Prompt
 
 **Files:**
-- Modify: `src/dqg/agents/adaptive_loop.py`
+- Modify: `src/qualix/agents/adaptive_loop.py`
 
 - [ ] **Step 1: Add protocol injection in run() method**
 
@@ -206,7 +206,7 @@ In `AdaptiveLoop.run()`, after the P3 compose_rubric block (added in previous pl
 
 ```python
         # Protocol: inject Phase-specific checklist + red_lines into judge rubric
-        from dqg.quality.evaluation_protocols import get_protocol, render_protocol_for_prompt
+        from qualix.quality.evaluation_protocols import get_protocol, render_protocol_for_prompt
 
         _protocol = get_protocol(phase_id)
         if _protocol:
@@ -216,7 +216,7 @@ In `AdaptiveLoop.run()`, after the P3 compose_rubric block (added in previous pl
                      phase_id, len(_protocol.judge.checklist))
 
             # Inject dynamic experience (genes filtered by phase+role)
-            from dqg.quality.gene_store import load_genes_for_phase, match_genes, render_genes_for_prompt
+            from qualix.quality.gene_store import load_genes_for_phase, match_genes, render_genes_for_prompt
 
             _phase_genes = load_genes_for_phase(
                 self.output_dir.parent, phase_id, agent_role="judge"
@@ -236,7 +236,7 @@ In `_execute_iteration`, where the critique Agent is created, prepend protocol t
         if not skip_critique:
             _critique_system = critique_prompt
             if _protocol:
-                from dqg.quality.evaluation_protocols import render_protocol_for_prompt as _render_proto
+                from qualix.quality.evaluation_protocols import render_protocol_for_prompt as _render_proto
                 _critique_system = _render_proto(_protocol.critique) + "\n\n" + critique_prompt
 ```
 
@@ -250,16 +250,16 @@ Expected: All pass (new params have defaults)
 - [ ] **Step 4: Commit**
 
 ```bash
-git add src/dqg/agents/adaptive_loop.py
+git add src/qualix/agents/adaptive_loop.py
 git commit -m "feat: inject Phase evaluation protocol into Judge/Critique prompts"
 ```
 
 ### Task 4: Protocol Compliance Finalize Handler
 
 **Files:**
-- Create: `src/dqg/runtime/handlers_protocol.py`
+- Create: `src/qualix/runtime/handlers_protocol.py`
 - Create: `tests/test_handlers_protocol.py`
-- Modify: `src/dqg/runtime/handlers_finalize.py` (register the handler)
+- Modify: `src/qualix/runtime/handlers_finalize.py` (register the handler)
 
 - [ ] **Step 1: Write failing tests**
 
@@ -291,7 +291,7 @@ def _make_result():
 
 def test_protocol_compliance_passes_when_all_covered(tmp_path):
     """All checklist items mentioned in judge result → no errors."""
-    from dqg.runtime.handlers_protocol import handle_protocol_compliance
+    from qualix.runtime.handlers_protocol import handle_protocol_compliance
 
     ctx = _make_ctx(tmp_path, "Q07")
     result = _make_result()
@@ -319,7 +319,7 @@ def test_protocol_compliance_passes_when_all_covered(tmp_path):
 
 def test_protocol_compliance_blocks_when_checklist_uncovered(tmp_path):
     """Missing checklist items → BLOCKED error."""
-    from dqg.runtime.handlers_protocol import handle_protocol_compliance
+    from qualix.runtime.handlers_protocol import handle_protocol_compliance
 
     ctx = _make_ctx(tmp_path, "Q07")
     result = _make_result()
@@ -342,7 +342,7 @@ def test_protocol_compliance_blocks_when_checklist_uncovered(tmp_path):
 
 def test_protocol_compliance_skips_unknown_phase(tmp_path):
     """Unknown phase → no errors, no warnings."""
-    from dqg.runtime.handlers_protocol import handle_protocol_compliance
+    from qualix.runtime.handlers_protocol import handle_protocol_compliance
 
     ctx = _make_ctx(tmp_path, "Q99")
     result = _make_result()
@@ -352,7 +352,7 @@ def test_protocol_compliance_skips_unknown_phase(tmp_path):
 
 def test_protocol_compliance_warns_on_zero_dynamic_genes(tmp_path):
     """No dynamic genes → WARNING (SOFT, not BLOCKED)."""
-    from dqg.runtime.handlers_protocol import handle_protocol_compliance
+    from qualix.runtime.handlers_protocol import handle_protocol_compliance
 
     ctx = _make_ctx(tmp_path, "Q07")
     result = _make_result()
@@ -385,7 +385,7 @@ Expected: FAIL with `ModuleNotFoundError`
 
 - [ ] **Step 3: Create handlers_protocol.py**
 
-Create `src/dqg/runtime/handlers_protocol.py`:
+Create `src/qualix/runtime/handlers_protocol.py`:
 
 ```python
 """Protocol compliance finalize handler.
@@ -399,26 +399,26 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from dqg.log import get_logger
+from qualix.log import get_logger
 
 if TYPE_CHECKING:
-    from dqg.runtime.execution_context import ExecutionContext
-    from dqg.runtime.result import PhaseResult
+    from qualix.runtime.execution_context import ExecutionContext
+    from qualix.runtime.result import PhaseResult
 
 log = get_logger(__name__)
 
 
 def handle_protocol_compliance(ctx: ExecutionContext, result: PhaseResult) -> None:
     """Check Judge output covers Phase protocol checklist."""
-    from dqg.quality.evaluation_protocols import get_protocol
+    from qualix.quality.evaluation_protocols import get_protocol
 
     protocol = get_protocol(ctx.phase_id)
     if not protocol:
         return
 
     # Load judge result
-    from dqg.constants import PHASE_DIR_MAP
-    from dqg.json_utils import load_json
+    from qualix.constants import PHASE_DIR_MAP
+    from qualix.json_utils import load_json
 
     phase_dir = ctx.output_dir / ctx.project_id / PHASE_DIR_MAP.get(ctx.phase_id, ctx.phase_id)
     judge_path = phase_dir / "_judge_result.json"
@@ -462,7 +462,7 @@ def handle_protocol_compliance(ctx: ExecutionContext, result: PhaseResult) -> No
         log.info("Protocol compliance PASS: all %d checklist items covered", len(protocol.judge.checklist))
 
     # SOFT warning: check dynamic gene injection
-    from dqg.quality.gene_store import load_genes_for_phase
+    from qualix.quality.gene_store import load_genes_for_phase
 
     base_dir = ctx.output_dir.parent if ctx.output_dir.parent.exists() else ctx.output_dir
     phase_genes = load_genes_for_phase(base_dir, ctx.phase_id, agent_role="judge")
@@ -475,10 +475,10 @@ def handle_protocol_compliance(ctx: ExecutionContext, result: PhaseResult) -> No
 
 - [ ] **Step 4: Register handler in handlers_finalize.py**
 
-In `src/dqg/runtime/handlers_finalize.py`, in the registration block (around line 310), add:
+In `src/qualix/runtime/handlers_finalize.py`, in the registration block (around line 310), add:
 
 ```python
-    from dqg.runtime.handlers_protocol import handle_protocol_compliance
+    from qualix.runtime.handlers_protocol import handle_protocol_compliance
     register_handler(
         "protocol_compliance",
         handle_protocol_compliance,
@@ -498,7 +498,7 @@ Expected: 4 passed
 - [ ] **Step 6: Commit**
 
 ```bash
-git add src/dqg/runtime/handlers_protocol.py tests/test_handlers_protocol.py src/dqg/runtime/handlers_finalize.py
+git add src/qualix/runtime/handlers_protocol.py tests/test_handlers_protocol.py src/qualix/runtime/handlers_finalize.py
 git commit -m "feat: add protocol_compliance finalize handler (HARD gate for checklist coverage)"
 ```
 
@@ -521,7 +521,7 @@ import json
 
 def test_protocol_renders_into_judge_prompt():
     """Protocol renders into text suitable for Judge prompt injection."""
-    from dqg.quality.evaluation_protocols import get_protocol, render_protocol_for_prompt
+    from qualix.quality.evaluation_protocols import get_protocol, render_protocol_for_prompt
 
     for phase_id in ("Q01", "Q03", "Q04", "Q05", "Q06", "Q07"):
         proto = get_protocol(phase_id)
@@ -539,7 +539,7 @@ def test_protocol_renders_into_judge_prompt():
 
 def test_gene_store_phase_filtering_end_to_end(tmp_path):
     """Genes saved with phase+role are correctly filtered on load."""
-    from dqg.quality.gene_store import load_genes_for_phase, save_genes
+    from qualix.quality.gene_store import load_genes_for_phase, save_genes
 
     genes = [
         {"gene_id": "G-Q03-judge", "phase_id": "Q03", "agent_role": "judge",
@@ -573,8 +573,8 @@ def test_gene_store_phase_filtering_end_to_end(tmp_path):
 
 def test_compose_rubric_plus_protocol():
     """compose_rubric + protocol render can be concatenated."""
-    from dqg.quality.evaluation_protocols import get_protocol, render_protocol_for_prompt
-    from dqg.quality.judge_rubrics import compose_rubric
+    from qualix.quality.evaluation_protocols import get_protocol, render_protocol_for_prompt
+    from qualix.quality.judge_rubrics import compose_rubric
 
     rubric = compose_rubric("Q07")
     proto = get_protocol("Q07")

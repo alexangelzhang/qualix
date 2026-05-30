@@ -1,7 +1,7 @@
 """从飞书 Bitable bug 表批量导入案例到 failure-library.
 
 用法:
-    python -m qualix.tracking.import_bug_cases /tmp/dqg_bitable_test/ingest.json
+    python -m qualix.tracking.import_bug_cases /tmp/qualix_bitable_test/ingest.json
 """
 
 from __future__ import annotations

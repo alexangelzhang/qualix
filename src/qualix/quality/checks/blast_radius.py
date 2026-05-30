@@ -3,7 +3,7 @@
 基于 tree-sitter Java AST 构建调用图，结合 git diff 计算影响范围。
 输出注入 Phase C 审计 prompt，让 Judge 知道"这次改动可能破坏哪些已有覆盖"。
 
-调用图按文件 hash 缓存（.dqg/call_graph_cache.json），只对 git diff 涉及的文件重新计算。
+调用图按文件 hash 缓存（.qualix/call_graph_cache.json），只对 git diff 涉及的文件重新计算。
 """
 
 from __future__ import annotations
@@ -79,7 +79,7 @@ def compute_risk_score(radius: dict[str, Any]) -> dict[str, Any]:
     return {"score": score, "tier": tier, "factors": factors}
 
 
-_CALL_GRAPH_CACHE_FILE = ".dqg/call_graph_cache.json"
+_CALL_GRAPH_CACHE_FILE = ".qualix/call_graph_cache.json"
 
 
 def _file_hash(path: Path) -> str:
@@ -92,7 +92,7 @@ def _file_hash(path: Path) -> str:
 
 
 def _load_call_graph_cache(repo_path: Path) -> dict[str, Any]:
-    """Load per-file call graph cache from .dqg/call_graph_cache.json."""
+    """Load per-file call graph cache from .qualix/call_graph_cache.json."""
     cache_path = repo_path / _CALL_GRAPH_CACHE_FILE
     if not cache_path.exists():
         return {}

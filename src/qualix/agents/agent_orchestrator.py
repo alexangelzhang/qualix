@@ -37,7 +37,7 @@ class AgentOrchestrator:
     def create_worker(
         self, project_id: str, phase_id: str, skill_content: str, tools: list[Callable] | None = None
     ) -> Agent:
-        writeback_prompt = "\n\n【The Writeback Discipline 约束】: 如果你在分析中发现了当前项目代码或需求里有价值的全局约束、隐式逻辑，请立即调用 write_to_wiki 工具将其记入 `.dqg-wiki/`。不要让它随风消逝！"
+        writeback_prompt = "\n\n【The Writeback Discipline 约束】: 如果你在分析中发现了当前项目代码或需求里有价值的全局约束、隐式逻辑，请立即调用 write_to_wiki 工具将其记入 `.qualix-wiki/`。不要让它随风消逝！"
         phase_def = PHASE_DEFS.get(phase_id, {})
         tier = phase_def.get("recommended_model", "strong")
         model = MODEL_TIER.get(tier, DEFAULT_PRIMARY_MODEL)
@@ -51,7 +51,7 @@ class AgentOrchestrator:
         )
 
     def create_judge(self, project_id: str, phase_id: str, rubric: str, tools: list[Callable] | None = None) -> Agent:
-        writeback_prompt = "\n\n【The Writeback Discipline 约束】: 本项目已开启 LLM-Wiki。如果你在评审中发现严重且值得沉淀的不良规范，请用 write_to_wiki 将教训写入 `.dqg-wiki/`。"
+        writeback_prompt = "\n\n【The Writeback Discipline 约束】: 本项目已开启 LLM-Wiki。如果你在评审中发现严重且值得沉淀的不良规范，请用 write_to_wiki 将教训写入 `.qualix-wiki/`。"
         return Agent(
             name=f"{project_id}-{phase_id}-judge",
             role="judge",
@@ -64,7 +64,7 @@ class AgentOrchestrator:
     def create_critique(
         self, project_id: str, phase_id: str, critique_prompt: str, tools: list[Callable] | None = None
     ) -> Agent:
-        writeback_prompt = "\n\n【The Writeback Discipline 约束】: 如果你在挑错中找出了被违背的设计原则或高频痛点，务必调用 write_to_wiki 工具将其定格入 `.dqg-wiki/`，为长效免疫做贡献。"
+        writeback_prompt = "\n\n【The Writeback Discipline 约束】: 如果你在挑错中找出了被违背的设计原则或高频痛点，务必调用 write_to_wiki 工具将其定格入 `.qualix-wiki/`，为长效免疫做贡献。"
         return Agent(
             name=f"{project_id}-{phase_id}-critique",
             role="critique",

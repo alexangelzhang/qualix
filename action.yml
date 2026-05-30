@@ -1,9 +1,9 @@
-name: DQG Quality Gate
-description: '运行 DQG 质量门禁，读取已有 Phase verdict 并决定是否通过'
+name: Qualix Quality Gate
+description: '运行 Qualix 质量门禁，读取已有 Phase verdict 并决定是否通过'
 
 inputs:
   project-id:
-    description: 'DQG 项目 ID（对应 output/ 下的目录名）'
+    description: 'Qualix 项目 ID（对应 output/ 下的目录名）'
     required: true
   phase:
     description: '检查的 Phase ID（如 Q06），或 all 表示所有 Phase'
@@ -12,7 +12,7 @@ inputs:
     description: '失败级别：hard（默认）/ soft / any'
     default: 'hard'
   output-dir:
-    description: 'DQG output 目录路径'
+    description: 'Qualix output 目录路径'
     default: 'output'
   post-summary:
     description: '是否将结果写入 GitHub Step Summary'
@@ -29,11 +29,11 @@ outputs:
 runs:
   using: composite
   steps:
-    - name: Install DQG
+    - name: Install Qualix
       shell: bash
       run: pip install -e "${{ github.action_path }}" --quiet
 
-    - name: Run DQG Quality Gate
+    - name: Run Qualix Quality Gate
       id: gate
       shell: bash
       run: |

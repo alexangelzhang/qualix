@@ -1,7 +1,7 @@
-"""DQG 飞书客户端.
+"""Qualix Feishu/Lark client.
 
 直接读 ~/.vaf/config 的最新 user_token，不做本地缓存。
-larkkit 刷新 token 后，DQG 下次调用自动拿到最新的。
+larkkit 刷新 token 后，Qualix 下次调用自动拿到最新的。
 未安装 larkkit 的用户静默跳过，不影响主流程。
 """
 

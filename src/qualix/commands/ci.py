@@ -70,7 +70,7 @@ def _render_pr_comment(
     verdicts: dict[str, dict[str, Any]],
     semantic_coverage: dict[str, Any] | None = None,
 ) -> str:
-    lines: list[str] = ["## DQG Quality Gate\n"]
+    lines: list[str] = ["## Qualix Quality Gate\n"]
 
     for phase_id, verdict in sorted(verdicts.items()):
         hard_blocked = verdict.get("hard_blocked", False)
@@ -126,7 +126,7 @@ def _render_pr_comment(
 
 
 def _render_human_readable(verdicts: dict[str, dict[str, Any]]) -> str:
-    lines: list[str] = ["\n[DQG CI Gate]\n"]
+    lines: list[str] = ["\n[Qualix CI Gate]\n"]
 
     overall_hard = False
     overall_soft = False

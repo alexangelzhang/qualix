@@ -12,11 +12,11 @@ from qualix.commands.doctor import (
 
 @pytest.fixture
 def project_with_state(tmp_path):
-    (tmp_path / ".dqg").mkdir()
-    (tmp_path / ".dqg" / "settings.yaml").write_text(
-        'dqg_version: "0.2.0"\nprofile: java-ddd\ncode_repos:\n  - /abs/path\n'
+    (tmp_path / ".qualix").mkdir()
+    (tmp_path / ".qualix" / "settings.yaml").write_text(
+        'qualix_version: "0.2.0"\nprofile: java-ddd\ncode_repos:\n  - /abs/path\n'
     )
-    (tmp_path / ".dqg" / "last-run.json").write_text(
+    (tmp_path / ".qualix" / "last-run.json").write_text(
         json.dumps(
             {
                 "cmd": ["qualix-run", "status"],
@@ -27,7 +27,7 @@ def project_with_state(tmp_path):
             }
         )
     )
-    output = tmp_path / ".dqg" / "output" / "proj1"
+    output = tmp_path / ".qualix" / "output" / "proj1"
     output.mkdir(parents=True)
     (output / "state.json").write_text("{}")
     phase_internal = output / "Q01" / "_internal"
@@ -87,8 +87,8 @@ def test_redact_token_prefixes():
 
 
 def test_version_consistency_mismatch_flag(project_with_state):
-    (project_with_state / ".dqg" / "settings.yaml").write_text(
-        'dqg_version: "0.0.1"\nprofile: java-ddd\ncode_repos: []\n'
+    (project_with_state / ".qualix" / "settings.yaml").write_text(
+        'qualix_version: "0.0.1"\nprofile: java-ddd\ncode_repos: []\n'
     )
     result = check_version_consistency(
         project_root=project_with_state,
@@ -100,8 +100,8 @@ def test_version_consistency_mismatch_flag(project_with_state):
 
 
 def test_version_consistency_all_match(project_with_state):
-    (project_with_state / ".dqg" / "settings.yaml").write_text(
-        'dqg_version: "0.2.0"\nprofile: java-ddd\ncode_repos: []\n'
+    (project_with_state / ".qualix" / "settings.yaml").write_text(
+        'qualix_version: "0.2.0"\nprofile: java-ddd\ncode_repos: []\n'
     )
     result = check_version_consistency(
         project_root=project_with_state,
@@ -112,7 +112,7 @@ def test_version_consistency_all_match(project_with_state):
 
 
 def test_version_consistency_no_settings(tmp_path):
-    """When .dqg/settings.yaml is missing, settings is empty but not a mismatch if others agree."""
+    """When .qualix/settings.yaml is missing, settings is empty but not a mismatch if others agree."""
     result = check_version_consistency(
         project_root=tmp_path,
         global_version="0.2.0",

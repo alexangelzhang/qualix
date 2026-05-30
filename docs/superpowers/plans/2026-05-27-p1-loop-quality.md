@@ -14,10 +14,10 @@
 
 | 操作 | 路径 | 职责 |
 |------|------|------|
-| MODIFY | `src/dqg/tracking/data_patterns.py` | 修复 phase_id 硬编码 + 追加 top_lessons |
-| MODIFY | `src/dqg/constants.py` | 新增 2 个常量 |
-| MODIFY | `src/dqg/agents/loop_health.py` | 新增 2 个检测维度 |
-| MODIFY | `src/dqg/agents/adaptive_loop.py` | 插入快照逻辑 + 注入 hash 参数 |
+| MODIFY | `src/qualix/tracking/data_patterns.py` | 修复 phase_id 硬编码 + 追加 top_lessons |
+| MODIFY | `src/qualix/constants.py` | 新增 2 个常量 |
+| MODIFY | `src/qualix/agents/loop_health.py` | 新增 2 个检测维度 |
+| MODIFY | `src/qualix/agents/adaptive_loop.py` | 插入快照逻辑 + 注入 hash 参数 |
 | CREATE | `tests/test_p1_loop_quality.py` | 8 条单测 |
 
 ---
@@ -25,8 +25,8 @@
 ## Task 1：data_patterns sidecar（P1-4）
 
 **Files:**
-- Modify: `src/dqg/tracking/data_patterns.py:157,227`
-- Modify: `src/dqg/constants.py` (追加 2 个常量)
+- Modify: `src/qualix/tracking/data_patterns.py:157,227`
+- Modify: `src/qualix/constants.py` (追加 2 个常量)
 - Test: `tests/test_p1_loop_quality.py`
 
 - [ ] **Step 1: 写失败测试**
@@ -47,7 +47,7 @@ def test_write_data_patterns_uses_phase_id():
     """write_data_patterns 必须用 phase_id 调用 analyze_data_patterns，而非硬编码 'Q06'."""
     from pathlib import Path
     from unittest.mock import patch as _patch
-    from dqg.tracking.data_patterns import write_data_patterns
+    from qualix.tracking.data_patterns import write_data_patterns
 
     captured_phase = []
 
@@ -56,7 +56,7 @@ def test_write_data_patterns_uses_phase_id():
         return {"top_patterns": [], "total_cases": 0,
                 "pattern_distribution": {}, "cases_by_pattern": {}}
 
-    with _patch("dqg.tracking.data_patterns.analyze_data_patterns", side_effect=_fake_analyze):
+    with _patch("qualix.tracking.data_patterns.analyze_data_patterns", side_effect=_fake_analyze):
         write_data_patterns(Path("/tmp"), "proj", "Q05")
 
     assert captured_phase == ["Q05"], f"Expected ['Q05'], got {captured_phase}"
@@ -65,15 +65,15 @@ def test_write_data_patterns_uses_phase_id():
 def test_analyze_data_patterns_includes_top_lessons():
     """analyze_data_patterns 返回的 top_patterns 每条应包含 top_lessons 列表."""
     from unittest.mock import patch as _patch
-    from dqg.tracking.data_patterns import analyze_data_patterns
+    from qualix.tracking.data_patterns import analyze_data_patterns
 
     fake_cases = [
         {"case_id": "c1", "phase": "Q05", "lesson": "字段映射必须显式转换枚举值",
          "title": "字段映射错误", "description": "金额字段未转换", "error_type": "field_mapping"},
     ]
 
-    with _patch("dqg.tracking.data_patterns.load_cases_by_phase", return_value=fake_cases), \
-         _patch("dqg.tracking.data_patterns.get_case_with_inferred_lesson", side_effect=lambda c: c):
+    with _patch("qualix.tracking.data_patterns.load_cases_by_phase", return_value=fake_cases), \
+         _patch("qualix.tracking.data_patterns.get_case_with_inferred_lesson", side_effect=lambda c: c):
         result = analyze_data_patterns("Q05")
 
     for pattern in result.get("top_patterns", []):
@@ -84,7 +84,7 @@ def test_analyze_data_patterns_includes_top_lessons():
 - [ ] **Step 2: 运行测试确认失败**
 
 ```bash
-cd /path/to/rd-gate
+cd /path/to/qualix
 python -m pytest tests/test_p1_loop_quality.py::test_write_data_patterns_uses_phase_id \
   tests/test_p1_loop_quality.py::test_analyze_data_patterns_includes_top_lessons -v 2>&1 | tail -10
 ```
@@ -92,7 +92,7 @@ Expected: 2 FAILED（`write_data_patterns` 仍传 "Q06"，`top_lessons` key 不�
 
 - [ ] **Step 3: 在 constants.py 新增 2 个常量**
 
-读取 `src/dqg/constants.py`，在文件末尾追加：
+读取 `src/qualix/constants.py`，在文件末尾追加：
 
 ```python
 # data_patterns sidecar：每个 pattern 保留的 lesson 原文数量及最大字符数
@@ -102,7 +102,7 @@ DATA_PATTERN_LESSON_MAX_CHARS: int = 200
 
 - [ ] **Step 4: 修复 analyze_data_patterns**
 
-读取 `src/dqg/tracking/data_patterns.py`。  
+读取 `src/qualix/tracking/data_patterns.py`。  
 在 `analyze_data_patterns()` 函数的循环中，把 `cases_by_pattern` 的追加改为同时收集 lesson 文本：
 
 将这段（约 L161-167）：
@@ -118,7 +118,7 @@ DATA_PATTERN_LESSON_MAX_CHARS: int = 200
 ```
 改为：
 ```python
-    from dqg.constants import DATA_PATTERN_LESSON_MAX_CHARS, DATA_PATTERN_TOP_LESSONS
+    from qualix.constants import DATA_PATTERN_LESSON_MAX_CHARS, DATA_PATTERN_TOP_LESSONS
 
     pattern_counter: Counter = Counter()
     cases_by_pattern: dict[str, list[str]] = defaultdict(list)
@@ -179,7 +179,7 @@ Expected: no new failures
 - [ ] **Step 8: 提交**
 
 ```bash
-git add src/dqg/tracking/data_patterns.py src/dqg/constants.py tests/test_p1_loop_quality.py
+git add src/qualix/tracking/data_patterns.py src/qualix/constants.py tests/test_p1_loop_quality.py
 git commit -m "feat(p1-4): data_patterns sidecar 按 phase_id 过滤 + top_lessons 字段"
 ```
 
@@ -188,7 +188,7 @@ git commit -m "feat(p1-4): data_patterns sidecar 按 phase_id 过滤 + top_lesso
 ## Task 2：PIVOT/REFINE 版本化（P1-3）
 
 **Files:**
-- Modify: `src/dqg/agents/adaptive_loop.py:260-276`（主循环）
+- Modify: `src/qualix/agents/adaptive_loop.py:260-276`（主循环）
 - Test: `tests/test_p1_loop_quality.py`
 
 - [ ] **Step 1: 写失败测试**
@@ -204,7 +204,7 @@ def _make_adaptive_loop_fixtures(tmp_path):
     """构造 AdaptiveLoop 测试所需的最小 fixtures."""
     from pathlib import Path
     from unittest.mock import MagicMock
-    from dqg.agents.adaptive_loop import AdaptiveLoop
+    from qualix.agents.adaptive_loop import AdaptiveLoop
 
     loop = AdaptiveLoop(output_dir=tmp_path)
     pd = tmp_path / "proj" / "phase_a"
@@ -223,8 +223,8 @@ def test_pivot_snapshot_creates_dir_on_judge_fail(tmp_path):
     """Judge FAIL 时应创建 _pivot_v1/ 目录并包含主 JSON."""
     import json
     from pathlib import Path
-    from dqg.agents.adaptive_loop import AdaptiveLoop
-    from dqg.constants import STRUCTURED_JSON_MAP, REPORT_MAP
+    from qualix.agents.adaptive_loop import AdaptiveLoop
+    from qualix.constants import STRUCTURED_JSON_MAP, REPORT_MAP
 
     loop, pd = _make_adaptive_loop_fixtures(tmp_path)
     phase_id = "Q01"
@@ -240,7 +240,7 @@ def test_pivot_snapshot_creates_dir_on_judge_fail(tmp_path):
 
 def test_pivot_snapshot_writes_latest_pointer(tmp_path):
     """_save_pivot_snapshot 应更新 _pivot_latest 文件."""
-    from dqg.agents.adaptive_loop import AdaptiveLoop
+    from qualix.agents.adaptive_loop import AdaptiveLoop
 
     loop, pd = _make_adaptive_loop_fixtures(tmp_path)
     loop._save_pivot_snapshot(pd=pd, iteration_n=1, phase_id="Q01")
@@ -252,7 +252,7 @@ def test_pivot_snapshot_writes_latest_pointer(tmp_path):
 
 def test_pivot_snapshot_skips_missing_files(tmp_path):
     """不存在的文件不应导致 snapshot 抛出异常."""
-    from dqg.agents.adaptive_loop import AdaptiveLoop
+    from qualix.agents.adaptive_loop import AdaptiveLoop
 
     loop = AdaptiveLoop(output_dir=tmp_path)
     pd = tmp_path / "proj" / "phaseX"
@@ -274,7 +274,7 @@ Expected: `AttributeError: 'AdaptiveLoop' object has no attribute '_save_pivot_s
 
 - [ ] **Step 3: 实现 _save_pivot_snapshot**
 
-读取 `src/dqg/agents/adaptive_loop.py`，在 `_schema_errors_after_worker` 方法（约 L313）**之前**插入：
+读取 `src/qualix/agents/adaptive_loop.py`，在 `_schema_errors_after_worker` 方法（约 L313）**之前**插入：
 
 ```python
     def _save_pivot_snapshot(
@@ -283,7 +283,7 @@ Expected: `AttributeError: 'AdaptiveLoop' object has no attribute '_save_pivot_s
         """Judge FAIL 后保存当前轮产物到 _pivot_v{n+1}/，防止下一轮覆盖写丢失好版本."""
         import shutil
 
-        from dqg.constants import REPORT_MAP, STRUCTURED_JSON_MAP
+        from qualix.constants import REPORT_MAP, STRUCTURED_JSON_MAP
 
         pivot_dir = pd / f"_pivot_v{iteration_n + 1}"
         try:
@@ -357,7 +357,7 @@ Expected: no new failures（test_file_line_limit 仍是预存失败，忽略）
 - [ ] **Step 7: 提交**
 
 ```bash
-git add src/dqg/agents/adaptive_loop.py tests/test_p1_loop_quality.py
+git add src/qualix/agents/adaptive_loop.py tests/test_p1_loop_quality.py
 git commit -m "feat(p1-3): adaptive loop PIVOT 版本化快照（Judge FAIL 时保存 _pivot_v{n}/）"
 ```
 
@@ -366,8 +366,8 @@ git commit -m "feat(p1-3): adaptive loop PIVOT 版本化快照（Judge FAIL 时�
 ## Task 3：退化检测增强（P1-2）
 
 **Files:**
-- Modify: `src/dqg/agents/loop_health.py:41-131`
-- Modify: `src/dqg/agents/adaptive_loop.py:254-264`（monitor.record_iteration 调用处）
+- Modify: `src/qualix/agents/loop_health.py:41-131`
+- Modify: `src/qualix/agents/adaptive_loop.py:254-264`（monitor.record_iteration 调用处）
 - Test: `tests/test_p1_loop_quality.py`
 
 - [ ] **Step 1: 写失败测试**
@@ -381,7 +381,7 @@ git commit -m "feat(p1-3): adaptive loop PIVOT 版本化快照（Judge FAIL 时�
 
 def test_loop_health_output_fingerprint_stagnation():
     """Worker 连续 2 轮产出相同 hash → EARLY_STOP(output_fingerprint_stagnation)."""
-    from dqg.agents.loop_health import LoopHealthMonitor
+    from qualix.agents.loop_health import LoopHealthMonitor
 
     monitor = LoopHealthMonitor()
     monitor.record_iteration(avg_score=3.0, worker_output_hash="abc123")
@@ -394,7 +394,7 @@ def test_loop_health_output_fingerprint_stagnation():
 
 def test_loop_health_rejection_sig_stagnation():
     """Judge 连续 2 轮驳回签名相同 → EARLY_STOP(rejection_signature_stagnation)."""
-    from dqg.agents.loop_health import LoopHealthMonitor
+    from qualix.agents.loop_health import LoopHealthMonitor
 
     monitor = LoopHealthMonitor()
     monitor.record_iteration(avg_score=2.5, judge_rejection_sig="def456")
@@ -407,7 +407,7 @@ def test_loop_health_rejection_sig_stagnation():
 
 def test_loop_health_different_hashes_no_stop():
     """Worker 输出 hash 不同时不应触发指纹停滞."""
-    from dqg.agents.loop_health import LoopHealthMonitor
+    from qualix.agents.loop_health import LoopHealthMonitor
 
     monitor = LoopHealthMonitor()
     monitor.record_iteration(avg_score=3.0, worker_output_hash="aaa111")
@@ -428,7 +428,7 @@ Expected: `TypeError: record_iteration() got unexpected keyword argument 'worker
 
 - [ ] **Step 3: 扩展 LoopHealthMonitor**
 
-读取 `src/dqg/agents/loop_health.py`。  
+读取 `src/qualix/agents/loop_health.py`。  
 
 在 `__init__` 中（约 L47-55）追加两个新字段：
 
@@ -520,7 +520,7 @@ Expected: `TypeError: record_iteration() got unexpected keyword argument 'worker
 
 - [ ] **Step 4: 在 adaptive_loop.py 注入 hash 计算**
 
-读取 `src/dqg/agents/adaptive_loop.py`，找到 `monitor.record_iteration()` 调用处（约 L260-264）：
+读取 `src/qualix/agents/adaptive_loop.py`，找到 `monitor.record_iteration()` 调用处（约 L260-264）：
 
 ```python
             if record.judge_result is not None:
@@ -589,7 +589,7 @@ Expected: 951 passed（新增 8 条），0 新失败
 - [ ] **Step 7: 提交**
 
 ```bash
-git add src/dqg/agents/loop_health.py src/dqg/agents/adaptive_loop.py tests/test_p1_loop_quality.py
+git add src/qualix/agents/loop_health.py src/qualix/agents/adaptive_loop.py tests/test_p1_loop_quality.py
 git commit -m "feat(p1-2): 退化检测增强——Worker 输出指纹 + Judge 驳回签名两维早停"
 ```
 

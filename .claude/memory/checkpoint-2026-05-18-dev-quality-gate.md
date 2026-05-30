@@ -15,7 +15,7 @@ home-replace-renewal Q05 待执行（Q01 approved，Q05 单测代码已在业务
 
 ## 架构发现
 - Q05 两层产物解耦：EUT 矩阵 JSON（L1）vs .java 测试代码（L2），两层必须交叉验证才能防绕过
-- _resolve_output_dir bug：.dqg/output/ 存在时全局切换导致旧项目失联（已修复）
+- _resolve_output_dir bug：.qualix/output/ 存在时全局切换导致旧项目失联（已修复）
 - check_phase_b_compilation 存在但未接入 finalize 流程（B1 核心漏洞，已修复）
 - Q01 是整个流水线源头，SE 来源虚报会让下游所有 gate 验证假前提
 

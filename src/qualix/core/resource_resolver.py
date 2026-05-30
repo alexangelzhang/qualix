@@ -6,7 +6,7 @@ from typing import ClassVar
 
 
 class ResourceResolver:
-    """四层回退资源查找：项目 .dqg/ -> ~/.dqg/ -> importlib.resources -> DQG repo root（过渡期）."""
+    """四层回退资源查找：项目 .qualix/ -> ~/.qualix/ -> importlib.resources -> Qualix repo root（过渡期）."""
 
     _LAYER4_WARNED: ClassVar[set[str]] = set()
 
@@ -16,8 +16,8 @@ class ResourceResolver:
         global_root: Path | None = None,
     ):
         self.project_root = project_root or Path.cwd()
-        self.project_dqg = self.project_root / ".dqg"
-        self.global_root = global_root or (Path.home() / ".dqg")
+        self.project_qualix = self.project_root / ".qualix"
+        self.global_root = global_root or (Path.home() / ".qualix")
 
     def _validate(self, category: str, relative: str | None = None) -> None:
         """Validate category and optional relative path against traversal attacks."""
@@ -28,10 +28,10 @@ class ResourceResolver:
 
     @staticmethod
     def _repo_root_fallback(category: str) -> Path | None:
-        """Transitional layer 4: walk up to DQG repo root.
+        """Transitional layer 4: walk up to Qualix repo root.
 
         3-month deprecation window during the tool-distribution migration.
-        Used when project .dqg/, ~/.dqg/, and importlib.resources all miss.
+        Used when project .qualix/, ~/.qualix/, and importlib.resources all miss.
         """
         candidate = Path(__file__).resolve().parents[3]
         if not (candidate / "pyproject.toml").exists():
@@ -47,7 +47,7 @@ class ResourceResolver:
         if category not in ResourceResolver._LAYER4_WARNED:
             ResourceResolver._LAYER4_WARNED.add(category)
             print(
-                f"\n⚠️  DQG Layer-4 fallback: 从 DQG repo 根读取 {category}/\n"
+                f"\n⚠️  Qualix Layer-4 fallback: 从 Qualix repo 根读取 {category}/\n"
                 f"   未来版本将移除此兼容路径（见 docs/migration-from-0.1.md）\n",
                 file=sys.stderr,
             )
@@ -57,7 +57,7 @@ class ResourceResolver:
         """按 项目级 -> 全局 -> 包内 -> repo root（过渡期）顺序查找，返回第一个存在的路径."""
         self._validate(category, relative)
         candidates = [
-            self.project_dqg / category / relative,
+            self.project_qualix / category / relative,
             self.global_root / category / relative,
             self._package_fallback(category, relative),
         ]
@@ -78,7 +78,7 @@ class ResourceResolver:
         """返回某个 category 的目录，按 项目级 -> 全局 -> 包内 -> repo root（过渡期）顺序查找."""
         self._validate(category)
         candidates = [
-            self.project_dqg / category,
+            self.project_qualix / category,
             self.global_root / category,
             self._package_fallback_dir(category),
         ]
@@ -100,7 +100,7 @@ class ResourceResolver:
             for item in sorted(global_dir.iterdir()):
                 if item.name != ".DS_Store":
                     seen[item.name] = item
-        project_dir = self.project_dqg / category
+        project_dir = self.project_qualix / category
         if project_dir.exists():
             for item in sorted(project_dir.iterdir()):
                 if item.name != ".DS_Store":
@@ -115,7 +115,7 @@ class ResourceResolver:
         return sorted(seen.values(), key=lambda p: p.name)
 
     def check_legacy_layout(self) -> None:
-        """检测 cwd 是否仍是 DQG repo 内布局，打印一次性 deprecation warning.
+        """检测 cwd 是否仍是 Qualix repo 内布局，打印一次性 deprecation warning.
 
         仅当 cwd 同时存在 src/qualix/ 和 skills/ 时认为是老布局。
         """
@@ -126,7 +126,7 @@ class ResourceResolver:
         if not all(p.exists() for p in legacy_signals):
             return
         print(
-            "\n⚠️  DEPRECATION: 检测到 cwd 仍在 DQG repo 内布局运行。\n"
+            "\n⚠️  DEPRECATION: 检测到 cwd 仍在 Qualix repo 内布局运行。\n"
             "   未来版本将移除此兼容路径，请按 docs/migration-from-0.1.md 迁移：\n"
             "   1. 在家目录外新建你的项目工作区\n"
             "   2. cd 到工作区后运行 qualix-run init\n"

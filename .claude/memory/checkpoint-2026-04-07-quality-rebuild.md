@@ -1,6 +1,6 @@
 ---
 date: 2026-04-07
-session_topic: DQG 质量体系重建 + 记忆层 + Multi-Agent + 代码重构
+session_topic: Qualix 质量体系重建 + 记忆层 + Multi-Agent + 代码重构
 project: qualix
 status: in-progress
 ---

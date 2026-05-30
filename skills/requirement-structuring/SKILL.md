@@ -154,7 +154,7 @@ python3 scripts/parse_image_assets.py \
    ```bash
    python -c "
    from pathlib import Path
-   from dqg.quality.se_checklist import load_se_checklist, format_checklist_prompt
+   from qualix.quality.se_checklist import load_se_checklist, format_checklist_prompt
    profile_dir = Path('profiles/<profile_id>')
    prd = Path('output/<project_id>/Q01/ingest/ingest/plain_text_enhanced.txt').read_text()
    dims = load_se_checklist(profile_dir, prd_text=prd)
@@ -213,7 +213,7 @@ python3 scripts/parse_image_assets.py \
 
 **格式前置检测（必须在人工自检前跑）：**
 ```bash
-python -m dqg.quality.checks.report_quality_checks output/<project_id> <project_id> Q01
+python -m qualix.quality.checks.report_quality_checks output/<project_id> <project_id> Q01
 ```
 如果有 source_annotation / reasoning_log_quality / skill_reference 问题，必须修复后再继续。不要等 finalize 才发现。
 

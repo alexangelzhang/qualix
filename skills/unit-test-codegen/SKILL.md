@@ -132,7 +132,7 @@ public void validateMethod_远程维修工单_跳过所有校验() throws Except
 
 ```python
 # 检查刚写的 EUT 是否在测试代码里有 // EUT-xxx 注释
-from dqg.quality.checks.q05_structure_checks import _check_eut_implementation_completeness
+from qualix.quality.checks.q05_structure_checks import _check_eut_implementation_completeness
 errors = _check_eut_implementation_completeness(phase_b_data, [test_file_path])
 # 有 BLOCKED → 本批未完成，继续补充
 ```

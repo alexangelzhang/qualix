@@ -1,6 +1,6 @@
 """EvidenceGraph：SE → EUT → Test → Coverage 链路健康度图.
 
-统一查询 DQG 全 Phase 的证据链完整度，回答：
+统一查询 Qualix 全 Phase 的证据链完整度，回答：
 - 哪些 SE 没有 EUT？
 - 哪些 EUT 没有对应测试代码？
 - 哪些 EUT 通过了 Q06 审计（COVERED）？

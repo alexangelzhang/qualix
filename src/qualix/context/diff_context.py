@@ -125,7 +125,7 @@ def collect_diff_context(
 
     # 远程 URL: clone 到临时目录
     if _is_remote_url(path_str):
-        tmp = Path(tempfile.mkdtemp(prefix="dqg_diff_"))
+        tmp = Path(tempfile.mkdtemp(prefix="qualix_diff_"))
         cleanup_dir = tmp
         ok, out = _run_git(
             tmp.parent,

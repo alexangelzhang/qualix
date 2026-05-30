@@ -6,7 +6,7 @@
 
 ### 问题
 
-DQG 当前是"跑完再审"模式：Worker 跑完整轮 → Judge 发现问题 → 整轮作废。
+Qualix 当前是"跑完再审"模式：Worker 跑完整轮 → Judge 发现问题 → 整轮作废。
 两个天然断点没有验证：
 
 1. Two-Phase Worker：Collector 输出 evidence_pack 后无条件启动 Writer
@@ -47,7 +47,7 @@ def validate_checkpoint(
 
 LLM 层超时 10 秒，超时视为 PASS（不因 LLM 不可用阻断主流程）。
 
-存储位置：`src/dqg/quality/checkpoint_validator.py`
+存储位置：`src/qualix/quality/checkpoint_validator.py`
 
 ### Checkpoint 1: Two-Phase Worker 断点
 

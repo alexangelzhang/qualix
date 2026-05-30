@@ -261,7 +261,7 @@ def check_phase_b_compilation(
     """Phase B finalize 时的编译验证 gate.
 
     Args:
-        output_dir: DQG 输出目录
+        output_dir: Qualix 输出目录
         project_id: 项目 ID
         code_repo: 代码仓库路径（可选，从 state 或环境推断）
         language_provider: LanguageProvider 实例（可选，优先使用）

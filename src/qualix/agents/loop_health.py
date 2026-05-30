@@ -1,6 +1,6 @@
 """Adaptive Loop 健康监控：多维度检测死循环和停滞.
 
-借鉴 DeepCode LoopDetector 思路，适配 DQG Judge→Worker→Judge 语义循环。
+借鉴 DeepCode LoopDetector 思路，适配 Qualix Judge→Worker→Judge 语义循环。
 检测维度：
 1. Score stagnation — 连续 N 轮 score delta < 阈值
 2. Issue repetition — Critique/Judge 连续报出相同 issue

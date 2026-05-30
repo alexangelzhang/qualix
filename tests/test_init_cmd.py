@@ -6,10 +6,10 @@ from qualix.commands.init import GUARDRAIL_BEGIN, GUARDRAIL_END, _detect_code_re
 def test_init_creates_workspace(tmp_path):
     rc = run_init(project_root=tmp_path, profile="java-ddd", force=False)
     assert rc == 0
-    assert (tmp_path / ".dqg" / "output").is_dir()
-    settings = (tmp_path / ".dqg" / "settings.yaml").read_text()
+    assert (tmp_path / ".qualix" / "output").is_dir()
+    settings = (tmp_path / ".qualix" / "settings.yaml").read_text()
     assert "profile: java-ddd" in settings
-    assert "dqg_version:" in settings
+    assert "qualix_version:" in settings
     claude_md = (tmp_path / "CLAUDE.md").read_text()
     assert GUARDRAIL_BEGIN in claude_md
     assert GUARDRAIL_END in claude_md
@@ -28,17 +28,17 @@ def test_init_idempotent_claude_md(tmp_path):
 
 
 def test_init_refuses_existing_without_force(tmp_path):
-    (tmp_path / ".dqg").mkdir()
+    (tmp_path / ".qualix").mkdir()
     rc = run_init(project_root=tmp_path, profile="java-ddd", force=False)
     assert rc != 0
 
 
 def test_init_force_clobbers_existing(tmp_path):
-    (tmp_path / ".dqg").mkdir()
-    (tmp_path / ".dqg" / "stale.txt").write_text("old")
+    (tmp_path / ".qualix").mkdir()
+    (tmp_path / ".qualix" / "stale.txt").write_text("old")
     rc = run_init(project_root=tmp_path, profile="java-ddd", force=True)
     assert rc == 0
-    assert (tmp_path / ".dqg" / "output").is_dir()
+    assert (tmp_path / ".qualix" / "output").is_dir()
 
 
 def test_init_force_preserves_output(tmp_path):
@@ -46,7 +46,7 @@ def test_init_force_preserves_output(tmp_path):
     # 先 init 一次
     run_init(project_root=tmp_path, profile="java-ddd", force=False)
     # 写入假产物
-    proj_dir = tmp_path / ".dqg" / "output" / "my-project"
+    proj_dir = tmp_path / ".qualix" / "output" / "my-project"
     proj_dir.mkdir(parents=True)
     (proj_dir / "state.json").write_text('{"phase": "Q01"}')
     # --force 重跑
@@ -56,29 +56,29 @@ def test_init_force_preserves_output(tmp_path):
     assert (proj_dir / "state.json").exists()
     assert (proj_dir / "state.json").read_text() == '{"phase": "Q01"}'
     # 配置文件已重建
-    settings = (tmp_path / ".dqg" / "settings.yaml").read_text()
-    assert "dqg_version:" in settings
+    settings = (tmp_path / ".qualix" / "settings.yaml").read_text()
+    assert "qualix_version:" in settings
 
 
 def test_init_appends_gitignore(tmp_path):
     (tmp_path / ".gitignore").write_text("node_modules/\n")
     run_init(project_root=tmp_path, profile="java-ddd", force=False)
     content = (tmp_path / ".gitignore").read_text()
-    assert ".dqg/output/" in content
+    assert ".qualix/output/" in content
     assert "node_modules/" in content
 
 
 def test_init_creates_gitignore_if_absent(tmp_path):
     run_init(project_root=tmp_path, profile="java-ddd", force=False)
     content = (tmp_path / ".gitignore").read_text()
-    assert ".dqg/output/" in content
+    assert ".qualix/output/" in content
 
 
 def test_init_skips_duplicate_gitignore_entry(tmp_path):
-    (tmp_path / ".gitignore").write_text(".dqg/output/\n")
+    (tmp_path / ".gitignore").write_text(".qualix/output/\n")
     run_init(project_root=tmp_path, profile="java-ddd", force=False)
     content = (tmp_path / ".gitignore").read_text()
-    assert content.count(".dqg/output/") == 1
+    assert content.count(".qualix/output/") == 1
 
 
 def test_init_new_claude_md_created_when_absent(tmp_path):
@@ -111,7 +111,7 @@ def test_init_writes_detected_repos_to_settings(tmp_path):
     (tmp_path / "service-a" / ".git").mkdir(parents=True)
     (tmp_path / "service-b" / ".git").mkdir(parents=True)
     run_init(project_root=tmp_path, profile="java-ddd", force=False)
-    settings = (tmp_path / ".dqg" / "settings.yaml").read_text()
+    settings = (tmp_path / ".qualix" / "settings.yaml").read_text()
     assert "service-a" in settings
     assert "service-b" in settings
     assert "code_repos:" in settings
@@ -120,7 +120,7 @@ def test_init_writes_detected_repos_to_settings(tmp_path):
 def test_init_empty_code_repos_when_no_git_subdirs(tmp_path):
     """无 git 子目录时 settings.yaml 保留空 code_repos 占位."""
     run_init(project_root=tmp_path, profile="java-ddd", force=False)
-    settings = (tmp_path / ".dqg" / "settings.yaml").read_text()
+    settings = (tmp_path / ".qualix" / "settings.yaml").read_text()
     assert "code_repos: []" in settings
 
 

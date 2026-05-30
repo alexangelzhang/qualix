@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# DQG 一键安装脚本
+# Qualix 一键安装脚本
 # 用法: ./scripts/install.sh
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -18,7 +18,7 @@ fail() { echo -e "  ${RED}✗${NC} $1"; }
 
 echo ""
 echo "=========================================="
-echo "  DQG 一键安装"
+echo "  Qualix 一键安装"
 echo "=========================================="
 echo ""
 
@@ -58,8 +58,8 @@ fi
 echo ""
 echo "安装 Python 依赖..."
 cd "$PROJECT_DIR"
-python3 -m pip install -e . -q && ok "dqg (pip install -e .)" || { fail "pip install -e . 失败"; ERRORS=$((ERRORS + 1)); }
-python3 -m pip install larkkit -q && ok "larkkit" || warn "larkkit 安装失败（飞书摄入不可用）"
+python3 -m pip install -e . -q && ok "qualix (pip install -e .)" || { fail "pip install -e . 失败"; ERRORS=$((ERRORS + 1)); }
+python3 -m pip install larkkit -q && ok "larkkit" || warn "larkkit 安装失败（Feishu/Lark 摄入不可用）"
 
 # ---------------------------------------------------------------------------
 # 3. Node.js + agent-browser
@@ -169,6 +169,6 @@ fi
 echo ""
 echo "  下一步:"
 echo "    1. qualix-run <project-id> init --profile java-ddd-tmf"
-echo "    2. 在 AI IDE 中执行 @dqg_starter.md"
+echo "    2. 在 AI IDE 中执行 \$qualix-starter"
 echo "=========================================="
 echo ""

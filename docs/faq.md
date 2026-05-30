@@ -1,165 +1,115 @@
-# 常见问题 FAQ
+# FAQ
 
-## 环境配置
+## Setup
 
-### Q: qualix-run 命令找不到？
+### `qualix-run` is not found
+
+Install the package in editable mode:
 
 ```bash
-# 确认已安装
-pip install -e /path/to/qualix
-
-# 或直接使用模块调用
-python -m dqg.core.runner <project_id> <command>
+python -m pip install -e /path/to/qualix
 ```
 
-### Q: doctor 报错"缺少依赖"？
+Or run from a cloned repository:
 
 ```bash
-pip install pydantic jinja2
-
-# 可选依赖（不影响核心功能）
-pip install deepeval tree-sitter
+cd /path/to/qualix
+./install.sh --dev
 ```
 
-### Q: 飞书 token 无效？
+### Which optional dependencies do I need?
+
+Core workflows need only the base package. Optional extras are available for integrations:
 
 ```bash
-# 安装 larkkit
-pip install larkkit
+python -m pip install -e '.[feishu]'   # Feishu/Lark ingestion through larkkit
+python -m pip install -e '.[vlm]'      # VLM image analysis providers
+python -m pip install -e '.[deepeval]' # DeepEval calibration support
+```
 
-# 登录授权
+### Feishu/Lark login fails
+
+Feishu/Lark support is optional. If you need it, install and authenticate `larkkit`:
+
+```bash
+python -m pip install larkkit
 uvx larkkit auth login
-
-# 验证
 uvx larkkit auth status
 ```
 
-## 项目初始化
+Local Markdown or text requirement files do not need this setup.
 
-### Q: 第一次使用，不知道从哪开始？
+## Project Workflow
+
+### Where do I start?
 
 ```bash
-# 1. 环境检查
-qualix-run any doctor
-
-# 2. 初始化项目
 qualix-run my-project init --profile java-ddd-tmf
-
-# 3. 在 AI IDE 中启动
-@dqg_starter.md 执行
+qualix-run my-project startup --json
 ```
 
-### Q: output 目录下已有项目，如何继续？
+Then invoke `$qualix-starter` in your AI coding agent.
 
-直接在 AI IDE 中 `@dqg_starter.md 执行`，会自动检测已有项目。如果有多个项目会列出让你选择。
+### Why is a phase locked?
 
-### Q: 如何切换 profile？
+The upstream dependency has not been approved yet. The main flow is:
+
+```text
+Q01 -> Q02 -> Q03 -> Q04 -> Q07
+Q01 -> Q05a -> Q05b -> Q06
+```
+
+Complete the nearest incomplete upstream phase first.
+
+### Can I rerun a completed phase?
+
+Yes. Re-execute the phase, then run finalize and approve again:
 
 ```bash
-qualix-run <project_id> status --profile go-service
+qualix-run <project_id> execute <phase_id> --json
+qualix-run <project_id> finalize <phase_id> --json
+qualix-run <project_id> approve <phase_id> --json
 ```
 
-## Phase 执行
+### Finalize says `_reasoning_log.md` is missing
 
-### Q: AI 产物不符合预期？（最高频痛点）
+Every phase must produce a reasoning log. Ask the agent to create `_reasoning_log.md` for the phase output directory, then run finalize again.
 
-```bash
-# ❌ 不好的方式
-> 重新生成
+### The generated artifact is wrong
 
-# ✅ 好的方式：明确指出问题
-> BR-003 的字段列表不完整，缺少"审核状态"和"审核时间"字段，请补充
+Give specific feedback. For example:
 
-# ✅ 好的方式：提供参考
-> 参考 Phase Q01 中 REQ-001 的 BR 拆分方式，对 REQ-003 重新拆分
-
-# ✅ 好的方式：分步确认
-> 先列出你识别到的所有 REQ，我确认后再拆 BR
+```text
+BR-003 is missing the "review status" and "review time" fields. Add them and rerun the self-check.
 ```
 
-核心原则：越具体的反馈，AI 修正越准确。"重新生成"是最低效的方式。
+Avoid vague prompts like "regenerate it"; they usually lose useful context.
 
-### Q: Phase 执行中断，如何继续？
+## Version And Updates
 
-```bash
-# 重新启动
-@dqg_starter.md 执行
-
-# 选择中断的 Phase 继续执行
-# 如果状态显示 in_progress，可以重新选择执行
-```
-
-### Q: 某个 Phase 显示 🔒 锁定，怎么解锁？
-
-锁定说明前置 Phase 未完成。查看依赖关系：
-
-```
-Q01 → Q02 → Q03 → Q04 → Q07
-Q01 → Q05a → Q05b → Q06
-```
-
-找到最近的未完成 Phase，先完成它。
-
-### Q: 已完成的 Phase 想重新执行？
-
-在菜单中选择已完成的 Phase 编号，进入详情页后选择 `[r] 重新执行`。
-
-### Q: finalize 报错"推理日志不存在"？
-
-每个 Phase 必须输出 `_reasoning_log.md`。如果 AI 跳过了，提示它：
-
-```
-> 请输出 _reasoning_log.md，记录每步的决策过程
-```
-
-### Q: finalize 报错"产物数量回退"？
-
-重跑 Phase 时，新版产物数量不能少于旧版（REQ/BR/SE/GAP/OPEN 数量）。检查是否有遗漏，补齐后重新 finalize。
-
-## 菜单交互
-
-### Q: 快捷键 v 和 g 是什么？
-
-- `v`（详情模式）：展示每个 Phase 的交付物清单、校验结果、Judge 评分
-- `g`（全局进度）：展示完成率、总耗时、平均质量分汇总
-- 数字：选择要执行的阶段
-
-### Q: 如何查看某个 Phase 的产物？
-
-```bash
-qualix-run <project_id> detail <phase_id>
-```
-
-或在菜单中选择已完成的 Phase 编号。
-
-## 版本与升级
-
-### Q: 如何查看当前版本？
+### How do I check the version?
 
 ```bash
 qualix-run <project_id> version
 ```
 
-### Q: 如何升级 DQG？
+### How do I update?
+
+For a cloned repository:
 
 ```bash
-qualix-run <project_id> update
+git pull --rebase
+python -m pip install -e '.[dev]'
 ```
 
-会自动 git pull 并同步 version.json。
-
-## 其他
-
-### Q: DQG 和 VAF 有什么区别？
-
-- DQG 聚焦质量门禁（审计+防漏），产出审计报告
-- VAF 聚焦全流程自动化（需求→代码→测试），产出实际代码
-- 两者可以互补：VAF 生成代码，DQG 审计质量
-
-### Q: 能否跳过某个 Phase？
-
-可以，但不建议。跳过会导致下游 Phase 缺少输入：
+Then run:
 
 ```bash
-qualix-run <project_id> skip <phase_id> -c "跳过原因"
+qualix-run <project_id> doctor
 ```
+
+## Concepts
+
+### How is Qualix different from a coding agent workflow tool?
+
+Qualix focuses on quality gates: requirement traceability, design coverage, test intent, assertion quality, and evidence-backed review. It can complement coding workflow tools by auditing what they produce.

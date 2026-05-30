@@ -1,5 +1,5 @@
 #!/bin/bash
-# DQG Headless Pipeline Runner
+# Qualix Headless Pipeline Runner
 # 每个 Phase 独立执行，支持断点续跑、并行调度、失败重试
 #
 # 用法:
@@ -29,7 +29,7 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-DQG="python -m dqg.runner ${PROJECT_ID} --base-dir ${BASE_DIR}"
+Qualix="python -m qualix.runner ${PROJECT_ID} --base-dir ${BASE_DIR}"
 LOG_DIR="output/${PROJECT_ID}"
 LOG_FILE="${LOG_DIR}/pipeline.log"
 mkdir -p "${LOG_DIR}"
@@ -42,7 +42,7 @@ log() {
 # 检查 Phase 状态
 phase_status() {
     local phase="$1"
-    ${DQG} status 2>/dev/null | grep -oP "Phase ${phase}.*?status: \K\w+" || echo "not_started"
+    ${Qualix} status 2>/dev/null | grep -oP "Phase ${phase}.*?status: \K\w+" || echo "not_started"
 }
 
 # 执行单个 Phase（headless）
@@ -64,7 +64,7 @@ run_phase() {
         # Step 1: Execute
         if [[ "$status" != "in_progress" && "$status" != "pending_review" ]]; then
             log "Phase ${phase}: execute..."
-            if ! ${DQG} execute "${phase}" >> "${LOG_FILE}" 2>&1; then
+            if ! ${Qualix} execute "${phase}" >> "${LOG_FILE}" 2>&1; then
                 log "Phase ${phase}: execute 失败"
                 continue
             fi
@@ -72,7 +72,7 @@ run_phase() {
 
         # Step 2: Headless Agent 执行（使用 claude CLI）
         local skill_prompt
-        skill_prompt=$(${DQG} orchestrate "${phase}" 2>/dev/null | grep worker | awk '{print $NF}')
+        skill_prompt=$(${Qualix} orchestrate "${phase}" 2>/dev/null | grep worker | awk '{print $NF}')
 
         if [[ -n "$skill_prompt" && -f "$skill_prompt" ]]; then
             log "Phase ${phase}: 调用 claude headless..."
@@ -84,11 +84,11 @@ run_phase() {
 
         # Step 3: Finalize
         log "Phase ${phase}: finalize..."
-        if ${DQG} finalize "${phase}" >> "${LOG_FILE}" 2>&1; then
+        if ${Qualix} finalize "${phase}" >> "${LOG_FILE}" 2>&1; then
             log "Phase ${phase}: finalize 成功"
 
             # Step 4: Auto-approve (headless 模式)
-            ${DQG} approve "${phase}" -c "headless pipeline auto-approve" >> "${LOG_FILE}" 2>&1 || true
+            ${Qualix} approve "${phase}" -c "headless pipeline auto-approve" >> "${LOG_FILE}" 2>&1 || true
             log "Phase ${phase}: 完成"
             return 0
         else
@@ -102,7 +102,7 @@ run_phase() {
 
 # 主流程
 log "=========================================="
-log "DQG Headless Pipeline — ${PROJECT_ID}"
+log "Qualix Headless Pipeline — ${PROJECT_ID}"
 log "并行模式: ${PARALLEL}, 最大重试: ${MAX_RETRY}"
 log "=========================================="
 
@@ -145,4 +145,4 @@ run_phase "D" || log "Phase D 失败，继续"
 log "=========================================="
 log "Pipeline 完成"
 log "=========================================="
-${DQG} status 2>/dev/null | tee -a "${LOG_FILE}"
+${Qualix} status 2>/dev/null | tee -a "${LOG_FILE}"

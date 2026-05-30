@@ -1,10 +1,10 @@
-# DQG TypeScript 单测生成与审计支持
+# Qualix TypeScript 单测生成与审计支持
 
 > 状态：**计划中** | 分支：`car-service-quality-gate` | 首个接入项目：service-cli
 
 ## 1. 背景
 
-DQG 的 Q05（单测生成）、Q06（单测审计）、Q07（Code Review）三个 Phase 是语言敏感的。当前 Java 逻辑硬编码在以下模块中：
+Qualix 的 Q05（单测生成）、Q06（单测审计）、Q07（Code Review）三个 Phase 是语言敏感的。当前 Java 逻辑硬编码在以下模块中：
 
 | 模块 | 语言耦合点 |
 |------|-----------|
@@ -21,7 +21,7 @@ DQG 的 Q05（单测生成）、Q06（单测审计）、Q07（Code Review）三�
 ### 2.1 LanguageProvider 抽象层
 
 ```
-src/dqg/languages/
+src/qualix/languages/
 ├── __init__.py          # 包入口，注册所有内置 Provider
 ├── base.py              # LanguageProvider ABC + 数据类型
 ├── registry.py          # LanguageRegistry（注册、detect、获取）
@@ -41,7 +41,7 @@ src/dqg/languages/
 
 ```python
 class LanguageProvider(ABC):
-    """语言 Provider — 覆盖 DQG 质量门控的全部语言特定能力"""
+    """语言 Provider — 覆盖 Qualix 质量门控的全部语言特定能力"""
 
     # ── 检测 ──
     def detect(self, repo_root: Path) -> float:
@@ -152,9 +152,9 @@ Trivial:
 
 ## 4. Profile 扩展
 
-### 4.1 DqgProfile 新增字段
+### 4.1 QualixProfile 新增字段
 
-`DqgProfile` dataclass 新增 `language: str` 字段（默认 `"java"`），Profile 加载时自动绑定对应 Provider。
+`QualixProfile` dataclass 新增 `language: str` 字段（默认 `"java"`），Profile 加载时自动绑定对应 Provider。
 
 ### 4.2 typescript-service Profile
 
@@ -199,8 +199,8 @@ After:  从 ExecutionContext 获取 Provider，传入弱断言分析
 
 ### 5.4 向后兼容
 
-- `context/java_ast_analyzer.py` 改为 facade re-export（`from dqg.languages.java.ast_analyzer import *`）
-- 所有现有 `from dqg.context.java_ast_analyzer import ...` 的调用方无需改动
+- `context/java_ast_analyzer.py` 改为 facade re-export（`from qualix.languages.java.ast_analyzer import *`）
+- 所有现有 `from qualix.context.java_ast_analyzer import ...` 的调用方无需改动
 - 未知语言仍返回 `CompileResult(passed=True, skipped=True)`
 
 ## 6. 实施计划
@@ -242,7 +242,7 @@ Phase 1 (抽象层定义)
 
 新增语言只需：
 
-1. 新建 `src/dqg/languages/<lang>/` 包，实现 `LanguageProvider`
+1. 新建 `src/qualix/languages/<lang>/` 包，实现 `LanguageProvider`
 2. 在 `languages/__init__.py` 注册
 3. 新建 `profiles/<lang>-service/` Profile
 

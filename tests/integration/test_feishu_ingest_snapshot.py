@@ -19,11 +19,11 @@ from qualix.ingest.feishu_ingest_snapshot import (
 
 
 def test_build_snapshot_case_name_prefers_explicit_case() -> None:
-    assert build_snapshot_case_name("https://mi.feishu.cn/docx/ABC123", "rights-platform") == "rights-platform"
+    assert build_snapshot_case_name("https://example.feishu.cn/docx/ABC123", "sample-project") == "sample-project"
 
 
 def test_build_snapshot_case_name_falls_back_to_doc_token() -> None:
-    assert build_snapshot_case_name("https://mi.feishu.cn/docx/ABC123", None) == "docx_ABC123"
+    assert build_snapshot_case_name("https://example.feishu.cn/docx/ABC123", None) == "docx_ABC123"
 
 
 def test_normalize_snapshot_bundle_removes_volatile_fields() -> None:
@@ -114,16 +114,16 @@ def test_run_feishu_snapshot_case_collects_bundle(monkeypatch: pytest.MonkeyPatc
     monkeypatch.setattr("qualix.ingest.feishu_ingest_snapshot.load_larkkit", fake_load_larkkit)
     monkeypatch.setattr("qualix.ingest.feishu_ingest_snapshot.crawl_documents", fake_crawl_documents)
 
-    bundle = run_feishu_snapshot_case("https://mi.feishu.cn/docx/ABC123", tmp_path / "run")
+    bundle = run_feishu_snapshot_case("https://example.feishu.cn/docx/ABC123", tmp_path / "run")
 
     assert bundle["ingest.json"]["summary"]["doc_count"] == 1
     assert bundle["plain_text.txt"] == "hello\n"
 
 
-@pytest.mark.skipif(not os.getenv("DQG_FEISHU_TEST_URL"), reason="requires real Feishu test url")
+@pytest.mark.skipif(not os.getenv("QUALIX_FEISHU_TEST_URL"), reason="requires real Feishu test url")
 def test_real_feishu_snapshot_replay(tmp_path: Path) -> None:
-    url = os.environ["DQG_FEISHU_TEST_URL"]
-    case_name = build_snapshot_case_name(url, os.getenv("DQG_FEISHU_SNAPSHOT_CASE"))
+    url = os.environ["QUALIX_FEISHU_TEST_URL"]
+    case_name = build_snapshot_case_name(url, os.getenv("QUALIX_FEISHU_SNAPSHOT_CASE"))
     snapshot_dir = Path(__file__).resolve().parents[1] / "fixtures" / "feishu_ingest_snapshots"
 
     bundle = run_feishu_snapshot_case(url, tmp_path / "real-run")
@@ -131,5 +131,5 @@ def test_real_feishu_snapshot_replay(tmp_path: Path) -> None:
         snapshot_dir,
         case_name,
         bundle,
-        update=os.getenv("DQG_UPDATE_SNAPSHOTS") == "1",
+        update=os.getenv("QUALIX_UPDATE_SNAPSHOTS") == "1",
     )

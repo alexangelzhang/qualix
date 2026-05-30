@@ -8,7 +8,7 @@
 
 ## 背景
 
-DQG 产物存在三类幻觉风险：
+Qualix 产物存在三类幻觉风险：
 
 | 维度 | 当前状态 | 风险 |
 |------|---------|------|
@@ -90,7 +90,7 @@ WARNING: [evidence_contract] SE-007 source 未填写，无法追溯 PRD 原始�
 ### 2. Q05a EUT → SE.code_target grep 验证
 
 **新函数**: `check_eut_code_target_traceability(output_dir, project_id, code_repos) -> list[str]`  
-**文件**: `src/dqg/quality/checks/q05_structure_checks.py`  
+**文件**: `src/qualix/quality/checks/q05_structure_checks.py`  
 **调用位置**: `finalize_checks.py::run_finalize_checks()` — 在 `phase_id == "Q05a"` 条件下
 
 **逻辑**:
@@ -124,7 +124,7 @@ WARNING: [evidence_contract] EUT-012 bound SE-005.code_target "PaymentService" �
 ### 3. Q06 COVERED 条目证据强制
 
 **新函数**: `check_covered_evidence(output_dir, project_id, code_repos) -> list[str]`  
-**文件**: `src/dqg/quality/checks/q06_structure_checks.py`  
+**文件**: `src/qualix/quality/checks/q06_structure_checks.py`  
 **调用位置**: `finalize_checks.py::run_finalize_checks()` — 在 `phase_id == "Q06"` 条件下，复用已有的 `code_repos` 读取逻辑
 
 **逻辑**:

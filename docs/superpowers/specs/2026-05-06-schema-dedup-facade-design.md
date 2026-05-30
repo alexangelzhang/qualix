@@ -2,11 +2,11 @@
 
 **日期：** 2026-05-06
 **状态：** 已批准
-**范围：** `src/dqg/schemas/` 下 7 对重复的 phase schema 文件
+**范围：** `src/qualix/schemas/` 下 7 对重复的 phase schema 文件
 
 ## 背景
 
-`src/dqg/schemas/` 存在 14 个 phase schema 文件，分两套命名：
+`src/qualix/schemas/` 存在 14 个 phase schema 文件，分两套命名：
 - 旧命名：`phase_a.py` / `phase_a3.py` / `phase_a5.py` / `phase_a6.py` / `phase_b.py` / `phase_c.py` / `phase_d.py`
 - 新命名：`phase_q01.py` ~ `phase_q07.py`
 
@@ -25,7 +25,7 @@
 
 本文件保留是为了向后兼容旧 import 路径，新代码请直接使用 phase_qXX.py。
 """
-from dqg.schemas.phase_qXX import *  # noqa: F401, F403
+from qualix.schemas.phase_qXX import *  # noqa: F401, F403
 ```
 
 对应关系：
@@ -47,13 +47,13 @@ from dqg.schemas.phase_qXX import *  # noqa: F401, F403
 ```python
 _SCHEMA_MAP: Final = MappingProxyType(
     {
-        "Q01": "dqg.schemas.phase_q01:PhaseAOutput",
-        "Q02": "dqg.schemas.phase_q02:PhaseA3Output",
-        "Q03": "dqg.schemas.phase_q03:PhaseA6Output",
-        "Q04": "dqg.schemas.phase_q04:PhaseA5Output",
-        "Q05": "dqg.schemas.phase_q05:PhaseBOutput",
-        "Q06": "dqg.schemas.phase_q06:PhaseCOutput",
-        "Q07": "dqg.schemas.phase_q07:PhaseDOutput",
+        "Q01": "qualix.schemas.phase_q01:PhaseAOutput",
+        "Q02": "qualix.schemas.phase_q02:PhaseA3Output",
+        "Q03": "qualix.schemas.phase_q03:PhaseA6Output",
+        "Q04": "qualix.schemas.phase_q04:PhaseA5Output",
+        "Q05": "qualix.schemas.phase_q05:PhaseBOutput",
+        "Q06": "qualix.schemas.phase_q06:PhaseCOutput",
+        "Q07": "qualix.schemas.phase_q07:PhaseDOutput",
     }
 )
 ```
@@ -64,8 +64,8 @@ _SCHEMA_MAP: Final = MappingProxyType(
 
 7 对 facade 每对至少 1 个测试，验证：
 
-1. **Import 兼容性**：`from dqg.schemas.phase_X import <class>` 不抛异常
-2. **对象等价性**：`dqg.schemas.phase_b.EutItem is dqg.schemas.phase_q05.EutItem`
+1. **Import 兼容性**：`from qualix.schemas.phase_X import <class>` 不抛异常
+2. **对象等价性**：`qualix.schemas.phase_b.EutItem is qualix.schemas.phase_q05.EutItem`
 3. **字段等价性**：旧路径构造的实例和新路径构造的实例字段完全一致
 
 ### 全量验证
@@ -77,14 +77,14 @@ _SCHEMA_MAP: Final = MappingProxyType(
 
 | 文件 | 操作 |
 |------|------|
-| `src/dqg/schemas/phase_a.py` | 完全覆盖为 facade |
-| `src/dqg/schemas/phase_a3.py` | 完全覆盖为 facade |
-| `src/dqg/schemas/phase_a5.py` | 完全覆盖为 facade |
-| `src/dqg/schemas/phase_a6.py` | 完全覆盖为 facade |
-| `src/dqg/schemas/phase_b.py` | 完全覆盖为 facade |
-| `src/dqg/schemas/phase_c.py` | 完全覆盖为 facade |
-| `src/dqg/schemas/phase_d.py` | 完全覆盖为 facade |
-| `src/dqg/quality/checks/auto_checks.py` | 修改 `_SCHEMA_MAP` 指向新命名 |
+| `src/qualix/schemas/phase_a.py` | 完全覆盖为 facade |
+| `src/qualix/schemas/phase_a3.py` | 完全覆盖为 facade |
+| `src/qualix/schemas/phase_a5.py` | 完全覆盖为 facade |
+| `src/qualix/schemas/phase_a6.py` | 完全覆盖为 facade |
+| `src/qualix/schemas/phase_b.py` | 完全覆盖为 facade |
+| `src/qualix/schemas/phase_c.py` | 完全覆盖为 facade |
+| `src/qualix/schemas/phase_d.py` | 完全覆盖为 facade |
+| `src/qualix/quality/checks/auto_checks.py` | 修改 `_SCHEMA_MAP` 指向新命名 |
 | `tests/test_schema_facade.py` | 新建 facade 等价性测试 |
 
 ## Out of Scope

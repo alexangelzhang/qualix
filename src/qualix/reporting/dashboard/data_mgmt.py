@@ -233,7 +233,7 @@ def _page_data_management():
     st.divider()
 
     st.subheader("数据库信息")
-    db_path = OUTPUT_DIR / ".dqg" / "store.db"
+    db_path = OUTPUT_DIR / ".qualix" / "store.db"
     if db_path.exists():
         size_kb = db_path.stat().st_size / 1024
         st.caption(f"路径: `{db_path}`")

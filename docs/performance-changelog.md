@@ -1,6 +1,6 @@
 # 性能治理 Changelog
 
-> 本文件从 AGENTS.md 拆分，记录 DQG 框架的性能优化历史。
+> 本文件从 AGENTS.md 拆分，记录 Qualix 框架的性能优化历史。
 
 ## 2026-04-11
 - Skill Evolution 技能自进化闭环（`skill_evolution.py`）

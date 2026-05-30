@@ -1,4 +1,4 @@
-# DQG 上下文层级模型（Context Hierarchy）
+# Qualix 上下文层级模型（Context Hierarchy）
 
 > 统一的上下文加载策略，所有 Phase 共用。
 > 解决上下文规则散落各处、不同 Phase 策略不一致的问题。

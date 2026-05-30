@@ -1,4 +1,4 @@
-"""DQG 多语言支持 — LanguageProvider 抽象层.
+"""Qualix 多语言支持 — LanguageProvider 抽象层.
 
 用法::
 

@@ -14,9 +14,9 @@
 
 | Action | File | Responsibility |
 |--------|------|----------------|
-| Modify | `src/dqg/quality/blast_radius.py` | Add `compute_risk_score()` and `RiskTier` enum |
-| Modify | `src/dqg/runtime/phase_constraints.py` | Risk-tier-aware threshold adjustment |
-| Modify | `src/dqg/runtime/handlers_execute.py` | Persist risk_tier in blast_radius output |
+| Modify | `src/qualix/quality/blast_radius.py` | Add `compute_risk_score()` and `RiskTier` enum |
+| Modify | `src/qualix/runtime/phase_constraints.py` | Risk-tier-aware threshold adjustment |
+| Modify | `src/qualix/runtime/handlers_execute.py` | Persist risk_tier in blast_radius output |
 | Create | `tests/test_risk_score.py` | Risk scoring + tier-adjusted constraint tests |
 
 ---
@@ -24,7 +24,7 @@
 ### Task 1: Add `compute_risk_score()` to blast_radius
 
 **Files:**
-- Modify: `src/dqg/quality/blast_radius.py:210-319`
+- Modify: `src/qualix/quality/blast_radius.py:210-319`
 - Create: `tests/test_risk_score.py`
 
 - [ ] **Step 1: Write the failing test**
@@ -43,7 +43,7 @@ if TYPE_CHECKING:
 
 def test_risk_score_empty_change():
     """No changes → score 0, tier LOW."""
-    from dqg.quality.blast_radius import compute_risk_score
+    from qualix.quality.blast_radius import compute_risk_score
 
     radius = {
         "changed_files": [],
@@ -58,7 +58,7 @@ def test_risk_score_empty_change():
 
 def test_risk_score_small_change():
     """1 file, 1 method, 0 callers → LOW tier."""
-    from dqg.quality.blast_radius import compute_risk_score
+    from qualix.quality.blast_radius import compute_risk_score
 
     radius = {
         "changed_files": ["Foo.java"],
@@ -73,7 +73,7 @@ def test_risk_score_small_change():
 
 def test_risk_score_medium_change():
     """3-5 files, several callers → MEDIUM tier."""
-    from dqg.quality.blast_radius import compute_risk_score
+    from qualix.quality.blast_radius import compute_risk_score
 
     radius = {
         "changed_files": [f"File{i}.java" for i in range(4)],
@@ -88,7 +88,7 @@ def test_risk_score_medium_change():
 
 def test_risk_score_high_change():
     """10+ files, many callers → HIGH tier."""
-    from dqg.quality.blast_radius import compute_risk_score
+    from qualix.quality.blast_radius import compute_risk_score
 
     radius = {
         "changed_files": [f"File{i}.java" for i in range(12)],
@@ -103,7 +103,7 @@ def test_risk_score_high_change():
 
 def test_risk_score_critical_change():
     """30+ files, massive blast radius → CRITICAL."""
-    from dqg.quality.blast_radius import compute_risk_score
+    from qualix.quality.blast_radius import compute_risk_score
 
     radius = {
         "changed_files": [f"File{i}.java" for i in range(35)],
@@ -118,7 +118,7 @@ def test_risk_score_critical_change():
 
 def test_risk_score_factors_breakdown():
     """Result should include per-factor breakdown."""
-    from dqg.quality.blast_radius import compute_risk_score
+    from qualix.quality.blast_radius import compute_risk_score
 
     radius = {
         "changed_files": ["A.java", "B.java"],
@@ -138,12 +138,12 @@ def test_risk_score_factors_breakdown():
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd /path/to/rd-gate && python -m pytest tests/test_risk_score.py -v`
+Run: `cd /path/to/qualix && python -m pytest tests/test_risk_score.py -v`
 Expected: FAIL — `compute_risk_score` does not exist
 
 - [ ] **Step 3: Implement compute_risk_score**
 
-In `src/dqg/quality/blast_radius.py`, add after `compute_blast_radius()` (before `write_blast_radius`):
+In `src/qualix/quality/blast_radius.py`, add after `compute_blast_radius()` (before `write_blast_radius`):
 
 ```python
 # --- Risk Scoring ---
@@ -219,7 +219,7 @@ Expected: ALL PASS
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/dqg/quality/blast_radius.py tests/test_risk_score.py
+git add src/qualix/quality/blast_radius.py tests/test_risk_score.py
 git commit -m "feat(blast_radius): add 5-factor weighted risk scoring with tier classification"
 ```
 
@@ -228,7 +228,7 @@ git commit -m "feat(blast_radius): add 5-factor weighted risk scoring with tier 
 ### Task 2: Persist risk_tier in blast_radius output
 
 **Files:**
-- Modify: `src/dqg/quality/blast_radius.py:322-354` (write_blast_radius)
+- Modify: `src/qualix/quality/blast_radius.py:322-354` (write_blast_radius)
 - Test: `tests/test_risk_score.py`
 
 - [ ] **Step 1: Write the failing test**
@@ -238,7 +238,7 @@ Add to `tests/test_risk_score.py`:
 ```python
 def test_compute_blast_radius_includes_risk(tmp_path):
     """compute_blast_radius result should include risk_score and risk_tier."""
-    from dqg.quality.blast_radius import compute_blast_radius
+    from qualix.quality.blast_radius import compute_blast_radius
 
     # Can't easily test with real git, so test via compute_risk_score integration
     radius = {
@@ -248,7 +248,7 @@ def test_compute_blast_radius_includes_risk(tmp_path):
         "affected_tests": [],
         "risk_summary": "1 files, 1 methods changed; 0 callers, 0 tests potentially affected",
     }
-    from dqg.quality.blast_radius import compute_risk_score
+    from qualix.quality.blast_radius import compute_risk_score
 
     risk = compute_risk_score(radius)
     # Verify the shape matches what write_blast_radius will persist
@@ -259,7 +259,7 @@ def test_compute_blast_radius_includes_risk(tmp_path):
 
 - [ ] **Step 2: Update compute_blast_radius to include risk score**
 
-In `src/dqg/quality/blast_radius.py`, at the end of `compute_blast_radius()`, before the return statement, add:
+In `src/qualix/quality/blast_radius.py`, at the end of `compute_blast_radius()`, before the return statement, add:
 
 ```python
     result = {
@@ -299,7 +299,7 @@ Expected: ALL PASS
 - [ ] **Step 4: Commit**
 
 ```bash
-git add src/dqg/quality/blast_radius.py tests/test_risk_score.py
+git add src/qualix/quality/blast_radius.py tests/test_risk_score.py
 git commit -m "feat(blast_radius): persist risk_score and risk_tier in blast radius output"
 ```
 
@@ -308,7 +308,7 @@ git commit -m "feat(blast_radius): persist risk_score and risk_tier in blast rad
 ### Task 3: Risk-tier-aware threshold adjustment in phase_constraints
 
 **Files:**
-- Modify: `src/dqg/runtime/phase_constraints.py`
+- Modify: `src/qualix/runtime/phase_constraints.py`
 - Test: `tests/test_risk_score.py`
 
 - [ ] **Step 1: Write the failing test**
@@ -321,7 +321,7 @@ from pathlib import Path
 
 def test_constraints_relaxed_for_low_risk(tmp_path: Path):
     """LOW risk tier should relax coverage thresholds."""
-    from dqg.runtime.phase_constraints import get_adjusted_thresholds
+    from qualix.runtime.phase_constraints import get_adjusted_thresholds
 
     adjusted = get_adjusted_thresholds("Q04", "LOW")
     # Q04 default: req_coverage_rate >= 0.8, se_coverage_rate >= 0.8
@@ -332,7 +332,7 @@ def test_constraints_relaxed_for_low_risk(tmp_path: Path):
 
 def test_constraints_unchanged_for_critical_risk(tmp_path: Path):
     """CRITICAL risk tier should keep or tighten thresholds."""
-    from dqg.runtime.phase_constraints import get_adjusted_thresholds
+    from qualix.runtime.phase_constraints import get_adjusted_thresholds
 
     adjusted = get_adjusted_thresholds("Q04", "CRITICAL")
     req_cov = next(c for c in adjusted if c["metric"] == "req_coverage_rate")
@@ -341,7 +341,7 @@ def test_constraints_unchanged_for_critical_risk(tmp_path: Path):
 
 def test_constraints_default_without_risk_tier(tmp_path: Path):
     """No risk tier → use default thresholds."""
-    from dqg.runtime.phase_constraints import get_adjusted_thresholds
+    from qualix.runtime.phase_constraints import get_adjusted_thresholds
 
     adjusted = get_adjusted_thresholds("Q04", None)
     req_cov = next(c for c in adjusted if c["metric"] == "req_coverage_rate")
@@ -355,7 +355,7 @@ Expected: FAIL — `get_adjusted_thresholds` does not exist
 
 - [ ] **Step 3: Implement get_adjusted_thresholds**
 
-In `src/dqg/runtime/phase_constraints.py`, add after `PHASE_CONSTRAINTS`:
+In `src/qualix/runtime/phase_constraints.py`, add after `PHASE_CONSTRAINTS`:
 
 ```python
 # Risk-tier threshold multipliers: how much to relax/tighten coverage thresholds
@@ -427,7 +427,7 @@ Expected: ALL PASS
 - [ ] **Step 7: Commit**
 
 ```bash
-git add src/dqg/runtime/phase_constraints.py tests/test_risk_score.py
+git add src/qualix/runtime/phase_constraints.py tests/test_risk_score.py
 git commit -m "feat(constraints): risk-tier-aware threshold adjustment for gate enforcement"
 ```
 

@@ -68,9 +68,9 @@ def check_version_consistency(
 
     settings_version = ""
     with suppress(FileNotFoundError):
-        settings_version = load_settings(project_root).dqg_version
+        settings_version = load_settings(project_root).qualix_version
     if global_version is None:
-        g = Path.home() / ".dqg" / "VERSION"
+        g = Path.home() / ".qualix" / "VERSION"
         global_version = g.read_text().strip() if g.exists() else ""
     if installed_version is None:
         try:
@@ -87,7 +87,7 @@ def check_version_consistency(
 
 
 def _recent_output_internal(project_root: Path) -> list[Path]:
-    output = project_root / ".dqg" / "output"
+    output = project_root / ".qualix" / "output"
     if not output.exists():
         return []
     picks: list[Path] = []
@@ -126,18 +126,18 @@ def build_bundle(
         (staging / "manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2))
         (staging / "env.txt").write_text(_collect_env())
 
-        settings_path = project_root / ".dqg" / "settings.yaml"
+        settings_path = project_root / ".qualix" / "settings.yaml"
         if settings_path.exists():
             raw = settings_path.read_text()
             (staging / "settings.yaml").write_text(redact_text(raw) if redact else raw)
 
-        last_run = project_root / ".dqg" / "last-run.json"
+        last_run = project_root / ".qualix" / "last-run.json"
         (staging / "recent-errors").mkdir()
         if last_run.exists():
             raw = last_run.read_text()
             (staging / "recent-errors" / "last-run.json").write_text(redact_text(raw) if redact else raw)
 
-        output_root = project_root / ".dqg" / "output"
+        output_root = project_root / ".qualix" / "output"
         if output_root.exists():
             for proj in output_root.iterdir():
                 sj = proj / "state.json"
@@ -199,12 +199,12 @@ def resolve_issues_url() -> str:
     try:
         meta = _metadata("qualix")
     except Exception:
-        return "https://github.com/your-org/rd-gate/issues"
+        return "https://github.com/alexangelzhang/qualix/issues"
     for entry in meta.get_all("Project-URL") or []:
         label, _, url = entry.partition(",")
         if label.strip().lower() == "issues":
             return url.strip()
-    return "https://github.com/your-org/rd-gate/issues"
+    return "https://github.com/alexangelzhang/qualix/issues"
 
 
 def _repo_path_from_url(url: str) -> str:
@@ -296,7 +296,7 @@ def run_doctor(
         return 2
     if output is None:
         ts = time.strftime("%Y%m%d-%H%M%S")
-        output = project_root / ".dqg" / f"doctor-bundle-{ts}.tgz"
+        output = project_root / ".qualix" / f"doctor-bundle-{ts}.tgz"
     build_bundle(project_root, output, redact=redact, include_internal=include_internal)
     size_kb = output.stat().st_size // 1024
 
@@ -354,11 +354,11 @@ def run_doctor(
     if title is None:
         if sys.stdin.isatty():
             try:
-                title = input("issue 标题: ").strip() or "[doctor] DQG error report"
+                title = input("issue 标题: ").strip() or "[doctor] Qualix error report"
             except EOFError:
-                title = "[doctor] DQG error report"
+                title = "[doctor] Qualix error report"
         else:
-            title = "[doctor] DQG error report"
+            title = "[doctor] Qualix error report"
 
     repo_path = _repo_path_from_url(issues_url)
     ok, url, warn = upload_via_glab(
@@ -372,11 +372,11 @@ def run_doctor(
         if warn:
             print(f"  {warn}")
         if new_case_count > 0:
-            print(f"\n💡 发现 {new_case_count} 条本地新案例，可运行 qualix-run contribute 贡献回 DQG repo")
+            print(f"\n💡 发现 {new_case_count} 条本地新案例，可运行 qualix-run contribute 贡献回 Qualix repo")
         return 0
     print(f"⚠ 上传失败: {warn}")
     print(f"  bundle 仍保留于: {output}")
     print(f"  可手动上传到: {issues_url}")
     if new_case_count > 0:
-        print(f"\n💡 发现 {new_case_count} 条本地新案例，可运行 qualix-run contribute 贡献回 DQG repo")
+        print(f"\n💡 发现 {new_case_count} 条本地新案例，可运行 qualix-run contribute 贡献回 Qualix repo")
     return 2

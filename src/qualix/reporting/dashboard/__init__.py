@@ -1,4 +1,4 @@
-"""DQG 可视化看板 v2.
+"""Qualix 可视化看板 v2.
 
 启动: streamlit run src/qualix/reporting/dashboard_app.py
 
@@ -23,8 +23,8 @@ from .trend import _page_phase_score_trend, _page_quality_trend
 
 
 def main():
-    st.set_page_config(page_title="DQG 质量看板", page_icon="🔍", layout="wide")
-    st.title("DQG 研发质量门禁看板")
+    st.set_page_config(page_title="Qualix 质量看板", page_icon="🔍", layout="wide")
+    st.title("Qualix 研发质量门禁看板")
     _ensure_db()
 
     st.sidebar.header("导航")

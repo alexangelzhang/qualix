@@ -5,7 +5,7 @@
 
 ## 入口
 
-- `/dqg-starter` — 快速启动（command 文件自包含启动逻辑，按需加载执行指南）
+- `/qualix-starter` — 快速启动（command 文件自包含启动逻辑，按需加载执行指南）
 - CLI 启动: `qualix-run <project_id> startup`
 
 ## Skill 文件结构（agentskills.io 标准）
@@ -42,7 +42,7 @@
 | Claude Code CLI | `CLAUDE.md` + `AGENTS.md` |
 | OpenAI Codex CLI / opencode | `AGENTS.md` |
 | Google Gemini CLI | `GEMINI.md`（本文件）+ `AGENTS.md` |
-| Cursor | `.cursor/rules/dqg.mdc` + `AGENTS.md` |
+| Cursor | `.cursor/rules/qualix.mdc` + `AGENTS.md` |
 | IntelliJ IDEA | `AGENTS.md` |
 
 *最后更新：2026-04-17*

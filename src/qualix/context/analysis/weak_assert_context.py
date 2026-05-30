@@ -40,7 +40,7 @@ def collect_weak_assert_context(
     """扫描 diff 中的测试文件，提取弱断言候选.
 
     Args:
-        output_dir: DQG 产物目录（用于加载 SE/EUT 做语义映射，可选）
+        output_dir: Qualix 产物目录（用于加载 SE/EUT 做语义映射，可选）
         project_id: 项目 ID（用于加载 SE/EUT，可选）
         language_provider: LanguageProvider 实例（可选，优先使用）
     """

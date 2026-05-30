@@ -267,7 +267,7 @@ def export_facts_to_markdown(
     lines = [
         f"# Facts Export — {project_id} / Phase {phase_id}",
         "",
-        f"> 自动生成于 {datetime.now().strftime('%Y-%m-%d %H:%M')}，由 DQG finalize 写入，可纳入 git 追踪。",
+        f"> 自动生成于 {datetime.now().strftime('%Y-%m-%d %H:%M')}，由 Qualix finalize 写入，可纳入 git 追踪。",
         f"> 共 {len(rows)} 条结构化事实。",
         "",
     ]

@@ -14,12 +14,12 @@
 
 | Action | File | Responsibility |
 |--------|------|----------------|
-| Modify | `src/dqg/languages/base.py` | Add `extract_skeleton()` method to LanguageProvider ABC |
-| Modify | `src/dqg/languages/java/provider.py` | Implement `extract_skeleton()` delegating to existing code_skeleton.py |
-| Modify | `src/dqg/languages/typescript/provider.py` | Implement `extract_skeleton()` using tree-sitter-typescript |
-| Create | `src/dqg/languages/typescript/skeleton.py` | TypeScript skeleton extraction logic |
-| Modify | `src/dqg/runtime/handlers_execute.py:207-288` | Dispatch through provider registry instead of Java-specific code |
-| Modify | `src/dqg/context/code_skeleton.py` | Keep as Java-specific impl, called by JavaProvider |
+| Modify | `src/qualix/languages/base.py` | Add `extract_skeleton()` method to LanguageProvider ABC |
+| Modify | `src/qualix/languages/java/provider.py` | Implement `extract_skeleton()` delegating to existing code_skeleton.py |
+| Modify | `src/qualix/languages/typescript/provider.py` | Implement `extract_skeleton()` using tree-sitter-typescript |
+| Create | `src/qualix/languages/typescript/skeleton.py` | TypeScript skeleton extraction logic |
+| Modify | `src/qualix/runtime/handlers_execute.py:207-288` | Dispatch through provider registry instead of Java-specific code |
+| Modify | `src/qualix/context/code_skeleton.py` | Keep as Java-specific impl, called by JavaProvider |
 | Create | `tests/test_skeleton_typescript.py` | TypeScript skeleton extraction tests |
 | Create | `tests/test_skeleton_dispatch.py` | Handler dispatch tests |
 
@@ -28,12 +28,12 @@
 ### Task 1: Add `extract_skeleton()` to LanguageProvider interface
 
 **Files:**
-- Modify: `src/dqg/languages/base.py:196-203` (after `parse_source`)
+- Modify: `src/qualix/languages/base.py:196-203` (after `parse_source`)
 - Test: inline verification
 
 - [ ] **Step 1: Write the interface method**
 
-In `src/dqg/languages/base.py`, add after the `parse_source` method (around line 203):
+In `src/qualix/languages/base.py`, add after the `parse_source` method (around line 203):
 
 ```python
 def extract_skeleton(
@@ -55,7 +55,7 @@ Also add the import at the top of base.py (TYPE_CHECKING block):
 
 ```python
 if TYPE_CHECKING:
-    from dqg.context.code_skeleton import SkeletonResult
+    from qualix.context.code_skeleton import SkeletonResult
 ```
 
 And add a runtime import guard in the method docstring or use a string annotation.
@@ -72,13 +72,13 @@ def extract_skeleton(
 
 - [ ] **Step 2: Verify no import errors**
 
-Run: `cd /path/to/rd-gate && python -c "from dqg.languages.base import LanguageProvider; print('OK')"`
+Run: `cd /path/to/qualix && python -c "from qualix.languages.base import LanguageProvider; print('OK')"`
 Expected: OK
 
 - [ ] **Step 3: Commit**
 
 ```bash
-git add src/dqg/languages/base.py
+git add src/qualix/languages/base.py
 git commit -m "feat(languages): add extract_skeleton() to LanguageProvider interface"
 ```
 
@@ -87,7 +87,7 @@ git commit -m "feat(languages): add extract_skeleton() to LanguageProvider inter
 ### Task 2: Implement `extract_skeleton()` in JavaProvider
 
 **Files:**
-- Modify: `src/dqg/languages/java/provider.py`
+- Modify: `src/qualix/languages/java/provider.py`
 - Test: `tests/test_skeleton_dispatch.py` (new)
 
 - [ ] **Step 1: Write the failing test**
@@ -101,7 +101,7 @@ from __future__ import annotations
 
 def test_java_provider_extract_skeleton():
     """JavaProvider.extract_skeleton() should produce a SkeletonResult."""
-    from dqg.languages.java.provider import JavaProvider
+    from qualix.languages.java.provider import JavaProvider
 
     provider = JavaProvider()
     source = '''
@@ -139,7 +139,7 @@ Expected: FAIL — JavaProvider has no extract_skeleton method
 
 - [ ] **Step 3: Implement in JavaProvider**
 
-In `src/dqg/languages/java/provider.py`, add:
+In `src/qualix/languages/java/provider.py`, add:
 
 ```python
 def extract_skeleton(
@@ -148,7 +148,7 @@ def extract_skeleton(
     expand_methods: set[str] | None = None,
 ) -> "SkeletonResult | None":
     """Extract Java code skeleton using tree-sitter (regex fallback)."""
-    from dqg.context.code_skeleton import extract_skeleton
+    from qualix.context.code_skeleton import extract_skeleton
     return extract_skeleton(source, expand_methods)
 ```
 
@@ -160,7 +160,7 @@ Expected: PASS
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/dqg/languages/java/provider.py tests/test_skeleton_dispatch.py
+git add src/qualix/languages/java/provider.py tests/test_skeleton_dispatch.py
 git commit -m "feat(java): implement extract_skeleton() in JavaProvider"
 ```
 
@@ -169,8 +169,8 @@ git commit -m "feat(java): implement extract_skeleton() in JavaProvider"
 ### Task 3: Implement TypeScript skeleton extraction
 
 **Files:**
-- Create: `src/dqg/languages/typescript/skeleton.py`
-- Modify: `src/dqg/languages/typescript/provider.py`
+- Create: `src/qualix/languages/typescript/skeleton.py`
+- Modify: `src/qualix/languages/typescript/provider.py`
 - Test: `tests/test_skeleton_typescript.py` (new)
 
 - [ ] **Step 1: Write the failing test**
@@ -221,7 +221,7 @@ export class UserService {
 
 def test_ts_skeleton_basic():
     """TypeScript skeleton should preserve signatures, omit bodies."""
-    from dqg.languages.typescript.provider import TypeScriptProvider
+    from qualix.languages.typescript.provider import TypeScriptProvider
 
     provider = TypeScriptProvider()
     result = provider.extract_skeleton(TS_SOURCE)
@@ -245,7 +245,7 @@ def test_ts_skeleton_basic():
 
 def test_ts_skeleton_expand_methods():
     """Oracle-marked methods should be fully expanded."""
-    from dqg.languages.typescript.provider import TypeScriptProvider
+    from qualix.languages.typescript.provider import TypeScriptProvider
 
     provider = TypeScriptProvider()
     result = provider.extract_skeleton(TS_SOURCE, expand_methods={"findById"})
@@ -261,7 +261,7 @@ def test_ts_skeleton_expand_methods():
 
 def test_ts_skeleton_empty_source():
     """Empty source should return minimal result."""
-    from dqg.languages.typescript.provider import TypeScriptProvider
+    from qualix.languages.typescript.provider import TypeScriptProvider
 
     provider = TypeScriptProvider()
     result = provider.extract_skeleton("")
@@ -277,7 +277,7 @@ Expected: FAIL or SKIP
 
 - [ ] **Step 3: Create TypeScript skeleton extraction module**
 
-Create `src/dqg/languages/typescript/skeleton.py`:
+Create `src/qualix/languages/typescript/skeleton.py`:
 
 ```python
 """TypeScript TREEFRAG skeleton extraction using tree-sitter.
@@ -287,8 +287,8 @@ Oracle-marked methods are fully expanded.
 """
 from __future__ import annotations
 
-from dqg.context.code_skeleton import SkeletonClass, SkeletonMethod, SkeletonResult
-from dqg.log import get_logger
+from qualix.context.code_skeleton import SkeletonClass, SkeletonMethod, SkeletonResult
+from qualix.log import get_logger
 
 log = get_logger(__name__)
 
@@ -301,7 +301,7 @@ def extract_skeleton_ts(
 
     Returns None if tree-sitter-typescript is not available.
     """
-    from dqg.languages.typescript.ast_analyzer import _ensure_parser, _parser
+    from qualix.languages.typescript.ast_analyzer import _ensure_parser, _parser
 
     if not _ensure_parser() or _parser is None:
         return None
@@ -487,7 +487,7 @@ def _extract_top_level_function(node, source_bytes: bytes, expand: set[str]):
 
 - [ ] **Step 4: Wire up TypeScriptProvider.extract_skeleton()**
 
-In `src/dqg/languages/typescript/provider.py`, add:
+In `src/qualix/languages/typescript/provider.py`, add:
 
 ```python
 def extract_skeleton(
@@ -496,7 +496,7 @@ def extract_skeleton(
     expand_methods: set[str] | None = None,
 ) -> "SkeletonResult | None":
     """Extract TypeScript code skeleton using tree-sitter."""
-    from dqg.languages.typescript.skeleton import extract_skeleton_ts
+    from qualix.languages.typescript.skeleton import extract_skeleton_ts
     return extract_skeleton_ts(source, expand_methods)
 ```
 
@@ -508,7 +508,7 @@ Expected: PASS (or SKIP if tree-sitter-typescript not installed)
 - [ ] **Step 6: Commit**
 
 ```bash
-git add src/dqg/languages/typescript/skeleton.py src/dqg/languages/typescript/provider.py tests/test_skeleton_typescript.py
+git add src/qualix/languages/typescript/skeleton.py src/qualix/languages/typescript/provider.py tests/test_skeleton_typescript.py
 git commit -m "feat(typescript): add TREEFRAG skeleton extraction for TypeScript"
 ```
 
@@ -517,7 +517,7 @@ git commit -m "feat(typescript): add TREEFRAG skeleton extraction for TypeScript
 ### Task 4: Refactor `handle_code_skeleton` to dispatch through provider registry
 
 **Files:**
-- Modify: `src/dqg/runtime/handlers_execute.py:207-288`
+- Modify: `src/qualix/runtime/handlers_execute.py:207-288`
 - Modify: `tests/test_skeleton_dispatch.py`
 
 - [ ] **Step 1: Write the failing test**
@@ -530,8 +530,8 @@ def test_handle_code_skeleton_uses_provider(monkeypatch, tmp_path):
     from pathlib import Path
     from types import SimpleNamespace
 
-    from dqg.context.code_skeleton import SkeletonResult
-    from dqg.json_utils import save_json
+    from qualix.context.code_skeleton import SkeletonResult
+    from qualix.json_utils import save_json
 
     # Setup: create a fake TypeScript file and demand trace
     project_id = "test-proj"
@@ -568,7 +568,7 @@ def test_handle_code_skeleton_uses_provider(monkeypatch, tmp_path):
 
     # Mock registry
     monkeypatch.setattr(
-        "dqg.runtime.handlers_execute.get_registry",
+        "qualix.runtime.handlers_execute.get_registry",
         lambda: SimpleNamespace(get=lambda lang_id: MockProvider() if lang_id == "typescript" else None),
     )
 
@@ -581,7 +581,7 @@ def test_handle_code_skeleton_uses_provider(monkeypatch, tmp_path):
     )
     result = SimpleNamespace(artifacts={}, add_artifact=lambda k, v: result.artifacts.update({k: v}))
 
-    from dqg.runtime.handlers_execute import handle_code_skeleton
+    from qualix.runtime.handlers_execute import handle_code_skeleton
     handle_code_skeleton(ctx, result)
 
     assert len(extract_calls) == 1
@@ -596,7 +596,7 @@ Expected: FAIL — handler still calls Java-specific `extract_skeleton_for_files
 
 - [ ] **Step 3: Refactor handle_code_skeleton**
 
-In `src/dqg/runtime/handlers_execute.py`, replace the `handle_code_skeleton` function:
+In `src/qualix/runtime/handlers_execute.py`, replace the `handle_code_skeleton` function:
 
 ```python
 def handle_code_skeleton(ctx: ExecutionContext, result: PhaseResult) -> None:
@@ -606,16 +606,16 @@ def handle_code_skeleton(ctx: ExecutionContext, result: PhaseResult) -> None:
 
     from pathlib import Path as _Path
 
-    from dqg.constants import PHASE_DIR_MAP
-    from dqg.json_utils import load_json, save_json
-    from dqg.languages.registry import get_registry
+    from qualix.constants import PHASE_DIR_MAP
+    from qualix.json_utils import load_json, save_json
+    from qualix.languages.registry import get_registry
 
     lang_id = ctx.shared.get("language_id", "java")
     provider = get_registry().get(lang_id)
 
     # Fallback: if provider has no extract_skeleton, use Java code_skeleton directly
     if provider is None or not hasattr(provider, "extract_skeleton"):
-        from dqg.context.code_skeleton import extract_skeleton_for_files
+        from qualix.context.code_skeleton import extract_skeleton_for_files
         _handle_code_skeleton_legacy(ctx, result)
         return
 
@@ -648,7 +648,7 @@ def handle_code_skeleton(ctx: ExecutionContext, result: PhaseResult) -> None:
     target_files = target_files[:30]
 
     # Extract skeletons through provider
-    from dqg.context.code_skeleton import SkeletonResult
+    from qualix.context.code_skeleton import SkeletonResult
     results: dict[str, SkeletonResult] = {}
     for fp in target_files:
         try:
@@ -711,7 +711,7 @@ Expected: ALL PASS
 - [ ] **Step 6: Commit**
 
 ```bash
-git add src/dqg/runtime/handlers_execute.py tests/test_skeleton_dispatch.py
+git add src/qualix/runtime/handlers_execute.py tests/test_skeleton_dispatch.py
 git commit -m "refactor(skeleton): dispatch through LanguageProvider registry instead of hardcoded Java"
 ```
 

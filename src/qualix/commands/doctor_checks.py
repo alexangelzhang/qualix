@@ -135,7 +135,7 @@ def print_doctor_human(base_dir: Path, issues: list[str], warnings: list[str], s
     """人类可读的 doctor 输出（与旧版文案对齐）。"""
     print()
     print("=" * 50)
-    print("  DQG Doctor — 环境健康检查")
+    print("  Qualix Doctor — 环境健康检查")
     print("=" * 50)
 
     py_ver = signals["python_version"]

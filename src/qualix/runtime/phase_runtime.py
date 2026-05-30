@@ -481,7 +481,7 @@ def _ensure_reasoning_log_template(phase_root: Path, internal_dir: Path, phase_i
     template = (
         f"# {phase_id} 推理日志\n\n"
         "## Step 0: 上下文确认\n\n"
-        "> 本文件由 DQG execute 自动创建的最小模板。\n"
+        "> 本文件由 Qualix execute 自动创建的最小模板。\n"
         "> 请在执行过程中更新此文件，记录每个 Step 的决策依据、关键发现和执行结果。\n\n"
         "## 执行过程\n\n"
         "（待填写）\n\n"

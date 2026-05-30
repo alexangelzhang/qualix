@@ -211,7 +211,7 @@ def _page_observability():
             pv = []
         if not pv:
             st.caption(
-                "暂无记录；需采样命中且 Agent 配置 output_dir（见 `DQG_TELEMETRY_PAYLOAD_*` / `DQG_PROMPT_VERSION_STORE`）。"
+                "暂无记录；需采样命中且 Agent 配置 output_dir（见 `QUALIX_TELEMETRY_PAYLOAD_*` / `QUALIX_PROMPT_VERSION_STORE`）。"
             )
         else:
             st.dataframe(pd.DataFrame(pv), use_container_width=True, hide_index=True)

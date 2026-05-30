@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from qualix.core.profiles import (
-    DqgProfile,
+    QualixProfile,
     _load_profile_context_cached,
     get_profile,
     list_profiles,
@@ -212,7 +212,7 @@ def test_load_profile_context_reloads_after_file_change(tmp_path: Path, monkeypa
     baseline.write_text("baseline-v1", encoding="utf-8")
     risk_catalog.write_text("risk-v1", encoding="utf-8")
 
-    profile = DqgProfile(
+    profile = QualixProfile(
         profile_id="test-profile",
         name="Test Profile",
         description="for cache invalidation",

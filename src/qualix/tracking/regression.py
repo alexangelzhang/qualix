@@ -1,4 +1,4 @@
-"""Regression replay for curated DQG sample cases."""
+"""Regression replay for curated Qualix sample cases."""
 
 from __future__ import annotations
 
@@ -33,7 +33,7 @@ def _repo_root() -> Path:
 
 
 def _cases_root() -> Path:
-    """读取 regression/cases：走 ResourceResolver 四层回退（~/.dqg/ → 包内 → repo root）."""
+    """读取 regression/cases：走 ResourceResolver 四层回退（~/.qualix/ → 包内 → repo root）."""
     from qualix.core.resource_resolver import ResourceResolver
 
     try:
@@ -43,8 +43,8 @@ def _cases_root() -> Path:
 
 
 def _failure_library_root() -> Path:
-    """failure-library 写入 ~/.dqg/regression/failure-library/（用户可写）."""
-    root = Path.home() / ".dqg" / "regression" / FAILURE_LIBRARY
+    """failure-library 写入 ~/.qualix/regression/failure-library/（用户可写）."""
+    root = Path.home() / ".qualix" / "regression" / FAILURE_LIBRARY
     root.mkdir(parents=True, exist_ok=True)
     return root
 
@@ -301,7 +301,7 @@ def _write_run_output(results: list[dict[str, Any]], output_dir: Path) -> tuple[
     failure_summary = summarize_failure_library(results)
     save_json(json_path, {"cases": results, "failure_library": failure_summary})
 
-    lines = ["# DQG Regression Summary", ""]
+    lines = ["# Qualix Regression Summary", ""]
     lines.append("| Case | Type | 一致 | 新增 | 回归 | 偏移 |")
     lines.append("| --- | --- | ---: | ---: | ---: | ---: |")
     for result in results:
@@ -342,7 +342,7 @@ def _write_run_output(results: list[dict[str, Any]], output_dir: Path) -> tuple[
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="DQG regression replay")
+    parser = argparse.ArgumentParser(description="Qualix regression replay")
     sub = parser.add_subparsers(dest="command", required=True)
 
     p_run = sub.add_parser("run", help="Run curated regression cases")

@@ -65,7 +65,7 @@ T11 独立（RationalizationProbe 字段级护栏）
 - **T3 (verified)**：`validate_eut_id_subset` 接入 `finalize_checks`，`test_cross_phase_check` 覆盖 phase_b 缺失 / eut_items 空 / phantom 引用三条边界路径。Q06 phantom EUT 类 2026-04-29 后 0 条新增
 - **T4 (verified)**：`backfill_failure_case_lessons.py --apply` 对 1776 条历史 case 回填 lesson + case_category（commit `da6b1a5`），lesson 空率 98.3% → 0；`test_case_category` 通过
 - **T7 (verified)**：`render_enum_contract_prefix` 注入到 `skill_loader.load_skill_progressive` 和 `agents/multi_agent.py` 两处；`test_enum_contract` 通过
-- **T8 (verified)**：hook 初版 `language:python` 启隔离 venv 不能 import dqg，**首次实战即被发现并修为 `language:system`**（commit `c85ce5b` 附带补丁）；随后分别拦住 `q05_branch_coverage.py` 和 `guard_precision_report.py` 的 `json.load` 架构违规
+- **T8 (verified)**：hook 初版 `language:python` 启隔离 venv 不能 import qualix，**首次实战即被发现并修为 `language:system`**（commit `c85ce5b` 附带补丁）；随后分别拦住 `q05_branch_coverage.py` 和 `guard_precision_report.py` 的 `json.load` 架构违规
 - **T11 (verified)**：`RationalizationProbeGuardrail` 通过 `get_guardrails("Q03"|"Q06")` 分派挂载；`test_rationalization_probe_guardrail` 通过
 
 ### 仍需回写（code → verified 缺的证据）
@@ -110,11 +110,11 @@ T11 独立（RationalizationProbe 字段级护栏）
 
 - **LLM-as-Judge 自动评审** — `finalize` 后自动生成 `_judge_prompt.md`，支持 Phase Q01/Q04/Q03/Q06 四个阶段的独立评审，输出 precision/recall 估计和问题列表。CLI: `qualix-run <project> judge <phase>`
 - **Self-Critique + RLAIF 融合闭环** — Phase 执行后自我批评生成 v2，偏好比较判定哪个更好，有效 critique 自动沉淀为 bug case。CLI: `qualix-run <project> critique <phase>` / `qualix-run <project> preference <phase>`
-- **Bug 案例库** — 按 Phase 分类的结构化案例库（case.json + input.md），支持归因（SKILL_RULE/KNOWLEDGE/CONTEXT/SCHEMA）和修复路径建议。CLI: `qualix-run PROJ regression run` / `python -m dqg.tracking.bug_cases`
+- **Bug 案例库** — 按 Phase 分类的结构化案例库（case.json + input.md），支持归因（SKILL_RULE/KNOWLEDGE/CONTEXT/SCHEMA）和修复路径建议。CLI: `qualix-run PROJ regression run` / `python -m qualix.tracking.bug_cases`
 - **案例自动注入** — skill 执行时基于上游产物内容做相关性匹配，只注入相关案例为反例，token 节省 77%
-- **案例批量导入** — 从飞书 Bitable 批量导入 bug 案例。CLI: `python -m dqg.tracking.import_bug_cases <ingest.json>`
+- **案例批量导入** — 从飞书 Bitable 批量导入 bug 案例。CLI: `python -m qualix.tracking.import_bug_cases <ingest.json>`
 - **飞书多维表格（Bitable）解析** — Wiki 节点 obj_type=bitable 时自动走 bitable 路径，遍历所有 sheet 读取全量记录
-- **多平台支持** — 新增 `AGENTS.md`（Codex/opencode/IntelliJ）、`GEMINI.md`（Gemini CLI）、`.cursor/rules/dqg.mdc`（Cursor）
+- **多平台支持** — 新增 `AGENTS.md`（Codex/opencode/IntelliJ）、`GEMINI.md`（Gemini CLI）、`.cursor/rules/qualix.mdc`（Cursor）
 - **规则级质量追踪** — `finalize` 时比对结构化输出与 bug 案例库，输出健康度分数和命中的已知问题模式
 - **自动修复闭环** — `finalize` 发现 validation errors 时自动生成 bug case 并建议 prompt 修改
 
@@ -157,10 +157,10 @@ T11 独立（RationalizationProbe 字段级护栏）
 
 **证据**：
 - failure-library 抽样 20 个 Q05/Q06 case 归类，Q06 约 30% 是 E 类（schema 校验失败、修的是 schema 字段而非 skill 规则）
-- `grep validate_phase_output src/dqg/agents/` → 0 命中，确认 adaptive_loop 完全不调用校验
-- `grep "iteration|feedback|judge_result.issues" src/dqg/agents/adaptive_loop.py` → 0 命中，确认 loop 无 per-iteration feedback 机制
+- `grep validate_phase_output src/qualix/agents/` → 0 命中，确认 adaptive_loop 完全不调用校验
+- `grep "iteration|feedback|judge_result.issues" src/qualix/agents/adaptive_loop.py` → 0 命中，确认 loop 无 per-iteration feedback 机制
 
-**实施要点**（详见 memory `deliverable_dqg_p2_schema_feedback_loop.md`）：
+**实施要点**（详见 memory `deliverable_qualix_p2_schema_feedback_loop.md`）：
 1. 在 `adaptive_loop._execute_iteration` 里 worker 产出后立即调 `validate_phase_output`
 2. schema errors 注入 Judge rubric，让 judge 把 schema 违规当 issue
 3. 下轮 worker prompt 拼接"上轮 schema 错误：..."引导修复

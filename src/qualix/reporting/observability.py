@@ -242,7 +242,7 @@ def _build_prompt_effectiveness(all_records: list[PhaseRunRecord]) -> dict[str, 
 
 def _write_markdown_report(path: Path, payload: dict[str, Any]) -> None:
     lines: list[str] = []
-    lines.append(f"# DQG {payload['period']} 报告")
+    lines.append(f"# Qualix {payload['period']} 报告")
     lines.append("")
     lines.append(f"- 时间窗口: `{payload['window']['start']}` ~ `{payload['window']['end']}`")
     lines.append(f"- 项目过滤: `{payload['filters']['project'] or 'all'}`")
@@ -300,7 +300,7 @@ def _write_markdown_report(path: Path, payload: dict[str, Any]) -> None:
         ]
         lines += ["", f"- **窗口内 Est. USD 合计:** {pe.get('cost_total_usd', 0):.4f}"]
         lines += [
-            f"- **Payload 采样命中调用数:** {pe.get('payload_sample_calls', 0)}（环境变量 `DQG_TELEMETRY_PAYLOAD_SAMPLE_RATE`）",
+            f"- **Payload 采样命中调用数:** {pe.get('payload_sample_calls', 0)}（环境变量 `QUALIX_TELEMETRY_PAYLOAD_SAMPLE_RATE`）",
             "",
             "### Cache 命中率",
             "",
@@ -540,7 +540,7 @@ def _cmd_daily(args: argparse.Namespace) -> int:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="DQG observability and alerting")
+    parser = argparse.ArgumentParser(description="Qualix observability and alerting")
     parser.add_argument("--base-dir", default=".", help="项目根目录")
     sub = parser.add_subparsers(dest="command", required=True)
 

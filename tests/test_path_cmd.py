@@ -7,15 +7,15 @@ from qualix.commands.path_cmd import run_path
 
 def test_path_skills(tmp_path, capsys):
     """Should print the resolved skills directory."""
-    global_dqg = tmp_path / ".dqg"
-    (global_dqg / "skills" / "Q01").mkdir(parents=True)
+    global_qualix = tmp_path / ".qualix"
+    (global_qualix / "skills" / "Q01").mkdir(parents=True)
     with patch("qualix.commands.path_cmd.ResourceResolver") as MockResolver:
         instance = MockResolver.return_value
-        instance.resolve_dir.return_value = global_dqg / "skills"
+        instance.resolve_dir.return_value = global_qualix / "skills"
         rc = run_path("skills")
     assert rc == 0
     captured = capsys.readouterr()
-    assert str(global_dqg / "skills") in captured.out
+    assert str(global_qualix / "skills") in captured.out
 
 
 def test_path_unknown_category(capsys):

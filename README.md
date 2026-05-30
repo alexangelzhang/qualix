@@ -1,445 +1,163 @@
-# qualix
+# Qualix
 
-> 研发质量门禁 — 从需求到代码的全链路防漏 Pipeline
+AI-native development quality gates for requirements, designs, tests, and code reviews.
 
-[![Agent索引](https://img.shields.io/badge/Agent%E7%B4%A2%E5%BC%95-AGENTS.md-orange)](AGENTS.md)
-[![Roadmap](https://img.shields.io/badge/Roadmap-ROADMAP.md-blue)](ROADMAP.md)
+Qualix turns product requirements into traceable engineering checks. Instead of stopping at line coverage, it follows requirement IDs through design coverage, test intent, generated unit tests, audit reports, and review findings.
 
-由 7 个 AI Agent 驱动，覆盖需求结构化、技术方案生成与审计、单测生成与审计、代码评审全生命周期。每个 Phase 有独立的 skill、结构化数据契约和质量门禁。
+## Why Qualix
 
----
+| Problem | What Usually Happens | Qualix Approach |
+| --- | --- | --- |
+| Requirement drift | PRDs lose detail as they move into design and code | Q01 extracts structured REQ/BR/SE items with traceable IDs |
+| Design gaps | Technical designs are reviewed loosely | Q03/Q04 review design quality and requirement coverage |
+| Shallow tests | Coverage is green but business behavior is not tested | Q05a/Q05b design and generate requirement-driven unit tests |
+| Weak assertions | Tests assert calls or existence, not semantics | Q06 audits test intent, weak assertions, and coverage evidence |
+| Review inconsistency | Code review depends on reviewer memory | Q07 produces structured, evidence-backed review findings |
 
-## 快速入口
+## Status
 
-| 角色 | 你关心什么 | 推荐入口 |
-|:---|:---|:---|
-| **使用者** | 如何快速开始？ | [30 秒上手](#30-秒上手) → [Pipeline 总览](#pipeline-总览) |
-| **管理者/PM** | 能带来什么价值？ | [为什么需要 DQG](#为什么需要-dqg) → [Pipeline 总览](#pipeline-总览) |
-| **开发者** | 如何扩展或贡献？ | [AGENTS.md](AGENTS.md) → [项目结构](#项目结构) |
+Qualix is early and evolving. The repository is useful for experimentation, internal quality-gate workflows, and evaluating the phase model. APIs, file formats, and phase reports may still change before a stable `1.0.0` release.
 
----
-
-## 为什么需要 DQG
-
-| 痛点 | 表现 | DQG 解法 |
-|:---|:---|:---|
-| 需求遗漏 | PRD 到代码层层衰减，上线后发现漏需求 | Phase Q01 结构化提取 + 全链路 ID 追踪 |
-| 技术方案与需求脱节 | 技术方案写了但没人逐条比对需求 | Phase Q04 逐条覆盖度审计 |
-| 单测形式主义 | 覆盖率达标但测的不是业务场景 | Phase Q05 需求驱动生成 + Phase Q06 变异测试 |
-| 代码评审靠经验 | 评审无结构、无证据、无追踪 | Phase Q07 结构化评审 + confirm-first |
-| AI 幻觉 | AI 编造接口、字段、逻辑 | 反幻觉公约：来源追溯 + 置信度标注 |
-
----
-
-## 30 秒上手
-
-在 Claude Code / Cursor / Codex / Gemini 等 AI IDE 中：
-
-```
-@dqg-starter
-```
-
-Agent 会自动：
-1. 检测项目状态
-2. 收集你需要提供的输入（PRD 链接、技术方案、代码仓库等）
-3. 按依赖关系推进 Phase，可并行的自动并行
-4. 每个 Phase 完成后展示交付物和确认清单，等你 approve
-
-## Pipeline 总览
-
-```
-Q01 ──→ Q02(可选) ──→ Q03 ──→ Q04 ──→ Q07
-│
-├──→ Q05a → Q05b ──→ Q06
-│
-└──→ Q07
-```
-
-| Phase | 名称 | 你需要提供 | 交付物 |
-|-------|------|-----------|--------|
-| Q01 | 需求结构化 | PRD 或飞书需求文档 | REQ/BR/SE + GAP + OPEN 结构化清单 |
-| Q02 | 技术方案生成（可选） | Q01 产物 + 知识库 | 技术方案文档 |
-| Q03 | 技术方案质量评审 | 技术方案文档 | 架构/接口/数据/异常/性能评审报告 |
-| Q04 | 技术方案覆盖度审计 | 技术方案文档 + (可选)代码仓库 | 覆盖度矩阵 + GAP/OPEN 闭环状态 |
-| Q05 | 单测生成（旧版，向后兼容）| 代码仓库 + 目标模块路径 | EUT 矩阵 + 单测代码 |
-| Q05a | EUT 矩阵设计 | 代码仓库 + 目标模块路径 | EUT 矩阵（三层驱动，approve 后锁定规格）|
-| Q05b | 单测代码生成 | 代码仓库（含单测目录）| 单测代码（Ralph Loop，C9+编译退出）|
-| Q06 | 单测覆盖审计 | 代码仓库(含单测) + (可选)覆盖率报告 | 审计报告 + 变异测试结果 |
-| Q07 | 代码评审 | 代码仓库 + 评审分支名 | 评审报告 + 覆盖缺口摘要 |
-
-每个 Phase 的执行流程：
-
-```
-收集输入 → execute(phase_contract + sidecar handlers) → 加载 skill 执行 → 产出交付物
-→ finalize(hard gates + verification_bundle + eval_baseline) → judge/critique → approve → 下一个 Phase
-```
-
-核心自动化能力：
-- **Phase Contract**：execute 时自动生成执行合同（done_definition + verification_targets），Judge 按 contract 逐条打分
-- **Verification Bundle**：finalize 时收集所有自动化验证结果，Judge 先看确定性证据再做语义判断
-- **Eval Baseline**：每次 finalize 自动计算指标并对比历史基线，退化超 5% 触发 WARNING
-- **Reasoning Sandwich**：planning/verification 阶段用 high budget，execution 阶段用 standard（60%）
-- **Skill Evolution**：从 bug case 自动生成 skill 规则补充建议 + 进化谱系记录
-- **Context Compressor**：adaptive loop 多轮执行时自动裁剪旧 tool results + 结构化迭代摘要
-
-## 安装
-
-### 普通用户（推荐）
+## Quick Start
 
 ```bash
-git clone https://github.com/your-org/rd-gate.git
+git clone https://github.com/alexangelzhang/qualix.git
 cd qualix
-./scripts/install.sh
+./install.sh --dev
 ```
 
-`scripts/install.sh` 一键完成：DQG 包安装、larkkit（飞书摄入）、agent-browser + playwright（画板截图）、AI IDE MCP 配置，并自动运行 doctor 验收。完成后用户项目 cwd 下看不到 DQG 源码，Claude 读不到就不会改。
-
-在你的项目目录初始化工作区：
+Then initialize a project workspace:
 
 ```bash
-cd <你的项目>
-qualix-run init          # 建 .dqg/output/ + settings.yaml + 注入 CLAUDE.md guardrail
-qualix-run auth status   # 查看飞书认证状态（团队数据上报依赖 larkkit 登录）
-qualix-run path skills   # 查看内置资源路径（只读）
-qualix-run doctor        # 遇到工具 bug 时生成 issue bundle 并自动上报（需 glab）
-qualix-run contribute    # 把本地新积累的 failure-library 案例贡献回 DQG repo
+cd /path/to/your/project
+qualix-run my-project init --profile java-ddd-tmf
+qualix-run my-project startup --json
 ```
 
-> 团队数据上报依赖飞书认证，请先执行 `uvx larkkit auth login` 完成一次性登录。
+Inside an AI coding agent, use the project starter instructions:
 
-老用户从 0.1 升级见 [`docs/migration-from-0.1.md`](docs/migration-from-0.1.md)。
+```text
+$qualix-starter
+```
 
-### DQG 维护者
+You can also run phases manually:
 
 ```bash
-./install.sh --dev    # ~/.dqg/* 用 symlink 指回 repo；pip install -e . 可编辑安装
+qualix-run my-project execute Q01 --json
+qualix-run my-project finalize Q01 --json
+qualix-run my-project approve Q01 --json
 ```
 
-源码改动立即生效，无需重装。
+## Phase Model
 
-## 使用方式
+```text
+Q01 Requirements Structuring
+├── Q02 Technical Design Generation (optional)
+│   └── Q03 Technical Design Quality Review
+│       └── Q04 Technical Design Coverage Audit
+│           └── Q07 Code Review
+└── Q05a EUT Matrix Design
+    └── Q05b Unit Test Code Generation
+        └── Q06 Unit Test Coverage Audit
+```
 
-### 方式一：AI IDE（推荐）
+| Phase | Goal | Main Output |
+| --- | --- | --- |
+| Q01 | Structure requirements | REQ/BR/SE/GAP/OPEN report and JSON |
+| Q02 | Generate technical design | Implementation-ready design draft |
+| Q03 | Review design quality | Architecture/API/data/error/performance findings |
+| Q04 | Audit design coverage | Requirement-to-design coverage matrix |
+| Q05a | Design executable unit-test targets | EUT matrix |
+| Q05b | Generate unit-test code | Test code and execution notes |
+| Q06 | Audit unit-test quality | Coverage and assertion-quality report |
+| Q07 | Review code changes | Evidence-backed code review report |
 
-在 Claude Code / Cursor / Codex / Gemini 等 AI IDE 中引用 `@dqg-starter`，Agent 自动编排全流程。
+Every phase follows the same lifecycle:
 
-支持的 AI IDE 及对应指令文件：
+```text
+collect evidence -> execute skill -> write report + structured JSON -> self-check -> judge/critique -> finalize -> approve
+```
 
-| 工具 | 指令文件 |
-|------|---------|
-| Claude Code CLI | `CLAUDE.md` |
-| OpenAI Codex CLI / opencode | `AGENTS.md` |
-| Google Gemini CLI | `GEMINI.md` |
-| Cursor | `.cursor/rules/dqg.mdc` |
-| IntelliJ IDEA | `AGENTS.md` |
+## Installation Notes
 
-### 方式二：CLI 手动操作
+The root `install.sh` installs the Python package and copies runtime resources into a user-level Qualix directory. Development mode keeps those resources symlinked to this repository:
 
 ```bash
-# 查看项目状态
-qualix-run PROJ status
-
-# 逐步执行
-qualix-run PROJ execute Q01         # 启动 Phase Q01
-qualix-run PROJ finalize Q01        # 校验产物
-qualix-run PROJ approve Q01         # 确认通过
-
-# 质量进化（finalize 后自动生成 prompt 文件）
-qualix-run PROJ judge Q01           # LLM-as-Judge 独立评审
-qualix-run PROJ critique Q01        # Self-Critique 自我批评 → 生成 v2
-qualix-run PROJ preference Q01      # RLAIF 偏好比较 v1 vs v2
-
-# 全自动模式（交互式，每个 Phase 暂停等 approve）
-qualix-run PROJ auto
-qualix-run PROJ auto --model claude-opus-4-1m    # 指定模型
-qualix-run PROJ auto --skip Q03                  # 跳过某 Phase
-
-# 查看执行记录
-qualix-run PROJ log
-
-# 度量采集
-qualix-run PROJ metrics
-
-# Skill 演化：从 failure-library 提炼改进建议
-qualix-run PROJ skill-evolve analyze            # 各 Phase top 失败模式（按 lesson 去重）
-qualix-run PROJ skill-evolve suggest --phase Q06  # 生成 SKILL.md 建议文件
-qualix-run PROJ skill-evolve apply --phase Q06    # dry-run 预览改动
-qualix-run PROJ skill-evolve apply --phase Q06 --no-dry-run  # 真正写入
+./install.sh --dev
 ```
 
-## 项目结构
+For a lighter editable install:
 
+```bash
+python -m pip install -e '.[dev]'
 ```
+
+Optional extras:
+
+```bash
+python -m pip install -e '.[feishu]'
+python -m pip install -e '.[vlm]'
+python -m pip install -e '.[deepeval]'
+```
+
+Feishu/Lark ingestion is optional. Local Markdown or text requirement files work for basic experiments.
+
+## CLI Overview
+
+Global commands:
+
+```bash
+qualix init
+qualix dashboard start
+qualix version
+```
+
+Project commands:
+
+```bash
+qualix-run <project_id> init
+qualix-run <project_id> startup --json
+qualix-run <project_id> status --json
+qualix-run <project_id> execute <phase_id> --json
+qualix-run <project_id> finalize <phase_id> --json
+qualix-run <project_id> approve <phase_id> --json
+qualix-run <project_id> doctor
+```
+
+## Repository Layout
+
+```text
 qualix/
-├── dqg_starter.md              # AI IDE 入口 skill（@dqg-starter 触发）
-├── AGENTS.md                   # 通用项目知识（所有 IDE/CLI 共享）
-├── CLAUDE.md                   # Claude Code 专用指令
-├── GEMINI.md                   # Gemini CLI 专用指令
-├── .cursor/rules/dqg.mdc      # Cursor 规则
-├── skills/                     # Phase skill（agentskills.io 标准目录结构）
-│   ├── requirement-structuring/     # Phase Q01（SKILL.md + references/）
-│   ├── tech-design-generation/      # Phase Q02
-│   ├── tech-quality-review/         # Phase Q03
-│   ├── tech-coverage-audit/         # Phase Q04
-│   ├── unit-test-generation/        # Phase Q05
-│   ├── unit-test-audit/             # Phase Q06
-│   ├── code-review/                 # Phase Q07
-│   ├── system-rules.md              # 通用规则（含 TMF 链路追踪）
-│   ├── SKILL_TEMPLATE.md            # agentskills.io 标准模板
-│   └── workflow/                    # 工作流定义
-├── src/dqg/                    # Python package
-│   ├── core/                   # 状态机 + Phase 注册表 + CLI
-│   ├── runtime/                # 执行引擎（phase_contract, lifecycle, harness_ablation）
-│   ├── quality/                # 质量评审链（judge, critique, verification_bundle, eval_baseline）
-│   ├── agents/                 # Multi-Agent（adaptive_loop, agent_orchestrator, dag_scheduler）
-│   ├── commands/               # CLI 子命令（phase, review, query, startup）
-│   ├── services/               # 业务服务（orchestrator, phase_service）
-│   ├── context/                # 上下文（context_loader, context_compressor, skill_loader）
-│   ├── prompting/              # Prompt Harness（spec/compiler/manifest，prompt 版本追踪）
-│   ├── cache/                  # FTS5 索引（code_search, fact_cache, llm_result_cache）
-│   ├── store/                  # 数据存储（SQLite 统一存储层）
-│   ├── tracking/               # Bug 案例 + Skill Evolution（skill_factory, bug_case_generator）
-│   ├── memory/                 # 记忆层（memory_layer, knowledge_network, compress_hooks）
-│   ├── security/               # 安全扫描（content_scanner, tool_permissions）
-│   ├── languages/              # 多语言 Provider（Java/TypeScript AST、断言、编译、覆盖率）
-│   ├── schemas/                # Phase 数据契约
-│   ├── reporting/              # 性能/指标/渲染/看板
-│   ├── ingest/                 # 文档抓取（飞书）
-│   └── media/                  # 图片处理
-├── profiles/                   # 可切换 profile（version + language + baseline + 阈值 + 风险词典）
-├── regression/                 # 基准回放集 + 回放结果
-│   └── failure-library/cases/  # Bug 案例库（按 Phase 分类）
-├── references/                 # 参考文件 + 模板
-│   ├── risk-and-exception-catalog.md  # 风险与异常分类目录（Java DDD+TMF）
-│   └── risk-catalog-risks.md          # 风险分类目录（R-* 类型）
-├── scripts/                    # 工具脚本（飞书抓取等）
-├── tests/                      # pytest 用例
-├── pyproject.toml              # 工程配置（ruff + pytest + hatch）
-└── output/                     # 项目产出目录（output/<project_id>/<phase_dir>/，worktree 环境自动重定向到主仓库）
+├── src/qualix/          # Python package and CLI/runtime implementation
+├── skills/              # Phase skills and workflow prompts
+├── references/          # Report templates and risk catalogs
+├── profiles/            # Language/domain profiles
+├── regression/          # Regression cases and failure-library examples
+├── docs/                # User and architecture docs
+├── tests/               # pytest suite
+├── AGENTS.md            # Codex/opencode instructions
+├── CLAUDE.md            # Claude Code instructions
+├── GEMINI.md            # Gemini CLI instructions
+└── install.sh           # Local installer
 ```
 
-Prompt 产物治理：
-- `quality/judge.py`、`quality/critique.py`、`quality/review_chain.py` 仍负责业务语义和评审内容生成
-- `prompting/` 负责 prompt spec、assembler、section/template、hash、资产 hash、manifest 写入和 policy gate，不绑定 Java/Go/TypeScript 等具体语言
-- 每次写出 `_judge_prompt.md`、`_critique_prompt.md`、`_preference_prompt.md`、`_review_chain.md` 时，同步生成 `_internal/_prompt_manifests/*.json`
-- Judge/Critique/Preference/Review Chain prompt 通过 `PromptAssembler` 固定片段顺序；manifest 记录 `assembly_order`、`section_hashes`、`section_sources`，用于定位 prompt hash 变化来自哪个片段或来源资产
-- `qualix-run PROJ regression prompt-eval` 会读取 prompt version manifest 和 `prompt_outputs/<version>.json`，输出 prompt hash、section 顺序、执行来源和 Q05/Q06 指标；如接入真实 LLM，可通过 `PromptEvalExecutor` 注入执行器
-- finalize 阶段的 `prompt_policy` handler 会校验 manifest 完整性、prompt hash、结构化输出 schema、证据契约、评估协议（检查清单 + 行为红线），并阻断专家 persona 标签，结果写入 `_internal/_prompt_policy.json`
-
-## 技术栈适配
-
-默认 profile 为 `java-ddd-tmf`，当前已内置：
-
-- `java-ddd-tmf`
-- `go-service`
-- `typescript-service`
-
-使用方式：
+## Development
 
 ```bash
-# 新项目接入时直接选 profile
-qualix-run PROJ --profile java-ddd-tmf execute Q01
-qualix-run PROJ --profile go-service auto
-qualix-run PROJ --profile typescript-service execute Q06
-```
-
-选中的 profile 会持久化到项目状态，并在 `Q04/Q03/Q05/Q05a/Q05b/Q06/Q07` 自动注入：
-
-- baseline 文档
-- 风险词典
-- 质量阈值
-
-同时在各 Phase 的 `_internal/` 目录写入：
-
-- `_profile.json`：结构化 profile 元数据
-- `_profile_context.md`：可直接粘贴到报告头部的 `PROFILE_CONTEXT` 区块
-
-例如：`output/<project>/Q05a/_internal/_profile.json`、`output/<project>/Q05a/_internal/_profile_context.md`
-
-推荐报告模板（均包含 `PROFILE_CONTEXT` 区块）：
-
-- Phase Q05a（EUT 矩阵设计）：`references/eut-matrix-template.md`
-- Phase Q06：`references/ut-audit-template.md`
-- Phase Q07：`references/code-review-template.md`
-
-如需扩展新技术栈，只需新增 `profiles/<profile-id>/profile.json` 和对应 baseline 文档，无需改 Python 代码。
-
-Profile 约定：
-
-- `profile.json` 必须包含 `profile_id`、`version`、`name`、`description`、`language`、`baseline_path`、`risk_catalog_path`、`quality_thresholds`
-- `version` 使用 SemVer 格式，例如 `1.0.0`
-- `language` 使用小写 Provider ID（如 `java`、`go`、`typescript`、`python`、`rust`、`kotlin`）；schema 校验只检查 ID 格式，不阻断未来语言扩展
-- `qualix-run PROJ doctor` 会校验所有 profile 的 schema、路径和阈值，防止跨团队扩展时出现基线漂移
-
-## 质量进化闭环
-
-DQG 借鉴 OpenSpace 的自进化思路，实现了三层质量进化机制：
-
-**LLM-as-Judge**: `finalize` 后自动生成 `_judge_prompt.md`，由 AI IDE 执行独立评审，输出 precision/recall 估计和问题列表。
-
-**Self-Critique + RLAIF**: Phase 执行后自我批评生成 v2 修正版本，再通过偏好比较判定哪个更好。有效的 critique 自动沉淀为 bug case。
-
-**Bug 案例库**: 真实 bug 案例（从飞书 Bitable 批量导入 + finalize 自动生成），按 Phase 分类，执行时基于相关性匹配自动注入为反例。
-
-```bash
-# 质量进化命令
-qualix-run PROJ judge Q01           # 独立评审
-qualix-run PROJ critique Q01        # 自我批评 → v2
-qualix-run PROJ preference Q01      # v1 vs v2 偏好比较
-
-# Bug 案例库
-qualix-run PROJ regression run      # 回放基准 + 失败样例库
-qualix-run PROJ regression trend    # 查看失败样例趋势
-qualix-run PROJ regression prompt-eval  # 对 prompt_versions 做离线 A/B 指标对比（可读取 prompt_outputs/*.json）
-python -m dqg.tracking.bug_cases         # 查看 failure-library 报告
-python -m dqg.tracking.import_bug_cases <ingest.json>  # 从飞书导入
-```
-
-`regression/cases/prompt-eval/Q05a-basic`（EUT 矩阵设计）和 `Q06-basic` 内置了 `prompt_outputs/v1_baseline.json`、`prompt_outputs/v2_enhanced.json`。`Q05-basic` 保留作 legacy 回归基准。`prompt-eval` 优先级为：注入执行器结果 > 离线 `prompt_outputs` > 固定输入 fallback，因此默认命令即可看到增强 prompt 的离线 A/B 指标差异。
-
-## 质量保障
-
-```bash
-# lint
 ruff check src/ tests/
-
-# 测试
-pytest tests/ -v
-
-# 全量校验
-ruff check src/ tests/ && pytest tests/ -q
+pytest tests/ -q
 ```
 
-## 可观测与告警
-
-Streamlit 看板内置"可观测性"页面，实时展示告警历史、日报/周报摘要和指标趋势。`finalize` 成功后自动刷新指标，也可通过 CLI 手动生成：
+For a narrower smoke test after install changes:
 
 ```bash
-# 生成日报（JSON + Markdown）
-qualix-run PROJ observe report --period daily
-
-# 生成周报，并按项目/Phase 过滤
-qualix-run PROJ observe report --period weekly --project rights-platform --phase Q03
-
-# 每日任务：生成日报 + 写入历史指标仓 + 告警输出（建议配合 cron）
-qualix-run PROJ observe daily
-
-# Guard 精度周报（T9）：聚合各 guard 的拦对/拦错/漏拦三态
-qualix-run PROJ observe guard-precision
+python -m pytest tests/test_version.py tests/test_install_sh.py -q
 ```
 
-输出目录：
+## Data And Examples
 
-- 报告：`observability/reports/<daily|weekly>/*.json|*.md`
-- 指标仓：`observability/metrics_history.jsonl`
-- 告警：`observability/alerts/*.json|*.md`
-- Prometheus：`observability/prometheus/*.prom`（`qualix-run PROJ observe daily` 自动产出）
-- Guard 精度：`docs/system-health-reports/guard_precision.md`（finalize 后自动刷新，也可手动 `observe guard-precision`）
+The public repository should contain only synthetic or sanitized regression examples. Real enterprise failure libraries, customer requirements, and private review data should stay outside the public repo or be distributed under a separate commercial data license.
 
-当前指标覆盖：
+## License
 
-- `Phase 通过率`
-- `平均处理时长`
-- `GAP 闭环率`
-- `BLOCK 数`（Q03 `CRITICAL_GAP` + Phase Q07 `BLOCKER`）
-
-当前告警规则：
-
-- `BLOCK_SPIKE`
-- `PHASE_FAILURE_RATE`
-- `FAILURE_LIBRARY_REGRESSION`（失败样例回归退化）
-
-周报会额外聚合失败样例库趋势（如果已执行过 `qualix-run PROJ regression run`）：
-
-- `误报`
-- `漏报`
-- `边界输入`
-- `弱文档输入`
-
-## 飞书文档抓取
-
-支持 docx 文档和多维表格（Bitable）两种类型的 Wiki 节点：
-
-```bash
-# 抓取飞书文档（docx / wiki）
-python scripts/feishu_direct_ingest.py "<feishu_url>" -o output/<project_id>/Q01
-
-# 抓取飞书多维表格（bitable）— 自动识别，无需额外参数
-python scripts/feishu_direct_ingest.py "<bitable_wiki_url>" -o output/<project_id>/Q01
-```
-
-性能优化：图片并发下载（8 workers）、引用文档并发抓取（4 workers）、单文档内 API 调用并发。
-
-## Feishu 回放快照回归
-
-用于验证 `feishu_ingest` 重构前后产物是否一致，重点比对以下文件：
-
-- `ingest.json`
-- `asset_manifest.json`
-- `dependency_graph.json`
-- `aggregate_ingest.json`
-- `plain_text.txt`
-
-首次生成或更新快照：
-
-```bash
-DQG_FEISHU_TEST_URL="https://mi.feishu.cn/docx/xxx" \
-DQG_FEISHU_SNAPSHOT_CASE="sample-doc" \
-DQG_UPDATE_SNAPSHOTS=1 \
-pytest tests/integration/test_feishu_ingest_snapshot.py -q
-```
-
-日常回归校验：
-
-```bash
-DQG_FEISHU_TEST_URL="https://mi.feishu.cn/docx/xxx" \
-DQG_FEISHU_SNAPSHOT_CASE="sample-doc" \
-pytest tests/integration/test_feishu_ingest_snapshot.py -q
-```
-
-说明：
-
-- 未提供 `DQG_FEISHU_TEST_URL` 时，真实回放测试会自动跳过
-- 快照基线默认存放在 `tests/fixtures/feishu_ingest_snapshots/`
-- 回放时会自动规范化时间戳、绝对路径等易波动字段，减少无意义 diff
-
-## 基准回放集
-
-用于校验平台级输出是否发生新增、回归或语义偏移：
-
-```bash
-# 跑全量基准回放集
-qualix-run PROJ regression run
-
-# 只跑某个样本
-qualix-run PROJ regression run --case rights-platform
-```
-
-当前内置样本：
-
-- `rights-platform`：权益中心平台化改造金标准快照
-- `mrs`：中型改造样本
-- `api-addition-demo`：接口新增样本
-- `refactor-demo`：重构样本
-- `failure-library/*`：失败样例库（误报 / 漏报 / 边界输入 / 弱文档输入）
-
-回放结果会输出到 `regression/runs/<timestamp>/summary.json|.md`，并按文件分类：
-
-- `新增`：基线中没有、当前输出新增
-- `回归`：基线中存在、当前输出缺失
-- `偏移`：文件仍存在，但内容发生变化
-
-若任一回放 case 不通过，`qualix-run PROJ regression run` 会返回非 0，可直接用于规则改动后的回归门禁。
-
-失败样例库趋势统计：
-
-```bash
-# 周维度统计误报/漏报趋势
-qualix-run PROJ regression trend --period weekly
-```
-
-相关产物：
-
-- 样例库：`regression/cases/failure-library/`
-- 历史：`regression/failure-library/history.jsonl`
-- 周趋势：`regression/failure-library/trends/weekly/summary.json|.md`
+Apache License 2.0. See [LICENSE](LICENSE).

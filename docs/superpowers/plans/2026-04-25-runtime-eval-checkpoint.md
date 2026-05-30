@@ -6,22 +6,22 @@
 
 **Architecture:** New `checkpoint_validator.py` provides a unified `validate_checkpoint()` function with rule checks (zero LLM) + optional haiku LLM confirmation. Two-Phase Worker calls it between Collector and Writer. Preflight calls it via new `_check_upstream_quality()`. Both use the same CheckpointResult dataclass and fail-fast pattern.
 
-**Tech Stack:** Python 3.11+, pytest, existing DQG modules (phase_contract, preflight, two_phase_worker, llm_backends)
+**Tech Stack:** Python 3.11+, pytest, existing Qualix modules (phase_contract, preflight, two_phase_worker, llm_backends)
 
 ## File Structure
 
 | Action | File | Responsibility |
 |--------|------|---------------|
-| Create | `src/dqg/quality/checkpoint_validator.py` | CheckpointResult dataclass + validate_checkpoint() + rule checks + LLM confirm |
+| Create | `src/qualix/quality/checkpoint_validator.py` | CheckpointResult dataclass + validate_checkpoint() + rule checks + LLM confirm |
 | Create | `tests/test_checkpoint_validator.py` | Rule checks, LLM fallback, timeout, edge cases |
-| Modify | `src/dqg/agents/two_phase_worker.py` | Insert checkpoint between Collector and Writer |
-| Modify | `src/dqg/runtime/preflight.py` | Add _check_upstream_quality() calling validate_checkpoint |
+| Modify | `src/qualix/agents/two_phase_worker.py` | Insert checkpoint between Collector and Writer |
+| Modify | `src/qualix/runtime/preflight.py` | Add _check_upstream_quality() calling validate_checkpoint |
 | Create | `tests/test_checkpoint_integration.py` | End-to-end integration tests |
 
 ### Task 1: Checkpoint Validator Core Module
 
 **Files:**
-- Create: `src/dqg/quality/checkpoint_validator.py`
+- Create: `src/qualix/quality/checkpoint_validator.py`
 - Create: `tests/test_checkpoint_validator.py`
 
 - [ ] **Step 1: Write failing tests**
@@ -47,7 +47,7 @@ def _make_contract(verification_targets=None, done_definition=None):
 
 def test_validate_passes_with_good_content():
     """Content covering all verification targets passes."""
-    from dqg.quality.checkpoint_validator import validate_checkpoint
+    from qualix.quality.checkpoint_validator import validate_checkpoint
 
     content = json.dumps({
         "evidences": [
@@ -63,7 +63,7 @@ def test_validate_passes_with_good_content():
 
 def test_validate_fails_with_empty_content():
     """Empty content fails rule check."""
-    from dqg.quality.checkpoint_validator import validate_checkpoint
+    from qualix.quality.checkpoint_validator import validate_checkpoint
 
     result = validate_checkpoint("", _make_contract(), "Q01", "evidence_pack")
     assert result.passed is False
@@ -72,7 +72,7 @@ def test_validate_fails_with_empty_content():
 
 def test_validate_fails_with_low_coverage():
     """Content covering < 60% of verification targets fails."""
-    from dqg.quality.checkpoint_validator import validate_checkpoint
+    from qualix.quality.checkpoint_validator import validate_checkpoint
 
     content = json.dumps({
         "evidences": [
@@ -86,7 +86,7 @@ def test_validate_fails_with_low_coverage():
 
 def test_validate_skips_when_no_contract():
     """No contract → skip checkpoint, return PASS."""
-    from dqg.quality.checkpoint_validator import validate_checkpoint
+    from qualix.quality.checkpoint_validator import validate_checkpoint
 
     result = validate_checkpoint("some content", {}, "Q01", "evidence_pack")
     assert result.passed is True
@@ -94,7 +94,7 @@ def test_validate_skips_when_no_contract():
 
 def test_validate_skips_when_no_targets():
     """Contract with empty verification_targets → skip, return PASS."""
-    from dqg.quality.checkpoint_validator import validate_checkpoint
+    from qualix.quality.checkpoint_validator import validate_checkpoint
 
     result = validate_checkpoint("some content", {"verification_targets": []}, "Q01", "test")
     assert result.passed is True
@@ -102,7 +102,7 @@ def test_validate_skips_when_no_targets():
 
 def test_rule_checks_recorded():
     """Rule check results are recorded in CheckpointResult."""
-    from dqg.quality.checkpoint_validator import validate_checkpoint
+    from qualix.quality.checkpoint_validator import validate_checkpoint
 
     content = json.dumps({"evidences": [{"id": "E-001", "source": "x:1", "content": "REQ-001 test"}]})
     result = validate_checkpoint(content, _make_contract(), "Q01", "test")
@@ -112,7 +112,7 @@ def test_rule_checks_recorded():
 
 def test_validate_plain_text_content():
     """Plain text (not JSON) content also works for upstream quality check."""
-    from dqg.quality.checkpoint_validator import validate_checkpoint
+    from qualix.quality.checkpoint_validator import validate_checkpoint
 
     content = "# 需求结构化报告\n\n## REQ-001 创建维保单\n## SE-001 校验\n## BR-001 关联"
     result = validate_checkpoint(content, _make_contract(), "Q01", "upstream_report")
@@ -126,7 +126,7 @@ Expected: FAIL with `ModuleNotFoundError`
 
 - [ ] **Step 3: Create checkpoint_validator.py**
 
-Create `src/dqg/quality/checkpoint_validator.py`:
+Create `src/qualix/quality/checkpoint_validator.py`:
 
 ```python
 """Checkpoint validator: rule + LLM two-layer validation for runtime eval.
@@ -142,7 +142,7 @@ import re
 from dataclasses import dataclass, field
 from typing import Any
 
-from dqg.log import get_logger
+from qualix.log import get_logger
 
 log = get_logger(__name__)
 
@@ -292,7 +292,7 @@ def _llm_confirm(
 ) -> dict[str, Any]:
     """Use haiku-level model to confirm coverage adequacy. 10s timeout → PASS."""
     try:
-        from dqg.agents.llm_backends import LLMConfig, create_backend
+        from qualix.agents.llm_backends import LLMConfig, create_backend
 
         target_summary = "\n".join(f"- {t.get('id', '?')}: {t.get('description', '')}" for t in targets[:10])
         prompt = (
@@ -303,7 +303,7 @@ def _llm_confirm(
             "回答 YES 或 NO，如果 NO 请列出缺失的关键目标 ID。"
         )
 
-        from dqg.constants import DEFAULT_RATIONALIZATION_CONFIRM_MODEL
+        from qualix.constants import DEFAULT_RATIONALIZATION_CONFIRM_MODEL
 
         config = LLMConfig(primary=DEFAULT_RATIONALIZATION_CONFIRM_MODEL)
         backend = create_backend(config)
@@ -329,22 +329,22 @@ Expected: 7 passed
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/dqg/quality/checkpoint_validator.py tests/test_checkpoint_validator.py
+git add src/qualix/quality/checkpoint_validator.py tests/test_checkpoint_validator.py
 git commit -m "feat: add checkpoint_validator with rule + LLM two-layer validation"
 ```
 
 ### Task 2: Wire Checkpoint into Two-Phase Worker
 
 **Files:**
-- Modify: `src/dqg/agents/two_phase_worker.py:60-66`
+- Modify: `src/qualix/agents/two_phase_worker.py:60-66`
 
 - [ ] **Step 1: Modify run_two_phase_worker**
 
-In `src/dqg/agents/two_phase_worker.py`, after the evidence pack is saved (after `save_json(evidence_path, evidence_pack)`, around line 64), add:
+In `src/qualix/agents/two_phase_worker.py`, after the evidence pack is saved (after `save_json(evidence_path, evidence_pack)`, around line 64), add:
 
 ```python
     # Runtime Eval: validate evidence pack before starting Writer
-    from dqg.quality.checkpoint_validator import validate_checkpoint
+    from qualix.quality.checkpoint_validator import validate_checkpoint
 
     _contract = _load_contract(int_dir)
     _checkpoint = validate_checkpoint(
@@ -370,7 +370,7 @@ def _load_contract(int_dir: Path) -> dict[str, Any]:
     return load_json(contract_path) or {}
 ```
 
-And add `from dqg.json_utils import load_json, save_json, dump_json_str` at the top (dump_json_str is needed for serializing evidence_pack). If `dump_json_str` doesn't exist in json_utils, use `json.dumps` instead with `import json`.
+And add `from qualix.json_utils import load_json, save_json, dump_json_str` at the top (dump_json_str is needed for serializing evidence_pack). If `dump_json_str` doesn't exist in json_utils, use `json.dumps` instead with `import json`.
 
 - [ ] **Step 2: Run existing tests**
 
@@ -380,18 +380,18 @@ Expected: All pass (checkpoint is a new code path, existing tests don't trigger 
 - [ ] **Step 3: Commit**
 
 ```bash
-git add src/dqg/agents/two_phase_worker.py
+git add src/qualix/agents/two_phase_worker.py
 git commit -m "feat: insert evidence_pack checkpoint in Two-Phase Worker before Writer"
 ```
 
 ### Task 3: Wire Checkpoint into DAG Preflight
 
 **Files:**
-- Modify: `src/dqg/runtime/preflight.py`
+- Modify: `src/qualix/runtime/preflight.py`
 
 - [ ] **Step 1: Add _check_upstream_quality to preflight.py**
 
-Add this function at the end of `src/dqg/runtime/preflight.py`:
+Add this function at the end of `src/qualix/runtime/preflight.py`:
 
 ```python
 def _check_upstream_quality(output_dir: Path, project_id: str, phase_id: str) -> dict[str, str]:
@@ -402,9 +402,9 @@ def _check_upstream_quality(output_dir: Path, project_id: str, phase_id: str) ->
     - Report meets minimum length
     - Report contains expected section headings
     """
-    from dqg.constants import PHASE_DIR_MAP, REPORT_MAP, STRUCTURED_JSON_MAP
-    from dqg.core.phase_registry import PHASE_DEFS
-    from dqg.core.state_machine import PhaseStatus, load_state
+    from qualix.constants import PHASE_DIR_MAP, REPORT_MAP, STRUCTURED_JSON_MAP
+    from qualix.core.phase_registry import PHASE_DEFS
+    from qualix.core.state_machine import PhaseStatus, load_state
 
     phase_def = PHASE_DEFS.get(phase_id, {})
     deps = phase_def.get("depends_on", [])
@@ -428,7 +428,7 @@ def _check_upstream_quality(output_dir: Path, project_id: str, phase_id: str) ->
         contract_path = int_dir / "_phase_contract.json"
         contract = {}
         if contract_path.exists():
-            from dqg.json_utils import load_json
+            from qualix.json_utils import load_json
             contract = load_json(contract_path) or {}
 
         if not contract.get("verification_targets"):
@@ -439,10 +439,10 @@ def _check_upstream_quality(output_dir: Path, project_id: str, phase_id: str) ->
         if json_file:
             json_path = dep_dir / json_file
             if json_path.exists():
-                from dqg.json_utils import load_json as _lj
+                from qualix.json_utils import load_json as _lj
                 data = _lj(json_path)
                 if data:
-                    from dqg.quality.checkpoint_validator import validate_checkpoint
+                    from qualix.quality.checkpoint_validator import validate_checkpoint
                     import json
 
                     result = validate_checkpoint(
@@ -464,7 +464,7 @@ def _check_upstream_quality(output_dir: Path, project_id: str, phase_id: str) ->
                 except OSError:
                     report_text = ""
                 if report_text:
-                    from dqg.quality.checkpoint_validator import validate_checkpoint as _vc
+                    from qualix.quality.checkpoint_validator import validate_checkpoint as _vc
 
                     result = _vc(
                         content=report_text,
@@ -504,7 +504,7 @@ Expected: All pass
 - [ ] **Step 4: Commit**
 
 ```bash
-git add src/dqg/runtime/preflight.py
+git add src/qualix/runtime/preflight.py
 git commit -m "feat: add upstream content quality check to DAG preflight"
 ```
 
@@ -528,7 +528,7 @@ from pathlib import Path
 
 def test_evidence_pack_checkpoint_passes_good_pack(tmp_path):
     """Good evidence pack with contract passes checkpoint."""
-    from dqg.quality.checkpoint_validator import validate_checkpoint
+    from qualix.quality.checkpoint_validator import validate_checkpoint
 
     contract = {
         "verification_targets": [
@@ -548,7 +548,7 @@ def test_evidence_pack_checkpoint_passes_good_pack(tmp_path):
 
 def test_evidence_pack_checkpoint_blocks_empty_pack(tmp_path):
     """Empty evidence pack fails checkpoint."""
-    from dqg.quality.checkpoint_validator import validate_checkpoint
+    from qualix.quality.checkpoint_validator import validate_checkpoint
 
     contract = {
         "verification_targets": [{"id": "REQ-001", "description": "test"}],
@@ -559,7 +559,7 @@ def test_evidence_pack_checkpoint_blocks_empty_pack(tmp_path):
 
 def test_upstream_quality_check_in_preflight(tmp_path):
     """Preflight upstream quality check detects low-quality upstream output."""
-    from dqg.runtime.preflight import _check_upstream_quality
+    from qualix.runtime.preflight import _check_upstream_quality
 
     # Setup: create a minimal project structure with Q01 approved
     project_id = "test-proj"
@@ -594,7 +594,7 @@ def test_upstream_quality_check_in_preflight(tmp_path):
     mock_phase.run_status = "ok"
     mock_state.phases = {"Q01": mock_phase}
 
-    with patch("dqg.runtime.preflight.load_state", return_value=mock_state):
+    with patch("qualix.runtime.preflight.load_state", return_value=mock_state):
         result = _check_upstream_quality(tmp_path, project_id, "Q03")
 
     # Q03 depends on Q01 — should detect quality issues
@@ -605,7 +605,7 @@ def test_upstream_quality_check_in_preflight(tmp_path):
 
 def test_checkpoint_no_contract_graceful_skip():
     """No contract file → checkpoint skips gracefully."""
-    from dqg.quality.checkpoint_validator import validate_checkpoint
+    from qualix.quality.checkpoint_validator import validate_checkpoint
 
     result = validate_checkpoint("some content here", {}, "Q01", "test")
     assert result.passed is True

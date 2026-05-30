@@ -1,0 +1,41 @@
+Migration inventory:
+  active: instruction files - 2 found
+    - CLAUDE.md
+    - AGENTS.md
+  active: skills - 7 found
+    - analyze-project
+    - dev-qa-loop
+    - graphify
+    - optimize-prompt
+    - session-journal
+    - skill-audit
+    - trace-reflect
+  active: command sources - 1 found
+    provider: source command (1)
+      - dqg-starter
+  inactive: subagents - none found
+Migration surfaces:
+  active: AGENTS.md - 1 instruction file(s) found.
+  active: skills - 8 skill(s) converted.
+  active: MCP config - 1 MCP server(s) converted into config.toml.
+  inactive: subagents - No subagents found.
+Migration report:
+  symlinked: AGENTS.md - Linked to /Users/zhangyiqian/projects/qualix/CLAUDE.md.
+  rewritten: .codex/hooks.json - Unsupported Claude hook fields need review: `hooks.PostToolUse.hooks[].async`. Rewritten for Codex hooks; review behavior before relying on it. Codex hooks require `[features].codex_hooks = true`, only execute `command` handlers, skip `async` / `prompt` / `agent` handlers, ignore `matcher` for `UserPromptSubmit` and `Stop`, and `PreToolUse` / `PostToolUse` currently run for shell commands only.
+  manual_fix_required: .agents/skills/analyze-project/SKILL.md - Manual review required for Claude skill fields: `triggers`.
+  rewritten: .agents/skills/dev-qa-loop/SKILL.md - Converted Claude skill.
+  manual_fix_required: .agents/skills/graphify/SKILL.md - Manual review required for Claude skill fields: `trigger`.
+  manual_fix_required: .agents/skills/optimize-prompt/SKILL.md - Manual review required for Claude skill fields: `triggers`.
+  manual_fix_required: .agents/skills/session-journal/SKILL.md - Manual review required for Claude skill fields: `triggers`.
+  manual_fix_required: .agents/skills/skill-audit/SKILL.md - Manual review required for Claude skill fields: `triggers`.
+  manual_fix_required: .agents/skills/trace-reflect/SKILL.md - Manual review required for Claude skill fields: `triggers`.
+  manual_fix_required: .agents/skills/source-command-dqg-starter/SKILL.md - Converted source command `dqg-starter` to a single-file Codex skill; review invocation and template placeholder semantics.
+  rewritten: .codex/config.toml - Converted 1 MCP server entries.
+  manual_fix_required: .codex/config.toml - MCP server `code-review-graph` needs review: Review unsupported Claude MCP fields manually: `cwd`.
+  overwritten: /Users/zhangyiqian/projects/qualix/.agents/skills/session-journal - Existing Codex skill will be replaced.
+  overwritten: /Users/zhangyiqian/projects/qualix/.agents/skills/skill-audit - Existing Codex skill will be replaced.
+  overwritten: /Users/zhangyiqian/projects/qualix/.agents/skills/graphify - Existing Codex skill will be replaced.
+  overwritten: /Users/zhangyiqian/projects/qualix/.agents/skills/analyze-project - Existing Codex skill will be replaced.
+  overwritten: /Users/zhangyiqian/projects/qualix/.agents/skills/trace-reflect - Existing Codex skill will be replaced.
+  overwritten: /Users/zhangyiqian/projects/qualix/.agents/skills/dev-qa-loop - Existing Codex skill will be replaced.
+  overwritten: /Users/zhangyiqian/projects/qualix/.agents/skills/optimize-prompt - Existing Codex skill will be replaced.

@@ -1,4 +1,4 @@
-"""DQG 全局命令入口.
+"""Qualix 全局命令入口.
 
 全局命令（不需要 project_id）：
     qualix init          — 初始化环境 + 启动看板
@@ -40,17 +40,17 @@ def _pid_file() -> Path:
 
 
 def _cmd_init(args: argparse.Namespace) -> int:
-    """初始化 DQG 环境."""
+    """初始化 Qualix 环境."""
     base = _base_dir()
     output = _output_dir()
 
-    print("DQG 初始化")
+    print("Qualix 初始化")
     print("=" * 50)
 
     # 1. 检查目录结构
     print("\n1. 检查目录结构...")
     output.mkdir(parents=True, exist_ok=True)
-    (output / ".dqg").mkdir(exist_ok=True)
+    (output / ".qualix").mkdir(exist_ok=True)
     print(f"   output 目录: {output}")
 
     # 2. 检查依赖
@@ -138,7 +138,7 @@ def _cmd_init(args: argparse.Namespace) -> int:
 
     print("\n" + "=" * 50)
     if deps_ok:
-        print("初始化完成! 在 AI IDE 中输入 @qualix-starter 开始使用。")
+        print("初始化完成! 在 AI IDE 中输入 $qualix-starter 开始使用。")
     else:
         print("初始化完成（部分依赖缺失，请按提示安装）。")
 
@@ -254,9 +254,9 @@ def _cmd_dashboard(args: argparse.Namespace) -> int:
 
 
 def _cmd_version(_args: argparse.Namespace) -> int:
-    from qualix.commands.setup import DQG_VERSION
+    from qualix.commands.setup import QUALIX_VERSION
 
-    print(f"DQG (Dev Quality Gate) v{DQG_VERSION}")
+    print(f"Qualix v{QUALIX_VERSION}")
     return 0
 
 
@@ -356,7 +356,7 @@ def _export_semantic_cache(output_dir, project_id: str, output_path: str | None)
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="DQG 研发质量门禁",
+        description="Qualix 研发质量门禁",
         usage="qualix <command> [options]",
     )
     sub = parser.add_subparsers(dest="command")

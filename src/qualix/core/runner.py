@@ -186,7 +186,7 @@ def _build_parser() -> argparse.ArgumentParser:
     sub.add_parser("wiki-compile", help="从历史提取并编译生成该项目的初始 LLM-Wiki")
 
     # wiki-lint
-    sub.add_parser("wiki-lint", help="启动清理智能体：打扫并梳理当前的 .dqg-wiki 全景拓扑")
+    sub.add_parser("wiki-lint", help="启动清理智能体：打扫并梳理当前的 .qualix-wiki 全景拓扑")
 
     # init
     sub.add_parser("init", help="一键初始化项目（创建目录结构、state.json、version.json）")
@@ -195,10 +195,10 @@ def _build_parser() -> argparse.ArgumentParser:
     sub.add_parser("doctor", help="环境健康检查（Python/依赖/脚本/profiles/飞书 token）")
 
     # update
-    sub.add_parser("update", help="更新 DQG 到最新版本（git pull + version.json 同步）")
+    sub.add_parser("update", help="更新 Qualix 到最新版本（git pull + version.json 同步）")
 
     # version
-    sub.add_parser("version", help="显示 DQG 版本号")
+    sub.add_parser("version", help="显示 Qualix 版本号")
 
     # task
     p_task = sub.add_parser("task", help="Task 管理（list/resume）")
@@ -419,7 +419,7 @@ def _resolve_output_dir(
     Args:
         base_dir: 项目根目录
         project_id: 项目 ID。提供时优先检查项目 state.json 实际所在路径，
-                    避免 .dqg/output/ 目录存在时全局切换导致旧项目失联。
+                    避免 .qualix/output/ 目录存在时全局切换导致旧项目失联。
         quiet: True 时压制 worktree 重定向 stderr 提示（--json 模式下启用，
                避免污染 stdout 单条 JSON 契约；Agent 侧如果 stderr 合并捕获
                会破坏解析）
@@ -463,21 +463,21 @@ def _resolve_output_dir(
     except (FileNotFoundError, ValueError):
         pass
     legacy_output = base / "output"
-    dqg_output = base / ".dqg" / "output"
+    qualix_output = base / ".qualix" / "output"
     # 有 project_id 时：state.json 在哪里项目就在哪里，新项目才考虑工作区布局
     if project_id:
         if (legacy_output / project_id / "state.json").exists():
             return legacy_output
-        if (dqg_output / project_id / "state.json").exists():
-            return dqg_output
-    # 无 project_id 或新项目：优先 .dqg/output/（已初始化的工作区），否则 output/
-    if dqg_output.exists():
-        return dqg_output
+        if (qualix_output / project_id / "state.json").exists():
+            return qualix_output
+    # 无 project_id 或新项目：优先 .qualix/output/（已初始化的工作区），否则 output/
+    if qualix_output.exists():
+        return qualix_output
     return legacy_output
 
 
 def _check_version_drift_on_startup(project_root: Path) -> None:
-    """Print a warning to stderr if settings.yaml pins a different DQG version than installed."""
+    """Print a warning to stderr if settings.yaml pins a different Qualix version than installed."""
     from importlib.metadata import version as _v
 
     from qualix.core.settings import check_version_drift
@@ -491,9 +491,9 @@ def _check_version_drift_on_startup(project_root: Path) -> None:
         return
     pinned, running = drift
     print(
-        f"\n⚠️  版本漂移: .dqg/settings.yaml pin 的 {pinned} 与安装的 {running} 不一致\n"
+        f"\n⚠️  版本漂移: .qualix/settings.yaml pin 的 {pinned} 与安装的 {running} 不一致\n"
         f"   建议运行: qualix-run init --force 同步（注意会清空 code_repos）\n"
-        f"   或手动修改 .dqg/settings.yaml 的 dqg_version 字段\n",
+        f"   或手动修改 .qualix/settings.yaml 的 qualix_version 字段\n",
         file=sys.stderr,
     )
 
@@ -502,12 +502,12 @@ def _handle_workspace_init(argv: list[str]) -> int:
     """workspace-level `qualix-run init`（不需要 project_id）.
 
     与现有 per-project `qualix-run <pid> init`（setup.py::cmd_init）不同：
-    - 本命令在用户项目根目录创建 .dqg/ 工作区（settings.yaml / output/ / guardrail）
+    - 本命令在用户项目根目录创建 .qualix/ 工作区（settings.yaml / output/ / guardrail）
     - setup.py 的 cmd_init 在 output/<pid>/ 下初始化单个项目的 Phase 目录结构
     """
-    sub = argparse.ArgumentParser(prog="qualix-run init", description="在当前目录初始化 .dqg/ 工作区")
+    sub = argparse.ArgumentParser(prog="qualix-run init", description="在当前目录初始化 .qualix/ 工作区")
     sub.add_argument("--profile", default=None, help="profile（不指定则自动识别技术栈）")
-    sub.add_argument("--force", action="store_true", help="删除已有 .dqg/ 重建")
+    sub.add_argument("--force", action="store_true", help="删除已有 .qualix/ 重建")
     ns = sub.parse_args(argv)
 
     _check_version_drift_on_startup(Path.cwd())
@@ -590,7 +590,7 @@ def _handle_workspace_contribute(argv: list[str]) -> int:
     """workspace-level `qualix-run contribute`（不需要 project_id）."""
     sub = argparse.ArgumentParser(
         prog="qualix-run contribute",
-        description="把本地新积累的 failure-library 案例贡献回 DQG repo",
+        description="把本地新积累的 failure-library 案例贡献回 Qualix repo",
     )
     sub.add_argument("--title", default=None, help="MR 标题（不指定则自动生成）")
     sub.add_argument("--no-upload", action="store_true", help="只扫描不上传")
@@ -604,7 +604,7 @@ def _handle_workspace_contribute(argv: list[str]) -> int:
 
 def _handle_workspace_auth(argv: list[str]) -> int:
     """workspace-level `qualix-run auth status`."""
-    sub = argparse.ArgumentParser(prog="qualix-run auth", description="DQG 飞书认证状态")
+    sub = argparse.ArgumentParser(prog="qualix-run auth", description="Qualix 飞书认证状态")
     sub.add_argument("action", choices=["status"], help="status: 查看飞书认证状态")
     sub.parse_args(argv)
 
@@ -670,7 +670,7 @@ def main() -> int:
             quiet=quiet_env,
         )
 
-        # Deprecation check: warn if running from inside the DQG repo layout
+        # Deprecation check: warn if running from inside the Qualix repo layout
         from qualix.core.resource_resolver import ResourceResolver
 
         ResourceResolver(project_root=Path.cwd()).check_legacy_layout()

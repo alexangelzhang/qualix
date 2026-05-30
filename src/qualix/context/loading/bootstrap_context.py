@@ -167,7 +167,7 @@ def write_bootstrap_context(
     sections: list[str] = [
         f"# Bootstrap Context — Phase {phase_id}: {phase_def.get('name', '')}",
         "",
-        "> 本文件由 DQG 自动生成，提供 Phase 启动所需的项目上下文，无需 Agent 自行探索。",
+        "> 本文件由 Qualix 自动生成，提供 Phase 启动所需的项目上下文，无需 Agent 自行探索。",
         "",
     ]
 

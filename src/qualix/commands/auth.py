@@ -35,5 +35,5 @@ def run_auth_status() -> int:
     minutes_left = max(0, (expired_at - now) // 60)
     print(f"✓ 飞书认证有效（剩余 {minutes_left} 分钟）")
     print(f"  配置文件: {_VAF_CONFIG}")
-    print("  DQG 将自动使用此 token 上报团队数据")
+    print("  Qualix 将使用此 token 执行你明确发起的 Feishu/Lark 文档摄入操作")
     return 0

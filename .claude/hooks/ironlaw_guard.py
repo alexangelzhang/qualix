@@ -81,9 +81,9 @@ def _load_rule_meta() -> dict[str, dict]:
 
 
 def _project_disabled_rules() -> set[str]:
-    """读取 CWD/.dqg/ironlaw_overrides.yaml 的 disable 列表."""
+    """读取 CWD/.qualix/ironlaw_overrides.yaml 的 disable 列表."""
     cwd = os.getcwd()
-    override_path = os.path.join(cwd, ".dqg", "ironlaw_overrides.yaml")
+    override_path = os.path.join(cwd, ".qualix", "ironlaw_overrides.yaml")
     if not os.path.exists(override_path):
         return set()
     try:
@@ -152,7 +152,7 @@ def _save_state(state: dict) -> None:
         pass
 
 
-def _is_dqg_project() -> bool:
+def _is_qualix_project() -> bool:
     cwd = os.getcwd()
     return any(os.path.exists(os.path.join(cwd, m)) for m in ("src/qualix/", "skills/", "qualix-starter.md"))
 
@@ -197,7 +197,7 @@ _CODE_SYMBOL_RE = [
 
 
 def check_grep_code_index(tool_name: str, tool_input: dict[str, Any], state: dict) -> CheckResult | None:
-    if not _is_dqg_project():
+    if not _is_qualix_project():
         return None
 
     text = ""
@@ -225,7 +225,7 @@ def check_grep_code_index(tool_name: str, tool_input: dict[str, Any], state: dic
 
 
 # ---------------------------------------------------------------------------
-# Rule 4: agent_dqg_manual — 手动模式不派 SubAgent 执行 Phase
+# Rule 4: agent_qualix_manual — 手动模式不派 SubAgent 执行 Phase
 # ---------------------------------------------------------------------------
 
 _PHASE_RE = [
@@ -239,8 +239,8 @@ _SKILL_RE = [
 ]
 
 
-def check_agent_dqg_manual(tool_name: str, tool_input: dict[str, Any], state: dict) -> CheckResult | None:
-    if tool_name != "Agent" or not _is_dqg_project():
+def check_agent_qualix_manual(tool_name: str, tool_input: dict[str, Any], state: dict) -> CheckResult | None:
+    if tool_name != "Agent" or not _is_qualix_project():
         return None
     prompt = tool_input.get("prompt", "")
     has_phase = any(p.search(prompt) for p in _PHASE_RE)
@@ -248,7 +248,7 @@ def check_agent_dqg_manual(tool_name: str, tool_input: dict[str, Any], state: di
     if has_phase and has_skill:
         return CheckResult(
             "block",
-            "[铁律守卫] DQG 手动模式下禁止派 SubAgent 执行 Phase。\n\n"
+            "[铁律守卫] Qualix 手动模式下禁止派 SubAgent 执行 Phase。\n\n"
             "规则来源：CLAUDE.md > 项目经验 + qualix-starter.md > 模式选择规则\n"
             "原因：SubAgent 有独立 context，产出质量不可控，主会话直接执行可实时验证。\n\n"
             "请在主会话直接读取 skill 文件并执行。",
@@ -323,7 +323,7 @@ def check_bootstrap_context_guard(tool_name: str, tool_input: dict[str, Any], st
     """C2: 写入 phase_*_structured.json 前，检查 sentinel 是否存在."""
     if tool_name != "Write":
         return None
-    if not _is_dqg_project():
+    if not _is_qualix_project():
         return None
 
     file_path = tool_input.get("file_path", "")
@@ -381,7 +381,7 @@ def check_q01_plain_text(tool_name: str, tool_input: dict[str, Any], state: dict
 _CHECK_FNS: dict[str, Callable] = {
     "truncation_params": check_truncation_params,
     "grep_over_code_index": check_grep_code_index,
-    "agent_dqg_manual": check_agent_dqg_manual,
+    "agent_qualix_manual": check_agent_qualix_manual,
     "no_skip_hooks": check_no_skip_hooks,
     "se_id_format": check_se_id_format,
     "q01_plain_text": check_q01_plain_text,
@@ -392,7 +392,7 @@ _CHECK_FNS: dict[str, Callable] = {
 _FALLBACK_MATCHERS: dict[str, set[str]] = {
     "truncation_params": {"*"},
     "grep_over_code_index": {"Grep", "Bash"},
-    "agent_dqg_manual": {"Agent"},
+    "agent_qualix_manual": {"Agent"},
     "no_skip_hooks": {"Bash"},
     "se_id_format": {"Write", "Edit"},
     "q01_plain_text": {"Read"},

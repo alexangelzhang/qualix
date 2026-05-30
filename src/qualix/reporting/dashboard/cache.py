@@ -58,7 +58,7 @@ def _cached_observe_alerts():
 
 
 def _ensure_db():
-    db_path = OUTPUT_DIR / ".dqg" / "store.db"
+    db_path = OUTPUT_DIR / ".qualix" / "store.db"
     if not db_path.exists():
         result = migrate_all(OUTPUT_DIR)
         if sum(result.values()) > 0:

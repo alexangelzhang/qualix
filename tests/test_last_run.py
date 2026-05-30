@@ -6,7 +6,7 @@ from qualix.core.last_run import read_last_run, write_last_run
 
 
 def test_write_then_read(tmp_path):
-    (tmp_path / ".dqg").mkdir()
+    (tmp_path / ".qualix").mkdir()
     write_last_run(
         project_root=tmp_path,
         cmd=["qualix-run", "status"],
@@ -22,25 +22,25 @@ def test_write_then_read(tmp_path):
 
 
 def test_read_missing_returns_none(tmp_path):
-    (tmp_path / ".dqg").mkdir()
+    (tmp_path / ".qualix").mkdir()
     assert read_last_run(tmp_path) is None
 
 
-def test_write_skipped_without_dqg_dir(tmp_path):
-    """No .dqg/ directory → write is a no-op, no file created."""
+def test_write_skipped_without_qualix_dir(tmp_path):
+    """No .qualix/ directory → write is a no-op, no file created."""
     write_last_run(
         project_root=tmp_path,
         cmd=["qualix-run", "x"],
         exit_code=0,
         stderr_tail="",
     )
-    assert not (tmp_path / ".dqg").exists()
-    assert not (tmp_path / ".dqg" / "last-run.json").exists()
+    assert not (tmp_path / ".qualix").exists()
+    assert not (tmp_path / ".qualix" / "last-run.json").exists()
 
 
 def test_stderr_tail_truncated(tmp_path):
     """stderr_tail should be truncated to last 4096 chars."""
-    (tmp_path / ".dqg").mkdir()
+    (tmp_path / ".qualix").mkdir()
     huge = "x" * 10000
     write_last_run(
         project_root=tmp_path,
@@ -55,10 +55,10 @@ def test_stderr_tail_truncated(tmp_path):
 
 def test_atomic_write_produces_valid_json(tmp_path):
     """File must always be valid JSON even after multiple writes."""
-    (tmp_path / ".dqg").mkdir()
+    (tmp_path / ".qualix").mkdir()
     for i in range(5):
         write_last_run(tmp_path, ["qualix-run", str(i)], i, "")
-    path = tmp_path / ".dqg" / "last-run.json"
+    path = tmp_path / ".qualix" / "last-run.json"
     # strict JSON parse
     data = json.loads(path.read_text())
     assert data["cmd"] == ["qualix-run", "4"]
@@ -83,7 +83,7 @@ def test_tee_writer_stderr_tail_written_to_last_run(tmp_path):
     import subprocess
     import sys
 
-    (tmp_path / ".dqg").mkdir()
+    (tmp_path / ".qualix").mkdir()
     script = (
         "import sys; sys.path.insert(0, 'src'); "
         "from qualix.core.runner import _TeeWriter; "
@@ -94,5 +94,5 @@ def test_tee_writer_stderr_tail_written_to_last_run(tmp_path):
         f"write_last_run(Path(r'{tmp_path}'), ['test'], 0, tee.getvalue())"
     )
     subprocess.run([sys.executable, "-c", script], cwd=tmp_path, check=True)
-    data = json.loads((tmp_path / ".dqg" / "last-run.json").read_text())
+    data = json.loads((tmp_path / ".qualix" / "last-run.json").read_text())
     assert "captured error" in data["stderr_tail"]

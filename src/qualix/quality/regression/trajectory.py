@@ -1,6 +1,6 @@
 """Trajectory Compressor: 压缩 Agent 执行轨迹为训练数据.
 
-参考 Hermes Agent 的 trajectory_compressor.py，适配 DQG 场景。
+参考 Hermes Agent 的 trajectory_compressor.py，适配 Qualix 场景。
 
 压缩策略：
 1. 保护首 turn（system prompt）和尾 turn（最终输出）

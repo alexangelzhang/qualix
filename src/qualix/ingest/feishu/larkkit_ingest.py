@@ -1,7 +1,7 @@
 """larkkit CLI 集成模块 — 调用 larkkit download 获取文档文本、评论、表格.
 
 图片下载由于 API 权限限制（403），仍走现有浏览器/API 方案。
-本模块只负责文本层面的摄入，输出 DQG 标准格式。
+本模块只负责文本层面的摄入，输出 Qualix 标准格式。
 
 Usage:
     result = ingest_via_larkkit(url, output_dir)

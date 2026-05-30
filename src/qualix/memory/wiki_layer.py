@@ -1,4 +1,4 @@
-"""LLM-Wiki 管理器：编译与清理当前项目的 `.dqg-wiki`."""
+"""LLM-Wiki 管理器：编译与清理当前项目的 `.qualix-wiki`."""
 
 from __future__ import annotations
 
@@ -43,7 +43,7 @@ def _find_phase_file(output_dir: Path, project_id: str, phase_id: str, filename:
 
 
 class WikiManager:
-    """管理 `.dqg-wiki` 的编译和 lint。"""
+    """管理 `.qualix-wiki` 的编译和 lint。"""
 
     def __init__(self, output_dir: Path):
         self.output_dir = output_dir

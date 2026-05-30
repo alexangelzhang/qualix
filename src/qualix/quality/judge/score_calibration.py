@@ -1,7 +1,7 @@
 """DeepEval 评分校准层：Judge 评分一致性检测 + 趋势监控.
 
-不替代 DQG 的 Judge，而是给 Judge 加一个质量保障层：
-1. 一致性检测：同一产物用 DeepEval 独立打分，与 DQG Judge 对比
+不替代 Qualix 的 Judge，而是给 Judge 加一个质量保障层：
+1. 一致性检测：同一产物用 DeepEval 独立打分，与 Qualix Judge 对比
 2. 趋势监控：跟踪每个 Phase 的评分趋势，检测通胀/通缩
 """
 
@@ -34,8 +34,8 @@ except ImportError:
     _DeepEvalBase = object  # type: ignore[assignment,misc]
 
 
-class _DQGDeepEvalModel(_DeepEvalBase):  # type: ignore[misc]
-    """DeepEvalBaseLLM 适配器，包装 DQG 的 create_backend.
+class _QualixDeepEvalModel(_DeepEvalBase):  # type: ignore[misc]
+    """DeepEvalBaseLLM 适配器，包装 Qualix 的 create_backend.
 
     使用懒加载避免 import 时强依赖 deepeval。
     安装：pip install qualix[deepeval]
@@ -72,7 +72,7 @@ def check_score_consistency(
     project_id: str,
     phase_id: str,
 ) -> dict[str, Any] | None:
-    """用 DeepEval 独立评分，与 DQG Judge 结果对比.
+    """用 DeepEval 独立评分，与 Qualix Judge 结果对比.
 
     Returns:
         校准结果 dict，或 None
@@ -83,7 +83,7 @@ def check_score_consistency(
     if not judge_result:
         return None
 
-    dqg_score = judge_result.get("overall_score", 0.0)
+    qualix_score = judge_result.get("overall_score", 0.0)
 
     from qualix.constants import REPORT_MAP
     from qualix.core.state_machine import PHASE_DEFS
@@ -106,11 +106,11 @@ def check_score_consistency(
     if deepeval_score is None:
         return None
 
-    drift = abs(dqg_score - deepeval_score)
+    drift = abs(qualix_score - deepeval_score)
     consistent = drift <= SCORE_DRIFT_THRESHOLD
 
     result = {
-        "dqg_score": dqg_score,
+        "qualix_score": qualix_score,
         "deepeval_score": deepeval_score,
         "drift": round(drift, 2),
         "consistent": consistent,
@@ -120,9 +120,9 @@ def check_score_consistency(
 
     if not consistent:
         log.warning(
-            "Score drift: Phase %s DQG=%.1f DeepEval=%.1f drift=%.1f",
+            "Score drift: Phase %s Qualix=%.1f DeepEval=%.1f drift=%.1f",
             phase_id,
-            dqg_score,
+            qualix_score,
             deepeval_score,
             drift,
         )
@@ -179,7 +179,7 @@ def _run_deepeval_scoring(phase_id: str, report_text: str) -> float | None:
     """用 DeepEval GEval 对 Phase 报告独立评分，返回 1-5 分或 None（不可用时）.
 
     需要 pip install qualix[deepeval]。
-    使用 DQG 自有 AnthropicBackend，不依赖 OpenAI key。
+    使用 Qualix 自有 AnthropicBackend，不依赖 OpenAI key。
     """
     try:
         from deepeval.metrics import GEval
@@ -189,13 +189,13 @@ def _run_deepeval_scoring(phase_id: str, report_text: str) -> float | None:
         return None
 
     try:
-        model_name = os.environ.get("DQG_DEEPEVAL_MODEL", _DEEPEVAL_MODEL_DEFAULT)
+        model_name = os.environ.get("QUALIX_DEEPEVAL_MODEL", _DEEPEVAL_MODEL_DEFAULT)
 
-        custom_model = _DQGDeepEvalModel(model_name)
+        custom_model = _QualixDeepEvalModel(model_name)
         criteria = _get_phase_criteria(phase_id)
 
         metric = GEval(
-            name=f"DQG-{phase_id}",
+            name=f"Qualix-{phase_id}",
             criteria=criteria,
             evaluation_params=[LLMTestCaseParams.ACTUAL_OUTPUT],
             model=custom_model,
@@ -205,7 +205,7 @@ def _run_deepeval_scoring(phase_id: str, report_text: str) -> float | None:
             actual_output=report_text,
         )
         metric.measure(test_case)
-        # GEval score: 0-1 → DQG 1-5
+        # GEval score: 0-1 → Qualix 1-5
         return round(1.0 + metric.score * 4.0, 1)
     except Exception as exc:
         log.warning("DeepEval scoring failed for %s: %s", phase_id, exc)
@@ -273,7 +273,7 @@ def _save_calibration_result(
     int_dir = _internal_dir(output_dir, project_id, phase_def)
     int_dir.mkdir(parents=True, exist_ok=True)
     save_json(int_dir / "_score_calibration.json", result)
-    _append_score_history(output_dir, project_id, phase_id, result.get("dqg_score", 0))
+    _append_score_history(output_dir, project_id, phase_id, result.get("qualix_score", 0))
 
 
 def _append_score_history(

@@ -1,4 +1,4 @@
-# DQG Skill 标准模板
+# Qualix Skill 标准模板
 
 > 所有 Phase skill 必须包含以下标准节（顺序可调整，但节不可缺失）。
 > 新建 skill 时复制此模板，已有 skill 逐步对齐。

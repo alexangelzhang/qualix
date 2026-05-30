@@ -46,7 +46,7 @@ def build_builtin_tools(
         return content
 
     def append_persistent_memory(rule_description: str) -> str:
-        """将发现的高频错误、或人类强制要求等规则，永久写入当前仓库的记忆 (.dqg/MEMORY.md)。此后所有 Agent 将严格遵守该规则。
+        """将发现的高频错误、或人类强制要求等规则，永久写入当前仓库的记忆 (.qualix/MEMORY.md)。此后所有 Agent 将严格遵守该规则。
         参数:
         - rule_description: 要永久记忆的规则描述。
         """
@@ -56,13 +56,13 @@ def build_builtin_tools(
         if blocked:
             log.warning("Memory write blocked: %s", blocked)
             return f"BLOCKED: {blocked}"
-        mem_dir = Path(".dqg")
+        mem_dir = Path(".qualix")
         mem_dir.mkdir(exist_ok=True)
         mem_file = mem_dir / "MEMORY.md"
         tag = f"[project:{project_id}] " if project_id else ""
         with open(mem_file, "a", encoding="utf-8") as f:
             f.write(f"- {tag}{rule_description}\n")
-        return f"Successfully recorded rule into .dqg/MEMORY.md: {rule_description}"
+        return f"Successfully recorded rule into .qualix/MEMORY.md: {rule_description}"
 
     def search_upstream_context(query_keyword: str) -> str:
         """在无需吞噬全部上游产物的前提下，搜刮过往 Phase 和代码库的事实和片段。
@@ -76,11 +76,11 @@ def build_builtin_tools(
         return dump_json_str(res)
 
     def read_wiki_page(page_name: str) -> str:
-        """按需读取当前项目的 .dqg-wiki 下的某个百科章节。
+        """按需读取当前项目的 .qualix-wiki 下的某个百科章节。
         参数:
         - page_name: 例如 index.md 或是 entities/Order.md
         """
-        path = Path(".dqg-wiki") / page_name
+        path = Path(".qualix-wiki") / page_name
         if not path.exists():
             return f"Page {page_name} does not exist."
         content = path.read_text(encoding="utf-8")
@@ -90,7 +90,7 @@ def build_builtin_tools(
         )
 
     def write_to_wiki(page_name: str, page_content: str, mode: str = "overwrite") -> str:
-        """【重要】当你发现新的隐式知识、约束时，将认知写入项目的 .dqg-wiki 下。
+        """【重要】当你发现新的隐式知识、约束时，将认知写入项目的 .qualix-wiki 下。
         参数:
         - page_name: 写入文件名（如 entities/User.md或index.md）
         - page_content: 要记录的 Markdown 格式内容
@@ -105,7 +105,7 @@ def build_builtin_tools(
             log.warning("Wiki write blocked for %s: %s", page_name, blocked)
             return f"BLOCKED: {blocked}"
         metadata = f"\n\n<!-- written_by: agent | project: {project_id} | timestamp: {datetime.now().isoformat()} -->"
-        path = Path(".dqg-wiki") / page_name
+        path = Path(".qualix-wiki") / page_name
         path.parent.mkdir(parents=True, exist_ok=True)
         mode_flag = "a" if mode == "append" else "w"
         with open(path, mode_flag, encoding="utf-8") as f:

@@ -1,4 +1,4 @@
-"""TypeScriptProvider — DQG TypeScript 语言支持.
+"""TypeScriptProvider — Qualix TypeScript 语言支持.
 
 整合 AST 分析、断言强度映射、编译检查、弱断言检测。
 支持 Jest 和 Vitest 测试框架。

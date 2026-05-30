@@ -1,6 +1,6 @@
 """统一记忆层：整合所有缓存和知识系统为单一 API.
 
-DQG Memory Layer
+Qualix Memory Layer
 ├── 事实存储: REQ/BR/SE/GAP/OPEN 结构化事实
 ├── 时序图谱: 需求版本演进 + 过期标记
 ├── 知识网络: 跨项目/跨Phase 知识链接
@@ -294,8 +294,8 @@ class MemoryLayer:
         return is_cached(self.output_dir, project_id, phase_id)
 
     def sync_wiki_to_sqlite(self, project_id: str = "global") -> int:
-        """双轨桥接：静默读取 .dqg-wiki 中的全部文本更新到 FTS5 缓冲。"""
-        wiki_dir = Path(".dqg-wiki")
+        """双轨桥接：静默读取 .qualix-wiki 中的全部文本更新到 FTS5 缓冲。"""
+        wiki_dir = Path(".qualix-wiki")
         if not wiki_dir.exists():
             return 0
 

@@ -122,10 +122,10 @@ h1{font-size:1.25rem;font-weight:600;letter-spacing:-.01em}
 
 <div class="board" id="board"></div>
 
-<script id="dqg-data" type="application/json">{{DATA_JSON}}</script>
+<script id="qualix-data" type="application/json">{{DATA_JSON}}</script>
 <script>
 (function(){
-  const raw = JSON.parse(document.getElementById('dqg-data').textContent);
+  const raw = JSON.parse(document.getElementById('qualix-data').textContent);
   const PROJECT_ID = raw.project_id || '';
   const GENERATED_AT = raw._generated_at || '';
   const testCases = raw.test_cases || [];
