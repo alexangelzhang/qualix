@@ -1,0 +1,1240 @@
+{
+  "project_id": "car-aftersale-finance",
+  "schema_version": "1.1",
+  "artifact_version": "1.1",
+  "target_modules": {
+    "code_repos": [
+      "/Users/zhangyiqian/git_dev/finance_model/car-aftersale-finance"
+    ],
+    "base_ref": "origin/quickFeat-20260403-expense_model",
+    "head_ref": "HEAD",
+    "diff_files": [
+      "car-aftersale-finance-domain/src/main/java/com/xiaomi/cnzone/car/aftersale/finance/domain/serviceimpl/FinanceExpenseServiceImpl.java"
+    ],
+    "req_mappings": [
+      {
+        "id": "REQ-001",
+        "class_name": "FinanceExpenseJobHandler",
+        "method_name": "createMonthlyExpenseOrders",
+        "repo": "car-aftersale-finance",
+        "found": true,
+        "gap_reason": null,
+        "evidence": "car-aftersale-finance-app/src/main/java/com/xiaomi/cnzone/car/aftersale/finance/app/jobhandler/FinanceExpenseJobHandler.java:1"
+      },
+      {
+        "id": "BR-001",
+        "class_name": "FinanceExpenseJobHandler",
+        "method_name": "createMonthlyExpenseOrders",
+        "repo": "car-aftersale-finance",
+        "found": true,
+        "gap_reason": null,
+        "evidence": "car-aftersale-finance-app/src/main/java/com/xiaomi/cnzone/car/aftersale/finance/app/jobhandler/FinanceExpenseJobHandler.java:1"
+      },
+      {
+        "id": "BR-002",
+        "class_name": "FinanceExpenseJobHandler",
+        "method_name": "sendOpenNotice",
+        "repo": "car-aftersale-finance",
+        "found": true,
+        "gap_reason": null,
+        "evidence": "car-aftersale-finance-app/src/main/java/com/xiaomi/cnzone/car/aftersale/finance/app/jobhandler/FinanceExpenseJobHandler.java:1"
+      },
+      {
+        "id": "BR-003",
+        "class_name": "FinanceExpenseJobHandler",
+        "method_name": "exportList",
+        "repo": "car-aftersale-finance",
+        "found": true,
+        "gap_reason": null,
+        "evidence": "car-aftersale-finance-app/src/main/java/com/xiaomi/cnzone/car/aftersale/finance/app/jobhandler/FinanceExpenseJobHandler.java:1"
+      },
+      {
+        "id": "REQ-002",
+        "class_name": "FinanceExpenseServiceImpl",
+        "method_name": "detail",
+        "repo": "car-aftersale-finance",
+        "found": true,
+        "gap_reason": null,
+        "evidence": "car-aftersale-finance-domain/src/main/java/com/xiaomi/cnzone/car/aftersale/finance/domain/serviceimpl/FinanceExpenseServiceImpl.java:1"
+      },
+      {
+        "id": "BR-004",
+        "class_name": "FinanceExpenseServiceImpl",
+        "method_name": "save",
+        "repo": "car-aftersale-finance",
+        "found": true,
+        "gap_reason": null,
+        "evidence": "car-aftersale-finance-domain/src/main/java/com/xiaomi/cnzone/car/aftersale/finance/domain/serviceimpl/FinanceExpenseServiceImpl.java:1"
+      },
+      {
+        "id": "BR-005",
+        "class_name": "RejectedToPendingStatusTransition",
+        "method_name": "trigger",
+        "repo": "car-aftersale-finance",
+        "found": true,
+        "gap_reason": null,
+        "evidence": "car-aftersale-finance-domain/src/main/java/com/xiaomi/cnzone/car/aftersale/finance/domain/factory/finance/expense/strategy/RejectedToPendingStatusTransition.java:1"
+      },
+      {
+        "id": "BR-006",
+        "class_name": "FinanceExpenseServiceImpl",
+        "method_name": "stepNext",
+        "repo": "car-aftersale-finance",
+        "found": true,
+        "gap_reason": null,
+        "evidence": "car-aftersale-finance-domain/src/main/java/com/xiaomi/cnzone/car/aftersale/finance/domain/serviceimpl/FinanceExpenseServiceImpl.java:1"
+      },
+      {
+        "id": "BR-007",
+        "class_name": "FinanceExpenseExcelUtils",
+        "method_name": "parseDetailList",
+        "repo": "car-aftersale-finance",
+        "found": true,
+        "gap_reason": null,
+        "evidence": "car-aftersale-finance-domain/src/main/java/com/xiaomi/cnzone/car/aftersale/finance/domain/utils/FinanceExpenseExcelUtils.java:1"
+      },
+      {
+        "id": "BR-008",
+        "class_name": "FinanceExpenseServiceImpl",
+        "method_name": "submit",
+        "repo": "car-aftersale-finance",
+        "found": true,
+        "gap_reason": null,
+        "evidence": "car-aftersale-finance-domain/src/main/java/com/xiaomi/cnzone/car/aftersale/finance/domain/serviceimpl/FinanceExpenseServiceImpl.java:1"
+      },
+      {
+        "id": "REQ-003",
+        "class_name": "FinanceExpenseJobHandler",
+        "method_name": "exportList",
+        "repo": "car-aftersale-finance",
+        "found": true,
+        "gap_reason": null,
+        "evidence": "car-aftersale-finance-app/src/main/java/com/xiaomi/cnzone/car/aftersale/finance/app/jobhandler/FinanceExpenseJobHandler.java:1"
+      },
+      {
+        "id": "BR-009",
+        "class_name": "FinanceExpenseJobHandler",
+        "method_name": "exportList",
+        "repo": "car-aftersale-finance",
+        "found": true,
+        "gap_reason": null,
+        "evidence": "car-aftersale-finance-app/src/main/java/com/xiaomi/cnzone/car/aftersale/finance/app/jobhandler/FinanceExpenseJobHandler.java:1"
+      },
+      {
+        "id": "BR-010",
+        "class_name": "",
+        "method_name": "",
+        "repo": "car-aftersale-finance",
+        "found": false,
+        "gap_reason": "当前仓库未定位 BI 同步实现",
+        "evidence": "prd.md:564"
+      },
+      {
+        "id": "REQ-004",
+        "class_name": "FinanceExpenseProviderImpl",
+        "method_name": "list",
+        "repo": "car-aftersale-finance",
+        "found": true,
+        "gap_reason": null,
+        "evidence": "car-aftersale-finance-app/src/main/java/com/xiaomi/cnzone/car/aftersale/finance/app/providerimpl/financeExpense/FinanceExpenseProviderImpl.java:1"
+      },
+      {
+        "id": "BR-011",
+        "class_name": "FinanceExpenseProviderImpl",
+        "method_name": "stepNext",
+        "repo": "car-aftersale-finance",
+        "found": true,
+        "gap_reason": null,
+        "evidence": "car-aftersale-finance-app/src/main/java/com/xiaomi/cnzone/car/aftersale/finance/app/providerimpl/financeExpense/FinanceExpenseProviderImpl.java:1"
+      }
+    ],
+    "se_mappings": [
+      {
+        "id": "SE-001",
+        "class_name": "FinanceExpenseJobHandler",
+        "method_name": "createMonthlyExpenseOrders",
+        "repo": "car-aftersale-finance",
+        "found": true,
+        "gap_reason": null,
+        "evidence": "car-aftersale-finance-app/src/main/java/com/xiaomi/cnzone/car/aftersale/finance/app/jobhandler/FinanceExpenseJobHandler.java:1"
+      },
+      {
+        "id": "SE-002",
+        "class_name": "FinanceExpenseJobHandler",
+        "method_name": "sendOpenNotice",
+        "repo": "car-aftersale-finance",
+        "found": true,
+        "gap_reason": null,
+        "evidence": "car-aftersale-finance-app/src/main/java/com/xiaomi/cnzone/car/aftersale/finance/app/jobhandler/FinanceExpenseJobHandler.java:1"
+      },
+      {
+        "id": "SE-003",
+        "class_name": "FinanceExpenseStatusEventFactory",
+        "method_name": "getStatusEventHandler",
+        "repo": "car-aftersale-finance",
+        "found": true,
+        "gap_reason": null,
+        "evidence": "car-aftersale-finance-domain/src/main/java/com/xiaomi/cnzone/car/aftersale/finance/domain/factory/finance/expense/FinanceExpenseStatusEventFactory.java:1"
+      },
+      {
+        "id": "SE-004",
+        "class_name": "FinanceExpenseServiceImpl",
+        "method_name": "save",
+        "repo": "car-aftersale-finance",
+        "found": true,
+        "gap_reason": null,
+        "evidence": "car-aftersale-finance-domain/src/main/java/com/xiaomi/cnzone/car/aftersale/finance/domain/serviceimpl/FinanceExpenseServiceImpl.java:1"
+      },
+      {
+        "id": "SE-005",
+        "class_name": "RejectedToPendingStatusTransition",
+        "method_name": "trigger",
+        "repo": "car-aftersale-finance",
+        "found": true,
+        "gap_reason": null,
+        "evidence": "car-aftersale-finance-domain/src/main/java/com/xiaomi/cnzone/car/aftersale/finance/domain/factory/finance/expense/strategy/RejectedToPendingStatusTransition.java:1"
+      },
+      {
+        "id": "SE-006",
+        "class_name": "FinanceExpenseServiceImpl",
+        "method_name": "submit",
+        "repo": "car-aftersale-finance",
+        "found": true,
+        "gap_reason": null,
+        "evidence": "car-aftersale-finance-domain/src/main/java/com/xiaomi/cnzone/car/aftersale/finance/domain/serviceimpl/FinanceExpenseServiceImpl.java:1"
+      },
+      {
+        "id": "SE-007",
+        "class_name": "FinanceExpenseServiceImpl",
+        "method_name": "approve",
+        "repo": "car-aftersale-finance",
+        "found": true,
+        "gap_reason": null,
+        "evidence": "car-aftersale-finance-domain/src/main/java/com/xiaomi/cnzone/car/aftersale/finance/domain/serviceimpl/FinanceExpenseServiceImpl.java:1"
+      },
+      {
+        "id": "SE-008",
+        "class_name": "FinanceExpenseExcelUtils",
+        "method_name": "parseDetailList",
+        "repo": "car-aftersale-finance",
+        "found": true,
+        "gap_reason": null,
+        "evidence": "car-aftersale-finance-domain/src/main/java/com/xiaomi/cnzone/car/aftersale/finance/domain/utils/FinanceExpenseExcelUtils.java:1"
+      },
+      {
+        "id": "SE-009",
+        "class_name": "FinanceExpenseJobHandler",
+        "method_name": "exportList",
+        "repo": "car-aftersale-finance",
+        "found": true,
+        "gap_reason": null,
+        "evidence": "car-aftersale-finance-app/src/main/java/com/xiaomi/cnzone/car/aftersale/finance/app/jobhandler/FinanceExpenseJobHandler.java:1"
+      },
+      {
+        "id": "SE-010",
+        "class_name": "FinanceExpenseServiceImpl",
+        "method_name": "list",
+        "repo": "car-aftersale-finance",
+        "found": true,
+        "gap_reason": null,
+        "evidence": "car-aftersale-finance-domain/src/main/java/com/xiaomi/cnzone/car/aftersale/finance/domain/serviceimpl/FinanceExpenseServiceImpl.java:1"
+      },
+      {
+        "id": "SE-011",
+        "class_name": "FinanceExpenseSnapshotGatewayImpl",
+        "method_name": "insertSelective",
+        "repo": "car-aftersale-finance",
+        "found": true,
+        "gap_reason": null,
+        "evidence": "car-aftersale-finance-infrastructure/src/main/java/com/xiaomi/cnzone/car/aftersale/finance/infrastructure/gatewayimpl/FinanceExpenseSnapshotGatewayImpl.java:1"
+      },
+      {
+        "id": "SE-012",
+        "class_name": "FinanceExpenseServiceImpl",
+        "method_name": "save",
+        "repo": "car-aftersale-finance",
+        "found": true,
+        "gap_reason": null,
+        "evidence": "car-aftersale-finance-domain/src/main/java/com/xiaomi/cnzone/car/aftersale/finance/domain/serviceimpl/FinanceExpenseServiceImpl.java:1"
+      },
+      {
+        "id": "SE-013",
+        "class_name": "FinanceExpenseGatewayImpl",
+        "method_name": "insertSelective",
+        "repo": "car-aftersale-finance",
+        "found": true,
+        "gap_reason": null,
+        "evidence": "car-aftersale-finance-infrastructure/src/main/java/com/xiaomi/cnzone/car/aftersale/finance/infrastructure/gatewayimpl/FinanceExpenseGatewayImpl.java:1"
+      },
+      {
+        "id": "SE-014",
+        "class_name": "FinanceExpenseNoticeRecordGatewayImpl",
+        "method_name": "insertSelective",
+        "repo": "car-aftersale-finance",
+        "found": true,
+        "gap_reason": null,
+        "evidence": "car-aftersale-finance-infrastructure/src/main/java/com/xiaomi/cnzone/car/aftersale/finance/infrastructure/gatewayimpl/FinanceExpenseNoticeRecordGatewayImpl.java:1"
+      },
+      {
+        "id": "SE-015",
+        "class_name": "",
+        "method_name": "",
+        "repo": "car-aftersale-finance",
+        "found": false,
+        "gap_reason": "当前仓库未定位可执行实现",
+        "evidence": "prd.md:564"
+      },
+      {
+        "id": "SE-016",
+        "class_name": "",
+        "method_name": "",
+        "repo": "car-aftersale-finance",
+        "found": false,
+        "gap_reason": "当前仓库未定位可执行实现",
+        "evidence": "prd.md:564"
+      }
+    ]
+  },
+  "non_testable_items": [
+    {
+      "id": "BR-010",
+      "reason": "BI 同步接口/消息实现不在当前已定位 Java 方法中，无法用本仓库现有单测直接验证。",
+      "testability": "external_system",
+      "evidence": "prd.md:564",
+      "waived": true,
+      "waiver_reason": "用户已明确要求忽略旧版本失效与 BI 只同步生效版本缺口；本轮作为已接受风险记录，不再阻断 Q06。"
+    },
+    {
+      "id": "SE-015",
+      "reason": "需要 BI 同步报告或接口实现作为可测对象，当前仓库仅有 PRD 语义。",
+      "testability": "external_system",
+      "evidence": "prd.md:564",
+      "waived": true,
+      "waiver_reason": "用户已明确要求忽略旧版本失效与 BI 只同步生效版本缺口；本轮作为已接受风险记录，不再阻断 Q06。"
+    },
+    {
+      "id": "SE-016",
+      "reason": "旧版本失效缺少状态枚举或同步过滤实现证据，先登记 GAP，不能伪造单测通过。",
+      "testability": "not_backend_testable",
+      "evidence": "prd.md:243",
+      "waived": true,
+      "waiver_reason": "用户已明确要求忽略旧版本失效与 BI 只同步生效版本缺口；本轮作为已接受风险记录，不再阻断 Q06。"
+    }
+  ],
+  "eut_items": [
+    {
+      "eut_id": "EUT-001",
+      "bound_item": "BR-001",
+      "route_type": "Boundary",
+      "given": "给定 FinanceExpenseJobHandler.createMonthlyExpenseOrders 的真实 Java 方法上下文和 PRD 绑定 BR-001。",
+      "when": "执行 FinanceExpenseJobHandler.createMonthlyExpenseOrders 并走 Boundary 路径。",
+      "then": "assertEquals(1, result) and assertEquals(PENDING, insert.status) and assertEquals(\"V1\", query.version)。",
+      "risk_tier": "T1",
+      "repo": "car-aftersale-finance",
+      "target_class": "FinanceExpenseJobHandler",
+      "target_method": "createMonthlyExpenseOrders",
+      "source": "q01/structured.json",
+      "branch_ids": [
+        "B-001"
+      ],
+      "outcome_ids": [
+        "O-001"
+      ],
+      "business_scenario": "每月任务生成遇到“已存在部分门店任务”时，只为缺失门店补建 V1 待提交任务。",
+      "risk_prevented": "防止同一门店同一月份重复生成任务，也防止漏建任务导致门店无法提报。",
+      "route_explanation": "边界路径，证明空值、重复、数量上限、权限空集合等边界不会造成脏数据",
+      "risk_explanation": "高风险/必须覆盖：影响状态流转、审批、权限、通知、金额/Excel、数据一致性或外部同步",
+      "reader_label": "EUT-001：每月任务生成遇到“已存在部分门店任务”时，只为缺失门店补建 V1 待提交任务。"
+    },
+    {
+      "eut_id": "EUT-002",
+      "bound_item": "BR-002",
+      "route_type": "Happy Path",
+      "given": "给定 FinanceExpenseJobHandler.sendOpenNotice 的真实 Java 方法上下文和 PRD 绑定 BR-002。",
+      "when": "执行 FinanceExpenseJobHandler.sendOpenNotice 并走 Happy Path 路径。",
+      "then": "assertEquals(\"OPEN\", record.scene) and assertEquals(\"STORE_FINANCE\", receiverType) and verify(appPushGateway).sendInformedMessage(any())。",
+      "risk_tier": "T1",
+      "repo": "car-aftersale-finance",
+      "target_class": "FinanceExpenseJobHandler",
+      "target_method": "sendOpenNotice",
+      "source": "q01/structured.json",
+      "branch_ids": [
+        "B-003"
+      ],
+      "outcome_ids": [
+        "O-003"
+      ],
+      "business_scenario": "每月开启上传时，系统给门店财务发送上传入口通知并记录 OPEN 场景。",
+      "risk_prevented": "防止门店财务不知道提报入口，影响经营模型数据按月收集。",
+      "route_explanation": "正常路径，证明主流程能按需求完成",
+      "risk_explanation": "高风险/必须覆盖：影响状态流转、审批、权限、通知、金额/Excel、数据一致性或外部同步",
+      "reader_label": "EUT-002：每月开启上传时，系统给门店财务发送上传入口通知并记录 OPEN 场景。"
+    },
+    {
+      "eut_id": "EUT-003",
+      "bound_item": "BR-002",
+      "route_type": "Happy Path",
+      "given": "给定 FinanceExpenseJobHandler.sendReminderNotice 的真实 Java 方法上下文和 PRD 绑定 BR-002。",
+      "when": "执行 FinanceExpenseJobHandler.sendReminderNotice 并走 Happy Path 路径。",
+      "then": "assertEquals(3, result) and assertEquals([STORE_FINANCE,CITY_MANAGER,LITTLE_ZONE_BP], receiverTypes)。",
+      "risk_tier": "T1",
+      "repo": "car-aftersale-finance",
+      "target_class": "FinanceExpenseJobHandler",
+      "target_method": "sendReminderNotice",
+      "source": "q01/structured.json",
+      "branch_ids": [
+        "B-005",
+        "B-006"
+      ],
+      "outcome_ids": [
+        "O-005",
+        "O-006"
+      ],
+      "business_scenario": "每月 15 日催办未提交门店，同时通知门店财务、城市经理和区域财经 BP。",
+      "risk_prevented": "防止临近截止仍无人跟进，导致经营模型缺少门店财务数据。",
+      "route_explanation": "正常路径，证明主流程能按需求完成",
+      "risk_explanation": "高风险/必须覆盖：影响状态流转、审批、权限、通知、金额/Excel、数据一致性或外部同步",
+      "reader_label": "EUT-003：每月 15 日催办未提交门店，同时通知门店财务、城市经理和区域财经 BP。"
+    },
+    {
+      "eut_id": "EUT-004",
+      "bound_item": "BR-003",
+      "route_type": "Happy Path",
+      "given": "给定 FinanceExpenseServiceImpl.list 的真实 Java 方法上下文和 PRD 绑定 BR-003。",
+      "when": "执行 FinanceExpenseServiceImpl.list 并走 Happy Path 路径。",
+      "then": "assertEquals(1, result.total) and assertEquals(\"F6165-测试门店\", orgDisplay) and assertEquals(\"2026年3月\", periodDesc)。",
+      "risk_tier": "T2",
+      "repo": "car-aftersale-finance",
+      "target_class": "FinanceExpenseServiceImpl",
+      "target_method": "list",
+      "source": "q01/structured.json",
+      "branch_ids": [
+        "B-007"
+      ],
+      "outcome_ids": [
+        "O-007"
+      ],
+      "business_scenario": "用户按筛选条件查看财务手工上传列表，列表展示门店名称和财务期间。",
+      "risk_prevented": "防止列表筛选/展示口径错误，影响运营人员定位任务。",
+      "route_explanation": "正常路径，证明主流程能按需求完成",
+      "risk_explanation": "重要路径：影响查询展示、导出、持久化转换、辅助网关或低爆炸半径边界",
+      "reader_label": "EUT-004：用户按筛选条件查看财务手工上传列表，列表展示门店名称和财务期间。"
+    },
+    {
+      "eut_id": "EUT-005",
+      "bound_item": "BR-003",
+      "route_type": "Exception",
+      "given": "给定 FinanceExpenseServiceImpl.list 的真实 Java 方法上下文和 PRD 绑定 BR-003。",
+      "when": "执行 FinanceExpenseServiceImpl.list 并走 Exception 路径。",
+      "then": "assertThrows(BusinessException.class) and assertEquals(\"创建时间开始和结束必须成对传入\", ex.getMessage()) and verify(financeExpenseGateway, never()).countByEntity(any())。",
+      "risk_tier": "T1",
+      "repo": "car-aftersale-finance",
+      "target_class": "FinanceExpenseServiceImpl",
+      "target_method": "list",
+      "source": "q01/structured.json",
+      "branch_ids": [
+        "B-009"
+      ],
+      "outcome_ids": [
+        "O-009"
+      ],
+      "business_scenario": "列表查询创建时间只传开始或结束时直接拒绝，并且不进入数据库查询。",
+      "risk_prevented": "防止半开时间区间造成误筛选、慢查询或错误导出。",
+      "route_explanation": "拒绝/异常路径，证明非法输入或错误状态不会继续写库、送审或串单",
+      "risk_explanation": "高风险/必须覆盖：影响状态流转、审批、权限、通知、金额/Excel、数据一致性或外部同步",
+      "reader_label": "EUT-005：列表查询创建时间只传开始或结束时直接拒绝，并且不进入数据库查询。"
+    },
+    {
+      "eut_id": "EUT-006",
+      "bound_item": "BR-003",
+      "route_type": "Happy Path",
+      "given": "给定 FinanceExpenseJobHandler.exportList 的真实 Java 方法上下文和 PRD 绑定 BR-003。",
+      "when": "执行 FinanceExpenseJobHandler.exportList 并走 Happy Path 路径。",
+      "then": "assertEquals(\"https://test/export.xlsx\", resp.fileUrl) and assertEquals(true, query.latestOnly) and assertEquals([\"F6165\"], permissionOrgIdList)。",
+      "risk_tier": "T2",
+      "repo": "car-aftersale-finance",
+      "target_class": "FinanceExpenseJobHandler",
+      "target_method": "exportList",
+      "source": "q01/structured.json",
+      "branch_ids": [
+        "B-010"
+      ],
+      "outcome_ids": [
+        "O-010"
+      ],
+      "business_scenario": "导出列表沿用当前筛选条件和权限门店范围，并生成导出文件地址。",
+      "risk_prevented": "防止用户导出超出页面范围或越权门店的数据。",
+      "route_explanation": "正常路径，证明主流程能按需求完成",
+      "risk_explanation": "重要路径：影响查询展示、导出、持久化转换、辅助网关或低爆炸半径边界",
+      "reader_label": "EUT-006：导出列表沿用当前筛选条件和权限门店范围，并生成导出文件地址。"
+    },
+    {
+      "eut_id": "EUT-007",
+      "bound_item": "REQ-002",
+      "route_type": "Happy Path",
+      "given": "给定 FinanceExpenseServiceImpl.detail 的真实 Java 方法上下文和 PRD 绑定 REQ-002。",
+      "when": "执行 FinanceExpenseServiceImpl.detail 并走 Happy Path 路径。",
+      "then": "assertEquals(\"V1\", result.version) and assertEquals(\"财务.xlsx\", financeExcelFileId[0].name)。",
+      "risk_tier": "T2",
+      "repo": "car-aftersale-finance",
+      "target_class": "FinanceExpenseServiceImpl",
+      "target_method": "detail",
+      "source": "q01/structured.json",
+      "branch_ids": [
+        "B-013",
+        "B-014",
+        "B-015"
+      ],
+      "outcome_ids": [
+        "O-013",
+        "O-014",
+        "O-015"
+      ],
+      "business_scenario": "详情页打开历史版本时，返回版本号和财务 Excel 附件信息。",
+      "risk_prevented": "防止版本详情与附件丢失，导致财务无法复核历史提报。",
+      "route_explanation": "正常路径，证明主流程能按需求完成",
+      "risk_explanation": "重要路径：影响查询展示、导出、持久化转换、辅助网关或低爆炸半径边界",
+      "reader_label": "EUT-007：详情页打开历史版本时，返回版本号和财务 Excel 附件信息。"
+    },
+    {
+      "eut_id": "EUT-008",
+      "bound_item": "BR-006",
+      "route_type": "Happy Path",
+      "given": "给定 FinanceExpenseServiceImpl.stepNext 的真实 Java 方法上下文和 PRD 绑定 BR-006。",
+      "when": "执行 FinanceExpenseServiceImpl.stepNext 并走 Happy Path 路径。",
+      "then": "assertEquals(\"success\", result) and verify(financeExpenseGateway).updateByKey(captor.capture()) and assertEquals(1, snapshot.stepNext)。",
+      "risk_tier": "T1",
+      "repo": "car-aftersale-finance",
+      "target_class": "FinanceExpenseServiceImpl",
+      "target_method": "stepNext",
+      "source": "q01/structured.json",
+      "branch_ids": [
+        "B-016"
+      ],
+      "outcome_ids": [
+        "O-016"
+      ],
+      "business_scenario": "财务上传 Excel 后点击下一步，系统更新主表并写入快照。",
+      "risk_prevented": "防止预览/提交前没有保存当前文件和快照，导致审批数据不可追溯。",
+      "route_explanation": "正常路径，证明主流程能按需求完成",
+      "risk_explanation": "高风险/必须覆盖：影响状态流转、审批、权限、通知、金额/Excel、数据一致性或外部同步",
+      "reader_label": "EUT-008：财务上传 Excel 后点击下一步，系统更新主表并写入快照。"
+    },
+    {
+      "eut_id": "EUT-009",
+      "bound_item": "BR-006",
+      "route_type": "Exception",
+      "given": "给定 FinanceExpenseServiceImpl.stepNext 的真实 Java 方法上下文和 PRD 绑定 BR-006。",
+      "when": "执行 FinanceExpenseServiceImpl.stepNext 并走 Exception 路径。",
+      "then": "assertThrows(BusinessException.class) and verify(financeExpenseGateway, never()).updateByKey(any())。",
+      "risk_tier": "T1",
+      "repo": "car-aftersale-finance",
+      "target_class": "FinanceExpenseServiceImpl",
+      "target_method": "stepNext",
+      "source": "q01/structured.json",
+      "branch_ids": [
+        "B-018",
+        "B-017"
+      ],
+      "outcome_ids": [
+        "O-018",
+        "O-017"
+      ],
+      "business_scenario": "未上传财务 Excel 时点击下一步被拒绝，且主表不被更新。",
+      "risk_prevented": "防止空 Excel 进入后续流程，污染审批和经营模型。",
+      "route_explanation": "拒绝/异常路径，证明非法输入或错误状态不会继续写库、送审或串单",
+      "risk_explanation": "高风险/必须覆盖：影响状态流转、审批、权限、通知、金额/Excel、数据一致性或外部同步",
+      "reader_label": "EUT-009：未上传财务 Excel 时点击下一步被拒绝，且主表不被更新。"
+    },
+    {
+      "eut_id": "EUT-010",
+      "bound_item": "SE-012",
+      "route_type": "Boundary",
+      "given": "给定 FinanceExpenseServiceImpl.save 的真实 Java 方法上下文和 PRD 绑定 SE-012。",
+      "when": "执行 FinanceExpenseServiceImpl.save 并走 Boundary 路径。",
+      "then": "assertThrows(BusinessException.class) and assertTrue(message contains \"培训费凭证\") and assertTrue(message contains \"不能超过10个\")。",
+      "risk_tier": "T1",
+      "repo": "car-aftersale-finance",
+      "target_class": "FinanceExpenseServiceImpl",
+      "target_method": "save",
+      "source": "q01/structured.json",
+      "branch_ids": [
+        "B-020"
+      ],
+      "outcome_ids": [
+        "O-020"
+      ],
+      "business_scenario": "某一类补充凭证超过 10 个时，暂存被拒绝并返回明确提示。",
+      "risk_prevented": "防止附件无限制上传造成页面、存储和审批处理异常。",
+      "route_explanation": "边界路径，证明空值、重复、数量上限、权限空集合等边界不会造成脏数据",
+      "risk_explanation": "高风险/必须覆盖：影响状态流转、审批、权限、通知、金额/Excel、数据一致性或外部同步",
+      "reader_label": "EUT-010：某一类补充凭证超过 10 个时，暂存被拒绝并返回明确提示。"
+    },
+    {
+      "eut_id": "EUT-011",
+      "bound_item": "BR-008",
+      "route_type": "Happy Path",
+      "given": "给定 FinanceExpenseServiceImpl.submit 的真实 Java 方法上下文和 PRD 绑定 BR-008。",
+      "when": "执行 FinanceExpenseServiceImpl.submit 并走 Happy Path 路径。",
+      "then": "assertEquals(\"success\", result) and verify(statusEventHandler).trigger(any(FinanceExpenseSubmitSoIn.class))。",
+      "risk_tier": "T1",
+      "repo": "car-aftersale-finance",
+      "target_class": "FinanceExpenseServiceImpl",
+      "target_method": "submit",
+      "source": "q01/structured.json",
+      "branch_ids": [
+        "B-022"
+      ],
+      "outcome_ids": [
+        "O-022"
+      ],
+      "business_scenario": "提交审批时文件与暂存版本一致，触发审批中状态处理器。",
+      "risk_prevented": "防止合格提报无法进入 BPM 审批链路。",
+      "route_explanation": "正常路径，证明主流程能按需求完成",
+      "risk_explanation": "高风险/必须覆盖：影响状态流转、审批、权限、通知、金额/Excel、数据一致性或外部同步",
+      "reader_label": "EUT-011：提交审批时文件与暂存版本一致，触发审批中状态处理器。"
+    },
+    {
+      "eut_id": "EUT-012",
+      "bound_item": "SE-006",
+      "route_type": "Exception",
+      "given": "给定 FinanceExpenseServiceImpl.submit 的真实 Java 方法上下文和 PRD 绑定 SE-006。",
+      "when": "执行 FinanceExpenseServiceImpl.submit 并走 Exception 路径。",
+      "then": "assertThrows(BusinessException.class) and assertEquals(\"当前文件与已暂存版本不一致\", normalized message prefix) and verify(statusEventFactory, never()).getStatusEventHandler(any(), any())。",
+      "risk_tier": "T1",
+      "repo": "car-aftersale-finance",
+      "target_class": "FinanceExpenseServiceImpl",
+      "target_method": "submit",
+      "source": "q01/structured.json",
+      "branch_ids": [
+        "B-024",
+        "B-023"
+      ],
+      "outcome_ids": [
+        "O-024",
+        "O-023"
+      ],
+      "business_scenario": "提交时当前文件与已暂存版本不一致，提交被拒绝且不触发状态机。",
+      "risk_prevented": "防止用户把未预览或被替换的文件送审。",
+      "route_explanation": "拒绝/异常路径，证明非法输入或错误状态不会继续写库、送审或串单",
+      "risk_explanation": "高风险/必须覆盖：影响状态流转、审批、权限、通知、金额/Excel、数据一致性或外部同步",
+      "reader_label": "EUT-012：提交时当前文件与已暂存版本不一致，提交被拒绝且不触发状态机。"
+    },
+    {
+      "eut_id": "EUT-013",
+      "bound_item": "SE-007",
+      "route_type": "Exception",
+      "given": "给定 FinanceExpenseServiceImpl.approve 的真实 Java 方法上下文和 PRD 绑定 SE-007。",
+      "when": "执行 FinanceExpenseServiceImpl.approve 并走 Exception 路径。",
+      "then": "assertThrows(BusinessException.class) and assertEquals(\"审批流单号不匹配\", normalized message prefix) and verify(statusEventFactory, never()).getStatusEventHandler(any(), any())。",
+      "risk_tier": "T1",
+      "repo": "car-aftersale-finance",
+      "target_class": "FinanceExpenseServiceImpl",
+      "target_method": "approve",
+      "source": "q01/structured.json",
+      "branch_ids": [
+        "B-027",
+        "B-025",
+        "B-026"
+      ],
+      "outcome_ids": [
+        "O-027",
+        "O-025",
+        "O-026"
+      ],
+      "business_scenario": "BPM 回调审批流单号与当前任务不匹配时拒绝处理。",
+      "risk_prevented": "防止旧流程、串单或外部回调误改当前任务状态。",
+      "route_explanation": "拒绝/异常路径，证明非法输入或错误状态不会继续写库、送审或串单",
+      "risk_explanation": "高风险/必须覆盖：影响状态流转、审批、权限、通知、金额/Excel、数据一致性或外部同步",
+      "reader_label": "EUT-013：BPM 回调审批流单号与当前任务不匹配时拒绝处理。"
+    },
+    {
+      "eut_id": "EUT-014",
+      "bound_item": "BR-008",
+      "route_type": "Happy Path",
+      "given": "给定 FinanceExpenseServiceImpl.reject 的真实 Java 方法上下文和 PRD 绑定 BR-008。",
+      "when": "执行 FinanceExpenseServiceImpl.reject 并走 Happy Path 路径。",
+      "then": "verify(statusEventHandler).trigger(any(FinanceExpenseStatusSoIn.class))。",
+      "risk_tier": "T1",
+      "repo": "car-aftersale-finance",
+      "target_class": "FinanceExpenseServiceImpl",
+      "target_method": "reject",
+      "source": "q01/structured.json",
+      "branch_ids": [
+        "B-028",
+        "B-029",
+        "B-030"
+      ],
+      "outcome_ids": [
+        "O-028",
+        "O-029",
+        "O-030"
+      ],
+      "business_scenario": "审批驳回回调触发驳回状态处理器。",
+      "risk_prevented": "防止驳回后状态没有落库，财务无法重新处理。",
+      "route_explanation": "正常路径，证明主流程能按需求完成",
+      "risk_explanation": "高风险/必须覆盖：影响状态流转、审批、权限、通知、金额/Excel、数据一致性或外部同步",
+      "reader_label": "EUT-014：审批驳回回调触发驳回状态处理器。"
+    },
+    {
+      "eut_id": "EUT-015",
+      "bound_item": "BR-005",
+      "route_type": "Happy Path",
+      "given": "给定 RejectedToPendingStatusTransition.trigger 的真实 Java 方法上下文和 PRD 绑定 BR-005。",
+      "when": "执行 RejectedToPendingStatusTransition.trigger 并走 Happy Path 路径。",
+      "then": "assertEquals(\"V2\", insert.version) and assertEquals(PENDING, insert.status) and assertEquals(emptyList, equipmentMaintenanceFileIds)。",
+      "risk_tier": "T1",
+      "repo": "car-aftersale-finance",
+      "target_class": "RejectedToPendingStatusTransition",
+      "target_method": "trigger",
+      "source": "q01/structured.json",
+      "branch_ids": [
+        "B-031",
+        "B-032",
+        "B-033"
+      ],
+      "outcome_ids": [
+        "O-031",
+        "O-032",
+        "O-033"
+      ],
+      "business_scenario": "驳回后重新上传生成 V2 待提交记录，并清空上一版本凭证。",
+      "risk_prevented": "防止新版本继承旧版本附件或误改旧版本数据。",
+      "route_explanation": "正常路径，证明主流程能按需求完成",
+      "risk_explanation": "高风险/必须覆盖：影响状态流转、审批、权限、通知、金额/Excel、数据一致性或外部同步",
+      "reader_label": "EUT-015：驳回后重新上传生成 V2 待提交记录，并清空上一版本凭证。"
+    },
+    {
+      "eut_id": "EUT-016",
+      "bound_item": "BR-004",
+      "route_type": "Exception",
+      "given": "给定 FinanceExpenseServiceImpl.save 的真实 Java 方法上下文和 PRD 绑定 BR-004。",
+      "when": "执行 FinanceExpenseServiceImpl.save 并走 Exception 路径。",
+      "then": "assertThrows(BusinessException.class) and assertTrue(message contains \"当前状态不允许暂存\") and verifyNoInteractions(statusEventFactory)。",
+      "risk_tier": "T1",
+      "repo": "car-aftersale-finance",
+      "target_class": "FinanceExpenseServiceImpl",
+      "target_method": "save",
+      "source": "q01/structured.json",
+      "branch_ids": [
+        "B-021"
+      ],
+      "outcome_ids": [
+        "O-021"
+      ],
+      "business_scenario": "归档状态下尝试暂存编辑被拒绝。",
+      "risk_prevented": "防止归档终态被人工修改，破坏审批闭环。",
+      "route_explanation": "拒绝/异常路径，证明非法输入或错误状态不会继续写库、送审或串单",
+      "risk_explanation": "高风险/必须覆盖：影响状态流转、审批、权限、通知、金额/Excel、数据一致性或外部同步",
+      "reader_label": "EUT-016：归档状态下尝试暂存编辑被拒绝。"
+    },
+    {
+      "eut_id": "EUT-017",
+      "bound_item": "SE-005",
+      "route_type": "Happy Path",
+      "given": "给定 FinanceExpenseServiceImpl.version 的真实 Java 方法上下文和 PRD 绑定 SE-005。",
+      "when": "执行 FinanceExpenseServiceImpl.version 并走 Happy Path 路径。",
+      "then": "assertEquals(3, result.total) and assertEquals(\"V3\", first.version)。",
+      "risk_tier": "T2",
+      "repo": "car-aftersale-finance",
+      "target_class": "FinanceExpenseServiceImpl",
+      "target_method": "version",
+      "source": "q01/structured.json",
+      "branch_ids": [
+        "B-034",
+        "B-035",
+        "B-036"
+      ],
+      "outcome_ids": [
+        "O-034",
+        "O-035",
+        "O-036"
+      ],
+      "business_scenario": "版本列表返回多个版本，并按最新版本优先展示。",
+      "risk_prevented": "防止财务或运营查看版本历史时误把旧版本当当前版本。",
+      "route_explanation": "正常路径，证明主流程能按需求完成",
+      "risk_explanation": "重要路径：影响查询展示、导出、持久化转换、辅助网关或低爆炸半径边界",
+      "reader_label": "EUT-017：版本列表返回多个版本，并按最新版本优先展示。"
+    },
+    {
+      "eut_id": "EUT-018",
+      "bound_item": "SE-010",
+      "route_type": "Boundary",
+      "given": "给定 FinanceExpenseServiceImpl.list 的真实 Java 方法上下文和 PRD 绑定 SE-010。",
+      "when": "执行 FinanceExpenseServiceImpl.list 并走 Boundary 路径。",
+      "then": "assertEquals(0, result.total) and assertEquals(Collections.emptyList(), result.list) and verify(financeExpenseGateway, never()).countByEntity(any())。",
+      "risk_tier": "T1",
+      "repo": "car-aftersale-finance",
+      "target_class": "FinanceExpenseServiceImpl",
+      "target_method": "list",
+      "source": "q01/structured.json",
+      "branch_ids": [
+        "B-008"
+      ],
+      "outcome_ids": [
+        "O-008"
+      ],
+      "business_scenario": "用户没有任何数据权限时，列表返回空且不查询业务数据。",
+      "risk_prevented": "防止无权限用户看到门店财务数据。",
+      "route_explanation": "边界路径，证明空值、重复、数量上限、权限空集合等边界不会造成脏数据",
+      "risk_explanation": "高风险/必须覆盖：影响状态流转、审批、权限、通知、金额/Excel、数据一致性或外部同步",
+      "reader_label": "EUT-018：用户没有任何数据权限时，列表返回空且不查询业务数据。"
+    },
+    {
+      "eut_id": "EUT-019",
+      "bound_item": "BR-007",
+      "route_type": "Happy Path",
+      "given": "给定 FinanceExpenseExcelUtils.parseDetailList 的真实 Java 方法上下文和 PRD 绑定 BR-007。",
+      "when": "执行 FinanceExpenseExcelUtils.parseDetailList 并走 Happy Path 路径。",
+      "then": "assertEquals(new BigDecimal(\"25.35\"), detailMap[\"25\"].subjectValue) and assertFalse(detailMap.containsKey(\"4\"))。",
+      "risk_tier": "T1",
+      "repo": "car-aftersale-finance",
+      "target_class": "FinanceExpenseExcelUtils",
+      "target_method": "parseDetailList",
+      "source": "q01/structured.json",
+      "branch_ids": [
+        "B-037"
+      ],
+      "outcome_ids": [
+        "O-037"
+      ],
+      "business_scenario": "解析 2S Excel 模板时，正确生成手工填写字段和系统计算字段。",
+      "risk_prevented": "防止经营模型使用错误的收入、成本或费用明细。",
+      "route_explanation": "正常路径，证明主流程能按需求完成",
+      "risk_explanation": "高风险/必须覆盖：影响状态流转、审批、权限、通知、金额/Excel、数据一致性或外部同步",
+      "reader_label": "EUT-019：解析 2S Excel 模板时，正确生成手工填写字段和系统计算字段。"
+    },
+    {
+      "eut_id": "EUT-020",
+      "bound_item": "SE-008",
+      "route_type": "Exception",
+      "given": "给定 FinanceExpenseExcelUtils.parseDetailList 的真实 Java 方法上下文和 PRD 绑定 SE-008。",
+      "when": "执行 FinanceExpenseExcelUtils.parseDetailList 并走 Exception 路径。",
+      "then": "assertThrows(BusinessException.class) and assertEquals(\"上传Excel公式/系统计算结果不一致\", normalized message category) for formula result mismatch validation path。",
+      "risk_tier": "T1",
+      "repo": "car-aftersale-finance",
+      "target_class": "FinanceExpenseExcelUtils",
+      "target_method": "parseDetailList",
+      "source": "q01/structured.json",
+      "branch_ids": [
+        "B-039",
+        "B-038"
+      ],
+      "outcome_ids": [
+        "O-039",
+        "O-038"
+      ],
+      "business_scenario": "上传 Excel 的公式结果与系统计算不一致时拒绝解析。",
+      "risk_prevented": "防止用户篡改公式或上传脏数据进入经营模型。",
+      "route_explanation": "拒绝/异常路径，证明非法输入或错误状态不会继续写库、送审或串单",
+      "risk_explanation": "高风险/必须覆盖：影响状态流转、审批、权限、通知、金额/Excel、数据一致性或外部同步",
+      "reader_label": "EUT-020：上传 Excel 的公式结果与系统计算不一致时拒绝解析。"
+    },
+    {
+      "eut_id": "EUT-021",
+      "bound_item": "BR-009",
+      "route_type": "Happy Path",
+      "given": "给定 FinanceExpenseJobHandler.exportList 的真实 Java 方法上下文和 PRD 绑定 BR-009。",
+      "when": "执行 FinanceExpenseJobHandler.exportList 并走 Happy Path 路径。",
+      "then": "verify(financeExpenseDetailGateway).selectByEntity(any()) and verify(uploadGateway).uploadOutTempFile(any()) and assertEquals(export url)。",
+      "risk_tier": "T1",
+      "repo": "car-aftersale-finance",
+      "target_class": "FinanceExpenseJobHandler",
+      "target_method": "exportList",
+      "source": "q01/structured.json",
+      "branch_ids": [
+        "B-010"
+      ],
+      "outcome_ids": [
+        "O-010"
+      ],
+      "business_scenario": "导出时查询明细、组装 Excel 并上传临时文件。",
+      "risk_prevented": "防止导出只有主表没有费用明细，影响经营分析。",
+      "route_explanation": "正常路径，证明主流程能按需求完成",
+      "risk_explanation": "高风险/必须覆盖：影响状态流转、审批、权限、通知、金额/Excel、数据一致性或外部同步",
+      "reader_label": "EUT-021：导出时查询明细、组装 Excel 并上传临时文件。"
+    },
+    {
+      "eut_id": "EUT-022",
+      "bound_item": "SE-003",
+      "route_type": "Happy Path",
+      "given": "给定 FinanceExpenseStatusEventFactory.getStatusEventHandler 的真实 Java 方法上下文和 PRD 绑定 SE-003。",
+      "when": "执行 FinanceExpenseStatusEventFactory.getStatusEventHandler 并走 Happy Path 路径。",
+      "then": "assertEquals(APPROVING, handler.targetStatus())。",
+      "risk_tier": "T1",
+      "repo": "car-aftersale-finance",
+      "target_class": "FinanceExpenseStatusEventFactory",
+      "target_method": "getStatusEventHandler",
+      "source": "q01/structured.json",
+      "branch_ids": [
+        "B-040"
+      ],
+      "outcome_ids": [
+        "O-040"
+      ],
+      "business_scenario": "状态迁移工厂能根据已注册迁移返回审批中处理器。",
+      "risk_prevented": "防止合法状态流转找不到处理器而中断。",
+      "route_explanation": "正常路径，证明主流程能按需求完成",
+      "risk_explanation": "高风险/必须覆盖：影响状态流转、审批、权限、通知、金额/Excel、数据一致性或外部同步",
+      "reader_label": "EUT-022：状态迁移工厂能根据已注册迁移返回审批中处理器。"
+    },
+    {
+      "eut_id": "EUT-023",
+      "bound_item": "SE-003",
+      "route_type": "Exception",
+      "given": "给定 FinanceExpenseStatusEventFactory.getStatusEventHandler 的真实 Java 方法上下文和 PRD 绑定 SE-003。",
+      "when": "执行 FinanceExpenseStatusEventFactory.getStatusEventHandler 并走 Exception 路径。",
+      "then": "assertThrows(BusinessException.class) and assertTrue(message contains \"未注册状态转移\")。",
+      "risk_tier": "T1",
+      "repo": "car-aftersale-finance",
+      "target_class": "FinanceExpenseStatusEventFactory",
+      "target_method": "getStatusEventHandler",
+      "source": "q01/structured.json",
+      "branch_ids": [
+        "B-042",
+        "B-041"
+      ],
+      "outcome_ids": [
+        "O-042",
+        "O-041"
+      ],
+      "business_scenario": "未注册状态迁移被拒绝并给出明确错误。",
+      "risk_prevented": "防止非法状态跳转绕过状态机约束。",
+      "route_explanation": "拒绝/异常路径，证明非法输入或错误状态不会继续写库、送审或串单",
+      "risk_explanation": "高风险/必须覆盖：影响状态流转、审批、权限、通知、金额/Excel、数据一致性或外部同步",
+      "reader_label": "EUT-023：未注册状态迁移被拒绝并给出明确错误。"
+    },
+    {
+      "eut_id": "EUT-024",
+      "bound_item": "SE-011",
+      "route_type": "Happy Path",
+      "given": "给定 FinanceExpenseSnapshotGatewayImpl.insertSelective 的真实 Java 方法上下文和 PRD 绑定 SE-011。",
+      "when": "执行 FinanceExpenseSnapshotGatewayImpl.insertSelective 并走 Happy Path 路径。",
+      "then": "assertEquals(\"FE001\", model.expenseNo) and assertTrue(financeExcelFileId contains \"1001\")。",
+      "risk_tier": "T2",
+      "repo": "car-aftersale-finance",
+      "target_class": "FinanceExpenseSnapshotGatewayImpl",
+      "target_method": "insertSelective",
+      "source": "q01/structured.json",
+      "branch_ids": [
+        "B-043",
+        "B-044"
+      ],
+      "outcome_ids": [
+        "O-043",
+        "O-044"
+      ],
+      "business_scenario": "快照网关保存任务编号、版本、状态和附件字段。",
+      "risk_prevented": "防止审批链路缺少可审计快照。",
+      "route_explanation": "正常路径，证明主流程能按需求完成",
+      "risk_explanation": "重要路径：影响查询展示、导出、持久化转换、辅助网关或低爆炸半径边界",
+      "reader_label": "EUT-024：快照网关保存任务编号、版本、状态和附件字段。"
+    },
+    {
+      "eut_id": "EUT-025",
+      "bound_item": "SE-013",
+      "route_type": "Boundary",
+      "given": "给定 FinanceExpenseGatewayImpl.insertSelective 的真实 Java 方法上下文和 PRD 绑定 SE-013。",
+      "when": "执行 FinanceExpenseGatewayImpl.insertSelective 并走 Boundary 路径。",
+      "then": "verify(financeExpenseMapper).insertSelective(captor.capture()) and assertEquals(\"[]\", model.financeExcelFileId)。",
+      "risk_tier": "T2",
+      "repo": "car-aftersale-finance",
+      "target_class": "FinanceExpenseGatewayImpl",
+      "target_method": "insertSelective",
+      "source": "q01/structured.json",
+      "branch_ids": [
+        "B-045",
+        "B-046"
+      ],
+      "outcome_ids": [
+        "O-045",
+        "O-046"
+      ],
+      "business_scenario": "主表持久化时，未上传 Excel 的占位值被转换为空数组。",
+      "risk_prevented": "防止 `-1` 这类前端占位值进入数据库。",
+      "route_explanation": "边界路径，证明空值、重复、数量上限、权限空集合等边界不会造成脏数据",
+      "risk_explanation": "重要路径：影响查询展示、导出、持久化转换、辅助网关或低爆炸半径边界",
+      "reader_label": "EUT-025：主表持久化时，未上传 Excel 的占位值被转换为空数组。"
+    },
+    {
+      "eut_id": "EUT-026",
+      "bound_item": "BR-009",
+      "route_type": "Boundary",
+      "given": "给定 FinanceExpenseDetailGatewayImpl.batchInsert 的真实 Java 方法上下文和 PRD 绑定 BR-009。",
+      "when": "执行 FinanceExpenseDetailGatewayImpl.batchInsert 并走 Boundary 路径。",
+      "then": "verify(financeExpenseDetailMapper, never()).batchInsert(anyList())。",
+      "risk_tier": "T2",
+      "repo": "car-aftersale-finance",
+      "target_class": "FinanceExpenseDetailGatewayImpl",
+      "target_method": "batchInsert",
+      "source": "q01/structured.json",
+      "branch_ids": [
+        "B-048",
+        "B-047",
+        "B-049",
+        "B-050"
+      ],
+      "outcome_ids": [
+        "O-048",
+        "O-047",
+        "O-049",
+        "O-050"
+      ],
+      "business_scenario": "费用明细批量插入遇到空列表时直接跳过。",
+      "risk_prevented": "防止空明细写库或触发无意义 SQL。",
+      "route_explanation": "边界路径，证明空值、重复、数量上限、权限空集合等边界不会造成脏数据",
+      "risk_explanation": "重要路径：影响查询展示、导出、持久化转换、辅助网关或低爆炸半径边界",
+      "reader_label": "EUT-026：费用明细批量插入遇到空列表时直接跳过。"
+    },
+    {
+      "eut_id": "EUT-027",
+      "bound_item": "SE-014",
+      "route_type": "Happy Path",
+      "given": "给定 FinanceExpenseNoticeRecordGatewayImpl.insertSelective 的真实 Java 方法上下文和 PRD 绑定 SE-014。",
+      "when": "执行 FinanceExpenseNoticeRecordGatewayImpl.insertSelective 并走 Happy Path 路径。",
+      "then": "assertEquals(100L, id)。",
+      "risk_tier": "T2",
+      "repo": "car-aftersale-finance",
+      "target_class": "FinanceExpenseNoticeRecordGatewayImpl",
+      "target_method": "insertSelective",
+      "source": "q01/structured.json",
+      "branch_ids": [
+        "B-051",
+        "B-052"
+      ],
+      "outcome_ids": [
+        "O-051",
+        "O-052"
+      ],
+      "business_scenario": "通知记录插入后返回主键，用于后续发送状态和幂等过滤。",
+      "risk_prevented": "防止通知发送结果无法追踪，重跑时无法去重。",
+      "route_explanation": "正常路径，证明主流程能按需求完成",
+      "risk_explanation": "重要路径：影响查询展示、导出、持久化转换、辅助网关或低爆炸半径边界",
+      "reader_label": "EUT-027：通知记录插入后返回主键，用于后续发送状态和幂等过滤。"
+    },
+    {
+      "eut_id": "EUT-028",
+      "bound_item": "REQ-004",
+      "route_type": "Happy Path",
+      "given": "给定 FinanceExpenseProviderImpl.list 的真实 Java 方法上下文和 PRD 绑定 REQ-004。",
+      "when": "执行 FinanceExpenseProviderImpl.list 并走 Happy Path 路径。",
+      "then": "assertEquals(true, captor.permission.headquarter) and assertEquals(\"FE001\", result.data.list[0].expenseNo)。",
+      "risk_tier": "T1",
+      "repo": "car-aftersale-finance",
+      "target_class": "FinanceExpenseProviderImpl",
+      "target_method": "list",
+      "source": "q01/structured.json",
+      "branch_ids": [
+        "B-053"
+      ],
+      "outcome_ids": [
+        "O-053"
+      ],
+      "business_scenario": "Provider 列表接口把请求权限转换给 service，并返回列表响应。",
+      "risk_prevented": "防止 API 层权限范围丢失或响应结构错误。",
+      "route_explanation": "正常路径，证明主流程能按需求完成",
+      "risk_explanation": "高风险/必须覆盖：影响状态流转、审批、权限、通知、金额/Excel、数据一致性或外部同步",
+      "reader_label": "EUT-028：Provider 列表接口把请求权限转换给 service，并返回列表响应。"
+    },
+    {
+      "eut_id": "EUT-029",
+      "bound_item": "BR-003",
+      "route_type": "Exception",
+      "given": "给定 FinanceExpenseJobHandler.exportList 的真实 Java 方法上下文和 PRD 绑定 BR-003。",
+      "when": "执行 FinanceExpenseJobHandler.exportList 并走 Exception 路径。",
+      "then": "assertThrows(BusinessException.class) and assertEquals(\"创建时间开始和结束必须成对传入\", ex.message)。",
+      "risk_tier": "T1",
+      "repo": "car-aftersale-finance",
+      "target_class": "FinanceExpenseJobHandler",
+      "target_method": "exportList",
+      "source": "q01/structured.json",
+      "branch_ids": [
+        "B-012"
+      ],
+      "outcome_ids": [
+        "O-012"
+      ],
+      "business_scenario": "导出列表创建时间只传一边时被拒绝。",
+      "risk_prevented": "防止导出范围与列表查询范围不一致。",
+      "route_explanation": "拒绝/异常路径，证明非法输入或错误状态不会继续写库、送审或串单",
+      "risk_explanation": "高风险/必须覆盖：影响状态流转、审批、权限、通知、金额/Excel、数据一致性或外部同步",
+      "reader_label": "EUT-029：导出列表创建时间只传一边时被拒绝。"
+    },
+    {
+      "eut_id": "EUT-030",
+      "bound_item": "BR-011",
+      "route_type": "Exception",
+      "given": "给定 FinanceExpenseProviderImpl.stepNext 的真实 Java 方法上下文和 PRD 绑定 BR-011。",
+      "when": "执行 FinanceExpenseProviderImpl.stepNext 并走 Exception 路径。",
+      "then": "assertThrows(BusinessException.class) and assertEquals(\"当前用户无财务费用操作权限\", ex.getMessage()) and verify(financeExpenseService, never()).stepNext(any())。",
+      "risk_tier": "T1",
+      "repo": "car-aftersale-finance",
+      "target_class": "FinanceExpenseProviderImpl",
+      "target_method": "stepNext",
+      "source": "q01/structured.json",
+      "branch_ids": [
+        "B-054"
+      ],
+      "outcome_ids": [
+        "O-054"
+      ],
+      "business_scenario": "非门店财务或未配置操作权限时，下一步操作被拒绝且不进入 service。",
+      "risk_prevented": "防止无操作权限用户上传或推进财务表单。",
+      "route_explanation": "拒绝/异常路径，证明非法输入或错误状态不会继续写库、送审或串单",
+      "risk_explanation": "高风险/必须覆盖：影响状态流转、审批、权限、通知、金额/Excel、数据一致性或外部同步",
+      "reader_label": "EUT-030：非门店财务或未配置操作权限时，下一步操作被拒绝且不进入 service。"
+    },
+    {
+      "eut_id": "EUT-031",
+      "bound_item": "REQ-001",
+      "route_type": "Happy Path",
+      "given": "给定 FinanceExpenseJobHandler.createMonthlyExpenseOrders 的真实 Java 方法上下文和 PRD 绑定 REQ-001。",
+      "when": "执行 FinanceExpenseJobHandler.createMonthlyExpenseOrders 并走 Happy Path 路径。",
+      "then": "assertEquals(1, result) and verify(financeExpenseGateway).insertSelective(captor.capture()) and assertEquals(PENDING, insert.status)。",
+      "risk_tier": "T1",
+      "repo": "car-aftersale-finance",
+      "target_class": "FinanceExpenseJobHandler",
+      "target_method": "createMonthlyExpenseOrders",
+      "source": "q01/structured.json",
+      "branch_ids": [
+        "B-001"
+      ],
+      "outcome_ids": [
+        "O-001"
+      ],
+      "business_scenario": "每月自动为授权门店生成财务手工上传任务。",
+      "risk_prevented": "防止月度提报周期没有任务入口。",
+      "route_explanation": "正常路径，证明主流程能按需求完成",
+      "risk_explanation": "高风险/必须覆盖：影响状态流转、审批、权限、通知、金额/Excel、数据一致性或外部同步",
+      "reader_label": "EUT-031：每月自动为授权门店生成财务手工上传任务。"
+    },
+    {
+      "eut_id": "EUT-032",
+      "bound_item": "SE-001",
+      "route_type": "Boundary",
+      "given": "给定 FinanceExpenseJobHandler.createMonthlyExpenseOrders 的真实 Java 方法上下文和 PRD 绑定 SE-001。",
+      "when": "执行 FinanceExpenseJobHandler.createMonthlyExpenseOrders 并走 Boundary 路径。",
+      "then": "assertEquals(1, result) and assertEquals(\"F1002\", insert.orgId) proving existing 门店+月份+V1 is skipped。",
+      "risk_tier": "T1",
+      "repo": "car-aftersale-finance",
+      "target_class": "FinanceExpenseJobHandler",
+      "target_method": "createMonthlyExpenseOrders",
+      "source": "q01/structured.json",
+      "branch_ids": [
+        "B-001",
+        "B-002"
+      ],
+      "outcome_ids": [
+        "O-001",
+        "O-002"
+      ],
+      "business_scenario": "门店+月份+V1 已存在时跳过，只为缺失门店生成任务。",
+      "risk_prevented": "防止重复任务和幂等重跑污染数据。",
+      "route_explanation": "边界路径，证明空值、重复、数量上限、权限空集合等边界不会造成脏数据",
+      "risk_explanation": "高风险/必须覆盖：影响状态流转、审批、权限、通知、金额/Excel、数据一致性或外部同步",
+      "reader_label": "EUT-032：门店+月份+V1 已存在时跳过，只为缺失门店生成任务。"
+    },
+    {
+      "eut_id": "EUT-033",
+      "bound_item": "SE-002",
+      "route_type": "Happy Path",
+      "given": "给定 FinanceExpenseJobHandler.sendOpenNotice 的真实 Java 方法上下文和 PRD 绑定 SE-002。",
+      "when": "执行 FinanceExpenseJobHandler.sendOpenNotice 并走 Happy Path 路径。",
+      "then": "assertEquals(\"STORE_FINANCE\", receiverType) and assertEquals(Integer.valueOf(1), sendStatus) and verify(appPushGateway).sendInformedMessage(any())。",
+      "risk_tier": "T1",
+      "repo": "car-aftersale-finance",
+      "target_class": "FinanceExpenseJobHandler",
+      "target_method": "sendOpenNotice",
+      "source": "q01/structured.json",
+      "branch_ids": [
+        "B-003",
+        "B-004"
+      ],
+      "outcome_ids": [
+        "O-003",
+        "O-004"
+      ],
+      "business_scenario": "开启通知写入通知记录并标记发送状态。",
+      "risk_prevented": "防止通知发出后没有持久化记录，无法审计和幂等。",
+      "route_explanation": "正常路径，证明主流程能按需求完成",
+      "risk_explanation": "高风险/必须覆盖：影响状态流转、审批、权限、通知、金额/Excel、数据一致性或外部同步",
+      "reader_label": "EUT-033：开启通知写入通知记录并标记发送状态。"
+    },
+    {
+      "eut_id": "EUT-034",
+      "bound_item": "REQ-003",
+      "route_type": "Happy Path",
+      "given": "给定 FinanceExpenseJobHandler.exportList 的真实 Java 方法上下文和 PRD 绑定 REQ-003。",
+      "when": "执行 FinanceExpenseJobHandler.exportList 并走 Happy Path 路径。",
+      "then": "assertEquals(\"https://test/export.xlsx\", resp.fileUrl) and verify(financeExpenseDetailGateway).selectByEntity(any()) proves export data feeds operating model fields。",
+      "risk_tier": "T1",
+      "repo": "car-aftersale-finance",
+      "target_class": "FinanceExpenseJobHandler",
+      "target_method": "exportList",
+      "source": "q01/structured.json",
+      "branch_ids": [
+        "B-010"
+      ],
+      "outcome_ids": [
+        "O-010"
+      ],
+      "business_scenario": "列表导出字段可进入门店经营模型计算链路。",
+      "risk_prevented": "防止导出缺失经营模型所需字段。",
+      "route_explanation": "正常路径，证明主流程能按需求完成",
+      "risk_explanation": "高风险/必须覆盖：影响状态流转、审批、权限、通知、金额/Excel、数据一致性或外部同步",
+      "reader_label": "EUT-034：列表导出字段可进入门店经营模型计算链路。"
+    },
+    {
+      "eut_id": "EUT-035",
+      "bound_item": "SE-009",
+      "route_type": "Happy Path",
+      "given": "给定 FinanceExpenseJobHandler.exportList 的真实 Java 方法上下文和 PRD 绑定 SE-009。",
+      "when": "执行 FinanceExpenseJobHandler.exportList 并走 Happy Path 路径。",
+      "then": "assertEquals(true, query.latestOnly) and assertEquals([\"F6165\"], permissionOrgIdList) and verify(uploadGateway).uploadOutTempFile(any())。",
+      "risk_tier": "T1",
+      "repo": "car-aftersale-finance",
+      "target_class": "FinanceExpenseJobHandler",
+      "target_method": "exportList",
+      "source": "q01/structured.json",
+      "branch_ids": [
+        "B-010",
+        "B-011"
+      ],
+      "outcome_ids": [
+        "O-010",
+        "O-011"
+      ],
+      "business_scenario": "导出只取最新版本并遵守权限门店范围。",
+      "risk_prevented": "防止旧版本或越权门店数据进入导出文件。",
+      "route_explanation": "正常路径，证明主流程能按需求完成",
+      "risk_explanation": "高风险/必须覆盖：影响状态流转、审批、权限、通知、金额/Excel、数据一致性或外部同步",
+      "reader_label": "EUT-035：导出只取最新版本并遵守权限门店范围。"
+    },
+    {
+      "eut_id": "EUT-036",
+      "bound_item": "SE-004",
+      "route_type": "Exception",
+      "given": "给定 FinanceExpenseServiceImpl.save 的真实 Java 方法上下文和 PRD 绑定 SE-004。",
+      "when": "执行 FinanceExpenseServiceImpl.save 并走 Exception 路径。",
+      "then": "assertThrows(BusinessException.class) and assertTrue(message contains \"当前状态不允许暂存\") and verifyNoInteractions(statusEventFactory)。",
+      "risk_tier": "T1",
+      "repo": "car-aftersale-finance",
+      "target_class": "FinanceExpenseServiceImpl",
+      "target_method": "save",
+      "source": "q01/structured.json",
+      "branch_ids": [
+        "B-021",
+        "B-019"
+      ],
+      "outcome_ids": [
+        "O-021",
+        "O-019"
+      ],
+      "business_scenario": "归档状态作为终态，保存操作被拒绝且不触发状态机。",
+      "risk_prevented": "防止归档后被二次编辑或误触发状态迁移。",
+      "route_explanation": "拒绝/异常路径，证明非法输入或错误状态不会继续写库、送审或串单",
+      "risk_explanation": "高风险/必须覆盖：影响状态流转、审批、权限、通知、金额/Excel、数据一致性或外部同步",
+      "reader_label": "EUT-036：归档状态作为终态，保存操作被拒绝且不触发状态机。"
+    }
+  ]
+}

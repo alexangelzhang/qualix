@@ -1,0 +1,25 @@
+{
+  "source_project": "smart-dispatch",
+  "description": "智能调度系统，最大规模产物（Q06共641条审计项全COVERED）",
+  "phases_available": [
+    "Q01",
+    "Q05a",
+    "Q05b",
+    "Q06"
+  ],
+  "q01": {
+    "requirements": 98,
+    "req_count": 10,
+    "br_count": 88,
+    "se": 24,
+    "gaps": 5,
+    "open_items": 8
+  },
+  "q06": {
+    "audit_items": 641,
+    "status_distribution": {
+      "COVERED": 641
+    },
+    "findings": 1
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "project_id": "car-aftersale-finance",
+  "skill_pack_version": "0.2.0",
+  "artifact_dir": "./",
+  "inputs": {
+    "prd": "./input/prd.md",
+    "code_repos": [
+      "/Users/zhangyiqian/git_dev/finance_model/car-aftersale-finance"
+    ],
+    "target_modules": [
+      "car-aftersale-finance-app",
+      "car-aftersale-finance-domain",
+      "car-aftersale-finance-infrastructure"
+    ],
+    "base_ref": "origin/quickFeat-20260403-expense_model",
+    "head_ref": "HEAD",
+    "coverage_report": "./coverage/combined_jacoco.csv",
+    "java": {
+      "build_tool": "maven",
+      "test_framework": "junit5",
+      "profile": "java",
+      "skip_compile_check": true,
+      "coverage_required": true,
+      "mutation_required": false,
+      "test_run_required": false,
+      "mutation_run_required": false,
+      "skip_test_run": false,
+      "skip_mutation_run": true
+    },
+    "quality_policy": {
+      "source_evidence_required": true,
+      "branch_inventory_required": true,
+      "boundary_eut_required": true,
+      "compile_entry_required": false,
+      "line_coverage_threshold": 85,
+      "branch_coverage_threshold": 85,
+      "mutation_score_threshold": 100,
+      "ddd_tmf_required": false,
+      "diff_baseline_required": false,
+      "source_relevance_required": true,
+      "test_run_required": false,
+      "mutation_run_required": false,
+      "warning_levels": {
+        "DIFF-BASELINE": "ignore",
+        "DDD-TMF-MAPPING": "ignore"
+      }
+    }
+  }
+}

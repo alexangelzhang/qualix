@@ -1,0 +1,44 @@
+{
+  "project_id": "wmx-logistic-exchange",
+  "artifact_version": "1.1",
+  "schema_version": "1.1",
+  "coverage_required": false,
+  "note": "coverage_required=false，无 JaCoCo 报告。语义覆盖计划基于 Q05a EUT 矩阵，覆盖核心业务分支。",
+  "recommended_batches": [
+    {
+      "batch_id": "batch-01-identify",
+      "classes": ["LogisticExchangeIdentifyManager"],
+      "euts": ["EUT-001", "EUT-002", "EUT-003", "EUT-004", "EUT-005", "EUT-006", "EUT-007", "EUT-008", "EUT-009", "EUT-010", "EUT-011", "EUT-012", "EUT-029", "EUT-030"],
+      "priority": "T1",
+      "rationale": "核心识别逻辑三段式全路径覆盖"
+    },
+    {
+      "batch_id": "batch-02-exchange",
+      "classes": ["ExchangeOrderService"],
+      "euts": ["EUT-013", "EUT-014", "EUT-015", "EUT-016", "EUT-031", "EUT-032", "EUT-037"],
+      "priority": "T1",
+      "rationale": "换货单OC扩展参数组装和照片收集"
+    },
+    {
+      "batch_id": "batch-03-tag",
+      "classes": ["Cn3cCreateTagExt", "Cn3cProcessExtendTagExt"],
+      "euts": ["EUT-017", "EUT-018", "EUT-019", "EUT-020", "EUT-021", "EUT-034", "EUT-035"],
+      "priority": "T1",
+      "rationale": "建单打标和检测处理重新识别"
+    },
+    {
+      "batch_id": "batch-04-validate",
+      "classes": ["Cn3cProcessMethodValidateExt"],
+      "euts": ["EUT-022", "EUT-023", "EUT-024", "EUT-025", "EUT-026"],
+      "priority": "T1",
+      "rationale": "处理方法校验门控"
+    },
+    {
+      "batch_id": "batch-05-consumer",
+      "classes": ["OrderCenterConsumer"],
+      "euts": ["EUT-027", "EUT-028", "EUT-036"],
+      "priority": "T1",
+      "rationale": "OC消息取消回传路径分叉"
+    }
+  ]
+}

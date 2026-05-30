@@ -1,0 +1,35 @@
+{
+  "project_id": "smart-dispatch",
+  "skill_pack_version": "0.2.0",
+  "artifact_dir": ".",
+  "inputs": {
+    "prd": "./input/prd.md",
+    "knowledge_refs": [
+      "./input/prd_comments.md",
+      "./input/knowledge/probability_plan.md",
+      "./input/knowledge/ai_ready.md"
+    ],
+    "coverage_report": "./q05b/coverage/jacoco-merged.csv",
+    "reference_repos": [
+      "/Users/zhangyiqian/private-dev/asp-dispatch-service"
+    ],
+    "code_repos": [
+      "/Users/zhangyiqian/private-dev/asp-dispatch-service-private_0528/asp-dispatch-service"
+    ],
+    "base_ref": "origin/feature_init",
+    "head_ref": "HEAD",
+    "java": {
+      "build_tool": "maven",
+      "test_framework": "junit5"
+    },
+    "quality_policy": {
+      "source_evidence_required": true,
+      "source_relevance_required": true,
+      "line_coverage_threshold": 80,
+      "branch_coverage_threshold": 80,
+      "happy_path_coverage_threshold": 80,
+      "exception_path_coverage_threshold": 100,
+      "boundary_path_coverage_threshold": 100
+    }
+  }
+}

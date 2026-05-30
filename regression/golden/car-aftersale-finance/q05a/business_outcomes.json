@@ -1,0 +1,606 @@
+{
+  "project_id": "car-aftersale-finance",
+  "outcomes": [
+    {
+      "outcome_id": "O-001",
+      "branch_id": "B-001",
+      "expected": "EUT-001 每月任务生成遇到“已存在部分门店任务”时，只为缺失门店补建 V1 待提交任务。；EUT-031 每月自动为授权门店生成财务手工上传任务。；EUT-032 门店+月份+V1 已存在时跳过，只为缺失门店生成任务。",
+      "assertion_hint": "assertEquals(1, result) and assertEquals(PENDING, insert.status) and assertEquals(\"V1\", query.version)。；assertEquals(1, result) and verify(financeExpenseGateway).insertSelective(captor.capture()) and assertEquals(PENDING, insert.status)。；assertEquals(1, result) and assertEquals(\"F1002\", insert.orgId) proving existing 门店+月份+V1 is skipped。",
+      "reader_label": "FinanceExpenseJobHandler.createMonthlyExpenseOrders happy 路径",
+      "business_risk": "防止同一门店同一月份重复生成任务，也防止漏建任务导致门店无法提报。；防止月度提报周期没有任务入口。；防止重复任务和幂等重跑污染数据。",
+      "related_eut_ids": [
+        "EUT-001",
+        "EUT-031",
+        "EUT-032"
+      ]
+    },
+    {
+      "outcome_id": "O-002",
+      "branch_id": "B-002",
+      "expected": "EUT-032 门店+月份+V1 已存在时跳过，只为缺失门店生成任务。",
+      "assertion_hint": "assertEquals(1, result) and assertEquals(\"F1002\", insert.orgId) proving existing 门店+月份+V1 is skipped。",
+      "reader_label": "FinanceExpenseJobHandler.createMonthlyExpenseOrders exception 路径",
+      "business_risk": "防止重复任务和幂等重跑污染数据。",
+      "related_eut_ids": [
+        "EUT-032"
+      ]
+    },
+    {
+      "outcome_id": "O-003",
+      "branch_id": "B-003",
+      "expected": "EUT-002 每月开启上传时，系统给门店财务发送上传入口通知并记录 OPEN 场景。；EUT-033 开启通知写入通知记录并标记发送状态。",
+      "assertion_hint": "assertEquals(\"OPEN\", record.scene) and assertEquals(\"STORE_FINANCE\", receiverType) and verify(appPushGateway).sendInformedMessage(any())。；assertEquals(\"STORE_FINANCE\", receiverType) and assertEquals(Integer.valueOf(1), sendStatus) and verify(appPushGateway).sendInformedMessage(any())。",
+      "reader_label": "FinanceExpenseJobHandler.sendOpenNotice happy 路径",
+      "business_risk": "防止门店财务不知道提报入口，影响经营模型数据按月收集。；防止通知发出后没有持久化记录，无法审计和幂等。",
+      "related_eut_ids": [
+        "EUT-002",
+        "EUT-033"
+      ]
+    },
+    {
+      "outcome_id": "O-004",
+      "branch_id": "B-004",
+      "expected": "EUT-033 开启通知写入通知记录并标记发送状态。",
+      "assertion_hint": "assertEquals(\"STORE_FINANCE\", receiverType) and assertEquals(Integer.valueOf(1), sendStatus) and verify(appPushGateway).sendInformedMessage(any())。",
+      "reader_label": "FinanceExpenseJobHandler.sendOpenNotice exception 路径",
+      "business_risk": "防止通知发出后没有持久化记录，无法审计和幂等。",
+      "related_eut_ids": [
+        "EUT-033"
+      ]
+    },
+    {
+      "outcome_id": "O-005",
+      "branch_id": "B-005",
+      "expected": "EUT-003 每月 15 日催办未提交门店，同时通知门店财务、城市经理和区域财经 BP。",
+      "assertion_hint": "assertEquals(3, result) and assertEquals([STORE_FINANCE,CITY_MANAGER,LITTLE_ZONE_BP], receiverTypes)。",
+      "reader_label": "FinanceExpenseJobHandler.sendReminderNotice happy 路径",
+      "business_risk": "防止临近截止仍无人跟进，导致经营模型缺少门店财务数据。",
+      "related_eut_ids": [
+        "EUT-003"
+      ]
+    },
+    {
+      "outcome_id": "O-006",
+      "branch_id": "B-006",
+      "expected": "EUT-003 每月 15 日催办未提交门店，同时通知门店财务、城市经理和区域财经 BP。",
+      "assertion_hint": "assertEquals(3, result) and assertEquals([STORE_FINANCE,CITY_MANAGER,LITTLE_ZONE_BP], receiverTypes)。",
+      "reader_label": "FinanceExpenseJobHandler.sendReminderNotice exception 路径",
+      "business_risk": "防止临近截止仍无人跟进，导致经营模型缺少门店财务数据。",
+      "related_eut_ids": [
+        "EUT-003"
+      ]
+    },
+    {
+      "outcome_id": "O-007",
+      "branch_id": "B-007",
+      "expected": "EUT-004 用户按筛选条件查看财务手工上传列表，列表展示门店名称和财务期间。",
+      "assertion_hint": "assertEquals(1, result.total) and assertEquals(\"F6165-测试门店\", orgDisplay) and assertEquals(\"2026年3月\", periodDesc)。",
+      "reader_label": "FinanceExpenseServiceImpl.list happy 路径",
+      "business_risk": "防止列表筛选/展示口径错误，影响运营人员定位任务。",
+      "related_eut_ids": [
+        "EUT-004"
+      ]
+    },
+    {
+      "outcome_id": "O-008",
+      "branch_id": "B-008",
+      "expected": "EUT-018 用户没有任何数据权限时，列表返回空且不查询业务数据。",
+      "assertion_hint": "assertEquals(0, result.total) and assertEquals(Collections.emptyList(), result.list) and verify(financeExpenseGateway, never()).countByEntity(any())。",
+      "reader_label": "FinanceExpenseServiceImpl.list boundary 路径",
+      "business_risk": "防止无权限用户看到门店财务数据。",
+      "related_eut_ids": [
+        "EUT-018"
+      ]
+    },
+    {
+      "outcome_id": "O-009",
+      "branch_id": "B-009",
+      "expected": "EUT-005 列表查询创建时间只传开始或结束时直接拒绝，并且不进入数据库查询。",
+      "assertion_hint": "assertThrows(BusinessException.class) and assertEquals(\"创建时间开始和结束必须成对传入\", ex.getMessage()) and verify(financeExpenseGateway, never()).countByEntity(any())。",
+      "reader_label": "FinanceExpenseServiceImpl.list exception 路径",
+      "business_risk": "防止半开时间区间造成误筛选、慢查询或错误导出。",
+      "related_eut_ids": [
+        "EUT-005"
+      ]
+    },
+    {
+      "outcome_id": "O-010",
+      "branch_id": "B-010",
+      "expected": "EUT-006 导出列表沿用当前筛选条件和权限门店范围，并生成导出文件地址。；EUT-021 导出时查询明细、组装 Excel 并上传临时文件。；EUT-034 列表导出字段可进入门店经营模型计算链路。",
+      "assertion_hint": "assertEquals(\"https://test/export.xlsx\", resp.fileUrl) and assertEquals(true, query.latestOnly) and assertEquals([\"F6165\"], permissionOrgIdList)。；verify(financeExpenseDetailGateway).selectByEntity(any()) and verify(uploadGateway).uploadOutTempFile(any()) and assertEquals(export url)。；assertEquals(\"https://test/export.xlsx\", resp.fileUrl) and verify(financeExpenseDetailGateway).selectByEntity(any()) proves export data feeds operating model fields。",
+      "reader_label": "FinanceExpenseJobHandler.exportList happy 路径",
+      "business_risk": "防止用户导出超出页面范围或越权门店的数据。；防止导出只有主表没有费用明细，影响经营分析。；防止导出缺失经营模型所需字段。",
+      "related_eut_ids": [
+        "EUT-006",
+        "EUT-021",
+        "EUT-034",
+        "EUT-035"
+      ]
+    },
+    {
+      "outcome_id": "O-011",
+      "branch_id": "B-011",
+      "expected": "EUT-035 导出只取最新版本并遵守权限门店范围。",
+      "assertion_hint": "assertEquals(true, query.latestOnly) and assertEquals([\"F6165\"], permissionOrgIdList) and verify(uploadGateway).uploadOutTempFile(any())。",
+      "reader_label": "FinanceExpenseJobHandler.exportList boundary 路径",
+      "business_risk": "防止旧版本或越权门店数据进入导出文件。",
+      "related_eut_ids": [
+        "EUT-035"
+      ]
+    },
+    {
+      "outcome_id": "O-012",
+      "branch_id": "B-012",
+      "expected": "EUT-029 导出列表创建时间只传一边时被拒绝。",
+      "assertion_hint": "assertThrows(BusinessException.class) and assertEquals(\"创建时间开始和结束必须成对传入\", ex.message)。",
+      "reader_label": "FinanceExpenseJobHandler.exportList exception 路径",
+      "business_risk": "防止导出范围与列表查询范围不一致。",
+      "related_eut_ids": [
+        "EUT-029"
+      ]
+    },
+    {
+      "outcome_id": "O-013",
+      "branch_id": "B-013",
+      "expected": "EUT-007 详情页打开历史版本时，返回版本号和财务 Excel 附件信息。",
+      "assertion_hint": "assertEquals(\"V1\", result.version) and assertEquals(\"财务.xlsx\", financeExcelFileId[0].name)。",
+      "reader_label": "FinanceExpenseServiceImpl.detail happy 路径",
+      "business_risk": "防止版本详情与附件丢失，导致财务无法复核历史提报。",
+      "related_eut_ids": [
+        "EUT-007"
+      ]
+    },
+    {
+      "outcome_id": "O-014",
+      "branch_id": "B-014",
+      "expected": "EUT-007 详情页打开历史版本时，返回版本号和财务 Excel 附件信息。",
+      "assertion_hint": "assertEquals(\"V1\", result.version) and assertEquals(\"财务.xlsx\", financeExcelFileId[0].name)。",
+      "reader_label": "FinanceExpenseServiceImpl.detail boundary 路径",
+      "business_risk": "防止版本详情与附件丢失，导致财务无法复核历史提报。",
+      "related_eut_ids": [
+        "EUT-007"
+      ]
+    },
+    {
+      "outcome_id": "O-015",
+      "branch_id": "B-015",
+      "expected": "EUT-007 详情页打开历史版本时，返回版本号和财务 Excel 附件信息。",
+      "assertion_hint": "assertEquals(\"V1\", result.version) and assertEquals(\"财务.xlsx\", financeExcelFileId[0].name)。",
+      "reader_label": "FinanceExpenseServiceImpl.detail exception 路径",
+      "business_risk": "防止版本详情与附件丢失，导致财务无法复核历史提报。",
+      "related_eut_ids": [
+        "EUT-007"
+      ]
+    },
+    {
+      "outcome_id": "O-016",
+      "branch_id": "B-016",
+      "expected": "EUT-008 财务上传 Excel 后点击下一步，系统更新主表并写入快照。",
+      "assertion_hint": "assertEquals(\"success\", result) and verify(financeExpenseGateway).updateByKey(captor.capture()) and assertEquals(1, snapshot.stepNext)。",
+      "reader_label": "FinanceExpenseServiceImpl.stepNext happy 路径",
+      "business_risk": "防止预览/提交前没有保存当前文件和快照，导致审批数据不可追溯。",
+      "related_eut_ids": [
+        "EUT-008"
+      ]
+    },
+    {
+      "outcome_id": "O-017",
+      "branch_id": "B-017",
+      "expected": "EUT-009 未上传财务 Excel 时点击下一步被拒绝，且主表不被更新。",
+      "assertion_hint": "assertThrows(BusinessException.class) and verify(financeExpenseGateway, never()).updateByKey(any())。",
+      "reader_label": "FinanceExpenseServiceImpl.stepNext boundary 路径",
+      "business_risk": "防止空 Excel 进入后续流程，污染审批和经营模型。",
+      "related_eut_ids": [
+        "EUT-009"
+      ]
+    },
+    {
+      "outcome_id": "O-018",
+      "branch_id": "B-018",
+      "expected": "EUT-009 未上传财务 Excel 时点击下一步被拒绝，且主表不被更新。",
+      "assertion_hint": "assertThrows(BusinessException.class) and verify(financeExpenseGateway, never()).updateByKey(any())。",
+      "reader_label": "FinanceExpenseServiceImpl.stepNext exception 路径",
+      "business_risk": "防止空 Excel 进入后续流程，污染审批和经营模型。",
+      "related_eut_ids": [
+        "EUT-009"
+      ]
+    },
+    {
+      "outcome_id": "O-019",
+      "branch_id": "B-019",
+      "expected": "EUT-036 归档状态作为终态，保存操作被拒绝且不触发状态机。",
+      "assertion_hint": "assertThrows(BusinessException.class) and assertTrue(message contains \"当前状态不允许暂存\") and verifyNoInteractions(statusEventFactory)。",
+      "reader_label": "FinanceExpenseServiceImpl.save happy 路径",
+      "business_risk": "防止归档后被二次编辑或误触发状态迁移。",
+      "related_eut_ids": [
+        "EUT-036"
+      ]
+    },
+    {
+      "outcome_id": "O-020",
+      "branch_id": "B-020",
+      "expected": "EUT-010 某一类补充凭证超过 10 个时，暂存被拒绝并返回明确提示。",
+      "assertion_hint": "assertThrows(BusinessException.class) and assertTrue(message contains \"培训费凭证\") and assertTrue(message contains \"不能超过10个\")。",
+      "reader_label": "FinanceExpenseServiceImpl.save boundary 路径",
+      "business_risk": "防止附件无限制上传造成页面、存储和审批处理异常。",
+      "related_eut_ids": [
+        "EUT-010"
+      ]
+    },
+    {
+      "outcome_id": "O-021",
+      "branch_id": "B-021",
+      "expected": "EUT-016 归档状态下尝试暂存编辑被拒绝。；EUT-036 归档状态作为终态，保存操作被拒绝且不触发状态机。",
+      "assertion_hint": "assertThrows(BusinessException.class) and assertTrue(message contains \"当前状态不允许暂存\") and verifyNoInteractions(statusEventFactory)。",
+      "reader_label": "FinanceExpenseServiceImpl.save exception 路径",
+      "business_risk": "防止归档终态被人工修改，破坏审批闭环。；防止归档后被二次编辑或误触发状态迁移。",
+      "related_eut_ids": [
+        "EUT-016",
+        "EUT-036"
+      ]
+    },
+    {
+      "outcome_id": "O-022",
+      "branch_id": "B-022",
+      "expected": "EUT-011 提交审批时文件与暂存版本一致，触发审批中状态处理器。",
+      "assertion_hint": "assertEquals(\"success\", result) and verify(statusEventHandler).trigger(any(FinanceExpenseSubmitSoIn.class))。",
+      "reader_label": "FinanceExpenseServiceImpl.submit happy 路径",
+      "business_risk": "防止合格提报无法进入 BPM 审批链路。",
+      "related_eut_ids": [
+        "EUT-011"
+      ]
+    },
+    {
+      "outcome_id": "O-023",
+      "branch_id": "B-023",
+      "expected": "EUT-012 提交时当前文件与已暂存版本不一致，提交被拒绝且不触发状态机。",
+      "assertion_hint": "assertThrows(BusinessException.class) and assertEquals(\"当前文件与已暂存版本不一致\", normalized message prefix) and verify(statusEventFactory, never()).getStatusEventHandler(any(), any())。",
+      "reader_label": "FinanceExpenseServiceImpl.submit boundary 路径",
+      "business_risk": "防止用户把未预览或被替换的文件送审。",
+      "related_eut_ids": [
+        "EUT-012"
+      ]
+    },
+    {
+      "outcome_id": "O-024",
+      "branch_id": "B-024",
+      "expected": "EUT-012 提交时当前文件与已暂存版本不一致，提交被拒绝且不触发状态机。",
+      "assertion_hint": "assertThrows(BusinessException.class) and assertEquals(\"当前文件与已暂存版本不一致\", normalized message prefix) and verify(statusEventFactory, never()).getStatusEventHandler(any(), any())。",
+      "reader_label": "FinanceExpenseServiceImpl.submit exception 路径",
+      "business_risk": "防止用户把未预览或被替换的文件送审。",
+      "related_eut_ids": [
+        "EUT-012"
+      ]
+    },
+    {
+      "outcome_id": "O-025",
+      "branch_id": "B-025",
+      "expected": "EUT-013 BPM 回调审批流单号与当前任务不匹配时拒绝处理。",
+      "assertion_hint": "assertThrows(BusinessException.class) and assertEquals(\"审批流单号不匹配\", normalized message prefix) and verify(statusEventFactory, never()).getStatusEventHandler(any(), any())。",
+      "reader_label": "FinanceExpenseServiceImpl.approve happy 路径",
+      "business_risk": "防止旧流程、串单或外部回调误改当前任务状态。",
+      "related_eut_ids": [
+        "EUT-013"
+      ]
+    },
+    {
+      "outcome_id": "O-026",
+      "branch_id": "B-026",
+      "expected": "EUT-013 BPM 回调审批流单号与当前任务不匹配时拒绝处理。",
+      "assertion_hint": "assertThrows(BusinessException.class) and assertEquals(\"审批流单号不匹配\", normalized message prefix) and verify(statusEventFactory, never()).getStatusEventHandler(any(), any())。",
+      "reader_label": "FinanceExpenseServiceImpl.approve boundary 路径",
+      "business_risk": "防止旧流程、串单或外部回调误改当前任务状态。",
+      "related_eut_ids": [
+        "EUT-013"
+      ]
+    },
+    {
+      "outcome_id": "O-027",
+      "branch_id": "B-027",
+      "expected": "EUT-013 BPM 回调审批流单号与当前任务不匹配时拒绝处理。",
+      "assertion_hint": "assertThrows(BusinessException.class) and assertEquals(\"审批流单号不匹配\", normalized message prefix) and verify(statusEventFactory, never()).getStatusEventHandler(any(), any())。",
+      "reader_label": "FinanceExpenseServiceImpl.approve exception 路径",
+      "business_risk": "防止旧流程、串单或外部回调误改当前任务状态。",
+      "related_eut_ids": [
+        "EUT-013"
+      ]
+    },
+    {
+      "outcome_id": "O-028",
+      "branch_id": "B-028",
+      "expected": "EUT-014 审批驳回回调触发驳回状态处理器。",
+      "assertion_hint": "verify(statusEventHandler).trigger(any(FinanceExpenseStatusSoIn.class))。",
+      "reader_label": "FinanceExpenseServiceImpl.reject happy 路径",
+      "business_risk": "防止驳回后状态没有落库，财务无法重新处理。",
+      "related_eut_ids": [
+        "EUT-014"
+      ]
+    },
+    {
+      "outcome_id": "O-029",
+      "branch_id": "B-029",
+      "expected": "EUT-014 审批驳回回调触发驳回状态处理器。",
+      "assertion_hint": "verify(statusEventHandler).trigger(any(FinanceExpenseStatusSoIn.class))。",
+      "reader_label": "FinanceExpenseServiceImpl.reject boundary 路径",
+      "business_risk": "防止驳回后状态没有落库，财务无法重新处理。",
+      "related_eut_ids": [
+        "EUT-014"
+      ]
+    },
+    {
+      "outcome_id": "O-030",
+      "branch_id": "B-030",
+      "expected": "EUT-014 审批驳回回调触发驳回状态处理器。",
+      "assertion_hint": "verify(statusEventHandler).trigger(any(FinanceExpenseStatusSoIn.class))。",
+      "reader_label": "FinanceExpenseServiceImpl.reject exception 路径",
+      "business_risk": "防止驳回后状态没有落库，财务无法重新处理。",
+      "related_eut_ids": [
+        "EUT-014"
+      ]
+    },
+    {
+      "outcome_id": "O-031",
+      "branch_id": "B-031",
+      "expected": "EUT-015 驳回后重新上传生成 V2 待提交记录，并清空上一版本凭证。",
+      "assertion_hint": "assertEquals(\"V2\", insert.version) and assertEquals(PENDING, insert.status) and assertEquals(emptyList, equipmentMaintenanceFileIds)。",
+      "reader_label": "RejectedToPendingStatusTransition.trigger happy 路径",
+      "business_risk": "防止新版本继承旧版本附件或误改旧版本数据。",
+      "related_eut_ids": [
+        "EUT-015"
+      ]
+    },
+    {
+      "outcome_id": "O-032",
+      "branch_id": "B-032",
+      "expected": "EUT-015 驳回后重新上传生成 V2 待提交记录，并清空上一版本凭证。",
+      "assertion_hint": "assertEquals(\"V2\", insert.version) and assertEquals(PENDING, insert.status) and assertEquals(emptyList, equipmentMaintenanceFileIds)。",
+      "reader_label": "RejectedToPendingStatusTransition.trigger boundary 路径",
+      "business_risk": "防止新版本继承旧版本附件或误改旧版本数据。",
+      "related_eut_ids": [
+        "EUT-015"
+      ]
+    },
+    {
+      "outcome_id": "O-033",
+      "branch_id": "B-033",
+      "expected": "EUT-015 驳回后重新上传生成 V2 待提交记录，并清空上一版本凭证。",
+      "assertion_hint": "assertEquals(\"V2\", insert.version) and assertEquals(PENDING, insert.status) and assertEquals(emptyList, equipmentMaintenanceFileIds)。",
+      "reader_label": "RejectedToPendingStatusTransition.trigger exception 路径",
+      "business_risk": "防止新版本继承旧版本附件或误改旧版本数据。",
+      "related_eut_ids": [
+        "EUT-015"
+      ]
+    },
+    {
+      "outcome_id": "O-034",
+      "branch_id": "B-034",
+      "expected": "EUT-017 版本列表返回多个版本，并按最新版本优先展示。",
+      "assertion_hint": "assertEquals(3, result.total) and assertEquals(\"V3\", first.version)。",
+      "reader_label": "FinanceExpenseServiceImpl.version happy 路径",
+      "business_risk": "防止财务或运营查看版本历史时误把旧版本当当前版本。",
+      "related_eut_ids": [
+        "EUT-017"
+      ]
+    },
+    {
+      "outcome_id": "O-035",
+      "branch_id": "B-035",
+      "expected": "EUT-017 版本列表返回多个版本，并按最新版本优先展示。",
+      "assertion_hint": "assertEquals(3, result.total) and assertEquals(\"V3\", first.version)。",
+      "reader_label": "FinanceExpenseServiceImpl.version boundary 路径",
+      "business_risk": "防止财务或运营查看版本历史时误把旧版本当当前版本。",
+      "related_eut_ids": [
+        "EUT-017"
+      ]
+    },
+    {
+      "outcome_id": "O-036",
+      "branch_id": "B-036",
+      "expected": "EUT-017 版本列表返回多个版本，并按最新版本优先展示。",
+      "assertion_hint": "assertEquals(3, result.total) and assertEquals(\"V3\", first.version)。",
+      "reader_label": "FinanceExpenseServiceImpl.version exception 路径",
+      "business_risk": "防止财务或运营查看版本历史时误把旧版本当当前版本。",
+      "related_eut_ids": [
+        "EUT-017"
+      ]
+    },
+    {
+      "outcome_id": "O-037",
+      "branch_id": "B-037",
+      "expected": "EUT-019 解析 2S Excel 模板时，正确生成手工填写字段和系统计算字段。",
+      "assertion_hint": "assertEquals(new BigDecimal(\"25.35\"), detailMap[\"25\"].subjectValue) and assertFalse(detailMap.containsKey(\"4\"))。",
+      "reader_label": "FinanceExpenseExcelUtils.parseDetailList happy 路径",
+      "business_risk": "防止经营模型使用错误的收入、成本或费用明细。",
+      "related_eut_ids": [
+        "EUT-019"
+      ]
+    },
+    {
+      "outcome_id": "O-038",
+      "branch_id": "B-038",
+      "expected": "EUT-020 上传 Excel 的公式结果与系统计算不一致时拒绝解析。",
+      "assertion_hint": "assertThrows(BusinessException.class) and assertEquals(\"上传Excel公式/系统计算结果不一致\", normalized message category) for formula result mismatch validation path。",
+      "reader_label": "FinanceExpenseExcelUtils.parseDetailList boundary 路径",
+      "business_risk": "防止用户篡改公式或上传脏数据进入经营模型。",
+      "related_eut_ids": [
+        "EUT-020"
+      ]
+    },
+    {
+      "outcome_id": "O-039",
+      "branch_id": "B-039",
+      "expected": "EUT-020 上传 Excel 的公式结果与系统计算不一致时拒绝解析。",
+      "assertion_hint": "assertThrows(BusinessException.class) and assertEquals(\"上传Excel公式/系统计算结果不一致\", normalized message category) for formula result mismatch validation path。",
+      "reader_label": "FinanceExpenseExcelUtils.parseDetailList exception 路径",
+      "business_risk": "防止用户篡改公式或上传脏数据进入经营模型。",
+      "related_eut_ids": [
+        "EUT-020"
+      ]
+    },
+    {
+      "outcome_id": "O-040",
+      "branch_id": "B-040",
+      "expected": "EUT-022 状态迁移工厂能根据已注册迁移返回审批中处理器。",
+      "assertion_hint": "assertEquals(APPROVING, handler.targetStatus())。",
+      "reader_label": "FinanceExpenseStatusEventFactory.getStatusEventHandler happy 路径",
+      "business_risk": "防止合法状态流转找不到处理器而中断。",
+      "related_eut_ids": [
+        "EUT-022"
+      ]
+    },
+    {
+      "outcome_id": "O-041",
+      "branch_id": "B-041",
+      "expected": "EUT-023 未注册状态迁移被拒绝并给出明确错误。",
+      "assertion_hint": "assertThrows(BusinessException.class) and assertTrue(message contains \"未注册状态转移\")。",
+      "reader_label": "FinanceExpenseStatusEventFactory.getStatusEventHandler boundary 路径",
+      "business_risk": "防止非法状态跳转绕过状态机约束。",
+      "related_eut_ids": [
+        "EUT-023"
+      ]
+    },
+    {
+      "outcome_id": "O-042",
+      "branch_id": "B-042",
+      "expected": "EUT-023 未注册状态迁移被拒绝并给出明确错误。",
+      "assertion_hint": "assertThrows(BusinessException.class) and assertTrue(message contains \"未注册状态转移\")。",
+      "reader_label": "FinanceExpenseStatusEventFactory.getStatusEventHandler exception 路径",
+      "business_risk": "防止非法状态跳转绕过状态机约束。",
+      "related_eut_ids": [
+        "EUT-023"
+      ]
+    },
+    {
+      "outcome_id": "O-043",
+      "branch_id": "B-043",
+      "expected": "EUT-024 快照网关保存任务编号、版本、状态和附件字段。",
+      "assertion_hint": "assertEquals(\"FE001\", model.expenseNo) and assertTrue(financeExcelFileId contains \"1001\")。",
+      "reader_label": "FinanceExpenseSnapshotGatewayImpl.insertSelective happy 路径",
+      "business_risk": "防止审批链路缺少可审计快照。",
+      "related_eut_ids": [
+        "EUT-024"
+      ]
+    },
+    {
+      "outcome_id": "O-044",
+      "branch_id": "B-044",
+      "expected": "EUT-024 快照网关保存任务编号、版本、状态和附件字段。",
+      "assertion_hint": "assertEquals(\"FE001\", model.expenseNo) and assertTrue(financeExcelFileId contains \"1001\")。",
+      "reader_label": "FinanceExpenseSnapshotGatewayImpl.insertSelective exception 路径",
+      "business_risk": "防止审批链路缺少可审计快照。",
+      "related_eut_ids": [
+        "EUT-024"
+      ]
+    },
+    {
+      "outcome_id": "O-045",
+      "branch_id": "B-045",
+      "expected": "EUT-025 主表持久化时，未上传 Excel 的占位值被转换为空数组。",
+      "assertion_hint": "verify(financeExpenseMapper).insertSelective(captor.capture()) and assertEquals(\"[]\", model.financeExcelFileId)。",
+      "reader_label": "FinanceExpenseGatewayImpl.insertSelective happy 路径",
+      "business_risk": "防止 `-1` 这类前端占位值进入数据库。",
+      "related_eut_ids": [
+        "EUT-025"
+      ]
+    },
+    {
+      "outcome_id": "O-046",
+      "branch_id": "B-046",
+      "expected": "EUT-025 主表持久化时，未上传 Excel 的占位值被转换为空数组。",
+      "assertion_hint": "verify(financeExpenseMapper).insertSelective(captor.capture()) and assertEquals(\"[]\", model.financeExcelFileId)。",
+      "reader_label": "FinanceExpenseGatewayImpl.insertSelective exception 路径",
+      "business_risk": "防止 `-1` 这类前端占位值进入数据库。",
+      "related_eut_ids": [
+        "EUT-025"
+      ]
+    },
+    {
+      "outcome_id": "O-047",
+      "branch_id": "B-047",
+      "expected": "EUT-026 费用明细批量插入遇到空列表时直接跳过。",
+      "assertion_hint": "verify(financeExpenseDetailMapper, never()).batchInsert(anyList())。",
+      "reader_label": "FinanceExpenseDetailGatewayImpl.batchInsert happy 路径",
+      "business_risk": "防止空明细写库或触发无意义 SQL。",
+      "related_eut_ids": [
+        "EUT-026"
+      ]
+    },
+    {
+      "outcome_id": "O-048",
+      "branch_id": "B-048",
+      "expected": "EUT-026 费用明细批量插入遇到空列表时直接跳过。",
+      "assertion_hint": "verify(financeExpenseDetailMapper, never()).batchInsert(anyList())。",
+      "reader_label": "FinanceExpenseDetailGatewayImpl.batchInsert boundary 路径",
+      "business_risk": "防止空明细写库或触发无意义 SQL。",
+      "related_eut_ids": [
+        "EUT-026"
+      ]
+    },
+    {
+      "outcome_id": "O-049",
+      "branch_id": "B-049",
+      "expected": "EUT-026 费用明细批量插入遇到空列表时直接跳过。",
+      "assertion_hint": "verify(financeExpenseDetailMapper, never()).batchInsert(anyList())。",
+      "reader_label": "FinanceExpenseDetailGatewayImpl.batchInsert exception 路径",
+      "business_risk": "防止空明细写库或触发无意义 SQL。",
+      "related_eut_ids": [
+        "EUT-026"
+      ]
+    },
+    {
+      "outcome_id": "O-050",
+      "branch_id": "B-050",
+      "expected": "EUT-026 费用明细批量插入遇到空列表时直接跳过。",
+      "assertion_hint": "verify(financeExpenseDetailMapper, never()).batchInsert(anyList())。",
+      "reader_label": "FinanceExpenseDetailGatewayImpl.batchInsert defense 路径",
+      "business_risk": "防止空明细写库或触发无意义 SQL。",
+      "related_eut_ids": [
+        "EUT-026"
+      ]
+    },
+    {
+      "outcome_id": "O-051",
+      "branch_id": "B-051",
+      "expected": "EUT-027 通知记录插入后返回主键，用于后续发送状态和幂等过滤。",
+      "assertion_hint": "assertEquals(100L, id)。",
+      "reader_label": "FinanceExpenseNoticeRecordGatewayImpl.insertSelective happy 路径",
+      "business_risk": "防止通知发送结果无法追踪，重跑时无法去重。",
+      "related_eut_ids": [
+        "EUT-027"
+      ]
+    },
+    {
+      "outcome_id": "O-052",
+      "branch_id": "B-052",
+      "expected": "EUT-027 通知记录插入后返回主键，用于后续发送状态和幂等过滤。",
+      "assertion_hint": "assertEquals(100L, id)。",
+      "reader_label": "FinanceExpenseNoticeRecordGatewayImpl.insertSelective exception 路径",
+      "business_risk": "防止通知发送结果无法追踪，重跑时无法去重。",
+      "related_eut_ids": [
+        "EUT-027"
+      ]
+    },
+    {
+      "outcome_id": "O-053",
+      "branch_id": "B-053",
+      "expected": "EUT-028 Provider 列表接口把请求权限转换给 service，并返回列表响应。",
+      "assertion_hint": "assertEquals(true, captor.permission.headquarter) and assertEquals(\"FE001\", result.data.list[0].expenseNo)。",
+      "reader_label": "FinanceExpenseProviderImpl.list happy 路径",
+      "business_risk": "防止 API 层权限范围丢失或响应结构错误。",
+      "related_eut_ids": [
+        "EUT-028"
+      ]
+    },
+    {
+      "outcome_id": "O-054",
+      "branch_id": "B-054",
+      "expected": "EUT-030 非门店财务或未配置操作权限时，下一步操作被拒绝且不进入 service。",
+      "assertion_hint": "assertThrows(BusinessException.class) and assertEquals(\"当前用户无财务费用操作权限\", ex.getMessage()) and verify(financeExpenseService, never()).stepNext(any())。",
+      "reader_label": "FinanceExpenseProviderImpl.stepNext happy 路径",
+      "business_risk": "防止无操作权限用户上传或推进财务表单。",
+      "related_eut_ids": [
+        "EUT-030"
+      ]
+    }
+  ]
+}

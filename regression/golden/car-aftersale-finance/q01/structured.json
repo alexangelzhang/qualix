@@ -1,0 +1,388 @@
+{
+  "project_id": "car-aftersale-finance",
+  "schema_version": "1.1",
+  "artifact_version": "1.1",
+  "requirements": [
+    {
+      "req_id": "REQ-001",
+      "description": "授权店财务手工上传指定科目并审批，最终计算门店经营模型。",
+      "trigger": "授权店进入每月财务手工提报周期。",
+      "behavior_change": "系统按门店+月份生成任务，财务按时上传并审批。",
+      "acceptance_criteria": "每个未关闭授权店在目标月份有一条可提报任务；审批通过数据可进入经营模型。",
+      "priority": "P0",
+      "source": "prd.md:119"
+    },
+    {
+      "req_id": "BR-001",
+      "description": "每个月只针对未关闭门店生成门店+月份任务，已关闭门店不生成任务。",
+      "trigger": "每月 1 日自动生成任务。",
+      "behavior_change": "系统只为建设中、开业验收完成、试营业、营业中、已暂停门店创建任务。",
+      "acceptance_criteria": "同一门店同一月份 V1 已存在时不得重复创建。",
+      "priority": "P0",
+      "source": "prd.md:261",
+      "parent_id": "REQ-001"
+    },
+    {
+      "req_id": "BR-002",
+      "description": "每月 1 日通知门店财务上传，每月 15 日提醒未提交门店的财务、城市经理和区域财经BP。",
+      "trigger": "配置的 X 日和 Y 日上午 9 点定时任务触发。",
+      "behavior_change": "系统通过飞书机器人发送开启和临近截止提醒。",
+      "acceptance_criteria": "通知对象和文案包含门店名称、处理入口，并对已成功发送记录幂等过滤。",
+      "priority": "P0",
+      "source": "prd.md:219",
+      "parent_id": "REQ-001"
+    },
+    {
+      "req_id": "BR-003",
+      "description": "列表支持任务编号、版本、月份、审批流单号、门店、状态、创建时间和更新时间筛选，并按当前列表范围导出。",
+      "trigger": "用户查看财务手工上传列表或点击导出。",
+      "behavior_change": "后端按筛选条件和数据权限查询，并导出当前展示范围。",
+      "acceptance_criteria": "时间范围必须成对传入，导出结果受同一筛选条件和权限范围约束。",
+      "priority": "P1",
+      "source": "prd.md:267",
+      "parent_id": "REQ-001"
+    },
+    {
+      "req_id": "REQ-002",
+      "description": "任务表单以门店+月份为单位，支持填写、提交、BPM审批流和版本管理。",
+      "trigger": "财务进入任务详情页处理表单。",
+      "behavior_change": "表单状态和版本随保存、下一步、提交、审批回调、撤回和重新上传流转。",
+      "acceptance_criteria": "状态、版本、附件、审批流单号和版本记录与操作结果一致。",
+      "priority": "P0",
+      "source": "prd.md:225"
+    },
+    {
+      "req_id": "BR-004",
+      "description": "表单状态通过 BPM 审批关联控制状态机流转，归档之后不能人工编辑。",
+      "trigger": "审批流回调或归档任务处理表单。",
+      "behavior_change": "归档为终态；非审批通过归档走非法归档。",
+      "acceptance_criteria": "归档状态保存、提交、重新上传均被拒绝，审批通过才允许正常归档。",
+      "priority": "P0",
+      "source": "prd.md:234",
+      "parent_id": "REQ-002"
+    },
+    {
+      "req_id": "BR-005",
+      "description": "表单具有版本概念，审批通过或驳回后再次重新上传会生成+1版本，旧版本变为无效。",
+      "trigger": "财务对已驳回或已审批通过表单重新上传。",
+      "behavior_change": "系统生成 +1 版本并按最新版本展示；BI 只同步生效中版本。",
+      "acceptance_criteria": "新版本从空白待提交开始，旧版本不可被当前版本操作误改；旧版本失效动作需实现证据。",
+      "priority": "P0",
+      "source": "prd.md:243",
+      "parent_id": "REQ-002"
+    },
+    {
+      "req_id": "BR-006",
+      "description": "下一步必须上传财务数据 Excel，补充凭证每类不超过 10 个，提交前文件必须与已暂存版本一致。",
+      "trigger": "用户点击下一步、暂存或提交审批。",
+      "behavior_change": "缺少 Excel、凭证超限、文件不一致时拒绝进入后续流程。",
+      "acceptance_criteria": "错误提示分别包含请先上传财务表格、不能超过10个、当前文件与已暂存版本不一致。",
+      "priority": "P0",
+      "source": "prd.md:415",
+      "parent_id": "REQ-002"
+    },
+    {
+      "req_id": "BR-007",
+      "description": "2S 店模板既填写售后也填写销售数据，1S 店模板只填写售后数据，基础信息由系统自动带出。",
+      "trigger": "用户下载模板、上传 Excel 或预览明细。",
+      "behavior_change": "系统按门店类型选择 1S/2S 模板并校验上传内容。",
+      "acceptance_criteria": "模板顺序、门店编码、月份、公式和系统计算字段被严格校验。",
+      "priority": "P0",
+      "source": "prd.md:435",
+      "parent_id": "REQ-002"
+    },
+    {
+      "req_id": "BR-008",
+      "description": "任何一级审批驳回后审批流结束，发起人可以在业务系统重新发起并生成新的审批流。",
+      "trigger": "BPM 审批流通过、驳回或撤回回调。",
+      "behavior_change": "后端校验审批流单号并触发对应状态处理器。",
+      "acceptance_criteria": "审批流单号不匹配时拒绝；驳回触发 REJECTED，撤回触发 PENDING。",
+      "priority": "P0",
+      "source": "prd.md:512",
+      "parent_id": "REQ-002"
+    },
+    {
+      "req_id": "REQ-003",
+      "description": "列表下载字段包含系统计算值，上传审批后的费用数据用于经营模型计算和导出。",
+      "trigger": "Excel 解析、列表导出或 BI 定时同步。",
+      "behavior_change": "系统按模板字段和公式加工费用数据，并提供导出和 BI 输入。",
+      "acceptance_criteria": "导出字段、系统计算值、保留两位小数和 BI 同步口径与 PRD 一致。",
+      "priority": "P0",
+      "source": "prd.md:300"
+    },
+    {
+      "req_id": "BR-009",
+      "description": "导出字段包含财务期间、门店编码、门店名称、门店类型、是否确认以及多类收入成本费用字段。",
+      "trigger": "用户导出列表或系统解析 Excel。",
+      "behavior_change": "后端从主表、门店信息和明细表组装导出行。",
+      "acceptance_criteria": "委外成本、总费用、房屋费用小计、单价等字段按模板公式或明细汇总输出。",
+      "priority": "P0",
+      "source": "prd.md:379",
+      "parent_id": "REQ-003"
+    },
+    {
+      "req_id": "BR-010",
+      "description": "BI 系统同步时只取每个门店生效中的版本；如果门店无生效中版本，则不取该门店数据。",
+      "trigger": "BI 定时同步或业务系统产生新生效版本。",
+      "behavior_change": "业务系统需要向 BI 提供有效版本数据并在新生效版本时及时通知 BI。",
+      "acceptance_criteria": "同步数据不得包含非生效版本，业务系统有新生效版本时触发通知。",
+      "priority": "P0",
+      "source": "prd.md:564",
+      "parent_id": "REQ-003"
+    },
+    {
+      "req_id": "REQ-004",
+      "description": "总部、区域和门店角色按页面权限、操作权限和数据范围访问财务手工上传功能。",
+      "trigger": "用户访问列表、详情、下载、上传、提交或重新提交。",
+      "behavior_change": "后端按角色和岗位收敛数据范围和操作能力。",
+      "acceptance_criteria": "总部看全国，区域看区域内门店，门店角色看所属门店。",
+      "priority": "P0",
+      "source": "prd.md:596"
+    },
+    {
+      "req_id": "BR-011",
+      "description": "门店财务可查看详情、批量下载、上传、提交审批、撤回审批和重新提交，非财务仅查看下载。",
+      "trigger": "门店角色调用对应接口。",
+      "behavior_change": "后端根据岗位权限构造门店级数据范围并限制操作。",
+      "acceptance_criteria": "无任何权限维度时返回空列表或拒绝访问；门店财务只看到所属门店。",
+      "priority": "P0",
+      "source": "prd.md:603",
+      "parent_id": "REQ-004"
+    }
+  ],
+  "semantic_expectations": [
+    {
+      "se_id": "SE-001",
+      "description": "门店+月份+V1 任务生成必须幂等。",
+      "verification": "调用 createMonthlyExpenseOrders(period)，模拟一个门店已存在、一个门店缺失；断言只插入缺失门店且状态为待提交。",
+      "category": "幂等",
+      "bound_reqs": [
+        "REQ-001",
+        "BR-001"
+      ],
+      "confidence": "High",
+      "source": "prd.md:225"
+    },
+    {
+      "se_id": "SE-002",
+      "description": "开启和催办通知必须按岗位匹配接收人并避免重复发送。",
+      "verification": "调用 sendOpenNotice/sendReminderNotice；断言接收人类型、period、scene 和发送记录状态。",
+      "category": "通知",
+      "bound_reqs": [
+        "BR-002"
+      ],
+      "confidence": "High",
+      "source": "prd.md:219"
+    },
+    {
+      "se_id": "SE-003",
+      "description": "表单状态通过 BPM 审批关联控制状态机流转，未注册状态迁移必须拒绝。",
+      "verification": "调用 getStatusEventHandler(origin,target)；断言未注册迁移抛 BusinessException，已注册迁移返回目标处理器。",
+      "category": "状态机",
+      "bound_reqs": [
+        "BR-004",
+        "BR-008"
+      ],
+      "confidence": "High",
+      "source": "prd.md:234"
+    },
+    {
+      "se_id": "SE-004",
+      "description": "归档之后不能再人工编辑，归档状态是终态。",
+      "verification": "构造 ARCHIVED 当前版本调用 save/submit/reload；断言 BusinessException 且状态处理器未触发。",
+      "category": "状态机",
+      "bound_reqs": [
+        "BR-004"
+      ],
+      "confidence": "High",
+      "source": "prd.md:236"
+    },
+    {
+      "se_id": "SE-005",
+      "description": "审批通过或驳回后重新上传生成+1版本，旧版本不能被当前操作误改。",
+      "verification": "对驳回版本调用 reload；断言插入 V2 待提交记录和 V2 快照，旧版本明细不被当作当前版本写入。",
+      "category": "版本",
+      "bound_reqs": [
+        "BR-005"
+      ],
+      "confidence": "High",
+      "source": "prd.md:243"
+    },
+    {
+      "se_id": "SE-006",
+      "description": "提交审批前必须完成 Excel 上传、下一步预览并保证提交文件与暂存一致。",
+      "verification": "分别调用 stepNext/submit；断言缺失 Excel、未下一步和文件不一致均被拒绝，成功路径触发审批中处理器。",
+      "category": "提交校验",
+      "bound_reqs": [
+        "BR-006",
+        "BR-008"
+      ],
+      "confidence": "High",
+      "source": "prd.md:415"
+    },
+    {
+      "se_id": "SE-007",
+      "description": "BPM 回调必须校验审批流单号，避免旧流程或串单误改当前版本状态。",
+      "verification": "构造 bpmNo 不一致的 approve/reject/cancel；断言 BusinessException 且不触发状态处理器。",
+      "category": "跨系统一致性",
+      "bound_reqs": [
+        "BR-008"
+      ],
+      "confidence": "High",
+      "source": "prd.md:507"
+    },
+    {
+      "se_id": "SE-008",
+      "description": "Excel 模板顺序、门店编码、月份、公式和系统计算字段必须与标准模板一致。",
+      "verification": "用标准/篡改 Excel 调 parseDetailList；断言标准文件生成明细，篡改顺序或公式时抛 BusinessException。",
+      "category": "Excel 校验",
+      "bound_reqs": [
+        "BR-007",
+        "BR-009"
+      ],
+      "confidence": "High",
+      "source": "prd.md:415"
+    },
+    {
+      "se_id": "SE-009",
+      "description": "列表导出必须按照当前列表展示的数据范围下载 Excel。",
+      "verification": "构造门店权限和明细数据调用 exportList；断言 latestOnly、权限门店列表、导出 URL 和明细查询。",
+      "category": "导出",
+      "bound_reqs": [
+        "BR-003",
+        "BR-009",
+        "REQ-004"
+      ],
+      "confidence": "High",
+      "source": "prd.md:269"
+    },
+    {
+      "se_id": "SE-010",
+      "description": "总部、区域、门店角色具有不同数据范围，无任何权限维度时不得返回业务数据。",
+      "verification": "构造空权限调用 list；断言 total=0、list 为空且不查询 gateway count。",
+      "category": "权限",
+      "bound_reqs": [
+        "REQ-004",
+        "BR-011"
+      ],
+      "confidence": "High",
+      "source": "prd.md:615"
+    },
+    {
+      "se_id": "SE-011",
+      "description": "上传和状态变化必须保留版本、状态、操作人和附件字段证据。",
+      "verification": "调用 stepNext 或 snapshot gateway；断言 update 和 snapshot 字段包含 version、status、operator 和附件 ID。",
+      "category": "审计证据",
+      "bound_reqs": [
+        "REQ-002",
+        "BR-004",
+        "BR-005"
+      ],
+      "confidence": "High",
+      "source": "prd.md:415"
+    },
+    {
+      "se_id": "SE-012",
+      "description": "补充凭证每类不超过 10 个文件。",
+      "verification": "构造某一类凭证 11 个文件调用 save；断言 BusinessException 消息包含凭证类别和不能超过10个。",
+      "category": "边界",
+      "bound_reqs": [
+        "BR-006"
+      ],
+      "confidence": "High",
+      "source": "prd.md:415"
+    },
+    {
+      "se_id": "SE-013",
+      "description": "上传财务数据 Excel 是必填项，未上传时不能进入下一步或提交。",
+      "verification": "调用 stepNext/submit 时不传 financeExcelFileId；断言抛出 BusinessException 且不更新主表。",
+      "category": "必填校验",
+      "bound_reqs": [
+        "BR-006"
+      ],
+      "confidence": "High",
+      "source": "prd.md:415"
+    },
+    {
+      "se_id": "SE-014",
+      "description": "每月15日提醒未提交门店，通知记录必须支撑重跑幂等过滤。",
+      "verification": "调用 notice record insert/update/select；断言 scene、orgId、receiver 和 sendStatus 字段可持久化与读取。",
+      "category": "通知幂等",
+      "bound_reqs": [
+        "BR-002"
+      ],
+      "confidence": "High",
+      "source": "prd.md:220"
+    },
+    {
+      "se_id": "SE-015",
+      "description": "BI 系统定时同步只取业务系统中每个门店生效中的版本。",
+      "verification": "需要 BI 同步接口或消息实现证据；断言同步查询只返回 effective/latest approved 数据，且新生效事件触发通知。",
+      "category": "BI 同步",
+      "bound_reqs": [
+        "BR-010"
+      ],
+      "confidence": "High",
+      "source": "prd.md:564"
+    },
+    {
+      "se_id": "SE-016",
+      "description": "新版本审批通过生效后，原版本的状态变为无效。",
+      "verification": "需要旧版本失效状态或同步过滤代码；断言新版本生效后旧版本不再作为有效版本输出。",
+      "category": "版本有效性",
+      "bound_reqs": [
+        "BR-005",
+        "BR-010"
+      ],
+      "confidence": "High",
+      "source": "prd.md:243"
+    }
+  ],
+  "gaps": [
+    {
+      "gap_id": "GAP-001",
+      "related_ids": [
+        "BR-005",
+        "BR-010",
+        "SE-015",
+        "SE-016"
+      ],
+      "description": "PRD 明确要求新版本生效后旧版本失效且 BI 只取生效版本，但当前已审代码未看到 INVALID/失效状态或 BI 同步过滤实现。",
+      "risk_level": "P0",
+      "required_clarification": "需要研发明确旧版本失效的数据模型、状态枚举和 BI 同步接口位置。"
+    },
+    {
+      "gap_id": "GAP-002",
+      "related_ids": [
+        "BR-002",
+        "SE-002"
+      ],
+      "description": "飞书图片/画板媒体下载权限不足，通知流程图只能基于浏览器截图和 PRD 文本解析。",
+      "risk_level": "P1",
+      "required_clarification": "需要产品或文档 owner 提供可下载画板或确认浏览器解析的流程语义。"
+    }
+  ],
+  "open_items": [
+    {
+      "open_id": "OPEN-001",
+      "related_ids": [
+        "BR-010",
+        "SE-015"
+      ],
+      "question": "BI 同步由本仓库实现、BI 拉取实现，还是其他服务实现？",
+      "options": "A. 本仓库补同步接口；B. BI 侧拉取并过滤；C. 消息通知其他服务处理。",
+      "decision_owner": "后端负责人/BI 负责人"
+    },
+    {
+      "open_id": "OPEN-002",
+      "related_ids": [
+        "BR-005",
+        "SE-016"
+      ],
+      "question": "旧版本失效是否需要新增状态，还是仅通过 latest/effective 查询口径排除？",
+      "options": "A. 新增失效状态；B. 保持状态但同步只取最新审批通过；C. 另建有效版本表。",
+      "decision_owner": "后端负责人/产品负责人"
+    }
+  ],
+  "conclusion": "PASS_WITH_GAPS"
+}

@@ -1,0 +1,450 @@
+{
+  "project_id": "wmx-logistic-exchange",
+  "schema_version": "1.1",
+  "artifact_version": "1.1",
+  "types": [
+    {
+      "simple_name": "GenericConfigDataManager",
+      "kind": "class",
+      "package": "com.mi.maf.srv.aftersale.manager.operation",
+      "fqcn": "com.mi.maf.srv.aftersale.manager.operation.GenericConfigDataManager",
+      "file": "/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-aftersale/src/main/java/com/mi/maf/srv/aftersale/manager/operation/GenericConfigDataManager.java",
+      "methods": [
+        {
+          "name": "isLogisticExchangeBrandClass",
+          "param_counts": [
+            1
+          ]
+        },
+        {
+          "name": "isLogisticExchangeGoodsAllowed",
+          "param_counts": [
+            1
+          ]
+        },
+        {
+          "name": "getLogisticExchangeOnlyDetectMethodIds",
+          "param_counts": [
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "simple_name": "FulfillmentRuleInterfaceService",
+      "kind": "class",
+      "package": "com.mi.maf.inter.service.fulfillment",
+      "fqcn": "com.mi.maf.inter.service.fulfillment.FulfillmentRuleInterfaceService",
+      "file": "maf-interface/src/main/java/com/mi/maf/inter/service/fulfillment/FulfillmentRuleInterfaceService.java",
+      "methods": [
+        {
+          "name": "isSendAndInstallSupported",
+          "param_counts": [
+            7
+          ]
+        }
+      ]
+    },
+    {
+      "simple_name": "BaseConfigService",
+      "kind": "class",
+      "package": "com.mi.maf.srv.baseinfo.service",
+      "fqcn": "com.mi.maf.srv.baseinfo.service.BaseConfigService",
+      "file": "com/mi/maf/srv/baseinfo/service/BaseConfigService.java",
+      "methods": [
+        {
+          "name": "getValueByTypeAndKey",
+          "param_counts": [
+            2
+          ]
+        }
+      ]
+    },
+    {
+      "simple_name": "SrvServiceExtendManager",
+      "kind": "class",
+      "package": "com.mi.maf.srv.aftersale.manager.srv",
+      "fqcn": "com.mi.maf.srv.aftersale.manager.srv.SrvServiceExtendManager",
+      "file": "com/mi/maf/srv/aftersale/manager/srv/SrvServiceExtendManager.java",
+      "methods": [
+        {
+          "name": "save",
+          "param_counts": [
+            3
+          ]
+        },
+        {
+          "name": "delete",
+          "param_counts": [
+            2
+          ]
+        },
+        {
+          "name": "add",
+          "param_counts": [
+            3
+          ]
+        },
+        {
+          "name": "selectOneBySidAndKeyName",
+          "param_counts": [
+            2
+          ]
+        },
+        {
+          "name": "selectListBySidsAndKeyName",
+          "param_counts": [
+            2
+          ]
+        }
+      ]
+    },
+    {
+      "simple_name": "LogisticExchangeIdentifyManager",
+      "kind": "class",
+      "package": "com.mi.maf.srv.manager.srv",
+      "fqcn": "com.mi.maf.srv.manager.srv.LogisticExchangeIdentifyManager",
+      "file": "com/mi/maf/srv/manager/srv/LogisticExchangeIdentifyManager.java",
+      "methods": [
+        {
+          "name": "identifyByPrecheckAndFulfillment",
+          "param_counts": [
+            1
+          ]
+        },
+        {
+          "name": "isLogisticExchangeService",
+          "param_counts": [
+            1
+          ]
+        },
+        {
+          "name": "passPrecheck",
+          "param_counts": [
+            3
+          ]
+        },
+        {
+          "name": "isLogisticExchangeEnabled",
+          "param_counts": [
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "simple_name": "ProcessStepContext",
+      "kind": "class",
+      "package": "com.mi.maf.srv.domain.execution.model",
+      "fqcn": "com.mi.maf.srv.domain.execution.model.ProcessStepContext",
+      "file": "com/mi/maf/srv/domain/execution/model/ProcessStepContext.java",
+      "methods": [
+        {
+          "name": "getSrvService",
+          "param_counts": [
+            0
+          ]
+        },
+        {
+          "name": "getRequestData",
+          "param_counts": [
+            0
+          ]
+        },
+        {
+          "name": "isNoTreatment",
+          "param_counts": [
+            0
+          ]
+        },
+        {
+          "name": "getItems",
+          "param_counts": [
+            0
+          ]
+        },
+        {
+          "name": "getDomainModel",
+          "param_counts": [
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "simple_name": "Method",
+      "kind": "class",
+      "package": "com.mi.xms.operation.api.dto.response.method",
+      "fqcn": "com.mi.xms.operation.api.dto.response.method.Method",
+      "file": "com/mi/xms/operation/api/dto/response/method/Method.java",
+      "methods": [
+        {
+          "name": "getId",
+          "param_counts": [
+            0
+          ]
+        },
+        {
+          "name": "getNoTreatment",
+          "param_counts": [
+            0
+          ]
+        },
+        {
+          "name": "getName",
+          "param_counts": [
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "simple_name": "SpecialApprovalV2Service",
+      "kind": "class",
+      "package": "com.mi.maf.srv.aftersale.service",
+      "fqcn": "com.mi.maf.srv.aftersale.service.SpecialApprovalV2Service",
+      "file": "com/mi/maf/srv/aftersale/service/SpecialApprovalV2Service.java",
+      "methods": [
+        {
+          "name": "searchList",
+          "param_counts": [
+            1
+          ]
+        },
+        {
+          "name": "getDetailNew",
+          "param_counts": [
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "simple_name": "BaseAttachmentManager",
+      "kind": "class",
+      "package": "com.mi.maf.srv.aftersale.service",
+      "fqcn": "com.mi.maf.srv.aftersale.service.BaseAttachmentManager",
+      "file": "com/mi/maf/srv/aftersale/service/BaseAttachmentManager.java",
+      "methods": [
+        {
+          "name": "selectByServiceIdAndTypes",
+          "param_counts": [
+            2
+          ]
+        }
+      ]
+    },
+    {
+      "simple_name": "ServiceProcessService",
+      "kind": "class",
+      "package": "com.mi.maf.srv.aftersale.service.process",
+      "fqcn": "com.mi.maf.srv.aftersale.service.process.ServiceProcessService",
+      "file": "com/mi/maf/srv/aftersale/service/process/ServiceProcessService.java",
+      "methods": [
+        {
+          "name": "getFirstOneBySidAndTypeName",
+          "param_counts": [
+            2
+          ]
+        },
+        {
+          "name": "addOpProcess",
+          "param_counts": [
+            6
+          ]
+        },
+        {
+          "name": "getLastProcess",
+          "param_counts": [
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "simple_name": "AfterSaleService",
+      "kind": "class",
+      "package": "com.mi.maf.srv.aftersale.service",
+      "fqcn": "com.mi.maf.srv.aftersale.service.AfterSaleService",
+      "file": "com/mi/maf/srv/aftersale/service/AfterSaleService.java",
+      "methods": [
+        {
+          "name": "getServiceRequired",
+          "param_counts": [
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "simple_name": "SrvServiceItemManager",
+      "kind": "class",
+      "package": "com.mi.maf.srv.aftersale.manager.srv",
+      "fqcn": "com.mi.maf.srv.aftersale.manager.srv.SrvServiceItemManager",
+      "file": "com/mi/maf/srv/aftersale/manager/srv/SrvServiceItemManager.java",
+      "methods": [
+        {
+          "name": "getSrvItemByNewOrderId",
+          "param_counts": [
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "simple_name": "SrvSecondVisitManager",
+      "kind": "class",
+      "package": "com.mi.maf.srv.manager.srv",
+      "fqcn": "com.mi.maf.srv.manager.srv.SrvSecondVisitManager",
+      "file": "com/mi/maf/srv/manager/srv/SrvSecondVisitManager.java",
+      "methods": [
+        {
+          "name": "isSecondVisit",
+          "param_counts": [
+            2
+          ]
+        }
+      ]
+    },
+    {
+      "simple_name": "BaseInfoService",
+      "kind": "class",
+      "package": "com.mi.maf.srv.baseinfo.service",
+      "fqcn": "com.mi.maf.srv.baseinfo.service.BaseInfoService",
+      "file": "com/mi/maf/srv/baseinfo/service/BaseInfoService.java",
+      "methods": [
+        {
+          "name": "getUserName",
+          "param_counts": [
+            1
+          ]
+        },
+        {
+          "name": "getUserTel",
+          "param_counts": [
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "simple_name": "BasicDataDubboService",
+      "kind": "class",
+      "package": "com.mi.maf.srv.service.base",
+      "fqcn": "com.mi.maf.srv.service.base.BasicDataDubboService",
+      "file": "com/mi/maf/srv/service/base/BasicDataDubboService.java",
+      "methods": [
+        {
+          "name": "getOrgNameByOrgId",
+          "param_counts": [
+            1
+          ]
+        },
+        {
+          "name": "getBrandClassName",
+          "param_counts": [
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "simple_name": "SrvCustomerService",
+      "kind": "class",
+      "package": "com.mi.maf.srv.aftersale.service",
+      "fqcn": "com.mi.maf.srv.aftersale.service.SrvCustomerService",
+      "file": "com/mi/maf/srv/aftersale/service/SrvCustomerService.java",
+      "methods": [
+        {
+          "name": "selectOneBySId",
+          "param_counts": [
+            1
+          ]
+        }
+      ]
+    }
+  ],
+  "enums": [],
+  "test_style_samples": [
+    {
+      "file": "/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-api/src/test/java/com/mi/maf/api/config/TmfGrayNacosConfigurationTest.java",
+      "framework": "junit5",
+      "patterns": [
+        "junit4"
+      ]
+    },
+    {
+      "file": "/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-biz/src/test/java/com/mi/maf/biz/windowengineer/service/impl/WindowEngineerServiceImplTest.java",
+      "framework": "junit5",
+      "patterns": [
+        "junit4",
+        "mock_field",
+        "mockito_static"
+      ]
+    },
+    {
+      "file": "/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-service-provider/src/test/java/com/mi/maf/dubbo/service/pad/PadDubboServiceImplTest.java",
+      "framework": "junit5",
+      "patterns": [
+        "junit4",
+        "mock_field",
+        "mockito_static"
+      ]
+    },
+    {
+      "file": "/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-service-provider/src/test/java/com/mi/maf/dubbo/service/srv/impl/SrvListSmartServiceDubboServiceImplTest.java",
+      "framework": "junit5",
+      "patterns": [
+        "junit4",
+        "mock_field",
+        "mockito_static"
+      ]
+    },
+    {
+      "file": "/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-service-provider/src/test/java/com/mi/maf/dubbo/service/srv/impl/openapi/SrvDetailOpenApiServiceImplTest.java",
+      "framework": "junit5",
+      "patterns": [
+        "junit4",
+        "mockito_static",
+        "reflection"
+      ]
+    }
+  ],
+  "mutation_targets": [
+    {
+      "class_name": "Cn3cCreateTagExt",
+      "pit_capable": false,
+      "reason": "未找到 Maven 构建入口（pom.xml）"
+    },
+    {
+      "class_name": "Cn3cProcessExtendTagExt",
+      "pit_capable": false,
+      "reason": "未找到 Maven 构建入口（pom.xml）"
+    },
+    {
+      "class_name": "Cn3cProcessMethodValidateExt",
+      "pit_capable": false,
+      "reason": "未找到 Maven 构建入口（pom.xml）"
+    },
+    {
+      "class_name": "ExchangeOrderService",
+      "pit_capable": false,
+      "reason": "未找到 Maven 构建入口（pom.xml）"
+    },
+    {
+      "class_name": "LogisticExchangeIdentifyManager",
+      "pit_capable": false,
+      "reason": "未找到 Maven 构建入口（pom.xml）"
+    },
+    {
+      "class_name": "LogisticExchangeIdentifyParam",
+      "pit_capable": false,
+      "reason": "未找到 Maven 构建入口（pom.xml）"
+    },
+    {
+      "class_name": "OrderCenterConsumer",
+      "pit_capable": false,
+      "reason": "未找到 Maven 构建入口（pom.xml）"
+    }
+  ]
+}

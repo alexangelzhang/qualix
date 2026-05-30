@@ -1,0 +1,965 @@
+{
+  "project_id": "wmx-logistic-exchange",
+  "artifact_version": "1.1",
+  "schema_version": "1.1",
+  "audit_items": [
+    {
+      "id": "AUDIT-001",
+      "eut_id": "EUT-001",
+      "bound_item": "REQ-001",
+      "description": "三段式识别全部通过时返回true，且履约中心接口被调用一次",
+      "status": "COVERED",
+      "test_class": "LogisticExchangeIdentifyManagerTest",
+      "test_method": "identify_allCheckPass_returnsTrue",
+      "evidence": "assertEquals(Boolean.TRUE, result); // EUT-001: 三段式全通过应返回true [/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/manager/srv/LogisticExchangeIdentifyManagerTest.java:67]; verify(fulfillmentRuleInterfaceService, times(1)).isSendAndInstallSupported( [/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/manager/srv/LogisticExchangeIdentifyManagerTest.java:68]",
+      "recommendation": "",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/manager/srv/LogisticExchangeIdentifyManagerTest.java",
+        "line_start": 67,
+        "class_name": "LogisticExchangeIdentifyManagerTest",
+        "method_name": "identify_allCheckPass_returnsTrue",
+        "repo": "asp-aftersale-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/main/java/com/mi/maf/srv/manager/srv/LogisticExchangeIdentifyManager.java",
+        "line_start": 96,
+        "class_name": "LogisticExchangeIdentifyManager",
+        "method_name": "identifyByPrecheckAndFulfillment",
+        "repo": "asp-aftersale-service"
+      }
+    },
+    {
+      "id": "AUDIT-002",
+      "eut_id": "EUT-002",
+      "bound_item": "BR-001",
+      "description": "品类不在白名单时短路返回false，不调用履约中心",
+      "status": "COVERED",
+      "test_class": "LogisticExchangeIdentifyManagerTest",
+      "test_method": "passPrecheck_brandClassNotInWhitelist_returnsFalse",
+      "evidence": "assertFalse(result); // 白名单未命中，返回false [/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/manager/srv/LogisticExchangeIdentifyManagerTest.java:132]; verify(genericConfigDataManager, never()).isLogisticExchangeGoodsAllowed(anyString()); [/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/manager/srv/LogisticExchangeIdentifyManagerTest.java:133]",
+      "recommendation": "",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/manager/srv/LogisticExchangeIdentifyManagerTest.java",
+        "line_start": 132,
+        "class_name": "LogisticExchangeIdentifyManagerTest",
+        "method_name": "passPrecheck_brandClassNotInWhitelist_returnsFalse",
+        "repo": "asp-aftersale-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/main/java/com/mi/maf/srv/manager/srv/LogisticExchangeIdentifyManager.java",
+        "line_start": 62,
+        "class_name": "LogisticExchangeIdentifyManager",
+        "method_name": "passPrecheck",
+        "repo": "asp-aftersale-service"
+      }
+    },
+    {
+      "id": "AUDIT-003",
+      "eut_id": "EUT-003",
+      "bound_item": "BR-002",
+      "description": "SKU在黑名单时返回false，不调用履约中心",
+      "status": "COVERED",
+      "test_class": "LogisticExchangeIdentifyManagerTest",
+      "test_method": "passPrecheck_goodsInBlacklist_returnsFalse",
+      "evidence": "assertFalse(result); // 黑名单商品返回false [/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/manager/srv/LogisticExchangeIdentifyManagerTest.java:147]",
+      "recommendation": "",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/manager/srv/LogisticExchangeIdentifyManagerTest.java",
+        "line_start": 147,
+        "class_name": "LogisticExchangeIdentifyManagerTest",
+        "method_name": "passPrecheck_goodsInBlacklist_returnsFalse",
+        "repo": "asp-aftersale-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/main/java/com/mi/maf/srv/manager/srv/LogisticExchangeIdentifyManager.java",
+        "line_start": 76,
+        "class_name": "LogisticExchangeIdentifyManager",
+        "method_name": "passPrecheck",
+        "repo": "asp-aftersale-service"
+      }
+    },
+    {
+      "id": "AUDIT-004",
+      "eut_id": "EUT-004",
+      "bound_item": "REQ-001",
+      "description": "brandClassId=null时快速失败返回false",
+      "status": "COVERED",
+      "test_class": "LogisticExchangeIdentifyManagerTest",
+      "test_method": "passPrecheck_brandClassIdNull_returnsFalse",
+      "evidence": "assertFalse(result); // null品类ID快速失败 [/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/manager/srv/LogisticExchangeIdentifyManagerTest.java:157]; verify(genericConfigDataManager, never()).isLogisticExchangeBrandClass(any()); [/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/manager/srv/LogisticExchangeIdentifyManagerTest.java:158]",
+      "recommendation": "",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/manager/srv/LogisticExchangeIdentifyManagerTest.java",
+        "line_start": 157,
+        "class_name": "LogisticExchangeIdentifyManagerTest",
+        "method_name": "passPrecheck_brandClassIdNull_returnsFalse",
+        "repo": "asp-aftersale-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/main/java/com/mi/maf/srv/manager/srv/LogisticExchangeIdentifyManager.java",
+        "line_start": 63,
+        "class_name": "LogisticExchangeIdentifyManager",
+        "method_name": "passPrecheck",
+        "repo": "asp-aftersale-service"
+      }
+    },
+    {
+      "id": "AUDIT-005",
+      "eut_id": "EUT-005",
+      "bound_item": "REQ-001",
+      "description": "goodsId为空字符串时快速失败",
+      "status": "COVERED",
+      "test_class": "LogisticExchangeIdentifyManagerTest",
+      "test_method": "passPrecheck_goodsIdBlank_returnsFalse",
+      "evidence": "assertFalse(result); // 空goodsId快速失败 [/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/manager/srv/LogisticExchangeIdentifyManagerTest.java:168]; verify(genericConfigDataManager, never()).isLogisticExchangeBrandClass(any()); [/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/manager/srv/LogisticExchangeIdentifyManagerTest.java:169]",
+      "recommendation": "",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/manager/srv/LogisticExchangeIdentifyManagerTest.java",
+        "line_start": 168,
+        "class_name": "LogisticExchangeIdentifyManagerTest",
+        "method_name": "passPrecheck_goodsIdBlank_returnsFalse",
+        "repo": "asp-aftersale-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/main/java/com/mi/maf/srv/manager/srv/LogisticExchangeIdentifyManager.java",
+        "line_start": 63,
+        "class_name": "LogisticExchangeIdentifyManager",
+        "method_name": "passPrecheck",
+        "repo": "asp-aftersale-service"
+      }
+    },
+    {
+      "id": "AUDIT-006",
+      "eut_id": "EUT-006",
+      "bound_item": "SE-003",
+      "description": "履约中心抛异常时降级返回false，不传播异常（业务可用性保证）",
+      "status": "COVERED",
+      "test_class": "LogisticExchangeIdentifyManagerTest",
+      "test_method": "identify_fulfillmentThrowsException_returnsFalse_noExceptionPropagated",
+      "evidence": "assertFalse(result); // 履约中心异常时降级返回false [/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/manager/srv/LogisticExchangeIdentifyManagerTest.java:88]",
+      "recommendation": "",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/manager/srv/LogisticExchangeIdentifyManagerTest.java",
+        "line_start": 88,
+        "class_name": "LogisticExchangeIdentifyManagerTest",
+        "method_name": "identify_fulfillmentThrowsException_returnsFalse_noExceptionPropagated",
+        "repo": "asp-aftersale-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/main/java/com/mi/maf/srv/manager/srv/LogisticExchangeIdentifyManager.java",
+        "line_start": 128,
+        "class_name": "LogisticExchangeIdentifyManager",
+        "method_name": "identifyByPrecheckAndFulfillment",
+        "repo": "asp-aftersale-service"
+      }
+    },
+    {
+      "id": "AUDIT-007",
+      "eut_id": "EUT-007",
+      "bound_item": "REQ-001",
+      "description": "param=null时快速失败，不调用外部接口",
+      "status": "COVERED",
+      "test_class": "LogisticExchangeIdentifyManagerTest",
+      "test_method": "identify_paramNull_returnsFalse",
+      "evidence": "assertFalse(result); // null参数应快速失败返回false（同时覆盖LogisticExchangeIdentifyParam.isValid） [/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/manager/srv/LogisticExchangeIdentifyManagerTest.java:99]; verify(fulfillmentRuleInterfaceService, never()).isSendAndInstallSupported( [/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/manager/srv/LogisticExchangeIdentifyManagerTest.java:100]",
+      "recommendation": "",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/manager/srv/LogisticExchangeIdentifyManagerTest.java",
+        "line_start": 99,
+        "class_name": "LogisticExchangeIdentifyManagerTest",
+        "method_name": "identify_paramNull_returnsFalse",
+        "repo": "asp-aftersale-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/main/java/com/mi/maf/srv/manager/srv/LogisticExchangeIdentifyManager.java",
+        "line_start": 98,
+        "class_name": "LogisticExchangeIdentifyManager",
+        "method_name": "identifyByPrecheckAndFulfillment",
+        "repo": "asp-aftersale-service"
+      }
+    },
+    {
+      "id": "AUDIT-008",
+      "eut_id": "EUT-008",
+      "bound_item": "SE-004",
+      "description": "工单创建时间早于enable_time时短路，不调用履约中心（防止旧工单被打标）",
+      "status": "COVERED",
+      "test_class": "LogisticExchangeIdentifyManagerTest",
+      "test_method": "identify_createTimeBeforeEnableTime_returnsFalse_fulfillmentNotCalled",
+      "evidence": "assertFalse(result); // 旧工单不允许打标 [/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/manager/srv/LogisticExchangeIdentifyManagerTest.java:115]; verify(fulfillmentRuleInterfaceService, never()).isSendAndInstallSupported( [/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/manager/srv/LogisticExchangeIdentifyManagerTest.java:116]",
+      "recommendation": "",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/manager/srv/LogisticExchangeIdentifyManagerTest.java",
+        "line_start": 115,
+        "class_name": "LogisticExchangeIdentifyManagerTest",
+        "method_name": "identify_createTimeBeforeEnableTime_returnsFalse_fulfillmentNotCalled",
+        "repo": "asp-aftersale-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/main/java/com/mi/maf/srv/manager/srv/LogisticExchangeIdentifyManager.java",
+        "line_start": 107,
+        "class_name": "LogisticExchangeIdentifyManager",
+        "method_name": "identifyByPrecheckAndFulfillment",
+        "repo": "asp-aftersale-service"
+      }
+    },
+    {
+      "id": "AUDIT-009",
+      "eut_id": "EUT-009",
+      "bound_item": "SE-005",
+      "description": "enable_time未配置时默认不打标",
+      "status": "COVERED",
+      "test_class": "LogisticExchangeIdentifyManagerTest",
+      "test_method": "isLogisticExchangeEnabled_notConfigured_returnsFalse",
+      "evidence": "assertFalse(result); // 未配置时默认false [/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/manager/srv/LogisticExchangeIdentifyManagerTest.java:217]",
+      "recommendation": "",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/manager/srv/LogisticExchangeIdentifyManagerTest.java",
+        "line_start": 217,
+        "class_name": "LogisticExchangeIdentifyManagerTest",
+        "method_name": "isLogisticExchangeEnabled_notConfigured_returnsFalse",
+        "repo": "asp-aftersale-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/main/java/com/mi/maf/srv/manager/srv/LogisticExchangeIdentifyManager.java",
+        "line_start": 147,
+        "class_name": "LogisticExchangeIdentifyManager",
+        "method_name": "isLogisticExchangeEnabled",
+        "repo": "asp-aftersale-service"
+      }
+    },
+    {
+      "id": "AUDIT-010",
+      "eut_id": "EUT-010",
+      "bound_item": "BR-011",
+      "description": "createTime=null时返回false，无NPE",
+      "status": "COVERED",
+      "test_class": "LogisticExchangeIdentifyManagerTest",
+      "test_method": "isLogisticExchangeEnabled_createTimeNull_returnsFalse",
+      "evidence": "assertFalse(result); // null参数返回false，无NPE [/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/manager/srv/LogisticExchangeIdentifyManagerTest.java:227]",
+      "recommendation": "",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/manager/srv/LogisticExchangeIdentifyManagerTest.java",
+        "line_start": 227,
+        "class_name": "LogisticExchangeIdentifyManagerTest",
+        "method_name": "isLogisticExchangeEnabled_createTimeNull_returnsFalse",
+        "repo": "asp-aftersale-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/main/java/com/mi/maf/srv/manager/srv/LogisticExchangeIdentifyManager.java",
+        "line_start": 148,
+        "class_name": "LogisticExchangeIdentifyManager",
+        "method_name": "isLogisticExchangeEnabled",
+        "repo": "asp-aftersale-service"
+      }
+    },
+    {
+      "id": "AUDIT-011",
+      "eut_id": "EUT-011",
+      "bound_item": "SE-008",
+      "description": "多商品AND逻辑：任一goodsId命中黑名单则整体返回false",
+      "status": "COVERED",
+      "test_class": "LogisticExchangeIdentifyManagerTest",
+      "test_method": "passPrecheck_batch_anyGoodsInBlacklist_returnsFalse",
+      "evidence": "assertFalse(result); // 任一黑名单命中则整体false [/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/manager/srv/LogisticExchangeIdentifyManagerTest.java:187]",
+      "recommendation": "",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/manager/srv/LogisticExchangeIdentifyManagerTest.java",
+        "line_start": 187,
+        "class_name": "LogisticExchangeIdentifyManagerTest",
+        "method_name": "passPrecheck_batch_anyGoodsInBlacklist_returnsFalse",
+        "repo": "asp-aftersale-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/main/java/com/mi/maf/srv/manager/srv/LogisticExchangeIdentifyManager.java",
+        "line_start": 173,
+        "class_name": "LogisticExchangeIdentifyManager",
+        "method_name": "passPrecheck",
+        "repo": "asp-aftersale-service"
+      }
+    },
+    {
+      "id": "AUDIT-012",
+      "eut_id": "EUT-012",
+      "bound_item": "SE-008",
+      "description": "多商品全部不在黑名单时返回true",
+      "status": "COVERED",
+      "test_class": "LogisticExchangeIdentifyManagerTest",
+      "test_method": "passPrecheck_batch_allGoodsAllowed_returnsTrue",
+      "evidence": "assertEquals(Boolean.TRUE, result); // EUT-012: 全部通过返回true [/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/manager/srv/LogisticExchangeIdentifyManagerTest.java:202]",
+      "recommendation": "",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/manager/srv/LogisticExchangeIdentifyManagerTest.java",
+        "line_start": 202,
+        "class_name": "LogisticExchangeIdentifyManagerTest",
+        "method_name": "passPrecheck_batch_allGoodsAllowed_returnsTrue",
+        "repo": "asp-aftersale-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/main/java/com/mi/maf/srv/manager/srv/LogisticExchangeIdentifyManager.java",
+        "line_start": 173,
+        "class_name": "LogisticExchangeIdentifyManager",
+        "method_name": "passPrecheck",
+        "repo": "asp-aftersale-service"
+      }
+    },
+    {
+      "id": "AUDIT-013",
+      "eut_id": "EUT-013",
+      "bound_item": "REQ-004",
+      "description": "有特批记录时OC扩展参数含unified_replacement=2和special_approval_id=特批ID",
+      "status": "COVERED",
+      "test_class": "ExchangeOrderServiceTest",
+      "test_method": "assembleLogisticExchangeOrderParams_withApproval_containsUnifiedReplacement2",
+      "evidence": "assertEquals(\"2\", unifiedReplacement); // EUT-031: unified_replacement=2 [/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/service/srvorder/ExchangeOrderServiceTest.java:172]; assertEquals(APPROVAL_ID, approvalIdValue); // EUT-013: special_approval_id=SA-001 [/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/service/srvorder/ExchangeOrderServiceTest.java:175]",
+      "recommendation": "",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/service/srvorder/ExchangeOrderServiceTest.java",
+        "line_start": 172,
+        "class_name": "ExchangeOrderServiceTest",
+        "method_name": "assembleLogisticExchangeOrderParams_withApproval_containsUnifiedReplacement2",
+        "repo": "asp-aftersale-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/main/java/com/mi/maf/srv/service/srvorder/ExchangeOrderService.java",
+        "line_start": 529,
+        "class_name": "ExchangeOrderService",
+        "method_name": "assembleLogisticExchangeOrderParams",
+        "repo": "asp-aftersale-service"
+      }
+    },
+    {
+      "id": "AUDIT-014",
+      "eut_id": "EUT-014",
+      "bound_item": "SE-007",
+      "description": "无特批记录时special_approval_id=''",
+      "status": "COVERED",
+      "test_class": "ExchangeOrderServiceTest",
+      "test_method": "assembleLogisticExchangeOrderParams_noApproval_specialApprovalIdEmpty",
+      "evidence": "assertFalse(\"extendList不应为空\", extendList == null || extendList.isEmpty()); [/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/service/srvorder/ExchangeOrderServiceTest.java:207]; assertEquals(\"\", approvalIdValue); // EUT-014/032: 无特批时special_approval_id='' [/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/service/srvorder/ExchangeOrderServiceTest.java:210]",
+      "recommendation": "",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/service/srvorder/ExchangeOrderServiceTest.java",
+        "line_start": 210,
+        "class_name": "ExchangeOrderServiceTest",
+        "method_name": "assembleLogisticExchangeOrderParams_noApproval_specialApprovalIdEmpty",
+        "repo": "asp-aftersale-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/main/java/com/mi/maf/srv/service/srvorder/ExchangeOrderService.java",
+        "line_start": 533,
+        "class_name": "ExchangeOrderService",
+        "method_name": "querySpecialApprovalByServiceNo",
+        "repo": "asp-aftersale-service"
+      }
+    },
+    {
+      "id": "AUDIT-015",
+      "eut_id": "EUT-015",
+      "bound_item": "BR-008",
+      "description": "有附件含重复URL时返回去重列表，长度=2",
+      "status": "COVERED",
+      "test_class": "ExchangeOrderServiceTest",
+      "test_method": "collectScenePhotos_withDuplicateUrls_returnsDeduplicatedList",
+      "evidence": "assertEquals(2, result.size()); // EUT-015: 去重后长度=2 [/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/service/srvorder/ExchangeOrderServiceTest.java:105]; assertEquals(true, result.contains(\"http://photo/fault1.jpg\")); [/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/service/srvorder/ExchangeOrderServiceTest.java:106]; assertEquals(true, result.contains(\"http://photo/processed1.jpg\")); [/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/service/srvorder/ExchangeOrderServiceTest.java:107]",
+      "recommendation": "",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/service/srvorder/ExchangeOrderServiceTest.java",
+        "line_start": 105,
+        "class_name": "ExchangeOrderServiceTest",
+        "method_name": "collectScenePhotos_withDuplicateUrls_returnsDeduplicatedList",
+        "repo": "asp-aftersale-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/main/java/com/mi/maf/srv/service/srvorder/ExchangeOrderService.java",
+        "line_start": 635,
+        "class_name": "ExchangeOrderService",
+        "method_name": "collectScenePhotos",
+        "repo": "asp-aftersale-service"
+      }
+    },
+    {
+      "id": "AUDIT-016",
+      "eut_id": "EUT-016",
+      "bound_item": "BR-008",
+      "description": "无附件时返回空列表，不抛异常",
+      "status": "COVERED",
+      "test_class": "ExchangeOrderServiceTest",
+      "test_method": "collectScenePhotos_noAttachments_returnsEmptyList",
+      "evidence": "assertEquals(0, result.size()); // EUT-016: 无附件时返回空列表，size=0 [/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/service/srvorder/ExchangeOrderServiceTest.java:122]",
+      "recommendation": "",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/service/srvorder/ExchangeOrderServiceTest.java",
+        "line_start": 122,
+        "class_name": "ExchangeOrderServiceTest",
+        "method_name": "collectScenePhotos_noAttachments_returnsEmptyList",
+        "repo": "asp-aftersale-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/main/java/com/mi/maf/srv/service/srvorder/ExchangeOrderService.java",
+        "line_start": 635,
+        "class_name": "ExchangeOrderService",
+        "method_name": "collectScenePhotos",
+        "repo": "asp-aftersale-service"
+      }
+    },
+    {
+      "id": "AUDIT-017",
+      "eut_id": "EUT-017",
+      "bound_item": "BR-003",
+      "description": "换货工单识别通过时打标LOGISTIC_EXCHANGE=Y",
+      "status": "COVERED",
+      "test_class": "Cn3cCreateTagExtTest",
+      "test_method": "processLogisticExchangeTag_exchangeService_identified_savesTag",
+      "evidence": "verify(srvServiceExtendManager).save(SERVICE_ID, SrvTagEnum.LOGISTIC_EXCHANGE, Enable.Y.name()); [/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/domain/acceptance/extension/Cn3cCreateTagExtTest.java:91]",
+      "recommendation": "",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/domain/acceptance/extension/Cn3cCreateTagExtTest.java",
+        "line_start": 91,
+        "class_name": "Cn3cCreateTagExtTest",
+        "method_name": "processLogisticExchangeTag_exchangeService_identified_savesTag",
+        "repo": "asp-aftersale-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/main/java/com/mi/maf/srv/domain/acceptance/extension/Cn3cCreateTagExt.java",
+        "line_start": 191,
+        "class_name": "Cn3cCreateTagExt",
+        "method_name": "processLogisticExchangeTag",
+        "repo": "asp-aftersale-service"
+      }
+    },
+    {
+      "id": "AUDIT-018",
+      "eut_id": "EUT-018",
+      "bound_item": "BR-003",
+      "description": "非换货工单（WX）不打LOGISTIC_EXCHANGE标",
+      "status": "COVERED",
+      "test_class": "Cn3cCreateTagExtTest",
+      "test_method": "processLogisticExchangeTag_repairService_notExchangeType_doesNotSaveTag",
+      "evidence": "verify(srvServiceExtendManager, never()).save(eq(SERVICE_ID), eq(SrvTagEnum.LOGISTIC_EXCHANGE), anyString()); [/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/domain/acceptance/extension/Cn3cCreateTagExtTest.java:107]; verify(logisticExchangeIdentifyManager, never()).identifyByPrecheckAndFulfillment(any()); [/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/domain/acceptance/extension/Cn3cCreateTagExtTest.java:109]",
+      "recommendation": "",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/domain/acceptance/extension/Cn3cCreateTagExtTest.java",
+        "line_start": 107,
+        "class_name": "Cn3cCreateTagExtTest",
+        "method_name": "processLogisticExchangeTag_repairService_notExchangeType_doesNotSaveTag",
+        "repo": "asp-aftersale-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/main/java/com/mi/maf/srv/domain/acceptance/extension/Cn3cCreateTagExt.java",
+        "line_start": 195,
+        "class_name": "Cn3cCreateTagExt",
+        "method_name": "processLogisticExchangeTag",
+        "repo": "asp-aftersale-service"
+      }
+    },
+    {
+      "id": "AUDIT-019",
+      "eut_id": "EUT-019",
+      "bound_item": "REQ-003",
+      "description": "检测处理重新识别通过时补标LOGISTIC_EXCHANGE=Y",
+      "status": "COVERED",
+      "test_class": "Cn3cProcessExtendTagExtTest",
+      "test_method": "reIdentify_exchangeServiceIdentified_savesTag",
+      "evidence": "verify(srvServiceExtendManager).save(SERVICE_ID, SrvTagEnum.LOGISTIC_EXCHANGE, Enable.Y.name()); [/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/domain/execution/extension/Cn3cProcessExtendTagExtTest.java:73]",
+      "recommendation": "",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/domain/execution/extension/Cn3cProcessExtendTagExtTest.java",
+        "line_start": 73,
+        "class_name": "Cn3cProcessExtendTagExtTest",
+        "method_name": "reIdentify_exchangeServiceIdentified_savesTag",
+        "repo": "asp-aftersale-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/main/java/com/mi/maf/srv/domain/execution/extension/Cn3cProcessExtendTagExt.java",
+        "line_start": 1,
+        "class_name": "Cn3cProcessExtendTagExt",
+        "method_name": "reIdentifyAndMarkLogisticExchange",
+        "repo": "asp-aftersale-service"
+      }
+    },
+    {
+      "id": "AUDIT-020",
+      "eut_id": "EUT-020",
+      "bound_item": "REQ-003",
+      "description": "检测处理工单类型切换为非换货时清除标签",
+      "status": "COVERED",
+      "test_class": "Cn3cProcessExtendTagExtTest",
+      "test_method": "reIdentify_serviceTypeChangedToRepair_deletesTag",
+      "evidence": "verify(srvServiceExtendManager).delete(SERVICE_ID, SrvTagEnum.LOGISTIC_EXCHANGE); [/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/domain/execution/extension/Cn3cProcessExtendTagExtTest.java:93]; verify(logisticExchangeIdentifyManager, never()).identifyByPrecheckAndFulfillment(any()); [/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/domain/execution/extension/Cn3cProcessExtendTagExtTest.java:94]",
+      "recommendation": "",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/domain/execution/extension/Cn3cProcessExtendTagExtTest.java",
+        "line_start": 93,
+        "class_name": "Cn3cProcessExtendTagExtTest",
+        "method_name": "reIdentify_serviceTypeChangedToRepair_deletesTag",
+        "repo": "asp-aftersale-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/main/java/com/mi/maf/srv/domain/execution/extension/Cn3cProcessExtendTagExt.java",
+        "line_start": 1,
+        "class_name": "Cn3cProcessExtendTagExt",
+        "method_name": "reIdentifyAndMarkLogisticExchange",
+        "repo": "asp-aftersale-service"
+      }
+    },
+    {
+      "id": "AUDIT-021",
+      "eut_id": "EUT-021",
+      "bound_item": "REQ-003",
+      "description": "选择不予处理时清除LOGISTIC_EXCHANGE标签",
+      "status": "COVERED",
+      "test_class": "Cn3cProcessExtendTagExtTest",
+      "test_method": "reIdentify_noTreatmentSelected_deletesTag",
+      "evidence": "verify(srvServiceExtendManager).delete(SERVICE_ID, SrvTagEnum.LOGISTIC_EXCHANGE); [/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/domain/execution/extension/Cn3cProcessExtendTagExtTest.java:107]; verify(logisticExchangeIdentifyManager, never()).identifyByPrecheckAndFulfillment(any()); [/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/domain/execution/extension/Cn3cProcessExtendTagExtTest.java:108]",
+      "recommendation": "",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/domain/execution/extension/Cn3cProcessExtendTagExtTest.java",
+        "line_start": 107,
+        "class_name": "Cn3cProcessExtendTagExtTest",
+        "method_name": "reIdentify_noTreatmentSelected_deletesTag",
+        "repo": "asp-aftersale-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/main/java/com/mi/maf/srv/domain/execution/extension/Cn3cProcessExtendTagExt.java",
+        "line_start": 1,
+        "class_name": "Cn3cProcessExtendTagExt",
+        "method_name": "reIdentifyAndMarkLogisticExchange",
+        "repo": "asp-aftersale-service"
+      }
+    },
+    {
+      "id": "AUDIT-022",
+      "eut_id": "EUT-022",
+      "bound_item": "BR-005",
+      "description": "物流取旧送新工单选择允许方法时通过校验",
+      "status": "COVERED",
+      "test_class": "Cn3cProcessMethodValidateExtTest",
+      "test_method": "check_logisticExchange_allowedMethod_passes",
+      "evidence": "verify(logisticExchangeIdentifyManager).isLogisticExchangeService(SERVICE_ID); [/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/domain/execution/extension/Cn3cProcessMethodValidateExtTest.java:95]",
+      "recommendation": "",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/domain/execution/extension/Cn3cProcessMethodValidateExtTest.java",
+        "line_start": 95,
+        "class_name": "Cn3cProcessMethodValidateExtTest",
+        "method_name": "check_logisticExchange_allowedMethod_passes",
+        "repo": "asp-aftersale-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/main/java/com/mi/maf/srv/domain/execution/extension/Cn3cProcessMethodValidateExt.java",
+        "line_start": 1,
+        "class_name": "Cn3cProcessMethodValidateExt",
+        "method_name": "checkLogisticExchangeOnlyDetectMethod",
+        "repo": "asp-aftersale-service"
+      }
+    },
+    {
+      "id": "AUDIT-023",
+      "eut_id": "EUT-023",
+      "bound_item": "BR-005",
+      "description": "物流取旧送新工单选择禁止方法时抛MafSrvAftersaleException",
+      "status": "COVERED",
+      "test_class": "Cn3cProcessMethodValidateExtTest",
+      "test_method": "check_logisticExchange_forbiddenMethod_throwsException",
+      "evidence": "assertSame(MafSrvAftersaleException.class, e.getCause().getClass()); // 抛MafSrvAftersaleException [/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/domain/execution/extension/Cn3cProcessMethodValidateExtTest.java:118]; assertEquals(true, e.getCause().getMessage().contains(\"只允许选择物流取旧送新仅检测或不予处理处理方法\")); [/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/domain/execution/extension/Cn3cProcessMethodValidateExtTest.java:119]",
+      "recommendation": "",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/domain/execution/extension/Cn3cProcessMethodValidateExtTest.java",
+        "line_start": 118,
+        "class_name": "Cn3cProcessMethodValidateExtTest",
+        "method_name": "check_logisticExchange_forbiddenMethod_throwsException",
+        "repo": "asp-aftersale-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/main/java/com/mi/maf/srv/domain/execution/extension/Cn3cProcessMethodValidateExt.java",
+        "line_start": 1,
+        "class_name": "Cn3cProcessMethodValidateExt",
+        "method_name": "checkLogisticExchangeOnlyDetectMethod",
+        "repo": "asp-aftersale-service"
+      }
+    },
+    {
+      "id": "AUDIT-024",
+      "eut_id": "EUT-024",
+      "bound_item": "BR-005",
+      "description": "物流取旧送新工单选择多个方法时抛异常",
+      "status": "COVERED",
+      "test_class": "Cn3cProcessMethodValidateExtTest",
+      "test_method": "check_logisticExchange_multipleMethodsSelected_throwsException",
+      "evidence": "assertSame(MafSrvAftersaleException.class, e.getCause().getClass()); [/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/domain/execution/extension/Cn3cProcessMethodValidateExtTest.java:148]; assertEquals(true, e.getCause().getMessage().contains(\"只允许选择单个处理方法\")); [/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/domain/execution/extension/Cn3cProcessMethodValidateExtTest.java:149]",
+      "recommendation": "",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/domain/execution/extension/Cn3cProcessMethodValidateExtTest.java",
+        "line_start": 148,
+        "class_name": "Cn3cProcessMethodValidateExtTest",
+        "method_name": "check_logisticExchange_multipleMethodsSelected_throwsException",
+        "repo": "asp-aftersale-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/main/java/com/mi/maf/srv/domain/execution/extension/Cn3cProcessMethodValidateExt.java",
+        "line_start": 1,
+        "class_name": "Cn3cProcessMethodValidateExt",
+        "method_name": "checkLogisticExchangeOnlyDetectMethod",
+        "repo": "asp-aftersale-service"
+      }
+    },
+    {
+      "id": "AUDIT-025",
+      "eut_id": "EUT-025",
+      "bound_item": "BR-005",
+      "description": "allowedMethodIds未配置时防呆抛异常",
+      "status": "COVERED",
+      "test_class": "Cn3cProcessMethodValidateExtTest",
+      "test_method": "check_logisticExchange_allowedMethodsNotConfigured_throwsException",
+      "evidence": "assertSame(MafSrvAftersaleException.class, e.getCause().getClass()); // 配置缺失防呆 [/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/domain/execution/extension/Cn3cProcessMethodValidateExtTest.java:173]; assertEquals(true, e.getCause().getMessage().contains(\"物流取旧送新仅检测处理方法未配置\")); [/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/domain/execution/extension/Cn3cProcessMethodValidateExtTest.java:174]",
+      "recommendation": "",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/domain/execution/extension/Cn3cProcessMethodValidateExtTest.java",
+        "line_start": 173,
+        "class_name": "Cn3cProcessMethodValidateExtTest",
+        "method_name": "check_logisticExchange_allowedMethodsNotConfigured_throwsException",
+        "repo": "asp-aftersale-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/main/java/com/mi/maf/srv/domain/execution/extension/Cn3cProcessMethodValidateExt.java",
+        "line_start": 1,
+        "class_name": "Cn3cProcessMethodValidateExt",
+        "method_name": "checkLogisticExchangeOnlyDetectMethod",
+        "repo": "asp-aftersale-service"
+      }
+    },
+    {
+      "id": "AUDIT-026",
+      "eut_id": "EUT-026",
+      "bound_item": "BR-005",
+      "description": "非物流取旧送新工单跳过校验，正常通过",
+      "status": "COVERED",
+      "test_class": "Cn3cProcessMethodValidateExtTest",
+      "test_method": "check_nonLogisticExchange_skipsValidation",
+      "evidence": "verify(genericConfigDataManager, never()).getLogisticExchangeOnlyDetectMethodIds(); [/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/domain/execution/extension/Cn3cProcessMethodValidateExtTest.java:192]",
+      "recommendation": "",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/domain/execution/extension/Cn3cProcessMethodValidateExtTest.java",
+        "line_start": 192,
+        "class_name": "Cn3cProcessMethodValidateExtTest",
+        "method_name": "check_nonLogisticExchange_skipsValidation",
+        "repo": "asp-aftersale-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/main/java/com/mi/maf/srv/domain/execution/extension/Cn3cProcessMethodValidateExt.java",
+        "line_start": 1,
+        "class_name": "Cn3cProcessMethodValidateExt",
+        "method_name": "checkLogisticExchangeOnlyDetectMethod",
+        "repo": "asp-aftersale-service"
+      }
+    },
+    {
+      "id": "AUDIT-027",
+      "eut_id": "EUT-027",
+      "bound_item": "SE-010",
+      "description": "物流取旧送新取消回传时addOpProcess被调用，记录换新单取消日志",
+      "status": "COVERED",
+      "test_class": "OrderCenterConsumerTest",
+      "test_method": "addExchangeOrderCancelProcess_firstTime_addsOpProcess",
+      "evidence": "verify(srvProcessService).addOpProcess( [/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/consumer/OrderCenterConsumerTest.java:112]",
+      "recommendation": "",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/consumer/OrderCenterConsumerTest.java",
+        "line_start": 112,
+        "class_name": "OrderCenterConsumerTest",
+        "method_name": "addExchangeOrderCancelProcess_firstTime_addsOpProcess",
+        "repo": "asp-aftersale-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/main/java/com/mi/maf/srv/consumer/OrderCenterConsumer.java",
+        "line_start": 1,
+        "class_name": "OrderCenterConsumer",
+        "method_name": "addExchangeOrderCancelProcess",
+        "repo": "asp-aftersale-service"
+      }
+    },
+    {
+      "id": "AUDIT-028",
+      "eut_id": "EUT-028",
+      "bound_item": "REQ-007",
+      "description": "非物流取旧送新工单取消时不记录换新单取消日志",
+      "status": "COVERED",
+      "test_class": "OrderCenterConsumerTest",
+      "test_method": "processExchangeOrder_nonLogisticExchange_cancelCallback_doesNotAddCancelProcess",
+      "evidence": "verify(srvProcessService, never()).addOpProcess( [/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/consumer/OrderCenterConsumerTest.java:173]",
+      "recommendation": "",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/consumer/OrderCenterConsumerTest.java",
+        "line_start": 173,
+        "class_name": "OrderCenterConsumerTest",
+        "method_name": "processExchangeOrder_nonLogisticExchange_cancelCallback_doesNotAddCancelProcess",
+        "repo": "asp-aftersale-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/main/java/com/mi/maf/srv/consumer/OrderCenterConsumer.java",
+        "line_start": 1,
+        "class_name": "OrderCenterConsumer",
+        "method_name": "processExchangeOrder",
+        "repo": "asp-aftersale-service"
+      }
+    },
+    {
+      "id": "AUDIT-029",
+      "eut_id": "EUT-029",
+      "bound_item": "BR-011",
+      "description": "工单创建时间>enable_time时识别返回true",
+      "status": "COVERED",
+      "test_class": "LogisticExchangeIdentifyManagerTest",
+      "test_method": "isLogisticExchangeEnabled_createTimeAfterEnableTime_returnsTrue",
+      "evidence": "assertEquals(Boolean.TRUE, result); // EUT-029: 创建时间在上线时间之后，返回true [/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/manager/srv/LogisticExchangeIdentifyManagerTest.java:240]",
+      "recommendation": "",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/manager/srv/LogisticExchangeIdentifyManagerTest.java",
+        "line_start": 240,
+        "class_name": "LogisticExchangeIdentifyManagerTest",
+        "method_name": "isLogisticExchangeEnabled_createTimeAfterEnableTime_returnsTrue",
+        "repo": "asp-aftersale-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/main/java/com/mi/maf/srv/manager/srv/LogisticExchangeIdentifyManager.java",
+        "line_start": 147,
+        "class_name": "LogisticExchangeIdentifyManager",
+        "method_name": "isLogisticExchangeEnabled",
+        "repo": "asp-aftersale-service"
+      }
+    },
+    {
+      "id": "AUDIT-030",
+      "eut_id": "EUT-030",
+      "bound_item": "BR-011",
+      "description": "工单创建时间<=enable_time时识别返回false",
+      "status": "COVERED",
+      "test_class": "LogisticExchangeIdentifyManagerTest",
+      "test_method": "isLogisticExchangeEnabled_createTimeBeforeOrEqualEnableTime_returnsFalse",
+      "evidence": "assertFalse(result); // 创建时间在上线时间之前，返回false [/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/manager/srv/LogisticExchangeIdentifyManagerTest.java:253]",
+      "recommendation": "",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/manager/srv/LogisticExchangeIdentifyManagerTest.java",
+        "line_start": 253,
+        "class_name": "LogisticExchangeIdentifyManagerTest",
+        "method_name": "isLogisticExchangeEnabled_createTimeBeforeOrEqualEnableTime_returnsFalse",
+        "repo": "asp-aftersale-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/main/java/com/mi/maf/srv/manager/srv/LogisticExchangeIdentifyManager.java",
+        "line_start": 147,
+        "class_name": "LogisticExchangeIdentifyManager",
+        "method_name": "isLogisticExchangeEnabled",
+        "repo": "asp-aftersale-service"
+      }
+    },
+    {
+      "id": "AUDIT-031",
+      "eut_id": "EUT-031",
+      "bound_item": "SE-006",
+      "description": "命中物流标识时ocExtendList含unified_replacement=2",
+      "status": "COVERED",
+      "test_class": "ExchangeOrderServiceTest",
+      "test_method": "assembleLogisticExchangeOrderParams_withApproval_containsUnifiedReplacement2",
+      "evidence": "assertEquals(\"2\", unifiedReplacement); // EUT-031: unified_replacement=2 [/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/service/srvorder/ExchangeOrderServiceTest.java:172]",
+      "recommendation": "",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/service/srvorder/ExchangeOrderServiceTest.java",
+        "line_start": 172,
+        "class_name": "ExchangeOrderServiceTest",
+        "method_name": "assembleLogisticExchangeOrderParams_withApproval_containsUnifiedReplacement2",
+        "repo": "asp-aftersale-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/main/java/com/mi/maf/srv/service/srvorder/ExchangeOrderService.java",
+        "line_start": 529,
+        "class_name": "ExchangeOrderService",
+        "method_name": "assembleLogisticExchangeOrderParams",
+        "repo": "asp-aftersale-service"
+      }
+    },
+    {
+      "id": "AUDIT-032",
+      "eut_id": "EUT-032",
+      "bound_item": "BR-007",
+      "description": "无特批记录时ocExtendList中special_approval_id=''",
+      "status": "COVERED",
+      "test_class": "ExchangeOrderServiceTest",
+      "test_method": "assembleLogisticExchangeOrderParams_noApproval_specialApprovalIdEmpty",
+      "evidence": "assertEquals(\"\", approvalIdValue); // EUT-014/032: 无特批时special_approval_id='' [/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/service/srvorder/ExchangeOrderServiceTest.java:210]",
+      "recommendation": "",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/service/srvorder/ExchangeOrderServiceTest.java",
+        "line_start": 210,
+        "class_name": "ExchangeOrderServiceTest",
+        "method_name": "assembleLogisticExchangeOrderParams_noApproval_specialApprovalIdEmpty",
+        "repo": "asp-aftersale-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/main/java/com/mi/maf/srv/service/srvorder/ExchangeOrderService.java",
+        "line_start": 529,
+        "class_name": "ExchangeOrderService",
+        "method_name": "assembleLogisticExchangeOrderParams",
+        "repo": "asp-aftersale-service"
+      }
+    },
+    {
+      "id": "AUDIT-033",
+      "eut_id": "EUT-033",
+      "bound_item": "REQ-001",
+      "description": "LogisticExchangeIdentifyParam.isValid() param=null时校验失败",
+      "status": "COVERED",
+      "test_class": "LogisticExchangeIdentifyManagerTest",
+      "test_method": "identify_paramNull_returnsFalse",
+      "evidence": "assertFalse(result); // null参数应快速失败返回false（同时覆盖LogisticExchangeIdentifyParam.isValid） [/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/manager/srv/LogisticExchangeIdentifyManagerTest.java:99]",
+      "recommendation": "",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/manager/srv/LogisticExchangeIdentifyManagerTest.java",
+        "line_start": 99,
+        "class_name": "LogisticExchangeIdentifyManagerTest",
+        "method_name": "identify_paramNull_returnsFalse",
+        "repo": "asp-aftersale-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/main/java/com/mi/maf/srv/manager/srv/dto/LogisticExchangeIdentifyParam.java",
+        "line_start": 50,
+        "class_name": "LogisticExchangeIdentifyParam",
+        "method_name": "isValid",
+        "repo": "asp-aftersale-service"
+      }
+    },
+    {
+      "id": "AUDIT-034",
+      "eut_id": "EUT-034",
+      "bound_item": "BR-003",
+      "description": "serviceItems为null时提前返回，不打标",
+      "status": "COVERED",
+      "test_class": "Cn3cCreateTagExtTest",
+      "test_method": "processLogisticExchangeTag_nullServiceItems_returnsEarly",
+      "evidence": "verify(srvServiceExtendManager, never()).save(eq(SERVICE_ID), eq(SrvTagEnum.LOGISTIC_EXCHANGE), anyString()); [/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/domain/acceptance/extension/Cn3cCreateTagExtTest.java:123]",
+      "recommendation": "",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/domain/acceptance/extension/Cn3cCreateTagExtTest.java",
+        "line_start": 123,
+        "class_name": "Cn3cCreateTagExtTest",
+        "method_name": "processLogisticExchangeTag_nullServiceItems_returnsEarly",
+        "repo": "asp-aftersale-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/main/java/com/mi/maf/srv/domain/acceptance/extension/Cn3cCreateTagExt.java",
+        "line_start": 193,
+        "class_name": "Cn3cCreateTagExt",
+        "method_name": "processLogisticExchangeTag",
+        "repo": "asp-aftersale-service"
+      }
+    },
+    {
+      "id": "AUDIT-035",
+      "eut_id": "EUT-035",
+      "bound_item": "REQ-003",
+      "description": "items为空时清除标签，不调用识别接口",
+      "status": "COVERED",
+      "test_class": "Cn3cProcessExtendTagExtTest",
+      "test_method": "reIdentify_emptyItems_deletesTag_noIdentify",
+      "evidence": "verify(srvServiceExtendManager).delete(SERVICE_ID, SrvTagEnum.LOGISTIC_EXCHANGE); [/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/domain/execution/extension/Cn3cProcessExtendTagExtTest.java:130]; verify(logisticExchangeIdentifyManager, never()).identifyByPrecheckAndFulfillment(any()); [/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/domain/execution/extension/Cn3cProcessExtendTagExtTest.java:131]",
+      "recommendation": "",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/domain/execution/extension/Cn3cProcessExtendTagExtTest.java",
+        "line_start": 130,
+        "class_name": "Cn3cProcessExtendTagExtTest",
+        "method_name": "reIdentify_emptyItems_deletesTag_noIdentify",
+        "repo": "asp-aftersale-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/main/java/com/mi/maf/srv/domain/execution/extension/Cn3cProcessExtendTagExt.java",
+        "line_start": 1,
+        "class_name": "Cn3cProcessExtendTagExt",
+        "method_name": "reIdentifyAndMarkLogisticExchange",
+        "repo": "asp-aftersale-service"
+      }
+    },
+    {
+      "id": "AUDIT-036",
+      "eut_id": "EUT-036",
+      "bound_item": "BR-009",
+      "description": "addExchangeOrderCancelProcess内部异常时不阻断主流程，不重复调用addOpProcess",
+      "status": "COVERED",
+      "test_class": "OrderCenterConsumerTest",
+      "test_method": "addExchangeOrderCancelProcess_exceptionInternally_doesNotPropagate",
+      "evidence": "verify(srvProcessService, never()).addOpProcess(anyString(), anyLong(), anyString(), anyString(), anyString(), any()); [/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/consumer/OrderCenterConsumerTest.java:136]",
+      "recommendation": "",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/consumer/OrderCenterConsumerTest.java",
+        "line_start": 136,
+        "class_name": "OrderCenterConsumerTest",
+        "method_name": "addExchangeOrderCancelProcess_exceptionInternally_doesNotPropagate",
+        "repo": "asp-aftersale-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/main/java/com/mi/maf/srv/consumer/OrderCenterConsumer.java",
+        "line_start": 1,
+        "class_name": "OrderCenterConsumer",
+        "method_name": "addExchangeOrderCancelProcess",
+        "repo": "asp-aftersale-service"
+      }
+    },
+    {
+      "id": "AUDIT-037",
+      "eut_id": "EUT-037",
+      "bound_item": "SE-006",
+      "description": "特批信息查询异常时主流程不崩溃",
+      "status": "PARTIAL",
+      "test_class": "ExchangeOrderServiceTest",
+      "test_method": "assembleLogisticExchangeOrderParams_approvalSearchThrows_doesNotThrow",
+      "evidence": "assertEquals(SERVICE_NO, srvService.getId()) [ExchangeOrderServiceTest.java:250]；注：assembleLogisticExchangeOrderParams本身没有try-catch，querySpecialApprovalByServiceNo内部有try-catch，异常时降级使用基础信息",
+      "recommendation": "建议加强断言：验证special_approval_id='' 当searchList抛异常时的降级行为",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/test/java/com/mi/maf/srv/service/srvorder/ExchangeOrderServiceTest.java",
+        "line_start": 250,
+        "class_name": "ExchangeOrderServiceTest",
+        "method_name": "assembleLogisticExchangeOrderParams_approvalSearchThrows_doesNotThrow",
+        "repo": "asp-aftersale-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service/maf-srv-service/src/main/java/com/mi/maf/srv/service/srvorder/ExchangeOrderService.java",
+        "line_start": 548,
+        "class_name": "ExchangeOrderService",
+        "method_name": "querySpecialApprovalByServiceNo",
+        "repo": "asp-aftersale-service"
+      }
+    }
+  ],
+  "findings": [
+    {
+      "id": "FINDING-001",
+      "severity": "WARNING",
+      "description": "EUT-037（特批查询异常降级）断言较弱。querySpecialApprovalByServiceNo 内有 try-catch 降级逻辑，但测试未断言降级后 special_approval_id='' 的具体结果。业务后果：若降级逻辑失效（如 catch 范围过窄），物流侧收不到正确的 special_approval_id 而失败。建议补充断言或升级为明确的降级验证。",
+      "recommendation": "在 assembleLogisticExchangeOrderParams_approvalSearchThrows_doesNotThrow 中添加：method.invoke(...) 后断言 ocExtendList 中 special_approval_id=''"
+    },
+    {
+      "id": "FINDING-002",
+      "severity": "INFO",
+      "description": "OPEN-001（拒收换流程）和 OPEN-002（SN再建单规则）两个 Q01 OPEN 项未在测试中覆盖。这是已知的 PRD 缺口，不影响当前功能上线，但需在后续版本补充对应 EUT。",
+      "recommendation": "待产品拍板 OPEN-001 和 OPEN-002 后，补充 Q05a EUT 并实现测试"
+    },
+    {
+      "id": "FINDING-003",
+      "severity": "INFO",
+      "description": "GAP-001（logistic_exchange_enable_time 上线配置）已通过 EUT-009 覆盖「未配置时默认false」的边界，但未覆盖「配置格式错误」的异常路径（isLogisticExchangeEnabled 中 enableTime=null 分支）。",
+      "recommendation": "可在 LogisticExchangeIdentifyManagerTest 中添加 enableTimeStr='invalid-format' 的测试用例"
+    },
+    {
+      "id": "FINDING-004",
+      "severity": "WARNING",
+      "description": "Q05b 使用 static-verify 而非真实 Maven 测试执行，原因是项目存在预存在编译错误（RoleService.getPermission API 已删除但调用方未更新）。这意味着测试代码逻辑的正确性未经运行时验证。建议研发在修复 API 不兼容问题后运行完整 Maven 测试。",
+      "recommendation": "修复 CommonSrvService.java、SrvCustomerUpdateService.java、TimeoutWarningService.java 中的 API 不兼容，然后运行 mvn test -Dtest='LogisticExchangeIdentifyManagerTest,ExchangeOrderServiceTest,...'"
+    }
+  ],
+  "coverage_gate": {
+    "incremental_line_coverage": null,
+    "incremental_branch_coverage": null,
+    "coverage_required": false,
+    "note": "coverage_required=false，无 JaCoCo 报告。增量覆盖率未测量。"
+  },
+  "conclusion": "PASS_WITH_RISKS"
+}

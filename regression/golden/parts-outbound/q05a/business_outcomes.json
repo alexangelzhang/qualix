@@ -1,0 +1,533 @@
+{
+  "project_id": "parts-outbound",
+  "outcomes": [
+    {
+      "outcome_id": "O-001",
+      "branch_id": "B-001",
+      "expected": "合法两位小数数量可进入后续保存",
+      "assertion_hint": "assertDoesNotThrow + verify 后续保存被调用",
+      "reader_label": "numDecimal 大于 0 且精度不超过两位时通过校验",
+      "business_risk": "若该分支缺测，可能导致小数配件数量、退款金额或价格拦截在对应入口失真。"
+    },
+    {
+      "outcome_id": "O-002",
+      "branch_id": "B-002",
+      "expected": "抛出 VALIDATE_ERROR，提示 numDecimal 必须大于0",
+      "assertion_hint": "assertThrows(BusinessException.class) + assertEquals(VALIDATE_ERROR)",
+      "reader_label": "numDecimal 小于等于 0 时拒绝",
+      "business_risk": "若该分支缺测，可能导致小数配件数量、退款金额或价格拦截在对应入口失真。"
+    },
+    {
+      "outcome_id": "O-003",
+      "branch_id": "B-003",
+      "expected": "抛出 VALIDATE_ERROR，提示精度不能超过2位",
+      "assertion_hint": "assertThrows(BusinessException.class) + message contains 精度不能超过2位",
+      "reader_label": "numDecimal 精度超过两位时拒绝",
+      "business_risk": "若该分支缺测，可能导致小数配件数量、退款金额或价格拦截在对应入口失真。"
+    },
+    {
+      "outcome_id": "O-004",
+      "branch_id": "B-004",
+      "expected": "合法小数出库配件进入报价/工单保存链路",
+      "assertion_hint": "assertDoesNotThrow + verify storage",
+      "reader_label": "支持小数且单价为整数元的配件允许添加",
+      "business_risk": "若该分支缺测，可能导致小数配件数量、退款金额或价格拦截在对应入口失真。"
+    },
+    {
+      "outcome_id": "O-005",
+      "branch_id": "B-005",
+      "expected": "不因缺少主数据 NPE，后续由上游缺货/主数据校验处理",
+      "assertion_hint": "assertDoesNotThrow + verify no exception",
+      "reader_label": "商品中台未返回 ssuInfo 时防御性跳过",
+      "business_risk": "若该分支缺测，可能导致小数配件数量、退款金额或价格拦截在对应入口失真。"
+    },
+    {
+      "outcome_id": "O-006",
+      "branch_id": "B-006",
+      "expected": "抛出 VALIDATE_ERROR，提示配件不支持小数数量",
+      "assertion_hint": "assertThrows + message contains 不支持小数数量",
+      "reader_label": "不支持小数的配件传入真小数数量时拒绝",
+      "business_risk": "若该分支缺测，可能导致小数配件数量、退款金额或价格拦截在对应入口失真。"
+    },
+    {
+      "outcome_id": "O-007",
+      "branch_id": "B-007",
+      "expected": "抛出 VALIDATE_ERROR，阻断小数价格配件进入工单",
+      "assertion_hint": "assertThrows + message contains 单价不是整数元",
+      "reader_label": "支持小数但单价不是整数元时拒绝添加",
+      "business_risk": "若该分支缺测，可能导致小数配件数量、退款金额或价格拦截在对应入口失真。"
+    },
+    {
+      "outcome_id": "O-008",
+      "branch_id": "B-008",
+      "expected": "报价单/工单详情可知道该配件是否支持小数",
+      "assertion_hint": "assertEquals(1, relation.getSupportDecimal())",
+      "reader_label": "详情组装时从配件主数据回填 supportDecimal",
+      "business_risk": "若该分支缺测，可能导致小数配件数量、退款金额或价格拦截在对应入口失真。"
+    },
+    {
+      "outcome_id": "O-009",
+      "branch_id": "B-009",
+      "expected": "空数据不 NPE，不污染展示结果",
+      "assertion_hint": "assertDoesNotThrow + assertTrue(relations unchanged/isEmpty)",
+      "reader_label": "relations 或 ssuInfoMap 为空时直接返回",
+      "business_risk": "若该分支缺测，可能导致小数配件数量、退款金额或价格拦截在对应入口失真。"
+    },
+    {
+      "outcome_id": "O-010",
+      "branch_id": "B-010",
+      "expected": "用户可在合法范围内提交退款",
+      "assertion_hint": "assertDoesNotThrow",
+      "reader_label": "退款数量小于等于可退数量时通过",
+      "business_risk": "若该分支缺测，可能导致小数配件数量、退款金额或价格拦截在对应入口失真。"
+    },
+    {
+      "outcome_id": "O-011",
+      "branch_id": "B-011",
+      "expected": "抛出 BUS_ERROR，防止超退库存和金额",
+      "assertion_hint": "assertThrows + message contains 退款数量超过可退数量",
+      "reader_label": "退款数量超过可退数量时拒绝",
+      "business_risk": "若该分支缺测，可能导致小数配件数量、退款金额或价格拦截在对应入口失真。"
+    },
+    {
+      "outcome_id": "O-012",
+      "branch_id": "B-012",
+      "expected": "只允许全额退款，不能产生 1.50 中退 1.00 的部分退款",
+      "assertion_hint": "assertThrows + message contains 只允许全额退款",
+      "reader_label": "支持小数且使用数量为真小数时部分退款被拒绝",
+      "business_risk": "若该分支缺测，可能导致小数配件数量、退款金额或价格拦截在对应入口失真。"
+    },
+    {
+      "outcome_id": "O-013",
+      "branch_id": "B-013",
+      "expected": "历史单据仍可退款，不因新规则卡死售后闭环",
+      "assertion_hint": "assertDoesNotThrow + verify log warn optional",
+      "reader_label": "历史脏数据单价非整数元只告警不阻塞退款",
+      "business_risk": "若该分支缺测，可能导致小数配件数量、退款金额或价格拦截在对应入口失真。"
+    },
+    {
+      "outcome_id": "O-014",
+      "branch_id": "B-014",
+      "expected": "全额退款金额精确等于 selfPayAmount，避免单价反推误差",
+      "assertion_hint": "assertEquals(selfPayAmount, amount.longValue())",
+      "reader_label": "支持小数且使用数量为真小数时直接返回可退总自付金额",
+      "business_risk": "若该分支缺测，可能导致小数配件数量、退款金额或价格拦截在对应入口失真。"
+    },
+    {
+      "outcome_id": "O-015",
+      "branch_id": "B-015",
+      "expected": "保留既有部分整数退款逻辑",
+      "assertion_hint": "assertEquals(refundNum * unitSelfPayAmount rounded, amount)",
+      "reader_label": "整数数量或非小数场景沿用 refundNum 乘 unitSelfPayAmount",
+      "business_risk": "若该分支缺测，可能导致小数配件数量、退款金额或价格拦截在对应入口失真。"
+    },
+    {
+      "outcome_id": "O-016",
+      "branch_id": "B-016",
+      "expected": "退款页面展示和提交能看到原始小数数量",
+      "assertion_hint": "assertEquals(new BigDecimal(\"1.50\"), dto.getPartList().get(0).getNumDecimal())",
+      "reader_label": "查询退款详情时保留 refundNumDecimal/numDecimal",
+      "business_risk": "若该分支缺测，可能导致小数配件数量、退款金额或价格拦截在对应入口失真。"
+    },
+    {
+      "outcome_id": "O-017",
+      "branch_id": "B-017",
+      "expected": "避免返回不完整退款详情误导用户",
+      "assertion_hint": "assertThrows(BusinessException.class) + message contains 无审批明细",
+      "reader_label": "退款单缺审批明细时抛业务异常",
+      "business_risk": "若该分支缺测，可能导致小数配件数量、退款金额或价格拦截在对应入口失真。"
+    },
+    {
+      "outcome_id": "O-018",
+      "branch_id": "B-018",
+      "expected": "历史单据仍按整数退款展示，不出现 null 展示异常",
+      "assertion_hint": "assertEquals(BigDecimal.valueOf(num), NumberUtil.getDecimalValue(...))",
+      "reader_label": "旧单据缺少 numDecimal 时回退整数数量",
+      "business_risk": "若该分支缺测，可能导致小数配件数量、退款金额或价格拦截在对应入口失真。"
+    },
+    {
+      "outcome_id": "O-019",
+      "branch_id": "B-019",
+      "expected": "提交退款审批时金额字段与后端计算结果一致",
+      "assertion_hint": "assertEquals(amountResult.getPartSumPrice().longValue(), refundBO.getPartRefundSumPrice())",
+      "reader_label": "组装退款 BO 时写入总退款金额、工时金额和配件金额",
+      "business_risk": "若该分支缺测，可能导致小数配件数量、退款金额或价格拦截在对应入口失真。"
+    },
+    {
+      "outcome_id": "O-020",
+      "branch_id": "B-020",
+      "expected": "兼容未启用小数的组套数据",
+      "assertion_hint": "assertDoesNotThrow",
+      "reader_label": "numDecimal 为 null 时跳过校验",
+      "business_risk": "若该分支缺测，可能导致小数配件数量、退款金额或价格拦截在对应入口失真。"
+    },
+    {
+      "outcome_id": "O-021",
+      "branch_id": "B-021",
+      "expected": "阻断非法数量进入组套",
+      "assertion_hint": "assertThrows + message contains 必须大于0",
+      "reader_label": "numDecimal 小于等于 0 时拒绝",
+      "business_risk": "若该分支缺测，可能导致小数配件数量、退款金额或价格拦截在对应入口失真。"
+    },
+    {
+      "outcome_id": "O-022",
+      "branch_id": "B-022",
+      "expected": "阻断超过两位小数进入组套",
+      "assertion_hint": "assertThrows + message contains 精度不能超过2位",
+      "reader_label": "numDecimal 精度超过两位时拒绝",
+      "business_risk": "若该分支缺测，可能导致小数配件数量、退款金额或价格拦截在对应入口失真。"
+    },
+    {
+      "outcome_id": "O-023",
+      "branch_id": "B-023",
+      "expected": "合法小数组套配件可保存",
+      "assertion_hint": "assertDoesNotThrow",
+      "reader_label": "numDecimal 为两位正数时通过",
+      "business_risk": "若该分支缺测，可能导致小数配件数量、退款金额或价格拦截在对应入口失真。"
+    },
+    {
+      "outcome_id": "O-024",
+      "branch_id": "B-024",
+      "expected": "服务项组套允许合法小数配件",
+      "assertion_hint": "assertDoesNotThrow + verify(goodsServiceGateway).pageCarMaintenanceSsu(...)",
+      "reader_label": "组套嵌套配件支持小数且单价整数元时通过",
+      "business_risk": "若该分支缺测，可能导致小数配件数量、退款金额或价格拦截在对应入口失真。"
+    },
+    {
+      "outcome_id": "O-025",
+      "branch_id": "B-025",
+      "expected": "组套不能绕过主数据小数标记",
+      "assertion_hint": "assertThrows + message contains 不支持小数数量",
+      "reader_label": "组套内不支持小数的配件传小数数量时拒绝",
+      "business_risk": "若该分支缺测，可能导致小数配件数量、退款金额或价格拦截在对应入口失真。"
+    },
+    {
+      "outcome_id": "O-026",
+      "branch_id": "B-026",
+      "expected": "组套不能添加小数价格配件",
+      "assertion_hint": "assertThrows + message contains 单价不是整数元",
+      "reader_label": "组套内支持小数但单价非整数元时拒绝",
+      "business_risk": "若该分支缺测，可能导致小数配件数量、退款金额或价格拦截在对应入口失真。"
+    },
+    {
+      "outcome_id": "O-027",
+      "branch_id": "B-027",
+      "expected": "空组套或纯工时组套不触发商品中台查询",
+      "assertion_hint": "assertDoesNotThrow + verify(goodsServiceGateway, never()).pageCarMaintenanceSsu(any())",
+      "reader_label": "组套没有配件 ssuId 时直接返回",
+      "business_risk": "若该分支缺测，可能导致小数配件数量、退款金额或价格拦截在对应入口失真。"
+    },
+    {
+      "outcome_id": "O-028",
+      "branch_id": "B-028",
+      "expected": "服务行动新建或草稿保存不会绕过小数校验",
+      "assertion_hint": "assertSame(expectedApplyClass, result.getClass()) + verify gateway",
+      "reader_label": "服务行动 SAVE/UPDATE 入口调用数量和价格校验后创建聚合",
+      "business_risk": "若该分支缺测，可能导致小数配件数量、退款金额或价格拦截在对应入口失真。"
+    },
+    {
+      "outcome_id": "O-029",
+      "branch_id": "B-029",
+      "expected": "服务行动不会以未知操作落库",
+      "assertion_hint": "assertThrows(BusinessException.class)",
+      "reader_label": "非法 actionType 或必填参数缺失时拒绝",
+      "business_risk": "若该分支缺测，可能导致小数配件数量、退款金额或价格拦截在对应入口失真。"
+    },
+    {
+      "outcome_id": "O-030",
+      "branch_id": "B-030",
+      "expected": "纯工时服务行动不因小数配件校验失败",
+      "assertion_hint": "assertDoesNotThrow",
+      "reader_label": "空配件列表时校验方法直接返回",
+      "business_risk": "若该分支缺测，可能导致小数配件数量、退款金额或价格拦截在对应入口失真。"
+    },
+    {
+      "outcome_id": "O-031",
+      "branch_id": "B-031",
+      "expected": "服务行动支持合法小数配件数量",
+      "assertion_hint": "assertDoesNotThrow",
+      "reader_label": "配件 ssuCountDecimal 为两位正数且主数据支持小数时通过",
+      "business_risk": "若该分支缺测，可能导致小数配件数量、退款金额或价格拦截在对应入口失真。"
+    },
+    {
+      "outcome_id": "O-032",
+      "branch_id": "B-032",
+      "expected": "空服务行动明细不触发误拦截",
+      "assertion_hint": "assertDoesNotThrow",
+      "reader_label": "ssuEntities 为空时直接返回",
+      "business_risk": "若该分支缺测，可能导致小数配件数量、退款金额或价格拦截在对应入口失真。"
+    },
+    {
+      "outcome_id": "O-033",
+      "branch_id": "B-033",
+      "expected": "阻断空数量配件进入服务行动",
+      "assertion_hint": "assertThrows + message contains 配件数量不能为空",
+      "reader_label": "配件数量 decimal 和 integer 都为空时拒绝",
+      "business_risk": "若该分支缺测，可能导致小数配件数量、退款金额或价格拦截在对应入口失真。"
+    },
+    {
+      "outcome_id": "O-034",
+      "branch_id": "B-034",
+      "expected": "阻断非正数量",
+      "assertion_hint": "assertThrows + message contains 必须大于0",
+      "reader_label": "配件小数数量小于等于 0 时拒绝",
+      "business_risk": "若该分支缺测，可能导致小数配件数量、退款金额或价格拦截在对应入口失真。"
+    },
+    {
+      "outcome_id": "O-035",
+      "branch_id": "B-035",
+      "expected": "阻断超过两位小数",
+      "assertion_hint": "assertThrows + message contains 精度不能超过2位",
+      "reader_label": "配件小数数量超过两位时拒绝",
+      "business_risk": "若该分支缺测，可能导致小数配件数量、退款金额或价格拦截在对应入口失真。"
+    },
+    {
+      "outcome_id": "O-036",
+      "branch_id": "B-036",
+      "expected": "服务行动不能绕过主数据小数标记",
+      "assertion_hint": "assertThrows + message contains 不支持小数数量",
+      "reader_label": "不支持小数的配件传真小数时拒绝",
+      "business_risk": "若该分支缺测，可能导致小数配件数量、退款金额或价格拦截在对应入口失真。"
+    },
+    {
+      "outcome_id": "O-037",
+      "branch_id": "B-037",
+      "expected": "服务行动可添加合法定价小数配件",
+      "assertion_hint": "assertDoesNotThrow",
+      "reader_label": "支持小数配件单价为整数元时通过",
+      "business_risk": "若该分支缺测，可能导致小数配件数量、退款金额或价格拦截在对应入口失真。"
+    },
+    {
+      "outcome_id": "O-038",
+      "branch_id": "B-038",
+      "expected": "不因空数据 NPE",
+      "assertion_hint": "assertDoesNotThrow",
+      "reader_label": "无 ssuId 或商品中台未返回时跳过",
+      "business_risk": "若该分支缺测，可能导致小数配件数量、退款金额或价格拦截在对应入口失真。"
+    },
+    {
+      "outcome_id": "O-039",
+      "branch_id": "B-039",
+      "expected": "阻断服务行动小数价格配件",
+      "assertion_hint": "assertThrows + message contains 单价必须为整数元",
+      "reader_label": "支持小数配件单价非整数元时拒绝",
+      "business_risk": "若该分支缺测，可能导致小数配件数量、退款金额或价格拦截在对应入口失真。"
+    },
+    {
+      "outcome_id": "O-040",
+      "branch_id": "B-040",
+      "expected": "前端候选列表不展示不可添加的小数价格配件",
+      "assertion_hint": "assertThat(resp.getMaintenanceSsuDto()).extracting(ssuId).doesNotContain(badSsuId)",
+      "reader_label": "查询服务行动配件时过滤支持小数但非整数元价格的配件",
+      "business_risk": "若该分支缺测，可能导致小数配件数量、退款金额或价格拦截在对应入口失真。"
+    },
+    {
+      "outcome_id": "O-041",
+      "branch_id": "B-041",
+      "expected": "无匹配配件时不继续查商品中台并返回 total=0",
+      "assertion_hint": "assertEquals(0L, resp.getTotal())",
+      "reader_label": "关键词搜索无结果时返回空分页",
+      "business_risk": "若该分支缺测，可能导致小数配件数量、退款金额或价格拦截在对应入口失真。"
+    },
+    {
+      "outcome_id": "O-042",
+      "branch_id": "B-042",
+      "expected": "服务行动关联配件列表不出现不可添加配件",
+      "assertion_hint": "assertThat(itemDetails).extracting(ssuId).doesNotContain(badSsuId)",
+      "reader_label": "查询工时关联配件时过滤支持小数但非整数元价格的配件",
+      "business_risk": "若该分支缺测，可能导致小数配件数量、退款金额或价格拦截在对应入口失真。"
+    },
+    {
+      "outcome_id": "O-043",
+      "branch_id": "B-043",
+      "expected": "避免空主商品继续组装导致错误服务行动",
+      "assertion_hint": "assertThrows(BusinessException.class) + message contains 暂无可用工时/配件",
+      "reader_label": "商品中台无可用工时/配件时抛业务异常",
+      "business_risk": "若该分支缺测，可能导致小数配件数量、退款金额或价格拦截在对应入口失真。"
+    },
+    {
+      "outcome_id": "O-044",
+      "branch_id": "B-044",
+      "expected": "无关联配件时页面仍可展示主工时",
+      "assertion_hint": "assertTrue(resp.getMaintenanceSsuDto().get(0).getItemDetails().isEmpty())",
+      "reader_label": "关联配件为空时返回主工时且 itemDetails 为空",
+      "business_risk": "若该分支缺测，可能导致小数配件数量、退款金额或价格拦截在对应入口失真。"
+    },
+    {
+      "outcome_id": "O-045",
+      "branch_id": "B-045",
+      "expected": "该配件会从服务行动候选列表过滤",
+      "assertion_hint": "assertTrue(invokeIsDecimalWithNonIntegerYuanPrice(ssu))",
+      "reader_label": "supportDecimal=1 且配件 marketPrice 非 100 整倍数时返回 true",
+      "business_risk": "若该分支缺测，可能导致小数配件数量、退款金额或价格拦截在对应入口失真。"
+    },
+    {
+      "outcome_id": "O-046",
+      "branch_id": "B-046",
+      "expected": "正常配件/工时不被误过滤",
+      "assertion_hint": "assertFalse(invokeIsDecimalWithNonIntegerYuanPrice(ssu))",
+      "reader_label": "非配件、非小数支持或价格为空时返回 false",
+      "business_risk": "若该分支缺测，可能导致小数配件数量、退款金额或价格拦截在对应入口失真。"
+    },
+    {
+      "outcome_id": "O-047",
+      "branch_id": "B-047",
+      "expected": "索赔/预授权和车辆档案相关页面展示不丢失小数数量",
+      "assertion_hint": "assertEquals(new BigDecimal(\"1.50\"), resp.getRows().get(0).getPartNumberDecimal())",
+      "reader_label": "配件维修/车辆档案列表把 item.numDecimal 映射为 partNumberDecimal",
+      "business_risk": "若该分支缺测，可能导致小数配件数量、退款金额或价格拦截在对应入口失真。"
+    },
+    {
+      "outcome_id": "O-048",
+      "branch_id": "B-048",
+      "expected": "列表查询业务失败时前端收到明确错误",
+      "assertion_hint": "assertEquals(errorCode, result.getCode())",
+      "reader_label": "领域服务抛 BusinessException 时返回 fail 原错误码和消息",
+      "business_risk": "若该分支缺测，可能导致小数配件数量、退款金额或价格拦截在对应入口失真。"
+    },
+    {
+      "outcome_id": "O-049",
+      "branch_id": "B-049",
+      "expected": "系统异常不暴露内部错误",
+      "assertion_hint": "assertEquals(GeneralCodes.ParamError, result.getCode())",
+      "reader_label": "未知异常时返回 ParamError 和稍后重试文案",
+      "business_risk": "若该分支缺测，可能导致小数配件数量、退款金额或价格拦截在对应入口失真。"
+    },
+    {
+      "outcome_id": "O-050",
+      "branch_id": "B-050",
+      "expected": "APP/索赔预授权关联详情展示保留小数数量",
+      "assertion_hint": "assertEquals(new BigDecimal(\"1.50\"), entity.getMrDetailInfo().getItems().get(0).getItemDetails().get(0).getNumDecimal())",
+      "reader_label": "端侧工单详情把工时和配件 numDecimal 透传到 SuperTicketNoDetailEntity",
+      "business_risk": "若该分支缺测，可能导致小数配件数量、退款金额或价格拦截在对应入口失真。"
+    },
+    {
+      "outcome_id": "O-051",
+      "branch_id": "B-051",
+      "expected": "非目标状态不改写详情，避免误展示",
+      "assertion_hint": "assertNull(entity.getMrDetailInfo())",
+      "reader_label": "工单状态不在支持详情补全范围时直接返回",
+      "business_risk": "若该分支缺测，可能导致小数配件数量、退款金额或价格拦截在对应入口失真。"
+    },
+    {
+      "outcome_id": "O-052",
+      "branch_id": "B-052",
+      "expected": "金额异常时阻断详情展示，避免错误金额上线",
+      "assertion_hint": "assertThrows(BusinessException.class)",
+      "reader_label": "结算金额关键字段为空或计算为负时抛 BusinessException",
+      "business_risk": "若该分支缺测，可能导致小数配件数量、退款金额或价格拦截在对应入口失真。"
+    },
+    {
+      "outcome_id": "O-053",
+      "branch_id": "B-053",
+      "expected": "异步输入场景下详情只组装一次，小数数量不因并发 future 丢失",
+      "assertion_hint": "ExecutorService + CountDownLatch + assertEquals(1, entity.getMrDetailInfo().getItems().size())",
+      "reader_label": "orgPhoneFuture 等 CompletableFuture 已完成时详情补全一次性完成且不重复写 items",
+      "business_risk": "若该分支缺测，可能导致小数配件数量、退款金额或价格拦截在对应入口失真。"
+    },
+    {
+      "outcome_id": "O-054",
+      "branch_id": "B-054",
+      "expected": "退款和展示统一使用小数数量",
+      "assertion_hint": "assertEquals(new BigDecimal(\"1.50\"), NumberUtil.getDecimalValue(...))",
+      "reader_label": "numDecimal 非空时优先返回 numDecimal",
+      "business_risk": "若该分支缺测，可能导致小数配件数量、退款金额或价格拦截在对应入口失真。"
+    },
+    {
+      "outcome_id": "O-055",
+      "branch_id": "B-055",
+      "expected": "历史整数单据不受小数字段影响",
+      "assertion_hint": "assertEquals(new BigDecimal(\"2\"), NumberUtil.getDecimalValue(null, 2))",
+      "reader_label": "numDecimal 为空时回退整数 num",
+      "business_risk": "若该分支缺测，可能导致小数配件数量、退款金额或价格拦截在对应入口失真。"
+    },
+    {
+      "outcome_id": "O-056",
+      "branch_id": "B-056",
+      "expected": "向旧 int 字段兼容时值正确",
+      "assertion_hint": "assertEquals(2, NumberUtil.toIntValue(new BigDecimal(\"2.00\")))",
+      "reader_label": "BigDecimal 可转换为 int 时返回整数",
+      "business_risk": "若该分支缺测，可能导致小数配件数量、退款金额或价格拦截在对应入口失真。"
+    },
+    {
+      "outcome_id": "O-057",
+      "branch_id": "B-057",
+      "expected": "历史空值不会触发 NPE",
+      "assertion_hint": "assertNull(NumberUtil.toIntValue(null))",
+      "reader_label": "BigDecimal 为 null 时返回 null",
+      "business_risk": "若该分支缺测，可能导致小数配件数量、退款金额或价格拦截在对应入口失真。"
+    },
+    {
+      "outcome_id": "O-058",
+      "branch_id": "B-058",
+      "expected": "ssuInfo 缺失时 return，不继续访问空对象",
+      "assertion_hint": "assertDoesNotThrow + verify no external write",
+      "reader_label": "ssuInfo 缺失时 return，不继续访问空对象",
+      "business_risk": "防御或边界分支缺测会导致空数据、历史数据或异常输入在小数配件链路中被误处理。"
+    },
+    {
+      "outcome_id": "O-059",
+      "branch_id": "B-059",
+      "expected": "numDecimal 为 null 时 return，兼容非小数老数据",
+      "assertion_hint": "assertDoesNotThrow + verify no external write",
+      "reader_label": "numDecimal 为 null 时 return，兼容非小数老数据",
+      "business_risk": "防御或边界分支缺测会导致空数据、历史数据或异常输入在小数配件链路中被误处理。"
+    },
+    {
+      "outcome_id": "O-060",
+      "branch_id": "B-060",
+      "expected": "请求为空或无配件 ssuId 时 return，不查询商品中台",
+      "assertion_hint": "assertDoesNotThrow + verify no external write",
+      "reader_label": "请求为空或无配件 ssuId 时 return，不查询商品中台",
+      "business_risk": "防御或边界分支缺测会导致空数据、历史数据或异常输入在小数配件链路中被误处理。"
+    },
+    {
+      "outcome_id": "O-061",
+      "branch_id": "B-061",
+      "expected": "ssuEntities 为空或非配件行 continue，不触发配件校验",
+      "assertion_hint": "assertDoesNotThrow + verify no external write",
+      "reader_label": "ssuEntities 为空或非配件行 continue，不触发配件校验",
+      "business_risk": "防御或边界分支缺测会导致空数据、历史数据或异常输入在小数配件链路中被误处理。"
+    },
+    {
+      "outcome_id": "O-062",
+      "branch_id": "B-062",
+      "expected": "ssuEntities 或 ssuId 为空时 return，不触发价格校验",
+      "assertion_hint": "assertDoesNotThrow + verify no external write",
+      "reader_label": "ssuEntities 或 ssuId 为空时 return，不触发价格校验",
+      "business_risk": "防御或边界分支缺测会导致空数据、历史数据或异常输入在小数配件链路中被误处理。"
+    },
+    {
+      "outcome_id": "O-063",
+      "branch_id": "B-063",
+      "expected": "非详情补全状态或 itemAndPayInfo 为空时 return，不写入错误详情",
+      "assertion_hint": "assertDoesNotThrow + verify no external write",
+      "reader_label": "非详情补全状态或 itemAndPayInfo 为空时 return，不写入错误详情",
+      "business_risk": "防御或边界分支缺测会导致空数据、历史数据或异常输入在小数配件链路中被误处理。"
+    },
+    {
+      "outcome_id": "O-064",
+      "branch_id": "B-064",
+      "expected": "空结果分页不丢 pageSize/pageIndex/totalRecords，rows 为空",
+      "assertion_hint": "assertEquals(pageSize) + assertTrue(rows == null || rows.isEmpty())",
+      "reader_label": "pageBo.rows 为空时返回分页元数据且 rows 为空",
+      "business_risk": "防御或边界分支缺测会导致空数据、历史数据或异常输入在小数配件链路中被误处理。"
+    },
+    {
+      "outcome_id": "O-065",
+      "branch_id": "B-065",
+      "expected": "空输入返回 false，不抛异常。",
+      "assertion_hint": "assertFalse(NumberUtil.isGreaterThanZero(null))",
+      "reader_label": "NumberUtil 空输入边界",
+      "business_risk": "历史空数量字段不能导致小数链路异常。"
+    },
+    {
+      "outcome_id": "O-066",
+      "branch_id": "B-066",
+      "expected": "非法数字字符串抛出异常，避免脏数量静默通过。",
+      "assertion_hint": "assertThrows(NumberFormatException.class)",
+      "reader_label": "NumberUtil 非法数字异常",
+      "business_risk": "脏数量不能被当作合法小数或整数处理。"
+    }
+  ]
+}

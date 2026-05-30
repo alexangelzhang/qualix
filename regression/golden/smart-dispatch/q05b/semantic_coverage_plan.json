@@ -1,0 +1,6317 @@
+{
+  "schema_version": "1.0",
+  "project_id": "smart-dispatch",
+  "artifact": "semantic_coverage_plan",
+  "gate": {
+    "line_threshold": 80.0,
+    "branch_threshold": 80.0,
+    "line_covered": 2128,
+    "line_total": 2293,
+    "line_coverage": 92.8,
+    "line_required": 1835,
+    "line_hard_deficit": 0,
+    "line_buffer_target": 1838,
+    "line_buffer_deficit": 0,
+    "branch_covered": 1031,
+    "branch_total": 1285,
+    "branch_coverage": 80.23,
+    "branch_required": 1028,
+    "branch_hard_deficit": 0,
+    "branch_buffer_target": 1036,
+    "branch_buffer_deficit": 5
+  },
+  "target_classes": [
+    {
+      "class_name": "EngineerSaturationCalculateFillStrategy",
+      "jacoco_name": "com/mi/asp/dispatch/domain/asign/strategy/fill/EngineerSaturationCalculateFillStrategy",
+      "line_covered": 268,
+      "line_total": 350,
+      "line_coverage": 76.57,
+      "line_required_for_threshold": 280,
+      "line_hard_deficit": 12,
+      "branch_covered": 137,
+      "branch_total": 266,
+      "branch_coverage": 51.5,
+      "branch_required_for_threshold": 213,
+      "branch_hard_deficit": 76,
+      "missed_branches": 129,
+      "missed_lines": 82,
+      "eut_ids": [
+        "EUT-057",
+        "EUT-058",
+        "EUT-059",
+        "EUT-060",
+        "EUT-061",
+        "EUT-062",
+        "EUT-063",
+        "EUT-064",
+        "EUT-065",
+        "EUT-066",
+        "EUT-067",
+        "EUT-068",
+        "EUT-069",
+        "EUT-070",
+        "EUT-071",
+        "EUT-072",
+        "EUT-073",
+        "EUT-074",
+        "EUT-075",
+        "EUT-076",
+        "EUT-077",
+        "EUT-078",
+        "EUT-079",
+        "EUT-080",
+        "EUT-081",
+        "EUT-082",
+        "EUT-083",
+        "EUT-084",
+        "EUT-085",
+        "EUT-086",
+        "EUT-087",
+        "EUT-088",
+        "EUT-089",
+        "EUT-090",
+        "EUT-091",
+        "EUT-092",
+        "EUT-093",
+        "EUT-094",
+        "EUT-095",
+        "EUT-096",
+        "EUT-097",
+        "EUT-098",
+        "EUT-099",
+        "EUT-100",
+        "EUT-101",
+        "EUT-102",
+        "EUT-103",
+        "EUT-104",
+        "EUT-105",
+        "EUT-106",
+        "EUT-107",
+        "EUT-108",
+        "EUT-109",
+        "EUT-110",
+        "EUT-111",
+        "EUT-112",
+        "EUT-113",
+        "EUT-114",
+        "EUT-115",
+        "EUT-116",
+        "EUT-117",
+        "EUT-118",
+        "EUT-119",
+        "EUT-120",
+        "EUT-121",
+        "EUT-122",
+        "EUT-123",
+        "EUT-124",
+        "EUT-125",
+        "EUT-126",
+        "EUT-557",
+        "EUT-602",
+        "EUT-603",
+        "EUT-604",
+        "EUT-605",
+        "EUT-606",
+        "EUT-607",
+        "EUT-608",
+        "EUT-609",
+        "EUT-612",
+        "EUT-613",
+        "EUT-614",
+        "EUT-615",
+        "EUT-634",
+        "EUT-635",
+        "EUT-636",
+        "EUT-637"
+      ],
+      "risk_t1": 42,
+      "route_types": {
+        "Happy Path": 42,
+        "Boundary": 39,
+        "Exception": 4,
+        "Concurrent": 2
+      },
+      "methods": {
+        "doApply": [
+          "EUT-057",
+          "EUT-058",
+          "EUT-059",
+          "EUT-060",
+          "EUT-061",
+          "EUT-062",
+          "EUT-063",
+          "EUT-064",
+          "EUT-065",
+          "EUT-066",
+          "EUT-557",
+          "EUT-602",
+          "EUT-603",
+          "EUT-604",
+          "EUT-605",
+          "EUT-606",
+          "EUT-607",
+          "EUT-608",
+          "EUT-609",
+          "EUT-612",
+          "EUT-613",
+          "EUT-614",
+          "EUT-615",
+          "EUT-634",
+          "EUT-635",
+          "EUT-636",
+          "EUT-637"
+        ],
+        "fillSingleCandidateSaturation": [
+          "EUT-067",
+          "EUT-068",
+          "EUT-069"
+        ],
+        "queryEngineerUnfinishedStats": [
+          "EUT-070",
+          "EUT-071",
+          "EUT-072",
+          "EUT-073",
+          "EUT-074",
+          "EUT-075",
+          "EUT-076"
+        ],
+        "buildEngineerUnfinishedStats": [
+          "EUT-077",
+          "EUT-078"
+        ],
+        "selectTodayTasksForSaturation": [
+          "EUT-079",
+          "EUT-080"
+        ],
+        "isSameDay": [
+          "EUT-081",
+          "EUT-082"
+        ],
+        "normalizeTimestamp": [
+          "EUT-083",
+          "EUT-084"
+        ],
+        "resolveCategoryId": [
+          "EUT-085",
+          "EUT-086"
+        ],
+        "calculateSaturation": [
+          "EUT-087",
+          "EUT-088",
+          "EUT-089",
+          "EUT-090",
+          "EUT-091",
+          "EUT-092",
+          "EUT-093",
+          "EUT-094"
+        ],
+        "calculateSingleCategorySaturation": [
+          "EUT-095",
+          "EUT-096"
+        ],
+        "calculateMultiCategorySaturation": [
+          "EUT-097",
+          "EUT-098"
+        ],
+        "normalizeDisplaySaturation": [
+          "EUT-099",
+          "EUT-100"
+        ],
+        "ratio": [
+          "EUT-101"
+        ],
+        "normalizeCounterMap": [
+          "EUT-102",
+          "EUT-103"
+        ],
+        "resolveOrderLimit": [
+          "EUT-104",
+          "EUT-105"
+        ],
+        "selectRegionConfigList": [
+          "EUT-106",
+          "EUT-107"
+        ],
+        "queryActiveConfigList": [
+          "EUT-108",
+          "EUT-109"
+        ],
+        "resolveLimitByRules": [
+          "EUT-110",
+          "EUT-111"
+        ],
+        "enablePeakSeason": [
+          "EUT-112",
+          "EUT-113"
+        ],
+        "isInPeakSeason": [
+          "EUT-114",
+          "EUT-115"
+        ],
+        "resolveEngineerLevel": [
+          "EUT-116",
+          "EUT-117"
+        ],
+        "normalizePositive": [
+          "EUT-118",
+          "EUT-119"
+        ],
+        "hasValidId": [
+          "EUT-120",
+          "EUT-121"
+        ],
+        "getBasicInfoMap": [
+          "EUT-122",
+          "EUT-123"
+        ],
+        "resolveAppointDay": [
+          "EUT-124",
+          "EUT-125",
+          "EUT-126"
+        ]
+      },
+      "branch_ids": [
+        "B-057",
+        "B-058",
+        "B-059",
+        "B-060",
+        "B-061",
+        "B-062",
+        "B-063",
+        "B-064",
+        "B-065",
+        "B-066",
+        "B-067",
+        "B-068",
+        "B-069",
+        "B-070",
+        "B-071",
+        "B-072",
+        "B-073",
+        "B-074",
+        "B-075",
+        "B-076",
+        "B-077",
+        "B-078",
+        "B-079",
+        "B-080",
+        "B-081",
+        "B-082",
+        "B-083",
+        "B-084",
+        "B-085",
+        "B-086",
+        "B-087",
+        "B-088",
+        "B-089",
+        "B-090",
+        "B-091",
+        "B-092",
+        "B-093",
+        "B-094",
+        "B-095",
+        "B-096",
+        "B-097",
+        "B-098",
+        "B-099",
+        "B-100",
+        "B-101",
+        "B-102",
+        "B-103",
+        "B-104",
+        "B-105",
+        "B-106",
+        "B-107",
+        "B-108",
+        "B-109",
+        "B-110",
+        "B-111",
+        "B-112",
+        "B-113",
+        "B-114",
+        "B-115",
+        "B-116",
+        "B-117",
+        "B-118",
+        "B-119",
+        "B-120",
+        "B-121",
+        "B-122",
+        "B-123",
+        "B-124",
+        "B-125",
+        "B-126"
+      ],
+      "outcome_ids": [
+        "O-057",
+        "O-058",
+        "O-059",
+        "O-060",
+        "O-061",
+        "O-062",
+        "O-063",
+        "O-064",
+        "O-065",
+        "O-066",
+        "O-067",
+        "O-068",
+        "O-069",
+        "O-070",
+        "O-071",
+        "O-072",
+        "O-073",
+        "O-074",
+        "O-075",
+        "O-076",
+        "O-077",
+        "O-078",
+        "O-079",
+        "O-080",
+        "O-081",
+        "O-082",
+        "O-083",
+        "O-084",
+        "O-085",
+        "O-086",
+        "O-087",
+        "O-088",
+        "O-089",
+        "O-090",
+        "O-091",
+        "O-092",
+        "O-093",
+        "O-094",
+        "O-095",
+        "O-096",
+        "O-097",
+        "O-098",
+        "O-099",
+        "O-100",
+        "O-101",
+        "O-102",
+        "O-103",
+        "O-104",
+        "O-105",
+        "O-106",
+        "O-107",
+        "O-108",
+        "O-109",
+        "O-110",
+        "O-111",
+        "O-112",
+        "O-113",
+        "O-114",
+        "O-115",
+        "O-116",
+        "O-117",
+        "O-118",
+        "O-119",
+        "O-120",
+        "O-121",
+        "O-122",
+        "O-123",
+        "O-124",
+        "O-125",
+        "O-126"
+      ],
+      "hotspots": [],
+      "priority_score": 8301
+    },
+    {
+      "class_name": "WorkloadConfigServiceImpl",
+      "jacoco_name": "com/mi/asp/dispatch/domain/config/service/impl/WorkloadConfigServiceImpl",
+      "line_covered": 765,
+      "line_total": 774,
+      "line_coverage": 98.84,
+      "line_required_for_threshold": 620,
+      "line_hard_deficit": 0,
+      "branch_covered": 366,
+      "branch_total": 390,
+      "branch_coverage": 93.85,
+      "branch_required_for_threshold": 312,
+      "branch_hard_deficit": 0,
+      "missed_branches": 24,
+      "missed_lines": 9,
+      "eut_ids": [
+        "EUT-216",
+        "EUT-217",
+        "EUT-218",
+        "EUT-219",
+        "EUT-220",
+        "EUT-221",
+        "EUT-222",
+        "EUT-223",
+        "EUT-224",
+        "EUT-225",
+        "EUT-226",
+        "EUT-227",
+        "EUT-228",
+        "EUT-229",
+        "EUT-230",
+        "EUT-231",
+        "EUT-232",
+        "EUT-233",
+        "EUT-234",
+        "EUT-235",
+        "EUT-236",
+        "EUT-237",
+        "EUT-238",
+        "EUT-239",
+        "EUT-240",
+        "EUT-241",
+        "EUT-242",
+        "EUT-243",
+        "EUT-244",
+        "EUT-245",
+        "EUT-246",
+        "EUT-247",
+        "EUT-248",
+        "EUT-249",
+        "EUT-250",
+        "EUT-251",
+        "EUT-252",
+        "EUT-253",
+        "EUT-254",
+        "EUT-255",
+        "EUT-256",
+        "EUT-257",
+        "EUT-258",
+        "EUT-259",
+        "EUT-260",
+        "EUT-261",
+        "EUT-262",
+        "EUT-263",
+        "EUT-264",
+        "EUT-265",
+        "EUT-266",
+        "EUT-267",
+        "EUT-268",
+        "EUT-269",
+        "EUT-270",
+        "EUT-271",
+        "EUT-272",
+        "EUT-273",
+        "EUT-274",
+        "EUT-275",
+        "EUT-276",
+        "EUT-277",
+        "EUT-278",
+        "EUT-279",
+        "EUT-280",
+        "EUT-281",
+        "EUT-282",
+        "EUT-283",
+        "EUT-284",
+        "EUT-285",
+        "EUT-286",
+        "EUT-287",
+        "EUT-288",
+        "EUT-289",
+        "EUT-290",
+        "EUT-291",
+        "EUT-292",
+        "EUT-293",
+        "EUT-294",
+        "EUT-295",
+        "EUT-296",
+        "EUT-297",
+        "EUT-298",
+        "EUT-299",
+        "EUT-300",
+        "EUT-301",
+        "EUT-302",
+        "EUT-303",
+        "EUT-304",
+        "EUT-305",
+        "EUT-306",
+        "EUT-307",
+        "EUT-308",
+        "EUT-309",
+        "EUT-310",
+        "EUT-311",
+        "EUT-312",
+        "EUT-313",
+        "EUT-314",
+        "EUT-315",
+        "EUT-316",
+        "EUT-317",
+        "EUT-318",
+        "EUT-319",
+        "EUT-320",
+        "EUT-321",
+        "EUT-322",
+        "EUT-323",
+        "EUT-324",
+        "EUT-325",
+        "EUT-326",
+        "EUT-327",
+        "EUT-328",
+        "EUT-329",
+        "EUT-330",
+        "EUT-331",
+        "EUT-332",
+        "EUT-333",
+        "EUT-334",
+        "EUT-335",
+        "EUT-336",
+        "EUT-337",
+        "EUT-338",
+        "EUT-339",
+        "EUT-340",
+        "EUT-341",
+        "EUT-342",
+        "EUT-343",
+        "EUT-344",
+        "EUT-345",
+        "EUT-346",
+        "EUT-347",
+        "EUT-556",
+        "EUT-590",
+        "EUT-591",
+        "EUT-592",
+        "EUT-593",
+        "EUT-594",
+        "EUT-595",
+        "EUT-596",
+        "EUT-597",
+        "EUT-598",
+        "EUT-599",
+        "EUT-600",
+        "EUT-601",
+        "EUT-631",
+        "EUT-632",
+        "EUT-633"
+      ],
+      "risk_t1": 87,
+      "route_types": {
+        "Happy Path": 53,
+        "Boundary": 57,
+        "Exception": 38
+      },
+      "methods": {
+        "queryList": [
+          "EUT-216",
+          "EUT-217"
+        ],
+        "addConfig": [
+          "EUT-218",
+          "EUT-219",
+          "EUT-220",
+          "EUT-556",
+          "EUT-590",
+          "EUT-591",
+          "EUT-592",
+          "EUT-593",
+          "EUT-594",
+          "EUT-595",
+          "EUT-596",
+          "EUT-597",
+          "EUT-598"
+        ],
+        "updateConfig": [
+          "EUT-221",
+          "EUT-222",
+          "EUT-223"
+        ],
+        "importFromExcel": [
+          "EUT-224",
+          "EUT-225",
+          "EUT-226",
+          "EUT-227",
+          "EUT-228",
+          "EUT-229",
+          "EUT-230",
+          "EUT-231",
+          "EUT-599",
+          "EUT-600",
+          "EUT-601",
+          "EUT-633"
+        ],
+        "moveDuplicateImportRowsToFailList": [
+          "EUT-232",
+          "EUT-233",
+          "EUT-234"
+        ],
+        "classifyRowsIntoCreateAndUpdate": [
+          "EUT-235",
+          "EUT-236",
+          "EUT-237"
+        ],
+        "validateImportRow": [
+          "EUT-238",
+          "EUT-239",
+          "EUT-240",
+          "EUT-241",
+          "EUT-242",
+          "EUT-243",
+          "EUT-244",
+          "EUT-245",
+          "EUT-246",
+          "EUT-247",
+          "EUT-248",
+          "EUT-249",
+          "EUT-250",
+          "EUT-251",
+          "EUT-252",
+          "EUT-253",
+          "EUT-254",
+          "EUT-255",
+          "EUT-256",
+          "EUT-257",
+          "EUT-258",
+          "EUT-259"
+        ],
+        "getOrResolveRegionId": [
+          "EUT-260",
+          "EUT-261"
+        ],
+        "parseStatus": [
+          "EUT-262",
+          "EUT-263"
+        ],
+        "formatRawExcelValue": [
+          "EUT-264",
+          "EUT-265"
+        ],
+        "generateAndUploadFailReport": [
+          "EUT-266",
+          "EUT-267",
+          "EUT-268"
+        ],
+        "queryLogList": [
+          "EUT-269",
+          "EUT-270",
+          "EUT-271"
+        ],
+        "collectIdsFromJson": [
+          "EUT-272",
+          "EUT-273",
+          "EUT-274",
+          "EUT-275",
+          "EUT-276",
+          "EUT-277",
+          "EUT-278",
+          "EUT-279",
+          "EUT-280",
+          "EUT-281",
+          "EUT-282",
+          "EUT-283",
+          "EUT-284"
+        ],
+        "enrichJsonWithNames": [
+          "EUT-285",
+          "EUT-286",
+          "EUT-287",
+          "EUT-288",
+          "EUT-289",
+          "EUT-290",
+          "EUT-291",
+          "EUT-292",
+          "EUT-293",
+          "EUT-294",
+          "EUT-295",
+          "EUT-296",
+          "EUT-297",
+          "EUT-298",
+          "EUT-299",
+          "EUT-300",
+          "EUT-301",
+          "EUT-302",
+          "EUT-303",
+          "EUT-304",
+          "EUT-305",
+          "EUT-306",
+          "EUT-307"
+        ],
+        "getCategoryNameMap": [
+          "EUT-308",
+          "EUT-309"
+        ],
+        "getEngineerLevelNameMap": [
+          "EUT-310",
+          "EUT-311"
+        ],
+        "matchConfig": [
+          "EUT-312",
+          "EUT-313",
+          "EUT-314",
+          "EUT-315",
+          "EUT-316",
+          "EUT-317",
+          "EUT-318",
+          "EUT-319",
+          "EUT-320",
+          "EUT-631",
+          "EUT-632"
+        ],
+        "getAvailableCategories": [
+          "EUT-321",
+          "EUT-322"
+        ],
+        "validateCreateModel": [
+          "EUT-323",
+          "EUT-324",
+          "EUT-325"
+        ],
+        "fillCategoryNames": [
+          "EUT-326",
+          "EUT-327",
+          "EUT-328"
+        ],
+        "fillRegionNames": [
+          "EUT-329",
+          "EUT-330",
+          "EUT-331"
+        ],
+        "batchGetRegionNames": [
+          "EUT-332",
+          "EUT-333"
+        ],
+        "fillCreatorNames": [
+          "EUT-334",
+          "EUT-335",
+          "EUT-336",
+          "EUT-337",
+          "EUT-338",
+          "EUT-339"
+        ],
+        "saveConfigLog": [
+          "EUT-340",
+          "EUT-341"
+        ],
+        "resolvePersistedConfigForLog": [
+          "EUT-342",
+          "EUT-343",
+          "EUT-344"
+        ],
+        "buildMatchResult": [
+          "EUT-345",
+          "EUT-346",
+          "EUT-347"
+        ]
+      },
+      "branch_ids": [
+        "B-216",
+        "B-217",
+        "B-218",
+        "B-219",
+        "B-220",
+        "B-221",
+        "B-222",
+        "B-223",
+        "B-224",
+        "B-225",
+        "B-226",
+        "B-227",
+        "B-228",
+        "B-229",
+        "B-230",
+        "B-231",
+        "B-232",
+        "B-233",
+        "B-234",
+        "B-235",
+        "B-236",
+        "B-237",
+        "B-238",
+        "B-239",
+        "B-240",
+        "B-241",
+        "B-242",
+        "B-243",
+        "B-244",
+        "B-245",
+        "B-246",
+        "B-247",
+        "B-248",
+        "B-249",
+        "B-250",
+        "B-251",
+        "B-252",
+        "B-253",
+        "B-254",
+        "B-255",
+        "B-256",
+        "B-257",
+        "B-258",
+        "B-259",
+        "B-260",
+        "B-261",
+        "B-262",
+        "B-263",
+        "B-264",
+        "B-265",
+        "B-266",
+        "B-267",
+        "B-268",
+        "B-269",
+        "B-270",
+        "B-271",
+        "B-272",
+        "B-273",
+        "B-274",
+        "B-275",
+        "B-276",
+        "B-277",
+        "B-278",
+        "B-279",
+        "B-280",
+        "B-281",
+        "B-282",
+        "B-283",
+        "B-284",
+        "B-285",
+        "B-286",
+        "B-287",
+        "B-288",
+        "B-289",
+        "B-290",
+        "B-291",
+        "B-292",
+        "B-293",
+        "B-294",
+        "B-295",
+        "B-296",
+        "B-297",
+        "B-298",
+        "B-299",
+        "B-300",
+        "B-301",
+        "B-302",
+        "B-303",
+        "B-304",
+        "B-305",
+        "B-306",
+        "B-307",
+        "B-308",
+        "B-309",
+        "B-310",
+        "B-311",
+        "B-312",
+        "B-313",
+        "B-314",
+        "B-315",
+        "B-316",
+        "B-317",
+        "B-318",
+        "B-319",
+        "B-320",
+        "B-321",
+        "B-322",
+        "B-323",
+        "B-324",
+        "B-325",
+        "B-326",
+        "B-327",
+        "B-328",
+        "B-329",
+        "B-330",
+        "B-331",
+        "B-332",
+        "B-333",
+        "B-334",
+        "B-335",
+        "B-336",
+        "B-337",
+        "B-338",
+        "B-339",
+        "B-340",
+        "B-341",
+        "B-342",
+        "B-343",
+        "B-344",
+        "B-345",
+        "B-346",
+        "B-347"
+      ],
+      "outcome_ids": [
+        "O-216",
+        "O-217",
+        "O-218",
+        "O-219",
+        "O-220",
+        "O-221",
+        "O-222",
+        "O-223",
+        "O-224",
+        "O-225",
+        "O-226",
+        "O-227",
+        "O-228",
+        "O-229",
+        "O-230",
+        "O-231",
+        "O-232",
+        "O-233",
+        "O-234",
+        "O-235",
+        "O-236",
+        "O-237",
+        "O-238",
+        "O-239",
+        "O-240",
+        "O-241",
+        "O-242",
+        "O-243",
+        "O-244",
+        "O-245",
+        "O-246",
+        "O-247",
+        "O-248",
+        "O-249",
+        "O-250",
+        "O-251",
+        "O-252",
+        "O-253",
+        "O-254",
+        "O-255",
+        "O-256",
+        "O-257",
+        "O-258",
+        "O-259",
+        "O-260",
+        "O-261",
+        "O-262",
+        "O-263",
+        "O-264",
+        "O-265",
+        "O-266",
+        "O-267",
+        "O-268",
+        "O-269",
+        "O-270",
+        "O-271",
+        "O-272",
+        "O-273",
+        "O-274",
+        "O-275",
+        "O-276",
+        "O-277",
+        "O-278",
+        "O-279",
+        "O-280",
+        "O-281",
+        "O-282",
+        "O-283",
+        "O-284",
+        "O-285",
+        "O-286",
+        "O-287",
+        "O-288",
+        "O-289",
+        "O-290",
+        "O-291",
+        "O-292",
+        "O-293",
+        "O-294",
+        "O-295",
+        "O-296",
+        "O-297",
+        "O-298",
+        "O-299",
+        "O-300",
+        "O-301",
+        "O-302",
+        "O-303",
+        "O-304",
+        "O-305",
+        "O-306",
+        "O-307",
+        "O-308",
+        "O-309",
+        "O-310",
+        "O-311",
+        "O-312",
+        "O-313",
+        "O-314",
+        "O-315",
+        "O-316",
+        "O-317",
+        "O-318",
+        "O-319",
+        "O-320",
+        "O-321",
+        "O-322",
+        "O-323",
+        "O-324",
+        "O-325",
+        "O-326",
+        "O-327",
+        "O-328",
+        "O-329",
+        "O-330",
+        "O-331",
+        "O-332",
+        "O-333",
+        "O-334",
+        "O-335",
+        "O-336",
+        "O-337",
+        "O-338",
+        "O-339",
+        "O-340",
+        "O-341",
+        "O-342",
+        "O-343",
+        "O-344",
+        "O-345",
+        "O-346",
+        "O-347"
+      ],
+      "hotspots": [],
+      "priority_score": 475
+    },
+    {
+      "class_name": "EngineerBasicInfoFilterStrategy",
+      "jacoco_name": "com/mi/asp/dispatch/domain/asign/strategy/filter/EngineerBasicInfoFilterStrategy",
+      "line_covered": 21,
+      "line_total": 23,
+      "line_coverage": 91.3,
+      "line_required_for_threshold": 19,
+      "line_hard_deficit": 0,
+      "branch_covered": 14,
+      "branch_total": 22,
+      "branch_coverage": 63.64,
+      "branch_required_for_threshold": 18,
+      "branch_hard_deficit": 4,
+      "missed_branches": 8,
+      "missed_lines": 2,
+      "eut_ids": [
+        "EUT-132",
+        "EUT-133",
+        "EUT-134",
+        "EUT-135",
+        "EUT-136",
+        "EUT-137",
+        "EUT-138"
+      ],
+      "risk_t1": 4,
+      "route_types": {
+        "Happy Path": 3,
+        "Boundary": 3,
+        "Exception": 1
+      },
+      "methods": {
+        "doApply": [
+          "EUT-132",
+          "EUT-133"
+        ],
+        "fillBasicInfo": [
+          "EUT-134",
+          "EUT-135",
+          "EUT-136"
+        ],
+        "getBasicInfoMap": [
+          "EUT-137",
+          "EUT-138"
+        ]
+      },
+      "branch_ids": [
+        "B-132",
+        "B-133",
+        "B-134",
+        "B-135",
+        "B-136",
+        "B-137",
+        "B-138"
+      ],
+      "outcome_ids": [
+        "O-132",
+        "O-133",
+        "O-134",
+        "O-135",
+        "O-136",
+        "O-137",
+        "O-138"
+      ],
+      "hotspots": [],
+      "priority_score": 428
+    },
+    {
+      "class_name": "DispatchRecommendDomainServiceImpl",
+      "jacoco_name": "com/mi/asp/dispatch/domain/asign/service/impl/DispatchRecommendDomainServiceImpl",
+      "line_covered": 49,
+      "line_total": 56,
+      "line_coverage": 87.5,
+      "line_required_for_threshold": 45,
+      "line_hard_deficit": 0,
+      "branch_covered": 23,
+      "branch_total": 32,
+      "branch_coverage": 71.88,
+      "branch_required_for_threshold": 26,
+      "branch_hard_deficit": 3,
+      "missed_branches": 9,
+      "missed_lines": 7,
+      "eut_ids": [
+        "EUT-037",
+        "EUT-038",
+        "EUT-039",
+        "EUT-040",
+        "EUT-041",
+        "EUT-042",
+        "EUT-043",
+        "EUT-044",
+        "EUT-045",
+        "EUT-046",
+        "EUT-047",
+        "EUT-048",
+        "EUT-049",
+        "EUT-050",
+        "EUT-051",
+        "EUT-052",
+        "EUT-053",
+        "EUT-554",
+        "EUT-560",
+        "EUT-580",
+        "EUT-581",
+        "EUT-616"
+      ],
+      "risk_t1": 12,
+      "route_types": {
+        "Happy Path": 8,
+        "Boundary": 6,
+        "Exception": 8
+      },
+      "methods": {
+        "recommendBestEngineer": [
+          "EUT-037",
+          "EUT-038",
+          "EUT-039",
+          "EUT-554",
+          "EUT-560",
+          "EUT-580",
+          "EUT-581",
+          "EUT-616"
+        ],
+        "queryCandidateEngineers": [
+          "EUT-040",
+          "EUT-041"
+        ],
+        "resolveFailReason": [
+          "EUT-042",
+          "EUT-043"
+        ],
+        "buildReason": [
+          "EUT-044",
+          "EUT-045"
+        ],
+        "setFailReason": [
+          "EUT-046",
+          "EUT-047",
+          "EUT-048"
+        ],
+        "setFailReasonIfAbsent": [
+          "EUT-049",
+          "EUT-050",
+          "EUT-051"
+        ],
+        "buildSuccessResult": [
+          "EUT-052",
+          "EUT-053"
+        ]
+      },
+      "branch_ids": [
+        "B-037",
+        "B-038",
+        "B-039",
+        "B-040",
+        "B-041",
+        "B-042",
+        "B-043",
+        "B-044",
+        "B-045",
+        "B-046",
+        "B-047",
+        "B-048",
+        "B-049",
+        "B-050",
+        "B-051",
+        "B-052",
+        "B-053"
+      ],
+      "outcome_ids": [
+        "O-037",
+        "O-038",
+        "O-039",
+        "O-040",
+        "O-041",
+        "O-042",
+        "O-043",
+        "O-044",
+        "O-045",
+        "O-046",
+        "O-047",
+        "O-048",
+        "O-049",
+        "O-050",
+        "O-051",
+        "O-052",
+        "O-053"
+      ],
+      "hotspots": [],
+      "priority_score": 373
+    },
+    {
+      "class_name": "DispatchCandidateGatewayImpl",
+      "jacoco_name": "com/mi/asp/dispatch/infrastructure/asign/gateway/DispatchCandidateGatewayImpl",
+      "line_covered": 46,
+      "line_total": 53,
+      "line_coverage": 86.79,
+      "line_required_for_threshold": 43,
+      "line_hard_deficit": 0,
+      "branch_covered": 13,
+      "branch_total": 20,
+      "branch_coverage": 65.0,
+      "branch_required_for_threshold": 16,
+      "branch_hard_deficit": 3,
+      "missed_branches": 7,
+      "missed_lines": 7,
+      "eut_ids": [
+        "EUT-360",
+        "EUT-361",
+        "EUT-362",
+        "EUT-363",
+        "EUT-364",
+        "EUT-365",
+        "EUT-366",
+        "EUT-367",
+        "EUT-562",
+        "EUT-563",
+        "EUT-564",
+        "EUT-565",
+        "EUT-566",
+        "EUT-567",
+        "EUT-618",
+        "EUT-619",
+        "EUT-627",
+        "EUT-628",
+        "EUT-638"
+      ],
+      "risk_t1": 9,
+      "route_types": {
+        "Happy Path": 7,
+        "Boundary": 5,
+        "Exception": 7
+      },
+      "methods": {
+        "queryCandidates": [
+          "EUT-360",
+          "EUT-361",
+          "EUT-562",
+          "EUT-563",
+          "EUT-564",
+          "EUT-565",
+          "EUT-566",
+          "EUT-567",
+          "EUT-618",
+          "EUT-619",
+          "EUT-627",
+          "EUT-628",
+          "EUT-638"
+        ],
+        "queryCandidatesByMapDistance": [
+          "EUT-362",
+          "EUT-363",
+          "EUT-364"
+        ],
+        "markFailReason": [
+          "EUT-365",
+          "EUT-366",
+          "EUT-367"
+        ]
+      },
+      "branch_ids": [
+        "B-360",
+        "B-361",
+        "B-362",
+        "B-363",
+        "B-364",
+        "B-365",
+        "B-366",
+        "B-367"
+      ],
+      "outcome_ids": [
+        "O-360",
+        "O-361",
+        "O-362",
+        "O-363",
+        "O-364",
+        "O-365",
+        "O-366",
+        "O-367"
+      ],
+      "hotspots": [],
+      "priority_score": 358
+    },
+    {
+      "class_name": "RegionGatewayImpl",
+      "jacoco_name": "com/mi/asp/dispatch/infrastructure/region/gateway/RegionGatewayImpl",
+      "line_covered": 67,
+      "line_total": 81,
+      "line_coverage": 82.72,
+      "line_required_for_threshold": 65,
+      "line_hard_deficit": 0,
+      "branch_covered": 37,
+      "branch_total": 50,
+      "branch_coverage": 74.0,
+      "branch_required_for_threshold": 40,
+      "branch_hard_deficit": 3,
+      "missed_branches": 13,
+      "missed_lines": 14,
+      "eut_ids": [
+        "EUT-541",
+        "EUT-542",
+        "EUT-543",
+        "EUT-544",
+        "EUT-545",
+        "EUT-546",
+        "EUT-547"
+      ],
+      "risk_t1": 4,
+      "route_types": {
+        "Happy Path": 3,
+        "Boundary": 3,
+        "Exception": 1
+      },
+      "methods": {
+        "getRegionIdByName": [
+          "EUT-541",
+          "EUT-542"
+        ],
+        "getRegionIdsByNames": [
+          "EUT-543",
+          "EUT-544"
+        ],
+        "getRegionIdByParentIdAndName": [
+          "EUT-545",
+          "EUT-546",
+          "EUT-547"
+        ]
+      },
+      "branch_ids": [
+        "B-541",
+        "B-542",
+        "B-543",
+        "B-544",
+        "B-545",
+        "B-546",
+        "B-547"
+      ],
+      "outcome_ids": [
+        "O-541",
+        "O-542",
+        "O-543",
+        "O-544",
+        "O-545",
+        "O-546",
+        "O-547"
+      ],
+      "hotspots": [],
+      "priority_score": 333
+    },
+    {
+      "class_name": "EngineerProbabilityRankStrategy",
+      "jacoco_name": "com/mi/asp/dispatch/domain/asign/strategy/rank/EngineerProbabilityRankStrategy",
+      "line_covered": 103,
+      "line_total": 113,
+      "line_coverage": 91.15,
+      "line_required_for_threshold": 91,
+      "line_hard_deficit": 0,
+      "branch_covered": 59,
+      "branch_total": 76,
+      "branch_coverage": 77.63,
+      "branch_required_for_threshold": 61,
+      "branch_hard_deficit": 2,
+      "missed_branches": 17,
+      "missed_lines": 10,
+      "eut_ids": [
+        "EUT-160",
+        "EUT-161",
+        "EUT-162",
+        "EUT-163",
+        "EUT-164",
+        "EUT-165",
+        "EUT-166",
+        "EUT-167",
+        "EUT-168",
+        "EUT-169",
+        "EUT-170",
+        "EUT-171",
+        "EUT-172",
+        "EUT-173",
+        "EUT-174",
+        "EUT-175",
+        "EUT-176",
+        "EUT-177",
+        "EUT-178",
+        "EUT-179",
+        "EUT-180",
+        "EUT-181",
+        "EUT-182",
+        "EUT-183",
+        "EUT-184",
+        "EUT-185",
+        "EUT-186",
+        "EUT-187",
+        "EUT-188",
+        "EUT-189",
+        "EUT-572",
+        "EUT-573",
+        "EUT-574",
+        "EUT-575",
+        "EUT-576",
+        "EUT-577",
+        "EUT-578",
+        "EUT-579",
+        "EUT-623",
+        "EUT-624",
+        "EUT-625",
+        "EUT-626"
+      ],
+      "risk_t1": 18,
+      "route_types": {
+        "Happy Path": 21,
+        "Boundary": 12,
+        "Exception": 9
+      },
+      "methods": {
+        "doApply": [
+          "EUT-160",
+          "EUT-161",
+          "EUT-572",
+          "EUT-573",
+          "EUT-574",
+          "EUT-575",
+          "EUT-576",
+          "EUT-577",
+          "EUT-578",
+          "EUT-579",
+          "EUT-623",
+          "EUT-624",
+          "EUT-625",
+          "EUT-626"
+        ],
+        "fillDisplayMatchProbability": [
+          "EUT-162",
+          "EUT-163",
+          "EUT-164",
+          "EUT-165",
+          "EUT-166",
+          "EUT-167",
+          "EUT-168",
+          "EUT-169",
+          "EUT-170",
+          "EUT-171",
+          "EUT-172",
+          "EUT-173",
+          "EUT-174",
+          "EUT-175",
+          "EUT-176",
+          "EUT-177"
+        ],
+        "isFullSaturationForMatch": [
+          "EUT-178",
+          "EUT-179"
+        ],
+        "buildAdjustedSaturation": [
+          "EUT-180"
+        ],
+        "sanitizeDistance": [
+          "EUT-181"
+        ],
+        "sanitizeMetric": [
+          "EUT-182",
+          "EUT-183"
+        ],
+        "safeDivide": [
+          "EUT-184",
+          "EUT-185"
+        ],
+        "nullAsZero": [
+          "EUT-186",
+          "EUT-187"
+        ],
+        "nullAsMax": [
+          "EUT-188",
+          "EUT-189"
+        ]
+      },
+      "branch_ids": [
+        "B-160",
+        "B-161",
+        "B-162",
+        "B-163",
+        "B-164",
+        "B-165",
+        "B-166",
+        "B-167",
+        "B-168",
+        "B-169",
+        "B-170",
+        "B-171",
+        "B-172",
+        "B-173",
+        "B-174",
+        "B-175",
+        "B-176",
+        "B-177",
+        "B-178",
+        "B-179",
+        "B-180",
+        "B-181",
+        "B-182",
+        "B-183",
+        "B-184",
+        "B-185",
+        "B-186",
+        "B-187",
+        "B-188",
+        "B-189"
+      ],
+      "outcome_ids": [
+        "O-160",
+        "O-161",
+        "O-162",
+        "O-163",
+        "O-164",
+        "O-165",
+        "O-166",
+        "O-167",
+        "O-168",
+        "O-169",
+        "O-170",
+        "O-171",
+        "O-172",
+        "O-173",
+        "O-174",
+        "O-175",
+        "O-176",
+        "O-177",
+        "O-178",
+        "O-179",
+        "O-180",
+        "O-181",
+        "O-182",
+        "O-183",
+        "O-184",
+        "O-185",
+        "O-186",
+        "O-187",
+        "O-188",
+        "O-189"
+      ],
+      "hotspots": [],
+      "priority_score": 313
+    },
+    {
+      "class_name": "EngineerHolidayFilterStrategy",
+      "jacoco_name": "com/mi/asp/dispatch/domain/asign/strategy/filter/EngineerHolidayFilterStrategy",
+      "line_covered": 20,
+      "line_total": 22,
+      "line_coverage": 90.91,
+      "line_required_for_threshold": 18,
+      "line_hard_deficit": 0,
+      "branch_covered": 12,
+      "branch_total": 18,
+      "branch_coverage": 66.67,
+      "branch_required_for_threshold": 15,
+      "branch_hard_deficit": 3,
+      "missed_branches": 6,
+      "missed_lines": 2,
+      "eut_ids": [
+        "EUT-148",
+        "EUT-149"
+      ],
+      "risk_t1": 1,
+      "route_types": {
+        "Happy Path": 1,
+        "Boundary": 1
+      },
+      "methods": {
+        "doApply": [
+          "EUT-148",
+          "EUT-149"
+        ]
+      },
+      "branch_ids": [
+        "B-148",
+        "B-149"
+      ],
+      "outcome_ids": [
+        "O-148",
+        "O-149"
+      ],
+      "hotspots": [],
+      "priority_score": 311
+    },
+    {
+      "class_name": "UnfinishedStatsQueryExecutorConfig",
+      "jacoco_name": "com/mi/asp/dispatch/domain/asign/config/UnfinishedStatsQueryExecutorConfig",
+      "line_covered": 0,
+      "line_total": 9,
+      "line_coverage": 0.0,
+      "line_required_for_threshold": 8,
+      "line_hard_deficit": 8,
+      "branch_covered": 0,
+      "branch_total": 0,
+      "branch_coverage": 100.0,
+      "branch_required_for_threshold": 0,
+      "branch_hard_deficit": 0,
+      "missed_branches": 0,
+      "missed_lines": 9,
+      "eut_ids": [
+        "EUT-031",
+        "EUT-032"
+      ],
+      "risk_t1": 1,
+      "route_types": {
+        "Happy Path": 1,
+        "Concurrent": 1
+      },
+      "methods": {
+        "unfinishedStatsQueryExecutor": [
+          "EUT-031",
+          "EUT-032"
+        ]
+      },
+      "branch_ids": [
+        "B-031",
+        "B-032"
+      ],
+      "outcome_ids": [
+        "O-031",
+        "O-032"
+      ],
+      "hotspots": [],
+      "priority_score": 243
+    },
+    {
+      "class_name": "EngineerOverloadFilterStrategy",
+      "jacoco_name": "com/mi/asp/dispatch/domain/asign/strategy/filter/EngineerOverloadFilterStrategy",
+      "line_covered": 28,
+      "line_total": 32,
+      "line_coverage": 87.5,
+      "line_required_for_threshold": 26,
+      "line_hard_deficit": 0,
+      "branch_covered": 19,
+      "branch_total": 26,
+      "branch_coverage": 73.08,
+      "branch_required_for_threshold": 21,
+      "branch_hard_deficit": 2,
+      "missed_branches": 7,
+      "missed_lines": 4,
+      "eut_ids": [
+        "EUT-152",
+        "EUT-153",
+        "EUT-154",
+        "EUT-155",
+        "EUT-156",
+        "EUT-157",
+        "EUT-158",
+        "EUT-568",
+        "EUT-569",
+        "EUT-570",
+        "EUT-571",
+        "EUT-622"
+      ],
+      "risk_t1": 5,
+      "route_types": {
+        "Happy Path": 5,
+        "Boundary": 6,
+        "Exception": 1
+      },
+      "methods": {
+        "doApply": [
+          "EUT-152",
+          "EUT-153",
+          "EUT-568",
+          "EUT-569",
+          "EUT-570",
+          "EUT-571",
+          "EUT-622"
+        ],
+        "allCandidatesMissingWorkloadConfig": [
+          "EUT-154",
+          "EUT-155"
+        ],
+        "markMissingWorkloadConfig": [
+          "EUT-156",
+          "EUT-157",
+          "EUT-158"
+        ]
+      },
+      "branch_ids": [
+        "B-152",
+        "B-153",
+        "B-154",
+        "B-155",
+        "B-156",
+        "B-157",
+        "B-158"
+      ],
+      "outcome_ids": [
+        "O-152",
+        "O-153",
+        "O-154",
+        "O-155",
+        "O-156",
+        "O-157",
+        "O-158"
+      ],
+      "hotspots": [],
+      "priority_score": 236
+    },
+    {
+      "class_name": "EngineerWorkloadConfigGatewayImpl",
+      "jacoco_name": "com/mi/asp/dispatch/infrastructure/config/gateway/EngineerWorkloadConfigGatewayImpl",
+      "line_covered": 239,
+      "line_total": 239,
+      "line_coverage": 100.0,
+      "line_required_for_threshold": 192,
+      "line_hard_deficit": 0,
+      "branch_covered": 112,
+      "branch_total": 112,
+      "branch_coverage": 100.0,
+      "branch_required_for_threshold": 90,
+      "branch_hard_deficit": 0,
+      "missed_branches": 0,
+      "missed_lines": 0,
+      "eut_ids": [
+        "EUT-432",
+        "EUT-433",
+        "EUT-434",
+        "EUT-435",
+        "EUT-436",
+        "EUT-437",
+        "EUT-438",
+        "EUT-439",
+        "EUT-440",
+        "EUT-441",
+        "EUT-442",
+        "EUT-443",
+        "EUT-444",
+        "EUT-445",
+        "EUT-446",
+        "EUT-447",
+        "EUT-448",
+        "EUT-449",
+        "EUT-450",
+        "EUT-451",
+        "EUT-452",
+        "EUT-453",
+        "EUT-454",
+        "EUT-455",
+        "EUT-456",
+        "EUT-457",
+        "EUT-458",
+        "EUT-459",
+        "EUT-460",
+        "EUT-461",
+        "EUT-462",
+        "EUT-463",
+        "EUT-464",
+        "EUT-465",
+        "EUT-466",
+        "EUT-467",
+        "EUT-468",
+        "EUT-469",
+        "EUT-470",
+        "EUT-471",
+        "EUT-472",
+        "EUT-473",
+        "EUT-474",
+        "EUT-475",
+        "EUT-476",
+        "EUT-477",
+        "EUT-478",
+        "EUT-479",
+        "EUT-480",
+        "EUT-481",
+        "EUT-482",
+        "EUT-483",
+        "EUT-484",
+        "EUT-485",
+        "EUT-486",
+        "EUT-487",
+        "EUT-488",
+        "EUT-489",
+        "EUT-490",
+        "EUT-491",
+        "EUT-492",
+        "EUT-493",
+        "EUT-494"
+      ],
+      "risk_t1": 40,
+      "route_types": {
+        "Happy Path": 23,
+        "Boundary": 22,
+        "Exception": 18
+      },
+      "methods": {
+        "insert": [
+          "EUT-432",
+          "EUT-433",
+          "EUT-434",
+          "EUT-435",
+          "EUT-436",
+          "EUT-437",
+          "EUT-438",
+          "EUT-439",
+          "EUT-440"
+        ],
+        "updateById": [
+          "EUT-441",
+          "EUT-442",
+          "EUT-443"
+        ],
+        "selectById": [
+          "EUT-444",
+          "EUT-445",
+          "EUT-446"
+        ],
+        "queryByCondition": [
+          "EUT-447",
+          "EUT-448",
+          "EUT-449"
+        ],
+        "queryByMatchCondition": [
+          "EUT-450",
+          "EUT-451",
+          "EUT-452"
+        ],
+        "selectByUniqueKey": [
+          "EUT-453",
+          "EUT-454",
+          "EUT-455"
+        ],
+        "batchSelectByUniqueKeys": [
+          "EUT-456",
+          "EUT-457",
+          "EUT-458"
+        ],
+        "batchInsert": [
+          "EUT-459",
+          "EUT-460",
+          "EUT-461"
+        ],
+        "batchUpdate": [
+          "EUT-462",
+          "EUT-463",
+          "EUT-464"
+        ],
+        "rethrowIfDuplicateKey": [
+          "EUT-465",
+          "EUT-466"
+        ],
+        "isDuplicateKeyException": [
+          "EUT-467",
+          "EUT-468"
+        ],
+        "normalizeRegionIdForStorage": [
+          "EUT-469",
+          "EUT-470"
+        ],
+        "denormalizeRegionIdFromStorage": [
+          "EUT-471",
+          "EUT-472"
+        ],
+        "normalizeRegionIdsForStorage": [
+          "EUT-473",
+          "EUT-474",
+          "EUT-475"
+        ],
+        "denormalizeRegionFromStorage": [
+          "EUT-476",
+          "EUT-477",
+          "EUT-478",
+          "EUT-479",
+          "EUT-480",
+          "EUT-481"
+        ],
+        "normalizeRegionNamesForStorage": [
+          "EUT-482",
+          "EUT-483",
+          "EUT-484"
+        ],
+        "normalizeRegionNameForStorage": [
+          "EUT-485",
+          "EUT-486"
+        ],
+        "denormalizeRegionNamesFromStorage": [
+          "EUT-487",
+          "EUT-488",
+          "EUT-489",
+          "EUT-490",
+          "EUT-491",
+          "EUT-492"
+        ],
+        "denormalizeRegionNameFromStorage": [
+          "EUT-493",
+          "EUT-494"
+        ]
+      },
+      "branch_ids": [
+        "B-432",
+        "B-433",
+        "B-434",
+        "B-435",
+        "B-436",
+        "B-437",
+        "B-438",
+        "B-439",
+        "B-440",
+        "B-441",
+        "B-442",
+        "B-443",
+        "B-444",
+        "B-445",
+        "B-446",
+        "B-447",
+        "B-448",
+        "B-449",
+        "B-450",
+        "B-451",
+        "B-452",
+        "B-453",
+        "B-454",
+        "B-455",
+        "B-456",
+        "B-457",
+        "B-458",
+        "B-459",
+        "B-460",
+        "B-461",
+        "B-462",
+        "B-463",
+        "B-464",
+        "B-465",
+        "B-466",
+        "B-467",
+        "B-468",
+        "B-469",
+        "B-470",
+        "B-471",
+        "B-472",
+        "B-473",
+        "B-474",
+        "B-475",
+        "B-476",
+        "B-477",
+        "B-478",
+        "B-479",
+        "B-480",
+        "B-481",
+        "B-482",
+        "B-483",
+        "B-484",
+        "B-485",
+        "B-486",
+        "B-487",
+        "B-488",
+        "B-489",
+        "B-490",
+        "B-491",
+        "B-492",
+        "B-493",
+        "B-494"
+      ],
+      "outcome_ids": [
+        "O-432",
+        "O-433",
+        "O-434",
+        "O-435",
+        "O-436",
+        "O-437",
+        "O-438",
+        "O-439",
+        "O-440",
+        "O-441",
+        "O-442",
+        "O-443",
+        "O-444",
+        "O-445",
+        "O-446",
+        "O-447",
+        "O-448",
+        "O-449",
+        "O-450",
+        "O-451",
+        "O-452",
+        "O-453",
+        "O-454",
+        "O-455",
+        "O-456",
+        "O-457",
+        "O-458",
+        "O-459",
+        "O-460",
+        "O-461",
+        "O-462",
+        "O-463",
+        "O-464",
+        "O-465",
+        "O-466",
+        "O-467",
+        "O-468",
+        "O-469",
+        "O-470",
+        "O-471",
+        "O-472",
+        "O-473",
+        "O-474",
+        "O-475",
+        "O-476",
+        "O-477",
+        "O-478",
+        "O-479",
+        "O-480",
+        "O-481",
+        "O-482",
+        "O-483",
+        "O-484",
+        "O-485",
+        "O-486",
+        "O-487",
+        "O-488",
+        "O-489",
+        "O-490",
+        "O-491",
+        "O-492",
+        "O-493",
+        "O-494"
+      ],
+      "hotspots": [],
+      "priority_score": 200
+    },
+    {
+      "class_name": "DispatchEngineerUnfinishedTaskGatewayImpl",
+      "jacoco_name": "com/mi/asp/dispatch/infrastructure/asign/gateway/DispatchEngineerUnfinishedTaskGatewayImpl",
+      "line_covered": 69,
+      "line_total": 78,
+      "line_coverage": 88.46,
+      "line_required_for_threshold": 63,
+      "line_hard_deficit": 0,
+      "branch_covered": 28,
+      "branch_total": 36,
+      "branch_coverage": 77.78,
+      "branch_required_for_threshold": 29,
+      "branch_hard_deficit": 1,
+      "missed_branches": 8,
+      "missed_lines": 9,
+      "eut_ids": [
+        "EUT-379",
+        "EUT-380",
+        "EUT-381",
+        "EUT-382",
+        "EUT-383",
+        "EUT-384",
+        "EUT-385",
+        "EUT-386",
+        "EUT-387",
+        "EUT-388",
+        "EUT-389",
+        "EUT-390",
+        "EUT-391",
+        "EUT-392",
+        "EUT-393",
+        "EUT-394",
+        "EUT-395",
+        "EUT-396",
+        "EUT-397",
+        "EUT-398",
+        "EUT-399",
+        "EUT-400",
+        "EUT-401"
+      ],
+      "risk_t1": 15,
+      "route_types": {
+        "Happy Path": 8,
+        "Boundary": 8,
+        "Exception": 7
+      },
+      "methods": {
+        "queryUnfinishedTasks": [
+          "EUT-379",
+          "EUT-380"
+        ],
+        "queryCurrentUnfinishedTasks": [
+          "EUT-381",
+          "EUT-382",
+          "EUT-383",
+          "EUT-384",
+          "EUT-385",
+          "EUT-386",
+          "EUT-387",
+          "EUT-388",
+          "EUT-389"
+        ],
+        "shouldSkipFutureAppointTask": [
+          "EUT-390",
+          "EUT-391",
+          "EUT-392"
+        ],
+        "queryAppointTasks": [
+          "EUT-393",
+          "EUT-394",
+          "EUT-395",
+          "EUT-396",
+          "EUT-397",
+          "EUT-398",
+          "EUT-399",
+          "EUT-400",
+          "EUT-401"
+        ]
+      },
+      "branch_ids": [
+        "B-379",
+        "B-380",
+        "B-381",
+        "B-382",
+        "B-383",
+        "B-384",
+        "B-385",
+        "B-386",
+        "B-387",
+        "B-388",
+        "B-389",
+        "B-390",
+        "B-391",
+        "B-392",
+        "B-393",
+        "B-394",
+        "B-395",
+        "B-396",
+        "B-397",
+        "B-398",
+        "B-399",
+        "B-400",
+        "B-401"
+      ],
+      "outcome_ids": [
+        "O-379",
+        "O-380",
+        "O-381",
+        "O-382",
+        "O-383",
+        "O-384",
+        "O-385",
+        "O-386",
+        "O-387",
+        "O-388",
+        "O-389",
+        "O-390",
+        "O-391",
+        "O-392",
+        "O-393",
+        "O-394",
+        "O-395",
+        "O-396",
+        "O-397",
+        "O-398",
+        "O-399",
+        "O-400",
+        "O-401"
+      ],
+      "hotspots": [],
+      "priority_score": 183
+    },
+    {
+      "class_name": "DispatchDataSourceContextHolder",
+      "jacoco_name": "com/mi/asp/dispatch/infrastructure/config/datasource/DispatchDataSourceContextHolder",
+      "line_covered": 8,
+      "line_total": 9,
+      "line_coverage": 88.89,
+      "line_required_for_threshold": 8,
+      "line_hard_deficit": 0,
+      "branch_covered": 1,
+      "branch_total": 2,
+      "branch_coverage": 50.0,
+      "branch_required_for_threshold": 2,
+      "branch_hard_deficit": 1,
+      "missed_branches": 1,
+      "missed_lines": 1,
+      "eut_ids": [
+        "EUT-415",
+        "EUT-416",
+        "EUT-417",
+        "EUT-418"
+      ],
+      "risk_t1": 3,
+      "route_types": {
+        "Happy Path": 1,
+        "Boundary": 1,
+        "Exception": 2
+      },
+      "methods": {
+        "set": [
+          "EUT-415",
+          "EUT-416",
+          "EUT-417",
+          "EUT-418"
+        ]
+      },
+      "branch_ids": [
+        "B-415",
+        "B-416",
+        "B-417",
+        "B-418"
+      ],
+      "outcome_ids": [
+        "O-415",
+        "O-416",
+        "O-417",
+        "O-418"
+      ],
+      "hotspots": [],
+      "priority_score": 116
+    },
+    {
+      "class_name": "SaturationMinSelectStrategy",
+      "jacoco_name": "com/mi/asp/dispatch/domain/asign/strategy/select/SaturationMinSelectStrategy",
+      "line_covered": 9,
+      "line_total": 9,
+      "line_coverage": 100.0,
+      "line_required_for_threshold": 8,
+      "line_hard_deficit": 0,
+      "branch_covered": 6,
+      "branch_total": 8,
+      "branch_coverage": 75.0,
+      "branch_required_for_threshold": 7,
+      "branch_hard_deficit": 1,
+      "missed_branches": 2,
+      "missed_lines": 0,
+      "eut_ids": [
+        "EUT-194",
+        "EUT-195",
+        "EUT-196",
+        "EUT-197"
+      ],
+      "risk_t1": 2,
+      "route_types": {
+        "Happy Path": 2,
+        "Boundary": 2
+      },
+      "methods": {
+        "doApply": [
+          "EUT-194",
+          "EUT-195"
+        ],
+        "nullAsMax": [
+          "EUT-196",
+          "EUT-197"
+        ]
+      },
+      "branch_ids": [
+        "B-194",
+        "B-195",
+        "B-196",
+        "B-197"
+      ],
+      "outcome_ids": [
+        "O-194",
+        "O-195",
+        "O-196",
+        "O-197"
+      ],
+      "hotspots": [],
+      "priority_score": 112
+    },
+    {
+      "class_name": "DispatchStrategyOrchestrator",
+      "jacoco_name": "com/mi/asp/dispatch/domain/asign/strategy/DispatchStrategyOrchestrator",
+      "line_covered": 25,
+      "line_total": 25,
+      "line_coverage": 100.0,
+      "line_required_for_threshold": 20,
+      "line_hard_deficit": 0,
+      "branch_covered": 6,
+      "branch_total": 8,
+      "branch_coverage": 75.0,
+      "branch_required_for_threshold": 7,
+      "branch_hard_deficit": 1,
+      "missed_branches": 2,
+      "missed_lines": 0,
+      "eut_ids": [
+        "EUT-054",
+        "EUT-055",
+        "EUT-056"
+      ],
+      "risk_t1": 2,
+      "route_types": {
+        "Happy Path": 1,
+        "Boundary": 1,
+        "Exception": 1
+      },
+      "methods": {
+        "preloadEngineerBasicInfo": [
+          "EUT-054",
+          "EUT-055",
+          "EUT-056"
+        ]
+      },
+      "branch_ids": [
+        "B-054",
+        "B-055",
+        "B-056"
+      ],
+      "outcome_ids": [
+        "O-054",
+        "O-055",
+        "O-056"
+      ],
+      "hotspots": [],
+      "priority_score": 112
+    },
+    {
+      "class_name": "DispatchServiceItemCategoryGatewayImpl",
+      "jacoco_name": "com/mi/asp/dispatch/infrastructure/asign/gateway/DispatchServiceItemCategoryGatewayImpl",
+      "line_covered": 11,
+      "line_total": 11,
+      "line_coverage": 100.0,
+      "line_required_for_threshold": 9,
+      "line_hard_deficit": 0,
+      "branch_covered": 6,
+      "branch_total": 8,
+      "branch_coverage": 75.0,
+      "branch_required_for_threshold": 7,
+      "branch_hard_deficit": 1,
+      "missed_branches": 2,
+      "missed_lines": 0,
+      "eut_ids": [
+        "EUT-402",
+        "EUT-403",
+        "EUT-404"
+      ],
+      "risk_t1": 2,
+      "route_types": {
+        "Happy Path": 1,
+        "Boundary": 1,
+        "Exception": 1
+      },
+      "methods": {
+        "queryServiceItems": [
+          "EUT-402",
+          "EUT-403",
+          "EUT-404"
+        ]
+      },
+      "branch_ids": [
+        "B-402",
+        "B-403",
+        "B-404"
+      ],
+      "outcome_ids": [
+        "O-402",
+        "O-403",
+        "O-404"
+      ],
+      "hotspots": [],
+      "priority_score": 112
+    },
+    {
+      "class_name": "DispatchEngineerBasicInfoGatewayImpl",
+      "jacoco_name": "com/mi/asp/dispatch/infrastructure/asign/gateway/DispatchEngineerBasicInfoGatewayImpl",
+      "line_covered": 11,
+      "line_total": 11,
+      "line_coverage": 100.0,
+      "line_required_for_threshold": 9,
+      "line_hard_deficit": 0,
+      "branch_covered": 6,
+      "branch_total": 8,
+      "branch_coverage": 75.0,
+      "branch_required_for_threshold": 7,
+      "branch_hard_deficit": 1,
+      "missed_branches": 2,
+      "missed_lines": 0,
+      "eut_ids": [
+        "EUT-368",
+        "EUT-369",
+        "EUT-370"
+      ],
+      "risk_t1": 2,
+      "route_types": {
+        "Happy Path": 1,
+        "Boundary": 1,
+        "Exception": 1
+      },
+      "methods": {
+        "queryEngineerBasicInfo": [
+          "EUT-368",
+          "EUT-369",
+          "EUT-370"
+        ]
+      },
+      "branch_ids": [
+        "B-368",
+        "B-369",
+        "B-370"
+      ],
+      "outcome_ids": [
+        "O-368",
+        "O-369",
+        "O-370"
+      ],
+      "hotspots": [],
+      "priority_score": 112
+    },
+    {
+      "class_name": "EngineerLevelFilterStrategy",
+      "jacoco_name": "com/mi/asp/dispatch/domain/asign/strategy/filter/EngineerLevelFilterStrategy",
+      "line_covered": 8,
+      "line_total": 8,
+      "line_coverage": 100.0,
+      "line_required_for_threshold": 7,
+      "line_hard_deficit": 0,
+      "branch_covered": 6,
+      "branch_total": 8,
+      "branch_coverage": 75.0,
+      "branch_required_for_threshold": 7,
+      "branch_hard_deficit": 1,
+      "missed_branches": 2,
+      "missed_lines": 0,
+      "eut_ids": [
+        "EUT-150",
+        "EUT-151"
+      ],
+      "risk_t1": 1,
+      "route_types": {
+        "Happy Path": 1,
+        "Boundary": 1
+      },
+      "methods": {
+        "doApply": [
+          "EUT-150",
+          "EUT-151"
+        ]
+      },
+      "branch_ids": [
+        "B-150",
+        "B-151"
+      ],
+      "outcome_ids": [
+        "O-150",
+        "O-151"
+      ],
+      "hotspots": [],
+      "priority_score": 107
+    },
+    {
+      "class_name": "UserGatewayImpl",
+      "jacoco_name": "com/mi/asp/dispatch/infrastructure/config/gateway/UserGatewayImpl",
+      "line_covered": 58,
+      "line_total": 58,
+      "line_coverage": 100.0,
+      "line_required_for_threshold": 47,
+      "line_hard_deficit": 0,
+      "branch_covered": 22,
+      "branch_total": 22,
+      "branch_coverage": 100.0,
+      "branch_required_for_threshold": 18,
+      "branch_hard_deficit": 0,
+      "missed_branches": 0,
+      "missed_lines": 0,
+      "eut_ids": [
+        "EUT-508",
+        "EUT-509",
+        "EUT-510",
+        "EUT-511",
+        "EUT-512",
+        "EUT-513",
+        "EUT-514",
+        "EUT-515",
+        "EUT-516",
+        "EUT-517",
+        "EUT-518",
+        "EUT-519",
+        "EUT-520",
+        "EUT-521",
+        "EUT-522",
+        "EUT-523",
+        "EUT-524",
+        "EUT-525",
+        "EUT-526",
+        "EUT-527",
+        "EUT-528",
+        "EUT-529",
+        "EUT-530",
+        "EUT-531",
+        "EUT-532",
+        "EUT-533",
+        "EUT-534",
+        "EUT-535",
+        "EUT-536",
+        "EUT-537",
+        "EUT-538",
+        "EUT-539",
+        "EUT-540"
+      ],
+      "risk_t1": 21,
+      "route_types": {
+        "Happy Path": 12,
+        "Boundary": 11,
+        "Exception": 10
+      },
+      "methods": {
+        "getUserByMiliao": [
+          "EUT-508",
+          "EUT-509",
+          "EUT-510",
+          "EUT-511",
+          "EUT-512",
+          "EUT-513",
+          "EUT-514",
+          "EUT-515",
+          "EUT-516"
+        ],
+        "getUsersByMiliaoIds": [
+          "EUT-517",
+          "EUT-518",
+          "EUT-519",
+          "EUT-520",
+          "EUT-521",
+          "EUT-522",
+          "EUT-523",
+          "EUT-524",
+          "EUT-525",
+          "EUT-526",
+          "EUT-527",
+          "EUT-528"
+        ],
+        "getCurrentUserMiliao": [
+          "EUT-529",
+          "EUT-530",
+          "EUT-531",
+          "EUT-532",
+          "EUT-533",
+          "EUT-534",
+          "EUT-535",
+          "EUT-536",
+          "EUT-537",
+          "EUT-538"
+        ],
+        "isMockEnvironment": [
+          "EUT-539",
+          "EUT-540"
+        ]
+      },
+      "branch_ids": [
+        "B-508",
+        "B-509",
+        "B-510",
+        "B-511",
+        "B-512",
+        "B-513",
+        "B-514",
+        "B-515",
+        "B-516",
+        "B-517",
+        "B-518",
+        "B-519",
+        "B-520",
+        "B-521",
+        "B-522",
+        "B-523",
+        "B-524",
+        "B-525",
+        "B-526",
+        "B-527",
+        "B-528",
+        "B-529",
+        "B-530",
+        "B-531",
+        "B-532",
+        "B-533",
+        "B-534",
+        "B-535",
+        "B-536",
+        "B-537",
+        "B-538",
+        "B-539",
+        "B-540"
+      ],
+      "outcome_ids": [
+        "O-508",
+        "O-509",
+        "O-510",
+        "O-511",
+        "O-512",
+        "O-513",
+        "O-514",
+        "O-515",
+        "O-516",
+        "O-517",
+        "O-518",
+        "O-519",
+        "O-520",
+        "O-521",
+        "O-522",
+        "O-523",
+        "O-524",
+        "O-525",
+        "O-526",
+        "O-527",
+        "O-528",
+        "O-529",
+        "O-530",
+        "O-531",
+        "O-532",
+        "O-533",
+        "O-534",
+        "O-535",
+        "O-536",
+        "O-537",
+        "O-538",
+        "O-539",
+        "O-540"
+      ],
+      "hotspots": [],
+      "priority_score": 105
+    },
+    {
+      "class_name": "DispatchSlaveReadAspect",
+      "jacoco_name": "com/mi/asp/dispatch/infrastructure/config/datasource/DispatchSlaveReadAspect",
+      "line_covered": 10,
+      "line_total": 10,
+      "line_coverage": 100.0,
+      "line_required_for_threshold": 8,
+      "line_hard_deficit": 0,
+      "branch_covered": 3,
+      "branch_total": 4,
+      "branch_coverage": 75.0,
+      "branch_required_for_threshold": 4,
+      "branch_hard_deficit": 1,
+      "missed_branches": 1,
+      "missed_lines": 0,
+      "eut_ids": [
+        "EUT-419"
+      ],
+      "risk_t1": 0,
+      "route_types": {
+        "Happy Path": 1
+      },
+      "methods": {
+        "aroundSlaveRead": [
+          "EUT-419"
+        ]
+      },
+      "branch_ids": [
+        "B-419"
+      ],
+      "outcome_ids": [
+        "O-419"
+      ],
+      "hotspots": [],
+      "priority_score": 101
+    },
+    {
+      "class_name": "DispatchRecommendRpcAppService",
+      "jacoco_name": "com/mi/asp/dispatch/service/asign/DispatchRecommendRpcAppService",
+      "line_covered": 36,
+      "line_total": 37,
+      "line_coverage": 97.3,
+      "line_required_for_threshold": 30,
+      "line_hard_deficit": 0,
+      "branch_covered": 18,
+      "branch_total": 20,
+      "branch_coverage": 90.0,
+      "branch_required_for_threshold": 16,
+      "branch_hard_deficit": 0,
+      "missed_branches": 2,
+      "missed_lines": 1,
+      "eut_ids": [
+        "EUT-005",
+        "EUT-006",
+        "EUT-007",
+        "EUT-008",
+        "EUT-009",
+        "EUT-010",
+        "EUT-011",
+        "EUT-012",
+        "EUT-013",
+        "EUT-014",
+        "EUT-015",
+        "EUT-016",
+        "EUT-017",
+        "EUT-018",
+        "EUT-559",
+        "EUT-561",
+        "EUT-617"
+      ],
+      "risk_t1": 11,
+      "route_types": {
+        "Happy Path": 8,
+        "Boundary": 5,
+        "Exception": 4
+      },
+      "methods": {
+        "validateRecommendReq": [
+          "EUT-005",
+          "EUT-006",
+          "EUT-007"
+        ],
+        "validateCandidateReq": [
+          "EUT-008",
+          "EUT-009",
+          "EUT-010",
+          "EUT-011",
+          "EUT-012",
+          "EUT-013",
+          "EUT-014",
+          "EUT-015"
+        ],
+        "validateCommonReq": [
+          "EUT-016",
+          "EUT-017",
+          "EUT-018"
+        ],
+        "queryCandidateEngineers": [
+          "EUT-559",
+          "EUT-561",
+          "EUT-617"
+        ]
+      },
+      "branch_ids": [
+        "B-005",
+        "B-006",
+        "B-007",
+        "B-008",
+        "B-009",
+        "B-010",
+        "B-011",
+        "B-012",
+        "B-013",
+        "B-014",
+        "B-015",
+        "B-016",
+        "B-017",
+        "B-018"
+      ],
+      "outcome_ids": [
+        "O-005",
+        "O-006",
+        "O-007",
+        "O-008",
+        "O-009",
+        "O-010",
+        "O-011",
+        "O-012",
+        "O-013",
+        "O-014",
+        "O-015",
+        "O-016",
+        "O-017",
+        "O-018"
+      ],
+      "hotspots": [],
+      "priority_score": 53
+    },
+    {
+      "class_name": "AbstractDispatchFilterStrategy",
+      "jacoco_name": "com/mi/asp/dispatch/domain/asign/strategy/filter/AbstractDispatchFilterStrategy",
+      "line_covered": 17,
+      "line_total": 22,
+      "line_coverage": 77.27,
+      "line_required_for_threshold": 18,
+      "line_hard_deficit": 1,
+      "branch_covered": 8,
+      "branch_total": 10,
+      "branch_coverage": 80.0,
+      "branch_required_for_threshold": 8,
+      "branch_hard_deficit": 0,
+      "missed_branches": 2,
+      "missed_lines": 5,
+      "eut_ids": [
+        "EUT-127",
+        "EUT-128",
+        "EUT-129",
+        "EUT-130",
+        "EUT-131"
+      ],
+      "risk_t1": 3,
+      "route_types": {
+        "Happy Path": 2,
+        "Boundary": 2,
+        "Exception": 1
+      },
+      "methods": {
+        "apply": [
+          "EUT-127",
+          "EUT-128",
+          "EUT-129"
+        ],
+        "resolveServiceNo": [
+          "EUT-130",
+          "EUT-131"
+        ]
+      },
+      "branch_ids": [
+        "B-127",
+        "B-128",
+        "B-129",
+        "B-130",
+        "B-131"
+      ],
+      "outcome_ids": [
+        "O-127",
+        "O-128",
+        "O-129",
+        "O-130",
+        "O-131"
+      ],
+      "hotspots": [],
+      "priority_score": 47
+    },
+    {
+      "class_name": "EngineerWorkloadConfigProviderImpl",
+      "jacoco_name": "com/mi/asp/dispatch/service/config/EngineerWorkloadConfigProviderImpl",
+      "line_covered": 48,
+      "line_total": 48,
+      "line_coverage": 100.0,
+      "line_required_for_threshold": 39,
+      "line_hard_deficit": 0,
+      "branch_covered": 22,
+      "branch_total": 22,
+      "branch_coverage": 100.0,
+      "branch_required_for_threshold": 18,
+      "branch_hard_deficit": 0,
+      "missed_branches": 0,
+      "missed_lines": 0,
+      "eut_ids": [
+        "EUT-019",
+        "EUT-020",
+        "EUT-021",
+        "EUT-022",
+        "EUT-023",
+        "EUT-024",
+        "EUT-025",
+        "EUT-026",
+        "EUT-027",
+        "EUT-028",
+        "EUT-029",
+        "EUT-030"
+      ],
+      "risk_t1": 8,
+      "route_types": {
+        "Happy Path": 4,
+        "Boundary": 4,
+        "Exception": 4
+      },
+      "methods": {
+        "queryList": [
+          "EUT-019",
+          "EUT-020",
+          "EUT-021"
+        ],
+        "importExcel": [
+          "EUT-022",
+          "EUT-023",
+          "EUT-024"
+        ],
+        "queryLogList": [
+          "EUT-025",
+          "EUT-026",
+          "EUT-027"
+        ],
+        "matchConfig": [
+          "EUT-028",
+          "EUT-029",
+          "EUT-030"
+        ]
+      },
+      "branch_ids": [
+        "B-019",
+        "B-020",
+        "B-021",
+        "B-022",
+        "B-023",
+        "B-024",
+        "B-025",
+        "B-026",
+        "B-027",
+        "B-028",
+        "B-029",
+        "B-030"
+      ],
+      "outcome_ids": [
+        "O-019",
+        "O-020",
+        "O-021",
+        "O-022",
+        "O-023",
+        "O-024",
+        "O-025",
+        "O-026",
+        "O-027",
+        "O-028",
+        "O-029",
+        "O-030"
+      ],
+      "hotspots": [],
+      "priority_score": 40
+    },
+    {
+      "class_name": "FileUploadGatewayImpl",
+      "jacoco_name": "com/mi/asp/dispatch/infrastructure/config/gateway/FileUploadGatewayImpl",
+      "line_covered": 22,
+      "line_total": 22,
+      "line_coverage": 100.0,
+      "line_required_for_threshold": 18,
+      "line_hard_deficit": 0,
+      "branch_covered": 6,
+      "branch_total": 6,
+      "branch_coverage": 100.0,
+      "branch_required_for_threshold": 5,
+      "branch_hard_deficit": 0,
+      "missed_branches": 0,
+      "missed_lines": 0,
+      "eut_ids": [
+        "EUT-495",
+        "EUT-496",
+        "EUT-497",
+        "EUT-498",
+        "EUT-499",
+        "EUT-500",
+        "EUT-501",
+        "EUT-502",
+        "EUT-503",
+        "EUT-504",
+        "EUT-505",
+        "EUT-506",
+        "EUT-507"
+      ],
+      "risk_t1": 8,
+      "route_types": {
+        "Happy Path": 5,
+        "Boundary": 4,
+        "Exception": 4
+      },
+      "methods": {
+        "upload": [
+          "EUT-495",
+          "EUT-496",
+          "EUT-497",
+          "EUT-498",
+          "EUT-499",
+          "EUT-500",
+          "EUT-501",
+          "EUT-502",
+          "EUT-503",
+          "EUT-504",
+          "EUT-505",
+          "EUT-506",
+          "EUT-507"
+        ]
+      },
+      "branch_ids": [
+        "B-495",
+        "B-496",
+        "B-497",
+        "B-498",
+        "B-499",
+        "B-500",
+        "B-501",
+        "B-502",
+        "B-503",
+        "B-504",
+        "B-505",
+        "B-506",
+        "B-507"
+      ],
+      "outcome_ids": [
+        "O-495",
+        "O-496",
+        "O-497",
+        "O-498",
+        "O-499",
+        "O-500",
+        "O-501",
+        "O-502",
+        "O-503",
+        "O-504",
+        "O-505",
+        "O-506",
+        "O-507"
+      ],
+      "hotspots": [],
+      "priority_score": 40
+    },
+    {
+      "class_name": "EngineerCertificateFilterStrategy",
+      "jacoco_name": "com/mi/asp/dispatch/domain/asign/strategy/filter/EngineerCertificateFilterStrategy",
+      "line_covered": 45,
+      "line_total": 46,
+      "line_coverage": 97.83,
+      "line_required_for_threshold": 37,
+      "line_hard_deficit": 0,
+      "branch_covered": 31,
+      "branch_total": 36,
+      "branch_coverage": 86.11,
+      "branch_required_for_threshold": 29,
+      "branch_hard_deficit": 0,
+      "missed_branches": 5,
+      "missed_lines": 1,
+      "eut_ids": [
+        "EUT-139",
+        "EUT-140",
+        "EUT-141",
+        "EUT-142",
+        "EUT-143",
+        "EUT-144",
+        "EUT-145",
+        "EUT-146",
+        "EUT-147"
+      ],
+      "risk_t1": 5,
+      "route_types": {
+        "Happy Path": 4,
+        "Boundary": 4,
+        "Exception": 1
+      },
+      "methods": {
+        "doApply": [
+          "EUT-139",
+          "EUT-140"
+        ],
+        "workHighAble": [
+          "EUT-141",
+          "EUT-142"
+        ],
+        "isExpired": [
+          "EUT-143",
+          "EUT-144",
+          "EUT-145"
+        ],
+        "getBasicInfoMap": [
+          "EUT-146",
+          "EUT-147"
+        ]
+      },
+      "branch_ids": [
+        "B-139",
+        "B-140",
+        "B-141",
+        "B-142",
+        "B-143",
+        "B-144",
+        "B-145",
+        "B-146",
+        "B-147"
+      ],
+      "outcome_ids": [
+        "O-139",
+        "O-140",
+        "O-141",
+        "O-142",
+        "O-143",
+        "O-144",
+        "O-145",
+        "O-146",
+        "O-147"
+      ],
+      "hotspots": [],
+      "priority_score": 30
+    },
+    {
+      "class_name": "CategoryGatewayImpl",
+      "jacoco_name": "com/mi/asp/dispatch/infrastructure/config/gateway/CategoryGatewayImpl",
+      "line_covered": 42,
+      "line_total": 42,
+      "line_coverage": 100.0,
+      "line_required_for_threshold": 34,
+      "line_hard_deficit": 0,
+      "branch_covered": 24,
+      "branch_total": 24,
+      "branch_coverage": 100.0,
+      "branch_required_for_threshold": 20,
+      "branch_hard_deficit": 0,
+      "missed_branches": 0,
+      "missed_lines": 0,
+      "eut_ids": [
+        "EUT-420",
+        "EUT-421",
+        "EUT-422",
+        "EUT-423",
+        "EUT-424",
+        "EUT-425",
+        "EUT-426",
+        "EUT-427",
+        "EUT-428",
+        "EUT-429",
+        "EUT-430",
+        "EUT-431"
+      ],
+      "risk_t1": 6,
+      "route_types": {
+        "Happy Path": 6,
+        "Boundary": 6
+      },
+      "methods": {
+        "getAllCategories": [
+          "EUT-420",
+          "EUT-421"
+        ],
+        "getCategoryById": [
+          "EUT-422",
+          "EUT-423"
+        ],
+        "getCategoriesByIds": [
+          "EUT-424",
+          "EUT-425"
+        ],
+        "getCategoryNameMap": [
+          "EUT-426",
+          "EUT-427"
+        ],
+        "getCategoryIdByName": [
+          "EUT-428",
+          "EUT-429"
+        ],
+        "getCategoriesByBrandClassId": [
+          "EUT-430",
+          "EUT-431"
+        ]
+      },
+      "branch_ids": [
+        "B-420",
+        "B-421",
+        "B-422",
+        "B-423",
+        "B-424",
+        "B-425",
+        "B-426",
+        "B-427",
+        "B-428",
+        "B-429",
+        "B-430",
+        "B-431"
+      ],
+      "outcome_ids": [
+        "O-420",
+        "O-421",
+        "O-422",
+        "O-423",
+        "O-424",
+        "O-425",
+        "O-426",
+        "O-427",
+        "O-428",
+        "O-429",
+        "O-430",
+        "O-431"
+      ],
+      "hotspots": [],
+      "priority_score": 30
+    },
+    {
+      "class_name": "DistanceTierSelectStrategy",
+      "jacoco_name": "com/mi/asp/dispatch/domain/asign/strategy/select/DistanceTierSelectStrategy",
+      "line_covered": 19,
+      "line_total": 19,
+      "line_coverage": 100.0,
+      "line_required_for_threshold": 16,
+      "line_hard_deficit": 0,
+      "branch_covered": 12,
+      "branch_total": 14,
+      "branch_coverage": 85.71,
+      "branch_required_for_threshold": 12,
+      "branch_hard_deficit": 0,
+      "missed_branches": 2,
+      "missed_lines": 0,
+      "eut_ids": [
+        "EUT-190",
+        "EUT-191",
+        "EUT-192",
+        "EUT-193",
+        "EUT-620",
+        "EUT-621"
+      ],
+      "risk_t1": 4,
+      "route_types": {
+        "Happy Path": 2,
+        "Boundary": 3,
+        "Exception": 1
+      },
+      "methods": {
+        "doApply": [
+          "EUT-190",
+          "EUT-191",
+          "EUT-620",
+          "EUT-621"
+        ],
+        "inTier": [
+          "EUT-192",
+          "EUT-193"
+        ]
+      },
+      "branch_ids": [
+        "B-190",
+        "B-191",
+        "B-192",
+        "B-193"
+      ],
+      "outcome_ids": [
+        "O-190",
+        "O-191",
+        "O-192",
+        "O-193"
+      ],
+      "hotspots": [],
+      "priority_score": 22
+    },
+    {
+      "class_name": "DispatchEngineerHolidayGatewayImpl",
+      "jacoco_name": "com/mi/asp/dispatch/infrastructure/asign/gateway/DispatchEngineerHolidayGatewayImpl",
+      "line_covered": 15,
+      "line_total": 16,
+      "line_coverage": 93.75,
+      "line_required_for_threshold": 13,
+      "line_hard_deficit": 0,
+      "branch_covered": 13,
+      "branch_total": 16,
+      "branch_coverage": 81.25,
+      "branch_required_for_threshold": 13,
+      "branch_hard_deficit": 0,
+      "missed_branches": 3,
+      "missed_lines": 1,
+      "eut_ids": [
+        "EUT-374",
+        "EUT-375",
+        "EUT-376",
+        "EUT-377",
+        "EUT-378"
+      ],
+      "risk_t1": 3,
+      "route_types": {
+        "Happy Path": 2,
+        "Boundary": 2,
+        "Exception": 1
+      },
+      "methods": {
+        "queryHolidayStatus": [
+          "EUT-374",
+          "EUT-375"
+        ],
+        "querySingleHolidayStatus": [
+          "EUT-376",
+          "EUT-377",
+          "EUT-378"
+        ]
+      },
+      "branch_ids": [
+        "B-374",
+        "B-375",
+        "B-376",
+        "B-377",
+        "B-378"
+      ],
+      "outcome_ids": [
+        "O-374",
+        "O-375",
+        "O-376",
+        "O-377",
+        "O-378"
+      ],
+      "hotspots": [],
+      "priority_score": 18
+    },
+    {
+      "class_name": "DispatchScenarioPlanResolver",
+      "jacoco_name": "com/mi/asp/dispatch/domain/asign/strategy/plan/DispatchScenarioPlanResolver",
+      "line_covered": 23,
+      "line_total": 23,
+      "line_coverage": 100.0,
+      "line_required_for_threshold": 19,
+      "line_hard_deficit": 0,
+      "branch_covered": 3,
+      "branch_total": 3,
+      "branch_coverage": 100.0,
+      "branch_required_for_threshold": 3,
+      "branch_hard_deficit": 0,
+      "missed_branches": 0,
+      "missed_lines": 0,
+      "eut_ids": [
+        "EUT-159",
+        "EUT-555",
+        "EUT-582",
+        "EUT-583",
+        "EUT-584",
+        "EUT-585",
+        "EUT-586",
+        "EUT-587",
+        "EUT-588",
+        "EUT-589",
+        "EUT-629",
+        "EUT-630"
+      ],
+      "risk_t1": 3,
+      "route_types": {
+        "Happy Path": 10,
+        "Exception": 2
+      },
+      "methods": {
+        "resolve": [
+          "EUT-159",
+          "EUT-555",
+          "EUT-582",
+          "EUT-583",
+          "EUT-584",
+          "EUT-585",
+          "EUT-586",
+          "EUT-587",
+          "EUT-588",
+          "EUT-589",
+          "EUT-629",
+          "EUT-630"
+        ]
+      },
+      "branch_ids": [
+        "B-159"
+      ],
+      "outcome_ids": [
+        "O-159"
+      ],
+      "hotspots": [],
+      "priority_score": 13
+    },
+    {
+      "class_name": "DispatchAssignFailReasonEnum",
+      "jacoco_name": "com/mi/asp/dispatch/api/constant/DispatchAssignFailReasonEnum",
+      "line_covered": 28,
+      "line_total": 29,
+      "line_coverage": 96.55,
+      "line_required_for_threshold": 24,
+      "line_hard_deficit": 0,
+      "branch_covered": 14,
+      "branch_total": 14,
+      "branch_coverage": 100.0,
+      "branch_required_for_threshold": 12,
+      "branch_hard_deficit": 0,
+      "missed_branches": 0,
+      "missed_lines": 1,
+      "eut_ids": [
+        "EUT-001",
+        "EUT-002",
+        "EUT-003",
+        "EUT-004"
+      ],
+      "risk_t1": 2,
+      "route_types": {
+        "Happy Path": 2,
+        "Boundary": 2
+      },
+      "methods": {
+        "fromId": [
+          "EUT-001",
+          "EUT-002"
+        ],
+        "fromName": [
+          "EUT-003",
+          "EUT-004"
+        ]
+      },
+      "branch_ids": [
+        "B-001",
+        "B-002",
+        "B-003",
+        "B-004"
+      ],
+      "outcome_ids": [
+        "O-001",
+        "O-002",
+        "O-003",
+        "O-004"
+      ],
+      "hotspots": [],
+      "priority_score": 10
+    },
+    {
+      "class_name": "DispatchEngineerCertificateGatewayImpl",
+      "jacoco_name": "com/mi/asp/dispatch/infrastructure/asign/gateway/DispatchEngineerCertificateGatewayImpl",
+      "line_covered": 12,
+      "line_total": 12,
+      "line_coverage": 100.0,
+      "line_required_for_threshold": 10,
+      "line_hard_deficit": 0,
+      "branch_covered": 4,
+      "branch_total": 4,
+      "branch_coverage": 100.0,
+      "branch_required_for_threshold": 4,
+      "branch_hard_deficit": 0,
+      "missed_branches": 0,
+      "missed_lines": 0,
+      "eut_ids": [
+        "EUT-371",
+        "EUT-372",
+        "EUT-373"
+      ],
+      "risk_t1": 2,
+      "route_types": {
+        "Happy Path": 1,
+        "Boundary": 1,
+        "Exception": 1
+      },
+      "methods": {
+        "isWorkHighRequired": [
+          "EUT-371",
+          "EUT-372",
+          "EUT-373"
+        ]
+      },
+      "branch_ids": [
+        "B-371",
+        "B-372",
+        "B-373"
+      ],
+      "outcome_ids": [
+        "O-371",
+        "O-372",
+        "O-373"
+      ],
+      "hotspots": [],
+      "priority_score": 10
+    },
+    {
+      "class_name": "DispatchRecommendEngineerProviderImpl",
+      "jacoco_name": "com/mi/asp/dispatch/service/asign/DispatchRecommendEngineerProviderImpl",
+      "line_covered": 6,
+      "line_total": 6,
+      "line_coverage": 100.0,
+      "line_required_for_threshold": 5,
+      "line_hard_deficit": 0,
+      "branch_covered": 0,
+      "branch_total": 0,
+      "branch_coverage": 100.0,
+      "branch_required_for_threshold": 0,
+      "branch_hard_deficit": 0,
+      "missed_branches": 0,
+      "missed_lines": 0,
+      "eut_ids": [
+        "EUT-640"
+      ],
+      "risk_t1": 0,
+      "route_types": {
+        "Happy Path": 1
+      },
+      "methods": {
+        "recommendBestEngineer": [
+          "EUT-640"
+        ]
+      },
+      "branch_ids": [],
+      "outcome_ids": [],
+      "hotspots": [],
+      "priority_score": 0
+    }
+  ],
+  "recommended_batches": [
+    {
+      "class_name": "EngineerSaturationCalculateFillStrategy",
+      "why_first": "同时存在语义 EUT 与 JaCoCo 分支/行覆盖缺口或缓冲不足",
+      "eut_ids": [
+        "EUT-057",
+        "EUT-058",
+        "EUT-059",
+        "EUT-060",
+        "EUT-061",
+        "EUT-062",
+        "EUT-063",
+        "EUT-064",
+        "EUT-065",
+        "EUT-066",
+        "EUT-067",
+        "EUT-068",
+        "EUT-069",
+        "EUT-070",
+        "EUT-071",
+        "EUT-072",
+        "EUT-073",
+        "EUT-074",
+        "EUT-075",
+        "EUT-076",
+        "EUT-077",
+        "EUT-078",
+        "EUT-079",
+        "EUT-080",
+        "EUT-081",
+        "EUT-082",
+        "EUT-083",
+        "EUT-084",
+        "EUT-085",
+        "EUT-086",
+        "EUT-087",
+        "EUT-088",
+        "EUT-089",
+        "EUT-090",
+        "EUT-091",
+        "EUT-092",
+        "EUT-093",
+        "EUT-094",
+        "EUT-095",
+        "EUT-096",
+        "EUT-097",
+        "EUT-098",
+        "EUT-099",
+        "EUT-100",
+        "EUT-101",
+        "EUT-102",
+        "EUT-103",
+        "EUT-104",
+        "EUT-105",
+        "EUT-106",
+        "EUT-107",
+        "EUT-108",
+        "EUT-109",
+        "EUT-110",
+        "EUT-111",
+        "EUT-112",
+        "EUT-113",
+        "EUT-114",
+        "EUT-115",
+        "EUT-116",
+        "EUT-117",
+        "EUT-118",
+        "EUT-119",
+        "EUT-120",
+        "EUT-121",
+        "EUT-122",
+        "EUT-123",
+        "EUT-124",
+        "EUT-125",
+        "EUT-126",
+        "EUT-557",
+        "EUT-602",
+        "EUT-603",
+        "EUT-604",
+        "EUT-605",
+        "EUT-606",
+        "EUT-607",
+        "EUT-608",
+        "EUT-609",
+        "EUT-612",
+        "EUT-613",
+        "EUT-614",
+        "EUT-615",
+        "EUT-634",
+        "EUT-635",
+        "EUT-636",
+        "EUT-637"
+      ],
+      "route_types": {
+        "Happy Path": 42,
+        "Boundary": 39,
+        "Exception": 4,
+        "Concurrent": 2
+      },
+      "methods": {
+        "doApply": [
+          "EUT-057",
+          "EUT-058",
+          "EUT-059",
+          "EUT-060",
+          "EUT-061",
+          "EUT-062",
+          "EUT-063",
+          "EUT-064",
+          "EUT-065",
+          "EUT-066",
+          "EUT-557",
+          "EUT-602",
+          "EUT-603",
+          "EUT-604",
+          "EUT-605",
+          "EUT-606",
+          "EUT-607",
+          "EUT-608",
+          "EUT-609",
+          "EUT-612",
+          "EUT-613",
+          "EUT-614",
+          "EUT-615",
+          "EUT-634",
+          "EUT-635",
+          "EUT-636",
+          "EUT-637"
+        ],
+        "fillSingleCandidateSaturation": [
+          "EUT-067",
+          "EUT-068",
+          "EUT-069"
+        ],
+        "queryEngineerUnfinishedStats": [
+          "EUT-070",
+          "EUT-071",
+          "EUT-072",
+          "EUT-073",
+          "EUT-074",
+          "EUT-075",
+          "EUT-076"
+        ],
+        "buildEngineerUnfinishedStats": [
+          "EUT-077",
+          "EUT-078"
+        ],
+        "selectTodayTasksForSaturation": [
+          "EUT-079",
+          "EUT-080"
+        ],
+        "isSameDay": [
+          "EUT-081",
+          "EUT-082"
+        ],
+        "normalizeTimestamp": [
+          "EUT-083",
+          "EUT-084"
+        ],
+        "resolveCategoryId": [
+          "EUT-085",
+          "EUT-086"
+        ],
+        "calculateSaturation": [
+          "EUT-087",
+          "EUT-088",
+          "EUT-089",
+          "EUT-090",
+          "EUT-091",
+          "EUT-092",
+          "EUT-093",
+          "EUT-094"
+        ],
+        "calculateSingleCategorySaturation": [
+          "EUT-095",
+          "EUT-096"
+        ],
+        "calculateMultiCategorySaturation": [
+          "EUT-097",
+          "EUT-098"
+        ],
+        "normalizeDisplaySaturation": [
+          "EUT-099",
+          "EUT-100"
+        ],
+        "ratio": [
+          "EUT-101"
+        ],
+        "normalizeCounterMap": [
+          "EUT-102",
+          "EUT-103"
+        ],
+        "resolveOrderLimit": [
+          "EUT-104",
+          "EUT-105"
+        ],
+        "selectRegionConfigList": [
+          "EUT-106",
+          "EUT-107"
+        ],
+        "queryActiveConfigList": [
+          "EUT-108",
+          "EUT-109"
+        ],
+        "resolveLimitByRules": [
+          "EUT-110",
+          "EUT-111"
+        ],
+        "enablePeakSeason": [
+          "EUT-112",
+          "EUT-113"
+        ],
+        "isInPeakSeason": [
+          "EUT-114",
+          "EUT-115"
+        ],
+        "resolveEngineerLevel": [
+          "EUT-116",
+          "EUT-117"
+        ],
+        "normalizePositive": [
+          "EUT-118",
+          "EUT-119"
+        ],
+        "hasValidId": [
+          "EUT-120",
+          "EUT-121"
+        ],
+        "getBasicInfoMap": [
+          "EUT-122",
+          "EUT-123"
+        ],
+        "resolveAppointDay": [
+          "EUT-124",
+          "EUT-125",
+          "EUT-126"
+        ]
+      },
+      "coverage_focus": {
+        "missed_branches": 129,
+        "missed_lines": 82,
+        "branch_hard_deficit": 76,
+        "line_hard_deficit": 12,
+        "hotspots": []
+      },
+      "write_once_rule": "本类测试一次性补齐 Happy/Exception/Boundary 与热点分支，完成后再统一跑目标测试，不逐条 EUT 反复编译。"
+    },
+    {
+      "class_name": "WorkloadConfigServiceImpl",
+      "why_first": "同时存在语义 EUT 与 JaCoCo 分支/行覆盖缺口或缓冲不足",
+      "eut_ids": [
+        "EUT-216",
+        "EUT-217",
+        "EUT-218",
+        "EUT-219",
+        "EUT-220",
+        "EUT-221",
+        "EUT-222",
+        "EUT-223",
+        "EUT-224",
+        "EUT-225",
+        "EUT-226",
+        "EUT-227",
+        "EUT-228",
+        "EUT-229",
+        "EUT-230",
+        "EUT-231",
+        "EUT-232",
+        "EUT-233",
+        "EUT-234",
+        "EUT-235",
+        "EUT-236",
+        "EUT-237",
+        "EUT-238",
+        "EUT-239",
+        "EUT-240",
+        "EUT-241",
+        "EUT-242",
+        "EUT-243",
+        "EUT-244",
+        "EUT-245",
+        "EUT-246",
+        "EUT-247",
+        "EUT-248",
+        "EUT-249",
+        "EUT-250",
+        "EUT-251",
+        "EUT-252",
+        "EUT-253",
+        "EUT-254",
+        "EUT-255",
+        "EUT-256",
+        "EUT-257",
+        "EUT-258",
+        "EUT-259",
+        "EUT-260",
+        "EUT-261",
+        "EUT-262",
+        "EUT-263",
+        "EUT-264",
+        "EUT-265",
+        "EUT-266",
+        "EUT-267",
+        "EUT-268",
+        "EUT-269",
+        "EUT-270",
+        "EUT-271",
+        "EUT-272",
+        "EUT-273",
+        "EUT-274",
+        "EUT-275",
+        "EUT-276",
+        "EUT-277",
+        "EUT-278",
+        "EUT-279",
+        "EUT-280",
+        "EUT-281",
+        "EUT-282",
+        "EUT-283",
+        "EUT-284",
+        "EUT-285",
+        "EUT-286",
+        "EUT-287",
+        "EUT-288",
+        "EUT-289",
+        "EUT-290",
+        "EUT-291",
+        "EUT-292",
+        "EUT-293",
+        "EUT-294",
+        "EUT-295",
+        "EUT-296",
+        "EUT-297",
+        "EUT-298",
+        "EUT-299",
+        "EUT-300",
+        "EUT-301",
+        "EUT-302",
+        "EUT-303",
+        "EUT-304",
+        "EUT-305",
+        "EUT-306",
+        "EUT-307",
+        "EUT-308",
+        "EUT-309",
+        "EUT-310",
+        "EUT-311",
+        "EUT-312",
+        "EUT-313",
+        "EUT-314",
+        "EUT-315",
+        "EUT-316",
+        "EUT-317",
+        "EUT-318",
+        "EUT-319",
+        "EUT-320",
+        "EUT-321",
+        "EUT-322",
+        "EUT-323",
+        "EUT-324",
+        "EUT-325",
+        "EUT-326",
+        "EUT-327",
+        "EUT-328",
+        "EUT-329",
+        "EUT-330",
+        "EUT-331",
+        "EUT-332",
+        "EUT-333",
+        "EUT-334",
+        "EUT-335",
+        "EUT-336",
+        "EUT-337",
+        "EUT-338",
+        "EUT-339",
+        "EUT-340",
+        "EUT-341",
+        "EUT-342",
+        "EUT-343",
+        "EUT-344",
+        "EUT-345",
+        "EUT-346",
+        "EUT-347",
+        "EUT-556",
+        "EUT-590",
+        "EUT-591",
+        "EUT-592",
+        "EUT-593",
+        "EUT-594",
+        "EUT-595",
+        "EUT-596",
+        "EUT-597",
+        "EUT-598",
+        "EUT-599",
+        "EUT-600",
+        "EUT-601",
+        "EUT-631",
+        "EUT-632",
+        "EUT-633"
+      ],
+      "route_types": {
+        "Happy Path": 53,
+        "Boundary": 57,
+        "Exception": 38
+      },
+      "methods": {
+        "queryList": [
+          "EUT-216",
+          "EUT-217"
+        ],
+        "addConfig": [
+          "EUT-218",
+          "EUT-219",
+          "EUT-220",
+          "EUT-556",
+          "EUT-590",
+          "EUT-591",
+          "EUT-592",
+          "EUT-593",
+          "EUT-594",
+          "EUT-595",
+          "EUT-596",
+          "EUT-597",
+          "EUT-598"
+        ],
+        "updateConfig": [
+          "EUT-221",
+          "EUT-222",
+          "EUT-223"
+        ],
+        "importFromExcel": [
+          "EUT-224",
+          "EUT-225",
+          "EUT-226",
+          "EUT-227",
+          "EUT-228",
+          "EUT-229",
+          "EUT-230",
+          "EUT-231",
+          "EUT-599",
+          "EUT-600",
+          "EUT-601",
+          "EUT-633"
+        ],
+        "moveDuplicateImportRowsToFailList": [
+          "EUT-232",
+          "EUT-233",
+          "EUT-234"
+        ],
+        "classifyRowsIntoCreateAndUpdate": [
+          "EUT-235",
+          "EUT-236",
+          "EUT-237"
+        ],
+        "validateImportRow": [
+          "EUT-238",
+          "EUT-239",
+          "EUT-240",
+          "EUT-241",
+          "EUT-242",
+          "EUT-243",
+          "EUT-244",
+          "EUT-245",
+          "EUT-246",
+          "EUT-247",
+          "EUT-248",
+          "EUT-249",
+          "EUT-250",
+          "EUT-251",
+          "EUT-252",
+          "EUT-253",
+          "EUT-254",
+          "EUT-255",
+          "EUT-256",
+          "EUT-257",
+          "EUT-258",
+          "EUT-259"
+        ],
+        "getOrResolveRegionId": [
+          "EUT-260",
+          "EUT-261"
+        ],
+        "parseStatus": [
+          "EUT-262",
+          "EUT-263"
+        ],
+        "formatRawExcelValue": [
+          "EUT-264",
+          "EUT-265"
+        ],
+        "generateAndUploadFailReport": [
+          "EUT-266",
+          "EUT-267",
+          "EUT-268"
+        ],
+        "queryLogList": [
+          "EUT-269",
+          "EUT-270",
+          "EUT-271"
+        ],
+        "collectIdsFromJson": [
+          "EUT-272",
+          "EUT-273",
+          "EUT-274",
+          "EUT-275",
+          "EUT-276",
+          "EUT-277",
+          "EUT-278",
+          "EUT-279",
+          "EUT-280",
+          "EUT-281",
+          "EUT-282",
+          "EUT-283",
+          "EUT-284"
+        ],
+        "enrichJsonWithNames": [
+          "EUT-285",
+          "EUT-286",
+          "EUT-287",
+          "EUT-288",
+          "EUT-289",
+          "EUT-290",
+          "EUT-291",
+          "EUT-292",
+          "EUT-293",
+          "EUT-294",
+          "EUT-295",
+          "EUT-296",
+          "EUT-297",
+          "EUT-298",
+          "EUT-299",
+          "EUT-300",
+          "EUT-301",
+          "EUT-302",
+          "EUT-303",
+          "EUT-304",
+          "EUT-305",
+          "EUT-306",
+          "EUT-307"
+        ],
+        "getCategoryNameMap": [
+          "EUT-308",
+          "EUT-309"
+        ],
+        "getEngineerLevelNameMap": [
+          "EUT-310",
+          "EUT-311"
+        ],
+        "matchConfig": [
+          "EUT-312",
+          "EUT-313",
+          "EUT-314",
+          "EUT-315",
+          "EUT-316",
+          "EUT-317",
+          "EUT-318",
+          "EUT-319",
+          "EUT-320",
+          "EUT-631",
+          "EUT-632"
+        ],
+        "getAvailableCategories": [
+          "EUT-321",
+          "EUT-322"
+        ],
+        "validateCreateModel": [
+          "EUT-323",
+          "EUT-324",
+          "EUT-325"
+        ],
+        "fillCategoryNames": [
+          "EUT-326",
+          "EUT-327",
+          "EUT-328"
+        ],
+        "fillRegionNames": [
+          "EUT-329",
+          "EUT-330",
+          "EUT-331"
+        ],
+        "batchGetRegionNames": [
+          "EUT-332",
+          "EUT-333"
+        ],
+        "fillCreatorNames": [
+          "EUT-334",
+          "EUT-335",
+          "EUT-336",
+          "EUT-337",
+          "EUT-338",
+          "EUT-339"
+        ],
+        "saveConfigLog": [
+          "EUT-340",
+          "EUT-341"
+        ],
+        "resolvePersistedConfigForLog": [
+          "EUT-342",
+          "EUT-343",
+          "EUT-344"
+        ],
+        "buildMatchResult": [
+          "EUT-345",
+          "EUT-346",
+          "EUT-347"
+        ]
+      },
+      "coverage_focus": {
+        "missed_branches": 24,
+        "missed_lines": 9,
+        "branch_hard_deficit": 0,
+        "line_hard_deficit": 0,
+        "hotspots": []
+      },
+      "write_once_rule": "本类测试一次性补齐 Happy/Exception/Boundary 与热点分支，完成后再统一跑目标测试，不逐条 EUT 反复编译。"
+    },
+    {
+      "class_name": "EngineerBasicInfoFilterStrategy",
+      "why_first": "同时存在语义 EUT 与 JaCoCo 分支/行覆盖缺口或缓冲不足",
+      "eut_ids": [
+        "EUT-132",
+        "EUT-133",
+        "EUT-134",
+        "EUT-135",
+        "EUT-136",
+        "EUT-137",
+        "EUT-138"
+      ],
+      "route_types": {
+        "Happy Path": 3,
+        "Boundary": 3,
+        "Exception": 1
+      },
+      "methods": {
+        "doApply": [
+          "EUT-132",
+          "EUT-133"
+        ],
+        "fillBasicInfo": [
+          "EUT-134",
+          "EUT-135",
+          "EUT-136"
+        ],
+        "getBasicInfoMap": [
+          "EUT-137",
+          "EUT-138"
+        ]
+      },
+      "coverage_focus": {
+        "missed_branches": 8,
+        "missed_lines": 2,
+        "branch_hard_deficit": 4,
+        "line_hard_deficit": 0,
+        "hotspots": []
+      },
+      "write_once_rule": "本类测试一次性补齐 Happy/Exception/Boundary 与热点分支，完成后再统一跑目标测试，不逐条 EUT 反复编译。"
+    },
+    {
+      "class_name": "DispatchRecommendDomainServiceImpl",
+      "why_first": "同时存在语义 EUT 与 JaCoCo 分支/行覆盖缺口或缓冲不足",
+      "eut_ids": [
+        "EUT-037",
+        "EUT-038",
+        "EUT-039",
+        "EUT-040",
+        "EUT-041",
+        "EUT-042",
+        "EUT-043",
+        "EUT-044",
+        "EUT-045",
+        "EUT-046",
+        "EUT-047",
+        "EUT-048",
+        "EUT-049",
+        "EUT-050",
+        "EUT-051",
+        "EUT-052",
+        "EUT-053",
+        "EUT-554",
+        "EUT-560",
+        "EUT-580",
+        "EUT-581",
+        "EUT-616"
+      ],
+      "route_types": {
+        "Happy Path": 8,
+        "Boundary": 6,
+        "Exception": 8
+      },
+      "methods": {
+        "recommendBestEngineer": [
+          "EUT-037",
+          "EUT-038",
+          "EUT-039",
+          "EUT-554",
+          "EUT-560",
+          "EUT-580",
+          "EUT-581",
+          "EUT-616"
+        ],
+        "queryCandidateEngineers": [
+          "EUT-040",
+          "EUT-041"
+        ],
+        "resolveFailReason": [
+          "EUT-042",
+          "EUT-043"
+        ],
+        "buildReason": [
+          "EUT-044",
+          "EUT-045"
+        ],
+        "setFailReason": [
+          "EUT-046",
+          "EUT-047",
+          "EUT-048"
+        ],
+        "setFailReasonIfAbsent": [
+          "EUT-049",
+          "EUT-050",
+          "EUT-051"
+        ],
+        "buildSuccessResult": [
+          "EUT-052",
+          "EUT-053"
+        ]
+      },
+      "coverage_focus": {
+        "missed_branches": 9,
+        "missed_lines": 7,
+        "branch_hard_deficit": 3,
+        "line_hard_deficit": 0,
+        "hotspots": []
+      },
+      "write_once_rule": "本类测试一次性补齐 Happy/Exception/Boundary 与热点分支，完成后再统一跑目标测试，不逐条 EUT 反复编译。"
+    },
+    {
+      "class_name": "DispatchCandidateGatewayImpl",
+      "why_first": "同时存在语义 EUT 与 JaCoCo 分支/行覆盖缺口或缓冲不足",
+      "eut_ids": [
+        "EUT-360",
+        "EUT-361",
+        "EUT-362",
+        "EUT-363",
+        "EUT-364",
+        "EUT-365",
+        "EUT-366",
+        "EUT-367",
+        "EUT-562",
+        "EUT-563",
+        "EUT-564",
+        "EUT-565",
+        "EUT-566",
+        "EUT-567",
+        "EUT-618",
+        "EUT-619",
+        "EUT-627",
+        "EUT-628",
+        "EUT-638"
+      ],
+      "route_types": {
+        "Happy Path": 7,
+        "Boundary": 5,
+        "Exception": 7
+      },
+      "methods": {
+        "queryCandidates": [
+          "EUT-360",
+          "EUT-361",
+          "EUT-562",
+          "EUT-563",
+          "EUT-564",
+          "EUT-565",
+          "EUT-566",
+          "EUT-567",
+          "EUT-618",
+          "EUT-619",
+          "EUT-627",
+          "EUT-628",
+          "EUT-638"
+        ],
+        "queryCandidatesByMapDistance": [
+          "EUT-362",
+          "EUT-363",
+          "EUT-364"
+        ],
+        "markFailReason": [
+          "EUT-365",
+          "EUT-366",
+          "EUT-367"
+        ]
+      },
+      "coverage_focus": {
+        "missed_branches": 7,
+        "missed_lines": 7,
+        "branch_hard_deficit": 3,
+        "line_hard_deficit": 0,
+        "hotspots": []
+      },
+      "write_once_rule": "本类测试一次性补齐 Happy/Exception/Boundary 与热点分支，完成后再统一跑目标测试，不逐条 EUT 反复编译。"
+    },
+    {
+      "class_name": "RegionGatewayImpl",
+      "why_first": "同时存在语义 EUT 与 JaCoCo 分支/行覆盖缺口或缓冲不足",
+      "eut_ids": [
+        "EUT-541",
+        "EUT-542",
+        "EUT-543",
+        "EUT-544",
+        "EUT-545",
+        "EUT-546",
+        "EUT-547"
+      ],
+      "route_types": {
+        "Happy Path": 3,
+        "Boundary": 3,
+        "Exception": 1
+      },
+      "methods": {
+        "getRegionIdByName": [
+          "EUT-541",
+          "EUT-542"
+        ],
+        "getRegionIdsByNames": [
+          "EUT-543",
+          "EUT-544"
+        ],
+        "getRegionIdByParentIdAndName": [
+          "EUT-545",
+          "EUT-546",
+          "EUT-547"
+        ]
+      },
+      "coverage_focus": {
+        "missed_branches": 13,
+        "missed_lines": 14,
+        "branch_hard_deficit": 3,
+        "line_hard_deficit": 0,
+        "hotspots": []
+      },
+      "write_once_rule": "本类测试一次性补齐 Happy/Exception/Boundary 与热点分支，完成后再统一跑目标测试，不逐条 EUT 反复编译。"
+    },
+    {
+      "class_name": "EngineerProbabilityRankStrategy",
+      "why_first": "同时存在语义 EUT 与 JaCoCo 分支/行覆盖缺口或缓冲不足",
+      "eut_ids": [
+        "EUT-160",
+        "EUT-161",
+        "EUT-162",
+        "EUT-163",
+        "EUT-164",
+        "EUT-165",
+        "EUT-166",
+        "EUT-167",
+        "EUT-168",
+        "EUT-169",
+        "EUT-170",
+        "EUT-171",
+        "EUT-172",
+        "EUT-173",
+        "EUT-174",
+        "EUT-175",
+        "EUT-176",
+        "EUT-177",
+        "EUT-178",
+        "EUT-179",
+        "EUT-180",
+        "EUT-181",
+        "EUT-182",
+        "EUT-183",
+        "EUT-184",
+        "EUT-185",
+        "EUT-186",
+        "EUT-187",
+        "EUT-188",
+        "EUT-189",
+        "EUT-572",
+        "EUT-573",
+        "EUT-574",
+        "EUT-575",
+        "EUT-576",
+        "EUT-577",
+        "EUT-578",
+        "EUT-579",
+        "EUT-623",
+        "EUT-624",
+        "EUT-625",
+        "EUT-626"
+      ],
+      "route_types": {
+        "Happy Path": 21,
+        "Boundary": 12,
+        "Exception": 9
+      },
+      "methods": {
+        "doApply": [
+          "EUT-160",
+          "EUT-161",
+          "EUT-572",
+          "EUT-573",
+          "EUT-574",
+          "EUT-575",
+          "EUT-576",
+          "EUT-577",
+          "EUT-578",
+          "EUT-579",
+          "EUT-623",
+          "EUT-624",
+          "EUT-625",
+          "EUT-626"
+        ],
+        "fillDisplayMatchProbability": [
+          "EUT-162",
+          "EUT-163",
+          "EUT-164",
+          "EUT-165",
+          "EUT-166",
+          "EUT-167",
+          "EUT-168",
+          "EUT-169",
+          "EUT-170",
+          "EUT-171",
+          "EUT-172",
+          "EUT-173",
+          "EUT-174",
+          "EUT-175",
+          "EUT-176",
+          "EUT-177"
+        ],
+        "isFullSaturationForMatch": [
+          "EUT-178",
+          "EUT-179"
+        ],
+        "buildAdjustedSaturation": [
+          "EUT-180"
+        ],
+        "sanitizeDistance": [
+          "EUT-181"
+        ],
+        "sanitizeMetric": [
+          "EUT-182",
+          "EUT-183"
+        ],
+        "safeDivide": [
+          "EUT-184",
+          "EUT-185"
+        ],
+        "nullAsZero": [
+          "EUT-186",
+          "EUT-187"
+        ],
+        "nullAsMax": [
+          "EUT-188",
+          "EUT-189"
+        ]
+      },
+      "coverage_focus": {
+        "missed_branches": 17,
+        "missed_lines": 10,
+        "branch_hard_deficit": 2,
+        "line_hard_deficit": 0,
+        "hotspots": []
+      },
+      "write_once_rule": "本类测试一次性补齐 Happy/Exception/Boundary 与热点分支，完成后再统一跑目标测试，不逐条 EUT 反复编译。"
+    },
+    {
+      "class_name": "EngineerHolidayFilterStrategy",
+      "why_first": "同时存在语义 EUT 与 JaCoCo 分支/行覆盖缺口或缓冲不足",
+      "eut_ids": [
+        "EUT-148",
+        "EUT-149"
+      ],
+      "route_types": {
+        "Happy Path": 1,
+        "Boundary": 1
+      },
+      "methods": {
+        "doApply": [
+          "EUT-148",
+          "EUT-149"
+        ]
+      },
+      "coverage_focus": {
+        "missed_branches": 6,
+        "missed_lines": 2,
+        "branch_hard_deficit": 3,
+        "line_hard_deficit": 0,
+        "hotspots": []
+      },
+      "write_once_rule": "本类测试一次性补齐 Happy/Exception/Boundary 与热点分支，完成后再统一跑目标测试，不逐条 EUT 反复编译。"
+    },
+    {
+      "class_name": "UnfinishedStatsQueryExecutorConfig",
+      "why_first": "同时存在语义 EUT 与 JaCoCo 分支/行覆盖缺口或缓冲不足",
+      "eut_ids": [
+        "EUT-031",
+        "EUT-032"
+      ],
+      "route_types": {
+        "Happy Path": 1,
+        "Concurrent": 1
+      },
+      "methods": {
+        "unfinishedStatsQueryExecutor": [
+          "EUT-031",
+          "EUT-032"
+        ]
+      },
+      "coverage_focus": {
+        "missed_branches": 0,
+        "missed_lines": 9,
+        "branch_hard_deficit": 0,
+        "line_hard_deficit": 8,
+        "hotspots": []
+      },
+      "write_once_rule": "本类测试一次性补齐 Happy/Exception/Boundary 与热点分支，完成后再统一跑目标测试，不逐条 EUT 反复编译。"
+    },
+    {
+      "class_name": "EngineerOverloadFilterStrategy",
+      "why_first": "同时存在语义 EUT 与 JaCoCo 分支/行覆盖缺口或缓冲不足",
+      "eut_ids": [
+        "EUT-152",
+        "EUT-153",
+        "EUT-154",
+        "EUT-155",
+        "EUT-156",
+        "EUT-157",
+        "EUT-158",
+        "EUT-568",
+        "EUT-569",
+        "EUT-570",
+        "EUT-571",
+        "EUT-622"
+      ],
+      "route_types": {
+        "Happy Path": 5,
+        "Boundary": 6,
+        "Exception": 1
+      },
+      "methods": {
+        "doApply": [
+          "EUT-152",
+          "EUT-153",
+          "EUT-568",
+          "EUT-569",
+          "EUT-570",
+          "EUT-571",
+          "EUT-622"
+        ],
+        "allCandidatesMissingWorkloadConfig": [
+          "EUT-154",
+          "EUT-155"
+        ],
+        "markMissingWorkloadConfig": [
+          "EUT-156",
+          "EUT-157",
+          "EUT-158"
+        ]
+      },
+      "coverage_focus": {
+        "missed_branches": 7,
+        "missed_lines": 4,
+        "branch_hard_deficit": 2,
+        "line_hard_deficit": 0,
+        "hotspots": []
+      },
+      "write_once_rule": "本类测试一次性补齐 Happy/Exception/Boundary 与热点分支，完成后再统一跑目标测试，不逐条 EUT 反复编译。"
+    },
+    {
+      "class_name": "EngineerWorkloadConfigGatewayImpl",
+      "why_first": "同时存在语义 EUT 与 JaCoCo 分支/行覆盖缺口或缓冲不足",
+      "eut_ids": [
+        "EUT-432",
+        "EUT-433",
+        "EUT-434",
+        "EUT-435",
+        "EUT-436",
+        "EUT-437",
+        "EUT-438",
+        "EUT-439",
+        "EUT-440",
+        "EUT-441",
+        "EUT-442",
+        "EUT-443",
+        "EUT-444",
+        "EUT-445",
+        "EUT-446",
+        "EUT-447",
+        "EUT-448",
+        "EUT-449",
+        "EUT-450",
+        "EUT-451",
+        "EUT-452",
+        "EUT-453",
+        "EUT-454",
+        "EUT-455",
+        "EUT-456",
+        "EUT-457",
+        "EUT-458",
+        "EUT-459",
+        "EUT-460",
+        "EUT-461",
+        "EUT-462",
+        "EUT-463",
+        "EUT-464",
+        "EUT-465",
+        "EUT-466",
+        "EUT-467",
+        "EUT-468",
+        "EUT-469",
+        "EUT-470",
+        "EUT-471",
+        "EUT-472",
+        "EUT-473",
+        "EUT-474",
+        "EUT-475",
+        "EUT-476",
+        "EUT-477",
+        "EUT-478",
+        "EUT-479",
+        "EUT-480",
+        "EUT-481",
+        "EUT-482",
+        "EUT-483",
+        "EUT-484",
+        "EUT-485",
+        "EUT-486",
+        "EUT-487",
+        "EUT-488",
+        "EUT-489",
+        "EUT-490",
+        "EUT-491",
+        "EUT-492",
+        "EUT-493",
+        "EUT-494"
+      ],
+      "route_types": {
+        "Happy Path": 23,
+        "Boundary": 22,
+        "Exception": 18
+      },
+      "methods": {
+        "insert": [
+          "EUT-432",
+          "EUT-433",
+          "EUT-434",
+          "EUT-435",
+          "EUT-436",
+          "EUT-437",
+          "EUT-438",
+          "EUT-439",
+          "EUT-440"
+        ],
+        "updateById": [
+          "EUT-441",
+          "EUT-442",
+          "EUT-443"
+        ],
+        "selectById": [
+          "EUT-444",
+          "EUT-445",
+          "EUT-446"
+        ],
+        "queryByCondition": [
+          "EUT-447",
+          "EUT-448",
+          "EUT-449"
+        ],
+        "queryByMatchCondition": [
+          "EUT-450",
+          "EUT-451",
+          "EUT-452"
+        ],
+        "selectByUniqueKey": [
+          "EUT-453",
+          "EUT-454",
+          "EUT-455"
+        ],
+        "batchSelectByUniqueKeys": [
+          "EUT-456",
+          "EUT-457",
+          "EUT-458"
+        ],
+        "batchInsert": [
+          "EUT-459",
+          "EUT-460",
+          "EUT-461"
+        ],
+        "batchUpdate": [
+          "EUT-462",
+          "EUT-463",
+          "EUT-464"
+        ],
+        "rethrowIfDuplicateKey": [
+          "EUT-465",
+          "EUT-466"
+        ],
+        "isDuplicateKeyException": [
+          "EUT-467",
+          "EUT-468"
+        ],
+        "normalizeRegionIdForStorage": [
+          "EUT-469",
+          "EUT-470"
+        ],
+        "denormalizeRegionIdFromStorage": [
+          "EUT-471",
+          "EUT-472"
+        ],
+        "normalizeRegionIdsForStorage": [
+          "EUT-473",
+          "EUT-474",
+          "EUT-475"
+        ],
+        "denormalizeRegionFromStorage": [
+          "EUT-476",
+          "EUT-477",
+          "EUT-478",
+          "EUT-479",
+          "EUT-480",
+          "EUT-481"
+        ],
+        "normalizeRegionNamesForStorage": [
+          "EUT-482",
+          "EUT-483",
+          "EUT-484"
+        ],
+        "normalizeRegionNameForStorage": [
+          "EUT-485",
+          "EUT-486"
+        ],
+        "denormalizeRegionNamesFromStorage": [
+          "EUT-487",
+          "EUT-488",
+          "EUT-489",
+          "EUT-490",
+          "EUT-491",
+          "EUT-492"
+        ],
+        "denormalizeRegionNameFromStorage": [
+          "EUT-493",
+          "EUT-494"
+        ]
+      },
+      "coverage_focus": {
+        "missed_branches": 0,
+        "missed_lines": 0,
+        "branch_hard_deficit": 0,
+        "line_hard_deficit": 0,
+        "hotspots": []
+      },
+      "write_once_rule": "本类测试一次性补齐 Happy/Exception/Boundary 与热点分支，完成后再统一跑目标测试，不逐条 EUT 反复编译。"
+    },
+    {
+      "class_name": "DispatchEngineerUnfinishedTaskGatewayImpl",
+      "why_first": "同时存在语义 EUT 与 JaCoCo 分支/行覆盖缺口或缓冲不足",
+      "eut_ids": [
+        "EUT-379",
+        "EUT-380",
+        "EUT-381",
+        "EUT-382",
+        "EUT-383",
+        "EUT-384",
+        "EUT-385",
+        "EUT-386",
+        "EUT-387",
+        "EUT-388",
+        "EUT-389",
+        "EUT-390",
+        "EUT-391",
+        "EUT-392",
+        "EUT-393",
+        "EUT-394",
+        "EUT-395",
+        "EUT-396",
+        "EUT-397",
+        "EUT-398",
+        "EUT-399",
+        "EUT-400",
+        "EUT-401"
+      ],
+      "route_types": {
+        "Happy Path": 8,
+        "Boundary": 8,
+        "Exception": 7
+      },
+      "methods": {
+        "queryUnfinishedTasks": [
+          "EUT-379",
+          "EUT-380"
+        ],
+        "queryCurrentUnfinishedTasks": [
+          "EUT-381",
+          "EUT-382",
+          "EUT-383",
+          "EUT-384",
+          "EUT-385",
+          "EUT-386",
+          "EUT-387",
+          "EUT-388",
+          "EUT-389"
+        ],
+        "shouldSkipFutureAppointTask": [
+          "EUT-390",
+          "EUT-391",
+          "EUT-392"
+        ],
+        "queryAppointTasks": [
+          "EUT-393",
+          "EUT-394",
+          "EUT-395",
+          "EUT-396",
+          "EUT-397",
+          "EUT-398",
+          "EUT-399",
+          "EUT-400",
+          "EUT-401"
+        ]
+      },
+      "coverage_focus": {
+        "missed_branches": 8,
+        "missed_lines": 9,
+        "branch_hard_deficit": 1,
+        "line_hard_deficit": 0,
+        "hotspots": []
+      },
+      "write_once_rule": "本类测试一次性补齐 Happy/Exception/Boundary 与热点分支，完成后再统一跑目标测试，不逐条 EUT 反复编译。"
+    },
+    {
+      "class_name": "DispatchDataSourceContextHolder",
+      "why_first": "同时存在语义 EUT 与 JaCoCo 分支/行覆盖缺口或缓冲不足",
+      "eut_ids": [
+        "EUT-415",
+        "EUT-416",
+        "EUT-417",
+        "EUT-418"
+      ],
+      "route_types": {
+        "Happy Path": 1,
+        "Boundary": 1,
+        "Exception": 2
+      },
+      "methods": {
+        "set": [
+          "EUT-415",
+          "EUT-416",
+          "EUT-417",
+          "EUT-418"
+        ]
+      },
+      "coverage_focus": {
+        "missed_branches": 1,
+        "missed_lines": 1,
+        "branch_hard_deficit": 1,
+        "line_hard_deficit": 0,
+        "hotspots": []
+      },
+      "write_once_rule": "本类测试一次性补齐 Happy/Exception/Boundary 与热点分支，完成后再统一跑目标测试，不逐条 EUT 反复编译。"
+    },
+    {
+      "class_name": "SaturationMinSelectStrategy",
+      "why_first": "同时存在语义 EUT 与 JaCoCo 分支/行覆盖缺口或缓冲不足",
+      "eut_ids": [
+        "EUT-194",
+        "EUT-195",
+        "EUT-196",
+        "EUT-197"
+      ],
+      "route_types": {
+        "Happy Path": 2,
+        "Boundary": 2
+      },
+      "methods": {
+        "doApply": [
+          "EUT-194",
+          "EUT-195"
+        ],
+        "nullAsMax": [
+          "EUT-196",
+          "EUT-197"
+        ]
+      },
+      "coverage_focus": {
+        "missed_branches": 2,
+        "missed_lines": 0,
+        "branch_hard_deficit": 1,
+        "line_hard_deficit": 0,
+        "hotspots": []
+      },
+      "write_once_rule": "本类测试一次性补齐 Happy/Exception/Boundary 与热点分支，完成后再统一跑目标测试，不逐条 EUT 反复编译。"
+    },
+    {
+      "class_name": "DispatchStrategyOrchestrator",
+      "why_first": "同时存在语义 EUT 与 JaCoCo 分支/行覆盖缺口或缓冲不足",
+      "eut_ids": [
+        "EUT-054",
+        "EUT-055",
+        "EUT-056"
+      ],
+      "route_types": {
+        "Happy Path": 1,
+        "Boundary": 1,
+        "Exception": 1
+      },
+      "methods": {
+        "preloadEngineerBasicInfo": [
+          "EUT-054",
+          "EUT-055",
+          "EUT-056"
+        ]
+      },
+      "coverage_focus": {
+        "missed_branches": 2,
+        "missed_lines": 0,
+        "branch_hard_deficit": 1,
+        "line_hard_deficit": 0,
+        "hotspots": []
+      },
+      "write_once_rule": "本类测试一次性补齐 Happy/Exception/Boundary 与热点分支，完成后再统一跑目标测试，不逐条 EUT 反复编译。"
+    },
+    {
+      "class_name": "DispatchServiceItemCategoryGatewayImpl",
+      "why_first": "同时存在语义 EUT 与 JaCoCo 分支/行覆盖缺口或缓冲不足",
+      "eut_ids": [
+        "EUT-402",
+        "EUT-403",
+        "EUT-404"
+      ],
+      "route_types": {
+        "Happy Path": 1,
+        "Boundary": 1,
+        "Exception": 1
+      },
+      "methods": {
+        "queryServiceItems": [
+          "EUT-402",
+          "EUT-403",
+          "EUT-404"
+        ]
+      },
+      "coverage_focus": {
+        "missed_branches": 2,
+        "missed_lines": 0,
+        "branch_hard_deficit": 1,
+        "line_hard_deficit": 0,
+        "hotspots": []
+      },
+      "write_once_rule": "本类测试一次性补齐 Happy/Exception/Boundary 与热点分支，完成后再统一跑目标测试，不逐条 EUT 反复编译。"
+    },
+    {
+      "class_name": "DispatchEngineerBasicInfoGatewayImpl",
+      "why_first": "同时存在语义 EUT 与 JaCoCo 分支/行覆盖缺口或缓冲不足",
+      "eut_ids": [
+        "EUT-368",
+        "EUT-369",
+        "EUT-370"
+      ],
+      "route_types": {
+        "Happy Path": 1,
+        "Boundary": 1,
+        "Exception": 1
+      },
+      "methods": {
+        "queryEngineerBasicInfo": [
+          "EUT-368",
+          "EUT-369",
+          "EUT-370"
+        ]
+      },
+      "coverage_focus": {
+        "missed_branches": 2,
+        "missed_lines": 0,
+        "branch_hard_deficit": 1,
+        "line_hard_deficit": 0,
+        "hotspots": []
+      },
+      "write_once_rule": "本类测试一次性补齐 Happy/Exception/Boundary 与热点分支，完成后再统一跑目标测试，不逐条 EUT 反复编译。"
+    },
+    {
+      "class_name": "EngineerLevelFilterStrategy",
+      "why_first": "同时存在语义 EUT 与 JaCoCo 分支/行覆盖缺口或缓冲不足",
+      "eut_ids": [
+        "EUT-150",
+        "EUT-151"
+      ],
+      "route_types": {
+        "Happy Path": 1,
+        "Boundary": 1
+      },
+      "methods": {
+        "doApply": [
+          "EUT-150",
+          "EUT-151"
+        ]
+      },
+      "coverage_focus": {
+        "missed_branches": 2,
+        "missed_lines": 0,
+        "branch_hard_deficit": 1,
+        "line_hard_deficit": 0,
+        "hotspots": []
+      },
+      "write_once_rule": "本类测试一次性补齐 Happy/Exception/Boundary 与热点分支，完成后再统一跑目标测试，不逐条 EUT 反复编译。"
+    },
+    {
+      "class_name": "UserGatewayImpl",
+      "why_first": "同时存在语义 EUT 与 JaCoCo 分支/行覆盖缺口或缓冲不足",
+      "eut_ids": [
+        "EUT-508",
+        "EUT-509",
+        "EUT-510",
+        "EUT-511",
+        "EUT-512",
+        "EUT-513",
+        "EUT-514",
+        "EUT-515",
+        "EUT-516",
+        "EUT-517",
+        "EUT-518",
+        "EUT-519",
+        "EUT-520",
+        "EUT-521",
+        "EUT-522",
+        "EUT-523",
+        "EUT-524",
+        "EUT-525",
+        "EUT-526",
+        "EUT-527",
+        "EUT-528",
+        "EUT-529",
+        "EUT-530",
+        "EUT-531",
+        "EUT-532",
+        "EUT-533",
+        "EUT-534",
+        "EUT-535",
+        "EUT-536",
+        "EUT-537",
+        "EUT-538",
+        "EUT-539",
+        "EUT-540"
+      ],
+      "route_types": {
+        "Happy Path": 12,
+        "Boundary": 11,
+        "Exception": 10
+      },
+      "methods": {
+        "getUserByMiliao": [
+          "EUT-508",
+          "EUT-509",
+          "EUT-510",
+          "EUT-511",
+          "EUT-512",
+          "EUT-513",
+          "EUT-514",
+          "EUT-515",
+          "EUT-516"
+        ],
+        "getUsersByMiliaoIds": [
+          "EUT-517",
+          "EUT-518",
+          "EUT-519",
+          "EUT-520",
+          "EUT-521",
+          "EUT-522",
+          "EUT-523",
+          "EUT-524",
+          "EUT-525",
+          "EUT-526",
+          "EUT-527",
+          "EUT-528"
+        ],
+        "getCurrentUserMiliao": [
+          "EUT-529",
+          "EUT-530",
+          "EUT-531",
+          "EUT-532",
+          "EUT-533",
+          "EUT-534",
+          "EUT-535",
+          "EUT-536",
+          "EUT-537",
+          "EUT-538"
+        ],
+        "isMockEnvironment": [
+          "EUT-539",
+          "EUT-540"
+        ]
+      },
+      "coverage_focus": {
+        "missed_branches": 0,
+        "missed_lines": 0,
+        "branch_hard_deficit": 0,
+        "line_hard_deficit": 0,
+        "hotspots": []
+      },
+      "write_once_rule": "本类测试一次性补齐 Happy/Exception/Boundary 与热点分支，完成后再统一跑目标测试，不逐条 EUT 反复编译。"
+    },
+    {
+      "class_name": "DispatchSlaveReadAspect",
+      "why_first": "同时存在语义 EUT 与 JaCoCo 分支/行覆盖缺口或缓冲不足",
+      "eut_ids": [
+        "EUT-419"
+      ],
+      "route_types": {
+        "Happy Path": 1
+      },
+      "methods": {
+        "aroundSlaveRead": [
+          "EUT-419"
+        ]
+      },
+      "coverage_focus": {
+        "missed_branches": 1,
+        "missed_lines": 0,
+        "branch_hard_deficit": 1,
+        "line_hard_deficit": 0,
+        "hotspots": []
+      },
+      "write_once_rule": "本类测试一次性补齐 Happy/Exception/Boundary 与热点分支，完成后再统一跑目标测试，不逐条 EUT 反复编译。"
+    },
+    {
+      "class_name": "DispatchRecommendRpcAppService",
+      "why_first": "同时存在语义 EUT 与 JaCoCo 分支/行覆盖缺口或缓冲不足",
+      "eut_ids": [
+        "EUT-005",
+        "EUT-006",
+        "EUT-007",
+        "EUT-008",
+        "EUT-009",
+        "EUT-010",
+        "EUT-011",
+        "EUT-012",
+        "EUT-013",
+        "EUT-014",
+        "EUT-015",
+        "EUT-016",
+        "EUT-017",
+        "EUT-018",
+        "EUT-559",
+        "EUT-561",
+        "EUT-617"
+      ],
+      "route_types": {
+        "Happy Path": 8,
+        "Boundary": 5,
+        "Exception": 4
+      },
+      "methods": {
+        "validateRecommendReq": [
+          "EUT-005",
+          "EUT-006",
+          "EUT-007"
+        ],
+        "validateCandidateReq": [
+          "EUT-008",
+          "EUT-009",
+          "EUT-010",
+          "EUT-011",
+          "EUT-012",
+          "EUT-013",
+          "EUT-014",
+          "EUT-015"
+        ],
+        "validateCommonReq": [
+          "EUT-016",
+          "EUT-017",
+          "EUT-018"
+        ],
+        "queryCandidateEngineers": [
+          "EUT-559",
+          "EUT-561",
+          "EUT-617"
+        ]
+      },
+      "coverage_focus": {
+        "missed_branches": 2,
+        "missed_lines": 1,
+        "branch_hard_deficit": 0,
+        "line_hard_deficit": 0,
+        "hotspots": []
+      },
+      "write_once_rule": "本类测试一次性补齐 Happy/Exception/Boundary 与热点分支，完成后再统一跑目标测试，不逐条 EUT 反复编译。"
+    },
+    {
+      "class_name": "AbstractDispatchFilterStrategy",
+      "why_first": "同时存在语义 EUT 与 JaCoCo 分支/行覆盖缺口或缓冲不足",
+      "eut_ids": [
+        "EUT-127",
+        "EUT-128",
+        "EUT-129",
+        "EUT-130",
+        "EUT-131"
+      ],
+      "route_types": {
+        "Happy Path": 2,
+        "Boundary": 2,
+        "Exception": 1
+      },
+      "methods": {
+        "apply": [
+          "EUT-127",
+          "EUT-128",
+          "EUT-129"
+        ],
+        "resolveServiceNo": [
+          "EUT-130",
+          "EUT-131"
+        ]
+      },
+      "coverage_focus": {
+        "missed_branches": 2,
+        "missed_lines": 5,
+        "branch_hard_deficit": 0,
+        "line_hard_deficit": 1,
+        "hotspots": []
+      },
+      "write_once_rule": "本类测试一次性补齐 Happy/Exception/Boundary 与热点分支，完成后再统一跑目标测试，不逐条 EUT 反复编译。"
+    },
+    {
+      "class_name": "EngineerWorkloadConfigProviderImpl",
+      "why_first": "同时存在语义 EUT 与 JaCoCo 分支/行覆盖缺口或缓冲不足",
+      "eut_ids": [
+        "EUT-019",
+        "EUT-020",
+        "EUT-021",
+        "EUT-022",
+        "EUT-023",
+        "EUT-024",
+        "EUT-025",
+        "EUT-026",
+        "EUT-027",
+        "EUT-028",
+        "EUT-029",
+        "EUT-030"
+      ],
+      "route_types": {
+        "Happy Path": 4,
+        "Boundary": 4,
+        "Exception": 4
+      },
+      "methods": {
+        "queryList": [
+          "EUT-019",
+          "EUT-020",
+          "EUT-021"
+        ],
+        "importExcel": [
+          "EUT-022",
+          "EUT-023",
+          "EUT-024"
+        ],
+        "queryLogList": [
+          "EUT-025",
+          "EUT-026",
+          "EUT-027"
+        ],
+        "matchConfig": [
+          "EUT-028",
+          "EUT-029",
+          "EUT-030"
+        ]
+      },
+      "coverage_focus": {
+        "missed_branches": 0,
+        "missed_lines": 0,
+        "branch_hard_deficit": 0,
+        "line_hard_deficit": 0,
+        "hotspots": []
+      },
+      "write_once_rule": "本类测试一次性补齐 Happy/Exception/Boundary 与热点分支，完成后再统一跑目标测试，不逐条 EUT 反复编译。"
+    },
+    {
+      "class_name": "FileUploadGatewayImpl",
+      "why_first": "同时存在语义 EUT 与 JaCoCo 分支/行覆盖缺口或缓冲不足",
+      "eut_ids": [
+        "EUT-495",
+        "EUT-496",
+        "EUT-497",
+        "EUT-498",
+        "EUT-499",
+        "EUT-500",
+        "EUT-501",
+        "EUT-502",
+        "EUT-503",
+        "EUT-504",
+        "EUT-505",
+        "EUT-506",
+        "EUT-507"
+      ],
+      "route_types": {
+        "Happy Path": 5,
+        "Boundary": 4,
+        "Exception": 4
+      },
+      "methods": {
+        "upload": [
+          "EUT-495",
+          "EUT-496",
+          "EUT-497",
+          "EUT-498",
+          "EUT-499",
+          "EUT-500",
+          "EUT-501",
+          "EUT-502",
+          "EUT-503",
+          "EUT-504",
+          "EUT-505",
+          "EUT-506",
+          "EUT-507"
+        ]
+      },
+      "coverage_focus": {
+        "missed_branches": 0,
+        "missed_lines": 0,
+        "branch_hard_deficit": 0,
+        "line_hard_deficit": 0,
+        "hotspots": []
+      },
+      "write_once_rule": "本类测试一次性补齐 Happy/Exception/Boundary 与热点分支，完成后再统一跑目标测试，不逐条 EUT 反复编译。"
+    },
+    {
+      "class_name": "EngineerCertificateFilterStrategy",
+      "why_first": "同时存在语义 EUT 与 JaCoCo 分支/行覆盖缺口或缓冲不足",
+      "eut_ids": [
+        "EUT-139",
+        "EUT-140",
+        "EUT-141",
+        "EUT-142",
+        "EUT-143",
+        "EUT-144",
+        "EUT-145",
+        "EUT-146",
+        "EUT-147"
+      ],
+      "route_types": {
+        "Happy Path": 4,
+        "Boundary": 4,
+        "Exception": 1
+      },
+      "methods": {
+        "doApply": [
+          "EUT-139",
+          "EUT-140"
+        ],
+        "workHighAble": [
+          "EUT-141",
+          "EUT-142"
+        ],
+        "isExpired": [
+          "EUT-143",
+          "EUT-144",
+          "EUT-145"
+        ],
+        "getBasicInfoMap": [
+          "EUT-146",
+          "EUT-147"
+        ]
+      },
+      "coverage_focus": {
+        "missed_branches": 5,
+        "missed_lines": 1,
+        "branch_hard_deficit": 0,
+        "line_hard_deficit": 0,
+        "hotspots": []
+      },
+      "write_once_rule": "本类测试一次性补齐 Happy/Exception/Boundary 与热点分支，完成后再统一跑目标测试，不逐条 EUT 反复编译。"
+    },
+    {
+      "class_name": "CategoryGatewayImpl",
+      "why_first": "同时存在语义 EUT 与 JaCoCo 分支/行覆盖缺口或缓冲不足",
+      "eut_ids": [
+        "EUT-420",
+        "EUT-421",
+        "EUT-422",
+        "EUT-423",
+        "EUT-424",
+        "EUT-425",
+        "EUT-426",
+        "EUT-427",
+        "EUT-428",
+        "EUT-429",
+        "EUT-430",
+        "EUT-431"
+      ],
+      "route_types": {
+        "Happy Path": 6,
+        "Boundary": 6
+      },
+      "methods": {
+        "getAllCategories": [
+          "EUT-420",
+          "EUT-421"
+        ],
+        "getCategoryById": [
+          "EUT-422",
+          "EUT-423"
+        ],
+        "getCategoriesByIds": [
+          "EUT-424",
+          "EUT-425"
+        ],
+        "getCategoryNameMap": [
+          "EUT-426",
+          "EUT-427"
+        ],
+        "getCategoryIdByName": [
+          "EUT-428",
+          "EUT-429"
+        ],
+        "getCategoriesByBrandClassId": [
+          "EUT-430",
+          "EUT-431"
+        ]
+      },
+      "coverage_focus": {
+        "missed_branches": 0,
+        "missed_lines": 0,
+        "branch_hard_deficit": 0,
+        "line_hard_deficit": 0,
+        "hotspots": []
+      },
+      "write_once_rule": "本类测试一次性补齐 Happy/Exception/Boundary 与热点分支，完成后再统一跑目标测试，不逐条 EUT 反复编译。"
+    },
+    {
+      "class_name": "DistanceTierSelectStrategy",
+      "why_first": "同时存在语义 EUT 与 JaCoCo 分支/行覆盖缺口或缓冲不足",
+      "eut_ids": [
+        "EUT-190",
+        "EUT-191",
+        "EUT-192",
+        "EUT-193",
+        "EUT-620",
+        "EUT-621"
+      ],
+      "route_types": {
+        "Happy Path": 2,
+        "Boundary": 3,
+        "Exception": 1
+      },
+      "methods": {
+        "doApply": [
+          "EUT-190",
+          "EUT-191",
+          "EUT-620",
+          "EUT-621"
+        ],
+        "inTier": [
+          "EUT-192",
+          "EUT-193"
+        ]
+      },
+      "coverage_focus": {
+        "missed_branches": 2,
+        "missed_lines": 0,
+        "branch_hard_deficit": 0,
+        "line_hard_deficit": 0,
+        "hotspots": []
+      },
+      "write_once_rule": "本类测试一次性补齐 Happy/Exception/Boundary 与热点分支，完成后再统一跑目标测试，不逐条 EUT 反复编译。"
+    },
+    {
+      "class_name": "DispatchEngineerHolidayGatewayImpl",
+      "why_first": "同时存在语义 EUT 与 JaCoCo 分支/行覆盖缺口或缓冲不足",
+      "eut_ids": [
+        "EUT-374",
+        "EUT-375",
+        "EUT-376",
+        "EUT-377",
+        "EUT-378"
+      ],
+      "route_types": {
+        "Happy Path": 2,
+        "Boundary": 2,
+        "Exception": 1
+      },
+      "methods": {
+        "queryHolidayStatus": [
+          "EUT-374",
+          "EUT-375"
+        ],
+        "querySingleHolidayStatus": [
+          "EUT-376",
+          "EUT-377",
+          "EUT-378"
+        ]
+      },
+      "coverage_focus": {
+        "missed_branches": 3,
+        "missed_lines": 1,
+        "branch_hard_deficit": 0,
+        "line_hard_deficit": 0,
+        "hotspots": []
+      },
+      "write_once_rule": "本类测试一次性补齐 Happy/Exception/Boundary 与热点分支，完成后再统一跑目标测试，不逐条 EUT 反复编译。"
+    },
+    {
+      "class_name": "DispatchScenarioPlanResolver",
+      "why_first": "同时存在语义 EUT 与 JaCoCo 分支/行覆盖缺口或缓冲不足",
+      "eut_ids": [
+        "EUT-159",
+        "EUT-555",
+        "EUT-582",
+        "EUT-583",
+        "EUT-584",
+        "EUT-585",
+        "EUT-586",
+        "EUT-587",
+        "EUT-588",
+        "EUT-589",
+        "EUT-629",
+        "EUT-630"
+      ],
+      "route_types": {
+        "Happy Path": 10,
+        "Exception": 2
+      },
+      "methods": {
+        "resolve": [
+          "EUT-159",
+          "EUT-555",
+          "EUT-582",
+          "EUT-583",
+          "EUT-584",
+          "EUT-585",
+          "EUT-586",
+          "EUT-587",
+          "EUT-588",
+          "EUT-589",
+          "EUT-629",
+          "EUT-630"
+        ]
+      },
+      "coverage_focus": {
+        "missed_branches": 0,
+        "missed_lines": 0,
+        "branch_hard_deficit": 0,
+        "line_hard_deficit": 0,
+        "hotspots": []
+      },
+      "write_once_rule": "本类测试一次性补齐 Happy/Exception/Boundary 与热点分支，完成后再统一跑目标测试，不逐条 EUT 反复编译。"
+    },
+    {
+      "class_name": "DispatchAssignFailReasonEnum",
+      "why_first": "同时存在语义 EUT 与 JaCoCo 分支/行覆盖缺口或缓冲不足",
+      "eut_ids": [
+        "EUT-001",
+        "EUT-002",
+        "EUT-003",
+        "EUT-004"
+      ],
+      "route_types": {
+        "Happy Path": 2,
+        "Boundary": 2
+      },
+      "methods": {
+        "fromId": [
+          "EUT-001",
+          "EUT-002"
+        ],
+        "fromName": [
+          "EUT-003",
+          "EUT-004"
+        ]
+      },
+      "coverage_focus": {
+        "missed_branches": 0,
+        "missed_lines": 1,
+        "branch_hard_deficit": 0,
+        "line_hard_deficit": 0,
+        "hotspots": []
+      },
+      "write_once_rule": "本类测试一次性补齐 Happy/Exception/Boundary 与热点分支，完成后再统一跑目标测试，不逐条 EUT 反复编译。"
+    },
+    {
+      "class_name": "DispatchEngineerCertificateGatewayImpl",
+      "why_first": "同时存在语义 EUT 与 JaCoCo 分支/行覆盖缺口或缓冲不足",
+      "eut_ids": [
+        "EUT-371",
+        "EUT-372",
+        "EUT-373"
+      ],
+      "route_types": {
+        "Happy Path": 1,
+        "Boundary": 1,
+        "Exception": 1
+      },
+      "methods": {
+        "isWorkHighRequired": [
+          "EUT-371",
+          "EUT-372",
+          "EUT-373"
+        ]
+      },
+      "coverage_focus": {
+        "missed_branches": 0,
+        "missed_lines": 0,
+        "branch_hard_deficit": 0,
+        "line_hard_deficit": 0,
+        "hotspots": []
+      },
+      "write_once_rule": "本类测试一次性补齐 Happy/Exception/Boundary 与热点分支，完成后再统一跑目标测试，不逐条 EUT 反复编译。"
+    }
+  ],
+  "coverage_checkpoints": [
+    {
+      "checkpoint_id": "cp-q05b-branch-boost-001",
+      "batch_id": "q05b-branch-boost-001",
+      "eut_ids": [
+        "EUT-001",
+        "EUT-002",
+        "EUT-003",
+        "EUT-004",
+        "EUT-139",
+        "EUT-140",
+        "EUT-143",
+        "EUT-144",
+        "EUT-419"
+      ],
+      "command": [
+        "mvn",
+        "-pl",
+        "dispatch-api,dispatch-domain,dispatch-app,dispatch-infrastructure",
+        "-am",
+        "verify",
+        "-DskipITs",
+        "-Dcheckstyle.skip=true",
+        "-Dsurefire.failIfNoSpecifiedTests=false"
+      ],
+      "coverage_inputs": [
+        "dispatch-api/target/site/jacoco/jacoco.csv",
+        "dispatch-domain/target/site/jacoco/jacoco.csv",
+        "dispatch-app/target/site/jacoco/jacoco.csv",
+        "dispatch-infrastructure/target/site/jacoco/jacoco.csv"
+      ],
+      "line_covered_before": 2100,
+      "line_total": 2293,
+      "line_coverage_before": 91.58,
+      "line_covered": 2128,
+      "line_coverage": 92.8,
+      "line_coverage_delta": 1.22,
+      "branch_covered_before": 1013,
+      "branch_total": 1285,
+      "branch_coverage_before": 78.83,
+      "branch_covered": 1031,
+      "branch_coverage": 80.23,
+      "branch_coverage_delta": 1.4,
+      "threshold_result": "PASS: 增量行覆盖率与增量分支覆盖率均 >= 80%"
+    },
+    {
+      "checkpoint_id": "cp-q05b-existing-tests-001",
+      "batch_id": "q05b-existing-tests-001",
+      "eut_ids": [
+        "EUT-005",
+        "EUT-006",
+        "EUT-007",
+        "EUT-008",
+        "EUT-009",
+        "EUT-010",
+        "EUT-011",
+        "EUT-012",
+        "EUT-013",
+        "EUT-014",
+        "EUT-015",
+        "EUT-016",
+        "EUT-017",
+        "EUT-018",
+        "EUT-019",
+        "EUT-020",
+        "EUT-021",
+        "EUT-022",
+        "EUT-023",
+        "EUT-024",
+        "EUT-025",
+        "EUT-026",
+        "EUT-027",
+        "EUT-028",
+        "EUT-029",
+        "EUT-030",
+        "EUT-031",
+        "EUT-032",
+        "EUT-033",
+        "EUT-034",
+        "EUT-035",
+        "EUT-036",
+        "EUT-037",
+        "EUT-038",
+        "EUT-039",
+        "EUT-040",
+        "EUT-041",
+        "EUT-042",
+        "EUT-043",
+        "EUT-044",
+        "EUT-045",
+        "EUT-046",
+        "EUT-047",
+        "EUT-048",
+        "EUT-049",
+        "EUT-050",
+        "EUT-051",
+        "EUT-052",
+        "EUT-053",
+        "EUT-054",
+        "EUT-055",
+        "EUT-056",
+        "EUT-057",
+        "EUT-058",
+        "EUT-059",
+        "EUT-060",
+        "EUT-061",
+        "EUT-062",
+        "EUT-063",
+        "EUT-064",
+        "EUT-065",
+        "EUT-066",
+        "EUT-067",
+        "EUT-068",
+        "EUT-069",
+        "EUT-070",
+        "EUT-071",
+        "EUT-072",
+        "EUT-073",
+        "EUT-074",
+        "EUT-075",
+        "EUT-076",
+        "EUT-077",
+        "EUT-078",
+        "EUT-079",
+        "EUT-080",
+        "EUT-081",
+        "EUT-082",
+        "EUT-083",
+        "EUT-084",
+        "EUT-085",
+        "EUT-086",
+        "EUT-087",
+        "EUT-088",
+        "EUT-089",
+        "EUT-090",
+        "EUT-091",
+        "EUT-092",
+        "EUT-093",
+        "EUT-094",
+        "EUT-095",
+        "EUT-096",
+        "EUT-097",
+        "EUT-098",
+        "EUT-099",
+        "EUT-100",
+        "EUT-101",
+        "EUT-102",
+        "EUT-103",
+        "EUT-104",
+        "EUT-105",
+        "EUT-106",
+        "EUT-107",
+        "EUT-108",
+        "EUT-109",
+        "EUT-110",
+        "EUT-111",
+        "EUT-112",
+        "EUT-113",
+        "EUT-114",
+        "EUT-115",
+        "EUT-116",
+        "EUT-117",
+        "EUT-118",
+        "EUT-119",
+        "EUT-120",
+        "EUT-121",
+        "EUT-122",
+        "EUT-123",
+        "EUT-124",
+        "EUT-125",
+        "EUT-126",
+        "EUT-127",
+        "EUT-128",
+        "EUT-129",
+        "EUT-130",
+        "EUT-131",
+        "EUT-132",
+        "EUT-133",
+        "EUT-134",
+        "EUT-135",
+        "EUT-136",
+        "EUT-137",
+        "EUT-138",
+        "EUT-141",
+        "EUT-142",
+        "EUT-145",
+        "EUT-146",
+        "EUT-147",
+        "EUT-148",
+        "EUT-149",
+        "EUT-150",
+        "EUT-151",
+        "EUT-152",
+        "EUT-153",
+        "EUT-154",
+        "EUT-155",
+        "EUT-156",
+        "EUT-157",
+        "EUT-158",
+        "EUT-159",
+        "EUT-160",
+        "EUT-161",
+        "EUT-162",
+        "EUT-163",
+        "EUT-164",
+        "EUT-165",
+        "EUT-166",
+        "EUT-167",
+        "EUT-168",
+        "EUT-169",
+        "EUT-170",
+        "EUT-171",
+        "EUT-172",
+        "EUT-173",
+        "EUT-174",
+        "EUT-175",
+        "EUT-176",
+        "EUT-177",
+        "EUT-178",
+        "EUT-179",
+        "EUT-180",
+        "EUT-181",
+        "EUT-182",
+        "EUT-183",
+        "EUT-184",
+        "EUT-185",
+        "EUT-186",
+        "EUT-187",
+        "EUT-188",
+        "EUT-189",
+        "EUT-190",
+        "EUT-191",
+        "EUT-192",
+        "EUT-193",
+        "EUT-194",
+        "EUT-195",
+        "EUT-196",
+        "EUT-197",
+        "EUT-198",
+        "EUT-199",
+        "EUT-200",
+        "EUT-201",
+        "EUT-202",
+        "EUT-203",
+        "EUT-204",
+        "EUT-205",
+        "EUT-206",
+        "EUT-207",
+        "EUT-208",
+        "EUT-209",
+        "EUT-210",
+        "EUT-211",
+        "EUT-212",
+        "EUT-213",
+        "EUT-214",
+        "EUT-215",
+        "EUT-216",
+        "EUT-217",
+        "EUT-218",
+        "EUT-219",
+        "EUT-220",
+        "EUT-221",
+        "EUT-222",
+        "EUT-223",
+        "EUT-224",
+        "EUT-225",
+        "EUT-226",
+        "EUT-227",
+        "EUT-228",
+        "EUT-229",
+        "EUT-230",
+        "EUT-231",
+        "EUT-232",
+        "EUT-233",
+        "EUT-234",
+        "EUT-235",
+        "EUT-236",
+        "EUT-237",
+        "EUT-238",
+        "EUT-239",
+        "EUT-240",
+        "EUT-241",
+        "EUT-242",
+        "EUT-243",
+        "EUT-244",
+        "EUT-245",
+        "EUT-246",
+        "EUT-247",
+        "EUT-248",
+        "EUT-249",
+        "EUT-250",
+        "EUT-251",
+        "EUT-252",
+        "EUT-253",
+        "EUT-254",
+        "EUT-255",
+        "EUT-256",
+        "EUT-257",
+        "EUT-258",
+        "EUT-259",
+        "EUT-260",
+        "EUT-261",
+        "EUT-262",
+        "EUT-263",
+        "EUT-264",
+        "EUT-265",
+        "EUT-266",
+        "EUT-267",
+        "EUT-268",
+        "EUT-269",
+        "EUT-270",
+        "EUT-271",
+        "EUT-272",
+        "EUT-273",
+        "EUT-274",
+        "EUT-275",
+        "EUT-276",
+        "EUT-277",
+        "EUT-278",
+        "EUT-279",
+        "EUT-280",
+        "EUT-281",
+        "EUT-282",
+        "EUT-283",
+        "EUT-284",
+        "EUT-285",
+        "EUT-286",
+        "EUT-287",
+        "EUT-288",
+        "EUT-289",
+        "EUT-290",
+        "EUT-291",
+        "EUT-292",
+        "EUT-293",
+        "EUT-294",
+        "EUT-295",
+        "EUT-296",
+        "EUT-297",
+        "EUT-298",
+        "EUT-299",
+        "EUT-300",
+        "EUT-301",
+        "EUT-302",
+        "EUT-303",
+        "EUT-304",
+        "EUT-305",
+        "EUT-306",
+        "EUT-307",
+        "EUT-308",
+        "EUT-309",
+        "EUT-310",
+        "EUT-311",
+        "EUT-312",
+        "EUT-313",
+        "EUT-314",
+        "EUT-315",
+        "EUT-316",
+        "EUT-317",
+        "EUT-318",
+        "EUT-319",
+        "EUT-320",
+        "EUT-321",
+        "EUT-322",
+        "EUT-323",
+        "EUT-324",
+        "EUT-325",
+        "EUT-326",
+        "EUT-327",
+        "EUT-328",
+        "EUT-329",
+        "EUT-330",
+        "EUT-331",
+        "EUT-332",
+        "EUT-333",
+        "EUT-334",
+        "EUT-335",
+        "EUT-336",
+        "EUT-337",
+        "EUT-338",
+        "EUT-339",
+        "EUT-340",
+        "EUT-341",
+        "EUT-342",
+        "EUT-343",
+        "EUT-344",
+        "EUT-345",
+        "EUT-346",
+        "EUT-347",
+        "EUT-348",
+        "EUT-349",
+        "EUT-350",
+        "EUT-351",
+        "EUT-352",
+        "EUT-353",
+        "EUT-354",
+        "EUT-355",
+        "EUT-356",
+        "EUT-357",
+        "EUT-358",
+        "EUT-359",
+        "EUT-360",
+        "EUT-361",
+        "EUT-362",
+        "EUT-363",
+        "EUT-364",
+        "EUT-365",
+        "EUT-366",
+        "EUT-367",
+        "EUT-368",
+        "EUT-369",
+        "EUT-370",
+        "EUT-371",
+        "EUT-372",
+        "EUT-373",
+        "EUT-374",
+        "EUT-375",
+        "EUT-376",
+        "EUT-377",
+        "EUT-378",
+        "EUT-379",
+        "EUT-380",
+        "EUT-381",
+        "EUT-382",
+        "EUT-383",
+        "EUT-384",
+        "EUT-385",
+        "EUT-386",
+        "EUT-387",
+        "EUT-388",
+        "EUT-389",
+        "EUT-390",
+        "EUT-391",
+        "EUT-392",
+        "EUT-393",
+        "EUT-394",
+        "EUT-395",
+        "EUT-396",
+        "EUT-397",
+        "EUT-398",
+        "EUT-399",
+        "EUT-400",
+        "EUT-401",
+        "EUT-402",
+        "EUT-403",
+        "EUT-404",
+        "EUT-405",
+        "EUT-406",
+        "EUT-407",
+        "EUT-408",
+        "EUT-409",
+        "EUT-410",
+        "EUT-411",
+        "EUT-412",
+        "EUT-413",
+        "EUT-414",
+        "EUT-415",
+        "EUT-416",
+        "EUT-417",
+        "EUT-418",
+        "EUT-420",
+        "EUT-421",
+        "EUT-422",
+        "EUT-423",
+        "EUT-424",
+        "EUT-425",
+        "EUT-426",
+        "EUT-427",
+        "EUT-428",
+        "EUT-429",
+        "EUT-430",
+        "EUT-431",
+        "EUT-432",
+        "EUT-433",
+        "EUT-434",
+        "EUT-435",
+        "EUT-436",
+        "EUT-437",
+        "EUT-438",
+        "EUT-439",
+        "EUT-440",
+        "EUT-441",
+        "EUT-442",
+        "EUT-443",
+        "EUT-444",
+        "EUT-445",
+        "EUT-446",
+        "EUT-447",
+        "EUT-448",
+        "EUT-449",
+        "EUT-450",
+        "EUT-451",
+        "EUT-452",
+        "EUT-453",
+        "EUT-454",
+        "EUT-455",
+        "EUT-456",
+        "EUT-457",
+        "EUT-458",
+        "EUT-459",
+        "EUT-460",
+        "EUT-461",
+        "EUT-462",
+        "EUT-463",
+        "EUT-464",
+        "EUT-465",
+        "EUT-466",
+        "EUT-467",
+        "EUT-468",
+        "EUT-469",
+        "EUT-470",
+        "EUT-471",
+        "EUT-472",
+        "EUT-473",
+        "EUT-474",
+        "EUT-475",
+        "EUT-476",
+        "EUT-477",
+        "EUT-478",
+        "EUT-479",
+        "EUT-480",
+        "EUT-481",
+        "EUT-482",
+        "EUT-483",
+        "EUT-484",
+        "EUT-485",
+        "EUT-486",
+        "EUT-487",
+        "EUT-488",
+        "EUT-489",
+        "EUT-490",
+        "EUT-491",
+        "EUT-492",
+        "EUT-493",
+        "EUT-494",
+        "EUT-495",
+        "EUT-496",
+        "EUT-497",
+        "EUT-498",
+        "EUT-499",
+        "EUT-500",
+        "EUT-501",
+        "EUT-502",
+        "EUT-503",
+        "EUT-504",
+        "EUT-505",
+        "EUT-506",
+        "EUT-507",
+        "EUT-508",
+        "EUT-509",
+        "EUT-510",
+        "EUT-511",
+        "EUT-512",
+        "EUT-513",
+        "EUT-514",
+        "EUT-515",
+        "EUT-516",
+        "EUT-517",
+        "EUT-518",
+        "EUT-519",
+        "EUT-520",
+        "EUT-521",
+        "EUT-522",
+        "EUT-523",
+        "EUT-524",
+        "EUT-525",
+        "EUT-526",
+        "EUT-527",
+        "EUT-528",
+        "EUT-529",
+        "EUT-530",
+        "EUT-531",
+        "EUT-532",
+        "EUT-533",
+        "EUT-534",
+        "EUT-535",
+        "EUT-536",
+        "EUT-537",
+        "EUT-538",
+        "EUT-539",
+        "EUT-540",
+        "EUT-541",
+        "EUT-542",
+        "EUT-543",
+        "EUT-544",
+        "EUT-545",
+        "EUT-546",
+        "EUT-547",
+        "EUT-548",
+        "EUT-549",
+        "EUT-550",
+        "EUT-551",
+        "EUT-552",
+        "EUT-553",
+        "EUT-554",
+        "EUT-555",
+        "EUT-556",
+        "EUT-557",
+        "EUT-558",
+        "EUT-559",
+        "EUT-560",
+        "EUT-561",
+        "EUT-562",
+        "EUT-563",
+        "EUT-564",
+        "EUT-565",
+        "EUT-566",
+        "EUT-567",
+        "EUT-568",
+        "EUT-569",
+        "EUT-570",
+        "EUT-571",
+        "EUT-572",
+        "EUT-573",
+        "EUT-574",
+        "EUT-575",
+        "EUT-576",
+        "EUT-577",
+        "EUT-578",
+        "EUT-579",
+        "EUT-580",
+        "EUT-581",
+        "EUT-582",
+        "EUT-583",
+        "EUT-584",
+        "EUT-585",
+        "EUT-586",
+        "EUT-587",
+        "EUT-588",
+        "EUT-589",
+        "EUT-590",
+        "EUT-591",
+        "EUT-592",
+        "EUT-593",
+        "EUT-594",
+        "EUT-595",
+        "EUT-596",
+        "EUT-597",
+        "EUT-598",
+        "EUT-599",
+        "EUT-600",
+        "EUT-601",
+        "EUT-602",
+        "EUT-603",
+        "EUT-604",
+        "EUT-605",
+        "EUT-606",
+        "EUT-607",
+        "EUT-608",
+        "EUT-609",
+        "EUT-610",
+        "EUT-611",
+        "EUT-612",
+        "EUT-613",
+        "EUT-614",
+        "EUT-615",
+        "EUT-616",
+        "EUT-617",
+        "EUT-618",
+        "EUT-619",
+        "EUT-620",
+        "EUT-621",
+        "EUT-622",
+        "EUT-623",
+        "EUT-624",
+        "EUT-625",
+        "EUT-626",
+        "EUT-627",
+        "EUT-628",
+        "EUT-629",
+        "EUT-630",
+        "EUT-631",
+        "EUT-632",
+        "EUT-633",
+        "EUT-634",
+        "EUT-635",
+        "EUT-636",
+        "EUT-637",
+        "EUT-638",
+        "EUT-639",
+        "EUT-640",
+        "EUT-641"
+      ],
+      "command": [
+        "static-verify",
+        "q05b-existing-tests-001"
+      ],
+      "coverage_inputs": [
+        "q05b/coverage/jacoco-merged.csv"
+      ],
+      "line_coverage_before": 92.8,
+      "branch_coverage_before": 80.23,
+      "line_coverage": 92.8,
+      "branch_coverage": 80.23,
+      "line_coverage_delta": 0.0,
+      "branch_coverage_delta": 0.0,
+      "threshold_result": "PASS: 复用既有测试证据；覆盖率门槛由 cp-q05b-branch-boost-001 的 JaCoCo checkpoint 证明。"
+    }
+  ],
+  "one_pass_rules": [
+    "REQ/BR/SE/EUT 语义覆盖和 JaCoCo 增量覆盖率同为最高优先级，任何一边不满足都不能把批次视为完成。",
+    "先生成本计划，再写 Java 测试；禁止写完测试后才第一次计算覆盖率缺口。",
+    "默认按类批量写测试，统一运行目标测试命令，避免每条 EUT 单独编译。",
+    "补测目标不只追平阈值，应至少满足 line_buffer_target 和 branch_buffer_target，避免刚过线后因小改动回退。",
+    "报告只展示增量目标覆盖率；全仓全量覆盖率不是本流程关注指标。"
+  ]
+}

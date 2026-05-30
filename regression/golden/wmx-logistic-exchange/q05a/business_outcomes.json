@@ -1,0 +1,295 @@
+{
+  "project_id": "wmx-logistic-exchange",
+  "artifact_version": "1.1",
+  "schema_version": "1.1",
+  "outcomes": [
+    {
+      "outcome_id": "O-001",
+      "branch_id": "B-001",
+      "expected": "参数非法时识别拒绝：工单不打物流取旧送新标签，走传统换货流程；无NPE",
+      "assertion_hint": "assertFalse(result)，无异常抛出"
+    },
+    {
+      "outcome_id": "O-002",
+      "branch_id": "B-006",
+      "expected": "履约中心异常降级：工单不打标，换货建单正常完成，不影响用户建单体验",
+      "assertion_hint": "assertFalse(result)，assertDoesNotThrow"
+    },
+    {
+      "outcome_id": "O-003",
+      "branch_id": "B-012",
+      "expected": "旧工作流工单不打标：createTime <= enableTime时返回false，避免工单路由异常",
+      "assertion_hint": "assertFalse(isLogisticExchangeEnabled)"
+    },
+    {
+      "outcome_id": "O-004",
+      "branch_id": "B-015",
+      "expected": "品类短路：不支持物流取旧送新的品类不调用履约中心，返回false",
+      "assertion_hint": "assertFalse(result)，verify(fulfillmentService, never()).isSendAndInstallSupported"
+    },
+    {
+      "outcome_id": "O-005",
+      "branch_id": "B-016",
+      "expected": "SKU黑名单剔除：特定型号不走物流取旧送新，返回false",
+      "assertion_hint": "assertFalse(result)"
+    },
+    {
+      "outcome_id": "O-006",
+      "branch_id": "B-019",
+      "expected": "无特批记录时special_approval_id传空字符串，OC正常接收不报错",
+      "assertion_hint": "assertEquals('', getDataByKeyName(extendList, 'special_approval_id'))"
+    },
+    {
+      "outcome_id": "O-007",
+      "branch_id": "B-022",
+      "expected": "现场照片去重后传给物流，物流取旧人员收到完整检测信息",
+      "assertion_hint": "assertEquals(expectedDeduplicatedSize, photos.size())"
+    },
+    {
+      "outcome_id": "O-008",
+      "branch_id": "B-028",
+      "expected": "工程师选择错误处理方法时被拦截，无法提交工单",
+      "assertion_hint": "assertThrows(MafSrvAftersaleException.class, ...) 含明确提示文案"
+    },
+    {
+      "outcome_id": "O-009",
+      "branch_id": "B-030",
+      "expected": "配置缺失时防呆：allowedMethodIds未配置时禁止任何物流取旧送新工单提交",
+      "assertion_hint": "assertThrows(MafSrvAftersaleException.class, ...) message含'处理方法未配置'"
+    },
+    {
+      "outcome_id": "O-010",
+      "branch_id": "B-031",
+      "expected": "物流取旧送新取消回传按妥投路径流转：添加取消日志，不直接关单，保留结算",
+      "assertion_hint": "verify addExchangeOrderCancelProcess被调用，verify closeByOrderStatus未被调用"
+    },
+    {
+      "outcome_id": "O-011",
+      "branch_id": "B-032",
+      "expected": "非物流取旧送新取消保持原行为：普通换货取消走closeByOrderStatus",
+      "assertion_hint": "verify closeByOrderStatus被调用"
+    },
+    {
+      "outcome_id": "O-012",
+      "branch_id": "B-002",
+      "expected": "参数校验失败（isValid=false）：工单不打标，走传统换货流程；无NPE",
+      "assertion_hint": "assertFalse(result)"
+    },
+    {
+      "outcome_id": "O-013",
+      "branch_id": "B-004",
+      "expected": "前置校验(passPrecheck)失败：工单不打标，短路返回，不调用履约中心接口",
+      "assertion_hint": "assertFalse(result)，verify(fulfillmentService, never())"
+    },
+    {
+      "outcome_id": "O-014",
+      "branch_id": "B-003",
+      "expected": "时间校验不通过（工单创建时间早于上线时间）：工单不打标，避免旧工作流工单路由异常",
+      "assertion_hint": "assertFalse(result)"
+    },
+    {
+      "outcome_id": "O-015",
+      "branch_id": "B-005",
+      "expected": "全部前置条件通过，履约中心返回true：工单打LOGISTIC_EXCHANGE标签，工程师可见物流取旧标识",
+      "assertion_hint": "assertTrue(result)"
+    },
+    {
+      "outcome_id": "O-016",
+      "branch_id": "B-007",
+      "expected": "履约中心返回false（地址范围不支持）：工单不打标，走普通换货流程",
+      "assertion_hint": "assertFalse(result)"
+    },
+    {
+      "outcome_id": "O-017",
+      "branch_id": "B-008",
+      "expected": "createTime=null防空指针：识别返回false，无NPE，系统稳定",
+      "assertion_hint": "assertFalse(result)，assertDoesNotThrow"
+    },
+    {
+      "outcome_id": "O-018",
+      "branch_id": "B-009",
+      "expected": "enableTimeStr为空时识别返回false：上线配置未就绪时安全降级",
+      "assertion_hint": "assertFalse(isLogisticExchangeEnabled)"
+    },
+    {
+      "outcome_id": "O-019",
+      "branch_id": "B-010",
+      "expected": "时间格式解析失败时返回false：配置错误时安全降级，不阻断主链路",
+      "assertion_hint": "assertFalse(result)"
+    },
+    {
+      "outcome_id": "O-020",
+      "branch_id": "B-011",
+      "expected": "createTime > enableTime → 时间校验通过，返回true，继续后续识别逻辑",
+      "assertion_hint": "assertTrue(isLogisticExchangeEnabled)"
+    },
+    {
+      "outcome_id": "O-021",
+      "branch_id": "B-013",
+      "expected": "brandClassId=null快速失败：识别拒绝，工单不打标，无NPE",
+      "assertion_hint": "assertFalse(result)"
+    },
+    {
+      "outcome_id": "O-022",
+      "branch_id": "B-014",
+      "expected": "goodsId空白字符串快速失败：识别拒绝，工单不打标",
+      "assertion_hint": "assertFalse(result)"
+    },
+    {
+      "outcome_id": "O-023",
+      "branch_id": "B-017",
+      "expected": "品类白名单命中且商品不在黑名单：通过预检，继续履约中心校验",
+      "assertion_hint": "assertTrue(passPrecheck)"
+    },
+    {
+      "outcome_id": "O-024",
+      "branch_id": "B-018",
+      "expected": "有特批记录时special_approval_id=特批ID：物流侧可关联特批信息",
+      "assertion_hint": "assertEquals(saId, getDataByKeyName(extendList, 'special_approval_id'))"
+    },
+    {
+      "outcome_id": "O-025",
+      "branch_id": "B-020",
+      "expected": "getDetailNew异常降级：使用baseInfo，主流程不中断",
+      "assertion_hint": "assertDoesNotThrow"
+    },
+    {
+      "outcome_id": "O-026",
+      "branch_id": "B-021",
+      "expected": "items为空时originOrderId=''：组装参数时容错处理",
+      "assertion_hint": "assertEquals('', originOrderId)"
+    },
+    {
+      "outcome_id": "O-027",
+      "branch_id": "B-023",
+      "expected": "无附件时返回空列表：OC可正常接收空照片列表，不影响换货订单创建",
+      "assertion_hint": "assertTrue(result.isEmpty())"
+    },
+    {
+      "outcome_id": "O-028",
+      "branch_id": "B-024",
+      "expected": "serviceNo为空时返回空列表：参数防御性处理，不调用附件中心",
+      "assertion_hint": "assertTrue(result.isEmpty())"
+    },
+    {
+      "outcome_id": "O-029",
+      "branch_id": "B-025",
+      "expected": "非物流取旧送新工单跳过校验：普通换货不受处理方法限制，提交路径不变",
+      "assertion_hint": "assertDoesNotThrow"
+    },
+    {
+      "outcome_id": "O-030",
+      "branch_id": "B-026",
+      "expected": "物流取旧送新工单选择允许方法通过校验：工程师可提交工单",
+      "assertion_hint": "assertDoesNotThrow"
+    },
+    {
+      "outcome_id": "O-031",
+      "branch_id": "B-027",
+      "expected": "物流取旧送新工单选择不予处理通过校验：工程师可提交工单",
+      "assertion_hint": "assertDoesNotThrow"
+    },
+    {
+      "outcome_id": "O-032",
+      "branch_id": "B-029",
+      "expected": "选择多个方法时拦截：禁止同时选多个处理方法",
+      "assertion_hint": "assertThrows(MafSrvAftersaleException)"
+    },
+    {
+      "outcome_id": "O-033",
+      "branch_id": "B-033",
+      "expected": "正常妥投（非取消）→ 工单状态正确流转至已妥投完成",
+      "assertion_hint": "verify状态流转方法被调用"
+    },
+    {
+      "outcome_id": "O-034",
+      "branch_id": "B-034",
+      "expected": "换货类型工单识别通过 → 打标LOGISTIC_EXCHANGE，工单可展示物流取旧标签",
+      "assertion_hint": "verify(srvServiceExtendManager.save)被调用"
+    },
+    {
+      "outcome_id": "O-035",
+      "branch_id": "B-035",
+      "expected": "非换货类型工单不打标，processLogisticExchangeTag提前返回",
+      "assertion_hint": "verify(srvServiceExtendManager, never()).save(LOGISTIC_EXCHANGE)"
+    },
+    {
+      "outcome_id": "O-036",
+      "branch_id": "B-036",
+      "expected": "检测环节重识别通过 → 打标LOGISTIC_EXCHANGE，换货意向确认",
+      "assertion_hint": "verify(srvServiceExtendManager.save)被调用"
+    },
+    {
+      "outcome_id": "O-037",
+      "branch_id": "B-037",
+      "expected": "检测环节切换为非换货类型 → 清除LOGISTIC_EXCHANGE标记，回到普通换货流程",
+      "assertion_hint": "verify(srvServiceExtendManager.delete)被调用"
+    },
+    {
+      "outcome_id": "O-038",
+      "branch_id": "B-038",
+      "expected": "检测处理方法=不予处理 → 清除LOGISTIC_EXCHANGE标记，工单进入不予处理流程",
+      "assertion_hint": "verify(srvServiceExtendManager.delete)被调用"
+    },
+    {
+      "outcome_id": "O-039",
+      "branch_id": "B-039",
+      "expected": "物流取旧送新工单取消 → 记录物流原因取消日志，保留结算，工单终态为服务完成",
+      "assertion_hint": "verify(srvServiceExtendManager.add)被调用，含物流原因取消语义"
+    },
+    {
+      "outcome_id": "O-040",
+      "branch_id": "B-040",
+      "expected": "handleServiceDelivery: 边界参数防御返回，不触发工单流转",
+      "assertion_hint": "assertDoesNotThrow，verify不调用流转方法"
+    },
+    {
+      "outcome_id": "O-041",
+      "branch_id": "B-041",
+      "expected": "handleServiceDelivery: 非目标消息防御性跳过，系统稳定",
+      "assertion_hint": "assertDoesNotThrow"
+    },
+    {
+      "outcome_id": "O-042",
+      "branch_id": "B-042",
+      "expected": "addExchangeOrderCancelProcess: 工单无效时防御性返回，不记录日志",
+      "assertion_hint": "verify(srvServiceExtendManager, never()).add"
+    },
+    {
+      "outcome_id": "O-043",
+      "branch_id": "B-043",
+      "expected": "addExchangeOrderCancelProcess: 取消原因为空时使用默认文本，日志可读",
+      "assertion_hint": "assertNotNull(log.getReason())"
+    },
+    {
+      "outcome_id": "O-044",
+      "branch_id": "B-044",
+      "expected": "addExchangeOrderCancelProcess: 外部异常不阻断主流程，系统稳定",
+      "assertion_hint": "assertDoesNotThrow"
+    },
+    {
+      "outcome_id": "O-045",
+      "branch_id": "B-045",
+      "expected": "processLogisticExchangeTag: serviceItems为空提前返回，不打标",
+      "assertion_hint": "assertTrue(result == null or empty)"
+    },
+    {
+      "outcome_id": "O-046",
+      "branch_id": "B-046",
+      "expected": "processLogisticExchangeTag: 非支持类型防御性跳过，不写入标签",
+      "assertion_hint": "verify(srvServiceExtendManager, never()).save(LOGISTIC_EXCHANGE)"
+    },
+    {
+      "outcome_id": "O-047",
+      "branch_id": "B-047",
+      "expected": "reIdentifyAndMarkLogisticExchange: serviceId为空时提前返回不处理",
+      "assertion_hint": "assertDoesNotThrow"
+    },
+    {
+      "outcome_id": "O-048",
+      "branch_id": "B-048",
+      "expected": "reIdentifyAndMarkLogisticExchange: 识别异常降级不打标，不阻断主流程",
+      "assertion_hint": "assertDoesNotThrow，verify(srvServiceExtendManager, never()).save"
+    }
+  ]
+}

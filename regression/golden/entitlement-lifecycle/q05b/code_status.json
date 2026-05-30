@@ -1,0 +1,835 @@
+{
+  "project_id": "entitlement-lifecycle",
+  "total": 47,
+  "done": 47,
+  "tasks": [
+    {
+      "eut_id": "EUT-001",
+      "class_name": "WarrantyUpdateParamValidationTest",
+      "method_name": "fixWarrantyData",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyUpdateParamValidationTest.java",
+      "test_method": "returnStartTime_null_notBlankViolationTriggered",
+      "assertion_lines": [
+        96
+      ],
+      "batch_id": "WarrantyUpdateParamValidationTest",
+      "failure_reason": null,
+      "run_receipt_id": "WarrantyUpdateParamValidationTest-20260526T121545"
+    },
+    {
+      "eut_id": "EUT-002",
+      "class_name": "FixWarrantyDataNewCasesTest",
+      "method_name": "fixWarrantyData",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/FixWarrantyDataNewCasesTest.java",
+      "test_method": "fixWarrantyData_returnStartTimePureDate_returnsParamError",
+      "assertion_lines": [
+        419
+      ],
+      "batch_id": "FixWarrantyDataNewCasesTest",
+      "failure_reason": null,
+      "run_receipt_id": "FixWarrantyDataNewCasesTest-20260526T121515"
+    },
+    {
+      "eut_id": "EUT-003",
+      "class_name": "FixWarrantyDataNewCasesTest",
+      "method_name": "fixWarrantyData",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/FixWarrantyDataNewCasesTest.java",
+      "test_method": "fixWarrantyData_invalidExchangeStartTime_returnsParamError",
+      "assertion_lines": [
+        96
+      ],
+      "batch_id": "FixWarrantyDataNewCasesTest",
+      "failure_reason": null,
+      "run_receipt_id": "FixWarrantyDataNewCasesTest-20260526T121515"
+    },
+    {
+      "eut_id": "EUT-004",
+      "class_name": "FixWarrantyDataNewCasesTest",
+      "method_name": "parseFixWarrantyEndDate",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/FixWarrantyDataNewCasesTest.java",
+      "test_method": "fixWarrantyData_endTimeShortDateFormat_parsesAndSucceeds",
+      "assertion_lines": [
+        228
+      ],
+      "batch_id": "FixWarrantyDataNewCasesTest",
+      "failure_reason": null,
+      "run_receipt_id": "FixWarrantyDataNewCasesTest-20260526T121515"
+    },
+    {
+      "eut_id": "EUT-005",
+      "class_name": "FixWarrantyDataNewCasesTest",
+      "method_name": "parseFixWarrantyEndDate",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/FixWarrantyDataNewCasesTest.java",
+      "test_method": "fixWarrantyData_invalidReturnEndTime_returnsParamError",
+      "assertion_lines": [
+        124
+      ],
+      "batch_id": "FixWarrantyDataNewCasesTest",
+      "failure_reason": null,
+      "run_receipt_id": "FixWarrantyDataNewCasesTest-20260526T121515"
+    },
+    {
+      "eut_id": "EUT-006",
+      "class_name": "FixWarrantyDataNewCasesTest",
+      "method_name": "resolveStartTimeTypeId",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/FixWarrantyDataNewCasesTest.java",
+      "test_method": "fixWarrantyData_timeTypeByCodeName_parsedToCorrectNumericId",
+      "assertion_lines": [
+        202
+      ],
+      "batch_id": "FixWarrantyDataNewCasesTest",
+      "failure_reason": null,
+      "run_receipt_id": "FixWarrantyDataNewCasesTest-20260526T121515"
+    },
+    {
+      "eut_id": "EUT-007",
+      "class_name": "FixWarrantyDataNewCasesTest",
+      "method_name": "resolveStartTimeTypeId",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/FixWarrantyDataNewCasesTest.java",
+      "test_method": "fixWarrantyData_numericTimeTypeId_parsedCorrectly",
+      "assertion_lines": [
+        438
+      ],
+      "batch_id": "FixWarrantyDataNewCasesTest",
+      "failure_reason": null,
+      "run_receipt_id": "FixWarrantyDataNewCasesTest-20260526T121515"
+    },
+    {
+      "eut_id": "EUT-008",
+      "class_name": "FixWarrantyDataNewCasesTest",
+      "method_name": "resolveStartTimeTypeId",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/FixWarrantyDataNewCasesTest.java",
+      "test_method": "fixWarrantyData_invalidExchangeTimeType_returnsParamError",
+      "assertion_lines": [
+        166
+      ],
+      "batch_id": "FixWarrantyDataNewCasesTest",
+      "failure_reason": null,
+      "run_receipt_id": "FixWarrantyDataNewCasesTest-20260526T121515"
+    },
+    {
+      "eut_id": "EUT-009",
+      "class_name": "WarrantyFacadeImplCoverageTest",
+      "method_name": "resolveStartTimeTypeId",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyFacadeImplCoverageTest.java",
+      "test_method": "resolveStartTimeTypeId_null_returnsNull",
+      "assertion_lines": [
+        224
+      ],
+      "batch_id": "WarrantyFacadeImplCoverageTest",
+      "failure_reason": null,
+      "run_receipt_id": "WarrantyFacadeImplCoverageTest-20260526T121525"
+    },
+    {
+      "eut_id": "EUT-010",
+      "class_name": "FixWarrantyDataNewCasesTest",
+      "method_name": "fixWarrantyData",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/FixWarrantyDataNewCasesTest.java",
+      "test_method": "fixWarrantyData_lockedRecord_allNineFieldsOverwrittenAndNoQueryBusCall",
+      "assertion_lines": [
+        249
+      ],
+      "batch_id": "FixWarrantyDataNewCasesTest",
+      "failure_reason": null,
+      "run_receipt_id": "FixWarrantyDataNewCasesTest-20260526T121515"
+    },
+    {
+      "eut_id": "EUT-011",
+      "class_name": "WarrantyUpdateCommandHandlerNewCasesTest",
+      "method_name": "handle",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/WarrantyUpdateCommandHandlerNewCasesTest.java",
+      "test_method": "handle_nullThreeGuarantee_throwsSfpExceptionWithSpecificMessage",
+      "assertion_lines": [
+        72
+      ],
+      "batch_id": "WarrantyUpdateCommandHandlerNewCasesTest",
+      "failure_reason": null,
+      "run_receipt_id": "WarrantyUpdateCommandHandlerNewCasesTest-20260526T121535"
+    },
+    {
+      "eut_id": "EUT-012",
+      "class_name": "WarrantyUpdateCommandHandlerNewCasesTest",
+      "method_name": "handle",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/WarrantyUpdateCommandHandlerNewCasesTest.java",
+      "test_method": "handle_success_revisableForceSetToNo",
+      "assertion_lines": [
+        92
+      ],
+      "batch_id": "WarrantyUpdateCommandHandlerNewCasesTest",
+      "failure_reason": null,
+      "run_receipt_id": "WarrantyUpdateCommandHandlerNewCasesTest-20260526T121535"
+    },
+    {
+      "eut_id": "EUT-013",
+      "class_name": "FixWarrantyDataNewCasesTest",
+      "method_name": "fixWarrantyData",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/FixWarrantyDataNewCasesTest.java",
+      "test_method": "fixWarrantyData_dbNullRecord_callsQueryBusForRealtimeData",
+      "assertion_lines": [
+        355
+      ],
+      "batch_id": "FixWarrantyDataNewCasesTest",
+      "failure_reason": null,
+      "run_receipt_id": "FixWarrantyDataNewCasesTest-20260526T121515"
+    },
+    {
+      "eut_id": "EUT-014",
+      "class_name": "FixWarrantyDataNewCasesTest",
+      "method_name": "fixWarrantyData",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/FixWarrantyDataNewCasesTest.java",
+      "test_method": "fixWarrantyData_unlockedRecord_callsQueryBusThenOverwritesAllFields",
+      "assertion_lines": [
+        328
+      ],
+      "batch_id": "FixWarrantyDataNewCasesTest",
+      "failure_reason": null,
+      "run_receipt_id": "FixWarrantyDataNewCasesTest-20260526T121515"
+    },
+    {
+      "eut_id": "EUT-015",
+      "class_name": "FixMaterialWarrantyDataNewCasesTest",
+      "method_name": "fixMaterialWarrantyData",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/FixMaterialWarrantyDataNewCasesTest.java",
+      "test_method": "fixMaterialWarrantyData_standardDateFormat_success",
+      "assertion_lines": [
+        77
+      ],
+      "batch_id": "FixMaterialWarrantyDataNewCasesTest",
+      "failure_reason": null,
+      "run_receipt_id": "FixMaterialWarrantyDataNewCasesTest-20260526T121504"
+    },
+    {
+      "eut_id": "EUT-016",
+      "class_name": "FixMaterialWarrantyDataNewCasesTest",
+      "method_name": "fixMaterialWarrantyData",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/FixMaterialWarrantyDataNewCasesTest.java",
+      "test_method": "fixMaterialWarrantyData_slashDateFormat_fallbackToDateExt",
+      "assertion_lines": [
+        98
+      ],
+      "batch_id": "FixMaterialWarrantyDataNewCasesTest",
+      "failure_reason": null,
+      "run_receipt_id": "FixMaterialWarrantyDataNewCasesTest-20260526T121504"
+    },
+    {
+      "eut_id": "EUT-017",
+      "class_name": "FixMaterialWarrantyDataNewCasesTest",
+      "method_name": "fixMaterialWarrantyData",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/FixMaterialWarrantyDataNewCasesTest.java",
+      "test_method": "fixMaterialWarrantyData_invalidStartTime_returnsError",
+      "assertion_lines": [
+        111
+      ],
+      "batch_id": "FixMaterialWarrantyDataNewCasesTest",
+      "failure_reason": null,
+      "run_receipt_id": "FixMaterialWarrantyDataNewCasesTest-20260526T121504"
+    },
+    {
+      "eut_id": "EUT-018",
+      "class_name": "WarrantyUpdateParamValidationTest",
+      "method_name": "fixWarrantyData",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyUpdateParamValidationTest.java",
+      "test_method": "allNineTimeFields_allNull_eachHasNotBlankViolation",
+      "assertion_lines": [
+        115
+      ],
+      "batch_id": "WarrantyUpdateParamValidationTest",
+      "failure_reason": null,
+      "run_receipt_id": "WarrantyUpdateParamValidationTest-20260526T121545"
+    },
+    {
+      "eut_id": "EUT-019",
+      "class_name": "FixWarrantyDataNewCasesTest",
+      "method_name": "fixWarrantyData",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/FixWarrantyDataNewCasesTest.java",
+      "test_method": "fixWarrantyData_lockedRecord_backwardCompatFieldsCorrect",
+      "assertion_lines": [
+        299
+      ],
+      "batch_id": "FixWarrantyDataNewCasesTest",
+      "failure_reason": null,
+      "run_receipt_id": "FixWarrantyDataNewCasesTest-20260526T121515"
+    },
+    {
+      "eut_id": "EUT-020",
+      "class_name": "FixWarrantyDataNewCasesTest",
+      "method_name": "validateAndParseFixWarrantyParam",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/FixWarrantyDataNewCasesTest.java",
+      "test_method": "fixWarrantyData_invalidRepairStartTime_returnsParamError",
+      "assertion_lines": [
+        110
+      ],
+      "batch_id": "FixWarrantyDataNewCasesTest",
+      "failure_reason": null,
+      "run_receipt_id": "FixWarrantyDataNewCasesTest-20260526T121515"
+    },
+    {
+      "eut_id": "EUT-021",
+      "class_name": "FixMaterialWarrantyDataNewCasesTest",
+      "method_name": "fixMaterialWarrantyData",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/FixMaterialWarrantyDataNewCasesTest.java",
+      "test_method": "fixMaterialWarrantyData_invalidRepairEndTime_returnsError",
+      "assertion_lines": [
+        127
+      ],
+      "batch_id": "FixMaterialWarrantyDataNewCasesTest",
+      "failure_reason": null,
+      "run_receipt_id": "FixMaterialWarrantyDataNewCasesTest-20260526T121504"
+    },
+    {
+      "eut_id": "EUT-022",
+      "class_name": "WarrantyUpdateCommandHandlerNewCasesTest",
+      "method_name": "handle",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/WarrantyUpdateCommandHandlerNewCasesTest.java",
+      "test_method": "handle_nullCommand_throwsSfpExceptionWithParamErrorCode",
+      "assertion_lines": [
+        53
+      ],
+      "batch_id": "WarrantyUpdateCommandHandlerNewCasesTest",
+      "failure_reason": null,
+      "run_receipt_id": "WarrantyUpdateCommandHandlerNewCasesTest-20260526T121535"
+    },
+    {
+      "eut_id": "EUT-023",
+      "class_name": "FixWarrantyDataNewCasesTest",
+      "method_name": "fixWarrantyData",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/FixWarrantyDataNewCasesTest.java",
+      "test_method": "fixWarrantyData_lockedRecord_backwardCompatFieldsCorrect",
+      "assertion_lines": [
+        299
+      ],
+      "batch_id": "FixWarrantyDataNewCasesTest",
+      "failure_reason": null,
+      "run_receipt_id": "FixWarrantyDataNewCasesTest-20260526T121515"
+    },
+    {
+      "eut_id": "EUT-024",
+      "class_name": "WarrantyFacadeImplCoverageTest",
+      "method_name": "batchFixWarranty",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyFacadeImplCoverageTest.java",
+      "test_method": "batchFixWarranty_nullMiliao_returnsLoginError",
+      "assertion_lines": [
+        80
+      ],
+      "batch_id": "WarrantyFacadeImplCoverageTest",
+      "failure_reason": null,
+      "run_receipt_id": "WarrantyFacadeImplCoverageTest-20260526T121525"
+    },
+    {
+      "eut_id": "EUT-025",
+      "class_name": "WarrantyFacadeImplCoverageTest",
+      "method_name": "batchFixWarranty",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyFacadeImplCoverageTest.java",
+      "test_method": "batchFixWarranty_validMiliao_dispatchesAndReturnsSuccess",
+      "assertion_lines": [
+        111
+      ],
+      "batch_id": "WarrantyFacadeImplCoverageTest",
+      "failure_reason": null,
+      "run_receipt_id": "WarrantyFacadeImplCoverageTest-20260526T121525"
+    },
+    {
+      "eut_id": "EUT-026",
+      "class_name": "WarrantyFacadeImplCoverageTest",
+      "method_name": "getMaterialWarrantyOld",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyFacadeImplCoverageTest.java",
+      "test_method": "getMaterialWarrantyOld_nullOrgId_nullUser_returnsError",
+      "assertion_lines": [
+        185
+      ],
+      "batch_id": "WarrantyFacadeImplCoverageTest",
+      "failure_reason": null,
+      "run_receipt_id": "WarrantyFacadeImplCoverageTest-20260526T121525"
+    },
+    {
+      "eut_id": "EUT-027",
+      "class_name": "WarrantyFacadeImplCoverageTest",
+      "method_name": "batchFixWarranty",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyFacadeImplCoverageTest.java",
+      "test_method": "batchFixWarranty_zeroMiliao_returnsLoginError",
+      "assertion_lines": [
+        95
+      ],
+      "batch_id": "WarrantyFacadeImplCoverageTest",
+      "failure_reason": null,
+      "run_receipt_id": "WarrantyFacadeImplCoverageTest-20260526T121525"
+    },
+    {
+      "eut_id": "EUT-028",
+      "class_name": "WarrantyFacadeImplCoverageTest",
+      "method_name": "parseFixWarrantyEndDate",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyFacadeImplCoverageTest.java",
+      "test_method": "fixWarrantyData_blankEndTime_returnsParamError",
+      "assertion_lines": [
+        138
+      ],
+      "batch_id": "WarrantyFacadeImplCoverageTest",
+      "failure_reason": null,
+      "run_receipt_id": "WarrantyFacadeImplCoverageTest-20260526T121525"
+    },
+    {
+      "eut_id": "EUT-029",
+      "class_name": "WarrantyFacadeImplCoverageTest",
+      "method_name": "resolveStartTimeTypeId",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyFacadeImplCoverageTest.java",
+      "test_method": "fixWarrantyData_numericTimeTypeOutOfRange_returnsParamError",
+      "assertion_lines": [
+        165
+      ],
+      "batch_id": "WarrantyFacadeImplCoverageTest",
+      "failure_reason": null,
+      "run_receipt_id": "WarrantyFacadeImplCoverageTest-20260526T121525"
+    },
+    {
+      "eut_id": "EUT-030",
+      "class_name": "WarrantyFacadeImplCoverageTest",
+      "method_name": "getMaterialWarrantyOld",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyFacadeImplCoverageTest.java",
+      "test_method": "getMaterialWarrantyOld_nullOrgId_validUser_setsOrgAndReturnsSuccess",
+      "assertion_lines": [
+        210
+      ],
+      "batch_id": "WarrantyFacadeImplCoverageTest",
+      "failure_reason": null,
+      "run_receipt_id": "WarrantyFacadeImplCoverageTest-20260526T121525"
+    },
+    {
+      "eut_id": "EUT-031",
+      "class_name": "WarrantyFacadeImplCoverageTest",
+      "method_name": "resolveStartTimeTypeId",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyFacadeImplCoverageTest.java",
+      "test_method": "resolveStartTimeTypeId_enumName_returnsId",
+      "assertion_lines": [
+        236
+      ],
+      "batch_id": "WarrantyFacadeImplCoverageTest",
+      "failure_reason": null,
+      "run_receipt_id": "WarrantyFacadeImplCoverageTest-20260526T121525"
+    },
+    {
+      "eut_id": "EUT-032",
+      "class_name": "WarrantyFacadeImplCoverageTest",
+      "method_name": "getMaterialWarranty",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyFacadeImplCoverageTest.java",
+      "test_method": "getMaterialWarranty_nullOrgId_validUser_setsOrgAndSucceeds",
+      "assertion_lines": [
+        260
+      ],
+      "batch_id": "WarrantyFacadeImplCoverageTest",
+      "failure_reason": null,
+      "run_receipt_id": "WarrantyFacadeImplCoverageTest-20260526T121525"
+    },
+    {
+      "eut_id": "EUT-033",
+      "class_name": "WarrantyFacadeImplCoverageTest",
+      "method_name": "getMaterialWarrantyOld",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyFacadeImplCoverageTest.java",
+      "test_method": "getMaterialWarrantyOld_nonNullOrgId_skipsUserGateway",
+      "assertion_lines": [
+        278
+      ],
+      "batch_id": "WarrantyFacadeImplCoverageTest",
+      "failure_reason": null,
+      "run_receipt_id": "WarrantyFacadeImplCoverageTest-20260526T121525"
+    },
+    {
+      "eut_id": "EUT-034",
+      "class_name": "WarrantyFacadeImplCoverageTest",
+      "method_name": "getWarrantyLogByPage",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyFacadeImplCoverageTest.java",
+      "test_method": "getWarrantyLogByPage_imeiSn_nullImeiResult_keepsOriginalSn",
+      "assertion_lines": [
+        306
+      ],
+      "batch_id": "WarrantyFacadeImplCoverageTest",
+      "failure_reason": null,
+      "run_receipt_id": "WarrantyFacadeImplCoverageTest-20260526T121525"
+    },
+    {
+      "eut_id": "EUT-035",
+      "class_name": "WarrantyFacadeImplCoverageTest",
+      "method_name": "getWarrantyLogByPage",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyFacadeImplCoverageTest.java",
+      "test_method": "getWarrantyLogByPage_materialLogType_usesMaterialTypes",
+      "assertion_lines": [
+        332
+      ],
+      "batch_id": "WarrantyFacadeImplCoverageTest",
+      "failure_reason": null,
+      "run_receipt_id": "WarrantyFacadeImplCoverageTest-20260526T121525"
+    },
+    {
+      "eut_id": "EUT-036",
+      "class_name": "WarrantyUpdateParamValidationTest",
+      "method_name": "changeRemark_over100Chars_sizeViolationTriggered",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyUpdateParamValidationTest.java",
+      "test_method": "changeRemark_over100Chars_sizeViolationTriggered",
+      "assertion_lines": [
+        65
+      ],
+      "batch_id": "WarrantyUpdateParamValidationTest",
+      "failure_reason": null,
+      "run_receipt_id": "WarrantyUpdateParamValidationTest-20260526T121545"
+    },
+    {
+      "eut_id": "EUT-037",
+      "class_name": "WarrantyUpdateParamValidationTest",
+      "method_name": "changeRemark_exactly100Chars_noSizeViolation",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyUpdateParamValidationTest.java",
+      "test_method": "changeRemark_exactly100Chars_noSizeViolation",
+      "assertion_lines": [
+        80
+      ],
+      "batch_id": "WarrantyUpdateParamValidationTest",
+      "failure_reason": null,
+      "run_receipt_id": "WarrantyUpdateParamValidationTest-20260526T121545"
+    },
+    {
+      "eut_id": "EUT-038",
+      "class_name": "WarrantyUpdateParamValidationTest",
+      "method_name": "allFields_valid_noViolations",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyUpdateParamValidationTest.java",
+      "test_method": "allFields_valid_noViolations",
+      "assertion_lines": [
+        139
+      ],
+      "batch_id": "WarrantyUpdateParamValidationTest",
+      "failure_reason": null,
+      "run_receipt_id": "WarrantyUpdateParamValidationTest-20260526T121545"
+    },
+    {
+      "eut_id": "EUT-039",
+      "class_name": "FixWarrantyDataNewCasesTest",
+      "method_name": "fixWarrantyData_invalidExchangeEndTime_returnsParamError",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/FixWarrantyDataNewCasesTest.java",
+      "test_method": "fixWarrantyData_invalidExchangeEndTime_returnsParamError",
+      "assertion_lines": [
+        138
+      ],
+      "batch_id": "FixWarrantyDataNewCasesTest",
+      "failure_reason": null,
+      "run_receipt_id": "FixWarrantyDataNewCasesTest-20260526T121515"
+    },
+    {
+      "eut_id": "EUT-040",
+      "class_name": "FixWarrantyDataNewCasesTest",
+      "method_name": "fixWarrantyData_invalidRepairEndTime_returnsParamError",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/FixWarrantyDataNewCasesTest.java",
+      "test_method": "fixWarrantyData_invalidRepairEndTime_returnsParamError",
+      "assertion_lines": [
+        152
+      ],
+      "batch_id": "FixWarrantyDataNewCasesTest",
+      "failure_reason": null,
+      "run_receipt_id": "FixWarrantyDataNewCasesTest-20260526T121515"
+    },
+    {
+      "eut_id": "EUT-041",
+      "class_name": "FixWarrantyDataNewCasesTest",
+      "method_name": "fixWarrantyData_invalidRepairTimeType_returnsParamError",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/FixWarrantyDataNewCasesTest.java",
+      "test_method": "fixWarrantyData_invalidRepairTimeType_returnsParamError",
+      "assertion_lines": [
+        180
+      ],
+      "batch_id": "FixWarrantyDataNewCasesTest",
+      "failure_reason": null,
+      "run_receipt_id": "FixWarrantyDataNewCasesTest-20260526T121515"
+    },
+    {
+      "eut_id": "EUT-042",
+      "class_name": "FixWarrantyDataNewCasesTest",
+      "method_name": "fixWarrantyData_lockedRecord_updateTypeIsNull",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/FixWarrantyDataNewCasesTest.java",
+      "test_method": "fixWarrantyData_lockedRecord_updateTypeIsNull",
+      "assertion_lines": [
+        280
+      ],
+      "batch_id": "FixWarrantyDataNewCasesTest",
+      "failure_reason": null,
+      "run_receipt_id": "FixWarrantyDataNewCasesTest-20260526T121515"
+    },
+    {
+      "eut_id": "EUT-043",
+      "class_name": "FixWarrantyDataNewCasesTest",
+      "method_name": "fixWarrantyData_nineFieldsAreIndependent_noFieldInterference",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/FixWarrantyDataNewCasesTest.java",
+      "test_method": "fixWarrantyData_nineFieldsAreIndependent_noFieldInterference",
+      "assertion_lines": [
+        383
+      ],
+      "batch_id": "FixWarrantyDataNewCasesTest",
+      "failure_reason": null,
+      "run_receipt_id": "FixWarrantyDataNewCasesTest-20260526T121515"
+    },
+    {
+      "eut_id": "EUT-044",
+      "class_name": "FixWarrantyDataNewCasesTest",
+      "method_name": "fixWarrantyData_unlockedRecord_warrantyVoNull_returnsErrorAndNoDispatch",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/FixWarrantyDataNewCasesTest.java",
+      "test_method": "fixWarrantyData_unlockedRecord_warrantyVoNull_returnsErrorAndNoDispatch",
+      "assertion_lines": [
+        405
+      ],
+      "batch_id": "FixWarrantyDataNewCasesTest",
+      "failure_reason": null,
+      "run_receipt_id": "FixWarrantyDataNewCasesTest-20260526T121515"
+    },
+    {
+      "eut_id": "EUT-045",
+      "class_name": "WarrantyUpdateCommandHandlerNewCasesTest",
+      "method_name": "handle_success_changeLogServiceCalledInOrder",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/WarrantyUpdateCommandHandlerNewCasesTest.java",
+      "test_method": "handle_success_changeLogServiceCalledInOrder",
+      "assertion_lines": [
+        107
+      ],
+      "batch_id": "WarrantyUpdateCommandHandlerNewCasesTest",
+      "failure_reason": null,
+      "run_receipt_id": "WarrantyUpdateCommandHandlerNewCasesTest-20260526T121535"
+    },
+    {
+      "eut_id": "EUT-046",
+      "class_name": "WarrantyUpdateCommandHandlerNewCasesTest",
+      "method_name": "handle_success_insertOrUpdateReceivesSameInstance",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/WarrantyUpdateCommandHandlerNewCasesTest.java",
+      "test_method": "handle_success_insertOrUpdateReceivesSameInstance",
+      "assertion_lines": [
+        121
+      ],
+      "batch_id": "WarrantyUpdateCommandHandlerNewCasesTest",
+      "failure_reason": null,
+      "run_receipt_id": "WarrantyUpdateCommandHandlerNewCasesTest-20260526T121535"
+    },
+    {
+      "eut_id": "EUT-047",
+      "class_name": "WarrantyUpdateCommandHandlerNewCasesTest",
+      "method_name": "handle_success_returnTrue",
+      "passes": true,
+      "test_file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/WarrantyUpdateCommandHandlerNewCasesTest.java",
+      "test_method": "handle_success_returnTrue",
+      "assertion_lines": [
+        132
+      ],
+      "batch_id": "WarrantyUpdateCommandHandlerNewCasesTest",
+      "failure_reason": null,
+      "run_receipt_id": "WarrantyUpdateCommandHandlerNewCasesTest-20260526T121535"
+    }
+  ],
+  "run_receipts": [
+    {
+      "batch_id": "FixMaterialWarrantyDataNewCasesTest",
+      "receipt_id": "FixMaterialWarrantyDataNewCasesTest-20260526T121504",
+      "generated_by": "quality-skill-pack/run_test_batch@v1",
+      "generated_at": "2026-05-26T12:15:04Z",
+      "command": [
+        "mvn",
+        "test",
+        "-q",
+        "-Dtest=FixMaterialWarrantyDataNewCasesTest#fixMaterialWarrantyData_invalidRepairEndTime_returnsError,FixMaterialWarrantyDataNewCasesTest#fixMaterialWarrantyData_invalidStartTime_returnsError,FixMaterialWarrantyDataNewCasesTest#fixMaterialWarrantyData_slashDateFormat_fallbackToDateExt,FixMaterialWarrantyDataNewCasesTest#fixMaterialWarrantyData_standardDateFormat_success"
+      ],
+      "selector": "FixMaterialWarrantyDataNewCasesTest#fixMaterialWarrantyData_invalidRepairEndTime_returnsError,FixMaterialWarrantyDataNewCasesTest#fixMaterialWarrantyData_invalidStartTime_returnsError,FixMaterialWarrantyDataNewCasesTest#fixMaterialWarrantyData_slashDateFormat_fallbackToDateExt,FixMaterialWarrantyDataNewCasesTest#fixMaterialWarrantyData_standardDateFormat_success",
+      "test_methods": [
+        "fixMaterialWarrantyData_invalidRepairEndTime_returnsError",
+        "fixMaterialWarrantyData_invalidStartTime_returnsError",
+        "fixMaterialWarrantyData_slashDateFormat_fallbackToDateExt",
+        "fixMaterialWarrantyData_standardDateFormat_success"
+      ],
+      "test_files": [
+        "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/FixMaterialWarrantyDataNewCasesTest.java"
+      ],
+      "exit_code": 0,
+      "phase": "test",
+      "stdout_tail": "Java HotSpot(TM) 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended\nWARNING: A Java agent has been loaded dynamically (/Users/zhangyiqian/.m2/repository/net/bytebuddy/byte-buddy-agent/1.15.10/byte-buddy-agent-1.15.10.jar)\nWARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning\nWARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information\nWARNING: Dynamic loading of agents will be disallowed by default in a future release\n20:15:03.445 [main] ERROR com.mi.sfp.lifecycle.config.common.util.BaseDateUtil - plan request data 20240601 parse error, error message is :Unparseable date: \"20240601\"\n20:15:03.450 [main] ERROR com.mi.sfp.lifecycle.config.common.util.BaseDateUtil - plan request data 20240601 parse error, error message is :Unparseable date: \"20240601\"\n20:15:03.454 [main] ERROR com.mi.sfp.lifecycle.config.common.util.BaseDateUtil - plan request data 20261231 parse error, error message is :Unparseable date: \"20261231\"\n20:15:03.454 [main] ERROR com.mi.sfp.lifecycle.config.common.util.BaseDateUtil - strToShortDate error, date: 20261231, msg: Unparseable date: \"20261231\"\n20:15:03.457 [main] ERROR com.mi.sfp.lifecycle.config.common.util.BaseDateUtil - plan request data 2024/06/01 10:30:00 parse error, error message is :Unparseable date: \"2024/06/01 10:30:00\"",
+      "stderr_tail": "",
+      "report_path": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/target/surefire-reports",
+      "content_hash": "502bd806393e5958"
+    },
+    {
+      "batch_id": "FixWarrantyDataNewCasesTest",
+      "receipt_id": "FixWarrantyDataNewCasesTest-20260526T121515",
+      "generated_by": "quality-skill-pack/run_test_batch@v1",
+      "generated_at": "2026-05-26T12:15:15Z",
+      "command": [
+        "mvn",
+        "test",
+        "-q",
+        "-Dtest=FixWarrantyDataNewCasesTest#fixWarrantyData_dbNullRecord_callsQueryBusForRealtimeData,FixWarrantyDataNewCasesTest#fixWarrantyData_endTimeShortDateFormat_parsesAndSucceeds,FixWarrantyDataNewCasesTest#fixWarrantyData_invalidExchangeEndTime_returnsParamError,FixWarrantyDataNewCasesTest#fixWarrantyData_invalidExchangeStartTime_returnsParamError,FixWarrantyDataNewCasesTest#fixWarrantyData_invalidExchangeTimeType_returnsParamError,FixWarrantyDataNewCasesTest#fixWarrantyData_invalidRepairEndTime_returnsParamError,FixWarrantyDataNewCasesTest#fixWarrantyData_invalidRepairStartTime_returnsParamError,FixWarrantyDataNewCasesTest#fixWarrantyData_invalidRepairTimeType_returnsParamError,FixWarrantyDataNewCasesTest#fixWarrantyData_invalidReturnEndTime_returnsParamError,FixWarrantyDataNewCasesTest#fixWarrantyData_lockedRecord_allNineFieldsOverwrittenAndNoQueryBusCall,FixWarrantyDataNewCasesTest#fixWarrantyData_lockedRecord_backwardCompatFieldsCorrect,FixWarrantyDataNewCasesTest#fixWarrantyData_lockedRecord_updateTypeIsNull,FixWarrantyDataNewCasesTest#fixWarrantyData_nineFieldsAreIndependent_noFieldInterference,FixWarrantyDataNewCasesTest#fixWarrantyData_numericTimeTypeId_parsedCorrectly,FixWarrantyDataNewCasesTest#fixWarrantyData_returnStartTimePureDate_returnsParamError,FixWarrantyDataNewCasesTest#fixWarrantyData_timeTypeByCodeName_parsedToCorrectNumericId,FixWarrantyDataNewCasesTest#fixWarrantyData_unlockedRecord_callsQueryBusThenOverwritesAllFields,FixWarrantyDataNewCasesTest#fixWarrantyData_unlockedRecord_warrantyVoNull_returnsErrorAndNoDispatch"
+      ],
+      "selector": "FixWarrantyDataNewCasesTest#fixWarrantyData_dbNullRecord_callsQueryBusForRealtimeData,FixWarrantyDataNewCasesTest#fixWarrantyData_endTimeShortDateFormat_parsesAndSucceeds,FixWarrantyDataNewCasesTest#fixWarrantyData_invalidExchangeEndTime_returnsParamError,FixWarrantyDataNewCasesTest#fixWarrantyData_invalidExchangeStartTime_returnsParamError,FixWarrantyDataNewCasesTest#fixWarrantyData_invalidExchangeTimeType_returnsParamError,FixWarrantyDataNewCasesTest#fixWarrantyData_invalidRepairEndTime_returnsParamError,FixWarrantyDataNewCasesTest#fixWarrantyData_invalidRepairStartTime_returnsParamError,FixWarrantyDataNewCasesTest#fixWarrantyData_invalidRepairTimeType_returnsParamError,FixWarrantyDataNewCasesTest#fixWarrantyData_invalidReturnEndTime_returnsParamError,FixWarrantyDataNewCasesTest#fixWarrantyData_lockedRecord_allNineFieldsOverwrittenAndNoQueryBusCall,FixWarrantyDataNewCasesTest#fixWarrantyData_lockedRecord_backwardCompatFieldsCorrect,FixWarrantyDataNewCasesTest#fixWarrantyData_lockedRecord_updateTypeIsNull,FixWarrantyDataNewCasesTest#fixWarrantyData_nineFieldsAreIndependent_noFieldInterference,FixWarrantyDataNewCasesTest#fixWarrantyData_numericTimeTypeId_parsedCorrectly,FixWarrantyDataNewCasesTest#fixWarrantyData_returnStartTimePureDate_returnsParamError,FixWarrantyDataNewCasesTest#fixWarrantyData_timeTypeByCodeName_parsedToCorrectNumericId,FixWarrantyDataNewCasesTest#fixWarrantyData_unlockedRecord_callsQueryBusThenOverwritesAllFields,FixWarrantyDataNewCasesTest#fixWarrantyData_unlockedRecord_warrantyVoNull_returnsErrorAndNoDispatch",
+      "test_methods": [
+        "fixWarrantyData_dbNullRecord_callsQueryBusForRealtimeData",
+        "fixWarrantyData_endTimeShortDateFormat_parsesAndSucceeds",
+        "fixWarrantyData_invalidExchangeEndTime_returnsParamError",
+        "fixWarrantyData_invalidExchangeStartTime_returnsParamError",
+        "fixWarrantyData_invalidExchangeTimeType_returnsParamError",
+        "fixWarrantyData_invalidRepairEndTime_returnsParamError",
+        "fixWarrantyData_invalidRepairStartTime_returnsParamError",
+        "fixWarrantyData_invalidRepairTimeType_returnsParamError",
+        "fixWarrantyData_invalidReturnEndTime_returnsParamError",
+        "fixWarrantyData_lockedRecord_allNineFieldsOverwrittenAndNoQueryBusCall",
+        "fixWarrantyData_lockedRecord_backwardCompatFieldsCorrect",
+        "fixWarrantyData_lockedRecord_updateTypeIsNull",
+        "fixWarrantyData_nineFieldsAreIndependent_noFieldInterference",
+        "fixWarrantyData_numericTimeTypeId_parsedCorrectly",
+        "fixWarrantyData_returnStartTimePureDate_returnsParamError",
+        "fixWarrantyData_timeTypeByCodeName_parsedToCorrectNumericId",
+        "fixWarrantyData_unlockedRecord_callsQueryBusThenOverwritesAllFields",
+        "fixWarrantyData_unlockedRecord_warrantyVoNull_returnsErrorAndNoDispatch"
+      ],
+      "test_files": [
+        "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/FixWarrantyDataNewCasesTest.java"
+      ],
+      "exit_code": 0,
+      "phase": "test",
+      "stdout_tail": "WARNING: A Java agent has been loaded dynamically (/Users/zhangyiqian/.m2/repository/net/bytebuddy/byte-buddy-agent/1.15.10/byte-buddy-agent-1.15.10.jar)\nWARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning\nWARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information\nWARNING: Dynamic loading of agents will be disallowed by default in a future release\nJava HotSpot(TM) 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended\n20:15:14.386 [main] ERROR com.mi.sfp.lifecycle.config.common.util.BaseDateUtil - plan request data invalid-date parse error, error message is :Unparseable date: \"invalid-date\"\n20:15:14.391 [main] ERROR com.mi.sfp.lifecycle.config.common.util.BaseDateUtil - strToShortDate error, date: invalid-date, msg: Unparseable date: \"invalid-date\"\n20:15:14.514 [main] ERROR com.mi.sfp.lifecycle.config.common.util.BaseDateUtil - plan request data 2024-01-01 parse error, error message is :Unparseable date: \"2024-01-01\"\n20:15:14.534 [main] ERROR com.mi.sfp.lifecycle.config.common.util.BaseDateUtil - plan request data 2025-01-01 parse error, error message is :Unparseable date: \"2025-01-01\"\n20:15:14.534 [main] ERROR com.mi.sfp.lifecycle.config.common.util.BaseDateUtil - plan request data 2025-02-01 parse error, error message is :Unparseable date: \"2025-02-01\"\n20:15:14.534 [main] ERROR com.mi.sfp.lifecycle.config.common.util.BaseDateUtil - plan request data 2025-03-01 parse error, error message is :Unparseable date: \"2025-03-01\"\n20:15:14.537 [main] ERROR com.mi.sfp.lifecycle.config.common.util.BaseDateUtil - plan request data not-a-date parse error, error message is :Unparseable date: \"not-a-date\"\n20:15:14.547 [main] ERROR com.mi.sfp.lifecycle.config.common.util.BaseDateUtil - plan request data not-a-date parse error, error message is :Unparseable date: \"not-a-date\"\n20:15:14.547 [main] ERROR com.mi.sfp.lifecycle.config.common.util.BaseDateUtil - strToShortDate error, date: not-a-date, msg: Unparseable date: \"not-a-date\"\n20:15:14.554 [main] ERROR com.mi.sfp.lifecycle.config.common.util.BaseDateUtil - plan request data 20251301 parse error, error message is :Unparseable date: \"20251301\"\n20:15:14.554 [main] ERROR com.mi.sfp.lifecycle.config.common.util.BaseDateUtil - strToShortDate error, date: 20251301, msg: Unparseable date: \"20251301\"\n20:15:14.558 [main] ERROR com.mi.sfp.lifecycle.config.common.util.BaseDateUtil - plan request data 2023/03/01 00:00:00 parse error, error message is :Unparseable date: \"2023/03/01 00:00:00\"",
+      "stderr_tail": "",
+      "report_path": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/target/surefire-reports",
+      "content_hash": "4d6b5dd06ede1050"
+    },
+    {
+      "batch_id": "WarrantyFacadeImplCoverageTest",
+      "receipt_id": "WarrantyFacadeImplCoverageTest-20260526T121525",
+      "generated_by": "quality-skill-pack/run_test_batch@v1",
+      "generated_at": "2026-05-26T12:15:25Z",
+      "command": [
+        "mvn",
+        "test",
+        "-q",
+        "-Dtest=WarrantyFacadeImplCoverageTest#batchFixWarranty_nullMiliao_returnsLoginError,WarrantyFacadeImplCoverageTest#batchFixWarranty_validMiliao_dispatchesAndReturnsSuccess,WarrantyFacadeImplCoverageTest#batchFixWarranty_zeroMiliao_returnsLoginError,WarrantyFacadeImplCoverageTest#fixWarrantyData_blankEndTime_returnsParamError,WarrantyFacadeImplCoverageTest#fixWarrantyData_numericTimeTypeOutOfRange_returnsParamError,WarrantyFacadeImplCoverageTest#getMaterialWarrantyOld_nonNullOrgId_skipsUserGateway,WarrantyFacadeImplCoverageTest#getMaterialWarrantyOld_nullOrgId_nullUser_returnsError,WarrantyFacadeImplCoverageTest#getMaterialWarrantyOld_nullOrgId_validUser_setsOrgAndReturnsSuccess,WarrantyFacadeImplCoverageTest#getMaterialWarranty_nullOrgId_validUser_setsOrgAndSucceeds,WarrantyFacadeImplCoverageTest#getWarrantyLogByPage_imeiSn_nullImeiResult_keepsOriginalSn,WarrantyFacadeImplCoverageTest#getWarrantyLogByPage_materialLogType_usesMaterialTypes,WarrantyFacadeImplCoverageTest#resolveStartTimeTypeId_enumName_returnsId,WarrantyFacadeImplCoverageTest#resolveStartTimeTypeId_null_returnsNull"
+      ],
+      "selector": "WarrantyFacadeImplCoverageTest#batchFixWarranty_nullMiliao_returnsLoginError,WarrantyFacadeImplCoverageTest#batchFixWarranty_validMiliao_dispatchesAndReturnsSuccess,WarrantyFacadeImplCoverageTest#batchFixWarranty_zeroMiliao_returnsLoginError,WarrantyFacadeImplCoverageTest#fixWarrantyData_blankEndTime_returnsParamError,WarrantyFacadeImplCoverageTest#fixWarrantyData_numericTimeTypeOutOfRange_returnsParamError,WarrantyFacadeImplCoverageTest#getMaterialWarrantyOld_nonNullOrgId_skipsUserGateway,WarrantyFacadeImplCoverageTest#getMaterialWarrantyOld_nullOrgId_nullUser_returnsError,WarrantyFacadeImplCoverageTest#getMaterialWarrantyOld_nullOrgId_validUser_setsOrgAndReturnsSuccess,WarrantyFacadeImplCoverageTest#getMaterialWarranty_nullOrgId_validUser_setsOrgAndSucceeds,WarrantyFacadeImplCoverageTest#getWarrantyLogByPage_imeiSn_nullImeiResult_keepsOriginalSn,WarrantyFacadeImplCoverageTest#getWarrantyLogByPage_materialLogType_usesMaterialTypes,WarrantyFacadeImplCoverageTest#resolveStartTimeTypeId_enumName_returnsId,WarrantyFacadeImplCoverageTest#resolveStartTimeTypeId_null_returnsNull",
+      "test_methods": [
+        "batchFixWarranty_nullMiliao_returnsLoginError",
+        "batchFixWarranty_validMiliao_dispatchesAndReturnsSuccess",
+        "batchFixWarranty_zeroMiliao_returnsLoginError",
+        "fixWarrantyData_blankEndTime_returnsParamError",
+        "fixWarrantyData_numericTimeTypeOutOfRange_returnsParamError",
+        "getMaterialWarrantyOld_nonNullOrgId_skipsUserGateway",
+        "getMaterialWarrantyOld_nullOrgId_nullUser_returnsError",
+        "getMaterialWarrantyOld_nullOrgId_validUser_setsOrgAndReturnsSuccess",
+        "getMaterialWarranty_nullOrgId_validUser_setsOrgAndSucceeds",
+        "getWarrantyLogByPage_imeiSn_nullImeiResult_keepsOriginalSn",
+        "getWarrantyLogByPage_materialLogType_usesMaterialTypes",
+        "resolveStartTimeTypeId_enumName_returnsId",
+        "resolveStartTimeTypeId_null_returnsNull"
+      ],
+      "test_files": [
+        "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyFacadeImplCoverageTest.java"
+      ],
+      "exit_code": 0,
+      "phase": "test",
+      "stdout_tail": "Java HotSpot(TM) 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended\nWARNING: A Java agent has been loaded dynamically (/Users/zhangyiqian/.m2/repository/net/bytebuddy/byte-buddy-agent/1.15.10/byte-buddy-agent-1.15.10.jar)\nWARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning\nWARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information\nWARNING: Dynamic loading of agents will be disallowed by default in a future release",
+      "stderr_tail": "",
+      "report_path": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/target/surefire-reports",
+      "content_hash": "4422a6488b48f6aa"
+    },
+    {
+      "batch_id": "WarrantyUpdateCommandHandlerNewCasesTest",
+      "receipt_id": "WarrantyUpdateCommandHandlerNewCasesTest-20260526T121535",
+      "generated_by": "quality-skill-pack/run_test_batch@v1",
+      "generated_at": "2026-05-26T12:15:35Z",
+      "command": [
+        "mvn",
+        "test",
+        "-q",
+        "-Dtest=WarrantyUpdateCommandHandlerNewCasesTest#handle_nullCommand_throwsSfpExceptionWithParamErrorCode,WarrantyUpdateCommandHandlerNewCasesTest#handle_nullThreeGuarantee_throwsSfpExceptionWithSpecificMessage,WarrantyUpdateCommandHandlerNewCasesTest#handle_success_changeLogServiceCalledInOrder,WarrantyUpdateCommandHandlerNewCasesTest#handle_success_insertOrUpdateReceivesSameInstance,WarrantyUpdateCommandHandlerNewCasesTest#handle_success_returnTrue,WarrantyUpdateCommandHandlerNewCasesTest#handle_success_revisableForceSetToNo"
+      ],
+      "selector": "WarrantyUpdateCommandHandlerNewCasesTest#handle_nullCommand_throwsSfpExceptionWithParamErrorCode,WarrantyUpdateCommandHandlerNewCasesTest#handle_nullThreeGuarantee_throwsSfpExceptionWithSpecificMessage,WarrantyUpdateCommandHandlerNewCasesTest#handle_success_changeLogServiceCalledInOrder,WarrantyUpdateCommandHandlerNewCasesTest#handle_success_insertOrUpdateReceivesSameInstance,WarrantyUpdateCommandHandlerNewCasesTest#handle_success_returnTrue,WarrantyUpdateCommandHandlerNewCasesTest#handle_success_revisableForceSetToNo",
+      "test_methods": [
+        "handle_nullCommand_throwsSfpExceptionWithParamErrorCode",
+        "handle_nullThreeGuarantee_throwsSfpExceptionWithSpecificMessage",
+        "handle_success_changeLogServiceCalledInOrder",
+        "handle_success_insertOrUpdateReceivesSameInstance",
+        "handle_success_returnTrue",
+        "handle_success_revisableForceSetToNo"
+      ],
+      "test_files": [
+        "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/WarrantyUpdateCommandHandlerNewCasesTest.java"
+      ],
+      "exit_code": 0,
+      "phase": "test",
+      "stdout_tail": "Java HotSpot(TM) 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended\nWARNING: A Java agent has been loaded dynamically (/Users/zhangyiqian/.m2/repository/net/bytebuddy/byte-buddy-agent/1.15.10/byte-buddy-agent-1.15.10.jar)\nWARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning\nWARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information\nWARNING: Dynamic loading of agents will be disallowed by default in a future release",
+      "stderr_tail": "",
+      "report_path": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/target/surefire-reports",
+      "content_hash": "78c560812815726b"
+    },
+    {
+      "batch_id": "WarrantyUpdateParamValidationTest",
+      "receipt_id": "WarrantyUpdateParamValidationTest-20260526T121545",
+      "generated_by": "quality-skill-pack/run_test_batch@v1",
+      "generated_at": "2026-05-26T12:15:45Z",
+      "command": [
+        "mvn",
+        "test",
+        "-q",
+        "-Dtest=WarrantyUpdateParamValidationTest#allFields_valid_noViolations,WarrantyUpdateParamValidationTest#allNineTimeFields_allNull_eachHasNotBlankViolation,WarrantyUpdateParamValidationTest#changeRemark_exactly100Chars_noSizeViolation,WarrantyUpdateParamValidationTest#changeRemark_over100Chars_sizeViolationTriggered,WarrantyUpdateParamValidationTest#returnStartTime_null_notBlankViolationTriggered"
+      ],
+      "selector": "WarrantyUpdateParamValidationTest#allFields_valid_noViolations,WarrantyUpdateParamValidationTest#allNineTimeFields_allNull_eachHasNotBlankViolation,WarrantyUpdateParamValidationTest#changeRemark_exactly100Chars_noSizeViolation,WarrantyUpdateParamValidationTest#changeRemark_over100Chars_sizeViolationTriggered,WarrantyUpdateParamValidationTest#returnStartTime_null_notBlankViolationTriggered",
+      "test_methods": [
+        "allFields_valid_noViolations",
+        "allNineTimeFields_allNull_eachHasNotBlankViolation",
+        "changeRemark_exactly100Chars_noSizeViolation",
+        "changeRemark_over100Chars_sizeViolationTriggered",
+        "returnStartTime_null_notBlankViolationTriggered"
+      ],
+      "test_files": [
+        "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyUpdateParamValidationTest.java"
+      ],
+      "exit_code": 0,
+      "phase": "test",
+      "stdout_tail": "20:15:44.232 [main] DEBUG org.jboss.logging - Logging Provider: org.jboss.logging.Log4j2LoggerProvider\n20:15:44.235 [main] INFO org.hibernate.validator.internal.util.Version - HV000001: Hibernate Validator 6.2.5.Final\n20:15:44.250 [main] DEBUG org.hibernate.validator.internal.xml.config.ValidationXmlParser - Trying to load META-INF/validation.xml for XML based Validator configuration.\n20:15:44.252 [main] DEBUG org.hibernate.validator.internal.xml.config.ResourceLoaderHelper - Trying to load META-INF/validation.xml via TCCL\n20:15:44.252 [main] DEBUG org.hibernate.validator.internal.xml.config.ResourceLoaderHelper - Trying to load META-INF/validation.xml via Hibernate Validator's class loader\n20:15:44.252 [main] DEBUG org.hibernate.validator.internal.xml.config.ValidationXmlParser - No META-INF/validation.xml found. Using annotation based configuration only.\n20:15:44.257 [main] DEBUG org.hibernate.validator.internal.engine.resolver.TraversableResolvers - Cannot find javax.persistence.Persistence on classpath. Assuming non JPA 2 environment. All properties will per default be traversable.\n20:15:44.326 [main] DEBUG org.hibernate.validator.messageinterpolation.ResourceBundleMessageInterpolator - Loaded expression factory via original TCCL\n20:15:44.783 [main] DEBUG org.hibernate.validator.internal.engine.ValidatorFactoryConfigurationHelper - HV000252: Using org.hibernate.validator.internal.engine.DefaultPropertyNodeNameProvider as property node name provider.\n20:15:44.808 [main] DEBUG org.hibernate.validator.internal.engine.ValidatorFactoryConfigurationHelper - HV000234: Using org.hibernate.validator.messageinterpolation.ResourceBundleMessageInterpolator as ValidatorFactory-scoped message interpolator.\n20:15:44.809 [main] DEBUG org.hibernate.validator.internal.engine.ValidatorFactoryConfigurationHelper - HV000234: Using org.hibernate.validator.internal.engine.resolver.TraverseAllTraversableResolver as ValidatorFactory-scoped traversable resolver.\n20:15:44.809 [main] DEBUG org.hibernate.validator.internal.engine.ValidatorFactoryConfigurationHelper - HV000234: Using org.hibernate.validator.internal.util.ExecutableParameterNameProvider as ValidatorFactory-scoped parameter name provider.\n20:15:44.809 [main] DEBUG org.hibernate.validator.internal.engine.ValidatorFactoryConfigurationHelper - HV000234: Using org.hibernate.validator.internal.engine.DefaultClockProvider as ValidatorFactory-scoped clock provider.\n20:15:44.809 [main] DEBUG org.hibernate.validator.internal.engine.ValidatorFactoryConfigurationHelper - HV000234: Using org.hibernate.validator.internal.engine.scripting.DefaultScriptEvaluatorFactory as ValidatorFactory-scoped script evaluator factory.",
+      "stderr_tail": "",
+      "report_path": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/target/surefire-reports",
+      "content_hash": "482d9d3637859ad0"
+    }
+  ],
+  "artifact_version": "1.1",
+  "schema_version": "1.1"
+}

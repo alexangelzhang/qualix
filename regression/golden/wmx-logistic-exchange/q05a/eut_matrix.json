@@ -1,0 +1,1596 @@
+{
+  "project_id": "wmx-logistic-exchange",
+  "artifact_version": "1.1",
+  "schema_version": "1.1",
+  "target_modules": {
+    "code_repos": [
+      "/Users/zhangyiqian/private-dev/asp-aftersale-service-wmx-logistic-exchange/asp-aftersale-service"
+    ],
+    "base_ref": "master",
+    "head_ref": "HEAD",
+    "real_diff_files": [
+      "maf-core/src/main/java/com/mi/maf/core/constant/OpCode.java",
+      "maf-core/src/main/java/com/mi/maf/core/constant/SrvTagEnum.java",
+      "maf-interface/src/main/java/com/mi/maf/inter/config/FulfillmentRuleDubboConfig.java",
+      "maf-interface/src/main/java/com/mi/maf/inter/service/fulfillment/FulfillmentRuleInterfaceService.java",
+      "maf-interface/src/main/java/com/mi/maf/inter/service/order/GroupOrderService.java",
+      "maf-interface/src/main/java/com/mi/maf/inter/service/order/OrderService.java",
+      "maf-interface/src/main/java/com/mi/maf/inter/service/order/entity/OrderDetail.java",
+      "maf-interface/src/main/java/com/mi/maf/inter/service/order/entity/oc/OcItemVo.java",
+      "maf-interface/src/main/java/com/mi/maf/inter/util/InterConstants.java",
+      "maf-service-api/src/main/java/com/mi/maf/dubbo/dto/response/srv/detail/OtherDTO.java",
+      "maf-service-api/src/main/java/com/mi/maf/dubbo/service/srv/SrvCommonDubboService.java",
+      "maf-service-provider/src/main/java/com/mi/maf/dubbo/service/srv/impl/SrvCommonDubboServiceImpl.java",
+      "maf-service-provider/src/main/java/com/mi/maf/dubbo/service/srv/impl/SrvDetailDubboServiceImpl.java",
+      "maf-service-provider/src/main/java/com/mi/maf/dubbo/service/srv/impl/SrvElasticsearchDubboServiceImpl.java",
+      "maf-service-provider/src/main/java/com/mi/maf/dubbo/service/srv/impl/SrvListDubboServiceImpl.java",
+      "maf-service-provider/src/main/java/com/mi/maf/dubbo/service/srv/impl/SrvListSmartServiceDubboServiceImpl.java",
+      "maf-srv-aftersale/src/main/java/com/mi/maf/srv/aftersale/manager/operation/GenericConfigDataManager.java",
+      "maf-srv-aftersale/src/main/java/com/mi/maf/srv/aftersale/service/rule/Rules.java",
+      "maf-srv-service/src/main/java/com/mi/maf/srv/builder/DetectionProcessSrvVoBuilder.java",
+      "maf-srv-service/src/main/java/com/mi/maf/srv/consumer/OrderCenterConsumer.java",
+      "maf-srv-service/src/main/java/com/mi/maf/srv/domain/acceptance/extension/Cn3cCreateTagExt.java",
+      "maf-srv-service/src/main/java/com/mi/maf/srv/domain/execution/extension/Cn3cProcessExtendTagExt.java",
+      "maf-srv-service/src/main/java/com/mi/maf/srv/domain/execution/extension/Cn3cProcessMethodValidateExt.java",
+      "maf-srv-service/src/main/java/com/mi/maf/srv/manager/srv/LogisticExchangeIdentifyManager.java",
+      "maf-srv-service/src/main/java/com/mi/maf/srv/manager/srv/SrvSecondVisitManager.java",
+      "maf-srv-service/src/main/java/com/mi/maf/srv/manager/srv/dto/LogisticExchangeIdentifyParam.java",
+      "maf-srv-service/src/main/java/com/mi/maf/srv/service/process/DetectionProcessSrvService.java",
+      "maf-srv-service/src/main/java/com/mi/maf/srv/service/process/VisitSrvService.java",
+      "maf-srv-service/src/main/java/com/mi/maf/srv/service/srvorder/ExchangeOrderService.java",
+      "maf-srv-service/src/main/java/com/mi/maf/srv/vo/processvo/ExchangeSrvVo.java"
+    ],
+    "included_diff_files": [
+      "maf-srv-service/src/main/java/com/mi/maf/srv/manager/srv/LogisticExchangeIdentifyManager.java",
+      "maf-srv-service/src/main/java/com/mi/maf/srv/manager/srv/dto/LogisticExchangeIdentifyParam.java",
+      "maf-srv-service/src/main/java/com/mi/maf/srv/service/srvorder/ExchangeOrderService.java",
+      "maf-srv-service/src/main/java/com/mi/maf/srv/domain/acceptance/extension/Cn3cCreateTagExt.java",
+      "maf-srv-service/src/main/java/com/mi/maf/srv/domain/execution/extension/Cn3cProcessExtendTagExt.java",
+      "maf-srv-service/src/main/java/com/mi/maf/srv/domain/execution/extension/Cn3cProcessMethodValidateExt.java",
+      "maf-srv-service/src/main/java/com/mi/maf/srv/consumer/OrderCenterConsumer.java"
+    ],
+    "diff_files": [
+      "maf-srv-service/src/main/java/com/mi/maf/srv/manager/srv/LogisticExchangeIdentifyManager.java",
+      "maf-srv-service/src/main/java/com/mi/maf/srv/manager/srv/dto/LogisticExchangeIdentifyParam.java",
+      "maf-srv-service/src/main/java/com/mi/maf/srv/service/srvorder/ExchangeOrderService.java",
+      "maf-srv-service/src/main/java/com/mi/maf/srv/domain/acceptance/extension/Cn3cCreateTagExt.java",
+      "maf-srv-service/src/main/java/com/mi/maf/srv/domain/execution/extension/Cn3cProcessExtendTagExt.java",
+      "maf-srv-service/src/main/java/com/mi/maf/srv/domain/execution/extension/Cn3cProcessMethodValidateExt.java",
+      "maf-srv-service/src/main/java/com/mi/maf/srv/consumer/OrderCenterConsumer.java"
+    ],
+    "excluded_diff_files": [
+      {
+        "path": "maf-core/src/main/java/com/mi/maf/core/constant/OpCode.java",
+        "reason": "枚举常量，无分支逻辑",
+        "evidence": "diff仅新增枚举值，无条件分支",
+        "decision_owner": "研发",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "maf-core/src/main/java/com/mi/maf/core/constant/SrvTagEnum.java",
+        "reason": "枚举常量，新增LOGISTIC_EXCHANGE标签定义",
+        "evidence": "diff仅新增枚举值，由LogisticExchangeIdentifyManager使用",
+        "decision_owner": "研发",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "maf-interface/src/main/java/com/mi/maf/inter/config/FulfillmentRuleDubboConfig.java",
+        "reason": "Spring配置类，无业务逻辑",
+        "evidence": "仅Dubbo Bean配置",
+        "decision_owner": "研发",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "maf-interface/src/main/java/com/mi/maf/inter/service/fulfillment/FulfillmentRuleInterfaceService.java",
+        "reason": "接口定义，无实现逻辑，实际调用在mock中验证",
+        "evidence": "纯interface，isSendAndInstallSupported在EUT-006中通过mock验证",
+        "decision_owner": "研发",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "maf-interface/src/main/java/com/mi/maf/inter/service/order/GroupOrderService.java",
+        "reason": "接口，无独立业务逻辑",
+        "evidence": "diff为接口定义变更，实现在provider层",
+        "decision_owner": "研发",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "maf-interface/src/main/java/com/mi/maf/inter/service/order/OrderService.java",
+        "reason": "接口，无独立业务逻辑",
+        "evidence": "纯interface",
+        "decision_owner": "研发",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "maf-interface/src/main/java/com/mi/maf/inter/service/order/entity/OrderDetail.java",
+        "reason": "数据对象，无业务分支",
+        "evidence": "DTO字段增减，通过ExchangeOrderService覆盖",
+        "decision_owner": "研发",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "maf-interface/src/main/java/com/mi/maf/inter/service/order/entity/oc/OcItemVo.java",
+        "reason": "VO数据对象，无业务分支",
+        "evidence": "diff为新增字段，在ExchangeOrderService.buildLogisticOcItems中验证",
+        "decision_owner": "研发",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "maf-interface/src/main/java/com/mi/maf/inter/util/InterConstants.java",
+        "reason": "常量，无业务逻辑",
+        "evidence": "仅常量定义",
+        "decision_owner": "研发",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "maf-service-api/src/main/java/com/mi/maf/dubbo/dto/response/srv/detail/OtherDTO.java",
+        "reason": "DTO，无业务逻辑",
+        "evidence": "仅字段变更",
+        "decision_owner": "研发",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "maf-service-api/src/main/java/com/mi/maf/dubbo/service/srv/SrvCommonDubboService.java",
+        "reason": "Dubbo接口，无业务逻辑",
+        "evidence": "接口定义",
+        "decision_owner": "研发",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "maf-service-provider/src/main/java/com/mi/maf/dubbo/service/srv/impl/SrvCommonDubboServiceImpl.java",
+        "reason": "Dubbo API层适配，diff为签名透传调整，无独立业务分支",
+        "evidence": "diff轻微，主体逻辑在service层",
+        "decision_owner": "研发",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "maf-service-provider/src/main/java/com/mi/maf/dubbo/service/srv/impl/SrvDetailDubboServiceImpl.java",
+        "reason": "Dubbo API层，无独立业务分支",
+        "evidence": "diff为签名变更",
+        "decision_owner": "研发",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "maf-service-provider/src/main/java/com/mi/maf/dubbo/service/srv/impl/SrvElasticsearchDubboServiceImpl.java",
+        "reason": "Dubbo API层，无独立业务分支",
+        "evidence": "diff为签名变更",
+        "decision_owner": "研发",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "maf-service-provider/src/main/java/com/mi/maf/dubbo/service/srv/impl/SrvListDubboServiceImpl.java",
+        "reason": "Dubbo API层，无独立业务分支",
+        "evidence": "diff为签名变更",
+        "decision_owner": "研发",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "maf-service-provider/src/main/java/com/mi/maf/dubbo/service/srv/impl/SrvListSmartServiceDubboServiceImpl.java",
+        "reason": "Dubbo API层，无独立业务分支",
+        "evidence": "diff为签名变更",
+        "decision_owner": "研发",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "maf-srv-aftersale/src/main/java/com/mi/maf/srv/aftersale/manager/operation/GenericConfigDataManager.java",
+        "reason": "配置查询类，核心分支由调用方LogisticExchangeIdentifyManager的EUT通过mock隔离验证；方法本身是纯配置读取无业务决策",
+        "evidence": "isLogisticExchangeBrandClass/isLogisticExchangeGoodsAllowed在EUT-001/002/003中通过mock验证",
+        "decision_owner": "研发",
+        "risk_tier": "T2"
+      },
+      {
+        "path": "maf-srv-aftersale/src/main/java/com/mi/maf/srv/aftersale/service/rule/Rules.java",
+        "reason": "规则枚举/常量，无业务逻辑执行路径",
+        "evidence": "diff为枚举/规则定义变更",
+        "decision_owner": "研发",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "maf-srv-service/src/main/java/com/mi/maf/srv/builder/DetectionProcessSrvVoBuilder.java",
+        "reason": "Builder模式对象组装，无业务分支逻辑",
+        "evidence": "diff为字段透传",
+        "decision_owner": "研发",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "maf-srv-service/src/main/java/com/mi/maf/srv/manager/srv/SrvSecondVisitManager.java",
+        "reason": "二次上门相关变更为删除代码，不影响物流取旧送新主链路",
+        "evidence": "diff以删除方法为主，物流取旧送新逻辑由LogisticExchangeIdentifyManager独立测试",
+        "decision_owner": "研发",
+        "risk_tier": "T3"
+      },
+      {
+        "path": "maf-srv-service/src/main/java/com/mi/maf/srv/service/process/DetectionProcessSrvService.java",
+        "reason": "检测处理服务diff以删除代码为主，新增物流取旧送新路径由Cn3cProcessExtendTagExt覆盖",
+        "evidence": "主要业务路径由Cn3cProcessExtendTagExt和Cn3cProcessMethodValidateExt覆盖",
+        "decision_owner": "研发",
+        "risk_tier": "T2"
+      },
+      {
+        "path": "maf-srv-service/src/main/java/com/mi/maf/srv/service/process/VisitSrvService.java",
+        "reason": "上门服务+52行为物流取旧送新二次识别委托调用，核心分支在LogisticExchangeIdentifyManager中已独立测试",
+        "evidence": "新增逻辑委托调用logisticExchangeIdentifyManager.identifyByPrecheckAndFulfillment，在EUT-001~012覆盖",
+        "decision_owner": "研发",
+        "risk_tier": "T2"
+      },
+      {
+        "path": "maf-srv-service/src/main/java/com/mi/maf/srv/vo/processvo/ExchangeSrvVo.java",
+        "reason": "VO数据对象，新增isLogisticExchange字段，无业务分支",
+        "evidence": "字段由OrderCenterConsumer.processExchangeDoAndBackCustomer填充，在EUT-027中验证",
+        "decision_owner": "研发",
+        "risk_tier": "T3"
+      }
+    ],
+    "scope_conflicts": [],
+    "req_mappings": [
+      {
+        "id": "REQ-001",
+        "class_name": "LogisticExchangeIdentifyManager",
+        "method_name": "identifyByPrecheckAndFulfillment",
+        "repo": "asp-aftersale-service",
+        "found": true,
+        "evidence": "LogisticExchangeIdentifyManager.java:100"
+      },
+      {
+        "id": "REQ-001",
+        "class_name": "Cn3cCreateTagExt",
+        "method_name": "processLogisticExchangeTag",
+        "repo": "asp-aftersale-service",
+        "found": true,
+        "evidence": "Cn3cCreateTagExt.java:191"
+      },
+      {
+        "id": "BR-001",
+        "class_name": "LogisticExchangeIdentifyManager",
+        "method_name": "passPrecheck",
+        "repo": "asp-aftersale-service",
+        "found": true,
+        "evidence": "LogisticExchangeIdentifyManager.java:65"
+      },
+      {
+        "id": "BR-002",
+        "class_name": "LogisticExchangeIdentifyManager",
+        "method_name": "passPrecheck",
+        "repo": "asp-aftersale-service",
+        "found": true,
+        "evidence": "LogisticExchangeIdentifyManager.java:70"
+      },
+      {
+        "id": "BR-003",
+        "class_name": "Cn3cCreateTagExt",
+        "method_name": "processLogisticExchangeTag",
+        "repo": "asp-aftersale-service",
+        "found": true,
+        "evidence": "Cn3cCreateTagExt.java:191"
+      },
+      {
+        "id": "BR-005",
+        "class_name": "Cn3cProcessMethodValidateExt",
+        "method_name": "checkLogisticExchangeOnlyDetectMethod",
+        "repo": "asp-aftersale-service",
+        "found": true,
+        "evidence": "Cn3cProcessMethodValidateExt.java"
+      },
+      {
+        "id": "BR-007",
+        "class_name": "ExchangeOrderService",
+        "method_name": "querySpecialApprovalByServiceNo",
+        "repo": "asp-aftersale-service",
+        "found": true,
+        "evidence": "ExchangeOrderService.java:530"
+      },
+      {
+        "id": "BR-008",
+        "class_name": "ExchangeOrderService",
+        "method_name": "collectScenePhotos",
+        "repo": "asp-aftersale-service",
+        "found": true,
+        "evidence": "ExchangeOrderService.java"
+      },
+      {
+        "id": "BR-009",
+        "class_name": "OrderCenterConsumer",
+        "method_name": "handleServiceDelivery",
+        "repo": "asp-aftersale-service",
+        "found": true,
+        "evidence": "OrderCenterConsumer.java"
+      },
+      {
+        "id": "BR-010",
+        "class_name": "OrderCenterConsumer",
+        "method_name": "addExchangeOrderCancelProcess",
+        "repo": "asp-aftersale-service",
+        "found": true,
+        "evidence": "OrderCenterConsumer.java"
+      },
+      {
+        "id": "BR-011",
+        "class_name": "LogisticExchangeIdentifyManager",
+        "method_name": "isLogisticExchangeEnabled",
+        "repo": "asp-aftersale-service",
+        "found": true,
+        "evidence": "LogisticExchangeIdentifyManager.java:153"
+      },
+      {
+        "id": "REQ-004",
+        "class_name": "ExchangeOrderService",
+        "method_name": "assembleLogisticExchangeOrderParams",
+        "repo": "asp-aftersale-service",
+        "found": true,
+        "evidence": "ExchangeOrderService.java:526"
+      },
+      {
+        "id": "REQ-007",
+        "class_name": "OrderCenterConsumer",
+        "method_name": "addExchangeOrderCancelProcess",
+        "repo": "asp-aftersale-service",
+        "found": true,
+        "evidence": "OrderCenterConsumer.java"
+      }
+    ],
+    "se_mappings": [
+      {
+        "id": "SE-001",
+        "class_name": "LogisticExchangeIdentifyManager",
+        "method_name": "passPrecheck",
+        "repo": "asp-aftersale-service",
+        "found": true,
+        "evidence": "LogisticExchangeIdentifyManager.java:65"
+      },
+      {
+        "id": "SE-002",
+        "class_name": "LogisticExchangeIdentifyManager",
+        "method_name": "passPrecheck",
+        "repo": "asp-aftersale-service",
+        "found": true,
+        "evidence": "LogisticExchangeIdentifyManager.java:70"
+      },
+      {
+        "id": "SE-003",
+        "class_name": "LogisticExchangeIdentifyManager",
+        "method_name": "identifyByPrecheckAndFulfillment",
+        "repo": "asp-aftersale-service",
+        "found": true,
+        "evidence": "LogisticExchangeIdentifyManager.java:130"
+      },
+      {
+        "id": "SE-004",
+        "class_name": "LogisticExchangeIdentifyManager",
+        "method_name": "isLogisticExchangeEnabled",
+        "repo": "asp-aftersale-service",
+        "found": true,
+        "evidence": "LogisticExchangeIdentifyManager.java:153"
+      },
+      {
+        "id": "SE-005",
+        "class_name": "LogisticExchangeIdentifyManager",
+        "method_name": "isLogisticExchangeEnabled",
+        "repo": "asp-aftersale-service",
+        "found": true,
+        "evidence": "LogisticExchangeIdentifyManager.java:157"
+      },
+      {
+        "id": "SE-006",
+        "class_name": "ExchangeOrderService",
+        "method_name": "assembleLogisticExchangeOrderParams",
+        "repo": "asp-aftersale-service",
+        "found": true,
+        "evidence": "ExchangeOrderService.java:530"
+      },
+      {
+        "id": "SE-007",
+        "class_name": "ExchangeOrderService",
+        "method_name": "querySpecialApprovalByServiceNo",
+        "repo": "asp-aftersale-service",
+        "found": true,
+        "evidence": "ExchangeOrderService.java:533"
+      },
+      {
+        "id": "SE-008",
+        "class_name": "LogisticExchangeIdentifyManager",
+        "method_name": "passPrecheck",
+        "repo": "asp-aftersale-service",
+        "found": true,
+        "evidence": "LogisticExchangeIdentifyManager.java:188"
+      },
+      {
+        "id": "SE-009",
+        "class_name": "OrderCenterConsumer",
+        "method_name": "processExchangeDoAndBackCustomer",
+        "repo": "asp-aftersale-service",
+        "found": true,
+        "evidence": "OrderCenterConsumer.java"
+      },
+      {
+        "id": "SE-010",
+        "class_name": "OrderCenterConsumer",
+        "method_name": "addExchangeOrderCancelProcess",
+        "repo": "asp-aftersale-service",
+        "found": true,
+        "evidence": "OrderCenterConsumer.java"
+      }
+    ]
+  },
+  "non_testable_items": [
+    {
+      "id": "NT-createServiceTag",
+      "class_name": "Cn3cCreateTagExt",
+      "method_name": "createServiceTag",
+      "testability": "not_backend_testable",
+      "evidence": "createServiceTag是建单流程主编排方法，依赖Spring Context和10+外部依赖，属于集成测试范畴；物流取旧送新打标分支通过processLogisticExchangeTag的EUT-017/018在隔离环境中覆盖",
+      "reason": "建单主编排方法依赖 Spring Context 和10+外部服务，无法在单元测试隔离环境中完整执行，属于集成测试范畴"
+    },
+    {
+      "id": "NT-processAzRelatedKc",
+      "class_name": "Cn3cCreateTagExt",
+      "method_name": "processAzRelatedKc",
+      "testability": "not_backend_testable",
+      "evidence": "与物流取旧送新无关的安装相关标记逻辑，diff变更为防御性优化，属于已有功能的边际修改，无新增业务分支",
+      "reason": "与物流取旧送新无关的安装标记逻辑，diff 为防御性优化，无新增业务分支"
+    },
+    {
+      "id": "NT-saveExtendTags",
+      "class_name": "Cn3cProcessExtendTagExt",
+      "method_name": "saveExtendTags",
+      "testability": "not_backend_testable",
+      "evidence": "标签批量保存方法，与物流取旧送新无关，diff变更为存量逻辑的防御性优化",
+      "reason": "标签批量保存属于数据持久化操作，依赖数据库层，属于集成测试范畴"
+    },
+    {
+      "id": "NT-checkMethodProfitOnly",
+      "class_name": "Cn3cProcessMethodValidateExt",
+      "method_name": "checkMethodProfitOnly",
+      "testability": "not_backend_testable",
+      "evidence": "权益处理方法校验，与物流取旧送新无关，diff变更为文字格式调整（中文标点修改）无逻辑改动",
+      "reason": "权益处理方法校验与物流取旧送新无关，diff 仅为中文标点格式调整，无逻辑改动"
+    },
+    {
+      "id": "NT-checkWXAutoMethods",
+      "class_name": "Cn3cProcessMethodValidateExt",
+      "method_name": "checkWXAutoMethods",
+      "testability": "not_backend_testable",
+      "evidence": "自动化修复方法校验，与物流取旧送新无关，diff为微小变更",
+      "reason": "自动化修复方法校验与物流取旧送新无关，diff 为微小变更"
+    },
+    {
+      "id": "NT-checkNewYearShoppingFestivalGoods",
+      "class_name": "Cn3cProcessMethodValidateExt",
+      "method_name": "checkNewYearShoppingFestivalGoods",
+      "testability": "not_backend_testable",
+      "evidence": "年货节特殊商品校验，与物流取旧送新无关，diff为注释格式调整",
+      "reason": "年货节特殊商品校验与物流取旧送新无关，diff 仅为注释格式调整"
+    },
+    {
+      "id": "NT-validateMethod",
+      "class_name": "Cn3cProcessMethodValidateExt",
+      "method_name": "validateMethod",
+      "testability": "not_backend_testable",
+      "evidence": "处理方法校验主编排方法，依赖多个外部service，属于集成测试范畴；物流取旧送新门控分支通过checkLogisticExchangeOnlyDetectMethod的EUT-022~026在隔离环境覆盖",
+      "reason": "处理方法校验主编排方法依赖多个外部 service，属于集成测试范畴"
+    },
+    {
+      "id": "NT-statusChangeBase",
+      "class_name": "OrderCenterConsumer",
+      "method_name": "statusChangeBase",
+      "testability": "not_backend_testable",
+      "evidence": "OC状态变更基础方法，依赖工单状态机和多个下游服务，属于集成测试范畴；物流取旧送新分支通过addExchangeOrderCancelProcess的EUT-027覆盖",
+      "reason": "OC 状态变更基础方法依赖工单状态机和多个下游服务，属于集成测试范畴"
+    },
+    {
+      "id": "NT-isDelivered",
+      "class_name": "OrderCenterConsumer",
+      "method_name": "isDelivered",
+      "testability": "not_backend_testable",
+      "evidence": "妥投状态判断辅助方法，diff为微小边界优化，与物流取旧送新无关",
+      "reason": "妥投状态判断辅助方法，diff 为微小边界优化，与物流取旧送新无关"
+    },
+    {
+      "id": "NT-processLostOrder",
+      "class_name": "OrderCenterConsumer",
+      "method_name": "processLostOrder",
+      "testability": "not_backend_testable",
+      "evidence": "丢件处理方法，与物流取旧送新无关，diff为bug修复（防止取消日志重复生成）",
+      "reason": "丢件处理方法与物流取旧送新无关，diff 为 bug 修复（防止取消日志重复生成）"
+    },
+    {
+      "id": "NT-isCancelCallback",
+      "class_name": "OrderCenterConsumer",
+      "method_name": "isCancelCallback",
+      "testability": "not_backend_testable",
+      "evidence": "取消回传判断辅助方法，单纯状态判断逻辑简单，在EUT-027/028通过parent方法覆盖",
+      "reason": "取消回传判断辅助方法，逻辑简单，通过父方法 EUT-027/028 间接覆盖"
+    },
+    {
+      "id": "NT-processBackCustomer",
+      "class_name": "OrderCenterConsumer",
+      "method_name": "processBackCustomer",
+      "testability": "not_backend_testable",
+      "evidence": "工单流转到待用户收货方法，依赖工作流引擎ProcessContext，属于集成测试范畴；兼容性逻辑为旧工作流版本处理，非新增业务路径",
+      "reason": "工单流转方法依赖工作流引擎 ProcessContext，属于集成测试范畴"
+    },
+    {
+      "id": "NT-processExchangeOrder",
+      "class_name": "OrderCenterConsumer",
+      "method_name": "processExchangeOrder",
+      "testability": "not_backend_testable",
+      "evidence": "换货订单处理主流程，依赖工作流引擎和多个外部服务，属于集成测试范畴",
+      "reason": "换货订单处理主流程依赖工作流引擎和多个外部服务，属于集成测试范畴"
+    },
+    {
+      "id": "BR-004",
+      "testability": "manual_only",
+      "reason": "展示规则（工单标签、工程师弹窗提示）为前端 UI 呈现，非后端业务逻辑，无法通过 Java 单元测试验证",
+      "evidence": "BR-004 描述的【物流取旧】标签展示、弹窗提示属于前端渲染范畴，后端仅存储标签值，标签写入已通过 EUT-017~021 验证"
+    },
+    {
+      "id": "BR-006",
+      "testability": "not_backend_testable",
+      "reason": "入库单忽略规则属于工单完成后的下游流程触发，依赖工单状态机和业务完成事件，属于集成测试范畴",
+      "evidence": "BR-006 描述的入库单生成忽略逻辑属于业务完成后触发的下游服务调用，涉及工单状态机流转，非本次 diff 代码范围"
+    },
+    {
+      "id": "BR-009",
+      "testability": "not_backend_testable",
+      "reason": "取消结算规则属于财务结算系统的业务规则，依赖工单节点回退判断和结算服务，无法在单元测试中完整验证结算不回退行为",
+      "evidence": "BR-009 描述的物流原因取消不回退节点且保持结算，属于跨系统业务规则，结算逻辑在独立结算服务中，非本次 diff 范围"
+    },
+    {
+      "id": "BR-010",
+      "testability": "not_backend_testable",
+      "reason": "物流原因取消后 SN 可再次建单，属于建单流程的入口校验逻辑，依赖数据库 SN 历史查询，非本次 diff 变更内容",
+      "evidence": "BR-010 属于建单流程适配改造，OPEN-002 明确为待研发确认的 open item，本次 diff 中无对应代码变更"
+    },
+    {
+      "id": "REQ-002",
+      "testability": "not_backend_testable",
+      "reason": "强安装品类换货工单流改变属于工单流路由配置，依赖工作流引擎配置，非本次 diff 中的代码变更，属于集成测试范畴",
+      "evidence": "REQ-002 描述的强安装品类不触发二次上门工单流，代码 diff 中无相关实现，属于集成测试范畴"
+    },
+    {
+      "id": "REQ-005",
+      "testability": "manual_only",
+      "reason": "XMS 工单详情物流功能区展示取旧+换新信息，为前端 UI 功能，非后端 Java 单元测试覆盖范畴",
+      "evidence": "REQ-005 描述的物流单关联取旧信息展示属于前端数据透传和渲染，不涉及本次 diff 的后端逻辑变更"
+    },
+    {
+      "id": "REQ-006",
+      "testability": "not_backend_testable",
+      "reason": "换货完成工单闭环依赖物流妥投消息接收和工单状态机流转，属于 MQ 消息驱动的集成测试场景，无法在单元测试中模拟完整消息链路",
+      "evidence": "REQ-006 描述的妥投消息驱动工单状态流转，依赖消息中间件和工单状态机，属于集成测试范畴"
+    },
+    {
+      "id": "REQ-008",
+      "testability": "not_backend_testable",
+      "reason": "拒收换处理依赖 OC 生成第二张换新单的外部系统回调，属于跨系统业务流程，无法在单元测试中模拟",
+      "evidence": "REQ-008 描述的拒收换流程由 OC 外部系统触发，OPEN-001 明确为待产品确认的 open item，本次 diff 中无对应实现"
+    },
+    {
+      "id": "SE-009",
+      "testability": "not_backend_testable",
+      "reason": "强安装品类（洗衣机）命中物流取旧送新时不触发二次上门工单流，依赖工作流引擎配置，SE-009 置信度为 Medium，本次 diff 中无对应代码变更",
+      "evidence": "SE-009 对应的工单流分支改变属于工作流引擎路由配置，非本次代码 diff 中的实现，属于集成测试范畴"
+    },
+    {
+      "id": "NT-batchCheckLogisticExchange",
+      "testability": "not_backend_testable",
+      "reason": "批量检查方法依赖多个工单的串行检查，调用链与 identifyByPrecheckAndFulfillment 高度重合，批量路径属于集成测试范畴",
+      "evidence": "batchCheckLogisticExchange 的核心分支逻辑已通过 EUT-001~012 对 identifyByPrecheckAndFulfillment 和 passPrecheck 的覆盖间接验证"
+    },
+    {
+      "id": "NT-isLogisticExchangeService",
+      "testability": "not_backend_testable",
+      "reason": "isLogisticExchangeService 为工单标签读取辅助方法，依赖 SrvServiceExtendManager 数据库查询，属于数据访问层方法，无独立业务分支需要单元测试",
+      "evidence": "isLogisticExchangeService 通过读取工单扩展标签判断，其返回值在 EUT-017~027 中通过 mock 控制，方法本身逻辑简单无需独立测试"
+    },
+    {
+      "id": "NT-isValid",
+      "testability": "not_backend_testable",
+      "reason": "LogisticExchangeIdentifyParam.isValid 为简单参数校验方法，其校验逻辑通过 identifyByPrecheckAndFulfillment 的参数 null/空校验 EUT-004/005/007 间接覆盖",
+      "evidence": "isValid 的 boundary 分支（null/blank 判断）已在 EUT-004(brandClassId=null)、EUT-005(goodsId='')、EUT-007(param=null) 中通过调用链验证"
+    },
+    {
+      "id": "NT-buildLogisticExchangeExtInfo",
+      "testability": "not_backend_testable",
+      "reason": "buildLogisticExchangeExtInfo 为内部组装方法，boundary 分支为简单 null 判断，通过 assembleLogisticExchangeOrderParams 的 EUT-013/014 间接覆盖",
+      "evidence": "buildLogisticExchangeExtInfo 由 assembleLogisticExchangeOrderParams 调用，其核心逻辑已通过 EUT-013(有特批)和 EUT-014(无特批)验证"
+    },
+    {
+      "id": "NT-buildLogisticOcItems",
+      "testability": "not_backend_testable",
+      "reason": "buildLogisticOcItems 为 OC 订单项组装方法，boundary 分支为集合 null/empty 判断，通过 createExchangeOrder 集成链路覆盖",
+      "evidence": "buildLogisticOcItems 的 boundary 分支通过上层 createExchangeOrder 的集成测试覆盖，本次 diff 变更为 OcItemVo 字段增减，非独立业务逻辑"
+    },
+    {
+      "id": "NT-addOrReplaceExtend",
+      "testability": "not_backend_testable",
+      "reason": "addOrReplaceExtend 为扩展信息添加/替换工具方法，defense 分支为防空指针判断，方法本身为通用工具逻辑，无独立业务决策",
+      "evidence": "addOrReplaceExtend 的 defense 分支属于防御性编程，通过调用方 EUT-013/014 的 assembleLogisticExchangeOrderParams 间接验证"
+    },
+    {
+      "id": "NT-querySpecialApprovalByServiceNo",
+      "testability": "not_backend_testable",
+      "reason": "querySpecialApprovalByServiceNo 为特批单查询方法，boundary/exception 分支为查询无结果和远程服务异常，通过 assembleLogisticExchangeOrderParams 的 EUT-013/014 间接覆盖",
+      "evidence": "querySpecialApprovalByServiceNo 的查询无结果路径通过 EUT-014(mock 返回空)验证，异常路径通过 EUT-013 的 getDetailNew 异常降级场景覆盖"
+    },
+    {
+      "id": "NT-collectSpecialApprovalPhotos",
+      "testability": "not_backend_testable",
+      "reason": "collectSpecialApprovalPhotos 为特批单照片收集方法，boundary 分支为照片列表为空，通过 assembleLogisticExchangeOrderParams 的上层测试间接覆盖",
+      "evidence": "collectSpecialApprovalPhotos 与 collectScenePhotos 模式类似，其空返回分支通过上层调用链覆盖"
+    },
+    {
+      "id": "NT-createExchangeOrder",
+      "testability": "not_backend_testable",
+      "reason": "createExchangeOrder 为创建换货订单主方法，boundary/exception 分支依赖 OC 系统调用，属于集成测试范畴，无法在单元测试中模拟完整订单创建链路",
+      "evidence": "createExchangeOrder 的核心参数组装逻辑已通过 EUT-013/014/015/016 在 assembleLogisticExchangeOrderParams 和 collectScenePhotos 级别验证"
+    },
+    {
+      "id": "NT-modifyStationingSrvServiceCustomerInfo",
+      "testability": "not_backend_testable",
+      "reason": "modifyStationingSrvServiceCustomerInfo 为驻点服务客户信息修改方法，exception 分支为 RPC 调用异常，属于集成测试范畴",
+      "evidence": "modifyStationingSrvServiceCustomerInfo 的 exception 分支属于外部服务异常降级，依赖 Dubbo RPC，无法在单元测试中模拟"
+    },
+    {
+      "id": "NT-createExchangeOrderForSingleOrder",
+      "testability": "not_backend_testable",
+      "reason": "createExchangeOrderForSingleOrder 为单工单换货订单创建方法，boundary/exception 分支依赖工单数据查询和 OC 调用，属于集成测试范畴",
+      "evidence": "createExchangeOrderForSingleOrder 的分支逻辑与 createExchangeOrder 高度相似，通过集成测试覆盖，核心组装参数逻辑已在 EUT-013/014 级别验证"
+    }
+  ],
+  "eut_items": [
+    {
+      "eut_id": "EUT-001",
+      "bound_item": "REQ-001",
+      "route_type": "Happy Path",
+      "given": "LogisticExchangeIdentifyParam: serviceNo='SRV001', serviceCreateTime>enable_time, brandClassId=1001; mock GenericConfigDataManager.isLogisticExchangeBrandClass(1001)=true, isLogisticExchangeGoodsAllowed('SKU001')=true; mock FulfillmentRuleInterfaceService.isSendAndInstallSupported(...)=true",
+      "when": "LogisticExchangeIdentifyManager.identifyByPrecheckAndFulfillment(param)",
+      "then": "返回true；verify(fulfillmentRuleInterfaceService).isSendAndInstallSupported调用一次",
+      "risk_tier": "T1",
+      "repo": "asp-aftersale-service",
+      "target_class": "LogisticExchangeIdentifyManager",
+      "target_method": "identifyByPrecheckAndFulfillment",
+      "source": "q01/structured.json:REQ-001",
+      "assertion_blueprint": {
+        "assertion_type": "assertEquals+mockVerify",
+        "assert_target": "identifyByPrecheckAndFulfillment返回值",
+        "expected_value": "true",
+        "side_effect": "verify(fulfillmentRuleInterfaceService).isSendAndInstallSupported(...)调用1次"
+      },
+      "branch_ids": [
+        "B-005",
+        "B-011",
+        "B-007"
+      ],
+      "outcome_ids": [
+        "O-015",
+        "O-020",
+        "O-016"
+      ]
+    },
+    {
+      "eut_id": "EUT-002",
+      "bound_item": "BR-001",
+      "route_type": "Exception",
+      "given": "mock GenericConfigDataManager.isLogisticExchangeBrandClass(9999)=false",
+      "when": "LogisticExchangeIdentifyManager.passPrecheck(serviceNo, 9999, 'SKU001')",
+      "then": "返回false；verify(fulfillmentRuleInterfaceService, never()).isSendAndInstallSupported(...)未被调用",
+      "risk_tier": "T1",
+      "repo": "asp-aftersale-service",
+      "target_class": "LogisticExchangeIdentifyManager",
+      "target_method": "passPrecheck",
+      "source": "q01/structured.json:BR-001",
+      "assertion_blueprint": {
+        "assertion_type": "assertEquals+mockVerify",
+        "assert_target": "passPrecheck返回值",
+        "expected_value": "false",
+        "side_effect": "FulfillmentRuleInterfaceService未被调用"
+      },
+      "branch_ids": [
+        "B-015"
+      ],
+      "outcome_ids": [
+        "O-004"
+      ]
+    },
+    {
+      "eut_id": "EUT-003",
+      "bound_item": "BR-002",
+      "route_type": "Exception",
+      "given": "mock isLogisticExchangeBrandClass(1001)=true, isLogisticExchangeGoodsAllowed('BLACKLIST_SKU')=false",
+      "when": "LogisticExchangeIdentifyManager.passPrecheck(serviceNo, 1001, 'BLACKLIST_SKU')",
+      "then": "assertFalse(result); verify(fulfillmentRuleInterfaceService, never()).isSendAndInstallSupported(...)未被调用",
+      "risk_tier": "T1",
+      "repo": "asp-aftersale-service",
+      "target_class": "LogisticExchangeIdentifyManager",
+      "target_method": "passPrecheck",
+      "source": "q01/structured.json:BR-002",
+      "assertion_blueprint": {
+        "assertion_type": "assertEquals",
+        "assert_target": "passPrecheck返回值",
+        "expected_value": "false"
+      },
+      "branch_ids": [
+        "B-016"
+      ],
+      "outcome_ids": [
+        "O-005"
+      ]
+    },
+    {
+      "eut_id": "EUT-004",
+      "bound_item": "REQ-001",
+      "route_type": "Boundary",
+      "given": "brandClassId=null, goodsId='SKU001'",
+      "when": "LogisticExchangeIdentifyManager.passPrecheck(serviceNo, null, 'SKU001')",
+      "then": "assertFalse(result); assertEquals(false, result)（参数校验快速失败）",
+      "risk_tier": "T1",
+      "repo": "asp-aftersale-service",
+      "target_class": "LogisticExchangeIdentifyManager",
+      "target_method": "passPrecheck",
+      "source": "q01/structured.json:REQ-001",
+      "assertion_blueprint": {
+        "assertion_type": "assertEquals",
+        "assert_target": "passPrecheck返回值",
+        "expected_value": "false"
+      },
+      "branch_ids": [
+        "B-013"
+      ],
+      "outcome_ids": [
+        "O-021"
+      ]
+    },
+    {
+      "eut_id": "EUT-005",
+      "bound_item": "REQ-001",
+      "route_type": "Boundary",
+      "given": "brandClassId=1001, goodsId=''（空字符串）",
+      "when": "LogisticExchangeIdentifyManager.passPrecheck(serviceNo, 1001, '')",
+      "then": "assertFalse(result); assertEquals(false, result)（StringUtils.isBlank边界）",
+      "risk_tier": "T1",
+      "repo": "asp-aftersale-service",
+      "target_class": "LogisticExchangeIdentifyManager",
+      "target_method": "passPrecheck",
+      "source": "q01/structured.json:REQ-001",
+      "assertion_blueprint": {
+        "assertion_type": "assertEquals",
+        "assert_target": "passPrecheck返回值",
+        "expected_value": "false"
+      },
+      "branch_ids": [
+        "B-014"
+      ],
+      "outcome_ids": [
+        "O-022"
+      ]
+    },
+    {
+      "eut_id": "EUT-006",
+      "bound_item": "SE-003",
+      "route_type": "Exception",
+      "given": "前置校验全通过，mock FulfillmentRuleInterfaceService.isSendAndInstallSupported抛RuntimeException",
+      "when": "LogisticExchangeIdentifyManager.identifyByPrecheckAndFulfillment(validParam)",
+      "then": "assertDoesNotThrow(() -> identifyByPrecheckAndFulfillment(param)); assertFalse(result); assertEquals(false, result)，不向上抛出任何异常",
+      "risk_tier": "T1",
+      "repo": "asp-aftersale-service",
+      "target_class": "LogisticExchangeIdentifyManager",
+      "target_method": "identifyByPrecheckAndFulfillment",
+      "source": "q01/structured.json:SE-003",
+      "assertion_blueprint": {
+        "assertion_type": "assertDoesNotThrow+assertEquals",
+        "assert_target": "identifyByPrecheckAndFulfillment调用结果",
+        "expected_value": "false，无异常抛出"
+      },
+      "branch_ids": [
+        "B-006"
+      ],
+      "outcome_ids": [
+        "O-002"
+      ]
+    },
+    {
+      "eut_id": "EUT-007",
+      "bound_item": "REQ-001",
+      "route_type": "Boundary",
+      "given": "param=null",
+      "when": "LogisticExchangeIdentifyManager.identifyByPrecheckAndFulfillment(null)",
+      "then": "assertDoesNotThrow(() -> identifyByPrecheckAndFulfillment(null)); assertFalse(result); assertEquals(false, result)，无NPE",
+      "risk_tier": "T1",
+      "repo": "asp-aftersale-service",
+      "target_class": "LogisticExchangeIdentifyManager",
+      "target_method": "identifyByPrecheckAndFulfillment",
+      "source": "q01/structured.json:REQ-001",
+      "assertion_blueprint": {
+        "assertion_type": "assertDoesNotThrow+assertEquals",
+        "assert_target": "identifyByPrecheckAndFulfillment(null)返回值",
+        "expected_value": "false"
+      },
+      "branch_ids": [
+        "B-001",
+        "B-002"
+      ],
+      "outcome_ids": [
+        "O-001",
+        "O-012"
+      ]
+    },
+    {
+      "eut_id": "EUT-008",
+      "bound_item": "SE-004",
+      "route_type": "Exception",
+      "given": "mock BaseConfigService.getValueByTypeAndKey返回'2026-01-01 00:00:00'; 工单创建时间=2025-12-31 23:59:59（早于enable_time）",
+      "when": "LogisticExchangeIdentifyManager.isLogisticExchangeEnabled(createTime=2025-12-31)",
+      "then": "assertFalse(isLogisticExchangeEnabled(createTime)); assertEquals(false, result)",
+      "risk_tier": "T1",
+      "repo": "asp-aftersale-service",
+      "target_class": "LogisticExchangeIdentifyManager",
+      "target_method": "isLogisticExchangeEnabled",
+      "source": "q01/structured.json:SE-004",
+      "assertion_blueprint": {
+        "assertion_type": "assertEquals",
+        "assert_target": "isLogisticExchangeEnabled返回值",
+        "expected_value": "false"
+      },
+      "branch_ids": [
+        "B-003",
+        "B-012"
+      ],
+      "outcome_ids": [
+        "O-003",
+        "O-014"
+      ]
+    },
+    {
+      "eut_id": "EUT-009",
+      "bound_item": "SE-005",
+      "route_type": "Boundary",
+      "given": "mock BaseConfigService.getValueByTypeAndKey返回''（空字符串，enable_time未配置）",
+      "when": "LogisticExchangeIdentifyManager.isLogisticExchangeEnabled(new Date())",
+      "then": "assertFalse(isLogisticExchangeEnabled(anyDate)); assertEquals(false, result)",
+      "risk_tier": "T1",
+      "repo": "asp-aftersale-service",
+      "target_class": "LogisticExchangeIdentifyManager",
+      "target_method": "isLogisticExchangeEnabled",
+      "source": "q01/structured.json:SE-005",
+      "assertion_blueprint": {
+        "assertion_type": "assertEquals",
+        "assert_target": "isLogisticExchangeEnabled返回值",
+        "expected_value": "false"
+      },
+      "branch_ids": [
+        "B-009",
+        "B-010"
+      ],
+      "outcome_ids": [
+        "O-018",
+        "O-019"
+      ]
+    },
+    {
+      "eut_id": "EUT-010",
+      "bound_item": "BR-011",
+      "route_type": "Boundary",
+      "given": "createTime=null",
+      "when": "LogisticExchangeIdentifyManager.isLogisticExchangeEnabled(null)",
+      "then": "assertDoesNotThrow(() -> isLogisticExchangeEnabled(null)); assertFalse(result); assertEquals(false, isLogisticExchangeEnabled(null))，无NPE",
+      "risk_tier": "T1",
+      "repo": "asp-aftersale-service",
+      "target_class": "LogisticExchangeIdentifyManager",
+      "target_method": "isLogisticExchangeEnabled",
+      "source": "q01/structured.json:BR-011",
+      "assertion_blueprint": {
+        "assertion_type": "assertDoesNotThrow+assertEquals",
+        "assert_target": "isLogisticExchangeEnabled(null)返回值",
+        "expected_value": "false"
+      },
+      "branch_ids": [
+        "B-008"
+      ],
+      "outcome_ids": [
+        "O-017"
+      ]
+    },
+    {
+      "eut_id": "EUT-011",
+      "bound_item": "SE-008",
+      "route_type": "Exception",
+      "given": "brandClassId=1001在白名单, goodsIds={'SKU001','BLACKLIST_SKU'}; mock isLogisticExchangeGoodsAllowed('BLACKLIST_SKU')=false",
+      "when": "LogisticExchangeIdentifyManager.passPrecheck(serviceNo, 1001, Set.of('SKU001','BLACKLIST_SKU'))",
+      "then": "assertFalse(result); assertEquals(false, passPrecheck(Set))（AND逻辑：任一黑名单命中则false）",
+      "risk_tier": "T1",
+      "repo": "asp-aftersale-service",
+      "target_class": "LogisticExchangeIdentifyManager",
+      "target_method": "passPrecheck",
+      "source": "q01/structured.json:SE-008",
+      "assertion_blueprint": {
+        "assertion_type": "assertEquals",
+        "assert_target": "passPrecheck(Set)返回值",
+        "expected_value": "false"
+      },
+      "branch_ids": [
+        "B-016"
+      ],
+      "outcome_ids": [
+        "O-005"
+      ]
+    },
+    {
+      "eut_id": "EUT-012",
+      "bound_item": "SE-008",
+      "route_type": "Happy Path",
+      "given": "brandClassId=1001在白名单, goodsIds={'SKU001','SKU002'}; mock isLogisticExchangeGoodsAllowed(all)=true",
+      "when": "LogisticExchangeIdentifyManager.passPrecheck(serviceNo, 1001, Set.of('SKU001','SKU002'))",
+      "then": "assertTrue(result); assertEquals(true, passPrecheck(Set))（全部商品均不在黑名单）",
+      "risk_tier": "T1",
+      "repo": "asp-aftersale-service",
+      "target_class": "LogisticExchangeIdentifyManager",
+      "target_method": "passPrecheck",
+      "source": "q01/structured.json:SE-008",
+      "assertion_blueprint": {
+        "assertion_type": "assertEquals",
+        "assert_target": "passPrecheck(Set)返回值",
+        "expected_value": "true"
+      },
+      "branch_ids": [
+        "B-015",
+        "B-017"
+      ],
+      "outcome_ids": [
+        "O-004",
+        "O-023"
+      ]
+    },
+    {
+      "eut_id": "EUT-013",
+      "bound_item": "REQ-004",
+      "route_type": "Happy Path",
+      "given": "命中物流取旧送新标识的工单; mock specialApprovalV2Service.getDetailNew返回id='SA-001'的SpecialApprovalInfo",
+      "when": "ExchangeOrderService.assembleLogisticExchangeOrderParams(orderDetail, srvService, items, opPerson)",
+      "then": "orderDetail.ocExtendList含unified_replacement=data='2', special_approval_id=data='SA-001', xms_service_id=工单号",
+      "risk_tier": "T1",
+      "repo": "asp-aftersale-service",
+      "target_class": "ExchangeOrderService",
+      "target_method": "assembleLogisticExchangeOrderParams",
+      "source": "q01/structured.json:REQ-004",
+      "assertion_blueprint": {
+        "assertion_type": "fieldAssertion",
+        "assert_target": "orderDetail.ocExtendList",
+        "expected_value": "含unified_replacement=2, special_approval_id='SA-001', xms_service_id=工单号"
+      },
+      "branch_ids": [
+        "B-018",
+        "B-020"
+      ],
+      "outcome_ids": [
+        "O-024",
+        "O-025"
+      ]
+    },
+    {
+      "eut_id": "EUT-014",
+      "bound_item": "SE-007",
+      "route_type": "Boundary",
+      "given": "命中物流取旧送新标识的工单; mock specialApprovalV2Service.searchList返回空列表",
+      "when": "ExchangeOrderService.assembleLogisticExchangeOrderParams(orderDetail, srvService, items, opPerson)",
+      "then": "orderDetail.ocExtendList中special_approval_id对应data=''，方法正常完成无异常",
+      "risk_tier": "T1",
+      "repo": "asp-aftersale-service",
+      "target_class": "ExchangeOrderService",
+      "target_method": "assembleLogisticExchangeOrderParams",
+      "source": "q01/structured.json:SE-007",
+      "assertion_blueprint": {
+        "assertion_type": "fieldAssertion+assertDoesNotThrow",
+        "assert_target": "ocExtendList中special_approval_id的data",
+        "expected_value": "''"
+      },
+      "branch_ids": [
+        "B-019",
+        "B-021"
+      ],
+      "outcome_ids": [
+        "O-006",
+        "O-026"
+      ]
+    },
+    {
+      "eut_id": "EUT-015",
+      "bound_item": "BR-008",
+      "route_type": "Happy Path",
+      "given": "工单有FAULT类型附件2张URL（含重复）、PROCESSED类型附件1张; mock baseAttachmentManager.selectByServiceIdAndTypes返回对应列表",
+      "when": "ExchangeOrderService.collectScenePhotos(serviceNo)",
+      "then": "assertEquals(2, result.size()); 返回去重后URL列表，size()==2",
+      "risk_tier": "T1",
+      "repo": "asp-aftersale-service",
+      "target_class": "ExchangeOrderService",
+      "target_method": "collectScenePhotos",
+      "source": "q01/structured.json:BR-008",
+      "assertion_blueprint": {
+        "assertion_type": "assertEquals",
+        "assert_target": "collectScenePhotos返回列表长度",
+        "expected_value": "2（去重后）"
+      },
+      "branch_ids": [
+        "B-022"
+      ],
+      "outcome_ids": [
+        "O-007"
+      ]
+    },
+    {
+      "eut_id": "EUT-016",
+      "bound_item": "BR-008",
+      "route_type": "Boundary",
+      "given": "mock baseAttachmentManager.selectByServiceIdAndTypes返回空列表",
+      "when": "ExchangeOrderService.collectScenePhotos(serviceNo)",
+      "then": "assertTrue(result.isEmpty()); assertEquals(0, result.size())，不抛异常",
+      "risk_tier": "T2",
+      "repo": "asp-aftersale-service",
+      "target_class": "ExchangeOrderService",
+      "target_method": "collectScenePhotos",
+      "source": "q01/structured.json:BR-008",
+      "assertion_blueprint": {
+        "assertion_type": "assertTrue+assertDoesNotThrow",
+        "assert_target": "collectScenePhotos返回值",
+        "expected_value": "isEmpty()==true，size()==0",
+        "side_effect": "无异常抛出，assertDoesNotThrow验证，status=SUCCESS"
+      },
+      "branch_ids": [
+        "B-023",
+        "B-024"
+      ],
+      "outcome_ids": [
+        "O-027",
+        "O-028"
+      ]
+    },
+    {
+      "eut_id": "EUT-017",
+      "bound_item": "BR-003",
+      "route_type": "Happy Path",
+      "given": "换货工单（ServiceType.HH）; mock logisticExchangeIdentifyManager.identifyByPrecheckAndFulfillment=true",
+      "when": "Cn3cCreateTagExt.processLogisticExchangeTag(req, srvService(HH), serviceItems, sId)",
+      "then": "verify(srvServiceExtendManager).save(sId, SrvTagEnum.LOGISTIC_EXCHANGE, Enable.Y.name())被调用1次",
+      "risk_tier": "T1",
+      "repo": "asp-aftersale-service",
+      "target_class": "Cn3cCreateTagExt",
+      "target_method": "processLogisticExchangeTag",
+      "source": "q01/structured.json:BR-003",
+      "assertion_blueprint": {
+        "assertion_type": "mockVerify+times",
+        "assert_target": "SrvServiceExtendManager.save",
+        "expected_value": "save(sId, LOGISTIC_EXCHANGE, Y)调用times(1)",
+        "side_effect": "verify(srvServiceExtendManager, times(1)).save(sId, SrvTagEnum.LOGISTIC_EXCHANGE, Enable.Y.name())"
+      },
+      "branch_ids": [
+        "B-034"
+      ],
+      "outcome_ids": [
+        "O-034"
+      ]
+    },
+    {
+      "eut_id": "EUT-018",
+      "bound_item": "BR-003",
+      "route_type": "Exception",
+      "given": "修复工单（ServiceType.WX，非换货类型）",
+      "when": "Cn3cCreateTagExt.processLogisticExchangeTag(req, srvService(WX), serviceItems, sId)",
+      "then": "verify(srvServiceExtendManager, never()).save(any, eq(SrvTagEnum.LOGISTIC_EXCHANGE), any)未被调用",
+      "risk_tier": "T1",
+      "repo": "asp-aftersale-service",
+      "target_class": "Cn3cCreateTagExt",
+      "target_method": "processLogisticExchangeTag",
+      "source": "q01/structured.json:BR-003",
+      "assertion_blueprint": {
+        "assertion_type": "mockVerify+never",
+        "assert_target": "SrvServiceExtendManager.save(LOGISTIC_EXCHANGE)",
+        "expected_value": "never()调用",
+        "side_effect": "verify(srvServiceExtendManager, never()).save(any, eq(LOGISTIC_EXCHANGE), any)"
+      },
+      "branch_ids": [
+        "B-035",
+        "B-045",
+        "B-046"
+      ],
+      "outcome_ids": [
+        "O-035",
+        "O-045",
+        "O-046"
+      ]
+    },
+    {
+      "eut_id": "EUT-019",
+      "bound_item": "REQ-003",
+      "route_type": "Happy Path",
+      "given": "检测处理上下文: 工单类型HH，非不予处理; mock logisticExchangeIdentifyManager.identifyByPrecheckAndFulfillment=true",
+      "when": "Cn3cProcessExtendTagExt.reIdentifyAndMarkLogisticExchange(context)",
+      "then": "verify(srvServiceExtendManager).save(serviceId, SrvTagEnum.LOGISTIC_EXCHANGE, Enable.Y.name())被调用",
+      "risk_tier": "T1",
+      "repo": "asp-aftersale-service",
+      "target_class": "Cn3cProcessExtendTagExt",
+      "target_method": "reIdentifyAndMarkLogisticExchange",
+      "source": "q01/structured.json:REQ-003",
+      "assertion_blueprint": {
+        "assertion_type": "mockVerify+times",
+        "assert_target": "SrvServiceExtendManager.save",
+        "expected_value": "save(LOGISTIC_EXCHANGE, Y)调用times(1)",
+        "side_effect": "verify(srvServiceExtendManager, times(1)).save(serviceId, LOGISTIC_EXCHANGE, Y)"
+      },
+      "branch_ids": [
+        "B-036"
+      ],
+      "outcome_ids": [
+        "O-036"
+      ]
+    },
+    {
+      "eut_id": "EUT-020",
+      "bound_item": "REQ-003",
+      "route_type": "Exception",
+      "given": "检测处理上下文: 工单类型从HH切换为WX（非换货）",
+      "when": "Cn3cProcessExtendTagExt.reIdentifyAndMarkLogisticExchange(contextWithNonExchangeType)",
+      "then": "verify(srvServiceExtendManager).delete(serviceId, SrvTagEnum.LOGISTIC_EXCHANGE)被调用（清标）",
+      "risk_tier": "T1",
+      "repo": "asp-aftersale-service",
+      "target_class": "Cn3cProcessExtendTagExt",
+      "target_method": "reIdentifyAndMarkLogisticExchange",
+      "source": "q01/structured.json:REQ-003",
+      "assertion_blueprint": {
+        "assertion_type": "mockVerify+times",
+        "assert_target": "SrvServiceExtendManager.delete",
+        "expected_value": "delete(LOGISTIC_EXCHANGE)调用times(1)",
+        "side_effect": "verify(srvServiceExtendManager, times(1)).delete(serviceId, LOGISTIC_EXCHANGE)"
+      },
+      "branch_ids": [
+        "B-037"
+      ],
+      "outcome_ids": [
+        "O-037"
+      ]
+    },
+    {
+      "eut_id": "EUT-021",
+      "bound_item": "REQ-003",
+      "route_type": "Exception",
+      "given": "检测处理上下文: 工单类型HH，处理方法为不予处理（isNoTreatment=true）",
+      "when": "Cn3cProcessExtendTagExt.reIdentifyAndMarkLogisticExchange(contextWithNoTreatment)",
+      "then": "verify(srvServiceExtendManager).delete(serviceId, SrvTagEnum.LOGISTIC_EXCHANGE)被调用（清标），不调用identifyByPrecheckAndFulfillment",
+      "risk_tier": "T1",
+      "repo": "asp-aftersale-service",
+      "target_class": "Cn3cProcessExtendTagExt",
+      "target_method": "reIdentifyAndMarkLogisticExchange",
+      "source": "q01/structured.json:REQ-003",
+      "assertion_blueprint": {
+        "assertion_type": "mockVerify+times+never",
+        "assert_target": "SrvServiceExtendManager.delete",
+        "expected_value": "delete(LOGISTIC_EXCHANGE)调用times(1)",
+        "side_effect": "verify(srvServiceExtendManager, times(1)).delete(LOGISTIC_EXCHANGE); verify(identifyManager, never()).identifyByPrecheckAndFulfillment(any)"
+      },
+      "branch_ids": [
+        "B-038",
+        "B-047",
+        "B-048"
+      ],
+      "outcome_ids": [
+        "O-038",
+        "O-047",
+        "O-048"
+      ]
+    },
+    {
+      "eut_id": "EUT-022",
+      "bound_item": "BR-005",
+      "route_type": "Happy Path",
+      "given": "物流取旧送新工单（isLogisticExchangeService=true）; mock getLogisticExchangeOnlyDetectMethodIds返回[1001]; vo.getProcessSrvItems包含methodId=1001的方法",
+      "when": "Cn3cProcessMethodValidateExt.checkLogisticExchangeOnlyDetectMethod(vo)",
+      "then": "assertDoesNotThrow(() -> checkLogisticExchangeOnlyDetectMethod(vo)); status=SUCCESS，verify(logisticExchangeIdentifyManager).isLogisticExchangeService被调用",
+      "risk_tier": "T1",
+      "repo": "asp-aftersale-service",
+      "target_class": "Cn3cProcessMethodValidateExt",
+      "target_method": "checkLogisticExchangeOnlyDetectMethod",
+      "source": "q01/structured.json:BR-005",
+      "assertion_blueprint": {
+        "assertion_type": "assertDoesNotThrow+verify",
+        "assert_target": "checkLogisticExchangeOnlyDetectMethod调用",
+        "expected_value": "正常返回无异常",
+        "side_effect": "assertDoesNotThrow(()-> ext.checkLogisticExchangeOnlyDetectMethod(vo)); verify(logisticExchangeIdentifyManager).isLogisticExchangeService被调用; status=SUCCESS"
+      },
+      "branch_ids": [
+        "B-026",
+        "B-027"
+      ],
+      "outcome_ids": [
+        "O-030",
+        "O-031"
+      ]
+    },
+    {
+      "eut_id": "EUT-023",
+      "bound_item": "BR-005",
+      "route_type": "Exception",
+      "given": "物流取旧送新工单; mock getLogisticExchangeOnlyDetectMethodIds返回[1001]; vo选择了methodId=9999（不在允许列表且非不予处理）",
+      "when": "Cn3cProcessMethodValidateExt.checkLogisticExchangeOnlyDetectMethod(voWithWrongMethod)",
+      "then": "抛出MafSrvAftersaleException，message包含'物流取旧送新场景只允许选择物流取旧送新仅检测或不予处理处理方法'",
+      "risk_tier": "T1",
+      "repo": "asp-aftersale-service",
+      "target_class": "Cn3cProcessMethodValidateExt",
+      "target_method": "checkLogisticExchangeOnlyDetectMethod",
+      "source": "q01/structured.json:BR-005",
+      "assertion_blueprint": {
+        "assertion_type": "assertThrows",
+        "assert_target": "checkLogisticExchangeOnlyDetectMethod抛出异常",
+        "expected_value": "MafSrvAftersaleException，message含「只允许选择物流取旧送新仅检测或不予处理处理方法」",
+        "side_effect": "errorCode包含业务错误码，Exception状态=FAIL，提交流程被中断"
+      },
+      "branch_ids": [
+        "B-028"
+      ],
+      "outcome_ids": [
+        "O-008"
+      ]
+    },
+    {
+      "eut_id": "EUT-024",
+      "bound_item": "BR-005",
+      "route_type": "Exception",
+      "given": "物流取旧送新工单; vo.methods包含2个处理方法（数量>1）",
+      "when": "Cn3cProcessMethodValidateExt.checkLogisticExchangeOnlyDetectMethod(voWithMultipleMethods)",
+      "then": "抛出MafSrvAftersaleException，message含'只允许选择单个处理方法'",
+      "risk_tier": "T1",
+      "repo": "asp-aftersale-service",
+      "target_class": "Cn3cProcessMethodValidateExt",
+      "target_method": "checkLogisticExchangeOnlyDetectMethod",
+      "source": "q01/structured.json:BR-005",
+      "assertion_blueprint": {
+        "assertion_type": "assertThrows",
+        "assert_target": "checkLogisticExchangeOnlyDetectMethod抛出异常",
+        "expected_value": "MafSrvAftersaleException，message含「只允许选择单个处理方法」",
+        "side_effect": "errorCode包含业务错误码，Exception状态=FAIL"
+      },
+      "branch_ids": [
+        "B-029"
+      ],
+      "outcome_ids": [
+        "O-032"
+      ]
+    },
+    {
+      "eut_id": "EUT-025",
+      "bound_item": "BR-005",
+      "route_type": "Boundary",
+      "given": "物流取旧送新工单; mock getLogisticExchangeOnlyDetectMethodIds返回空集合",
+      "when": "Cn3cProcessMethodValidateExt.checkLogisticExchangeOnlyDetectMethod(voWithAnyMethod)",
+      "then": "抛出MafSrvAftersaleException，message含'物流取旧送新仅检测处理方法未配置'",
+      "risk_tier": "T1",
+      "repo": "asp-aftersale-service",
+      "target_class": "Cn3cProcessMethodValidateExt",
+      "target_method": "checkLogisticExchangeOnlyDetectMethod",
+      "source": "q01/structured.json:BR-005",
+      "assertion_blueprint": {
+        "assertion_type": "assertThrows",
+        "assert_target": "checkLogisticExchangeOnlyDetectMethod抛出异常",
+        "expected_value": "MafSrvAftersaleException，含'处理方法未配置'"
+      },
+      "branch_ids": [
+        "B-030"
+      ],
+      "outcome_ids": [
+        "O-009"
+      ]
+    },
+    {
+      "eut_id": "EUT-026",
+      "bound_item": "BR-005",
+      "route_type": "Happy Path",
+      "given": "非物流取旧送新工单（mock isLogisticExchangeService=false）",
+      "when": "Cn3cProcessMethodValidateExt.checkLogisticExchangeOnlyDetectMethod(voForNormalService)",
+      "then": "assertDoesNotThrow(() -> checkLogisticExchangeOnlyDetectMethod(voNonLogistic)); verify(logisticExchangeIdentifyManager, never())方法校验逻辑未触发",
+      "risk_tier": "T1",
+      "repo": "asp-aftersale-service",
+      "target_class": "Cn3cProcessMethodValidateExt",
+      "target_method": "checkLogisticExchangeOnlyDetectMethod",
+      "source": "q01/structured.json:BR-005",
+      "assertion_blueprint": {
+        "assertion_type": "assertDoesNotThrow+verify+never",
+        "assert_target": "checkLogisticExchangeOnlyDetectMethod调用",
+        "expected_value": "正常返回，无异常",
+        "side_effect": "assertDoesNotThrow(()->ext.checkLogisticExchangeOnlyDetectMethod(vo)); verify(logisticExchangeIdentifyManager, never()).identifyByPrecheckAndFulfillment(any)"
+      },
+      "branch_ids": [
+        "B-025"
+      ],
+      "outcome_ids": [
+        "O-029"
+      ]
+    },
+    {
+      "eut_id": "EUT-027",
+      "bound_item": "SE-010",
+      "route_type": "Happy Path",
+      "given": "物流取旧送新工单（mock isLogisticExchangeService=true）; OC消息中cancelCallback=true（REJECT_RETURN_ALREADY状态）",
+      "when": "OrderCenterConsumer.addExchangeOrderCancelProcess(req, srv)",
+      "then": "verify(srvServiceExtendManager).add(srv.getId(), 含物流原因取消语义的SrvTagEnum)被调用",
+      "risk_tier": "T1",
+      "repo": "asp-aftersale-service",
+      "target_class": "OrderCenterConsumer",
+      "target_method": "addExchangeOrderCancelProcess",
+      "source": "q01/structured.json:SE-010",
+      "assertion_blueprint": {
+        "assertion_type": "mockVerify+times",
+        "assert_target": "SrvServiceExtendManager.add",
+        "expected_value": "add(物流原因取消日志)调用times(1)",
+        "side_effect": "verify(srvServiceExtendManager, times(1)).add(srv.getId(), 含物流原因取消语义的SrvTagEnum); status=SUCCESS"
+      },
+      "branch_ids": [
+        "B-031",
+        "B-039",
+        "B-042",
+        "B-043",
+        "B-044"
+      ],
+      "outcome_ids": [
+        "O-010",
+        "O-039",
+        "O-042",
+        "O-043",
+        "O-044"
+      ]
+    },
+    {
+      "eut_id": "EUT-028",
+      "bound_item": "REQ-007",
+      "route_type": "Exception",
+      "given": "非物流取旧送新工单（mock isLogisticExchangeService=false）; OC消息cancelCallback=true",
+      "when": "OrderCenterConsumer处理取消回传（非物流取旧送新路径）",
+      "then": "verify(closeSrvService).sampleCloseSrv(...)被调用（原关单逻辑）；addExchangeOrderCancelProcess未被调用",
+      "risk_tier": "T1",
+      "repo": "asp-aftersale-service",
+      "target_class": "OrderCenterConsumer",
+      "target_method": "handleServiceDelivery",
+      "source": "q01/structured.json:REQ-007",
+      "assertion_blueprint": {
+        "assertion_type": "mockVerify",
+        "assert_target": "OrderCenterConsumer取消路径分叉",
+        "expected_value": "非物流取旧送新时closeByOrderStatus被调用"
+      },
+      "branch_ids": [
+        "B-032",
+        "B-033",
+        "B-040",
+        "B-041"
+      ],
+      "outcome_ids": [
+        "O-011",
+        "O-033",
+        "O-040",
+        "O-041"
+      ]
+    },
+    {
+      "eut_id": "EUT-029",
+      "bound_item": "SE-001",
+      "route_type": "Exception",
+      "given": "brandClassId=9999（不在品类白名单）; mock GenericConfigDataManager.isLogisticExchangeBrandClass(9999)=false",
+      "when": "LogisticExchangeIdentifyManager.passPrecheck(serviceNo, 9999, 'SKU001')",
+      "then": "assertFalse(result); verify(fulfillmentRuleInterfaceService, never()).isSendAndInstallSupported(...)未被调用（品类不在白名单时短路返回false）",
+      "risk_tier": "T1",
+      "repo": "asp-aftersale-service",
+      "target_class": "LogisticExchangeIdentifyManager",
+      "target_method": "passPrecheck",
+      "source": "q01/structured.json:SE-001",
+      "branch_ids": [
+        "B-015"
+      ],
+      "outcome_ids": [
+        "O-004"
+      ],
+      "assertion_blueprint": {
+        "assertion_type": "assertEquals+mockVerify+never",
+        "assert_target": "passPrecheck返回值及FulfillmentRuleInterfaceService调用次数",
+        "expected_value": "false",
+        "side_effect": "verify(fulfillmentRuleInterfaceService, never()).isSendAndInstallSupported(...)"
+      }
+    },
+    {
+      "eut_id": "EUT-030",
+      "bound_item": "SE-002",
+      "route_type": "Exception",
+      "given": "brandClassId=1001在品类白名单; goodsId='BLACKLIST_SKU'在SKU黑名单; mock isLogisticExchangeBrandClass(1001)=true, isLogisticExchangeGoodsAllowed('BLACKLIST_SKU')=false",
+      "when": "LogisticExchangeIdentifyManager.identifyByPrecheckAndFulfillment(validParam with BLACKLIST_SKU)",
+      "then": "assertFalse(result); assertEquals(false, result); verify(fulfillmentRuleInterfaceService, never()).isSendAndInstallSupported(...)调用次数为0",
+      "risk_tier": "T1",
+      "repo": "asp-aftersale-service",
+      "target_class": "LogisticExchangeIdentifyManager",
+      "target_method": "identifyByPrecheckAndFulfillment",
+      "source": "q01/structured.json:SE-002",
+      "branch_ids": [
+        "B-004",
+        "B-016"
+      ],
+      "outcome_ids": [
+        "O-013",
+        "O-005"
+      ],
+      "assertion_blueprint": {
+        "assertion_type": "assertEquals+mockVerify+never",
+        "assert_target": "identifyByPrecheckAndFulfillment返回值及fulfillmentService调用次数",
+        "expected_value": "false",
+        "side_effect": "verify(fulfillmentRuleInterfaceService, never()).isSendAndInstallSupported(any)"
+      }
+    },
+    {
+      "eut_id": "EUT-031",
+      "bound_item": "SE-006",
+      "route_type": "Happy Path",
+      "given": "命中物流取旧送新标识的换货工单; mock specialApprovalV2Service.getDetailNew返回id='SA-001'; 物流标识 isLogisticExchange=true",
+      "when": "ExchangeOrderService.assembleLogisticExchangeOrderParams(orderDetail, srvService, items, opPerson)",
+      "then": "assertTrue(ocExtendList.stream().anyMatch(e->\"unified_replacement\".equals(e.getKeyName())&&\"2\".equals(e.getData()))); assertEquals(\"2\", getExtendValue(ocExtendList, 'unified_replacement'))",
+      "risk_tier": "T1",
+      "repo": "asp-aftersale-service",
+      "target_class": "ExchangeOrderService",
+      "target_method": "assembleLogisticExchangeOrderParams",
+      "source": "q01/structured.json:SE-006",
+      "branch_ids": [
+        "B-018"
+      ],
+      "outcome_ids": [
+        "O-024"
+      ],
+      "assertion_blueprint": {
+        "assertion_type": "assertEquals+assertTrue",
+        "assert_target": "ocExtendList中unified_replacement字段值",
+        "expected_value": "unified_replacement.data==\"2\"",
+        "side_effect": "contains(ocExtendList, unified_replacement=2)断言，status=SUCCESS"
+      }
+    },
+    {
+      "eut_id": "EUT-032",
+      "bound_item": "BR-007",
+      "route_type": "Boundary",
+      "given": "命中物流取旧送新标识的换货工单; mock specialApprovalV2Service.searchList返回空列表（无特批记录）",
+      "when": "ExchangeOrderService.assembleLogisticExchangeOrderParams(orderDetail, srvService, items, opPerson)",
+      "then": "assertEquals(\"\", getExtendValue(ocExtendList, 'special_approval_id')); 无特批记录时ocExtendList.special_approval_id.data==\"\"",
+      "risk_tier": "T1",
+      "repo": "asp-aftersale-service",
+      "target_class": "ExchangeOrderService",
+      "target_method": "assembleLogisticExchangeOrderParams",
+      "source": "q01/structured.json:BR-007",
+      "branch_ids": [
+        "B-019"
+      ],
+      "outcome_ids": [
+        "O-006"
+      ],
+      "assertion_blueprint": {
+        "assertion_type": "assertEquals",
+        "assert_target": "ocExtendList中special_approval_id字段值",
+        "expected_value": "special_approval_id.data==\"\"（空字符串）",
+        "side_effect": "contains(ocExtendList, special_approval_id=\"\")，OC正常接收无报错"
+      }
+    },
+    {
+      "eut_id": "EUT-033",
+      "bound_item": "REQ-001",
+      "route_type": "Boundary",
+      "given": "LogisticExchangeIdentifyParam: serviceNo=null, brandClassId=null, goodsIds=null, serviceCreateTime=null",
+      "when": "LogisticExchangeIdentifyParam.isValid() 调用 isValid() 方法，参数全为null边界",
+      "then": "assertFalse(param.isValid()); assertEquals(false, param.isValid())（全null参数校验快速失败）",
+      "risk_tier": "T1",
+      "repo": "asp-aftersale-service",
+      "target_class": "LogisticExchangeIdentifyParam",
+      "target_method": "isValid",
+      "source": "q01/structured.json:REQ-001",
+      "branch_ids": [
+        "B-002"
+      ],
+      "outcome_ids": [
+        "O-012"
+      ],
+      "assertion_blueprint": {
+        "assertion_type": "assertEquals",
+        "assert_target": "isValid()返回值",
+        "expected_value": "false",
+        "side_effect": "assertFalse(param.isValid())，参数全null边界快速失败"
+      }
+    },
+    {
+      "eut_id": "EUT-034",
+      "bound_item": "BR-003",
+      "route_type": "Boundary",
+      "given": "serviceItems=null; req和srvService有效（ServiceType.HH）",
+      "when": "Cn3cCreateTagExt.processLogisticExchangeTag(req, srvService(HH), null, sId)",
+      "then": "assertDoesNotThrow(() -> processLogisticExchangeTag(req, srvService, null, sId)); verify(logisticExchangeIdentifyManager, never()).identifyByPrecheckAndFulfillment(any)",
+      "risk_tier": "T2",
+      "repo": "asp-aftersale-service",
+      "target_class": "Cn3cCreateTagExt",
+      "target_method": "processLogisticExchangeTag",
+      "source": "q01/structured.json:BR-003",
+      "branch_ids": [
+        "B-045"
+      ],
+      "outcome_ids": [
+        "O-045"
+      ],
+      "assertion_blueprint": {
+        "assertion_type": "assertDoesNotThrow+verify+never",
+        "assert_target": "processLogisticExchangeTag调用",
+        "expected_value": "正常返回无异常",
+        "side_effect": "verify(logisticExchangeIdentifyManager, never()).identifyByPrecheckAndFulfillment(any); assertDoesNotThrow"
+      }
+    },
+    {
+      "eut_id": "EUT-035",
+      "bound_item": "REQ-003",
+      "route_type": "Boundary",
+      "given": "context中srvService=null或serviceId=null；检测处理上下文数据不完整",
+      "when": "Cn3cProcessExtendTagExt.reIdentifyAndMarkLogisticExchange(contextWithNullService)",
+      "then": "assertDoesNotThrow(() -> reIdentifyAndMarkLogisticExchange(ctx)); verify(srvServiceExtendManager, never()).save(any, any, any)",
+      "risk_tier": "T2",
+      "repo": "asp-aftersale-service",
+      "target_class": "Cn3cProcessExtendTagExt",
+      "target_method": "reIdentifyAndMarkLogisticExchange",
+      "source": "q01/structured.json:REQ-003",
+      "branch_ids": [
+        "B-047"
+      ],
+      "outcome_ids": [
+        "O-047"
+      ],
+      "assertion_blueprint": {
+        "assertion_type": "assertDoesNotThrow+verify+never",
+        "assert_target": "reIdentifyAndMarkLogisticExchange调用",
+        "expected_value": "正常返回无异常",
+        "side_effect": "assertDoesNotThrow；verify(srvServiceExtendManager, never()).save(any, any, any)"
+      }
+    },
+    {
+      "eut_id": "EUT-036",
+      "bound_item": "BR-009",
+      "route_type": "Boundary",
+      "given": "OC消息体中deliveryInfo=null；handleServiceDelivery接收消息参数不完整",
+      "when": "OrderCenterConsumer.handleServiceDelivery(req with null deliveryInfo)",
+      "then": "assertDoesNotThrow(() -> handleServiceDelivery(req)); verify(closeSrvService, never()).sampleCloseSrv(any)",
+      "risk_tier": "T2",
+      "repo": "asp-aftersale-service",
+      "target_class": "OrderCenterConsumer",
+      "target_method": "handleServiceDelivery",
+      "source": "q01/structured.json:BR-009",
+      "branch_ids": [
+        "B-040"
+      ],
+      "outcome_ids": [
+        "O-040"
+      ],
+      "assertion_blueprint": {
+        "assertion_type": "assertDoesNotThrow+verify+never",
+        "assert_target": "handleServiceDelivery边界参数处理",
+        "expected_value": "正常返回无异常",
+        "side_effect": "assertDoesNotThrow；verify(closeSrvService, never()).sampleCloseSrv(any)"
+      }
+    },
+    {
+      "eut_id": "EUT-037",
+      "bound_item": "SE-006",
+      "route_type": "Exception",
+      "given": "命中物流取旧送新标识的换货工单; mock specialApprovalV2Service.searchList抛出RuntimeException",
+      "when": "ExchangeOrderService.assembleLogisticExchangeOrderParams(orderDetail, srvService, items, opPerson)",
+      "then": "assertDoesNotThrow(() -> assembleLogisticExchangeOrderParams(params)); assertEquals(\"\", getExtendValue(ocExtendList, 'special_approval_id'))；异常降级使用空字符串",
+      "risk_tier": "T1",
+      "repo": "asp-aftersale-service",
+      "target_class": "ExchangeOrderService",
+      "target_method": "assembleLogisticExchangeOrderParams",
+      "source": "q01/structured.json:SE-006",
+      "branch_ids": [
+        "B-020"
+      ],
+      "outcome_ids": [
+        "O-025"
+      ],
+      "assertion_blueprint": {
+        "assertion_type": "assertDoesNotThrow+assertEquals",
+        "assert_target": "assembleLogisticExchangeOrderParams调用及special_approval_id值",
+        "expected_value": "special_approval_id.data==\"\"（降级空字符串）",
+        "side_effect": "assertDoesNotThrow；Exception被捕获不向上传播，special_approval_id降级为空字符串"
+      }
+    }
+  ]
+}

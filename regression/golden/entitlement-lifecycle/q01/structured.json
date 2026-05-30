@@ -1,0 +1,198 @@
+{
+  "project_id": "entitlement-lifecycle",
+  "artifact_version": "1.1",
+  "schema_version": "1.1",
+  "requirements": [
+    {
+      "req_id": "REQ-001",
+      "description": "整机三包人工修正接口（fixWarrantyData）：运营人员可对指定设备（sn+orderId）的三包数据进行全字段人工覆盖修正，包含退货/换货/维修的起始时间、截止时间和起算类型共9个字段，修正后记录变更日志。",
+      "priority": "P0",
+      "trigger": "运营人员调用 fixWarrantyData 接口，传入设备 sn、orderId 及三包时间9字段",
+      "behavior_change": "废弃旧有 WarrantyUpdateTypeEnum 按 updateType 选择字段的逻辑，改为全字段必填、直接覆盖 DB 三包记录并落库；updateType 强制置为 null",
+      "acceptance_criteria": "9字段均校验通过后，DB 记录的全部三包时间字段被覆盖为传入值，同时写入变更日志；任一字段校验失败立即返回 ParamError，不写库",
+      "source": "WarrantyFacadeImpl.java:361"
+    },
+    {
+      "req_id": "REQ-002",
+      "description": "物料三包人工修正接口（fixMaterialWarrantyData）：起始时间解析优先使用 strToDate（yyyy-MM-dd HH:mm:ss），失败再 fallback 至 strToDateExt；截止时间通过 parseFixWarrantyEndDate 兼容纯日期格式 yyyy-MM-dd。",
+      "priority": "P1",
+      "trigger": "调用 fixMaterialWarrantyData 接口，传入物料三包参数",
+      "behavior_change": "起始时间由原来仅支持 strToDateExt（yyyy/MM/dd HH:mm:ss）改为先尝试 strToDate（yyyy-MM-dd HH:mm:ss），失败再 fallback 至 strToDateExt；截止时间改用 parseFixWarrantyEndDate，兼容 yyyy-MM-dd 纯日期格式",
+      "acceptance_criteria": "传入 yyyy-MM-dd HH:mm:ss 格式的起始时间可被正确解析；传入 yyyy-MM-dd 格式的截止时间可被正确解析；格式错误时返回 ParamError",
+      "source": "WarrantyFacadeImpl.java:445"
+    },
+    {
+      "req_id": "BR-001",
+      "parent_id": "REQ-001",
+      "description": "fixWarrantyData 接口的9个字段全部必填：returnStartTime、exchangeStartTime、repairStartTime、returnEndTime、exchangeEndTime、repairEndTime、returnTimeType、exchangeTimeType、repairTimeType。",
+      "trigger": "调用 fixWarrantyData 接口",
+      "behavior_change": "通过 JSR-303 @NotBlank 注解在入口校验，任一为空直接返回字段级报错",
+      "acceptance_criteria": "任意一个字段为 null 或空串时，接口返回 ParamError，报错消息含字段名（如 'returnStartTime不能为空'）",
+      "source": "WarrantyUpdateParam.java:32"
+    },
+    {
+      "req_id": "BR-002",
+      "parent_id": "REQ-001",
+      "description": "开始时间字段（returnStartTime/exchangeStartTime/repairStartTime）调用 strToDate 解析，格式必须为 yyyy-MM-dd HH:mm:ss，否则返回 ParamError。",
+      "trigger": "validateAndParseFixWarrantyParam 解析 returnStartTime 等开始时间字段",
+      "behavior_change": "调用 BaseDateUtil.strToDate 解析，返回 null 则 fail",
+      "acceptance_criteria": "传入 '2024-01-01' 纯日期或 '2024/01/01 00:00:00' 斜杠格式，返回 ParamError；传入 '2024-01-01 00:00:00' 成功解析",
+      "source": "WarrantyFacadeImpl.java:131"
+    },
+    {
+      "req_id": "BR-003",
+      "parent_id": "REQ-001",
+      "description": "截止时间字段（returnEndTime/exchangeEndTime/repairEndTime）通过 parseFixWarrantyEndDate 解析，支持 yyyy-MM-dd HH:mm:ss 或 yyyy-MM-dd 纯日期两种格式。",
+      "trigger": "parseFixWarrantyEndDate 解析截止时间字段",
+      "behavior_change": "先尝试 strToDate，失败再尝试 strToShortDate；两者均 null 则 fail",
+      "acceptance_criteria": "传入 '2025-12-31' 纯日期格式可正常解析；传入 '2025-12-31 23:59:59' 也可解析；传入非法格式 '12/31/2025' 返回 ParamError",
+      "source": "WarrantyFacadeImpl.java:117"
+    },
+    {
+      "req_id": "BR-004",
+      "parent_id": "REQ-001",
+      "description": "起算类型字段（returnTimeType/exchangeTimeType/repairTimeType）通过 resolveStartTimeTypeId 方法解析，支持枚举 code（如 'ACTIVATION'）、数字 id（如 '1'）、以及 convertLifeTimeTypeNull 兼容旧格式。不在枚举内返回 ParamError。",
+      "trigger": "resolveStartTimeTypeId 解析 returnTimeType 等起算类型字段",
+      "behavior_change": "依次尝试 getIdByCode → parseInt+getById → convertLifeTimeTypeNull，全部失败返回 null 则 fail",
+      "acceptance_criteria": "传入 'ACTIVATION' 正确解析为对应 id；传入 '1' 正确解析为 id=1；传入 'invalid_type' 返回 ParamError（起算类型不合法）",
+      "source": "WarrantyFacadeImpl.java:100"
+    },
+    {
+      "req_id": "BR-005",
+      "parent_id": "REQ-001",
+      "description": "覆盖语义：parsedParam 的9个字段通过 setReturnStartTime/setExchangeStartTime 等方法全部覆盖到 DB 三包记录；同时兼容老字段：setTimeType = returnTimeType，setStartTime = repairStartTime。",
+      "trigger": "parsedParam 验证通过后通过 setReturnStartTime 等方法覆盖 dbSrvThreeGuarantee",
+      "behavior_change": "9个新三包字段逐一 set；同时 set 老字段 timeType/startTime 以保持向后兼容",
+      "acceptance_criteria": "修正后 DB 中 returnTimeType/exchangeTimeType/repairTimeType/returnStartTime 等9个字段均更新为入参值；timeType 和 startTime 也同步更新",
+      "source": "WarrantyFacadeImpl.java:408"
+    },
+    {
+      "req_id": "BR-006",
+      "parent_id": "REQ-001",
+      "description": "Command 侧防御：WarrantyUpdateCommandHandler 在 dispatch 前必须确保 threeGuarantee 非空，否则抛 ParamError。",
+      "trigger": "WarrantyUpdateCommandHandler.handle",
+      "behavior_change": "新增 if (threeGuarantee == null) throw SfpLifecycleException(ParamError, '...')",
+      "acceptance_criteria": "当 WarrantyUpdateCommand 中 threeGuarantee 为 null 时，抛出 SfpLifecycleException，错误码为 ParamError",
+      "source": "WarrantyUpdateCommandHandler.java:34"
+    },
+    {
+      "req_id": "BR-007",
+      "parent_id": "REQ-001",
+      "description": "DB 中 sn+orderId 查询 dbSrvThreeGuarantee 无记录或 revisable=YES 时，先实时计算三包数据再覆盖新值；若记录 revisable=NO，直接在锁定数据上覆盖。",
+      "trigger": "fixWarrantyData 查询 dbSrvThreeGuarantee 并判断 revisable 状态",
+      "behavior_change": "沿用已有的 if (dbSrvThreeGuarantee == null || revisable == YES) 实时计算分支，但在该分支外统一覆盖9个字段",
+      "acceptance_criteria": "sn+orderId 查无记录时：实时计算后覆盖9字段落库；记录 revisable=NO 时：直接覆盖9字段落库；两种场景下变更日志均被写入",
+      "source": "WarrantyFacadeImpl.java:370"
+    }
+  ],
+  "semantic_expectations": [
+    {
+      "se_id": "SE-001",
+      "description": "fixWarrantyData 的 WarrantyUpdateParam 中 returnStartTime 等必填字段为 null 或空串时，@NotBlank 校验触发，返回 ParamError，不写库。",
+      "verification": "构造 WarrantyUpdateParam，将 returnStartTime 置为 null（其余合法），调用 fixWarrantyData；断言返回 Result.fail 且 code=ParamError，message 含 'returnStartTime不能为空'；DB 无新记录写入。",
+      "category": "入参校验",
+      "bound_reqs": ["BR-001"],
+      "confidence": "High",
+      "source": "WarrantyUpdateParam.java:32"
+    },
+    {
+      "se_id": "SE-002",
+      "description": "validateAndParseFixWarrantyParam 中 returnStartTime 调用 strToDate 解析，传入非 yyyy-MM-dd HH:mm:ss 格式时返回「退货开始时间格式错误」。",
+      "verification": "传入 returnStartTime='2024-01-01'（纯日期），其余字段合法；断言返回 ParamError，message='退货开始时间格式错误'。",
+      "category": "日期格式校验",
+      "bound_reqs": ["BR-002"],
+      "confidence": "High",
+      "source": "WarrantyFacadeImpl.java:131"
+    },
+    {
+      "se_id": "SE-003",
+      "description": "截止时间传入 yyyy-MM-dd 纯日期格式时，parseFixWarrantyEndDate 通过 strToShortDate 成功解析，不返回 ParamError。",
+      "verification": "传入 returnEndTime='2026-12-31'（纯日期），其余9字段均合法；断言 parseFixWarrantyEndDate 解析成功，不返回 ParamError，DB 写入的 returnEndTime 对应日期 2026-12-31。",
+      "category": "日期格式兼容",
+      "bound_reqs": ["BR-003"],
+      "confidence": "High",
+      "source": "WarrantyFacadeImpl.java:117"
+    },
+    {
+      "se_id": "SE-004",
+      "description": "resolveStartTimeTypeId 收到枚举 code 字符串（如 'ACTIVATION'）时，getIdByCode 返回对应 id，不触发 ParamError。",
+      "verification": "构造 WarrantyUpdateParam，returnTimeType='ACTIVATION'，其余9字段合法；模拟 DB 有 revisable=NO 的记录；调用 fixWarrantyData；断言 DB 更新后 returnTimeType = StartTimeType.ACTIVATION.getId()。",
+      "category": "枚举解析",
+      "bound_reqs": ["BR-004"],
+      "confidence": "High",
+      "source": "WarrantyFacadeImpl.java:100"
+    },
+    {
+      "se_id": "SE-005",
+      "description": "resolveStartTimeTypeId 收到数字 id 字符串（如 '2'）时，通过 getById 解析成功，returnTimeType 赋值为对应 id。",
+      "verification": "传入 returnTimeType='2'（数字字符串），其余字段合法；断言 resolveStartTimeTypeId 解析为 returnTimeType=2，接口返回成功。",
+      "category": "枚举解析",
+      "bound_reqs": ["BR-004"],
+      "confidence": "High",
+      "source": "WarrantyFacadeImpl.java:100"
+    },
+    {
+      "se_id": "SE-006",
+      "description": "resolveStartTimeTypeId 收到非法字符串时，三条解析链均返回 null，validateAndParseFixWarrantyParam 返回「退货起算类型不合法」。",
+      "verification": "传入 returnTimeType='INVALID_TYPE_XYZ'，断言 resolveStartTimeTypeId 返回 null，接口返回 ParamError，message='退货起算类型不合法'。",
+      "category": "枚举解析-异常",
+      "bound_reqs": ["BR-004"],
+      "confidence": "High",
+      "source": "WarrantyFacadeImpl.java:100"
+    },
+    {
+      "se_id": "SE-007",
+      "description": "fixWarrantyData 成功后，parsedParam 通过 setReturnStartTime 等方法覆盖 DB 三包记录的9个字段，以及 setTimeType/setStartTime 老字段兼容。",
+      "verification": "构造合法的 WarrantyUpdateParam（returnStartTime='2024-01-01 00:00:00' 等9字段），模拟 DB 有 revisable=NO 的记录；调用 fixWarrantyData；验证 DB 记录 returnStartTime、exchangeStartTime、repairStartTime、returnEndTime、exchangeEndTime、repairEndTime、returnTimeType、exchangeTimeType、repairTimeType 均被覆盖；setTimeType = returnTimeType，setStartTime = repairStartTime。",
+      "category": "写库正确性",
+      "bound_reqs": ["BR-005"],
+      "confidence": "High",
+      "source": "WarrantyFacadeImpl.java:408"
+    },
+    {
+      "se_id": "SE-008",
+      "description": "fixWarrantyData Command 侧：当 WarrantyUpdateCommand 中 threeGuarantee 为 null 时，抛出 SfpLifecycleException。",
+      "verification": "构造 threeGuarantee=null 的 WarrantyUpdateCommand，调用 WarrantyUpdateCommandHandler.handle；断言抛出 SfpLifecycleException，code=ParamError，message='threeGuarantee不能为空'。",
+      "category": "防御性校验",
+      "bound_reqs": ["BR-006"],
+      "confidence": "High",
+      "source": "WarrantyUpdateCommandHandler.java:34"
+    },
+    {
+      "se_id": "SE-009",
+      "description": "fixMaterialWarrantyData 中，startTime 先通过 strToDate 解析，传入 yyyy-MM-dd HH:mm:ss 格式可被正确解析（而非报格式错误）。",
+      "verification": "传入 startTime='2024-06-01 10:30:00'，调用 fixMaterialWarrantyData；断言 strToDate 解析成功，不返回 '开始时间格式错误'。",
+      "category": "日期格式兼容",
+      "bound_reqs": ["REQ-002"],
+      "confidence": "High",
+      "source": "WarrantyFacadeImpl.java:447"
+    }
+  ],
+  "gaps": [
+    {
+      "gap_id": "GAP-001",
+      "related_ids": ["REQ-001"],
+      "description": "PRD（故障原因主数据建设）中未直接描述整机三包人工修正接口（fixWarrantyData/fixMaterialWarrantyData）的接口规格，代码变更属于后台运营工具类接口的内部实现修改，非 PRD 直接覆盖的前端功能需求。Q05a/Q05b 以代码 diff 为主要覆盖依据，不受 PRD 故障原因功能范围约束。",
+      "risk_level": "LOW",
+      "required_clarification": "无需额外澄清，Q05a 按代码 diff 覆盖，PRD 提供业务上下文。",
+      "source": "PRD 关联产品章节 + 代码 diff"
+    },
+    {
+      "gap_id": "GAP-002",
+      "related_ids": ["REQ-002"],
+      "description": "fixMaterialWarrantyData 的 MaterialWarrantyUpdateParam 入参未同步增加 @NotBlank 校验注解（与 fixWarrantyData 的 9 字段必填改造不一致），可能导致物料三包修正接口的空字段校验不充分。",
+      "risk_level": "MEDIUM",
+      "required_clarification": "MaterialWarrantyUpdateParam 的 startTime/repairEndTime 是否也需要加 @NotBlank？需研发确认。",
+      "source": "WarrantyFacadeImpl.java:443"
+    }
+  ],
+  "open_items": [
+    {
+      "open_id": "OPEN-001",
+      "related_ids": ["REQ-001"],
+      "question": "ThreeGuaranteeRepositoryHolderSe006Test 对应哪类三包业务场景（Se006 定义不明），fixWarrantyData 修改是否影响 Se006 场景下的三包记录？",
+      "decision_owner": "研发"
+    }
+  ],
+  "conclusion": "PASS_WITH_OPEN_ITEMS"
+}

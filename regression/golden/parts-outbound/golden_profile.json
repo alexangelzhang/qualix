@@ -1,0 +1,18 @@
+{
+  "source_project": "parts-outbound",
+  "description": "配件出库管理（无Q06，产物链到Q05b）",
+  "phases_available": [
+    "Q01",
+    "Q05a",
+    "Q05b"
+  ],
+  "q01": {
+    "requirements": 20,
+    "req_count": 5,
+    "br_count": 15,
+    "se": 10,
+    "gaps": 1,
+    "open_items": 4
+  },
+  "q06": {}
+}

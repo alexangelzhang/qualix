@@ -1,0 +1,485 @@
+{
+  "project_id": "entitlement-lifecycle",
+  "targets": [
+    {
+      "repo": "sfp-entitlement-lifecycle-service",
+      "class_name": "WarrantyFacadeImpl",
+      "method_name": "resolveStartTimeTypeId",
+      "file": "sfp-entitlement-lifecycle-service-app/src/main/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyFacadeImpl.java",
+      "branches": [
+        {
+          "id": "B-001",
+          "kind": "boundary",
+          "description": "raw == null → 直接返回 null（null 守卫）",
+          "line_start": 101,
+          "covered_by": [
+            "EUT-009"
+          ]
+        },
+        {
+          "id": "B-002",
+          "kind": "happy",
+          "description": "getIdByCode(trimmed) != null → 返回 byCode（枚举 code 命中）",
+          "line_start": 104,
+          "covered_by": [
+            "EUT-006"
+          ]
+        },
+        {
+          "id": "B-003",
+          "kind": "boundary",
+          "description": "byCode == null && isNumeric(trimmed) && getById != null → 返回 id",
+          "line_start": 108,
+          "covered_by": [
+            "EUT-007"
+          ]
+        },
+        {
+          "id": "B-004",
+          "kind": "boundary",
+          "description": "byCode == null && !isNumeric && convertLifeTimeTypeNull → null → 返回 null",
+          "line_start": 112,
+          "covered_by": [
+            "EUT-008"
+          ]
+        },
+        {
+          "id": "B-033",
+          "kind": "boundary",
+          "description": "isNumeric=true but getById returns null → return null",
+          "line_start": 111,
+          "covered_by": [
+            "EUT-029"
+          ]
+        },
+        {
+          "id": "B-035",
+          "kind": "happy",
+          "description": "convertLifeTimeTypeNull returns non-null → return getId()",
+          "line_start": 114,
+          "covered_by": [
+            "EUT-031"
+          ]
+        }
+      ]
+    },
+    {
+      "repo": "sfp-entitlement-lifecycle-service",
+      "class_name": "WarrantyFacadeImpl",
+      "method_name": "parseFixWarrantyEndDate",
+      "file": "sfp-entitlement-lifecycle-service-app/src/main/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyFacadeImpl.java",
+      "branches": [
+        {
+          "id": "B-032",
+          "kind": "boundary",
+          "description": "raw blank → StringUtils.isBlank(raw)=true → 返回 null",
+          "line_start": 118,
+          "covered_by": [
+            "EUT-028"
+          ]
+        },
+        {
+          "id": "B-007",
+          "kind": "boundary",
+          "description": "strToDate(raw) == null → fallback strToShortDate 成功（yyyy-MM-dd 纯日期）",
+          "line_start": 123,
+          "covered_by": [
+            "EUT-004"
+          ]
+        },
+        {
+          "id": "B-008",
+          "kind": "exception",
+          "description": "strToDate == null && strToShortDate == null → 返回 null，调用方触发 fail",
+          "line_start": 124,
+          "covered_by": [
+            "EUT-005"
+          ]
+        }
+      ]
+    },
+    {
+      "repo": "sfp-entitlement-lifecycle-service",
+      "class_name": "WarrantyFacadeImpl",
+      "method_name": "validateAndParseFixWarrantyParam",
+      "file": "sfp-entitlement-lifecycle-service-app/src/main/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyFacadeImpl.java",
+      "branches": [
+        {
+          "id": "B-009",
+          "kind": "exception",
+          "description": "returnStartTime strToDate 失败 → fail '退货开始时间格式错误'",
+          "line_start": 132,
+          "covered_by": [
+            "EUT-002"
+          ]
+        },
+        {
+          "id": "B-010",
+          "kind": "exception",
+          "description": "exchangeStartTime strToDate 失败 → fail '换货开始时间格式错误'",
+          "line_start": 136,
+          "covered_by": [
+            "EUT-003"
+          ]
+        },
+        {
+          "id": "B-011",
+          "kind": "exception",
+          "description": "repairStartTime strToDate 失败 → fail '维修开始时间格式错误'",
+          "line_start": 140,
+          "covered_by": [
+            "EUT-020"
+          ]
+        },
+        {
+          "id": "B-012",
+          "kind": "boundary",
+          "description": "returnEndTime parseFixWarrantyEndDate 失败 → fail '退货截止时间格式错误'",
+          "line_start": 145,
+          "covered_by": [
+            "EUT-005"
+          ]
+        },
+        {
+          "id": "B-013",
+          "kind": "exception",
+          "description": "returnTimeType resolveStartTimeTypeId 返回 null → fail '退货起算类型不合法'",
+          "line_start": 158,
+          "covered_by": [
+            "EUT-008"
+          ]
+        },
+        {
+          "id": "B-014",
+          "kind": "happy",
+          "description": "全部9字段解析成功 → Result.success(FixWarrantyParsedParam)",
+          "line_start": 170,
+          "covered_by": [
+            "EUT-010"
+          ]
+        },
+        {
+          "id": "B-043",
+          "kind": "exception",
+          "description": "exchangeEndTime invalid → '换货截止时间格式错误'",
+          "line_start": 148,
+          "covered_by": [
+            "EUT-039"
+          ]
+        },
+        {
+          "id": "B-044",
+          "kind": "exception",
+          "description": "repairEndTime invalid → '维修截止时间格式错误'",
+          "line_start": 152,
+          "covered_by": [
+            "EUT-040"
+          ]
+        },
+        {
+          "id": "B-045",
+          "kind": "exception",
+          "description": "repairTimeType invalid → '维修起算类型不合法'",
+          "line_start": 165,
+          "covered_by": [
+            "EUT-041"
+          ]
+        }
+      ]
+    },
+    {
+      "repo": "sfp-entitlement-lifecycle-service",
+      "class_name": "WarrantyFacadeImpl",
+      "method_name": "fixWarrantyData",
+      "file": "sfp-entitlement-lifecycle-service-app/src/main/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyFacadeImpl.java",
+      "branches": [
+        {
+          "id": "B-015",
+          "kind": "exception",
+          "description": "validateAndParseFixWarrantyParam 返回 data==null → 返回 fail，不进入数据库操作",
+          "line_start": 364,
+          "covered_by": [
+            "EUT-001",
+            "EUT-018"
+          ]
+        },
+        {
+          "id": "B-016",
+          "kind": "boundary",
+          "description": "dbSrvThreeGuarantee==null（DB 无记录）→ 进入实时计算分支",
+          "line_start": 370,
+          "covered_by": [
+            "EUT-013"
+          ]
+        },
+        {
+          "id": "B-017",
+          "kind": "boundary",
+          "description": "revisable==YES（可修改状态）→ 进入实时计算分支",
+          "line_start": 370,
+          "covered_by": [
+            "EUT-014"
+          ]
+        },
+        {
+          "id": "B-018",
+          "kind": "happy",
+          "description": "revisable==NO（已锁定）→ 直接覆盖9字段，dispatch 命令",
+          "line_start": 403,
+          "covered_by": [
+            "EUT-010",
+            "EUT-019"
+          ]
+        },
+        {
+          "id": "B-046",
+          "kind": "boundary",
+          "description": "updateType=null in dispatched WarrantyUpdateCommand",
+          "line_start": 433,
+          "covered_by": [
+            "EUT-042"
+          ]
+        },
+        {
+          "id": "B-047",
+          "kind": "happy",
+          "description": "9 fields all set to different values, each independently",
+          "line_start": 403,
+          "covered_by": [
+            "EUT-043"
+          ]
+        },
+        {
+          "id": "B-048",
+          "kind": "exception",
+          "description": "queryBus.dispatch returns null warrantyVO → '三包信息为空'",
+          "line_start": 375,
+          "covered_by": [
+            "EUT-044"
+          ]
+        }
+      ]
+    },
+    {
+      "repo": "sfp-entitlement-lifecycle-service",
+      "class_name": "WarrantyFacadeImpl",
+      "method_name": "fixMaterialWarrantyData",
+      "file": "sfp-entitlement-lifecycle-service-app/src/main/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyFacadeImpl.java",
+      "branches": [
+        {
+          "id": "B-019",
+          "kind": "happy",
+          "description": "strToDate(startRaw) != null → 使用 yyyy-MM-dd HH:mm:ss 精确解析",
+          "line_start": 447,
+          "covered_by": [
+            "EUT-015"
+          ]
+        },
+        {
+          "id": "B-020",
+          "kind": "boundary",
+          "description": "strToDate == null → fallback strToDateExt（yyyy/MM/dd HH:mm:ss）成功",
+          "line_start": 449,
+          "covered_by": [
+            "EUT-016"
+          ]
+        },
+        {
+          "id": "B-021",
+          "kind": "exception",
+          "description": "strToDate 和 strToDateExt 均 null → fail '开始时间格式错误'",
+          "line_start": 451,
+          "covered_by": [
+            "EUT-017"
+          ]
+        },
+        {
+          "id": "B-022",
+          "kind": "exception",
+          "description": "parseFixWarrantyEndDate(repairEndTime) == null → fail '结束时间格式错误'",
+          "line_start": 456,
+          "covered_by": [
+            "EUT-021"
+          ]
+        }
+      ]
+    },
+    {
+      "repo": "sfp-entitlement-lifecycle-service",
+      "class_name": "WarrantyUpdateCommandHandler",
+      "method_name": "handle",
+      "file": "sfp-entitlement-lifecycle-service-app/src/main/java/com/mi/sfp/lifecycle/application/warranty/WarrantyUpdateCommandHandler.java",
+      "branches": [
+        {
+          "id": "B-023",
+          "kind": "boundary",
+          "description": "warrantyUpdateCommand == null → 抛出 SfpLifecycleException '参数不能为空'",
+          "line_start": 34,
+          "covered_by": [
+            "EUT-022"
+          ]
+        },
+        {
+          "id": "B-024",
+          "kind": "exception",
+          "description": "threeGuarantee == null → 抛出 SfpLifecycleException 'threeGuarantee不能为空'",
+          "line_start": 40,
+          "covered_by": [
+            "EUT-011"
+          ]
+        },
+        {
+          "id": "B-025",
+          "kind": "happy",
+          "description": "threeGuarantee != null → setRevisable→changeLog→insertOrUpdate→返回 true",
+          "line_start": 42,
+          "covered_by": [
+            "EUT-012"
+          ]
+        },
+        {
+          "id": "B-049",
+          "kind": "happy",
+          "description": "handle success: changeLog order + insertOrUpdate same instance + returns true",
+          "line_start": 43,
+          "covered_by": [
+            "EUT-045",
+            "EUT-046",
+            "EUT-047"
+          ]
+        }
+      ]
+    },
+    {
+      "repo": "sfp-entitlement-lifecycle-service",
+      "class_name": "WarrantyFacadeImpl",
+      "method_name": "batchFixWarranty",
+      "file": "sfp-entitlement-lifecycle-service-app/src/main/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyFacadeImpl.java",
+      "branches": [
+        {
+          "id": "B-026",
+          "kind": "exception",
+          "description": "miliao==null → fail '当前登录用户未登录'",
+          "line_start": 476,
+          "covered_by": [
+            "EUT-024"
+          ]
+        },
+        {
+          "id": "B-027",
+          "kind": "boundary",
+          "description": "miliao<=0 → fail '当前登录用户未登录'",
+          "line_start": 476,
+          "covered_by": [
+            "EUT-024"
+          ]
+        },
+        {
+          "id": "B-028",
+          "kind": "happy",
+          "description": "miliao>0 → dispatch + success",
+          "line_start": 479,
+          "covered_by": [
+            "EUT-025"
+          ]
+        },
+        {
+          "id": "B-031",
+          "kind": "boundary",
+          "description": "miliao=0（<=0分支）→ fail '当前登录用户未登录'",
+          "line_start": 476,
+          "covered_by": [
+            "EUT-027"
+          ]
+        }
+      ]
+    },
+    {
+      "repo": "sfp-entitlement-lifecycle-service",
+      "class_name": "WarrantyFacadeImpl",
+      "method_name": "getMaterialWarrantyOld",
+      "file": "sfp-entitlement-lifecycle-service-app/src/main/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyFacadeImpl.java",
+      "branches": [
+        {
+          "id": "B-029",
+          "kind": "exception",
+          "description": "orgId==null → enter null branch, userGatewayDTO==null → fail",
+          "line_start": 287,
+          "covered_by": [
+            "EUT-026"
+          ]
+        },
+        {
+          "id": "B-030",
+          "kind": "happy",
+          "description": "orgId==null → userGatewayDTO non-null → setOrgId + success",
+          "line_start": 292,
+          "covered_by": [
+            "EUT-026"
+          ]
+        },
+        {
+          "id": "B-034",
+          "kind": "happy",
+          "description": "orgId=null, userGatewayDTO 非空 → setOrgId → 成功",
+          "line_start": 292,
+          "covered_by": [
+            "EUT-030"
+          ]
+        },
+        {
+          "id": "B-037",
+          "kind": "boundary",
+          "description": "orgId 非 null → 跳过 if 块直接查 warrantyGateway",
+          "line_start": 294,
+          "covered_by": [
+            "EUT-033"
+          ]
+        }
+      ]
+    },
+    {
+      "repo": "sfp-entitlement-lifecycle-service",
+      "class_name": "WarrantyFacadeImpl",
+      "method_name": "getMaterialWarranty",
+      "file": "sfp-entitlement-lifecycle-service-app/src/main/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyFacadeImpl.java",
+      "branches": [
+        {
+          "id": "B-036",
+          "kind": "boundary",
+          "description": "orgId=null + userGatewayDTO 非空 → setOrgId → 继续查询",
+          "line_start": 264,
+          "covered_by": [
+            "EUT-032"
+          ]
+        }
+      ]
+    },
+    {
+      "repo": "sfp-entitlement-lifecycle-service",
+      "class_name": "WarrantyFacadeImpl",
+      "method_name": "getWarrantyLogByPage",
+      "file": "sfp-entitlement-lifecycle-service-app/src/main/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyFacadeImpl.java",
+      "branches": [
+        {
+          "id": "B-038",
+          "kind": "boundary",
+          "description": "IMEI sn + imeiGateway returns null → 不更新 sn",
+          "line_start": 312,
+          "covered_by": [
+            "EUT-034"
+          ]
+        },
+        {
+          "id": "B-039",
+          "kind": "happy",
+          "description": "type=SEARCH_MATERIAL_LOG → getMaterialTypes()",
+          "line_start": 317,
+          "covered_by": [
+            "EUT-035"
+          ]
+        }
+      ]
+    }
+  ]
+}

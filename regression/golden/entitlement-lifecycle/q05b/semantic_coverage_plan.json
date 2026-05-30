@@ -1,0 +1,458 @@
+{
+  "schema_version": "1.0",
+  "project_id": "entitlement-lifecycle",
+  "artifact": "semantic_coverage_plan",
+  "gate": {
+    "line_threshold": 85.0,
+    "branch_threshold": 85.0,
+    "line_covered": 213,
+    "line_total": 235,
+    "line_coverage": 90.64,
+    "line_required": 200,
+    "line_hard_deficit": 0,
+    "line_buffer_target": 203,
+    "line_buffer_deficit": 0,
+    "branch_covered": 70,
+    "branch_total": 70,
+    "branch_coverage": 100.0,
+    "branch_required": 60,
+    "branch_hard_deficit": 0,
+    "branch_buffer_target": 68,
+    "branch_buffer_deficit": 0
+  },
+  "target_classes": [
+    {
+      "class_name": "WarrantyFacadeImpl",
+      "jacoco_name": "com/mi/sfp/lifecycle/application/warranty/facade/WarrantyFacadeImpl",
+      "line_covered": 201,
+      "line_total": 223,
+      "line_coverage": 90.13,
+      "line_required_for_threshold": 190,
+      "line_hard_deficit": 0,
+      "branch_covered": 66,
+      "branch_total": 66,
+      "branch_coverage": 100.0,
+      "branch_required_for_threshold": 57,
+      "branch_hard_deficit": 0,
+      "missed_branches": 0,
+      "missed_lines": 22,
+      "eut_ids": [
+        "EUT-001",
+        "EUT-002",
+        "EUT-003",
+        "EUT-004",
+        "EUT-005",
+        "EUT-006",
+        "EUT-007",
+        "EUT-008",
+        "EUT-009",
+        "EUT-010",
+        "EUT-013",
+        "EUT-014",
+        "EUT-015",
+        "EUT-016",
+        "EUT-017",
+        "EUT-018",
+        "EUT-019",
+        "EUT-020",
+        "EUT-021",
+        "EUT-023",
+        "EUT-024",
+        "EUT-025",
+        "EUT-026"
+      ],
+      "risk_t1": 20,
+      "route_types": {
+        "Exception": 11,
+        "Boundary": 6,
+        "Happy Path": 6
+      },
+      "methods": {
+        "fixWarrantyData": [
+          "EUT-001",
+          "EUT-010",
+          "EUT-013",
+          "EUT-014",
+          "EUT-018",
+          "EUT-019",
+          "EUT-023"
+        ],
+        "validateAndParseFixWarrantyParam": [
+          "EUT-002",
+          "EUT-003",
+          "EUT-020"
+        ],
+        "parseFixWarrantyEndDate": [
+          "EUT-004",
+          "EUT-005"
+        ],
+        "resolveStartTimeTypeId": [
+          "EUT-006",
+          "EUT-007",
+          "EUT-008",
+          "EUT-009"
+        ],
+        "fixMaterialWarrantyData": [
+          "EUT-015",
+          "EUT-016",
+          "EUT-017",
+          "EUT-021"
+        ],
+        "batchFixWarranty": [
+          "EUT-024",
+          "EUT-025"
+        ],
+        "getMaterialWarrantyOld": [
+          "EUT-026"
+        ]
+      },
+      "branch_ids": [
+        "B-001",
+        "B-002",
+        "B-003",
+        "B-004",
+        "B-007",
+        "B-008",
+        "B-009",
+        "B-010",
+        "B-011",
+        "B-012",
+        "B-013",
+        "B-014",
+        "B-015",
+        "B-016",
+        "B-017",
+        "B-018",
+        "B-019",
+        "B-020",
+        "B-021",
+        "B-022",
+        "B-026",
+        "B-027",
+        "B-028",
+        "B-029",
+        "B-030"
+      ],
+      "outcome_ids": [
+        "O-001",
+        "O-002",
+        "O-003",
+        "O-004",
+        "O-005",
+        "O-006",
+        "O-007",
+        "O-008",
+        "O-009",
+        "O-010",
+        "O-011",
+        "O-012",
+        "O-013",
+        "O-014",
+        "O-015",
+        "O-016",
+        "O-017",
+        "O-018",
+        "O-019",
+        "O-020",
+        "O-024",
+        "O-025",
+        "O-026",
+        "O-027",
+        "O-028"
+      ],
+      "hotspots": [
+        {
+          "line": 241,
+          "missed_branches": 0,
+          "covered_branches": 0,
+          "missed_instructions": 5,
+          "covered_instructions": 0
+        },
+        {
+          "line": 243,
+          "missed_branches": 0,
+          "covered_branches": 0,
+          "missed_instructions": 5,
+          "covered_instructions": 0
+        },
+        {
+          "line": 349,
+          "missed_branches": 0,
+          "covered_branches": 0,
+          "missed_instructions": 5,
+          "covered_instructions": 0
+        },
+        {
+          "line": 351,
+          "missed_branches": 0,
+          "covered_branches": 0,
+          "missed_instructions": 5,
+          "covered_instructions": 0
+        },
+        {
+          "line": 238,
+          "missed_branches": 0,
+          "covered_branches": 0,
+          "missed_instructions": 4,
+          "covered_instructions": 0
+        },
+        {
+          "line": 239,
+          "missed_branches": 0,
+          "covered_branches": 0,
+          "missed_instructions": 4,
+          "covered_instructions": 0
+        },
+        {
+          "line": 240,
+          "missed_branches": 0,
+          "covered_branches": 0,
+          "missed_instructions": 4,
+          "covered_instructions": 0
+        },
+        {
+          "line": 343,
+          "missed_branches": 0,
+          "covered_branches": 0,
+          "missed_instructions": 4,
+          "covered_instructions": 0
+        },
+        {
+          "line": 344,
+          "missed_branches": 0,
+          "covered_branches": 0,
+          "missed_instructions": 4,
+          "covered_instructions": 0
+        },
+        {
+          "line": 345,
+          "missed_branches": 0,
+          "covered_branches": 0,
+          "missed_instructions": 4,
+          "covered_instructions": 0
+        },
+        {
+          "line": 346,
+          "missed_branches": 0,
+          "covered_branches": 0,
+          "missed_instructions": 4,
+          "covered_instructions": 0
+        },
+        {
+          "line": 347,
+          "missed_branches": 0,
+          "covered_branches": 0,
+          "missed_instructions": 4,
+          "covered_instructions": 0
+        }
+      ],
+      "priority_score": 94
+    },
+    {
+      "class_name": "WarrantyUpdateCommandHandler",
+      "jacoco_name": "com/mi/sfp/lifecycle/application/warranty/WarrantyUpdateCommandHandler",
+      "line_covered": 12,
+      "line_total": 12,
+      "line_coverage": 100.0,
+      "line_required_for_threshold": 11,
+      "line_hard_deficit": 0,
+      "branch_covered": 4,
+      "branch_total": 4,
+      "branch_coverage": 100.0,
+      "branch_required_for_threshold": 4,
+      "branch_hard_deficit": 0,
+      "missed_branches": 0,
+      "missed_lines": 0,
+      "eut_ids": [
+        "EUT-011",
+        "EUT-012",
+        "EUT-022"
+      ],
+      "risk_t1": 2,
+      "route_types": {
+        "Exception": 2,
+        "Happy Path": 1
+      },
+      "methods": {
+        "handle": [
+          "EUT-011",
+          "EUT-012",
+          "EUT-022"
+        ]
+      },
+      "branch_ids": [
+        "B-023",
+        "B-024",
+        "B-025"
+      ],
+      "outcome_ids": [
+        "O-021",
+        "O-022",
+        "O-023"
+      ],
+      "hotspots": [],
+      "priority_score": 10
+    }
+  ],
+  "recommended_batches": [
+    {
+      "class_name": "WarrantyFacadeImpl",
+      "why_first": "同时存在语义 EUT 与 JaCoCo 分支/行覆盖缺口或缓冲不足",
+      "eut_ids": [
+        "EUT-001",
+        "EUT-002",
+        "EUT-003",
+        "EUT-004",
+        "EUT-005",
+        "EUT-006",
+        "EUT-007",
+        "EUT-008",
+        "EUT-009",
+        "EUT-010",
+        "EUT-013",
+        "EUT-014",
+        "EUT-015",
+        "EUT-016",
+        "EUT-017",
+        "EUT-018",
+        "EUT-019",
+        "EUT-020",
+        "EUT-021",
+        "EUT-023",
+        "EUT-024",
+        "EUT-025",
+        "EUT-026"
+      ],
+      "route_types": {
+        "Exception": 11,
+        "Boundary": 6,
+        "Happy Path": 6
+      },
+      "methods": {
+        "fixWarrantyData": [
+          "EUT-001",
+          "EUT-010",
+          "EUT-013",
+          "EUT-014",
+          "EUT-018",
+          "EUT-019",
+          "EUT-023"
+        ],
+        "validateAndParseFixWarrantyParam": [
+          "EUT-002",
+          "EUT-003",
+          "EUT-020"
+        ],
+        "parseFixWarrantyEndDate": [
+          "EUT-004",
+          "EUT-005"
+        ],
+        "resolveStartTimeTypeId": [
+          "EUT-006",
+          "EUT-007",
+          "EUT-008",
+          "EUT-009"
+        ],
+        "fixMaterialWarrantyData": [
+          "EUT-015",
+          "EUT-016",
+          "EUT-017",
+          "EUT-021"
+        ],
+        "batchFixWarranty": [
+          "EUT-024",
+          "EUT-025"
+        ],
+        "getMaterialWarrantyOld": [
+          "EUT-026"
+        ]
+      },
+      "coverage_focus": {
+        "missed_branches": 0,
+        "missed_lines": 22,
+        "branch_hard_deficit": 0,
+        "line_hard_deficit": 0,
+        "hotspots": [
+          {
+            "line": 241,
+            "missed_branches": 0,
+            "covered_branches": 0,
+            "missed_instructions": 5,
+            "covered_instructions": 0
+          },
+          {
+            "line": 243,
+            "missed_branches": 0,
+            "covered_branches": 0,
+            "missed_instructions": 5,
+            "covered_instructions": 0
+          },
+          {
+            "line": 349,
+            "missed_branches": 0,
+            "covered_branches": 0,
+            "missed_instructions": 5,
+            "covered_instructions": 0
+          },
+          {
+            "line": 351,
+            "missed_branches": 0,
+            "covered_branches": 0,
+            "missed_instructions": 5,
+            "covered_instructions": 0
+          },
+          {
+            "line": 238,
+            "missed_branches": 0,
+            "covered_branches": 0,
+            "missed_instructions": 4,
+            "covered_instructions": 0
+          },
+          {
+            "line": 239,
+            "missed_branches": 0,
+            "covered_branches": 0,
+            "missed_instructions": 4,
+            "covered_instructions": 0
+          }
+        ]
+      },
+      "write_once_rule": "本类测试一次性补齐 Happy/Exception/Boundary 与热点分支，完成后再统一跑目标测试，不逐条 EUT 反复编译。"
+    },
+    {
+      "class_name": "WarrantyUpdateCommandHandler",
+      "why_first": "同时存在语义 EUT 与 JaCoCo 分支/行覆盖缺口或缓冲不足",
+      "eut_ids": [
+        "EUT-011",
+        "EUT-012",
+        "EUT-022"
+      ],
+      "route_types": {
+        "Exception": 2,
+        "Happy Path": 1
+      },
+      "methods": {
+        "handle": [
+          "EUT-011",
+          "EUT-012",
+          "EUT-022"
+        ]
+      },
+      "coverage_focus": {
+        "missed_branches": 0,
+        "missed_lines": 0,
+        "branch_hard_deficit": 0,
+        "line_hard_deficit": 0,
+        "hotspots": []
+      },
+      "write_once_rule": "本类测试一次性补齐 Happy/Exception/Boundary 与热点分支，完成后再统一跑目标测试，不逐条 EUT 反复编译。"
+    }
+  ],
+  "one_pass_rules": [
+    "REQ/BR/SE/EUT 语义覆盖和 JaCoCo 增量覆盖率同为最高优先级，任何一边不满足都不能把批次视为完成。",
+    "先生成本计划，再写 Java 测试；禁止写完测试后才第一次计算覆盖率缺口。",
+    "默认按类批量写测试，统一运行目标测试命令，避免每条 EUT 单独编译。",
+    "补测目标不只追平阈值，应至少满足 line_buffer_target 和 branch_buffer_target，避免刚过线后因小改动回退。",
+    "报告只展示增量目标覆盖率；全仓全量覆盖率不是本流程关注指标。"
+  ]
+}

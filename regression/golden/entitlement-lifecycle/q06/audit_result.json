@@ -1,0 +1,1223 @@
+{
+  "project_id": "entitlement-lifecycle",
+  "audit_items": [
+    {
+      "id": "AUDIT-001",
+      "eut_id": "EUT-001",
+      "bound_item": "BR-001",
+      "description": "fixWarrantyData 的 returnStartTime 为 null 时触发 @NotBlank 校验，violations 非空。",
+      "status": "COVERED",
+      "test_class": "WarrantyUpdateParamValidationTest",
+      "test_method": "returnStartTime_null_notBlankViolationTriggered",
+      "evidence": "assertNotEquals(0, violations.size(), \"EUT-001: violations 不 [WarrantyUpdateParamValidationTest.java:96]",
+      "recommendation": "",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyUpdateParamValidationTest.java",
+        "line_start": 96,
+        "class_name": "WarrantyUpdateParamValidationTest",
+        "method_name": "returnStartTime_null_notBlankViolationTriggered",
+        "repo": "sfp-entitlement-lifecycle-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-api/src/main/java/com/mi/sfp/lifecycle/api/warranty/facade/dto/request/WarrantyUpdateParam.java",
+        "line_start": 32,
+        "class_name": "WarrantyUpdateParam",
+        "method_name": "",
+        "repo": "sfp-entitlement-lifecycle-service"
+      }
+    },
+    {
+      "id": "AUDIT-002",
+      "eut_id": "EUT-002",
+      "bound_item": "SE-002",
+      "description": "returnStartTime 传入 yyyy-MM-dd 纯日期格式时，strToDate 解析失败，返回「退货开始时间格式错误」。",
+      "status": "COVERED",
+      "test_class": "FixWarrantyDataNewCasesTest",
+      "test_method": "fixWarrantyData_returnStartTimePureDate_returnsParamError",
+      "evidence": "assertNotEquals(0, result.getCode()); [FixWarrantyDataNewCasesTest.java:419]",
+      "recommendation": "",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/FixWarrantyDataNewCasesTest.java",
+        "line_start": 419,
+        "class_name": "FixWarrantyDataNewCasesTest",
+        "method_name": "fixWarrantyData_returnStartTimePureDate_returnsParamError",
+        "repo": "sfp-entitlement-lifecycle-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/main/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyFacadeImpl.java",
+        "line_start": 131,
+        "class_name": "WarrantyFacadeImpl",
+        "method_name": "validateAndParseFixWarrantyParam",
+        "repo": "sfp-entitlement-lifecycle-service"
+      }
+    },
+    {
+      "id": "AUDIT-003",
+      "eut_id": "EUT-003",
+      "bound_item": "SE-002",
+      "description": "exchangeStartTime 传入非法格式时，返回「换货开始时间格式错误」。",
+      "status": "COVERED",
+      "test_class": "FixWarrantyDataNewCasesTest",
+      "test_method": "fixWarrantyData_invalidExchangeStartTime_returnsParamError",
+      "evidence": "assertNotEquals(0, result.getCode()); [FixWarrantyDataNewCasesTest.java:96]",
+      "recommendation": "",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/FixWarrantyDataNewCasesTest.java",
+        "line_start": 96,
+        "class_name": "FixWarrantyDataNewCasesTest",
+        "method_name": "fixWarrantyData_invalidExchangeStartTime_returnsParamError",
+        "repo": "sfp-entitlement-lifecycle-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/main/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyFacadeImpl.java",
+        "line_start": 136,
+        "class_name": "WarrantyFacadeImpl",
+        "method_name": "validateAndParseFixWarrantyParam",
+        "repo": "sfp-entitlement-lifecycle-service"
+      }
+    },
+    {
+      "id": "AUDIT-004",
+      "eut_id": "EUT-004",
+      "bound_item": "SE-003",
+      "description": "截止时间传入 yyyy-MM-dd 纯日期格式，parseFixWarrantyEndDate 通过 strToShortDate 成功解析，接口返回 success。",
+      "status": "COVERED",
+      "test_class": "FixWarrantyDataNewCasesTest",
+      "test_method": "fixWarrantyData_endTimeShortDateFormat_parsesAndSucceeds",
+      "evidence": "assertEquals(0, result.getCode(), \"短日期格式应被解析成功\"); [FixWarrantyDataNewCasesTest.java:228]",
+      "recommendation": "",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/FixWarrantyDataNewCasesTest.java",
+        "line_start": 228,
+        "class_name": "FixWarrantyDataNewCasesTest",
+        "method_name": "fixWarrantyData_endTimeShortDateFormat_parsesAndSucceeds",
+        "repo": "sfp-entitlement-lifecycle-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/main/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyFacadeImpl.java",
+        "line_start": 117,
+        "class_name": "WarrantyFacadeImpl",
+        "method_name": "parseFixWarrantyEndDate",
+        "repo": "sfp-entitlement-lifecycle-service"
+      }
+    },
+    {
+      "id": "AUDIT-005",
+      "eut_id": "EUT-005",
+      "bound_item": "BR-003",
+      "description": "截止时间传入非法格式，parseFixWarrantyEndDate 返回 null，接口返回「退货截止时间格式错误」。",
+      "status": "COVERED",
+      "test_class": "FixWarrantyDataNewCasesTest",
+      "test_method": "fixWarrantyData_invalidReturnEndTime_returnsParamError",
+      "evidence": "assertNotEquals(0, result.getCode()); [FixWarrantyDataNewCasesTest.java:124]",
+      "recommendation": "",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/FixWarrantyDataNewCasesTest.java",
+        "line_start": 124,
+        "class_name": "FixWarrantyDataNewCasesTest",
+        "method_name": "fixWarrantyData_invalidReturnEndTime_returnsParamError",
+        "repo": "sfp-entitlement-lifecycle-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/main/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyFacadeImpl.java",
+        "line_start": 144,
+        "class_name": "WarrantyFacadeImpl",
+        "method_name": "validateAndParseFixWarrantyParam",
+        "repo": "sfp-entitlement-lifecycle-service"
+      }
+    },
+    {
+      "id": "AUDIT-006",
+      "eut_id": "EUT-006",
+      "bound_item": "SE-004",
+      "description": "起算类型传入枚举 code 字符串 'ACTIVATION'，resolveStartTimeTypeId 通过 getIdByCode 成功解析为正确 id。",
+      "status": "COVERED",
+      "test_class": "FixWarrantyDataNewCasesTest",
+      "test_method": "fixWarrantyData_timeTypeByCodeName_parsedToCorrectNumericId",
+      "evidence": "assertEquals(0, result.getCode(), \"code name 入参应解析成功\"); [FixWarrantyDataNewCasesTest.java:202]",
+      "recommendation": "",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/FixWarrantyDataNewCasesTest.java",
+        "line_start": 202,
+        "class_name": "FixWarrantyDataNewCasesTest",
+        "method_name": "fixWarrantyData_timeTypeByCodeName_parsedToCorrectNumericId",
+        "repo": "sfp-entitlement-lifecycle-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/main/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyFacadeImpl.java",
+        "line_start": 100,
+        "class_name": "WarrantyFacadeImpl",
+        "method_name": "resolveStartTimeTypeId",
+        "repo": "sfp-entitlement-lifecycle-service"
+      }
+    },
+    {
+      "id": "AUDIT-007",
+      "eut_id": "EUT-007",
+      "bound_item": "SE-005",
+      "description": "起算类型传入数字 id 字符串 '2'，resolveStartTimeTypeId 通过 isNumeric 路径解析为整数 2。",
+      "status": "COVERED",
+      "test_class": "FixWarrantyDataNewCasesTest",
+      "test_method": "fixWarrantyData_numericTimeTypeId_parsedCorrectly",
+      "evidence": "assertEquals(0, result.getCode(), \"EUT-007: 数字 id '2' 应解析成功\" [FixWarrantyDataNewCasesTest.java:438]",
+      "recommendation": "",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/FixWarrantyDataNewCasesTest.java",
+        "line_start": 438,
+        "class_name": "FixWarrantyDataNewCasesTest",
+        "method_name": "fixWarrantyData_numericTimeTypeId_parsedCorrectly",
+        "repo": "sfp-entitlement-lifecycle-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/main/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyFacadeImpl.java",
+        "line_start": 108,
+        "class_name": "WarrantyFacadeImpl",
+        "method_name": "resolveStartTimeTypeId",
+        "repo": "sfp-entitlement-lifecycle-service"
+      }
+    },
+    {
+      "id": "AUDIT-008",
+      "eut_id": "EUT-008",
+      "bound_item": "SE-006",
+      "description": "起算类型传入非法字符串，resolveStartTimeTypeId 三条解析链均失败，返回「换货起算类型不合法」。",
+      "status": "COVERED",
+      "test_class": "FixWarrantyDataNewCasesTest",
+      "test_method": "fixWarrantyData_invalidExchangeTimeType_returnsParamError",
+      "evidence": "assertNotEquals(0, result.getCode()); [FixWarrantyDataNewCasesTest.java:166]",
+      "recommendation": "",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/FixWarrantyDataNewCasesTest.java",
+        "line_start": 166,
+        "class_name": "FixWarrantyDataNewCasesTest",
+        "method_name": "fixWarrantyData_invalidExchangeTimeType_returnsParamError",
+        "repo": "sfp-entitlement-lifecycle-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/main/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyFacadeImpl.java",
+        "line_start": 161,
+        "class_name": "WarrantyFacadeImpl",
+        "method_name": "validateAndParseFixWarrantyParam",
+        "repo": "sfp-entitlement-lifecycle-service"
+      }
+    },
+    {
+      "id": "AUDIT-009",
+      "eut_id": "EUT-009",
+      "bound_item": "BR-004",
+      "description": "9个时间字段全部为 null 时，@NotBlank 校验触发 9 个 violation，null 守卫在 @NotBlank 层拦截，不进入 resolveStartTimeTypeId。",
+      "status": "COVERED",
+      "test_class": "WarrantyUpdateParamValidationTest",
+      "test_method": "resolveStartTimeTypeId_null_returnsNull",
+      "evidence": "assertEquals((Integer) null, result, \"EUT-009: raw=null 时 nu [WarrantyFacadeImplCoverageTest.java:224]",
+      "recommendation": "",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyFacadeImplCoverageTest.java",
+        "line_start": 224,
+        "class_name": "WarrantyFacadeImplCoverageTest",
+        "method_name": "resolveStartTimeTypeId_null_returnsNull",
+        "repo": "sfp-entitlement-lifecycle-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-api/src/main/java/com/mi/sfp/lifecycle/api/warranty/facade/dto/request/WarrantyUpdateParam.java",
+        "line_start": 32,
+        "class_name": "WarrantyUpdateParam",
+        "method_name": "",
+        "repo": "sfp-entitlement-lifecycle-service"
+      }
+    },
+    {
+      "id": "AUDIT-010",
+      "eut_id": "EUT-010",
+      "bound_item": "REQ-001",
+      "description": "全字段合法时，锁定记录的9个三包字段全部被覆盖为入参值，queryBus 不被调用（不回算）。",
+      "status": "COVERED",
+      "test_class": "FixWarrantyDataNewCasesTest",
+      "test_method": "fixWarrantyData_lockedRecord_allNineFieldsOverwrittenAndNoQueryBusCall",
+      "evidence": "verify(commandBus).dispatch(cap.capture()); [FixWarrantyDataNewCasesTest.java:249]",
+      "recommendation": "",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/FixWarrantyDataNewCasesTest.java",
+        "line_start": 249,
+        "class_name": "FixWarrantyDataNewCasesTest",
+        "method_name": "fixWarrantyData_lockedRecord_allNineFieldsOverwrittenAndNoQueryBusCall",
+        "repo": "sfp-entitlement-lifecycle-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/main/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyFacadeImpl.java",
+        "line_start": 361,
+        "class_name": "WarrantyFacadeImpl",
+        "method_name": "fixWarrantyData",
+        "repo": "sfp-entitlement-lifecycle-service"
+      }
+    },
+    {
+      "id": "AUDIT-011",
+      "eut_id": "EUT-011",
+      "bound_item": "SE-008",
+      "description": "WarrantyUpdateCommand 中 threeGuarantee 为 null 时，CommandHandler 抛出 SfpLifecycleException，错误码 ParamError，消息「threeGuarantee不能为空」。",
+      "status": "COVERED",
+      "test_class": "WarrantyUpdateCommandHandlerNewCasesTest",
+      "test_method": "handle_nullThreeGuarantee_throwsSfpExceptionWithSpecificMessage",
+      "evidence": "SfpLifecycleException ex = assertThrows(SfpLifecycleExceptio [WarrantyUpdateCommandHandlerNewCasesTest.java:72]",
+      "recommendation": "",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/WarrantyUpdateCommandHandlerNewCasesTest.java",
+        "line_start": 72,
+        "class_name": "WarrantyUpdateCommandHandlerNewCasesTest",
+        "method_name": "handle_nullThreeGuarantee_throwsSfpExceptionWithSpecificMessage",
+        "repo": "sfp-entitlement-lifecycle-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/main/java/com/mi/sfp/lifecycle/application/warranty/WarrantyUpdateCommandHandler.java",
+        "line_start": 40,
+        "class_name": "WarrantyUpdateCommandHandler",
+        "method_name": "handle",
+        "repo": "sfp-entitlement-lifecycle-service"
+      }
+    },
+    {
+      "id": "AUDIT-012",
+      "eut_id": "EUT-012",
+      "bound_item": "BR-006",
+      "description": "handle 成功路径：threeGuarantee 非 null 时，revisable 被强制设为 NO，写变更日志，insertOrUpdate 被调用。",
+      "status": "COVERED",
+      "test_class": "WarrantyUpdateCommandHandlerNewCasesTest",
+      "test_method": "handle_success_revisableForceSetToNo",
+      "evidence": "assertEquals(RevisableType.NO.getId(), tg.getRevisable(), [WarrantyUpdateCommandHandlerNewCasesTest.java:92]",
+      "recommendation": "",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/WarrantyUpdateCommandHandlerNewCasesTest.java",
+        "line_start": 92,
+        "class_name": "WarrantyUpdateCommandHandlerNewCasesTest",
+        "method_name": "handle_success_revisableForceSetToNo",
+        "repo": "sfp-entitlement-lifecycle-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/main/java/com/mi/sfp/lifecycle/application/warranty/WarrantyUpdateCommandHandler.java",
+        "line_start": 42,
+        "class_name": "WarrantyUpdateCommandHandler",
+        "method_name": "handle",
+        "repo": "sfp-entitlement-lifecycle-service"
+      }
+    },
+    {
+      "id": "AUDIT-013",
+      "eut_id": "EUT-013",
+      "bound_item": "BR-007",
+      "description": "DB 无记录时进入实时计算分支，queryBus.dispatch 被调用，9字段覆盖后落库，接口返回 success。",
+      "status": "COVERED",
+      "test_class": "FixWarrantyDataNewCasesTest",
+      "test_method": "fixWarrantyData_dbNullRecord_callsQueryBusForRealtimeData",
+      "evidence": "assertEquals(0, result.getCode()); [FixWarrantyDataNewCasesTest.java:355]",
+      "recommendation": "",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/FixWarrantyDataNewCasesTest.java",
+        "line_start": 355,
+        "class_name": "FixWarrantyDataNewCasesTest",
+        "method_name": "fixWarrantyData_dbNullRecord_callsQueryBusForRealtimeData",
+        "repo": "sfp-entitlement-lifecycle-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/main/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyFacadeImpl.java",
+        "line_start": 370,
+        "class_name": "WarrantyFacadeImpl",
+        "method_name": "fixWarrantyData",
+        "repo": "sfp-entitlement-lifecycle-service"
+      }
+    },
+    {
+      "id": "AUDIT-014",
+      "eut_id": "EUT-014",
+      "bound_item": "BR-007",
+      "description": "DB 记录 revisable=YES 时进入实时计算分支，queryBus 被调用，updateType=null，覆盖9字段后落库。",
+      "status": "COVERED",
+      "test_class": "FixWarrantyDataNewCasesTest",
+      "test_method": "fixWarrantyData_unlockedRecord_callsQueryBusThenOverwritesAllFields",
+      "evidence": "assertEquals(0, result.getCode()); [FixWarrantyDataNewCasesTest.java:328]",
+      "recommendation": "",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/FixWarrantyDataNewCasesTest.java",
+        "line_start": 328,
+        "class_name": "FixWarrantyDataNewCasesTest",
+        "method_name": "fixWarrantyData_unlockedRecord_callsQueryBusThenOverwritesAllFields",
+        "repo": "sfp-entitlement-lifecycle-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/main/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyFacadeImpl.java",
+        "line_start": 370,
+        "class_name": "WarrantyFacadeImpl",
+        "method_name": "fixWarrantyData",
+        "repo": "sfp-entitlement-lifecycle-service"
+      }
+    },
+    {
+      "id": "AUDIT-015",
+      "eut_id": "EUT-015",
+      "bound_item": "SE-009",
+      "description": "fixMaterialWarrantyData 传入 yyyy-MM-dd HH:mm:ss 起始时间，strToDate 优先解析成功，commandBus.dispatch 被调用。",
+      "status": "COVERED",
+      "test_class": "FixMaterialWarrantyDataNewCasesTest",
+      "test_method": "fixMaterialWarrantyData_standardDateFormat_success",
+      "evidence": "assertNotEquals(\"开始时间格式错误\", result.getMessage(), [FixMaterialWarrantyDataNewCasesTest.java:77]",
+      "recommendation": "",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/FixMaterialWarrantyDataNewCasesTest.java",
+        "line_start": 77,
+        "class_name": "FixMaterialWarrantyDataNewCasesTest",
+        "method_name": "fixMaterialWarrantyData_standardDateFormat_success",
+        "repo": "sfp-entitlement-lifecycle-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/main/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyFacadeImpl.java",
+        "line_start": 447,
+        "class_name": "WarrantyFacadeImpl",
+        "method_name": "fixMaterialWarrantyData",
+        "repo": "sfp-entitlement-lifecycle-service"
+      }
+    },
+    {
+      "id": "AUDIT-016",
+      "eut_id": "EUT-016",
+      "bound_item": "REQ-002",
+      "description": "fixMaterialWarrantyData 传入斜杠格式起始时间，strToDate 失败后 fallback 至 strToDateExt 成功，commandBus.dispatch 被调用。",
+      "status": "COVERED",
+      "test_class": "FixMaterialWarrantyDataNewCasesTest",
+      "test_method": "fixMaterialWarrantyData_slashDateFormat_fallbackToDateExt",
+      "evidence": "verify(commandBus).dispatch(any()); [FixMaterialWarrantyDataNewCasesTest.java:98]",
+      "recommendation": "",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/FixMaterialWarrantyDataNewCasesTest.java",
+        "line_start": 98,
+        "class_name": "FixMaterialWarrantyDataNewCasesTest",
+        "method_name": "fixMaterialWarrantyData_slashDateFormat_fallbackToDateExt",
+        "repo": "sfp-entitlement-lifecycle-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/main/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyFacadeImpl.java",
+        "line_start": 449,
+        "class_name": "WarrantyFacadeImpl",
+        "method_name": "fixMaterialWarrantyData",
+        "repo": "sfp-entitlement-lifecycle-service"
+      }
+    },
+    {
+      "id": "AUDIT-017",
+      "eut_id": "EUT-017",
+      "bound_item": "REQ-002",
+      "description": "fixMaterialWarrantyData 传入完全非法起始时间，strToDate 和 strToDateExt 均失败，返回「开始时间格式错误」。",
+      "status": "COVERED",
+      "test_class": "FixMaterialWarrantyDataNewCasesTest",
+      "test_method": "fixMaterialWarrantyData_invalidStartTime_returnsError",
+      "evidence": "assertNotEquals(0, result.getCode()); [FixMaterialWarrantyDataNewCasesTest.java:111]",
+      "recommendation": "",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/FixMaterialWarrantyDataNewCasesTest.java",
+        "line_start": 111,
+        "class_name": "FixMaterialWarrantyDataNewCasesTest",
+        "method_name": "fixMaterialWarrantyData_invalidStartTime_returnsError",
+        "repo": "sfp-entitlement-lifecycle-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/main/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyFacadeImpl.java",
+        "line_start": 452,
+        "class_name": "WarrantyFacadeImpl",
+        "method_name": "fixMaterialWarrantyData",
+        "repo": "sfp-entitlement-lifecycle-service"
+      }
+    },
+    {
+      "id": "AUDIT-018",
+      "eut_id": "EUT-018",
+      "bound_item": "SE-001",
+      "description": "exchangeStartTime=null 时，@NotBlank 校验触发，violations 中包含该字段（与 EUT-009 共享测试，9字段全空场景）。",
+      "status": "COVERED",
+      "test_class": "WarrantyUpdateParamValidationTest",
+      "test_method": "allNineTimeFields_allNull_eachHasNotBlankViolation",
+      "evidence": "assertEquals(9, violatedFields.stream().filter(f -> java.uti [WarrantyUpdateParamValidationTest.java:115]",
+      "recommendation": "",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyUpdateParamValidationTest.java",
+        "line_start": 115,
+        "class_name": "WarrantyUpdateParamValidationTest",
+        "method_name": "allNineTimeFields_allNull_eachHasNotBlankViolation",
+        "repo": "sfp-entitlement-lifecycle-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-api/src/main/java/com/mi/sfp/lifecycle/api/warranty/facade/dto/request/WarrantyUpdateParam.java",
+        "line_start": 38,
+        "class_name": "WarrantyUpdateParam",
+        "method_name": "",
+        "repo": "sfp-entitlement-lifecycle-service"
+      }
+    },
+    {
+      "id": "AUDIT-019",
+      "eut_id": "EUT-019",
+      "bound_item": "BR-005",
+      "description": "fixWarrantyData 成功后，老三包兼容字段 timeType=returnTimeType，startTime=repairStartTime。",
+      "status": "COVERED",
+      "test_class": "FixWarrantyDataNewCasesTest",
+      "test_method": "fixWarrantyData_lockedRecord_backwardCompatFieldsCorrect",
+      "evidence": "verify(commandBus).dispatch(cap.capture()); [FixWarrantyDataNewCasesTest.java:299]",
+      "recommendation": "",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/FixWarrantyDataNewCasesTest.java",
+        "line_start": 299,
+        "class_name": "FixWarrantyDataNewCasesTest",
+        "method_name": "fixWarrantyData_lockedRecord_backwardCompatFieldsCorrect",
+        "repo": "sfp-entitlement-lifecycle-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/main/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyFacadeImpl.java",
+        "line_start": 415,
+        "class_name": "WarrantyFacadeImpl",
+        "method_name": "fixWarrantyData",
+        "repo": "sfp-entitlement-lifecycle-service"
+      }
+    },
+    {
+      "id": "AUDIT-020",
+      "eut_id": "EUT-020",
+      "bound_item": "BR-002",
+      "description": "repairStartTime 传入斜杠格式（非 yyyy-MM-dd HH:mm:ss），strToDate 解析失败，返回「维修开始时间格式错误」。",
+      "status": "COVERED",
+      "test_class": "FixWarrantyDataNewCasesTest",
+      "test_method": "fixWarrantyData_invalidRepairStartTime_returnsParamError",
+      "evidence": "assertNotEquals(0, result.getCode()); [FixWarrantyDataNewCasesTest.java:110]",
+      "recommendation": "",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/FixWarrantyDataNewCasesTest.java",
+        "line_start": 110,
+        "class_name": "FixWarrantyDataNewCasesTest",
+        "method_name": "fixWarrantyData_invalidRepairStartTime_returnsParamError",
+        "repo": "sfp-entitlement-lifecycle-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/main/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyFacadeImpl.java",
+        "line_start": 140,
+        "class_name": "WarrantyFacadeImpl",
+        "method_name": "validateAndParseFixWarrantyParam",
+        "repo": "sfp-entitlement-lifecycle-service"
+      }
+    },
+    {
+      "id": "AUDIT-021",
+      "eut_id": "EUT-021",
+      "bound_item": "REQ-002",
+      "description": "fixMaterialWarrantyData 传入非法 repairEndTime，parseFixWarrantyEndDate 返回 null，返回「结束时间格式错误」。",
+      "status": "COVERED",
+      "test_class": "FixMaterialWarrantyDataNewCasesTest",
+      "test_method": "fixMaterialWarrantyData_invalidRepairEndTime_returnsError",
+      "evidence": "assertNotEquals(0, result.getCode()); [FixMaterialWarrantyDataNewCasesTest.java:127]",
+      "recommendation": "",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/FixMaterialWarrantyDataNewCasesTest.java",
+        "line_start": 127,
+        "class_name": "FixMaterialWarrantyDataNewCasesTest",
+        "method_name": "fixMaterialWarrantyData_invalidRepairEndTime_returnsError",
+        "repo": "sfp-entitlement-lifecycle-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/main/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyFacadeImpl.java",
+        "line_start": 455,
+        "class_name": "WarrantyFacadeImpl",
+        "method_name": "fixMaterialWarrantyData",
+        "repo": "sfp-entitlement-lifecycle-service"
+      }
+    },
+    {
+      "id": "AUDIT-022",
+      "eut_id": "EUT-022",
+      "bound_item": "BR-006",
+      "description": "WarrantyUpdateCommand 为 null 时，CommandHandler 入口拦截抛 SfpLifecycleException「参数不能为空」。",
+      "status": "COVERED",
+      "test_class": "WarrantyUpdateCommandHandlerNewCasesTest",
+      "test_method": "handle_nullCommand_throwsSfpExceptionWithParamErrorCode",
+      "evidence": "SfpLifecycleException ex = assertThrows(SfpLifecycleExceptio [WarrantyUpdateCommandHandlerNewCasesTest.java:53]",
+      "recommendation": "",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/WarrantyUpdateCommandHandlerNewCasesTest.java",
+        "line_start": 53,
+        "class_name": "WarrantyUpdateCommandHandlerNewCasesTest",
+        "method_name": "handle_nullCommand_throwsSfpExceptionWithParamErrorCode",
+        "repo": "sfp-entitlement-lifecycle-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/main/java/com/mi/sfp/lifecycle/application/warranty/WarrantyUpdateCommandHandler.java",
+        "line_start": 34,
+        "class_name": "WarrantyUpdateCommandHandler",
+        "method_name": "handle",
+        "repo": "sfp-entitlement-lifecycle-service"
+      }
+    },
+    {
+      "id": "AUDIT-023",
+      "eut_id": "EUT-023",
+      "bound_item": "SE-007",
+      "description": "fixWarrantyData 成功后，老三包兼容字段正确映射：timeType=returnTimeType，startTime=repairStartTime（SE-007 语义验证）。",
+      "status": "COVERED",
+      "test_class": "FixWarrantyDataNewCasesTest",
+      "test_method": "fixWarrantyData_lockedRecord_backwardCompatFieldsCorrect",
+      "evidence": "verify(commandBus).dispatch(cap.capture()); [FixWarrantyDataNewCasesTest.java:299]",
+      "recommendation": "",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/FixWarrantyDataNewCasesTest.java",
+        "line_start": 299,
+        "class_name": "FixWarrantyDataNewCasesTest",
+        "method_name": "fixWarrantyData_lockedRecord_backwardCompatFieldsCorrect",
+        "repo": "sfp-entitlement-lifecycle-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/main/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyFacadeImpl.java",
+        "line_start": 415,
+        "class_name": "WarrantyFacadeImpl",
+        "method_name": "fixWarrantyData",
+        "repo": "sfp-entitlement-lifecycle-service"
+      }
+    },
+    {
+      "id": "AUDIT-024",
+      "eut_id": "EUT-024",
+      "bound_item": "REQ-001",
+      "description": "batchFixWarranty miliao=null 或 miliao=0 时，返回「当前登录用户未登录」，不分发命令。",
+      "status": "COVERED",
+      "test_class": "WarrantyFacadeImplCoverageTest",
+      "test_method": "batchFixWarranty_nullMiliao_returnsLoginError",
+      "evidence": "assertNotEquals(0, result.getCode(), \"CTEST-001: miliao=null [WarrantyFacadeImplCoverageTest.java:80]",
+      "recommendation": "",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyFacadeImplCoverageTest.java",
+        "line_start": 80,
+        "class_name": "WarrantyFacadeImplCoverageTest",
+        "method_name": "batchFixWarranty_nullMiliao_returnsLoginError",
+        "repo": "sfp-entitlement-lifecycle-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/main/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyFacadeImpl.java",
+        "line_start": 476,
+        "class_name": "WarrantyFacadeImpl",
+        "method_name": "batchFixWarranty",
+        "repo": "sfp-entitlement-lifecycle-service"
+      }
+    },
+    {
+      "id": "AUDIT-025",
+      "eut_id": "EUT-025",
+      "bound_item": "REQ-001",
+      "description": "batchFixWarranty miliao>0 时，dispatch WarrantyBatchImportCommand 并返回 success。",
+      "status": "COVERED",
+      "test_class": "WarrantyFacadeImplCoverageTest",
+      "test_method": "batchFixWarranty_validMiliao_dispatchesAndReturnsSuccess",
+      "evidence": "assertEquals(0, result.getCode(), \"CTEST-003: miliao>0 应分发命令 [WarrantyFacadeImplCoverageTest.java:111]",
+      "recommendation": "",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyFacadeImplCoverageTest.java",
+        "line_start": 111,
+        "class_name": "WarrantyFacadeImplCoverageTest",
+        "method_name": "batchFixWarranty_validMiliao_dispatchesAndReturnsSuccess",
+        "repo": "sfp-entitlement-lifecycle-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/main/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyFacadeImpl.java",
+        "line_start": 479,
+        "class_name": "WarrantyFacadeImpl",
+        "method_name": "batchFixWarranty",
+        "repo": "sfp-entitlement-lifecycle-service"
+      }
+    },
+    {
+      "id": "AUDIT-026",
+      "eut_id": "EUT-026",
+      "bound_item": "BR-007",
+      "description": "getMaterialWarrantyOld 调用时 orgId=null、userGatewayDTO=null，返回「获取当前人登录机构失败，请联系管理员！」。",
+      "status": "COVERED",
+      "test_class": "WarrantyFacadeImplCoverageTest",
+      "test_method": "getMaterialWarrantyOld_nullOrgId_nullUser_returnsError",
+      "evidence": "assertNotEquals(0, result.getCode(), \"CTEST-006: null orgId  [WarrantyFacadeImplCoverageTest.java:185]",
+      "recommendation": "",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyFacadeImplCoverageTest.java",
+        "line_start": 185,
+        "class_name": "WarrantyFacadeImplCoverageTest",
+        "method_name": "getMaterialWarrantyOld_nullOrgId_nullUser_returnsError",
+        "repo": "sfp-entitlement-lifecycle-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/main/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyFacadeImpl.java",
+        "line_start": 287,
+        "class_name": "WarrantyFacadeImpl",
+        "method_name": "getMaterialWarrantyOld",
+        "repo": "sfp-entitlement-lifecycle-service"
+      }
+    },
+    {
+      "id": "AUDIT-027",
+      "eut_id": "EUT-027",
+      "bound_item": "BR-006",
+      "description": "batchFixWarranty miliao=0（<=0 分支）返回「当前登录用户未登录」，不分发命令。",
+      "status": "COVERED",
+      "test_class": "WarrantyFacadeImplCoverageTest",
+      "test_method": "batchFixWarranty_zeroMiliao_returnsLoginError",
+      "evidence": "assertNotEquals(0, result.getCode(), \"CTEST-002: miliao=0 应返 [WarrantyFacadeImplCoverageTest.java:95]",
+      "recommendation": "",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyFacadeImplCoverageTest.java",
+        "line_start": 95,
+        "class_name": "WarrantyFacadeImplCoverageTest",
+        "method_name": "batchFixWarranty_zeroMiliao_returnsLoginError",
+        "repo": "sfp-entitlement-lifecycle-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/main/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyFacadeImpl.java",
+        "line_start": 476,
+        "class_name": "WarrantyFacadeImpl",
+        "method_name": "batchFixWarranty",
+        "repo": "sfp-entitlement-lifecycle-service"
+      }
+    },
+    {
+      "id": "AUDIT-028",
+      "eut_id": "EUT-028",
+      "bound_item": "BR-003",
+      "description": "parseFixWarrantyEndDate 收到 blank 输入时，StringUtils.isBlank 守卫返回 null，调用方报「退货截止时间格式错误」。",
+      "status": "COVERED",
+      "test_class": "WarrantyFacadeImplCoverageTest",
+      "test_method": "fixWarrantyData_blankEndTime_returnsParamError",
+      "evidence": "assertNotEquals(0, result.getCode(), \"CTEST-004: blank 截止时间应 [WarrantyFacadeImplCoverageTest.java:138]",
+      "recommendation": "",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyFacadeImplCoverageTest.java",
+        "line_start": 138,
+        "class_name": "WarrantyFacadeImplCoverageTest",
+        "method_name": "fixWarrantyData_blankEndTime_returnsParamError",
+        "repo": "sfp-entitlement-lifecycle-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/main/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyFacadeImpl.java",
+        "line_start": 118,
+        "class_name": "WarrantyFacadeImpl",
+        "method_name": "parseFixWarrantyEndDate",
+        "repo": "sfp-entitlement-lifecycle-service"
+      }
+    },
+    {
+      "id": "AUDIT-029",
+      "eut_id": "EUT-029",
+      "bound_item": "BR-004",
+      "description": "resolveStartTimeTypeId 数字 '9999' isNumeric=true 但 getById 返回 null，报「退货起算类型不合法」。",
+      "status": "COVERED",
+      "test_class": "WarrantyFacadeImplCoverageTest",
+      "test_method": "fixWarrantyData_numericTimeTypeOutOfRange_returnsParamError",
+      "evidence": "assertNotEquals(0, result.getCode(), \"CTEST-005: id=9999 不在枚 [WarrantyFacadeImplCoverageTest.java:165]",
+      "recommendation": "",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyFacadeImplCoverageTest.java",
+        "line_start": 165,
+        "class_name": "WarrantyFacadeImplCoverageTest",
+        "method_name": "fixWarrantyData_numericTimeTypeOutOfRange_returnsParamError",
+        "repo": "sfp-entitlement-lifecycle-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/main/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyFacadeImpl.java",
+        "line_start": 111,
+        "class_name": "WarrantyFacadeImpl",
+        "method_name": "resolveStartTimeTypeId",
+        "repo": "sfp-entitlement-lifecycle-service"
+      }
+    },
+    {
+      "id": "AUDIT-030",
+      "eut_id": "EUT-030",
+      "bound_item": "BR-007",
+      "description": "getMaterialWarrantyOld null orgId + 有效 user，补全 orgId 后成功返回物料三包。",
+      "status": "COVERED",
+      "test_class": "WarrantyFacadeImplCoverageTest",
+      "test_method": "getMaterialWarrantyOld_nullOrgId_validUser_setsOrgAndReturnsSuccess",
+      "evidence": "assertEquals(0, result.getCode(), \"CTEST-007: null orgId + v [WarrantyFacadeImplCoverageTest.java:210]",
+      "recommendation": "",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyFacadeImplCoverageTest.java",
+        "line_start": 210,
+        "class_name": "WarrantyFacadeImplCoverageTest",
+        "method_name": "getMaterialWarrantyOld_nullOrgId_validUser_setsOrgAndReturnsSuccess",
+        "repo": "sfp-entitlement-lifecycle-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/main/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyFacadeImpl.java",
+        "line_start": 292,
+        "class_name": "WarrantyFacadeImpl",
+        "method_name": "getMaterialWarrantyOld",
+        "repo": "sfp-entitlement-lifecycle-service"
+      }
+    },
+    {
+      "id": "AUDIT-031",
+      "eut_id": "EUT-031",
+      "bound_item": "BR-004",
+      "description": "resolveStartTimeTypeId 枚举名称 'ACTIVE_TIME'，convertLifeTimeTypeNull 返回非空 ACTIVE_TIME，getId()=1。",
+      "status": "COVERED",
+      "test_class": "WarrantyFacadeImplCoverageTest",
+      "test_method": "resolveStartTimeTypeId_enumName_returnsId",
+      "evidence": "assertEquals(1, result, \"BRANCH-114: 枚举名称 ACTIVE_TIME 经 conv [WarrantyFacadeImplCoverageTest.java:236]",
+      "recommendation": "",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyFacadeImplCoverageTest.java",
+        "line_start": 236,
+        "class_name": "WarrantyFacadeImplCoverageTest",
+        "method_name": "resolveStartTimeTypeId_enumName_returnsId",
+        "repo": "sfp-entitlement-lifecycle-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/main/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyFacadeImpl.java",
+        "line_start": 114,
+        "class_name": "WarrantyFacadeImpl",
+        "method_name": "resolveStartTimeTypeId",
+        "repo": "sfp-entitlement-lifecycle-service"
+      }
+    },
+    {
+      "id": "AUDIT-032",
+      "eut_id": "EUT-032",
+      "bound_item": "REQ-001",
+      "description": "getMaterialWarranty null orgId + 有效 user，补全 orgId 后 queryBus.dispatch 成功。",
+      "status": "COVERED",
+      "test_class": "WarrantyFacadeImplCoverageTest",
+      "test_method": "getMaterialWarranty_nullOrgId_validUser_setsOrgAndSucceeds",
+      "evidence": "assertEquals(0, result.getCode(), \"BRANCH-261: null orgId +  [WarrantyFacadeImplCoverageTest.java:260]",
+      "recommendation": "",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyFacadeImplCoverageTest.java",
+        "line_start": 260,
+        "class_name": "WarrantyFacadeImplCoverageTest",
+        "method_name": "getMaterialWarranty_nullOrgId_validUser_setsOrgAndSucceeds",
+        "repo": "sfp-entitlement-lifecycle-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/main/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyFacadeImpl.java",
+        "line_start": 261,
+        "class_name": "WarrantyFacadeImpl",
+        "method_name": "getMaterialWarranty",
+        "repo": "sfp-entitlement-lifecycle-service"
+      }
+    },
+    {
+      "id": "AUDIT-033",
+      "eut_id": "EUT-033",
+      "bound_item": "REQ-001",
+      "description": "getMaterialWarrantyOld 非 null orgId，跳过 userGateway 直接查 warrantyGateway。",
+      "status": "COVERED",
+      "test_class": "WarrantyFacadeImplCoverageTest",
+      "test_method": "getMaterialWarrantyOld_nonNullOrgId_skipsUserGateway",
+      "evidence": "assertEquals(0, result.getCode(), \"BRANCH-287: 非 null orgId  [WarrantyFacadeImplCoverageTest.java:278]",
+      "recommendation": "",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyFacadeImplCoverageTest.java",
+        "line_start": 278,
+        "class_name": "WarrantyFacadeImplCoverageTest",
+        "method_name": "getMaterialWarrantyOld_nonNullOrgId_skipsUserGateway",
+        "repo": "sfp-entitlement-lifecycle-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/main/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyFacadeImpl.java",
+        "line_start": 287,
+        "class_name": "WarrantyFacadeImpl",
+        "method_name": "getMaterialWarrantyOld",
+        "repo": "sfp-entitlement-lifecycle-service"
+      }
+    },
+    {
+      "id": "AUDIT-034",
+      "eut_id": "EUT-034",
+      "bound_item": "REQ-001",
+      "description": "getWarrantyLogByPage IMEI sn + imeiGateway 返回 null，不更新 sn 继续正常查询日志。",
+      "status": "COVERED",
+      "test_class": "WarrantyFacadeImplCoverageTest",
+      "test_method": "getWarrantyLogByPage_imeiSn_nullImeiResult_keepsOriginalSn",
+      "evidence": "assertEquals(0, result.getCode(), \"BRANCH-312: IMEI 查询 res=n [WarrantyFacadeImplCoverageTest.java:306]",
+      "recommendation": "",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyFacadeImplCoverageTest.java",
+        "line_start": 306,
+        "class_name": "WarrantyFacadeImplCoverageTest",
+        "method_name": "getWarrantyLogByPage_imeiSn_nullImeiResult_keepsOriginalSn",
+        "repo": "sfp-entitlement-lifecycle-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/main/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyFacadeImpl.java",
+        "line_start": 312,
+        "class_name": "WarrantyFacadeImpl",
+        "method_name": "getWarrantyLogByPage",
+        "repo": "sfp-entitlement-lifecycle-service"
+      }
+    },
+    {
+      "id": "AUDIT-035",
+      "eut_id": "EUT-035",
+      "bound_item": "REQ-001",
+      "description": "getWarrantyLogByPage type=SEARCH_MATERIAL_LOG，使用 getMaterialTypes() 的 saveTypes 查询物料变更日志。",
+      "status": "COVERED",
+      "test_class": "WarrantyFacadeImplCoverageTest",
+      "test_method": "getWarrantyLogByPage_materialLogType_usesMaterialTypes",
+      "evidence": "assertEquals(0, result.getCode(), \"BRANCH-317: type=SEARCH_M [WarrantyFacadeImplCoverageTest.java:332]",
+      "recommendation": "",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyFacadeImplCoverageTest.java",
+        "line_start": 332,
+        "class_name": "WarrantyFacadeImplCoverageTest",
+        "method_name": "getWarrantyLogByPage_materialLogType_usesMaterialTypes",
+        "repo": "sfp-entitlement-lifecycle-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/main/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyFacadeImpl.java",
+        "line_start": 317,
+        "class_name": "WarrantyFacadeImpl",
+        "method_name": "getWarrantyLogByPage",
+        "repo": "sfp-entitlement-lifecycle-service"
+      }
+    },
+    {
+      "id": "AUDIT-036",
+      "eut_id": "EUT-036",
+      "bound_item": "BR-001",
+      "description": "changeRemark > 100 chars 触发 @Size 校验失败，消息含 'changeRemark长度不能超过100'。",
+      "status": "COVERED",
+      "test_class": "WarrantyUpdateParamValidationTest",
+      "test_method": "changeRemark_over100Chars_sizeViolationTriggered",
+      "evidence": "assertEquals(1L, messages.stream().filter(m -> m.contains(\"c [WarrantyUpdateParamValidationTest.java:65]",
+      "recommendation": "",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyUpdateParamValidationTest.java",
+        "line_start": 65,
+        "class_name": "WarrantyUpdateParamValidationTest",
+        "method_name": "changeRemark_over100Chars_sizeViolationTriggered",
+        "repo": "sfp-entitlement-lifecycle-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-api/src/main/java/com/mi/sfp/lifecycle/api/warranty/facade/dto/request/WarrantyUpdateParam.java",
+        "line_start": 34,
+        "class_name": "WarrantyUpdateParam",
+        "method_name": "",
+        "repo": "sfp-entitlement-lifecycle-service"
+      }
+    },
+    {
+      "id": "AUDIT-037",
+      "eut_id": "EUT-037",
+      "bound_item": "BR-001",
+      "description": "changeRemark 恰好 100 chars，不触发 @Size 校验失败。",
+      "status": "COVERED",
+      "test_class": "WarrantyUpdateParamValidationTest",
+      "test_method": "changeRemark_exactly100Chars_noSizeViolation",
+      "evidence": "assertEquals(0L, messages.stream().filter(m -> m.contains(\"c [WarrantyUpdateParamValidationTest.java:80]",
+      "recommendation": "",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyUpdateParamValidationTest.java",
+        "line_start": 80,
+        "class_name": "WarrantyUpdateParamValidationTest",
+        "method_name": "changeRemark_exactly100Chars_noSizeViolation",
+        "repo": "sfp-entitlement-lifecycle-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-api/src/main/java/com/mi/sfp/lifecycle/api/warranty/facade/dto/request/WarrantyUpdateParam.java",
+        "line_start": 34,
+        "class_name": "WarrantyUpdateParam",
+        "method_name": "",
+        "repo": "sfp-entitlement-lifecycle-service"
+      }
+    },
+    {
+      "id": "AUDIT-038",
+      "eut_id": "EUT-038",
+      "bound_item": "BR-001",
+      "description": "所有字段合规时，violations 为空（0 个）。",
+      "status": "COVERED",
+      "test_class": "WarrantyUpdateParamValidationTest",
+      "test_method": "allFields_valid_noViolations",
+      "evidence": "assertEquals(0, violations.size(), [WarrantyUpdateParamValidationTest.java:139]",
+      "recommendation": "",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyUpdateParamValidationTest.java",
+        "line_start": 139,
+        "class_name": "WarrantyUpdateParamValidationTest",
+        "method_name": "allFields_valid_noViolations",
+        "repo": "sfp-entitlement-lifecycle-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-api/src/main/java/com/mi/sfp/lifecycle/api/warranty/facade/dto/request/WarrantyUpdateParam.java",
+        "line_start": 32,
+        "class_name": "WarrantyUpdateParam",
+        "method_name": "",
+        "repo": "sfp-entitlement-lifecycle-service"
+      }
+    },
+    {
+      "id": "AUDIT-039",
+      "eut_id": "EUT-039",
+      "bound_item": "BR-003",
+      "description": "exchangeEndTime 非法格式返回「换货截止时间格式错误」。",
+      "status": "COVERED",
+      "test_class": "FixWarrantyDataNewCasesTest",
+      "test_method": "fixWarrantyData_invalidExchangeEndTime_returnsParamError",
+      "evidence": "assertNotEquals(0, result.getCode()); [FixWarrantyDataNewCasesTest.java:138]",
+      "recommendation": "",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/FixWarrantyDataNewCasesTest.java",
+        "line_start": 138,
+        "class_name": "FixWarrantyDataNewCasesTest",
+        "method_name": "fixWarrantyData_invalidExchangeEndTime_returnsParamError",
+        "repo": "sfp-entitlement-lifecycle-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/main/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyFacadeImpl.java",
+        "line_start": 148,
+        "class_name": "WarrantyFacadeImpl",
+        "method_name": "validateAndParseFixWarrantyParam",
+        "repo": "sfp-entitlement-lifecycle-service"
+      }
+    },
+    {
+      "id": "AUDIT-040",
+      "eut_id": "EUT-040",
+      "bound_item": "BR-003",
+      "description": "repairEndTime 非法格式返回「维修截止时间格式错误」。",
+      "status": "COVERED",
+      "test_class": "FixWarrantyDataNewCasesTest",
+      "test_method": "fixWarrantyData_invalidRepairEndTime_returnsParamError",
+      "evidence": "assertNotEquals(0, result.getCode()); [FixWarrantyDataNewCasesTest.java:152]",
+      "recommendation": "",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/FixWarrantyDataNewCasesTest.java",
+        "line_start": 152,
+        "class_name": "FixWarrantyDataNewCasesTest",
+        "method_name": "fixWarrantyData_invalidRepairEndTime_returnsParamError",
+        "repo": "sfp-entitlement-lifecycle-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/main/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyFacadeImpl.java",
+        "line_start": 152,
+        "class_name": "WarrantyFacadeImpl",
+        "method_name": "validateAndParseFixWarrantyParam",
+        "repo": "sfp-entitlement-lifecycle-service"
+      }
+    },
+    {
+      "id": "AUDIT-041",
+      "eut_id": "EUT-041",
+      "bound_item": "BR-004",
+      "description": "repairTimeType 非法返回「维修起算类型不合法」。",
+      "status": "COVERED",
+      "test_class": "FixWarrantyDataNewCasesTest",
+      "test_method": "fixWarrantyData_invalidRepairTimeType_returnsParamError",
+      "evidence": "assertNotEquals(0, result.getCode()); [FixWarrantyDataNewCasesTest.java:180]",
+      "recommendation": "",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/FixWarrantyDataNewCasesTest.java",
+        "line_start": 180,
+        "class_name": "FixWarrantyDataNewCasesTest",
+        "method_name": "fixWarrantyData_invalidRepairTimeType_returnsParamError",
+        "repo": "sfp-entitlement-lifecycle-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/main/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyFacadeImpl.java",
+        "line_start": 165,
+        "class_name": "WarrantyFacadeImpl",
+        "method_name": "resolveStartTimeTypeId",
+        "repo": "sfp-entitlement-lifecycle-service"
+      }
+    },
+    {
+      "id": "AUDIT-042",
+      "eut_id": "EUT-042",
+      "bound_item": "BR-005",
+      "description": "fixWarrantyData 锁定路径 updateType=null，不触发旧重算。",
+      "status": "COVERED",
+      "test_class": "FixWarrantyDataNewCasesTest",
+      "test_method": "fixWarrantyData_lockedRecord_updateTypeIsNull",
+      "evidence": "verify(commandBus).dispatch(cap.capture()); [FixWarrantyDataNewCasesTest.java:280]",
+      "recommendation": "",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/FixWarrantyDataNewCasesTest.java",
+        "line_start": 280,
+        "class_name": "FixWarrantyDataNewCasesTest",
+        "method_name": "fixWarrantyData_lockedRecord_updateTypeIsNull",
+        "repo": "sfp-entitlement-lifecycle-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/main/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyFacadeImpl.java",
+        "line_start": 433,
+        "class_name": "WarrantyFacadeImpl",
+        "method_name": "fixWarrantyData",
+        "repo": "sfp-entitlement-lifecycle-service"
+      }
+    },
+    {
+      "id": "AUDIT-043",
+      "eut_id": "EUT-043",
+      "bound_item": "BR-005",
+      "description": "9 个字段各自独立，互不影响，退换修起始时间各不相同。",
+      "status": "COVERED",
+      "test_class": "FixWarrantyDataNewCasesTest",
+      "test_method": "fixWarrantyData_nineFieldsAreIndependent_noFieldInterference",
+      "evidence": "verify(commandBus).dispatch(cap.capture()); [FixWarrantyDataNewCasesTest.java:383]",
+      "recommendation": "",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/FixWarrantyDataNewCasesTest.java",
+        "line_start": 383,
+        "class_name": "FixWarrantyDataNewCasesTest",
+        "method_name": "fixWarrantyData_nineFieldsAreIndependent_noFieldInterference",
+        "repo": "sfp-entitlement-lifecycle-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/main/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyFacadeImpl.java",
+        "line_start": 403,
+        "class_name": "WarrantyFacadeImpl",
+        "method_name": "fixWarrantyData",
+        "repo": "sfp-entitlement-lifecycle-service"
+      }
+    },
+    {
+      "id": "AUDIT-044",
+      "eut_id": "EUT-044",
+      "bound_item": "BR-007",
+      "description": "unlocked + warrantyVO=null 时返回「三包信息为空」，不派发命令。",
+      "status": "COVERED",
+      "test_class": "FixWarrantyDataNewCasesTest",
+      "test_method": "fixWarrantyData_unlockedRecord_warrantyVoNull_returnsErrorAndNoDispatch",
+      "evidence": "assertNotEquals(0, result.getCode()); [FixWarrantyDataNewCasesTest.java:405]",
+      "recommendation": "",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/facade/FixWarrantyDataNewCasesTest.java",
+        "line_start": 405,
+        "class_name": "FixWarrantyDataNewCasesTest",
+        "method_name": "fixWarrantyData_unlockedRecord_warrantyVoNull_returnsErrorAndNoDispatch",
+        "repo": "sfp-entitlement-lifecycle-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/main/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyFacadeImpl.java",
+        "line_start": 375,
+        "class_name": "WarrantyFacadeImpl",
+        "method_name": "fixWarrantyData",
+        "repo": "sfp-entitlement-lifecycle-service"
+      }
+    },
+    {
+      "id": "AUDIT-045",
+      "eut_id": "EUT-045",
+      "bound_item": "BR-006",
+      "description": "handle 成功：changeLog 三步严格有序。",
+      "status": "COVERED",
+      "test_class": "WarrantyUpdateCommandHandlerNewCasesTest",
+      "test_method": "handle_success_changeLogServiceCalledInOrder",
+      "evidence": "inOrder.verify(changeLogService).init(); [WarrantyUpdateCommandHandlerNewCasesTest.java:107]",
+      "recommendation": "",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/WarrantyUpdateCommandHandlerNewCasesTest.java",
+        "line_start": 107,
+        "class_name": "WarrantyUpdateCommandHandlerNewCasesTest",
+        "method_name": "handle_success_changeLogServiceCalledInOrder",
+        "repo": "sfp-entitlement-lifecycle-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/main/java/com/mi/sfp/lifecycle/application/warranty/WarrantyUpdateCommandHandler.java",
+        "line_start": 43,
+        "class_name": "WarrantyUpdateCommandHandler",
+        "method_name": "handle",
+        "repo": "sfp-entitlement-lifecycle-service"
+      }
+    },
+    {
+      "id": "AUDIT-046",
+      "eut_id": "EUT-046",
+      "bound_item": "BR-006",
+      "description": "handle 成功：insertOrUpdate 接收同一 threeGuarantee 实例。",
+      "status": "COVERED",
+      "test_class": "WarrantyUpdateCommandHandlerNewCasesTest",
+      "test_method": "handle_success_insertOrUpdateReceivesSameInstance",
+      "evidence": "verify(threeGuaranteeRepositoryHolder).insertOrUpdate(same(t [WarrantyUpdateCommandHandlerNewCasesTest.java:121]",
+      "recommendation": "",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/WarrantyUpdateCommandHandlerNewCasesTest.java",
+        "line_start": 121,
+        "class_name": "WarrantyUpdateCommandHandlerNewCasesTest",
+        "method_name": "handle_success_insertOrUpdateReceivesSameInstance",
+        "repo": "sfp-entitlement-lifecycle-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/main/java/com/mi/sfp/lifecycle/application/warranty/WarrantyUpdateCommandHandler.java",
+        "line_start": 43,
+        "class_name": "WarrantyUpdateCommandHandler",
+        "method_name": "handle",
+        "repo": "sfp-entitlement-lifecycle-service"
+      }
+    },
+    {
+      "id": "AUDIT-047",
+      "eut_id": "EUT-047",
+      "bound_item": "BR-006",
+      "description": "handle 成功：返回 true。",
+      "status": "COVERED",
+      "test_class": "WarrantyUpdateCommandHandlerNewCasesTest",
+      "test_method": "handle_success_returnTrue",
+      "evidence": "assertEquals(Boolean.TRUE, result, \"EUT-047: 成功路径必须返回 true\") [WarrantyUpdateCommandHandlerNewCasesTest.java:132]",
+      "recommendation": "",
+      "test_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/test/java/com/mi/sfp/lifecycle/application/warranty/WarrantyUpdateCommandHandlerNewCasesTest.java",
+        "line_start": 132,
+        "class_name": "WarrantyUpdateCommandHandlerNewCasesTest",
+        "method_name": "handle_success_returnTrue",
+        "repo": "sfp-entitlement-lifecycle-service"
+      },
+      "production_location": {
+        "file": "/Users/zhangyiqian/private-dev/entitlement-lifecycle-service-fix-warranty-update/sfp-entitlement-lifecycle-service/sfp-entitlement-lifecycle-service-app/src/main/java/com/mi/sfp/lifecycle/application/warranty/WarrantyUpdateCommandHandler.java",
+        "line_start": 43,
+        "class_name": "WarrantyUpdateCommandHandler",
+        "method_name": "handle",
+        "repo": "sfp-entitlement-lifecycle-service"
+      }
+    }
+  ],
+  "findings": [
+    {
+      "severity": "INFO",
+      "category": "coverage_risk",
+      "description": "coverage_required=false，无 JaCoCo 数据。无法量化 WarrantyFacadeImpl 的增量行/分支覆盖率。基于测试用例分析，validateAndParseFixWarrantyParam 的 9 条错误分支中有 7 条被显式测试，B-005（blank input）和 B-006（full datetime success via parseEndDate）未单独测试，属于低风险路径（blank 已被 @NotBlank 拦截，成功路径通过 EUT-004 间接覆盖）。",
+      "affected_euts": [
+        "EUT-005",
+        "EUT-004"
+      ],
+      "recommendation": "如后续启用 coverage_required=true，建议补充 parseFixWarrantyEndDate 的 blank 输入和 yyyy-MM-dd HH:mm:ss 完整时间戳输入的独立单元测试。",
+      "id": "FINDING-001"
+    },
+    {
+      "severity": "INFO",
+      "category": "test_sharing",
+      "description": "EUT-009 和 EUT-018 共享同一测试方法 allNineTimeFields_allNull_eachHasNotBlankViolation。EUT-009 关注 resolveStartTimeTypeId null 守卫（通过 @NotBlank 提前拦截），EUT-018 关注 exchangeStartTime='' 的空串场景（实际测试全 null 场景）。两条 EUT 均以 assertEquals(9, ...) 为主断言，语义完整。",
+      "affected_euts": [
+        "EUT-009",
+        "EUT-018"
+      ],
+      "recommendation": "可在后续迭代中补充独立的 exchangeStartTime='' 空串测试，以区分 null 和 blank 两种边界。",
+      "id": "FINDING-002"
+    },
+    {
+      "severity": "INFO",
+      "category": "test_sharing",
+      "description": "EUT-019 和 EUT-023 共享同一测试方法 fixWarrantyData_lockedRecord_backwardCompatFieldsCorrect。两条 EUT 分别绑定 BR-005（全字段覆盖语义）和 SE-007（老字段兼容），该测试准确验证了两者，无重叠或遗漏。",
+      "affected_euts": [
+        "EUT-019",
+        "EUT-023"
+      ],
+      "recommendation": "无。",
+      "id": "FINDING-003"
+    }
+  ],
+  "coverage_gate": {
+    "incremental_line_coverage": 90.64,
+    "incremental_branch_coverage": 100.0,
+    "note": "WarrantyFacadeImpl branch 66/66(100%), line 201/223(90.1%); WarrantyUpdateCommandHandler 100%/100%; 合计 213/235 line(90.64%), 70/70 branch(100%)。"
+  },
+  "conclusion": "PASS",
+  "artifact_version": "1.1",
+  "schema_version": "1.1"
+}

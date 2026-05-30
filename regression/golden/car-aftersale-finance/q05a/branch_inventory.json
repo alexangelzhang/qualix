@@ -1,0 +1,720 @@
+{
+  "project_id": "car-aftersale-finance",
+  "targets": [
+    {
+      "repo": "car-aftersale-finance",
+      "class_name": "FinanceExpenseJobHandler",
+      "method_name": "createMonthlyExpenseOrders",
+      "file": "car-aftersale-finance-app/src/main/java/com/xiaomi/cnzone/car/aftersale/finance/app/jobhandler/FinanceExpenseJobHandler.java",
+      "branches": [
+        {
+          "id": "B-001",
+          "kind": "happy",
+          "description": "FinanceExpenseJobHandler.createMonthlyExpenseOrders happy 路径，用于验证：每月任务生成遇到“已存在部分门店任务”时，只为缺失门店补建 V1 待提交任务。",
+          "line_start": 137,
+          "reader_label": "FinanceExpenseJobHandler.createMonthlyExpenseOrders happy 路径",
+          "related_eut_ids": [
+            "EUT-001",
+            "EUT-031",
+            "EUT-032"
+          ]
+        },
+        {
+          "id": "B-002",
+          "kind": "exception",
+          "description": "FinanceExpenseJobHandler.createMonthlyExpenseOrders exception 路径，用于验证：门店+月份+V1 已存在时跳过，只为缺失门店生成任务。",
+          "line_start": 145,
+          "reader_label": "FinanceExpenseJobHandler.createMonthlyExpenseOrders exception 路径",
+          "related_eut_ids": [
+            "EUT-032"
+          ]
+        }
+      ]
+    },
+    {
+      "repo": "car-aftersale-finance",
+      "class_name": "FinanceExpenseJobHandler",
+      "method_name": "sendOpenNotice",
+      "file": "car-aftersale-finance-app/src/main/java/com/xiaomi/cnzone/car/aftersale/finance/app/jobhandler/FinanceExpenseJobHandler.java",
+      "branches": [
+        {
+          "id": "B-003",
+          "kind": "happy",
+          "description": "FinanceExpenseJobHandler.sendOpenNotice happy 路径，用于验证：每月开启上传时，系统给门店财务发送上传入口通知并记录 OPEN 场景。",
+          "line_start": 256,
+          "reader_label": "FinanceExpenseJobHandler.sendOpenNotice happy 路径",
+          "related_eut_ids": [
+            "EUT-002",
+            "EUT-033"
+          ]
+        },
+        {
+          "id": "B-004",
+          "kind": "exception",
+          "description": "FinanceExpenseJobHandler.sendOpenNotice exception 路径，用于验证：开启通知写入通知记录并标记发送状态。",
+          "line_start": 262,
+          "reader_label": "FinanceExpenseJobHandler.sendOpenNotice exception 路径",
+          "related_eut_ids": [
+            "EUT-033"
+          ]
+        }
+      ]
+    },
+    {
+      "repo": "car-aftersale-finance",
+      "class_name": "FinanceExpenseJobHandler",
+      "method_name": "sendReminderNotice",
+      "file": "car-aftersale-finance-app/src/main/java/com/xiaomi/cnzone/car/aftersale/finance/app/jobhandler/FinanceExpenseJobHandler.java",
+      "branches": [
+        {
+          "id": "B-005",
+          "kind": "happy",
+          "description": "FinanceExpenseJobHandler.sendReminderNotice happy 路径，用于验证：每月 15 日催办未提交门店，同时通知门店财务、城市经理和区域财经 BP。",
+          "line_start": 271,
+          "reader_label": "FinanceExpenseJobHandler.sendReminderNotice happy 路径",
+          "related_eut_ids": [
+            "EUT-003"
+          ]
+        },
+        {
+          "id": "B-006",
+          "kind": "exception",
+          "description": "FinanceExpenseJobHandler.sendReminderNotice exception 路径，用于验证：每月 15 日催办未提交门店，同时通知门店财务、城市经理和区域财经 BP。",
+          "line_start": 277,
+          "reader_label": "FinanceExpenseJobHandler.sendReminderNotice exception 路径",
+          "related_eut_ids": [
+            "EUT-003"
+          ]
+        }
+      ]
+    },
+    {
+      "repo": "car-aftersale-finance",
+      "class_name": "FinanceExpenseServiceImpl",
+      "method_name": "list",
+      "file": "car-aftersale-finance-domain/src/main/java/com/xiaomi/cnzone/car/aftersale/finance/domain/serviceimpl/FinanceExpenseServiceImpl.java",
+      "branches": [
+        {
+          "id": "B-007",
+          "kind": "happy",
+          "description": "FinanceExpenseServiceImpl.list happy 路径，用于验证：用户按筛选条件查看财务手工上传列表，列表展示门店名称和财务期间。",
+          "line_start": 125,
+          "reader_label": "FinanceExpenseServiceImpl.list happy 路径",
+          "related_eut_ids": [
+            "EUT-004"
+          ]
+        },
+        {
+          "id": "B-008",
+          "kind": "boundary",
+          "description": "FinanceExpenseServiceImpl.list boundary 路径，用于验证：用户没有任何数据权限时，列表返回空且不查询业务数据。",
+          "line_start": 118,
+          "reader_label": "FinanceExpenseServiceImpl.list boundary 路径",
+          "related_eut_ids": [
+            "EUT-018"
+          ]
+        },
+        {
+          "id": "B-009",
+          "kind": "exception",
+          "description": "FinanceExpenseServiceImpl.list exception 路径，用于验证：列表查询创建时间只传开始或结束时直接拒绝，并且不进入数据库查询。",
+          "line_start": 119,
+          "reader_label": "FinanceExpenseServiceImpl.list exception 路径",
+          "related_eut_ids": [
+            "EUT-005"
+          ]
+        }
+      ]
+    },
+    {
+      "repo": "car-aftersale-finance",
+      "class_name": "FinanceExpenseJobHandler",
+      "method_name": "exportList",
+      "file": "car-aftersale-finance-app/src/main/java/com/xiaomi/cnzone/car/aftersale/finance/app/jobhandler/FinanceExpenseJobHandler.java",
+      "branches": [
+        {
+          "id": "B-010",
+          "kind": "happy",
+          "description": "FinanceExpenseJobHandler.exportList happy 路径，用于验证：导出列表沿用当前筛选条件和权限门店范围，并生成导出文件地址。",
+          "line_start": 366,
+          "reader_label": "FinanceExpenseJobHandler.exportList happy 路径",
+          "related_eut_ids": [
+            "EUT-006",
+            "EUT-021",
+            "EUT-034",
+            "EUT-035"
+          ]
+        },
+        {
+          "id": "B-011",
+          "kind": "boundary",
+          "description": "FinanceExpenseJobHandler.exportList boundary 路径，用于验证：导出只取最新版本并遵守权限门店范围。",
+          "line_start": 364,
+          "reader_label": "FinanceExpenseJobHandler.exportList boundary 路径",
+          "related_eut_ids": [
+            "EUT-035"
+          ]
+        },
+        {
+          "id": "B-012",
+          "kind": "exception",
+          "description": "FinanceExpenseJobHandler.exportList exception 路径，用于验证：导出列表创建时间只传一边时被拒绝。",
+          "line_start": 372,
+          "reader_label": "FinanceExpenseJobHandler.exportList exception 路径",
+          "related_eut_ids": [
+            "EUT-029"
+          ]
+        }
+      ]
+    },
+    {
+      "repo": "car-aftersale-finance",
+      "class_name": "FinanceExpenseServiceImpl",
+      "method_name": "detail",
+      "file": "car-aftersale-finance-domain/src/main/java/com/xiaomi/cnzone/car/aftersale/finance/domain/serviceimpl/FinanceExpenseServiceImpl.java",
+      "branches": [
+        {
+          "id": "B-013",
+          "kind": "happy",
+          "description": "FinanceExpenseServiceImpl.detail happy 路径，用于验证：详情页打开历史版本时，返回版本号和财务 Excel 附件信息。",
+          "line_start": 259,
+          "reader_label": "FinanceExpenseServiceImpl.detail happy 路径",
+          "related_eut_ids": [
+            "EUT-007"
+          ]
+        },
+        {
+          "id": "B-014",
+          "kind": "boundary",
+          "description": "FinanceExpenseServiceImpl.detail boundary 路径，用于验证：详情页打开历史版本时，返回版本号和财务 Excel 附件信息。",
+          "line_start": 252,
+          "reader_label": "FinanceExpenseServiceImpl.detail boundary 路径",
+          "related_eut_ids": [
+            "EUT-007"
+          ]
+        },
+        {
+          "id": "B-015",
+          "kind": "exception",
+          "description": "FinanceExpenseServiceImpl.detail exception 路径，用于验证：详情页打开历史版本时，返回版本号和财务 Excel 附件信息。",
+          "line_start": 254,
+          "reader_label": "FinanceExpenseServiceImpl.detail exception 路径",
+          "related_eut_ids": [
+            "EUT-007"
+          ]
+        }
+      ]
+    },
+    {
+      "repo": "car-aftersale-finance",
+      "class_name": "FinanceExpenseServiceImpl",
+      "method_name": "stepNext",
+      "file": "car-aftersale-finance-domain/src/main/java/com/xiaomi/cnzone/car/aftersale/finance/domain/serviceimpl/FinanceExpenseServiceImpl.java",
+      "branches": [
+        {
+          "id": "B-016",
+          "kind": "happy",
+          "description": "FinanceExpenseServiceImpl.stepNext happy 路径，用于验证：财务上传 Excel 后点击下一步，系统更新主表并写入快照。",
+          "line_start": 540,
+          "reader_label": "FinanceExpenseServiceImpl.stepNext happy 路径",
+          "related_eut_ids": [
+            "EUT-008"
+          ]
+        },
+        {
+          "id": "B-017",
+          "kind": "boundary",
+          "description": "FinanceExpenseServiceImpl.stepNext boundary 路径，用于验证：未上传财务 Excel 时点击下一步被拒绝，且主表不被更新。",
+          "line_start": 495,
+          "reader_label": "FinanceExpenseServiceImpl.stepNext boundary 路径",
+          "related_eut_ids": [
+            "EUT-009"
+          ]
+        },
+        {
+          "id": "B-018",
+          "kind": "exception",
+          "description": "FinanceExpenseServiceImpl.stepNext exception 路径，用于验证：未上传财务 Excel 时点击下一步被拒绝，且主表不被更新。",
+          "line_start": 496,
+          "reader_label": "FinanceExpenseServiceImpl.stepNext exception 路径",
+          "related_eut_ids": [
+            "EUT-009"
+          ]
+        }
+      ]
+    },
+    {
+      "repo": "car-aftersale-finance",
+      "class_name": "FinanceExpenseServiceImpl",
+      "method_name": "save",
+      "file": "car-aftersale-finance-domain/src/main/java/com/xiaomi/cnzone/car/aftersale/finance/domain/serviceimpl/FinanceExpenseServiceImpl.java",
+      "branches": [
+        {
+          "id": "B-019",
+          "kind": "happy",
+          "description": "FinanceExpenseServiceImpl.save happy 路径，用于验证：归档状态作为终态，保存操作被拒绝且不触发状态机。",
+          "line_start": 358,
+          "reader_label": "FinanceExpenseServiceImpl.save happy 路径",
+          "related_eut_ids": [
+            "EUT-036"
+          ]
+        },
+        {
+          "id": "B-020",
+          "kind": "boundary",
+          "description": "FinanceExpenseServiceImpl.save boundary 路径，用于验证：某一类补充凭证超过 10 个时，暂存被拒绝并返回明确提示。",
+          "line_start": 324,
+          "reader_label": "FinanceExpenseServiceImpl.save boundary 路径",
+          "related_eut_ids": [
+            "EUT-010"
+          ]
+        },
+        {
+          "id": "B-021",
+          "kind": "exception",
+          "description": "FinanceExpenseServiceImpl.save exception 路径，用于验证：归档状态下尝试暂存编辑被拒绝。",
+          "line_start": 325,
+          "reader_label": "FinanceExpenseServiceImpl.save exception 路径",
+          "related_eut_ids": [
+            "EUT-016",
+            "EUT-036"
+          ]
+        }
+      ]
+    },
+    {
+      "repo": "car-aftersale-finance",
+      "class_name": "FinanceExpenseServiceImpl",
+      "method_name": "submit",
+      "file": "car-aftersale-finance-domain/src/main/java/com/xiaomi/cnzone/car/aftersale/finance/domain/serviceimpl/FinanceExpenseServiceImpl.java",
+      "branches": [
+        {
+          "id": "B-022",
+          "kind": "happy",
+          "description": "FinanceExpenseServiceImpl.submit happy 路径，用于验证：提交审批时文件与暂存版本一致，触发审批中状态处理器。",
+          "line_start": 443,
+          "reader_label": "FinanceExpenseServiceImpl.submit happy 路径",
+          "related_eut_ids": [
+            "EUT-011"
+          ]
+        },
+        {
+          "id": "B-023",
+          "kind": "boundary",
+          "description": "FinanceExpenseServiceImpl.submit boundary 路径，用于验证：提交时当前文件与已暂存版本不一致，提交被拒绝且不触发状态机。",
+          "line_start": 412,
+          "reader_label": "FinanceExpenseServiceImpl.submit boundary 路径",
+          "related_eut_ids": [
+            "EUT-012"
+          ]
+        },
+        {
+          "id": "B-024",
+          "kind": "exception",
+          "description": "FinanceExpenseServiceImpl.submit exception 路径，用于验证：提交时当前文件与已暂存版本不一致，提交被拒绝且不触发状态机。",
+          "line_start": 413,
+          "reader_label": "FinanceExpenseServiceImpl.submit exception 路径",
+          "related_eut_ids": [
+            "EUT-012"
+          ]
+        }
+      ]
+    },
+    {
+      "repo": "car-aftersale-finance",
+      "class_name": "FinanceExpenseServiceImpl",
+      "method_name": "approve",
+      "file": "car-aftersale-finance-domain/src/main/java/com/xiaomi/cnzone/car/aftersale/finance/domain/serviceimpl/FinanceExpenseServiceImpl.java",
+      "branches": [
+        {
+          "id": "B-025",
+          "kind": "happy",
+          "description": "FinanceExpenseServiceImpl.approve happy 路径，用于验证：BPM 回调审批流单号与当前任务不匹配时拒绝处理。",
+          "line_start": 553,
+          "reader_label": "FinanceExpenseServiceImpl.approve happy 路径",
+          "related_eut_ids": [
+            "EUT-013"
+          ]
+        },
+        {
+          "id": "B-026",
+          "kind": "boundary",
+          "description": "FinanceExpenseServiceImpl.approve boundary 路径，用于验证：BPM 回调审批流单号与当前任务不匹配时拒绝处理。",
+          "line_start": 546,
+          "reader_label": "FinanceExpenseServiceImpl.approve boundary 路径",
+          "related_eut_ids": [
+            "EUT-013"
+          ]
+        },
+        {
+          "id": "B-027",
+          "kind": "exception",
+          "description": "FinanceExpenseServiceImpl.approve exception 路径，用于验证：BPM 回调审批流单号与当前任务不匹配时拒绝处理。",
+          "line_start": 547,
+          "reader_label": "FinanceExpenseServiceImpl.approve exception 路径",
+          "related_eut_ids": [
+            "EUT-013"
+          ]
+        }
+      ]
+    },
+    {
+      "repo": "car-aftersale-finance",
+      "class_name": "FinanceExpenseServiceImpl",
+      "method_name": "reject",
+      "file": "car-aftersale-finance-domain/src/main/java/com/xiaomi/cnzone/car/aftersale/finance/domain/serviceimpl/FinanceExpenseServiceImpl.java",
+      "branches": [
+        {
+          "id": "B-028",
+          "kind": "happy",
+          "description": "FinanceExpenseServiceImpl.reject happy 路径，用于验证：审批驳回回调触发驳回状态处理器。",
+          "line_start": 566,
+          "reader_label": "FinanceExpenseServiceImpl.reject happy 路径",
+          "related_eut_ids": [
+            "EUT-014"
+          ]
+        },
+        {
+          "id": "B-029",
+          "kind": "boundary",
+          "description": "FinanceExpenseServiceImpl.reject boundary 路径，用于验证：审批驳回回调触发驳回状态处理器。",
+          "line_start": 559,
+          "reader_label": "FinanceExpenseServiceImpl.reject boundary 路径",
+          "related_eut_ids": [
+            "EUT-014"
+          ]
+        },
+        {
+          "id": "B-030",
+          "kind": "exception",
+          "description": "FinanceExpenseServiceImpl.reject exception 路径，用于验证：审批驳回回调触发驳回状态处理器。",
+          "line_start": 560,
+          "reader_label": "FinanceExpenseServiceImpl.reject exception 路径",
+          "related_eut_ids": [
+            "EUT-014"
+          ]
+        }
+      ]
+    },
+    {
+      "repo": "car-aftersale-finance",
+      "class_name": "RejectedToPendingStatusTransition",
+      "method_name": "trigger",
+      "file": "car-aftersale-finance-domain/src/main/java/com/xiaomi/cnzone/car/aftersale/finance/domain/factory/finance/expense/strategy/RejectedToPendingStatusTransition.java",
+      "branches": [
+        {
+          "id": "B-031",
+          "kind": "happy",
+          "description": "RejectedToPendingStatusTransition.trigger happy 路径，用于验证：驳回后重新上传生成 V2 待提交记录，并清空上一版本凭证。",
+          "line_start": 97,
+          "reader_label": "RejectedToPendingStatusTransition.trigger happy 路径",
+          "related_eut_ids": [
+            "EUT-015"
+          ]
+        },
+        {
+          "id": "B-032",
+          "kind": "boundary",
+          "description": "RejectedToPendingStatusTransition.trigger boundary 路径，用于验证：驳回后重新上传生成 V2 待提交记录，并清空上一版本凭证。",
+          "line_start": 45,
+          "reader_label": "RejectedToPendingStatusTransition.trigger boundary 路径",
+          "related_eut_ids": [
+            "EUT-015"
+          ]
+        },
+        {
+          "id": "B-033",
+          "kind": "exception",
+          "description": "RejectedToPendingStatusTransition.trigger exception 路径，用于验证：驳回后重新上传生成 V2 待提交记录，并清空上一版本凭证。",
+          "line_start": 46,
+          "reader_label": "RejectedToPendingStatusTransition.trigger exception 路径",
+          "related_eut_ids": [
+            "EUT-015"
+          ]
+        }
+      ]
+    },
+    {
+      "repo": "car-aftersale-finance",
+      "class_name": "FinanceExpenseServiceImpl",
+      "method_name": "version",
+      "file": "car-aftersale-finance-domain/src/main/java/com/xiaomi/cnzone/car/aftersale/finance/domain/serviceimpl/FinanceExpenseServiceImpl.java",
+      "branches": [
+        {
+          "id": "B-034",
+          "kind": "happy",
+          "description": "FinanceExpenseServiceImpl.version happy 路径，用于验证：版本列表返回多个版本，并按最新版本优先展示。",
+          "line_start": 228,
+          "reader_label": "FinanceExpenseServiceImpl.version happy 路径",
+          "related_eut_ids": [
+            "EUT-017"
+          ]
+        },
+        {
+          "id": "B-035",
+          "kind": "boundary",
+          "description": "FinanceExpenseServiceImpl.version boundary 路径，用于验证：版本列表返回多个版本，并按最新版本优先展示。",
+          "line_start": 196,
+          "reader_label": "FinanceExpenseServiceImpl.version boundary 路径",
+          "related_eut_ids": [
+            "EUT-017"
+          ]
+        },
+        {
+          "id": "B-036",
+          "kind": "exception",
+          "description": "FinanceExpenseServiceImpl.version exception 路径，用于验证：版本列表返回多个版本，并按最新版本优先展示。",
+          "line_start": 197,
+          "reader_label": "FinanceExpenseServiceImpl.version exception 路径",
+          "related_eut_ids": [
+            "EUT-017"
+          ]
+        }
+      ]
+    },
+    {
+      "repo": "car-aftersale-finance",
+      "class_name": "FinanceExpenseExcelUtils",
+      "method_name": "parseDetailList",
+      "file": "car-aftersale-finance-domain/src/main/java/com/xiaomi/cnzone/car/aftersale/finance/domain/utils/FinanceExpenseExcelUtils.java",
+      "branches": [
+        {
+          "id": "B-037",
+          "kind": "happy",
+          "description": "FinanceExpenseExcelUtils.parseDetailList happy 路径，用于验证：解析 2S Excel 模板时，正确生成手工填写字段和系统计算字段。",
+          "line_start": 130,
+          "reader_label": "FinanceExpenseExcelUtils.parseDetailList happy 路径",
+          "related_eut_ids": [
+            "EUT-019"
+          ]
+        },
+        {
+          "id": "B-038",
+          "kind": "boundary",
+          "description": "FinanceExpenseExcelUtils.parseDetailList boundary 路径，用于验证：上传 Excel 的公式结果与系统计算不一致时拒绝解析。",
+          "line_start": 60,
+          "reader_label": "FinanceExpenseExcelUtils.parseDetailList boundary 路径",
+          "related_eut_ids": [
+            "EUT-020"
+          ]
+        },
+        {
+          "id": "B-039",
+          "kind": "exception",
+          "description": "FinanceExpenseExcelUtils.parseDetailList exception 路径，用于验证：上传 Excel 的公式结果与系统计算不一致时拒绝解析。",
+          "line_start": 66,
+          "reader_label": "FinanceExpenseExcelUtils.parseDetailList exception 路径",
+          "related_eut_ids": [
+            "EUT-020"
+          ]
+        }
+      ]
+    },
+    {
+      "repo": "car-aftersale-finance",
+      "class_name": "FinanceExpenseStatusEventFactory",
+      "method_name": "getStatusEventHandler",
+      "file": "car-aftersale-finance-domain/src/main/java/com/xiaomi/cnzone/car/aftersale/finance/domain/factory/finance/expense/FinanceExpenseStatusEventFactory.java",
+      "branches": [
+        {
+          "id": "B-040",
+          "kind": "happy",
+          "description": "FinanceExpenseStatusEventFactory.getStatusEventHandler happy 路径，用于验证：状态迁移工厂能根据已注册迁移返回审批中处理器。",
+          "line_start": 48,
+          "reader_label": "FinanceExpenseStatusEventFactory.getStatusEventHandler happy 路径",
+          "related_eut_ids": [
+            "EUT-022"
+          ]
+        },
+        {
+          "id": "B-041",
+          "kind": "boundary",
+          "description": "FinanceExpenseStatusEventFactory.getStatusEventHandler boundary 路径，用于验证：未注册状态迁移被拒绝并给出明确错误。",
+          "line_start": 44,
+          "reader_label": "FinanceExpenseStatusEventFactory.getStatusEventHandler boundary 路径",
+          "related_eut_ids": [
+            "EUT-023"
+          ]
+        },
+        {
+          "id": "B-042",
+          "kind": "exception",
+          "description": "FinanceExpenseStatusEventFactory.getStatusEventHandler exception 路径，用于验证：未注册状态迁移被拒绝并给出明确错误。",
+          "line_start": 45,
+          "reader_label": "FinanceExpenseStatusEventFactory.getStatusEventHandler exception 路径",
+          "related_eut_ids": [
+            "EUT-023"
+          ]
+        }
+      ]
+    },
+    {
+      "repo": "car-aftersale-finance",
+      "class_name": "FinanceExpenseSnapshotGatewayImpl",
+      "method_name": "insertSelective",
+      "file": "car-aftersale-finance-infrastructure/src/main/java/com/xiaomi/cnzone/car/aftersale/finance/infrastructure/gatewayimpl/FinanceExpenseSnapshotGatewayImpl.java",
+      "branches": [
+        {
+          "id": "B-043",
+          "kind": "happy",
+          "description": "FinanceExpenseSnapshotGatewayImpl.insertSelective happy 路径，用于验证：快照网关保存任务编号、版本、状态和附件字段。",
+          "line_start": 28,
+          "reader_label": "FinanceExpenseSnapshotGatewayImpl.insertSelective happy 路径",
+          "related_eut_ids": [
+            "EUT-024"
+          ]
+        },
+        {
+          "id": "B-044",
+          "kind": "exception",
+          "description": "FinanceExpenseSnapshotGatewayImpl.insertSelective exception 路径，用于验证：快照网关保存任务编号、版本、状态和附件字段。",
+          "line_start": 32,
+          "reader_label": "FinanceExpenseSnapshotGatewayImpl.insertSelective exception 路径",
+          "related_eut_ids": [
+            "EUT-024"
+          ]
+        }
+      ]
+    },
+    {
+      "repo": "car-aftersale-finance",
+      "class_name": "FinanceExpenseGatewayImpl",
+      "method_name": "insertSelective",
+      "file": "car-aftersale-finance-infrastructure/src/main/java/com/xiaomi/cnzone/car/aftersale/finance/infrastructure/gatewayimpl/FinanceExpenseGatewayImpl.java",
+      "branches": [
+        {
+          "id": "B-045",
+          "kind": "happy",
+          "description": "FinanceExpenseGatewayImpl.insertSelective happy 路径，用于验证：主表持久化时，未上传 Excel 的占位值被转换为空数组。",
+          "line_start": 33,
+          "reader_label": "FinanceExpenseGatewayImpl.insertSelective happy 路径",
+          "related_eut_ids": [
+            "EUT-025"
+          ]
+        },
+        {
+          "id": "B-046",
+          "kind": "exception",
+          "description": "FinanceExpenseGatewayImpl.insertSelective exception 路径，用于验证：主表持久化时，未上传 Excel 的占位值被转换为空数组。",
+          "line_start": 37,
+          "reader_label": "FinanceExpenseGatewayImpl.insertSelective exception 路径",
+          "related_eut_ids": [
+            "EUT-025"
+          ]
+        }
+      ]
+    },
+    {
+      "repo": "car-aftersale-finance",
+      "class_name": "FinanceExpenseDetailGatewayImpl",
+      "method_name": "batchInsert",
+      "file": "car-aftersale-finance-infrastructure/src/main/java/com/xiaomi/cnzone/car/aftersale/finance/infrastructure/gatewayimpl/FinanceExpenseDetailGatewayImpl.java",
+      "branches": [
+        {
+          "id": "B-047",
+          "kind": "happy",
+          "description": "FinanceExpenseDetailGatewayImpl.batchInsert happy 路径，用于验证：费用明细批量插入遇到空列表时直接跳过。",
+          "line_start": 36,
+          "reader_label": "FinanceExpenseDetailGatewayImpl.batchInsert happy 路径",
+          "related_eut_ids": [
+            "EUT-026"
+          ]
+        },
+        {
+          "id": "B-048",
+          "kind": "boundary",
+          "description": "FinanceExpenseDetailGatewayImpl.batchInsert boundary 路径，用于验证：费用明细批量插入遇到空列表时直接跳过。",
+          "line_start": 38,
+          "reader_label": "FinanceExpenseDetailGatewayImpl.batchInsert boundary 路径",
+          "related_eut_ids": [
+            "EUT-026"
+          ]
+        },
+        {
+          "id": "B-049",
+          "kind": "exception",
+          "description": "FinanceExpenseDetailGatewayImpl.batchInsert exception 路径，用于验证：费用明细批量插入遇到空列表时直接跳过。",
+          "line_start": 45,
+          "reader_label": "FinanceExpenseDetailGatewayImpl.batchInsert exception 路径",
+          "related_eut_ids": [
+            "EUT-026"
+          ]
+        },
+        {
+          "id": "B-050",
+          "kind": "defense",
+          "description": "FinanceExpenseDetailGatewayImpl.batchInsert defense 路径，用于验证：费用明细批量插入遇到空列表时直接跳过。",
+          "line_start": 39,
+          "reader_label": "FinanceExpenseDetailGatewayImpl.batchInsert defense 路径",
+          "related_eut_ids": [
+            "EUT-026"
+          ]
+        }
+      ]
+    },
+    {
+      "repo": "car-aftersale-finance",
+      "class_name": "FinanceExpenseNoticeRecordGatewayImpl",
+      "method_name": "insertSelective",
+      "file": "car-aftersale-finance-infrastructure/src/main/java/com/xiaomi/cnzone/car/aftersale/finance/infrastructure/gatewayimpl/FinanceExpenseNoticeRecordGatewayImpl.java",
+      "branches": [
+        {
+          "id": "B-051",
+          "kind": "happy",
+          "description": "FinanceExpenseNoticeRecordGatewayImpl.insertSelective happy 路径，用于验证：通知记录插入后返回主键，用于后续发送状态和幂等过滤。",
+          "line_start": 31,
+          "reader_label": "FinanceExpenseNoticeRecordGatewayImpl.insertSelective happy 路径",
+          "related_eut_ids": [
+            "EUT-027"
+          ]
+        },
+        {
+          "id": "B-052",
+          "kind": "exception",
+          "description": "FinanceExpenseNoticeRecordGatewayImpl.insertSelective exception 路径，用于验证：通知记录插入后返回主键，用于后续发送状态和幂等过滤。",
+          "line_start": 29,
+          "reader_label": "FinanceExpenseNoticeRecordGatewayImpl.insertSelective exception 路径",
+          "related_eut_ids": [
+            "EUT-027"
+          ]
+        }
+      ]
+    },
+    {
+      "repo": "car-aftersale-finance",
+      "class_name": "FinanceExpenseProviderImpl",
+      "method_name": "list",
+      "file": "car-aftersale-finance-app/src/main/java/com/xiaomi/cnzone/car/aftersale/finance/app/providerimpl/financeExpense/FinanceExpenseProviderImpl.java",
+      "branches": [
+        {
+          "id": "B-053",
+          "kind": "happy",
+          "description": "FinanceExpenseProviderImpl.list happy 路径，用于验证：Provider 列表接口把请求权限转换给 service，并返回列表响应。",
+          "line_start": 97,
+          "reader_label": "FinanceExpenseProviderImpl.list happy 路径",
+          "related_eut_ids": [
+            "EUT-028"
+          ]
+        }
+      ]
+    },
+    {
+      "repo": "car-aftersale-finance",
+      "class_name": "FinanceExpenseProviderImpl",
+      "method_name": "stepNext",
+      "file": "car-aftersale-finance-app/src/main/java/com/xiaomi/cnzone/car/aftersale/finance/app/providerimpl/financeExpense/FinanceExpenseProviderImpl.java",
+      "branches": [
+        {
+          "id": "B-054",
+          "kind": "happy",
+          "description": "FinanceExpenseProviderImpl.stepNext happy 路径，用于验证：非门店财务或未配置操作权限时，下一步操作被拒绝且不进入 service。",
+          "line_start": 183,
+          "reader_label": "FinanceExpenseProviderImpl.stepNext happy 路径",
+          "related_eut_ids": [
+            "EUT-030"
+          ]
+        }
+      ]
+    }
+  ]
+}

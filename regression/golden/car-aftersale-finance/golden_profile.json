@@ -1,0 +1,25 @@
+{
+  "source_project": "car-aftersale-finance",
+  "description": "售后金融模块，汽车售后金融服务流程",
+  "phases_available": [
+    "Q01",
+    "Q05a",
+    "Q05b",
+    "Q06"
+  ],
+  "q01": {
+    "requirements": 15,
+    "req_count": 4,
+    "br_count": 11,
+    "se": 16,
+    "gaps": 2,
+    "open_items": 2
+  },
+  "q06": {
+    "audit_items": 36,
+    "status_distribution": {
+      "COVERED": 36
+    },
+    "findings": 3
+  }
+}

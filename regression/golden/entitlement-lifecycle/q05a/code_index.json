@@ -1,0 +1,853 @@
+{
+  "project_id": "entitlement-lifecycle",
+  "schema_version": "1.1",
+  "artifact_version": "1.1",
+  "base_ref": "a934896e81b3cf00866f07a25cb845d4f4b97656",
+  "head_ref": "5fac629c",
+  "real_diff_files": [
+    "sfp-entitlement-lifecycle-service-acl/src/main/java/com/mi/asp/spf/acl/maf/gateway/MafGatewayImpl.java",
+    "sfp-entitlement-lifecycle-service-api/src/main/java/com/mi/sfp/lifecycle/api/warranty/facade/dto/request/WarrantyUpdateParam.java",
+    "sfp-entitlement-lifecycle-service-app/src/main/java/com/mi/sfp/lifecycle/application/warranty/WarrantyUpdateCommandHandler.java",
+    "sfp-entitlement-lifecycle-service-app/src/main/java/com/mi/sfp/lifecycle/application/warranty/common/enums/WarrantyUpdateTypeEnum.java",
+    "sfp-entitlement-lifecycle-service-app/src/main/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyFacadeImpl.java",
+    "sfp-entitlement-lifecycle-service-domain/src/main/java/com/mi/sfp/lifecycle/config/domain/warranty/model/SrvThreeGuarantee.java"
+  ],
+  "files": [
+    {
+      "index_key": "sfp-entitlement-lifecycle-service|sfp-entitlement-lifecycle-service-acl/src/main/java/com/mi/asp/spf/acl/maf/gateway/MafGatewayImpl.java|com.mi.asp.spf.acl.maf.gateway.MafGatewayImpl",
+      "path": "sfp-entitlement-lifecycle-service-acl/src/main/java/com/mi/asp/spf/acl/maf/gateway/MafGatewayImpl.java",
+      "class_name": "MafGatewayImpl",
+      "package": "com.mi.asp.spf.acl.maf.gateway",
+      "fqcn": "com.mi.asp.spf.acl.maf.gateway.MafGatewayImpl",
+      "repo": "sfp-entitlement-lifecycle-service",
+      "changed": true,
+      "methods": [
+        {
+          "name": "getMafOrderDetail",
+          "changed": false,
+          "start_line": 32,
+          "end_line": 49,
+          "branch_signals": [
+            "catch",
+            "throw"
+          ],
+          "branch_kinds": [
+            "happy",
+            "exception"
+          ],
+          "param_counts": [
+            1
+          ]
+        },
+        {
+          "name": "getSrvListBySn",
+          "changed": true,
+          "start_line": 49,
+          "end_line": 69,
+          "branch_signals": [
+            "catch",
+            "throw"
+          ],
+          "branch_kinds": [
+            "happy",
+            "exception"
+          ],
+          "param_counts": [
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "index_key": "sfp-entitlement-lifecycle-service|sfp-entitlement-lifecycle-service-api/src/main/java/com/mi/sfp/lifecycle/api/warranty/facade/dto/request/WarrantyUpdateParam.java|com.mi.sfp.lifecycle.api.warranty.facade.dto.request.WarrantyUpdateParam",
+      "path": "sfp-entitlement-lifecycle-service-api/src/main/java/com/mi/sfp/lifecycle/api/warranty/facade/dto/request/WarrantyUpdateParam.java",
+      "class_name": "WarrantyUpdateParam",
+      "package": "com.mi.sfp.lifecycle.api.warranty.facade.dto.request",
+      "fqcn": "com.mi.sfp.lifecycle.api.warranty.facade.dto.request.WarrantyUpdateParam",
+      "repo": "sfp-entitlement-lifecycle-service",
+      "changed": true,
+      "methods": []
+    },
+    {
+      "index_key": "sfp-entitlement-lifecycle-service|sfp-entitlement-lifecycle-service-app/src/main/java/com/mi/sfp/lifecycle/application/warranty/WarrantyUpdateCommandHandler.java|com.mi.sfp.lifecycle.application.warranty.WarrantyUpdateCommandHandler",
+      "path": "sfp-entitlement-lifecycle-service-app/src/main/java/com/mi/sfp/lifecycle/application/warranty/WarrantyUpdateCommandHandler.java",
+      "class_name": "WarrantyUpdateCommandHandler",
+      "package": "com.mi.sfp.lifecycle.application.warranty",
+      "fqcn": "com.mi.sfp.lifecycle.application.warranty.WarrantyUpdateCommandHandler",
+      "repo": "sfp-entitlement-lifecycle-service",
+      "changed": true,
+      "methods": [
+        {
+          "name": "handle",
+          "changed": true,
+          "start_line": 26,
+          "end_line": 46,
+          "branch_signals": [
+            "if",
+            "throw"
+          ],
+          "branch_kinds": [
+            "happy",
+            "exception",
+            "boundary"
+          ],
+          "param_counts": [
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "index_key": "sfp-entitlement-lifecycle-service|sfp-entitlement-lifecycle-service-app/src/main/java/com/mi/sfp/lifecycle/application/warranty/common/enums/WarrantyUpdateTypeEnum.java|com.mi.sfp.lifecycle.application.warranty.common.enums.WarrantyUpdateTypeEnum",
+      "path": "sfp-entitlement-lifecycle-service-app/src/main/java/com/mi/sfp/lifecycle/application/warranty/common/enums/WarrantyUpdateTypeEnum.java",
+      "class_name": "WarrantyUpdateTypeEnum",
+      "package": "com.mi.sfp.lifecycle.application.warranty.common.enums",
+      "fqcn": "com.mi.sfp.lifecycle.application.warranty.common.enums.WarrantyUpdateTypeEnum",
+      "repo": "sfp-entitlement-lifecycle-service",
+      "changed": true,
+      "methods": [
+        {
+          "name": "checkData",
+          "changed": true,
+          "start_line": 160,
+          "end_line": 183,
+          "branch_signals": [
+            "if",
+            "throw"
+          ],
+          "branch_kinds": [
+            "happy",
+            "exception",
+            "boundary"
+          ],
+          "param_counts": [
+            1
+          ]
+        },
+        {
+          "name": "setData",
+          "changed": false,
+          "start_line": 183,
+          "end_line": 205,
+          "branch_signals": [
+            "if",
+            "throw"
+          ],
+          "branch_kinds": [
+            "happy",
+            "exception",
+            "boundary"
+          ],
+          "param_counts": [
+            2
+          ]
+        },
+        {
+          "name": "parseDate",
+          "changed": false,
+          "start_line": 205,
+          "end_line": 226,
+          "branch_signals": [
+            "catch",
+            "if",
+            "throw"
+          ],
+          "branch_kinds": [
+            "happy",
+            "exception",
+            "boundary"
+          ],
+          "param_counts": [
+            1
+          ]
+        },
+        {
+          "name": "getByCode",
+          "changed": false,
+          "start_line": 226,
+          "end_line": 240,
+          "branch_signals": [
+            "if",
+            "throw"
+          ],
+          "branch_kinds": [
+            "happy",
+            "exception",
+            "boundary"
+          ],
+          "param_counts": [
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "index_key": "sfp-entitlement-lifecycle-service|sfp-entitlement-lifecycle-service-app/src/main/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyFacadeImpl.java|com.mi.sfp.lifecycle.application.warranty.facade.WarrantyFacadeImpl",
+      "path": "sfp-entitlement-lifecycle-service-app/src/main/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyFacadeImpl.java",
+      "class_name": "WarrantyFacadeImpl",
+      "package": "com.mi.sfp.lifecycle.application.warranty.facade",
+      "fqcn": "com.mi.sfp.lifecycle.application.warranty.facade.WarrantyFacadeImpl",
+      "repo": "sfp-entitlement-lifecycle-service",
+      "changed": true,
+      "methods": [
+        {
+          "name": "resolveStartTimeTypeId",
+          "changed": true,
+          "start_line": 94,
+          "end_line": 114,
+          "branch_signals": [
+            "if"
+          ],
+          "branch_kinds": [
+            "happy",
+            "boundary"
+          ],
+          "param_counts": [
+            1
+          ]
+        },
+        {
+          "name": "parseFixWarrantyEndDate",
+          "changed": true,
+          "start_line": 114,
+          "end_line": 125,
+          "branch_signals": [
+            "if"
+          ],
+          "branch_kinds": [
+            "happy",
+            "boundary"
+          ],
+          "param_counts": [
+            1
+          ]
+        },
+        {
+          "name": "validateAndParseFixWarrantyParam",
+          "changed": true,
+          "start_line": 125,
+          "end_line": 178,
+          "branch_signals": [
+            "if"
+          ],
+          "branch_kinds": [
+            "happy",
+            "boundary"
+          ],
+          "param_counts": [
+            1
+          ]
+        },
+        {
+          "name": "getWarrantyBySn",
+          "changed": false,
+          "start_line": 210,
+          "end_line": 227,
+          "branch_signals": [
+            "if"
+          ],
+          "branch_kinds": [
+            "happy",
+            "boundary"
+          ],
+          "param_counts": [
+            1
+          ]
+        },
+        {
+          "name": "getWarrantyBySnOld",
+          "changed": false,
+          "start_line": 227,
+          "end_line": 243,
+          "branch_signals": [],
+          "branch_kinds": [
+            "happy"
+          ],
+          "param_counts": [
+            1
+          ]
+        },
+        {
+          "name": "getMaterialWarranty",
+          "changed": false,
+          "start_line": 255,
+          "end_line": 272,
+          "branch_signals": [
+            "if"
+          ],
+          "branch_kinds": [
+            "happy"
+          ],
+          "param_counts": [
+            1
+          ]
+        },
+        {
+          "name": "getMaterialWarrantyOld",
+          "changed": false,
+          "start_line": 272,
+          "end_line": 295,
+          "branch_signals": [
+            "if"
+          ],
+          "branch_kinds": [
+            "happy"
+          ],
+          "param_counts": [
+            1
+          ]
+        },
+        {
+          "name": "getWarrantyLogByPage",
+          "changed": false,
+          "start_line": 304,
+          "end_line": 332,
+          "branch_signals": [
+            "if"
+          ],
+          "branch_kinds": [
+            "happy",
+            "boundary"
+          ],
+          "param_counts": [
+            1
+          ]
+        },
+        {
+          "name": "getWarrantyLogByPageOld",
+          "changed": false,
+          "start_line": 332,
+          "end_line": 356,
+          "branch_signals": [],
+          "branch_kinds": [
+            "happy"
+          ],
+          "param_counts": [
+            1
+          ]
+        },
+        {
+          "name": "fixWarrantyData",
+          "changed": true,
+          "start_line": 357,
+          "end_line": 434,
+          "branch_signals": [
+            "if"
+          ],
+          "branch_kinds": [
+            "happy",
+            "boundary"
+          ],
+          "param_counts": [
+            1
+          ]
+        },
+        {
+          "name": "fixMaterialWarrantyData",
+          "changed": true,
+          "start_line": 435,
+          "end_line": 469,
+          "branch_signals": [
+            "if"
+          ],
+          "branch_kinds": [
+            "happy",
+            "boundary"
+          ],
+          "param_counts": [
+            1
+          ]
+        },
+        {
+          "name": "batchFixWarranty",
+          "changed": false,
+          "start_line": 470,
+          "end_line": 484,
+          "branch_signals": [
+            "if"
+          ],
+          "branch_kinds": [
+            "happy",
+            "boundary"
+          ],
+          "param_counts": [
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "index_key": "sfp-entitlement-lifecycle-service|sfp-entitlement-lifecycle-service-domain/src/main/java/com/mi/sfp/lifecycle/config/domain/warranty/model/SrvThreeGuarantee.java|com.mi.sfp.lifecycle.config.domain.warranty.model.SrvThreeGuarantee",
+      "path": "sfp-entitlement-lifecycle-service-domain/src/main/java/com/mi/sfp/lifecycle/config/domain/warranty/model/SrvThreeGuarantee.java",
+      "class_name": "SrvThreeGuarantee",
+      "package": "com.mi.sfp.lifecycle.config.domain.warranty.model",
+      "fqcn": "com.mi.sfp.lifecycle.config.domain.warranty.model.SrvThreeGuarantee",
+      "repo": "sfp-entitlement-lifecycle-service",
+      "changed": true,
+      "methods": []
+    }
+  ],
+  "class_entries": [
+    {
+      "index_key": "sfp-entitlement-lifecycle-service|sfp-entitlement-lifecycle-service-acl/src/main/java/com/mi/asp/spf/acl/maf/gateway/MafGatewayImpl.java|com.mi.asp.spf.acl.maf.gateway.MafGatewayImpl",
+      "path": "sfp-entitlement-lifecycle-service-acl/src/main/java/com/mi/asp/spf/acl/maf/gateway/MafGatewayImpl.java",
+      "class_name": "MafGatewayImpl",
+      "package": "com.mi.asp.spf.acl.maf.gateway",
+      "fqcn": "com.mi.asp.spf.acl.maf.gateway.MafGatewayImpl",
+      "repo": "sfp-entitlement-lifecycle-service",
+      "changed": true,
+      "methods": [
+        {
+          "name": "getMafOrderDetail",
+          "changed": false,
+          "start_line": 32,
+          "end_line": 49,
+          "branch_signals": [
+            "catch",
+            "throw"
+          ],
+          "branch_kinds": [
+            "happy",
+            "exception"
+          ],
+          "param_counts": [
+            1
+          ]
+        },
+        {
+          "name": "getSrvListBySn",
+          "changed": true,
+          "start_line": 49,
+          "end_line": 69,
+          "branch_signals": [
+            "catch",
+            "throw"
+          ],
+          "branch_kinds": [
+            "happy",
+            "exception"
+          ],
+          "param_counts": [
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "index_key": "sfp-entitlement-lifecycle-service|sfp-entitlement-lifecycle-service-api/src/main/java/com/mi/sfp/lifecycle/api/warranty/facade/dto/request/WarrantyUpdateParam.java|com.mi.sfp.lifecycle.api.warranty.facade.dto.request.WarrantyUpdateParam",
+      "path": "sfp-entitlement-lifecycle-service-api/src/main/java/com/mi/sfp/lifecycle/api/warranty/facade/dto/request/WarrantyUpdateParam.java",
+      "class_name": "WarrantyUpdateParam",
+      "package": "com.mi.sfp.lifecycle.api.warranty.facade.dto.request",
+      "fqcn": "com.mi.sfp.lifecycle.api.warranty.facade.dto.request.WarrantyUpdateParam",
+      "repo": "sfp-entitlement-lifecycle-service",
+      "changed": true,
+      "methods": []
+    },
+    {
+      "index_key": "sfp-entitlement-lifecycle-service|sfp-entitlement-lifecycle-service-app/src/main/java/com/mi/sfp/lifecycle/application/warranty/WarrantyUpdateCommandHandler.java|com.mi.sfp.lifecycle.application.warranty.WarrantyUpdateCommandHandler",
+      "path": "sfp-entitlement-lifecycle-service-app/src/main/java/com/mi/sfp/lifecycle/application/warranty/WarrantyUpdateCommandHandler.java",
+      "class_name": "WarrantyUpdateCommandHandler",
+      "package": "com.mi.sfp.lifecycle.application.warranty",
+      "fqcn": "com.mi.sfp.lifecycle.application.warranty.WarrantyUpdateCommandHandler",
+      "repo": "sfp-entitlement-lifecycle-service",
+      "changed": true,
+      "methods": [
+        {
+          "name": "handle",
+          "changed": true,
+          "start_line": 26,
+          "end_line": 46,
+          "branch_signals": [
+            "if",
+            "throw"
+          ],
+          "branch_kinds": [
+            "happy",
+            "exception",
+            "boundary"
+          ],
+          "param_counts": [
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "index_key": "sfp-entitlement-lifecycle-service|sfp-entitlement-lifecycle-service-app/src/main/java/com/mi/sfp/lifecycle/application/warranty/common/enums/WarrantyUpdateTypeEnum.java|com.mi.sfp.lifecycle.application.warranty.common.enums.WarrantyUpdateTypeEnum",
+      "path": "sfp-entitlement-lifecycle-service-app/src/main/java/com/mi/sfp/lifecycle/application/warranty/common/enums/WarrantyUpdateTypeEnum.java",
+      "class_name": "WarrantyUpdateTypeEnum",
+      "package": "com.mi.sfp.lifecycle.application.warranty.common.enums",
+      "fqcn": "com.mi.sfp.lifecycle.application.warranty.common.enums.WarrantyUpdateTypeEnum",
+      "repo": "sfp-entitlement-lifecycle-service",
+      "changed": true,
+      "methods": [
+        {
+          "name": "checkData",
+          "changed": true,
+          "start_line": 160,
+          "end_line": 183,
+          "branch_signals": [
+            "if",
+            "throw"
+          ],
+          "branch_kinds": [
+            "happy",
+            "exception",
+            "boundary"
+          ],
+          "param_counts": [
+            1
+          ]
+        },
+        {
+          "name": "setData",
+          "changed": false,
+          "start_line": 183,
+          "end_line": 205,
+          "branch_signals": [
+            "if",
+            "throw"
+          ],
+          "branch_kinds": [
+            "happy",
+            "exception",
+            "boundary"
+          ],
+          "param_counts": [
+            2
+          ]
+        },
+        {
+          "name": "parseDate",
+          "changed": false,
+          "start_line": 205,
+          "end_line": 226,
+          "branch_signals": [
+            "catch",
+            "if",
+            "throw"
+          ],
+          "branch_kinds": [
+            "happy",
+            "exception",
+            "boundary"
+          ],
+          "param_counts": [
+            1
+          ]
+        },
+        {
+          "name": "getByCode",
+          "changed": false,
+          "start_line": 226,
+          "end_line": 240,
+          "branch_signals": [
+            "if",
+            "throw"
+          ],
+          "branch_kinds": [
+            "happy",
+            "exception",
+            "boundary"
+          ],
+          "param_counts": [
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "index_key": "sfp-entitlement-lifecycle-service|sfp-entitlement-lifecycle-service-app/src/main/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyFacadeImpl.java|com.mi.sfp.lifecycle.application.warranty.facade.WarrantyFacadeImpl",
+      "path": "sfp-entitlement-lifecycle-service-app/src/main/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyFacadeImpl.java",
+      "class_name": "WarrantyFacadeImpl",
+      "package": "com.mi.sfp.lifecycle.application.warranty.facade",
+      "fqcn": "com.mi.sfp.lifecycle.application.warranty.facade.WarrantyFacadeImpl",
+      "repo": "sfp-entitlement-lifecycle-service",
+      "changed": true,
+      "methods": [
+        {
+          "name": "resolveStartTimeTypeId",
+          "changed": true,
+          "start_line": 94,
+          "end_line": 114,
+          "branch_signals": [
+            "if"
+          ],
+          "branch_kinds": [
+            "happy",
+            "boundary"
+          ],
+          "param_counts": [
+            1
+          ]
+        },
+        {
+          "name": "parseFixWarrantyEndDate",
+          "changed": true,
+          "start_line": 114,
+          "end_line": 125,
+          "branch_signals": [
+            "if"
+          ],
+          "branch_kinds": [
+            "happy",
+            "boundary"
+          ],
+          "param_counts": [
+            1
+          ]
+        },
+        {
+          "name": "validateAndParseFixWarrantyParam",
+          "changed": true,
+          "start_line": 125,
+          "end_line": 178,
+          "branch_signals": [
+            "if"
+          ],
+          "branch_kinds": [
+            "happy",
+            "boundary"
+          ],
+          "param_counts": [
+            1
+          ]
+        },
+        {
+          "name": "getWarrantyBySn",
+          "changed": false,
+          "start_line": 210,
+          "end_line": 227,
+          "branch_signals": [
+            "if"
+          ],
+          "branch_kinds": [
+            "happy",
+            "boundary"
+          ],
+          "param_counts": [
+            1
+          ]
+        },
+        {
+          "name": "getWarrantyBySnOld",
+          "changed": false,
+          "start_line": 227,
+          "end_line": 243,
+          "branch_signals": [],
+          "branch_kinds": [
+            "happy"
+          ],
+          "param_counts": [
+            1
+          ]
+        },
+        {
+          "name": "getMaterialWarranty",
+          "changed": false,
+          "start_line": 255,
+          "end_line": 272,
+          "branch_signals": [
+            "if"
+          ],
+          "branch_kinds": [
+            "happy"
+          ],
+          "param_counts": [
+            1
+          ]
+        },
+        {
+          "name": "getMaterialWarrantyOld",
+          "changed": false,
+          "start_line": 272,
+          "end_line": 295,
+          "branch_signals": [
+            "if"
+          ],
+          "branch_kinds": [
+            "happy"
+          ],
+          "param_counts": [
+            1
+          ]
+        },
+        {
+          "name": "getWarrantyLogByPage",
+          "changed": false,
+          "start_line": 304,
+          "end_line": 332,
+          "branch_signals": [
+            "if"
+          ],
+          "branch_kinds": [
+            "happy",
+            "boundary"
+          ],
+          "param_counts": [
+            1
+          ]
+        },
+        {
+          "name": "getWarrantyLogByPageOld",
+          "changed": false,
+          "start_line": 332,
+          "end_line": 356,
+          "branch_signals": [],
+          "branch_kinds": [
+            "happy"
+          ],
+          "param_counts": [
+            1
+          ]
+        },
+        {
+          "name": "fixWarrantyData",
+          "changed": true,
+          "start_line": 357,
+          "end_line": 434,
+          "branch_signals": [
+            "if"
+          ],
+          "branch_kinds": [
+            "happy",
+            "boundary"
+          ],
+          "param_counts": [
+            1
+          ]
+        },
+        {
+          "name": "fixMaterialWarrantyData",
+          "changed": true,
+          "start_line": 435,
+          "end_line": 469,
+          "branch_signals": [
+            "if"
+          ],
+          "branch_kinds": [
+            "happy",
+            "boundary"
+          ],
+          "param_counts": [
+            1
+          ]
+        },
+        {
+          "name": "batchFixWarranty",
+          "changed": false,
+          "start_line": 470,
+          "end_line": 484,
+          "branch_signals": [
+            "if"
+          ],
+          "branch_kinds": [
+            "happy",
+            "boundary"
+          ],
+          "param_counts": [
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "index_key": "sfp-entitlement-lifecycle-service|sfp-entitlement-lifecycle-service-domain/src/main/java/com/mi/sfp/lifecycle/config/domain/warranty/model/SrvThreeGuarantee.java|com.mi.sfp.lifecycle.config.domain.warranty.model.SrvThreeGuarantee",
+      "path": "sfp-entitlement-lifecycle-service-domain/src/main/java/com/mi/sfp/lifecycle/config/domain/warranty/model/SrvThreeGuarantee.java",
+      "class_name": "SrvThreeGuarantee",
+      "package": "com.mi.sfp.lifecycle.config.domain.warranty.model",
+      "fqcn": "com.mi.sfp.lifecycle.config.domain.warranty.model.SrvThreeGuarantee",
+      "repo": "sfp-entitlement-lifecycle-service",
+      "changed": true,
+      "methods": []
+    }
+  ],
+  "class_index": {
+    "sfp-entitlement-lifecycle-service|sfp-entitlement-lifecycle-service-acl/src/main/java/com/mi/asp/spf/acl/maf/gateway/MafGatewayImpl.java|com.mi.asp.spf.acl.maf.gateway.MafGatewayImpl": {
+      "path": "sfp-entitlement-lifecycle-service-acl/src/main/java/com/mi/asp/spf/acl/maf/gateway/MafGatewayImpl.java",
+      "repo": "sfp-entitlement-lifecycle-service",
+      "package": "com.mi.asp.spf.acl.maf.gateway",
+      "fqcn": "com.mi.asp.spf.acl.maf.gateway.MafGatewayImpl",
+      "methods": [
+        "getMafOrderDetail",
+        "getSrvListBySn"
+      ]
+    },
+    "sfp-entitlement-lifecycle-service|sfp-entitlement-lifecycle-service-api/src/main/java/com/mi/sfp/lifecycle/api/warranty/facade/dto/request/WarrantyUpdateParam.java|com.mi.sfp.lifecycle.api.warranty.facade.dto.request.WarrantyUpdateParam": {
+      "path": "sfp-entitlement-lifecycle-service-api/src/main/java/com/mi/sfp/lifecycle/api/warranty/facade/dto/request/WarrantyUpdateParam.java",
+      "repo": "sfp-entitlement-lifecycle-service",
+      "package": "com.mi.sfp.lifecycle.api.warranty.facade.dto.request",
+      "fqcn": "com.mi.sfp.lifecycle.api.warranty.facade.dto.request.WarrantyUpdateParam",
+      "methods": []
+    },
+    "sfp-entitlement-lifecycle-service|sfp-entitlement-lifecycle-service-app/src/main/java/com/mi/sfp/lifecycle/application/warranty/WarrantyUpdateCommandHandler.java|com.mi.sfp.lifecycle.application.warranty.WarrantyUpdateCommandHandler": {
+      "path": "sfp-entitlement-lifecycle-service-app/src/main/java/com/mi/sfp/lifecycle/application/warranty/WarrantyUpdateCommandHandler.java",
+      "repo": "sfp-entitlement-lifecycle-service",
+      "package": "com.mi.sfp.lifecycle.application.warranty",
+      "fqcn": "com.mi.sfp.lifecycle.application.warranty.WarrantyUpdateCommandHandler",
+      "methods": [
+        "handle"
+      ]
+    },
+    "sfp-entitlement-lifecycle-service|sfp-entitlement-lifecycle-service-app/src/main/java/com/mi/sfp/lifecycle/application/warranty/common/enums/WarrantyUpdateTypeEnum.java|com.mi.sfp.lifecycle.application.warranty.common.enums.WarrantyUpdateTypeEnum": {
+      "path": "sfp-entitlement-lifecycle-service-app/src/main/java/com/mi/sfp/lifecycle/application/warranty/common/enums/WarrantyUpdateTypeEnum.java",
+      "repo": "sfp-entitlement-lifecycle-service",
+      "package": "com.mi.sfp.lifecycle.application.warranty.common.enums",
+      "fqcn": "com.mi.sfp.lifecycle.application.warranty.common.enums.WarrantyUpdateTypeEnum",
+      "methods": [
+        "checkData",
+        "setData",
+        "parseDate",
+        "getByCode"
+      ]
+    },
+    "sfp-entitlement-lifecycle-service|sfp-entitlement-lifecycle-service-app/src/main/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyFacadeImpl.java|com.mi.sfp.lifecycle.application.warranty.facade.WarrantyFacadeImpl": {
+      "path": "sfp-entitlement-lifecycle-service-app/src/main/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyFacadeImpl.java",
+      "repo": "sfp-entitlement-lifecycle-service",
+      "package": "com.mi.sfp.lifecycle.application.warranty.facade",
+      "fqcn": "com.mi.sfp.lifecycle.application.warranty.facade.WarrantyFacadeImpl",
+      "methods": [
+        "resolveStartTimeTypeId",
+        "parseFixWarrantyEndDate",
+        "validateAndParseFixWarrantyParam",
+        "getWarrantyBySn",
+        "getWarrantyBySnOld",
+        "getMaterialWarranty",
+        "getMaterialWarrantyOld",
+        "getWarrantyLogByPage",
+        "getWarrantyLogByPageOld",
+        "fixWarrantyData",
+        "fixMaterialWarrantyData",
+        "batchFixWarranty"
+      ]
+    },
+    "sfp-entitlement-lifecycle-service|sfp-entitlement-lifecycle-service-domain/src/main/java/com/mi/sfp/lifecycle/config/domain/warranty/model/SrvThreeGuarantee.java|com.mi.sfp.lifecycle.config.domain.warranty.model.SrvThreeGuarantee": {
+      "path": "sfp-entitlement-lifecycle-service-domain/src/main/java/com/mi/sfp/lifecycle/config/domain/warranty/model/SrvThreeGuarantee.java",
+      "repo": "sfp-entitlement-lifecycle-service",
+      "package": "com.mi.sfp.lifecycle.config.domain.warranty.model",
+      "fqcn": "com.mi.sfp.lifecycle.config.domain.warranty.model.SrvThreeGuarantee",
+      "methods": []
+    }
+  },
+  "simple_name_index": {
+    "MafGatewayImpl": [
+      "sfp-entitlement-lifecycle-service|sfp-entitlement-lifecycle-service-acl/src/main/java/com/mi/asp/spf/acl/maf/gateway/MafGatewayImpl.java|com.mi.asp.spf.acl.maf.gateway.MafGatewayImpl"
+    ],
+    "WarrantyUpdateParam": [
+      "sfp-entitlement-lifecycle-service|sfp-entitlement-lifecycle-service-api/src/main/java/com/mi/sfp/lifecycle/api/warranty/facade/dto/request/WarrantyUpdateParam.java|com.mi.sfp.lifecycle.api.warranty.facade.dto.request.WarrantyUpdateParam"
+    ],
+    "WarrantyUpdateCommandHandler": [
+      "sfp-entitlement-lifecycle-service|sfp-entitlement-lifecycle-service-app/src/main/java/com/mi/sfp/lifecycle/application/warranty/WarrantyUpdateCommandHandler.java|com.mi.sfp.lifecycle.application.warranty.WarrantyUpdateCommandHandler"
+    ],
+    "WarrantyUpdateTypeEnum": [
+      "sfp-entitlement-lifecycle-service|sfp-entitlement-lifecycle-service-app/src/main/java/com/mi/sfp/lifecycle/application/warranty/common/enums/WarrantyUpdateTypeEnum.java|com.mi.sfp.lifecycle.application.warranty.common.enums.WarrantyUpdateTypeEnum"
+    ],
+    "WarrantyFacadeImpl": [
+      "sfp-entitlement-lifecycle-service|sfp-entitlement-lifecycle-service-app/src/main/java/com/mi/sfp/lifecycle/application/warranty/facade/WarrantyFacadeImpl.java|com.mi.sfp.lifecycle.application.warranty.facade.WarrantyFacadeImpl"
+    ],
+    "SrvThreeGuarantee": [
+      "sfp-entitlement-lifecycle-service|sfp-entitlement-lifecycle-service-domain/src/main/java/com/mi/sfp/lifecycle/config/domain/warranty/model/SrvThreeGuarantee.java|com.mi.sfp.lifecycle.config.domain.warranty.model.SrvThreeGuarantee"
+    ]
+  },
+  "ambiguous_simple_names": []
+}
