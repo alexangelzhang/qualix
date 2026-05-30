@@ -346,6 +346,7 @@ Phase Q05 保证"按规则写了"，Phase Q06 检查"写得好不好"：
 - [ ] 推理日志引用了 SKILL.md 的 Step 编号
 - [ ] 每个 COVERED 判定已填写 `test_location`（`line_start` 指向断言行）
 - [ ] 每条 `audit_item.eut_id` 已在 `phase_b_structured.json` 中找到对应条目（非臆造）
+- [ ] 无 WRONG_TARGET 漏标：仅验证方法存在/可实例化/不抛异常的测试必须标 WRONG_TARGET，不能标 COVERED
 
 ### Step 10: Judge/Critique（提交前自我评审）
 
@@ -419,6 +420,9 @@ Phase Q05 保证"按规则写了"，Phase Q06 检查"写得好不好"：
 | "并发场景单测覆盖不了" | CountDownLatch + 多线程可以验证竞态窗口 | 至少验证 check-then-act 的竞态存在性 |
 | "Mock 的方法名看着对" | LLM 常见幻觉：猜测方法名（如 isSuccess vs isOk），编译会失败 | 审计时验证 Mock 的方法签名在被测类中实际存在 |
 | "测试文件在项目里就行" | 放错模块导致编译失败，找不到被测类依赖 | 检查单测 package 与被测类是否在同一 Maven 模块 |
+| "方法能调用就说明测到了" | 仅验证方法存在/可实例化/不抛异常 = WRONG_TARGET，没有验证任何业务结果 | 必须有对返回值、状态变更或副作用的业务断言 |
+| "verify mock 被调用了就行" | 只验证调用次数不验证参数内容，无法发现入参错误 | 补充 `verify(mock).method(argThat(...))` 或对返回值做业务断言 |
+| "返回了结果就是 COVERED" | 仅断言 `assertNotNull(result)` 或 `assertDoesNotThrow` 无法验证业务语义 | 必须断言返回码、关键字段值或业务状态，空集合场景须用 `assertTrue(result.isEmpty())` |
 
 ## Question-Style 审计指令（用问题代替模糊指令）
 
