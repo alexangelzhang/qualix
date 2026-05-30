@@ -24,6 +24,21 @@
           {
             "type": "command",
             "command": "bash -c 'python3 \"$(git rev-parse --show-toplevel)/dev-quality-gate/.claude/hooks/phase_finalize_reminder.py\"'"
+          },
+          {
+            "type": "command",
+            "command": "bash -c 'python3 \"$(git rev-parse --show-toplevel)/dev-quality-gate/.claude/hooks/ttsr_reminder.py\"'",
+            "async": true
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'python3 \"$(git rev-parse --show-toplevel)/dev-quality-gate/.claude/hooks/ttsr_reminder.py\"'",
+            "async": true
           }
         ]
       }
