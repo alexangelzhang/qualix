@@ -162,6 +162,15 @@ def _build_parser() -> argparse.ArgumentParser:
     p_adapt.add_argument("--max-iter", type=int, default=3, help="最大迭代次数")
     p_adapt.add_argument("--threshold", type=float, default=3.5, help="通过阈值（1-5）")
 
+    # adaptive-override：人工批准某轮 adaptive 迭代
+    p_aoverride = sub.add_parser("adaptive-override", help="人工批准 adaptive loop 某轮迭代结果")
+    p_aoverride.add_argument("phase", help="Phase ID")
+    p_aoverride.add_argument("--approve-iteration", type=int, required=True, dest="approve_iteration", help="批准第 N 轮（从 1 开始）")
+
+    # adaptive-diff：展示 adaptive loop 各轮迭代产物 diff
+    p_adiff = sub.add_parser("adaptive-diff", help="展示 adaptive loop 各轮迭代产物的 diff summary")
+    p_adiff.add_argument("phase", help="Phase ID")
+
     # dag
     p_dag = sub.add_parser("dag", help="DAG 并行调度: 全自动推进所有可执行 Phase")
     p_dag.add_argument("--skip", nargs="*", default=[], help="跳过指定 Phase（如 Q03 Q05）")
@@ -321,12 +330,17 @@ def _dispatch(cmd: str) -> callable:
 
         return {"judge": cmd_judge, "critique": cmd_critique, "preference": cmd_preference, "golden": cmd_golden}[cmd]
 
-    if cmd in ("orchestrate", "agent-run", "adaptive", "dag"):
-        from dqg.commands.agents import cmd_adaptive, cmd_agent_run, cmd_dag, cmd_orchestrate
+    if cmd in ("orchestrate", "agent-run", "adaptive", "dag", "adaptive-override", "adaptive-diff"):
+        from dqg.commands.agents import cmd_adaptive, cmd_adaptive_diff, cmd_adaptive_override, cmd_agent_run, cmd_dag, cmd_orchestrate
 
-        return {"orchestrate": cmd_orchestrate, "agent-run": cmd_agent_run, "adaptive": cmd_adaptive, "dag": cmd_dag}[
-            cmd
-        ]
+        return {
+            "orchestrate": cmd_orchestrate,
+            "agent-run": cmd_agent_run,
+            "adaptive": cmd_adaptive,
+            "dag": cmd_dag,
+            "adaptive-override": cmd_adaptive_override,
+            "adaptive-diff": cmd_adaptive_diff,
+        }[cmd]
 
     if cmd in ("wiki-compile", "wiki-lint"):
         from dqg.commands.wiki import cmd_wiki_compile, cmd_wiki_lint

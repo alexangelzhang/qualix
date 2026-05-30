@@ -99,6 +99,7 @@ class AdaptiveLoop:
         worker_model: str = "claude-opus-4-6",
         judge_models: list[str] | None = None,
         fallback: str | None = None,
+        progress_callback: object | None = None,
     ) -> AdaptiveResult:
         """执行自适应循环."""
         if judge_models is None:
@@ -205,7 +206,25 @@ class AdaptiveLoop:
         trace_run_id = uuid.uuid4().hex[:12]
         import hashlib as _hashlib
 
+        # P1-B: 循环开始前注入历史 Gene（按 project_id 隔离）
+        try:
+            from dqg.quality.regression.gene_store import format_genes_for_injection, load_genes_for_phase
+
+            _genes = load_genes_for_phase(self.output_dir.parent, phase_id, project_id=project_id)
+            if _genes:
+                _gene_prefix = format_genes_for_injection(_genes)
+                worker_prompt = _gene_prefix + worker_prompt
+                judge_rubric = _gene_prefix + judge_rubric
+                log.info("Gene injection: %d genes injected for %s/%s", len(_genes), project_id, phase_id)
+        except Exception as _gene_err:
+            log.debug("Gene injection failed (non-blocking): %s", _gene_err)
+
         for i in range(max_iterations):
+            if progress_callback:
+                try:
+                    progress_callback({"event": "iter_start", "iteration": i + 1, "total": max_iterations})
+                except Exception:
+                    pass
             record, passed, iter_llm_calls = self._execute_iteration(
                 i=i,
                 pd=pd,
@@ -231,6 +250,21 @@ class AdaptiveLoop:
             )
             iterations.append(record)
             all_llm_calls.extend(iter_llm_calls)
+
+            if progress_callback and record.judge_result:
+                try:
+                    progress_callback({
+                        "event": "iter_done",
+                        "iteration": i + 1,
+                        "total": max_iterations,
+                        "consensus": record.judge_result.consensus,
+                        "avg_score": record.judge_result.avg_score,
+                        "issue_count": sum(len(v.issues) for v in record.judge_result.votes),
+                        "schema_errors": len(record.schema_errors),
+                        "duration": record.duration,
+                    })
+                except Exception:
+                    pass
 
             # Issue lifecycle tracking
             if record.judge_result is not None:
@@ -369,6 +403,34 @@ class AdaptiveLoop:
 
         with contextlib.suppress(OSError):
             (pd / "_pivot_latest").write_text(pivot_dir.name, encoding="utf-8")
+
+        # P2-A: 记录产物内容 hash，供下轮 Fixer 验证产物完整性（fail-open）
+        try:
+            import hashlib as _hl
+            from datetime import datetime as _dt
+
+            def _sha256_file(p: "Path") -> str | None:
+                try:
+                    return _hl.sha256(p.read_bytes()).hexdigest()[:16]
+                except OSError:
+                    return None
+
+            _hash_path = pd / "_pivot_hashes.json"
+            _hashes: dict = {}
+            if _hash_path.exists():
+                try:
+                    _hashes = __import__("json").loads(_hash_path.read_text(encoding="utf-8"))
+                except (ValueError, OSError):
+                    pass
+            _key = f"iter_{iteration_n + 1}"
+            _hashes[_key] = {
+                "json": _sha256_file(pd / json_fname) if json_fname and (pd / json_fname).exists() else None,
+                "report": _sha256_file(pd / report_fname) if report_fname and (pd / report_fname).exists() else None,
+                "ts": _dt.now().isoformat(timespec="seconds"),
+            }
+            _hash_path.write_text(__import__("json").dumps(_hashes, indent=2), encoding="utf-8")
+        except Exception as _hash_err:
+            log.debug("PIVOT: hash 签名写入失败（非阻断）: %s", _hash_err)
 
         log.info("PIVOT: 快照已保存到 %s", pivot_dir)
 
@@ -542,22 +604,54 @@ class AdaptiveLoop:
             "4. 直接输出 Markdown 报告内容，不要输出 JSON 或 tool_call。\n\n"
         )
         if i == 0:
-            worker = Agent(
-                name=f"worker-iter{i + 1}",
-                role="worker",
-                system_prompt=no_tool_prefix + worker_prompt,
-                model=LLMConfig(primary=worker_model, fallback=fallback),
-                output_dir=self.output_dir,
-            )
-            _ts = {"trace_run_id": trace_run_id, "phase_id": phase_id, "project_id": project_id, "iteration": span_iter}
-            record.worker_result = _agent_run(
-                worker,
-                "基于提供的上下文，执行 Phase 任务，直接输出结构化报告。",
-                context_files=context_files,
-                span_kw=_ts,
-            )
-            if record.worker_result.status != "failed":
-                report_path.write_text(record.worker_result.content, encoding="utf-8")
+            # P0-C: 第1轮默认走 TwoPhaseWorker（Collector→Writer），失败 fallback 单阶段
+            _two_phase_ok = False
+            try:
+                from dqg.agents.two_phase_worker import run_two_phase_worker
+
+                _tp_result = run_two_phase_worker(
+                    output_dir=self.output_dir,
+                    project_id=project_id,
+                    phase_id=phase_id,
+                    skill_content=worker_prompt,
+                    context_files=context_files,
+                    worker_model=worker_model,
+                    fallback=fallback,
+                )
+                if _tp_result.get("status") == "success":
+                    from dqg.agents.agent import AgentResult
+
+                    record.worker_result = AgentResult(
+                        agent_name=f"two-phase-worker-iter{i + 1}",
+                        role="worker",
+                        status="success",
+                        content=_tp_result["report_content"],
+                    )
+                    report_path.write_text(record.worker_result.content, encoding="utf-8")
+                    _two_phase_ok = True
+                    log.info("TwoPhaseWorker succeeded for iter %d", i + 1)
+                else:
+                    log.warning("TwoPhaseWorker failed (%s), falling back to single-phase", _tp_result.get("error", ""))
+            except Exception as _tp_err:
+                log.warning("TwoPhaseWorker exception, falling back to single-phase: %s", _tp_err)
+
+            if not _two_phase_ok:
+                worker = Agent(
+                    name=f"worker-iter{i + 1}",
+                    role="worker",
+                    system_prompt=no_tool_prefix + worker_prompt,
+                    model=LLMConfig(primary=worker_model, fallback=fallback),
+                    output_dir=self.output_dir,
+                )
+                _ts = {"trace_run_id": trace_run_id, "phase_id": phase_id, "project_id": project_id, "iteration": span_iter}
+                record.worker_result = _agent_run(
+                    worker,
+                    "基于提供的上下文，执行 Phase 任务，直接输出结构化报告。",
+                    context_files=context_files,
+                    span_kw=_ts,
+                )
+                if record.worker_result.status != "failed":
+                    report_path.write_text(record.worker_result.content, encoding="utf-8")
         else:
             prev = iterations[-1]
             handoff_path = pd / f"_handoff_iter{i + 1}.md"
@@ -758,6 +852,29 @@ class AdaptiveLoop:
             # Collect critique LLM call telemetry
             if record.critique_result:
                 iter_llm_calls.append(_attach(extract_llm_call(record.critique_result), "critique"))
+
+        # P1-A: passed 后提取 Gene（Critique 成功修正 → 结晶为可复用评审基因）
+        if passed and record.critique_result and record.critique_result.status != "failed":
+            try:
+                from dqg.quality.regression.gene_store import (
+                    _build_preference_from_pass,
+                    extract_genes_from_preference,
+                    save_genes,
+                )
+
+                _pref = _build_preference_from_pass(record, project_id, phase_id)
+                import json as _json_gene
+                _critique_data: dict = {}
+                try:
+                    _critique_data = _json_gene.loads(record.critique_result.content)
+                except (ValueError, AttributeError):
+                    pass
+                _new_genes = extract_genes_from_preference(_pref, _critique_data, phase_id, project_id)
+                if _new_genes:
+                    save_genes(self.output_dir.parent, _new_genes, project_id=project_id)
+                    log.info("Gene extraction: %d new genes saved for %s/%s", len(_new_genes), project_id, phase_id)
+            except Exception as _gene_save_err:
+                log.debug("Gene extraction failed (non-blocking): %s", _gene_save_err)
 
         return record, passed, iter_llm_calls
 

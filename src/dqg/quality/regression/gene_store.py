@@ -137,8 +137,12 @@ def _extract_pattern(description: str, detail: dict[str, Any]) -> str:
 def save_genes(
     base_dir: Path,
     genes: list[dict[str, Any]],
+    project_id: str | None = None,
 ) -> list[str]:
-    """保存 Gene 到文件系统."""
+    """保存 Gene 到文件系统。
+
+    project_id 不为空时写入隔离路径 regression/genes/{phase_id}/{project_id}/。
+    """
     if not genes:
         return []
 
@@ -146,13 +150,77 @@ def save_genes(
     for gene in genes:
         phase_id = gene.get("phase_id", "unknown")
         gene_id = gene["gene_id"]
-        gene_dir = base_dir / GENE_DIR / phase_id
+        if project_id:
+            gene_dir = base_dir / GENE_DIR / phase_id / project_id
+        else:
+            gene_dir = base_dir / GENE_DIR / phase_id
         gene_dir.mkdir(parents=True, exist_ok=True)
         save_json(gene_dir / f"{gene_id}.json", gene)
         saved.append(gene_id)
         log.info("Gene saved: %s", gene_id)
 
     return saved
+
+
+def format_genes_for_injection(genes: list[dict[str, Any]], max_genes: int = 10) -> str:
+    """将 Gene 格式化为可注入 Worker/Judge prompt 的简洁文本。
+
+    与 render_genes_for_prompt 不同，这里面向 adaptive loop 的 prompt prefix，
+    更简洁（每条 Gene 一行），token 增量 ≤ 800。
+    """
+    if not genes:
+        return ""
+
+    top = genes[:max_genes]
+    lines = [
+        "## 历史 Gene（来自本项目过往成功修正，优先关注）",
+        "",
+    ]
+    for gene in top:
+        desc = gene.get("description", "")[:80]
+        gene_id = gene.get("gene_id", "")
+        matched = gene.get("match_count", 0)
+        lines.append(f"- [{gene_id}] {desc}" + (f" [命中 {matched} 次]" if matched else ""))
+
+    lines.append("")
+    return "\n".join(lines)
+
+
+def _build_preference_from_pass(
+    iteration_record: Any,
+    project_id: str,
+    phase_id: str,
+) -> dict[str, Any]:
+    """从 IterationRecord 构造 preference dict，用于 Gene 提取。
+
+    adaptive loop 没有真正的 Preference LLM 调用，
+    用 passed=True 代理 preferred='v2'，置信度设为 medium。
+    """
+    critique_data = {}
+    if iteration_record.critique_result and iteration_record.critique_result.status != "failed":
+        import json as _json
+        try:
+            critique_data = _json.loads(iteration_record.critique_result.content)
+        except (ValueError, AttributeError):
+            pass
+
+    issues = critique_data.get("issues_found", [])
+    effectiveness = [
+        {
+            "critique_issue": issue.get("description", ""),
+            "was_valid": True,
+            "should_persist": True,
+            "impact": issue.get("severity", "medium"),
+        }
+        for issue in issues
+        if issue.get("description")
+    ]
+
+    return {
+        "preferred": "v2",
+        "confidence": "medium",
+        "critique_effectiveness": effectiveness,
+    }
 
 
 def save_capsule(
@@ -192,10 +260,25 @@ def save_capsule(
 # ---------------------------------------------------------------------------
 
 
-def load_genes_for_phase(base_dir: Path, phase_id: str, agent_role: str | None = None) -> list[dict[str, Any]]:
-    """加载指定 Phase 的所有 Gene."""
+def load_genes_for_phase(
+    base_dir: Path,
+    phase_id: str,
+    agent_role: str | None = None,
+    project_id: str | None = None,
+) -> list[dict[str, Any]]:
+    """加载指定 Phase 的 Gene。
+
+    project_id 不为空时走隔离路径 regression/genes/{phase_id}/{project_id}/，
+    为空时走共享路径 regression/genes/{phase_id}/（向后兼容）。
+    """
     gene_dir = base_dir / GENE_DIR / phase_id
-    if not gene_dir.exists():
+    if project_id:
+        project_gene_dir = gene_dir / project_id
+        if project_gene_dir.exists():
+            gene_dir = project_gene_dir
+        elif not gene_dir.exists():
+            return []
+    elif not gene_dir.exists():
         return []
 
     genes: list[dict[str, Any]] = []

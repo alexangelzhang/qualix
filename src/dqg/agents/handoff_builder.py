@@ -55,6 +55,9 @@ def build_handoff_document(
             parts.append(f"S-{idx}. [schema] {err}")
         parts.append("")
     if prev.judge_result:
+        # 分两组：有精确 item_ref 的优先单独列出，让 Fixer 定点修改
+        precise_issues: list[tuple[str, dict]] = []
+        general_issues: list[tuple[str, dict]] = []
         issue_idx = 0
         for vote in prev.judge_result.votes:
             for issue in vote.issues:
@@ -63,9 +66,29 @@ def build_handoff_document(
                     continue
                 issue_idx += 1
                 issue_id = f"J-{prev.iteration:02d}-{issue_idx:03d}"
-                parts.append(f"{issue_idx}. [{issue_id}][{severity}] {issue.get('description', '')}")
+                if issue.get("item_ref"):
+                    precise_issues.append((issue_id, issue))
+                else:
+                    general_issues.append((issue_id, issue))
+
+        if precise_issues:
+            parts.append("### 精确修改项（ONLY 修改 item_ref 指定的位置，不要重写其他内容）")
+            for issue_id, issue in precise_issues:
+                severity = issue.get("severity", "medium")
+                parts.append(f"- [{issue_id}][{severity}] item_ref=`{issue['item_ref']}`: {issue.get('description', '')}")
+                hint = issue.get("fix_hint") or issue.get("suggestion", "")
+                if hint:
+                    parts.append(f"  修改提示: {hint}")
+            parts.append("")
+
+        if general_issues:
+            parts.append("### 通用修正项")
+            for idx, (issue_id, issue) in enumerate(general_issues, 1):
+                severity = issue.get("severity", "medium")
+                parts.append(f"{idx}. [{issue_id}][{severity}] {issue.get('description', '')}")
                 if issue.get("suggestion"):
                     parts.append(f"   建议: {issue['suggestion']}")
+
     if prev.judge_result and prev.judge_result.disagreements:
         parts.append("")
         parts.append("### Judge 分歧")

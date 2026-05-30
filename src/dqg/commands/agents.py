@@ -210,11 +210,24 @@ def cmd_adaptive(args, output_dir: Path) -> int:
     auto_model = MODEL_TIER.get(tier, args.primary)
     worker_model = args.primary if args.primary != "claude-opus-4-6" else auto_model
 
-    if not cli_json_mode(args):
+    _json_mode = cli_json_mode(args)
+    if not _json_mode:
         print(f"\n  自适应 Multi-Agent — Phase {args.phase}")
         print(f"  Worker: {worker_model} ({tier}) (fallback: {args.fallback})")
         print(f"  Judge:  {', '.join(judge_models)} (投票模式)")
         print(f"  最大迭代: {args.max_iter}, 通过阈值: {args.threshold}")
+
+    def _progress(ev: dict) -> None:
+        if ev["event"] == "iter_start":
+            print(f"  [{ev['iteration']}/{ev['total']}] Worker 执行中...", flush=True)
+        elif ev["event"] == "iter_done":
+            schema_hint = f" schema_errors={ev['schema_errors']}" if ev.get("schema_errors") else ""
+            print(
+                f"  [{ev['iteration']}/{ev['total']}] Judge: {ev['consensus']}"
+                f" score={ev['avg_score']:.1f} issues={ev['issue_count']}{schema_hint}"
+                f" ({ev['duration']:.1f}s)",
+                flush=True,
+            )
 
     from dqg.context.skill_loader import resolve_worker_prompt
 
@@ -231,6 +244,7 @@ def cmd_adaptive(args, output_dir: Path) -> int:
         worker_model=worker_model,
         judge_models=judge_models,
         fallback=args.fallback,
+        progress_callback=None if _json_mode else _progress,
     )
     if cli_json_mode(args):
         body = _adaptive_result_dict(result)
@@ -329,3 +343,117 @@ def cmd_dag(args, output_dir: Path) -> int:
     else:
         print(DAGScheduler.format_dag_result(result))
     return exit_code
+
+
+def cmd_adaptive_override(args, output_dir: Path) -> int:
+    """人工批准某轮 adaptive 迭代，将 final_verdict 设为 MANUAL_APPROVED。"""
+    from dqg.commands.cli_json import cli_envelope, cli_json_mode, print_cli_json
+    from dqg.core.state_machine import PHASE_DEFS
+    from dqg.core.state_machine import phase_dir as _phase_dir
+    from dqg.json_utils import load_json, save_json
+
+    phase_def = PHASE_DEFS.get(args.phase)
+    if not phase_def:
+        if cli_json_mode(args):
+            print_cli_json(cli_envelope(command="adaptive-override", project_id=args.project_id, success=False, exit_code=1, extra={"error": f"unknown phase {args.phase}"}))
+        else:
+            print(f"  ERROR: 未知 Phase {args.phase}", file=sys.stderr)
+        return 1
+
+    pd = _phase_dir(output_dir, args.project_id, phase_def)
+    summary_path = pd / "_adaptive_summary.json"
+    if not summary_path.exists():
+        if cli_json_mode(args):
+            print_cli_json(cli_envelope(command="adaptive-override", project_id=args.project_id, success=False, exit_code=1, extra={"error": "_adaptive_summary.json not found"}))
+        else:
+            print(f"  ERROR: 找不到 {summary_path}", file=sys.stderr)
+        return 1
+
+    summary = load_json(summary_path) or {}
+    iteration_n = getattr(args, "approve_iteration", None)
+    total = summary.get("total_iterations", 0)
+    if iteration_n is None or iteration_n < 1 or iteration_n > total:
+        if cli_json_mode(args):
+            print_cli_json(cli_envelope(command="adaptive-override", project_id=args.project_id, success=False, exit_code=1, extra={"error": f"invalid iteration {iteration_n}, total={total}"}))
+        else:
+            print(f"  ERROR: 无效迭代轮次 {iteration_n}（共 {total} 轮）", file=sys.stderr)
+        return 1
+
+    summary["final_verdict"] = "MANUAL_APPROVED"
+    summary["manual_approved_iteration"] = iteration_n
+    save_json(summary_path, summary)
+
+    if cli_json_mode(args):
+        print_cli_json(cli_envelope(command="adaptive-override", project_id=args.project_id, success=True, exit_code=0, phase_id=args.phase, extra={"approved_iteration": iteration_n, "summary_path": str(summary_path)}))
+    else:
+        print(f"\n  [adaptive-override] Phase {args.phase} 第 {iteration_n} 轮已手动批准")
+        print(f"  summary 已更新: {summary_path}")
+        print("  提示：请继续执行 dqg-run finalize 完成 Phase 收尾")
+    return 0
+
+
+def cmd_adaptive_diff(args, output_dir: Path) -> int:
+    """展示 adaptive loop 各轮迭代产物的 diff summary。"""
+    import difflib
+
+    from dqg.commands.cli_json import cli_envelope, cli_json_mode, print_cli_json
+    from dqg.core.state_machine import PHASE_DEFS
+    from dqg.core.state_machine import phase_dir as _phase_dir
+    from dqg.json_utils import load_json
+
+    phase_def = PHASE_DEFS.get(args.phase)
+    if not phase_def:
+        if cli_json_mode(args):
+            print_cli_json(cli_envelope(command="adaptive-diff", project_id=args.project_id, success=False, exit_code=1, extra={"error": f"unknown phase {args.phase}"}))
+        else:
+            print(f"  ERROR: 未知 Phase {args.phase}", file=sys.stderr)
+        return 1
+
+    pd = _phase_dir(output_dir, args.project_id, phase_def)
+
+    # 收集快照目录（_pivot_v1, _pivot_v2, ...）
+    pivot_dirs = sorted(pd.glob("_pivot_v*"), key=lambda p: p.name)
+    if not pivot_dirs:
+        msg = "未找到快照目录（需要 adaptive loop 跑过至少 2 轮）"
+        if cli_json_mode(args):
+            print_cli_json(cli_envelope(command="adaptive-diff", project_id=args.project_id, success=False, exit_code=1, extra={"error": msg}))
+        else:
+            print(f"  {msg}")
+        return 0
+
+    from dqg.constants import STRUCTURED_JSON_MAP
+    json_fname = STRUCTURED_JSON_MAP.get(args.phase)
+
+    diffs: list[dict] = []
+    prev_items: list[str] = []
+
+    for pivot_dir in pivot_dirs:
+        cur_items: list[str] = []
+        if json_fname:
+            jp = pivot_dir / json_fname
+            if jp.exists():
+                data = load_json(jp) or {}
+                # 取第一层 list（audit_items, eut_items, requirements 等）
+                for v in data.values():
+                    if isinstance(v, list):
+                        cur_items = [str(item.get("id") or item.get("eut_id") or item.get("req_id") or idx) for idx, item in enumerate(v)]
+                        break
+
+        added = [x for x in cur_items if x not in prev_items]
+        removed = [x for x in prev_items if x not in cur_items]
+        diffs.append({"snapshot": pivot_dir.name, "total": len(cur_items), "added": added, "removed": removed})
+        prev_items = cur_items
+
+    if cli_json_mode(args):
+        print_cli_json(cli_envelope(command="adaptive-diff", project_id=args.project_id, success=True, exit_code=0, phase_id=args.phase, extra={"diffs": diffs}))
+    else:
+        print(f"\n  [adaptive-diff] Phase {args.phase} — {len(diffs)} 个快照")
+        for d in diffs:
+            print(f"\n  {d['snapshot']}  共 {d['total']} 条")
+            if d["added"]:
+                print(f"    + 新增: {', '.join(d['added'][:10])}" + (" ..." if len(d['added']) > 10 else ""))
+            if d["removed"]:
+                print(f"    - 删除: {', '.join(d['removed'][:10])}" + (" ..." if len(d['removed']) > 10 else ""))
+            if not d["added"] and not d["removed"]:
+                print("    = 无变化")
+    return 0
