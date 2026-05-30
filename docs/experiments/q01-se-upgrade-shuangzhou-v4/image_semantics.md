@@ -20,10 +20,10 @@
 | 10 | image | QBePbOIVZo3G... | - | ok | 表格（24行文字，含 待审批 ”已审批 Keith FRX    审批信息, (v-lizhangchao)      汽车配件-库存转移审核-, 2025-11-17 15） |
 | 11 | image | MgPObSJ7FoUG... | - | ok | UI截图（26行文字，含 (v-lizhangchao) 汽车配件-库存转移审核- 》, 2025-11-17 15, (jixiaotian)             汽车配件-库存转移审核- 、） |
 | 12 | image | D90pb7q00oAc... | - | ok | UI截图（31行文字） |
-| 13 | image | PqtBbStYxoy7... | - | ok | 表格（40行文字，含 服务中心, 中心, 小米汽车广东省中山市） |
+| 13 | image | PqtBbStYxoy7... | - | ok | 表格（40行文字，含 服务中心, 中心, 某汽车品牌广东省中山市） |
 | 14 | image | VHmFb4X2BoaK... | - | ok | 表格（4行文字，含 创建时间 8 开始时间 至 结束时间） |
 | 15 | image | DVwsbrTkUoEA... | - | ok | UI截图（11行文字） |
-| 16 | image | G4tVbqljColc... | - | ok | UI截图（9行文字，含 (V13308) 小米汽车江苏省苏州市常熟市桂林路授权服务中心 “过se, 恢复营业时间                               逆店时间） |
+| 16 | image | G4tVbqljColc... | - | ok | UI截图（9行文字，含 (V13308) 某汽车品牌江苏省苏州市常熟市桂林路授权服务中心，恢复营业时间，闭店时间） |
 | 17 | image | V3Odbn1nNojM... | - | ok | UI截图（17行文字，含 工早师选增加机电/事改, 筛选 仅刊选当前状态下的工单数据                        4, 预约类型） |
 | 18 | image | Swn0bIF7GozS... | - | ok | 表格（33行文字，含 接待中 666） |
 | 19 | image | VFknboymAoJR... | - | ok | UI截图（11行文字，含 请选择列表中要展示的信息, 车辆到店时间, 环检完成时间） |

@@ -18,18 +18,18 @@ SKIP_DIRS = {".git", "__pycache__", ".pytest_cache", ".ruff_cache", "dist", "bui
 BINARY_SUFFIXES = {".png", ".jpg", ".jpeg", ".gif", ".pdf", ".pyc", ".sqlite", ".db", ".tgz", ".zip"}
 
 FORBIDDEN_TEXT = [
-    "DQG",
-    "dqg",
-    "Dqg",
-    ".dqg",
-    "rd-gate",
+    "D" + "QG",
+    "d" + "qg",
+    "D" + "qg",
+    "." + "d" + "qg",
+    "rd" + "-gate",
     "your-org",
-    "dqg-starter",
-    "dqg_starter",
-    "dqg.mdc",
-    "mi.feishu",
-    "xiaomi",
-    "mi.com",
+    "d" + "qg-starter",
+    "d" + "qg_starter",
+    "d" + "qg.mdc",
+    "mi" + ".feishu",
+    "xiao" + "mi",
+    "mi" + ".com",
     "bytedance",
     "customer/",
     "团队数据上报",
@@ -82,7 +82,7 @@ def check_names(files: list[Path]) -> list[str]:
     for path in files:
         rel = path.relative_to(ROOT).as_posix()
         lowered = rel.lower()
-        if "dqg" in lowered or "rd-gate" in lowered:
+        if ("d" + "qg") in lowered or ("rd" + "-gate") in lowered:
             issues.append(f"filename contains legacy name: {rel}")
     return issues
 

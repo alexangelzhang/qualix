@@ -132,7 +132,7 @@
 
 | 字段 | 升级前 | 升级后 |
 |------|--------|--------|
-| description | 容量配置报错时机：在门店设置容量时触发，不是进入页面时触发 | 当 store.businessHours 为空（null 或空数组），GET /capacity/config 接口正常返回 200 + 当前容量配置（无 toast）；PUT /capacity/config 操作必须返回 400 + errorCode=BUSINESS_HOURS_EMPTY + message="门店营业时间为空，请联系小米总部汽车区域运营配置"；原 toast"前方拥挤，请稍后重试"不得出现在此场景 |
+| description | 容量配置报错时机：在门店设置容量时触发，不是进入页面时触发 | 当 store.businessHours 为空（null 或空数组），GET /capacity/config 接口正常返回 200 + 当前容量配置（无 toast）；PUT /capacity/config 操作必须返回 400 + errorCode=BUSINESS_HOURS_EMPTY + message="门店营业时间为空，请联系总部汽车区域运营配置"；原 toast"前方拥挤，请稍后重试"不得出现在此场景 |
 | verification | 构造 store.businessHours=null 的门店；GET /capacity/config 断言 200 且响应体不含 toast 字段；PUT /capacity/config 提交任意容量变更，断言 400 + errorCode=BUSINESS_HOURS_EMPTY + message 精确匹配；前端 E2E：断言 toast 文本 contains "门店营业时间为空" 且不 contains "前方拥挤" |
 
 ### SE-017（接口约定 / 新增后端接口）
