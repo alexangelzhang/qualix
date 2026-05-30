@@ -345,6 +345,7 @@ Phase Q05 保证"按规则写了"，Phase Q06 检查"写得好不好"：
 - [ ] 推理日志使用 `### Step N` 标记且 ≥ 3 个（参见 references/report-format-spec.md §2）
 - [ ] 推理日志引用了 SKILL.md 的 Step 编号
 - [ ] 每个 COVERED 判定已填写 `test_location`（`line_start` 指向断言行）
+- [ ] 每条 `audit_item.eut_id` 已在 `phase_b_structured.json` 中找到对应条目（非臆造）
 
 ### Step 10: Judge/Critique（提交前自我评审）
 
@@ -476,6 +477,7 @@ Phase Q05 保证"按规则写了"，Phase Q06 检查"写得好不好"：
 - 禁止在 Phase Q01/Q04/Q03 输出 UT/EUT
 - 禁止自动 commit/push 代码
 - 禁止编造不存在的接口、字段、逻辑
+- **禁止凭空臆造 `eut_id`**——每条 `audit_item.eut_id` 必须来自 Q05a `phase_b_structured.json`，不得按测试代码或 SE 编号反推
 - 禁止跳过自检和 Judge/Critique 直接 finalize
 - 禁止重跑时从零重写
 - 禁止以覆盖率百分比替代场景覆盖结论
