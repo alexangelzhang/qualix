@@ -12,7 +12,7 @@ Migration inventory:
     - trace-reflect
   active: command sources - 1 found
     provider: source command (1)
-      - dqg-starter
+      - qualix-starter
   inactive: subagents - none found
 Migration surfaces:
   active: AGENTS.md - 1 instruction file(s) found.
@@ -29,7 +29,7 @@ Migration report:
   manual_fix_required: .agents/skills/session-journal/SKILL.md - Manual review required for Claude skill fields: `triggers`.
   manual_fix_required: .agents/skills/skill-audit/SKILL.md - Manual review required for Claude skill fields: `triggers`.
   manual_fix_required: .agents/skills/trace-reflect/SKILL.md - Manual review required for Claude skill fields: `triggers`.
-  manual_fix_required: .agents/skills/source-command-dqg-starter/SKILL.md - Converted source command `dqg-starter` to a single-file Codex skill; review invocation and template placeholder semantics.
+  manual_fix_required: .agents/skills/source-command-qualix-starter/SKILL.md - Converted source command `qualix-starter` to a single-file Codex skill; review invocation and template placeholder semantics.
   rewritten: .codex/config.toml - Converted 1 MCP server entries.
   manual_fix_required: .codex/config.toml - MCP server `code-review-graph` needs review: Review unsupported Claude MCP fields manually: `cwd`.
   overwritten: /Users/zhangyiqian/projects/qualix/.agents/skills/session-journal - Existing Codex skill will be replaced.

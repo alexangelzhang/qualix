@@ -1,0 +1,39 @@
+name: Feature request
+description: Suggest an improvement to Qualix
+title: "[Feature]: "
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What quality-gate workflow or developer experience problem should this solve?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Describe the behavior you want.
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Requirements / Q01
+        - Technical design / Q02-Q04
+        - Unit tests / Q05-Q06
+        - Code review / Q07
+        - CLI / installation
+        - Documentation
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+    validations:
+      required: false

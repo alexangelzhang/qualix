@@ -44,7 +44,7 @@
           },
           "opt_out": {
             "type": "boolean",
-            "description": "true 表示允许项目级 .dqg/ironlaw_overrides.yaml 禁用；false 为安全底线不可禁用"
+            "description": "true 表示允许项目级 .qualix/ironlaw_overrides.yaml 禁用；false 为安全底线不可禁用"
           }
         }
       }

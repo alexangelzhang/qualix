@@ -29,9 +29,9 @@ _SE_BASED_PATTERNS = [
 ]
 
 # 缺 --json 的特征：Bash 执行了 qualix-run 但输出是人类可读格式（不是 JSON 对象/数组）
-_DQG_RUN_RE = re.compile(r'qualix[-_]run\s+\S+\s+\S+')
+_QUALIX_RUN_RE = re.compile(r'qualix[-_]run\s+\S+\s+\S+')
 _JSON_START_RE = re.compile(r'^\s*[\[{]')
-_PROSE_DQG_PATTERNS = [
+_PROSE_QUALIX_PATTERNS = [
     re.compile(r'(?:状态|Phase|phase)\s*[:：]\s*(?:not_started|in_progress|completed)', re.IGNORECASE),
     re.compile(r'✅|❌|⏭️|📋'),  # emoji 是 prose 输出的强特征
     re.compile(r'^\s*=+\s*$', re.MULTILINE),  # 分割线
@@ -46,7 +46,7 @@ def _detect_missing_json_flag(tool_name: str, tool_input: dict, output: str) -> 
     if tool_name not in ("Bash",):
         return False
     command = tool_input.get("command", "")
-    if not _DQG_RUN_RE.search(command):
+    if not _QUALIX_RUN_RE.search(command):
         return False
     # 有 --json 就不提醒
     if "--json" in command:
@@ -54,7 +54,7 @@ def _detect_missing_json_flag(tool_name: str, tool_input: dict, output: str) -> 
     # 检查输出是否是 prose（有非 JSON 结构的 qualix 输出）
     if _JSON_START_RE.match(output):
         return False
-    return any(p.search(output) for p in _PROSE_DQG_PATTERNS)
+    return any(p.search(output) for p in _PROSE_QUALIX_PATTERNS)
 
 
 # ---------------------------------------------------------------------------

@@ -34,6 +34,8 @@ qualix-run my-project init --profile java-ddd-tmf
 qualix-run my-project startup --json
 ```
 
+To try Qualix without private project data, start with the synthetic example in [examples/hello-prd.md](examples/hello-prd.md).
+
 Inside an AI coding agent, use the project starter instructions:
 
 ```text
@@ -133,6 +135,7 @@ qualix/
 ├── references/          # Report templates and risk catalogs
 ├── profiles/            # Language/domain profiles
 ├── regression/          # Regression cases and failure-library examples
+├── examples/            # Synthetic input examples
 ├── docs/                # User and architecture docs
 ├── tests/               # pytest suite
 ├── AGENTS.md            # Codex/opencode instructions
@@ -157,6 +160,12 @@ python -m pytest tests/test_version.py tests/test_install_sh.py -q
 ## Data And Examples
 
 The public repository should contain only synthetic or sanitized regression examples. Real enterprise failure libraries, customer requirements, and private review data should stay outside the public repo or be distributed under a separate commercial data license.
+
+## Community And Security
+
+- Contributing guide: [CONTRIBUTING.md](CONTRIBUTING.md)
+- Security policy: [SECURITY.md](SECURITY.md)
+- Synthetic starter input: [examples/hello-prd.md](examples/hello-prd.md)
 
 ## License
 

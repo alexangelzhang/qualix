@@ -81,9 +81,9 @@ def _load_rule_meta() -> dict[str, dict]:
 
 
 def _project_disabled_rules() -> set[str]:
-    """读取 CWD/.dqg/ironlaw_overrides.yaml 的 disable 列表."""
+    """读取 CWD/.qualix/ironlaw_overrides.yaml 的 disable 列表."""
     cwd = os.getcwd()
-    override_path = os.path.join(cwd, ".dqg", "ironlaw_overrides.yaml")
+    override_path = os.path.join(cwd, ".qualix", "ironlaw_overrides.yaml")
     if not os.path.exists(override_path):
         return set()
     try:

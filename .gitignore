@@ -10,7 +10,7 @@ venv/
 # 项目运行时产物
 output/
 tmp/
-.dqg-runtime/
+.qualix-runtime/
 
 # 回归测试运行时数据
 regression/runs/
@@ -18,15 +18,15 @@ regression/preference_history.jsonl
 regression/failure-library/history.jsonl
 regression/failure-library/trends/
 
-# 可观测性运行时数据（已迁移到 .dqg-runtime/）
+# 可观测性运行时数据（已迁移到 .qualix-runtime/）
 observability/
 
 # 工具缓存（自动生成，不提交）
 .pytest_cache/
 .ruff_cache/
 .deepeval/
-.dqg-wiki/
-.dqg-graph/
+.qualix-wiki/
+.qualix-graph/
 .playwright-mcp/
 
 # Claude Code 本地配置（MCP 服务器）
@@ -49,8 +49,8 @@ observability/
 # macOS
 .DS_Store
 
-# DQG 运行时数据
-.dqg/
+# Qualix 运行时数据
+.qualix/
 results.tsv
 run.log
 *.log

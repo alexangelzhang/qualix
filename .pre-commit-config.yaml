@@ -17,7 +17,7 @@ repos:
         language: python
         pass_filenames: true
         types: [python]
-        files: ^src/dqg/
+        files: ^src/qualix/
 
       - id: schema-prompt-sync
         name: Schema vs SKILL required fields (Q03/Q06)
@@ -31,4 +31,4 @@ repos:
         entry: python qualix/scripts/check_harness_regression.py
         language: python
         pass_filenames: true
-        files: ^(skills/|src/qualix/quality/|src/dqg/core/phase_registry\.py)
+        files: ^(skills/|src/qualix/quality/|src/qualix/core/phase_registry\.py)
