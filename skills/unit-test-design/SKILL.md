@@ -61,7 +61,7 @@ IRON LAW: Q05a 只产出设计矩阵，禁止产出任何 Java 测试代码。
 | Happy Path | 代码主成功路径 | 每条 REQ/BR/SE ≥1 个，全局 ≥80% |
 | Exception | 代码异常/错误分支 | 每条 REQ/BR/SE 100% 覆盖 |
 | Boundary | 代码边界条件（null/空/最大值） | 有边界语义的条目 100% |
-| Concurrent | 并发/幂等/多线程竞态 | 有并发/幂等语义时 100% |
+| Concurrent | 并发/幂等/多线程竞态 | 有并发/幂等语义时 100%；幂等 EUT 必须包含两个并发调用方的竞态场景，不能只验证串行重复提交 |
 
 **维度 C（覆盖率投影覆盖率 = 100%（公司硬性指标）**
 
@@ -161,6 +161,8 @@ Q05a 设计阶段必须对每个目标类做静态覆盖率投影：
 - 每条 BR ≥1 个 Happy Path EUT + ≥1 个 Exception EUT
 - 每条 SE 必须有对应 EUT
 - 每条 EUT 的 `then` 必须包含具体断言（非模糊描述），参见 `phase_b_structured.json` schema 要求
+  - **不合格示例**：`'返回 true'`、`'返回 false'`、`'验证成功'`、`'正常返回'`——缺少断言方法和期望值
+  - **合格示例**：`'assertTrue(result.isAllowed())'`、`'assertThrows(PermissionDeniedException.class, () -> service.apply(dto))'`
 
 **1.2 代码→用例补充（有分支代码时）**
 
@@ -215,6 +217,8 @@ Q05a 设计阶段必须对每个目标类做静态覆盖率投影：
 - [ ] then 字段无模糊描述（无"验证成功"、"返回正确结果"等）
 - [ ] 异常路径 100% 覆盖（每个 catch 分支有 Exception EUT）
 - [ ] 每个被测类投影覆盖率尽量接近 100%（WARNING 级，记录低覆盖率原因）
+- [ ] 权限类 BR/SE 有"被拒绝路径"EUT（非授权角色/越权请求触发异常）
+- [ ] 幂等/并发类 SE 有并发竞态 EUT（非仅串行重复）
 - [ ] 推理日志 `_reasoning_log.md` 已输出
 
 ### Step 3: Judge/Critique
@@ -250,5 +254,7 @@ Q05a 设计阶段必须对每个目标类做静态覆盖率投影：
 
 - 禁止产出任何 Java 测试代码（那是 Q05b 的工作）
 - 禁止只按 SE 驱动——BR 和 git diff 同等重要
-- 禁止模糊 then 字段（"验证成功"、"正常返回"等）
+- 禁止模糊 then 字段（"验证成功"、"正常返回"、"返回 true/false"等）
 - 禁止 `br_mappings` 为空
+- 禁止权限类 BR/SE 只验证"通过"路径——必须同时有 EUT 验证非授权角色/越权请求被明确拒绝（assertThrows + 具体异常类）
+- 禁止幂等/并发类 SE 只验证串行重复提交——必须包含两个并发调用方的竞态场景
