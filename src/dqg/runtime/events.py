@@ -46,6 +46,7 @@ class EventType(StrEnum):
     BUG_CASES_GENERATED = "bug_cases_generated"
     PERF_COLLECTED = "perf_collected"
     SKILL_EVOLVED = "skill_evolved"
+    EVIDENCE_GRAPH_BUILT = "evidence_graph_built"
 
     # 用户交互
     USER_INPUT_WAITING = "user_input_waiting"

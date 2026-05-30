@@ -465,6 +465,23 @@ def handle_results_tsv(ctx: ExecutionContext, result: PhaseResult) -> None:
         f.write(f"{ctx.project_id}\t{ctx.phase_id}\t{score}\t{ts}\n")
 
 
+def handle_evidence_graph(ctx: "ExecutionContext", result: "PhaseResult") -> None:
+    """Q06 finalize 后构建 SE→EUT→Coverage 链路图并持久化（fail-open）."""
+    try:
+        from dqg.quality.evidence_graph import EvidenceGraph
+
+        graph = EvidenceGraph.build(ctx.output_dir, ctx.project_id)
+        saved_path = graph.save(ctx.output_dir, ctx.project_id)
+        _emit_handler(result, EventType.EVIDENCE_GRAPH_BUILT, {
+            "path": str(saved_path),
+            "total_se": graph.summary.total_se,
+            "semantic_coverage_rate": graph.summary.semantic_coverage_rate,
+        })
+    except Exception as e:
+        # fail-open：EvidenceGraph 构建失败不阻断 finalize
+        result.warnings.append(f"evidence_graph: 构建失败（非阻断）: {e}")
+
+
 def register_finalize_handlers() -> None:
     """注册所有 finalize 阶段的 handler."""
     # Group 1: 无依赖，可并行
@@ -542,3 +559,13 @@ def register_finalize_handlers() -> None:
     register_handler("eval_baseline", handle_eval_baseline, stage="finalize", order=98)
     register_handler("results_tsv", handle_results_tsv, stage="finalize", order=99)
     register_handler("session_failure_notes", handle_session_failure_notes, stage="finalize", order=100)
+
+    # Evidence Graph：Q06 finalize 后构建 SE→EUT→Coverage 链路图（fail-open，不阻断）
+    register_handler(
+        "evidence_graph",
+        handle_evidence_graph,
+        stage="finalize",
+        order=96,
+        phases={"Q06"},
+        required=False,
+    )
