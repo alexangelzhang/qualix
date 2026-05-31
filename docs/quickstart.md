@@ -28,13 +28,13 @@ Optional Tree-sitter source parsing for Java, TypeScript, Go, and Python:
 python -m pip install -e '.[tree-sitter]'
 ```
 
-Optional Feishu/Lark ingestion support:
+Optional enterprise document ingestion support:
 
 ```bash
 python -m pip install -e '.[feishu]'
 ```
 
-Skip optional integrations for the first run. Local Markdown/text/html files are enough. For private enterprise documents, Qualix is moving toward a provider-based ingest layer so Q01 can consume URLs, browser-assisted exports, and local files through the same bundle format.
+Skip optional integrations for the first run. Local Markdown/text/html files are enough. For private enterprise documents, Qualix uses a provider-based ingest layer so Q01 can consume URLs, browser-assisted exports, and local files through the same bundle format.
 
 ## 2. Initialize A Project
 
@@ -82,7 +82,7 @@ from qualix.ingest import ingest_document
 ingest_document("docs/prd.md", Path(".qualix/output/my-first-project/Q01/ingest"))
 ```
 
-Feishu/Lark URLs are optional and require the `feishu` extra plus a valid Lark auth token configured through `QUALIX_LARK_USER_TOKEN` or `~/.qualix/auth/lark.ini`.
+Enterprise document URLs are optional. DingTalk and Feishu/Lark URLs are recognized, but Qualix will not start OAuth automatically; configure a connector you control or export the document from your browser into a local file for the first run.
 
 ## Common Commands
 

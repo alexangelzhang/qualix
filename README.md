@@ -111,7 +111,7 @@ Tree-sitter adds file-local symbol extraction and parse diagnostics for Java, Ty
 qualix-run ingest docs/prd.md --project my-project
 ```
 
-Feishu/Lark ingestion is optional. Configure `QUALIX_LARK_USER_TOKEN` or `~/.qualix/auth/lark.ini` only when you need to process documents you are allowed to access.
+Enterprise document URLs are handled through the provider-based ingest layer. DingTalk and Feishu/Lark URLs are recognized as optional integrations; if a connector is not configured, Qualix explains the missing setup instead of starting OAuth automatically. For a first run, export the document from your browser or use a local Markdown/text/html file.
 
 For model-provider configuration, see [Model Setup](docs/model-setup.md).
 

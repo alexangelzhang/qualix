@@ -8,7 +8,15 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
 from typing import Any, ClassVar
+from urllib.parse import urlparse
 
+from qualix.constants import (
+    ENTERPRISE_DOCUMENT_DINGTALK_HOSTS,
+    ENTERPRISE_DOCUMENT_DINGTALK_PROVIDER_ID,
+    ENTERPRISE_DOCUMENT_LARK_HOSTS,
+    ENTERPRISE_DOCUMENT_LARK_PROVIDER_ID,
+)
+from qualix.exceptions import IngestError
 from qualix.json_utils import save_json
 
 
@@ -104,3 +112,44 @@ class LocalFileProvider(DocumentSourceProvider):
         )
         bundle.write_manifest()
         return bundle
+
+
+class EnterpriseUrlProvider(DocumentSourceProvider):
+    provider_id = "enterprise-url"
+
+    def can_handle(self, source: str) -> bool:
+        return self._platform(source) != ""
+
+    def ingest(self, source: str, output_dir: Path) -> IngestBundle:
+        platform = self._platform(source)
+        if platform == "dingtalk":
+            provider_id = ENTERPRISE_DOCUMENT_DINGTALK_PROVIDER_ID
+            guidance = (
+                "DingTalk document ingest is recognized but no connector is configured yet. "
+                "Use a local browser export or register a DingTalk provider that writes the standard IngestBundle."
+            )
+        elif platform == "lark":
+            provider_id = ENTERPRISE_DOCUMENT_LARK_PROVIDER_ID
+            guidance = (
+                "Lark/Feishu document ingest is optional and must use a personal token for documents you can access. "
+                "Set QUALIX_LARK_USER_TOKEN or use a local export; Qualix will not start OAuth automatically."
+            )
+        else:
+            raise ValueError(f"Unsupported enterprise document source: {source}")
+
+        raise IngestError(f"{provider_id}: {guidance} Source: {source}")
+
+    def _platform(self, source: str) -> str:
+        parsed = urlparse(source)
+        if parsed.scheme not in {"http", "https"} or not parsed.netloc:
+            return ""
+        host = parsed.netloc.lower().split(":", maxsplit=1)[0]
+        if self._host_matches(host, ENTERPRISE_DOCUMENT_DINGTALK_HOSTS):
+            return "dingtalk"
+        if self._host_matches(host, ENTERPRISE_DOCUMENT_LARK_HOSTS):
+            return "lark"
+        return ""
+
+    @staticmethod
+    def _host_matches(host: str, suffixes: tuple[str, ...]) -> bool:
+        return any(host == suffix or host.endswith(f".{suffix}") for suffix in suffixes)

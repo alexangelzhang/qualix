@@ -124,12 +124,12 @@ from qualix.ingest import ingest_document
 ingest_document("docs/prd.md", Path("output/<id>/Q01/ingest"))
 ```
 
-**飞书直读：**
+**企业文档 URL：**
 ```bash
-python3 scripts/feishu_direct_ingest.py "<feishu_url>" -o output/<id>/Q01 --save-raw-blocks
+qualix-run ingest "<document_url>" --project <id>
 ```
 
-企业文档如果无法走 API，优先使用浏览器登录态导出/抓取到同一 IngestBundle，不要求用户手动转 Markdown。
+钉钉、飞书/Lark 等企业文档必须通过 provider 写入同一 IngestBundle。未配置 connector 时，命令应返回清晰的配置提示，不得自动触发公司 OAuth。企业文档如果无法走 API，优先使用浏览器登录态导出/抓取到同一 IngestBundle，不要求用户手动转 Markdown。
 
 **图片语义解析（P0 必做）：**
 ```bash

@@ -6,7 +6,7 @@ For a first trial, keep the setup small:
 
 1. Use a local Markdown PRD.
 2. Set one model API key.
-3. Skip Feishu/Lark, VLM, and DeepEval until you actually need them.
+3. Skip enterprise-document connectors, VLM, and DeepEval until you actually need them.
 
 The expense approval demo works with local files only. No document-platform login is required.
 
@@ -43,7 +43,7 @@ Then stop. The optional extras below are not part of the first-run path.
 | Need | Install Later | Notes |
 | --- | --- | --- |
 | Local Markdown PRD | nothing else | Recommended first path |
-| Feishu/Lark document URL | `python -m pip install -e '.[feishu]'` | Only for documents you are allowed to process |
+| Enterprise document URL | connector-specific extras | Only for documents you are allowed to process |
 | Image-heavy PRD | `python -m pip install -e '.[vlm]'` | Requires a vision model key |
 | DeepEval calibration | `python -m pip install -e '.[deepeval]'` | Useful for experiments, not needed for the demo |
 
@@ -64,15 +64,15 @@ Supported VLM environment variables include:
 | OpenRouter vision | `OPENROUTER_API_KEY` |
 | DashScope/Qwen-VL | `DASHSCOPE_API_KEY` |
 
-## Optional Feishu/Lark Ingestion
+## Optional Enterprise Document Ingestion
 
-Local Markdown and text requirement files work without any document-platform integration. Feishu/Lark ingestion is optional:
+Local Markdown and text requirement files work without any document-platform integration. Qualix recognizes enterprise document URLs through the provider-based ingest layer and keeps auth explicit:
 
 ```bash
-python -m pip install -e '.[feishu]'
-export QUALIX_LARK_USER_TOKEN=<your-user-access-token>
-qualix-run auth status
+qualix-run ingest https://alidocs.dingtalk.com/... --project demo
 ```
+
+If no connector is configured, the command returns a provider-specific setup message. DingTalk support is intended to live behind a DingTalk provider that writes the standard IngestBundle. Feishu/Lark support is optional and uses `QUALIX_LARK_USER_TOKEN` or `~/.qualix/auth/lark.ini`; Qualix does not launch OAuth automatically from the ingest command.
 
 Only run document ingestion for documents you are allowed to process. Public issues and pull requests must use sanitized examples.
 

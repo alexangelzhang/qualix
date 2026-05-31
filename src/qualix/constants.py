@@ -110,6 +110,10 @@ QUALIX_LARK_AUTH_CONFIG = ".qualix/auth/lark.ini"
 QUALIX_LARK_TOKEN_ENV = "QUALIX_LARK_USER_TOKEN"
 QUALIX_LARK_EMAIL_ENV = "QUALIX_LARK_USER_EMAIL"
 QUALIX_LARK_EXPIRES_ENV = "QUALIX_LARK_TOKEN_EXPIRES_AT"
+ENTERPRISE_DOCUMENT_DINGTALK_HOSTS: tuple[str, ...] = ("alidocs.dingtalk.com", "docs.dingtalk.com", "dingtalk.com")
+ENTERPRISE_DOCUMENT_LARK_HOSTS: tuple[str, ...] = ("feishu.cn", "larksuite.com")
+ENTERPRISE_DOCUMENT_DINGTALK_PROVIDER_ID = "enterprise-url:dingtalk"
+ENTERPRISE_DOCUMENT_LARK_PROVIDER_ID = "enterprise-url:lark"
 # memory/garden: 同 Phase GAP 两两极性冲突检测的配对上限（O(n²) 保护）。
 # 超限后截断并发 log.info 告警，不抽样、不抛异常。GAP 数 >40 的场景目前罕见，
 # 真实出现后再考虑抽样策略或按 business_path 分桶。

@@ -35,6 +35,10 @@ class ConfigError(QualixError):
     """配置错误（缺少环境变量、profile 不存在等）."""
 
 
+class IngestError(QualixError):
+    """文档摄入失败."""
+
+
 class LLMError(QualixError):
     """LLM API 调用失败."""
 

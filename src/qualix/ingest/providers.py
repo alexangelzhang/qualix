@@ -4,11 +4,11 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from qualix.ingest.bundle import DocumentSourceProvider, IngestBundle, LocalFileProvider
+from qualix.ingest.bundle import DocumentSourceProvider, EnterpriseUrlProvider, IngestBundle, LocalFileProvider
 
 
 def default_document_providers() -> list[DocumentSourceProvider]:
-    return [LocalFileProvider()]
+    return [LocalFileProvider(), EnterpriseUrlProvider()]
 
 
 def ingest_document(
