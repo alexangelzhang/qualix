@@ -45,6 +45,11 @@ _CONCRETE_THEN_PATTERNS: list[re.Pattern[str]] = [
     re.compile(p, re.IGNORECASE)
     for p in [
         r"assertEquals\s*\([^,)]+,\s*[^)]+\)",  # assertEquals(expected, actual)
+        r"assert\s+[^\n]+\s*(==|!=|>=|<=|>|<| is | in )\s*[^\n]+",  # pytest/plain Python assert
+        r"expect\s*\(.+\)\s*\.to",  # Jest/Vitest expect(...).toXxx
+        r"require\.(Equal|NoError|Error|Len|Contains|True|False)\s*\(",  # testify require
+        r"assert\.(Equal|NoError|Error|Len|Contains|True|False)\s*\(",  # testify assert
+        r"if\s+.+\{\s*t\.(Fatal|Error)f?\s*\(",  # Go testing package explicit check
         r"assertThrows\s*\([A-Za-z]{4,}Exception",  # assertThrows(具体异常类) — 排除 Exception.class
         r"verify\s*\(",  # Mockito.verify（含 times/never 的形态）
         r"(状态|status|state)\s*.{0,10}\b[A-Z_]{3,}\b",  # 状态枚举（需有"状态/status"上下文）
@@ -61,6 +66,7 @@ _CONCRETE_THEN_PATTERNS: list[re.Pattern[str]] = [
         r"assertThat\s*\(.+\)\s*\.is",  # AssertJ 链式
         r"assertIterableEquals|assertArrayEquals",  # 集合/数组比较
         r"\.(get[A-Z]\w+|is[A-Z]\w+)\s*\(\)\s*[=!]=\s*\S",  # getter 对比
+        r"to(HaveBeenCalled|Equal|Be|Throw|Contain|HaveLength)",  # Jest/Vitest matcher
     ]
 ]
 
@@ -69,6 +75,7 @@ class RouteType(StrEnum):
     HAPPY = "Happy Path"
     EXCEPTION = "Exception"
     BOUNDARY = "Boundary"
+    CONCURRENT = "Concurrent"
 
 
 class RiskTier(StrEnum):
@@ -88,6 +95,10 @@ class AssertionType(StrEnum):
     """
 
     EQUALS = "assertEquals"
+    TRUTHY = "assertTrue"
+    EXPECT = "expect"
+    PYTEST = "pytest_assert"
+    GO_ASSERT = "go_assert"
     THROWS = "assertThrows"
     VERIFY = "verify"
     STATE = "state_check"

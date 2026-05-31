@@ -41,6 +41,8 @@ python -m pip install -e '.[tree-sitter]'
 
 Tree-sitter is intentionally treated as optional. If a grammar is missing, Qualix leaves code intelligence unavailable for that language and continues with the normal phase workflow. This keeps the first-run path short while still giving Q05/Q06 a better view of source structure when the parsers are present.
 
+Q05a now uses that source structure when `_q05_target_modules.json` lists changed files. If Tree-sitter is available, Qualix enriches the target-module file with `code_symbols` and warns when changed classes, functions, or methods are not mentioned by any EUT `when` field. That check is intentionally a warning: it catches likely blind spots without blocking projects that are still mapping code targets by hand.
+
 This is not an LSP integration. It does not run a project-wide language server, resolve cross-file references, or depend on editor configuration. LSP can be added later for teams that need richer symbol graphs, but Tree-sitter is the lower-friction baseline for public users.
 
 ## Choosing A Profile
@@ -63,5 +65,5 @@ The next language work should be practical rather than broad:
 1. Add small TypeScript and Go demos parallel to the expense approval example.
 2. Expand Go assertion parsing beyond the common `testing` and `testify` patterns.
 3. Expand Python provider support for project layouts that keep tests outside the source tree.
-4. Use Tree-sitter symbols in Q05/Q06 evidence collection instead of keeping the provider as a standalone utility.
+4. Expand Q05a target-symbol checks from warnings into configurable gates once more public fixtures exist.
 5. Publish language-specific benchmark rows instead of claiming blanket support.

@@ -151,6 +151,44 @@ class TestPhaseBSchema:
         assert output.eut_items[0].risk_tier == RiskTier.T1
         assert output.eut_items[0].bound_se == "SE-001"
 
+    def test_valid_concurrent_eut(self):
+        item = EutItem(
+            eut_id="EUT-002",
+            bound_item="SE-002",
+            route_type=RouteType.CONCURRENT,
+            given="相同 requestId 的两个并发调用",
+            when="ExpensePolicy.approve(request)",
+            then="asyncio.gather sends 2 calls; assert success_count == 1 and duplicate_count == 1",
+            then_assertion_type="pytest_assert",
+            risk_tier=RiskTier.T1,
+        )
+        assert item.route_type == RouteType.CONCURRENT
+        assert item.then_assertion_type == "pytest_assert"
+
+    def test_valid_typescript_expect_eut(self):
+        item = EutItem(
+            eut_id="EUT-003",
+            bound_item="BR-003",
+            route_type=RouteType.HAPPY,
+            given="duplicate active rule exists",
+            when="ruleService.create(payload)",
+            then="expect(response.status).toBe(409); expect(response.body.errorCode).toBe('RULE_DUPLICATE')",
+            then_assertion_type="expect",
+        )
+        assert item.then_assertion_type == "expect"
+
+    def test_valid_go_assert_eut(self):
+        item = EutItem(
+            eut_id="EUT-004",
+            bound_item="REQ-004",
+            route_type=RouteType.HAPPY,
+            given="approved request",
+            when="policy.Approve(request)",
+            then='require.Equal(t, "APPROVED", result.Status); require.Len(t, result.AuditLog, 1)',
+            then_assertion_type="go_assert",
+        )
+        assert item.then_assertion_type == "go_assert"
+
     def test_eut_requires_bound_se(self):
         with pytest.raises(ValidationError):
             EutItem(

@@ -73,6 +73,9 @@ class TestEutThenValidator:
             "列表包含 itemA",
             "集合大小 == 3",
             "返回 code 200",
+            "expect(response.status).toBe(409); expect(response.body.errorCode).toBe('RULE_DUPLICATE')",
+            "assert result.status == 'APPROVED' and len(result.audit_log) == 1",
+            'require.Equal(t, "APPROVED", result.Status); require.Len(t, result.AuditLog, 1)',
         ],
     )
     def test_accepts_concrete_then(self, concrete_then: str):

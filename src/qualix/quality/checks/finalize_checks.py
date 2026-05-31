@@ -34,10 +34,24 @@ _COUNT_FIELDS: Final = MappingProxyType(
 _ASSERTION_ALLOWED_IMPL: Final = MappingProxyType(
     {
         "assertThrows": {"assertThrows"},  # 异常断言不得降级
-        "assertEquals": {"assertEquals", "state_check"},  # state_check 等价于 equals
+        "assertEquals": {"assertEquals", "assertTrue", "expect", "pytest_assert", "go_assert", "state_check"},
+        "assertTrue": {"assertTrue", "expect", "pytest_assert", "go_assert", "state_check"},
+        "expect": {"expect", "state_check"},
+        "pytest_assert": {"pytest_assert", "state_check"},
+        "go_assert": {"go_assert", "state_check"},
         "verify": {"verify"},  # mock 调用验证不得降级
-        "state_check": {"assertEquals", "state_check"},
-        "other": {"assertEquals", "assertThrows", "verify", "state_check", "other"},
+        "state_check": {"assertEquals", "assertTrue", "expect", "pytest_assert", "go_assert", "state_check"},
+        "other": {
+            "assertEquals",
+            "assertTrue",
+            "assertThrows",
+            "expect",
+            "pytest_assert",
+            "go_assert",
+            "verify",
+            "state_check",
+            "other",
+        },
     }
 )
 

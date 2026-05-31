@@ -9,7 +9,7 @@ from qualix.constants import STRUCTURED_JSON_MAP
 from qualix.core.phase_registry import PHASE_DEFS
 from qualix.core.state_machine import internal_dir as _internal_dir
 from qualix.core.state_machine import phase_dir as _phase_dir
-from qualix.json_utils import load_json
+from qualix.json_utils import load_json, save_json
 from qualix.log import get_logger
 
 log = get_logger(__name__)
@@ -43,6 +43,7 @@ from ._checks_eut_impl import (
     _check_eut_implementation_completeness,
 )
 from ._checks_production import check_eut_then_phantom_methods
+from ._code_intelligence import collect_symbols_for_diff_files
 from ._collect import _collect_new_test_files_from_repos, _collect_supplemental_files
 
 
@@ -97,8 +98,16 @@ def run_q05_structure_checks(output_dir: Path, project_id: str, phase_id: str = 
 
     errors.extend(_check_concurrent_se_no_eut(data, q01_data))
 
+    target_modules_path = int_dir / "_q05_target_modules.json"
+    target_modules_data = load_json(target_modules_path) if target_modules_path.is_file() else None
+    if target_modules_data and isinstance(target_modules_data, dict) and code_repos:
+        collected_symbols = collect_symbols_for_diff_files(target_modules_data, code_repos)
+        if collected_symbols:
+            target_modules_data["code_symbols"] = [symbol.model_dump() for symbol in collected_symbols]
+            save_json(target_modules_path, target_modules_data)
+
     # Step 0.5 三层驱动产物验证（BLOCKED + 交叉验证）
-    errors.extend(_check_target_modules_json(output_dir, project_id, phase_def, code_repos, test_files, q01_data))
+    errors.extend(_check_target_modules_json(output_dir, project_id, phase_def, data, code_repos, test_files, q01_data))
 
     # uncovered BR 理由合理性（WARNING）
     errors.extend(_check_uncovered_br_reasons(output_dir, project_id, phase_def, q01_data))
@@ -122,9 +131,6 @@ def run_q05_structure_checks(output_dir: Path, project_id: str, phase_id: str = 
     errors.extend(_check_test_location_file_exists(data, code_repos))
 
     # C8: 反向检查——@InjectMocks 类必须在 EUT 矩阵里有对应（WARNING）
-    target_modules_data = (
-        load_json(int_dir / "_q05_target_modules.json") if (int_dir / "_q05_target_modules.json").is_file() else None
-    )
     errors.extend(_check_test_file_eut_reverse(data, test_files, target_modules_data))
 
     # C9: EUT 矩阵实现完整性——每条 EUT 的被测类必须有对应 @Test 文件（BLOCKED）

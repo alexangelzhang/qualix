@@ -108,6 +108,13 @@
 - Change 5：`auto-synthesized` Judge/Critique 降权——`approve` 时若 judge_result 标记为 auto-synthesized 则返回 `synthetic_review_not_allowed` 错误，须显式传 `--allow-synthetic-review` 才能通过
 - Change 6：所有 fallback 语义统一为 `BLOCKED`/`FAIL`/`WARNING`/`NOT_APPLICABLE`/`INFRA_FAILURE` 前缀，禁止"返回空列表 = 通过"隐式语义
 
+2026-05-31 完成（Q01/Q05a 成功率增强）：
+
+- Q01 deterministic semantic quality gate：新增 `q01_semantic_quality.py`，检查 BR 泛化描述、SE verification 空话、GAP 缺 P0/P1/P2、OPEN 缺决策方、GAP/OPEN 孤立引用；Q01 schema 将 `confidence` 统一为 High/Medium/Low，`GAP.risk_level` 统一为 P0/P1/P2，并校验 SE.bound_reqs 引用真实 REQ/BR
+- Q05a 多语言 EUT schema：`RouteType` 增加 `Concurrent`，`AssertionType` 增加 `assertTrue`、`expect`、`pytest_assert`、`go_assert`；then 具体性检查支持 JUnit、Jest/Vitest、pytest、Go/testify
+- Q05a target module schema：新增 `_q05_target_modules.json` schema（target repos、git diff files、REQ/BR/SE mappings、code_symbols、default_branch、language_id），兼容旧 `se_id`/`br_id` mapping 键
+- Q05a Tree-sitter enrichment：当 `_q05_target_modules.json` 列出 git diff 文件且安装 Tree-sitter grammar 时，自动补充 `code_symbols`，并对 EUT.when 未覆盖的 changed class/function/method 给出 warning
+
 2026-05-29 完成（Harness Gap 修复 A/D/C）：
 
 - **Gap A — Phase finalize 提醒**：新增 `.claude/hooks/phase_finalize_reminder.py`（PostToolUse hook），检测 `qualix-run * execute` 完成后 Phase 仍处于 `in_progress` 时注入提醒，将"完成"从 AI 主观声明切换为状态机可验证状态；注册到 `.claude/settings.json` PostToolUse

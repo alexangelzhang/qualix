@@ -10,6 +10,7 @@ from qualix.core.state_machine import internal_dir as _internal_dir
 from qualix.core.state_machine import phase_dir as _phase_dir
 from qualix.json_utils import load_json
 from qualix.log import get_logger
+from qualix.schemas.q05_target_modules import Q05TargetModules
 
 log = get_logger(__name__)
 
@@ -50,6 +51,7 @@ def _check_target_modules_json(
     output_dir: Path,
     project_id: str,
     phase_def: dict,
+    structured_data: dict[str, Any],
     code_repos: list[str],
     test_files: list[Path],
     q01_data: dict | None,
@@ -77,12 +79,19 @@ def _check_target_modules_json(
         return ["BLOCKED: Q05 target_modules_empty — _q05_target_modules.json 为空或格式错误"]
 
     errors: list[str] = []
+    try:
+        target_modules = Q05TargetModules.model_validate(data)
+    except Exception as exc:
+        errors.append(f"BLOCKED: Q05 target_modules_schema — _q05_target_modules.json schema 校验失败: {exc}")
+        target_modules = None
 
     # ── 层 1：SE 覆盖完整性 ─────────────────────────────────────────────────
     if q01_data:
         all_se_ids = {s["se_id"] for s in q01_data.get("semantic_expectations", [])}
         se_mappings = data.get("se_mappings", [])
-        mapped_se_ids = {m.get("se_id", "") for m in se_mappings if isinstance(m, dict)}
+        mapped_se_ids = {
+            m.get("item_id") or m.get("se_id", "") for m in se_mappings if isinstance(m, dict)
+        }
         missing_se = sorted(all_se_ids - mapped_se_ids)
         if missing_se:
             errors.append(
@@ -99,7 +108,9 @@ def _check_target_modules_json(
             if isinstance(r, dict) and r.get("req_id", "").startswith("BR-")
         }
         br_mappings = data.get("br_mappings", [])
-        mapped_br_ids = {m.get("br_id", "") for m in br_mappings if isinstance(m, dict)}
+        mapped_br_ids = {
+            m.get("item_id") or m.get("br_id", "") for m in br_mappings if isinstance(m, dict)
+        }
         missing_br = sorted(all_br_ids - mapped_br_ids)
         if missing_br:
             errors.append(
@@ -116,6 +127,9 @@ def _check_target_modules_json(
             "_q05_target_modules.json 的 git_diff_files 为空，"
             "说明 Step 0.5c 未执行 git diff。请执行 git diff --name-only 获取变更文件列表。"
         )
+
+    if target_modules:
+        errors.extend(_check_target_code_symbol_coverage(target_modules, structured_data))
 
     # ── 层 3：交叉验证——impl_class 必须出现在新增测试文件中 ──────────────────
     se_mappings = data.get("se_mappings", [])
@@ -146,6 +160,37 @@ def _check_target_modules_json(
             )
 
     return errors
+
+
+def _check_target_code_symbol_coverage(target_modules: Q05TargetModules, structured_data: dict[str, Any]) -> list[str]:
+    """Tree-sitter symbol inventory in target modules should be referenced by EUT.when."""
+    if not target_modules.code_symbols:
+        return []
+    euts = structured_data.get("eut_items", []) or []
+    when_text = "\n".join(str(eut.get("when", "") or "") for eut in euts if isinstance(eut, dict))
+    if not when_text:
+        return []
+
+    business_kinds = {"class", "interface", "struct", "function", "method"}
+    missing: list[str] = []
+    for symbol in target_modules.code_symbols:
+        if symbol.kind not in business_kinds:
+            continue
+        names = {symbol.name}
+        if symbol.container:
+            names.add(f"{symbol.container}.{symbol.name}")
+        if not any(name and name in when_text for name in names):
+            label = f"{symbol.container + '.' if symbol.container else ''}{symbol.name}"
+            missing.append(f"{label}({Path(symbol.file).name})")
+
+    if not missing:
+        return []
+    sample = ", ".join(missing[:8])
+    return [
+        f"WARNING: Q05 target_symbols_not_covered — Tree-sitter 在 git diff 目标文件中识别到 "
+        f"{len(missing)} 个 class/function/method 未出现在任何 EUT.when 中: {sample}。"
+        "请确认这些符号是否为无业务逻辑辅助代码；否则补充 EUT。"
+    ]
 
 
 def _check_uncovered_br_reasons(
@@ -276,31 +321,34 @@ def _check_q05_git_diff_coverage(
     if not euts:
         return []
 
-    # 从所有 EUT 的 when + given 字段提取被提及的类名
-    _CLS = re.compile(r"\b([A-Z][a-zA-Z0-9]{3,})\b")
+    # 从所有 EUT 的 when + given 字段提取被提及的类/函数/方法名
+    _SYMBOL = re.compile(r"\b([A-Za-z_][A-Za-z0-9_]{3,})\b")
     eut_mentioned: set[str] = set()
     for e in euts:
         for field in ("when", "given"):
             text = str(e.get(field, "") or "")
-            eut_mentioned.update(_CLS.findall(text))
+            eut_mentioned.update(_SYMBOL.findall(text))
+
+    code_symbols = target_modules_data.get("code_symbols", []) or []
 
     missing: list[tuple[str, str]] = []
     for f in diff_files:
-        if not f.endswith(".java"):
+        if not _is_supported_source_file(f):
             continue
         if "src/test/" in f:
             continue
         if any(f.startswith(skip) for skip in _SKIP_MODULE_PREFIXES):
             continue
 
-        class_name = f.split("/")[-1].replace(".java", "")
+        class_name = Path(f).stem
 
-        if not any(class_name.endswith(s) for s in _IMPL_SUFFIXES):
+        if f.endswith(".java") and not any(class_name.endswith(s) for s in _IMPL_SUFFIXES):
             continue
-        if any(pat in class_name for pat in _SKIP_CLASS_PATTERNS):
+        if f.endswith(".java") and any(pat in class_name for pat in _SKIP_CLASS_PATTERNS):
             continue
 
-        if class_name not in eut_mentioned:
+        file_symbol_names = _symbol_names_for_diff_file(code_symbols, f)
+        if class_name not in eut_mentioned and not (file_symbol_names & eut_mentioned):
             missing.append((class_name, f))
 
     if not missing:
@@ -316,3 +364,32 @@ def _check_q05_git_diff_coverage(
         )
 
     return errors
+
+
+def _is_supported_source_file(path: str) -> bool:
+    suffix = Path(path).suffix
+    return suffix in {".java", ".ts", ".tsx", ".go", ".py"}
+
+
+def _symbol_names_for_diff_file(code_symbols: list[Any], diff_file: str) -> set[str]:
+    business_kinds = {"class", "interface", "struct", "function", "method"}
+    names: set[str] = set()
+    for symbol in code_symbols:
+        if not isinstance(symbol, dict) or symbol.get("kind") not in business_kinds:
+            continue
+        if not _same_or_suffix_path(str(symbol.get("file", "") or ""), diff_file):
+            continue
+        name = str(symbol.get("name", "") or "")
+        if name:
+            names.add(name)
+    return names
+
+
+def _same_or_suffix_path(symbol_file: str, diff_file: str) -> bool:
+    if not symbol_file or not diff_file:
+        return False
+    symbol_parts = Path(symbol_file).parts
+    diff_parts = Path(diff_file).parts
+    if symbol_parts == diff_parts:
+        return True
+    return len(symbol_parts) >= len(diff_parts) and symbol_parts[-len(diff_parts) :] == diff_parts

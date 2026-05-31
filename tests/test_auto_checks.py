@@ -39,7 +39,11 @@ VALID_PHASE_A = {
     "project_id": "test-proj",
     "requirements": [
         {"req_id": "REQ-001", "description": "用户可以创建工单"},
-        {"req_id": "BR-001", "parent_id": "REQ-001", "description": "工单创建需要校验幂等性"},
+        {
+            "req_id": "BR-001",
+            "parent_id": "REQ-001",
+            "description": "工单创建需要校验 requestId 字段必填且重复提交返回明确的重复提交错误码",
+        },
     ],
     "semantic_expectations": [
         {
@@ -56,11 +60,12 @@ VALID_PHASE_A = {
             "gap_id": "GAP-001",
             "related_ids": ["REQ-001"],
             "description": "并发场景未定义，缺少边界行为说明",
+            "risk_level": "P1",
             "required_clarification": "需要明确并发策略",
         },
     ],
     "open_items": [
-        {"open_id": "OPEN-001", "related_ids": ["REQ-001"], "question": "超时时间是多少？"},
+        {"open_id": "OPEN-001", "related_ids": ["REQ-001"], "question": "超时时间是多少？", "decision_owner": "产品"},
     ],
 }
 
@@ -99,6 +104,7 @@ class TestAutoChecksPhaseA:
                     "gap_id": "GAP-001",
                     "related_ids": ["REQ-999"],
                     "description": "引用不存在的ID",
+                    "risk_level": "P1",
                     "required_clarification": "x",
                 },
             ],
@@ -116,6 +122,7 @@ class TestAutoChecksPhaseA:
                     "gap_id": "GAP-001",
                     "related_ids": ["REQ-001"],
                     "description": "缺少澄清",
+                    "risk_level": "P1",
                     "required_clarification": "",
                 },
             ],
@@ -174,6 +181,7 @@ class TestAutoChecksPhaseA:
                     "description": "幂等校验",
                     "verification": "CountDownLatch 10 并发 POST；断言 1 次 2xx + 9 次 409+errorCode=DUP",
                     "bound_reqs": ["REQ-001"],
+                    "source": "plain_text.txt:5",
                 },
             ],
         }
@@ -181,6 +189,49 @@ class TestAutoChecksPhaseA:
             output_dir = _setup_phase_a(Path(tmpdir), data)
             errors = auto_derive_checks(output_dir, "test-proj", "Q01")
             assert not any("FAIL:" in e and "SE-001" in e for e in errors)
+
+    def test_q01_semantic_quality_detects_vague_br(self):
+        data = {
+            **VALID_PHASE_A,
+            "requirements": [
+                {"req_id": "REQ-001", "description": "用户可以创建工单"},
+                {"req_id": "BR-001", "parent_id": "REQ-001", "description": "支持相关信息展示"},
+            ],
+        }
+        with tempfile.TemporaryDirectory() as tmpdir:
+            output_dir = _setup_phase_a(Path(tmpdir), data)
+            errors = auto_derive_checks(output_dir, "test-proj", "Q01")
+            assert any("br_too_vague" in e and "BR-001" in e for e in errors)
+
+    def test_q01_semantic_quality_requires_gap_p_level(self):
+        data = {
+            **VALID_PHASE_A,
+            "gaps": [
+                {
+                    "gap_id": "GAP-001",
+                    "related_ids": ["REQ-001"],
+                    "description": "缺少并发策略说明",
+                    "risk_level": "",
+                    "required_clarification": "需要明确并发策略",
+                },
+            ],
+        }
+        with tempfile.TemporaryDirectory() as tmpdir:
+            output_dir = _setup_phase_a(Path(tmpdir), data)
+            errors = auto_derive_checks(output_dir, "test-proj", "Q01")
+            assert any("SCHEMA" in e and "risk_level" in e for e in errors)
+
+    def test_q01_semantic_quality_requires_open_decision_owner(self):
+        data = {
+            **VALID_PHASE_A,
+            "open_items": [
+                {"open_id": "OPEN-001", "related_ids": ["REQ-001"], "question": "超时时间是多少？"},
+            ],
+        }
+        with tempfile.TemporaryDirectory() as tmpdir:
+            output_dir = _setup_phase_a(Path(tmpdir), data)
+            errors = auto_derive_checks(output_dir, "test-proj", "Q01")
+            assert any("decision_owner" in e and "OPEN-001" in e for e in errors)
 
 
 class TestAutoChecksPhaseA6:

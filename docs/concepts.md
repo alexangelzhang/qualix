@@ -78,3 +78,5 @@ Language providers and code-intelligence providers do different jobs.
 The language provider answers operational questions: is this a Java, TypeScript, Go, or Python project; which test framework is likely in use; what compile or lint command should be tried; where would a test file live.
 
 The code-intelligence provider reads source files. The first provider uses Tree-sitter to extract file-local symbols and parse diagnostics for Java, TypeScript, Go, and Python. It is useful evidence for later phases, but it is optional. Missing Tree-sitter packages should reduce source enrichment, not stop the phase workflow.
+
+Q05a uses this evidence as a target-module sanity check. The EUT matrix still comes from requirements, but changed source symbols can now flag likely missing test targets before code generation starts.

@@ -8,14 +8,14 @@ metadata:
   phase: Q05a
   depends_on: [Q01]
   outputs: [eut_matrix.md, phase_b_structured.json, _reasoning_log.md]
-  applies_to: [Java, TypeScript]
+  applies_to: [Java, TypeScript, Go, Python]
   hard_checks:
-    - 每条 EUT 的 then 字段必须包含具体断言（assertEquals/assertNotNull/verify 等）
-    - bound_se 必须指向真实存在的 SE-id（SE-001 格式）
-    - 每条 EUT 必须对应一个可执行的 Java/@Test 方法
+    - 每条 EUT 的 then 字段必须包含具体断言（assertEquals/expect/pytest assert/testify/verify 等）
+    - bound_item 必须指向真实存在的 REQ/BR/SE ID
+    - 每条 EUT 必须能对应一个可执行测试函数或测试方法
   evidence:
     bad: "then: 验证接口正确返回"
-    good: "then: assertEquals(200, response.getStatus()) && assertNotNull(response.getOrderId())"
+    good: "then: assertEquals(200, response.getStatus()) / expect(response.status).toBe(200) / assert result.status == 'APPROVED'"
 allowed-tools:
   - Bash
   - Read
@@ -28,13 +28,13 @@ allowed-tools:
 # Phase Q05a: EUT 矩阵设计
 
 > **Q05a 的唯一职责：设计完整、正确的 EUT 矩阵并让人工 approve。**
-> 不写任何 @Test 代码——那是 Q05b 的工作。
+> 不写任何测试代码——那是 Q05b 的工作。
 
 **Qualix 核心价值观：质量！质量！质量！**
 
 > 测试是为了保证软件质量，防止线上 bug，让代码可信赖。REQ+BR+SE 是质量的需求来源，代码路径（Happy/Exception/Boundary/并发幂等）是质量的验证维度，两者叉积才是完整的质量证据。
 
-IRON LAW: Q05a 只产出设计矩阵，禁止产出任何 Java 测试代码。
+IRON LAW: Q05a 只产出设计矩阵，禁止产出任何测试代码。
 
 ---
 
@@ -50,9 +50,9 @@ IRON LAW: Q05a 只产出设计矩阵，禁止产出任何 Java 测试代码。
 - 每条 SE 必须有对应 EUT（`bound_item = "SE-XXX"`）——SE 是 REQ/BR 的语义补充
 
 代码维度（git diff 变更事实）：
-- feature branch 相对 master 新增/修改的每个 Java 实现类，必须在某条 EUT 的 `when` 字段里出现
+- feature branch 相对默认分支新增/修改的每个生产代码符号（class/function/method），必须在某条 EUT 的 `when` 字段里出现
 - git diff 中未被 REQ/BR/SE 引用的变更方法，也必须有 EUT——代码改了就必须证明它是对的
-- gate 检查：`_check_q05_git_diff_coverage` 自动扫描 code_repo 的 `git diff origin/master...HEAD`
+- gate 检查：`_check_q05_git_diff_coverage` 自动扫描 code_repo 相对默认分支的 git diff
 
 **维度 B（代码路径）：从实现代码视角分解执行路径**
 
@@ -83,7 +83,9 @@ Q05a 设计阶段必须对每个目标类做静态覆盖率投影：
 
 按项目 profile 选择：
 - `java-ddd-tmf` → `../../profiles/java-ddd-tmf/baseline.md`
-- `go-service` → `references/go-service-baseline.md`
+- `typescript-service` → `../../profiles/typescript-service/baseline.md`
+- `go-service` → `../../profiles/go-service/baseline.md`
+- `python-service` → `../../profiles/python-service/baseline.md`
 
 ## 上下文加载原则
 
@@ -120,9 +122,9 @@ Q05a 设计阶段必须对每个目标类做静态覆盖率投影：
 
 **0.5c: git diff→变更文件列表（代码变更视角）**
 
-1. 对每个仓库执行 `git diff --name-only origin/master...HEAD`
-2. 筛选本次修改的 .java 文件（排除 test/target/pom）
-3. 按 DDD 分层标注优先级：P0 domain/P1 application/P2 infrastructure
+1. 对每个仓库执行 `git diff --name-only <default-branch>...HEAD`
+2. 按 `LanguageProvider` 筛选生产代码文件，排除测试、构建产物和依赖目录
+3. 按项目语言和架构标注优先级：P0 domain/core/business，P1 application/service，P2 infrastructure/adapter
 
 **0.5d: 合并三个列表，取并集**
 
@@ -131,7 +133,7 @@ Q05a 设计阶段必须对每个目标类做静态覆盖率投影：
 ```json
 {
   "target_repos": ["maf-srv-service"],
-  "git_diff_files": ["...LogisticExchangeIdentifyManager.java"],
+  "git_diff_files": ["src/policy/expense_policy.py"],
   "se_mappings": [
     {"se_id": "SE-001", "impl_class": "LogisticExchangeIdentifyManager", "found": true, "gap_reason": null}
   ],
@@ -162,7 +164,7 @@ Q05a 设计阶段必须对每个目标类做静态覆盖率投影：
 - 每条 SE 必须有对应 EUT
 - 每条 EUT 的 `then` 必须包含具体断言（非模糊描述），参见 `phase_b_structured.json` schema 要求
   - **不合格示例**：`'返回 true'`、`'返回 false'`、`'验证成功'`、`'正常返回'`——缺少断言方法和期望值
-  - **合格示例**：`'assertTrue(result.isAllowed())'`、`'assertThrows(PermissionDeniedException.class, () -> service.apply(dto))'`
+  - **合格示例**：`'assertEquals(APPROVED, result.getStatus())'`、`'expect(response.status).toBe(409)'`、`'assert result.status == "APPROVED"'`、`'require.Equal(t, "APPROVED", result.Status)'`
 
 **1.2 代码→用例补充（有分支代码时）**
 
@@ -199,8 +201,9 @@ Q05a 设计阶段必须对每个目标类做静态覆盖率投影：
       "bound_item": "SE-001",
       "route_type": "Happy Path",
       "given": "标准创建工单 DTO 传入",
-      "when": "LogisticExchangeIdentifyManager.identify(dto)",
-      "then": "assertEquals(IdentifyResult.MATCHED, result.getStatus())",
+      "when": "ExpensePolicy.approve(request)",
+      "then": "assert result.status == 'APPROVED' && assert len(result.audit_log) == 1",
+      "then_assertion_type": "pytest_assert",
       "risk_tier": "T1"
     }
   ]
@@ -247,14 +250,14 @@ Q05a 设计阶段必须对每个目标类做静态覆盖率投影：
 - 三层驱动产物完整（se_mappings + br_mappings + git_diff_files 全部非空）
 - 每条 REQ/BR/SE 有直接 EUT，bound_item 非空
 - git diff 每个实现类在某条 EUT 的 when 字段中有引用
-- then 字段包含具体断言，且 `then_assertion_type` 已填（assertEquals/assertThrows/verify/state_check/other）
+- then 字段包含具体断言，且 `then_assertion_type` 已填（assertEquals/assertTrue/assertThrows/expect/pytest_assert/go_assert/verify/state_check/other）
 - 人工 approve 后，`phase_b_structured.json` 锁定为 Q05b 代码生成规格
 
 ## 禁止事项
 
-- 禁止产出任何 Java 测试代码（那是 Q05b 的工作）
+- 禁止产出任何测试代码（那是 Q05b 的工作）
 - 禁止只按 SE 驱动——BR 和 git diff 同等重要
 - 禁止模糊 then 字段（"验证成功"、"正常返回"、"返回 true/false"等）
 - 禁止 `br_mappings` 为空
-- 禁止权限类 BR/SE 只验证"通过"路径——必须同时有 EUT 验证非授权角色/越权请求被明确拒绝（assertThrows + 具体异常类）
+- 禁止权限类 BR/SE 只验证"通过"路径——必须同时有 EUT 验证非授权角色/越权请求被明确拒绝（具体异常、错误码或拒绝状态）
 - 禁止幂等/并发类 SE 只验证串行重复提交——必须包含两个并发调用方的竞态场景

@@ -116,6 +116,7 @@ def auto_derive_checks(
         # --- Q01-1: SE/BR source 行号内容交叉验证（L1↔L0，最强反幻觉）---
         if phase_id == "Q01":
             errors.extend(_check_source_line_reality(output_dir, project_id, phase_id))
+            errors.extend(check_q01_semantic_quality(data))
             # --- Change 2: SE.source evidence 快照（每条 SE 的行号和内容哈希存档）---
             _save_se_source_evidence(output_dir, project_id, phase_id)
             # --- Q01-2: SE/BR 描述中代码标识符反推检测 ---
@@ -225,6 +226,7 @@ from ._auto_checks_q06 import (
     _check_evidence_line_reality,
     _check_findings_severity_distribution,
 )
+from .q01_semantic_quality import check_q01_semantic_quality
 
 
 def _check_rsm_coverage(output_dir: Path, project_id: str, phase_id: str) -> list[str]:

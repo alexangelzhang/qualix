@@ -36,11 +36,13 @@ _CONCURRENT_KEYWORDS: Final = frozenset(
 _CONCURRENT_THEN_PATTERNS: Final = [
     re.compile(p, re.IGNORECASE)
     for p in [
+        r"route_type=['\"]?Concurrent",
         r"CountDownLatch",
         r"ExecutorService",
         r"Thread\s*\.",
         r"AtomicInteger|AtomicLong",
         r"concurrent",
+        r"Promise\.all|asyncio\.gather|go\s+func|WaitGroup|sync\.Once",
         r"\d+\s*线程|线程\s*\d+",
         r"times\s*\(\s*1\s*\).*countDown|countDown.*times\s*\(\s*1\s*\)",
     ]
@@ -152,13 +154,11 @@ def _check_q05_req_br_se_coverage(
             item_euts = [
                 e for e in eut_items if (getattr(e, "bound_item", "") or getattr(e, "bound_se", "")) == item_id
             ]
-            has_concurrent = any(
-                any(pat.search(getattr(e, "then", "") or "") for pat in _CONCURRENT_THEN_PATTERNS) for e in item_euts
-            )
+            has_concurrent = any(_is_concurrent_eut(e) for e in item_euts)
             if not has_concurrent:
                 errors.append(
                     f"BLOCKED: Q05 {item_id} 有并发/幂等语义（含关键词「{concurrent_kw}」）"
-                    "但缺少并发测试（then 须含 CountDownLatch/ExecutorService/AtomicInteger 等强并发断言）。"
+                    "但缺少 Concurrent EUT 或强并发断言（CountDownLatch/Promise.all/asyncio.gather/WaitGroup 等）。"
                 )
 
     # 全局 Happy Path 覆盖率门禁（≥80%）
@@ -175,6 +175,18 @@ def _check_q05_req_br_se_coverage(
     errors.extend(_check_q05_git_diff_coverage(validated, output_dir, project_id))
 
     return errors
+
+
+def _is_concurrent_eut(eut: Any) -> bool:
+    rt = getattr(eut, "route_type", None)
+    rt_str = rt.value if hasattr(rt, "value") else str(rt)
+    if rt_str == "Concurrent":
+        return True
+    text = " ".join(
+        str(getattr(eut, field, "") or "")
+        for field in ("given", "when", "then")
+    )
+    return any(pat.search(text) for pat in _CONCURRENT_THEN_PATTERNS)
 
 
 def _check_q05_git_diff_coverage(

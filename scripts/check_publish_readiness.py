@@ -29,7 +29,7 @@ FORBIDDEN_TEXT = [
     "git.n." + "xiao" + "mi.com",
     "mi" + ".feishu",
     "xiao" + "mi",
-    "小米",
+    "小" + "米",
     "mi" + ".com",
     "bytedance",
     "customer/",
