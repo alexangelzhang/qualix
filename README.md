@@ -99,16 +99,17 @@ python -m pip install -e '.[dev]'
 Optional extras:
 
 ```bash
+python -m pip install -e '.[tree-sitter]'
 python -m pip install -e '.[feishu]'
 python -m pip install -e '.[vlm]'
 python -m pip install -e '.[deepeval]'
 ```
 
-Feishu/Lark ingestion is optional. Local Markdown or text requirement files work for basic experiments.
+Tree-sitter adds file-local symbol extraction and parse diagnostics for Java, TypeScript, Go, and Python. Feishu/Lark ingestion is optional. Local Markdown or text requirement files work for basic experiments.
 
 For model-provider configuration, see [Model Setup](docs/model-setup.md).
 
-For ecosystem maturity, see [Language Support](docs/language-support.md). Java is the deepest path today; TypeScript, Go, and Python have built-in providers for detection and basic quality gates.
+For ecosystem maturity, see [Language Support](docs/language-support.md). Java is the deepest path today; TypeScript, Go, and Python have built-in providers for detection and basic quality gates, plus optional Tree-sitter code intelligence.
 
 ## CLI Overview
 

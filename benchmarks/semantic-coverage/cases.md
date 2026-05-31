@@ -99,3 +99,12 @@ Expected finding:
 
 The assertion checks transport success for a create call. It does not create an existing active rule, submit a duplicate, or assert the required error message.
 
+## Language Smoke Rows
+
+These rows keep language support honest. They are not separate claims of turnkey support; they are small checks that the same semantic miss can be expressed in different ecosystems.
+
+| Row | Language | Minimal Fixture | Expected Finding |
+| --- | --- | --- | --- |
+| LS-TS-001 | TypeScript | Jest/Vitest test calls `expect(response.status).toBe(200)` after creating a duplicate rule. | Transport success does not prove the duplicate-rule rejection or required message. |
+| LS-GO-001 | Go | `go test` uses `assert.NotNil(t, result)` after manager approval. | Existence of a result does not prove approval state, audit entry count, or idempotency. |
+| LS-PY-001 | Python | pytest checks `assert classify_amount(600) == "finance_required"`. | The threshold rule is still missing the exact boundary value, `500`. |

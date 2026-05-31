@@ -28,6 +28,8 @@ Current themes:
 - self-approval restrictions;
 - weak assertions that only check transport success.
 
+The seed file also includes small TypeScript, Go, and Python smoke rows. They are there to keep language support concrete: each row names the fixture shape and the semantic miss that should be found.
+
 ## How To Use It Today
 
 For now, use the benchmark as a reading and review fixture:
@@ -46,4 +48,3 @@ The benchmark keeps the claim concrete. Instead of saying “semantic coverage i
 > The test covers 120 USD and 600 USD, but not exactly 500 USD.
 
 That is easy for a maintainer to inspect and hard to hide behind a coverage percentage.
-

@@ -71,3 +71,10 @@ Qualix uses judge and critique steps because LLM output is not self-verifying.
 
 The point is not to make the model sound more formal. The point is to stop one unchecked model answer from becoming a release signal.
 
+## Language And Code Intelligence
+
+Language providers and code-intelligence providers do different jobs.
+
+The language provider answers operational questions: is this a Java, TypeScript, Go, or Python project; which test framework is likely in use; what compile or lint command should be tried; where would a test file live.
+
+The code-intelligence provider reads source files. The first provider uses Tree-sitter to extract file-local symbols and parse diagnostics for Java, TypeScript, Go, and Python. It is useful evidence for later phases, but it is optional. Missing Tree-sitter packages should reduce source enrichment, not stop the phase workflow.

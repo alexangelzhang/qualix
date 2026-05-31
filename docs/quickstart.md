@@ -22,6 +22,12 @@ For a minimal editable install:
 python -m pip install -e '.[dev]'
 ```
 
+Optional Tree-sitter source parsing for Java, TypeScript, Go, and Python:
+
+```bash
+python -m pip install -e '.[tree-sitter]'
+```
+
 Optional Feishu/Lark ingestion support:
 
 ```bash
