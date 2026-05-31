@@ -26,22 +26,31 @@ from qualix.languages.base import (
 )
 from qualix.languages.registry import LanguageRegistry, get_registry
 
+try:
+    from qualix.languages.go.provider import GoProvider
+    from qualix.languages.python.provider import PythonProvider
+    from qualix.languages.typescript.provider import TypeScriptProvider
+except ImportError:  # pragma: no cover - optional import surface
+    GoProvider = None  # type: ignore[assignment]
+    PythonProvider = None  # type: ignore[assignment]
+    TypeScriptProvider = None  # type: ignore[assignment]
+
 __all__ = [
-    # Data types
     "AssertionInfo",
     "CompileResult",
     "CoverageResult",
-    # ABC
+    "GoProvider",
     "LanguageProvider",
-    # Registry
     "LanguageRegistry",
     "LintResult",
     "MockInfo",
+    "PythonProvider",
     "SourceInfo",
     "Strength",
     "TestFrameworkInfo",
     "TestGenContext",
     "TestMethodInfo",
+    "TypeScriptProvider",
     "WeakAssertResult",
     "WeakAssertSignalInfo",
     "get_registry",

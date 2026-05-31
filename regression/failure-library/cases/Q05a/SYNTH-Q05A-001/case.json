@@ -1,0 +1,24 @@
+{
+  "case_id": "SYNTH-Q05A-001",
+  "phase": "Q05a",
+  "error_type": "FN",
+  "severity": "high",
+  "title": "Synthetic example: EUT matrix misses an inclusive approval threshold",
+  "root_cause": "SKILL_RULE",
+  "fix_target": "skills/unit-test-design/SKILL.md",
+  "tags": ["synthetic", "boundary", "approval", "semantic-coverage"],
+  "created_at": "2026-05-31",
+  "status": "open",
+  "expected": {
+    "item_type": "EUT",
+    "item_id": "EUT-002",
+    "content": "A request for exactly 500.00 USD must remain manager-approved and require finance approval."
+  },
+  "actual": {
+    "item_type": null,
+    "content": "The EUT matrix covered below-threshold and above-threshold examples but skipped the inclusive 500.00 boundary."
+  },
+  "lesson": "When a requirement uses inclusive wording such as at or above, create an EUT for the exact boundary value, not only values on either side.",
+  "case_category": "ASSERTION_QUALITY"
+}
+

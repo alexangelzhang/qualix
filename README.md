@@ -34,7 +34,7 @@ qualix-run my-project init --profile java-ddd-tmf
 qualix-run my-project startup --json
 ```
 
-To try Qualix without private project data, start with the synthetic example in [examples/hello-prd.md](examples/hello-prd.md).
+To try Qualix without private project data, start with the synthetic example in [examples/hello-prd.md](examples/hello-prd.md), or read the fuller expense approval demo in [examples/expense-approval](examples/expense-approval/README.md).
 
 Inside an AI coding agent, use the project starter instructions:
 
@@ -80,6 +80,8 @@ Every phase follows the same lifecycle:
 collect evidence -> execute skill -> write report + structured JSON -> self-check -> judge/critique -> finalize -> approve
 ```
 
+New to the terms? Read [Concepts](docs/concepts.md) for the short version of Phase, Gate, Harness, Judge, Critique, SE, EUT, and RSM.
+
 ## Installation Notes
 
 The root `install.sh` installs the Python package and copies runtime resources into a user-level Qualix directory. Development mode keeps those resources symlinked to this repository:
@@ -105,6 +107,8 @@ python -m pip install -e '.[deepeval]'
 Feishu/Lark ingestion is optional. Local Markdown or text requirement files work for basic experiments.
 
 For model-provider configuration, see [Model Setup](docs/model-setup.md).
+
+For ecosystem maturity, see [Language Support](docs/language-support.md). Java is the deepest path today; TypeScript, Go, and Python have built-in providers for detection and basic quality gates.
 
 ## CLI Overview
 
@@ -163,6 +167,8 @@ python -m pytest tests/test_version.py tests/test_install_sh.py -q
 
 The public repository should contain only synthetic or sanitized regression examples. Real enterprise failure libraries, customer requirements, and private review data should stay outside the public repo or be distributed under a separate commercial data license.
 
+Public benchmark seeds live in [benchmarks/semantic-coverage](benchmarks/semantic-coverage/README.md). They are small, synthetic cases for inspecting semantic coverage failures by hand.
+
 ## Comparison
 
 Qualix is adjacent to AI PR reviewers, test-generation tools, and coding-agent workflows, but its core differentiator is requirement-semantic traceability rather than line coverage or generic diff review. See [Comparison](docs/comparison.md) for details.
@@ -171,9 +177,13 @@ Qualix is adjacent to AI PR reviewers, test-generation tools, and coding-agent w
 
 - Contributing guide: [CONTRIBUTING.md](CONTRIBUTING.md)
 - Security policy: [SECURITY.md](SECURITY.md)
+- Concepts: [docs/concepts.md](docs/concepts.md)
 - Model setup: [docs/model-setup.md](docs/model-setup.md)
+- Language support: [docs/language-support.md](docs/language-support.md)
 - Comparison: [docs/comparison.md](docs/comparison.md)
+- Benchmark seed cases: [benchmarks/semantic-coverage](benchmarks/semantic-coverage/README.md)
 - Synthetic starter input: [examples/hello-prd.md](examples/hello-prd.md)
+- Expense approval demo: [examples/expense-approval](examples/expense-approval/README.md)
 
 ## License
 

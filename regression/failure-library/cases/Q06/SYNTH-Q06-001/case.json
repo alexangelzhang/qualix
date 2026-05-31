@@ -1,0 +1,24 @@
+{
+  "case_id": "SYNTH-Q06-001",
+  "phase": "Q06",
+  "error_type": "FN",
+  "severity": "high",
+  "title": "Synthetic example: coverage audit misses idempotency despite a passing approval test",
+  "root_cause": "SKILL_RULE",
+  "fix_target": "skills/unit-test-audit/SKILL.md",
+  "tags": ["synthetic", "idempotency", "audit-log", "weak-assertion"],
+  "created_at": "2026-05-31",
+  "status": "open",
+  "expected": {
+    "item_type": "audit_item",
+    "item_id": "EUT-005",
+    "content": "Q06 should mark idempotent approval as uncovered when tests never retry the same transition and never assert duplicate audit prevention."
+  },
+  "actual": {
+    "item_type": "audit_item",
+    "content": "The audit treated a single happy-path approval assertion as enough for the idempotency requirement."
+  },
+  "lesson": "Do not mark idempotency covered unless the test repeats the same command and asserts unchanged side effects such as audit rows and notifications.",
+  "case_category": "ASSERTION_QUALITY"
+}
+

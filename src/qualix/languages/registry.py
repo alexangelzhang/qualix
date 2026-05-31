@@ -130,3 +130,19 @@ def _register_builtin_providers(registry: LanguageRegistry) -> None:
         registry.register(TypeScriptProvider())
     except ImportError:
         log.debug("TypeScriptProvider not available")
+
+    # Go Provider
+    try:
+        from qualix.languages.go.provider import GoProvider
+
+        registry.register(GoProvider())
+    except ImportError:
+        log.debug("GoProvider not available")
+
+    # Python Provider
+    try:
+        from qualix.languages.python.provider import PythonProvider
+
+        registry.register(PythonProvider())
+    except ImportError:
+        log.debug("PythonProvider not available")

@@ -19,7 +19,13 @@ cd /path/to/qualix
 
 ### Which optional dependencies do I need?
 
-Core workflows need only the base package. Optional extras are available for integrations:
+For a first run, none. Use a local Markdown PRD and install the development extra only:
+
+```bash
+python -m pip install -e '.[dev]'
+```
+
+Optional extras are available for integrations:
 
 ```bash
 python -m pip install -e '.[feishu]'   # Feishu/Lark ingestion through larkkit
@@ -38,6 +44,12 @@ uvx larkkit auth status
 ```
 
 Local Markdown or text requirement files do not need this setup.
+
+### Do I need to understand every phase first?
+
+No. Start with Q01. It structures a requirement document into traceable items. Then read the output before running downstream phases.
+
+For the short glossary, see [Concepts](concepts.md).
 
 ## Project Workflow
 
@@ -113,3 +125,11 @@ qualix-run <project_id> doctor
 ### How is Qualix different from a coding agent workflow tool?
 
 Qualix focuses on quality gates: requirement traceability, design coverage, test intent, assertion quality, and evidence-backed review. It can complement coding workflow tools by auditing what they produce.
+
+### Does Qualix support Python, TypeScript, Go, and Java?
+
+Not equally yet. Java is the strongest path. TypeScript, Go, and Python have built-in providers for detection and basic quality gates, but Go and Python are still early compared with Java. See [Language Support](language-support.md) for the honest breakdown.
+
+### Is there a benchmark?
+
+There is a small public seed set under [benchmarks/semantic-coverage](../benchmarks/semantic-coverage/README.md). It is not a leaderboard yet; it is a set of readable cases that show where line coverage can miss requirement semantics.

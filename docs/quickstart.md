@@ -29,6 +29,8 @@ python -m pip install -e '.[feishu]'
 uvx larkkit auth login
 ```
 
+Skip optional integrations for the first run. Local Markdown files are enough.
+
 ## 2. Initialize A Project
 
 Run this inside the repository you want to analyze:
@@ -78,6 +80,10 @@ Q01 accepts a local PRD/requirements document. Feishu/Lark URLs are optional and
 ## Next Steps
 
 - Read the root [README](../README.md) for the phase model.
+- Skim [Concepts](concepts.md) if Phase/Gate/Judge/EUT terms feel dense.
 - Configure model providers with [Model Setup](model-setup.md).
+- Check [Language Support](language-support.md) before assuming a language is turnkey.
 - Understand the product boundary in [Comparison](comparison.md).
+- Inspect [Benchmark](benchmark.md) for the current public semantic-coverage seed set.
+- Read the fuller [expense approval demo](../examples/expense-approval/README.md) for a concrete semantic-coverage example.
 - See [FAQ](faq.md) for common setup and workflow questions.
