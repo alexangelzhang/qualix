@@ -75,7 +75,6 @@ def _render_pr_comment(
     for phase_id, verdict in sorted(verdicts.items()):
         hard_blocked = verdict.get("hard_blocked", False)
         soft_blocked = verdict.get("soft_blocked", False)
-        passed = verdict.get("passed", False)
 
         if hard_blocked:
             phase_icon = _FAIL_ICON
@@ -306,7 +305,6 @@ def _basic_evidence_summary(
     output_dir: Path, project_id: str, phase_id: str
 ) -> dict[str, Any] | None:
     """在 EvidenceGraph 未实现时提供基本摘要（从现有 JSON 文件聚合）."""
-    from qualix.constants import PHASE_DIR_MAP
     from qualix.json_utils import load_json
 
     q01_dir = output_dir / project_id / "Q01"

@@ -78,4 +78,6 @@ Q01 accepts a local PRD/requirements document. Feishu/Lark URLs are optional and
 ## Next Steps
 
 - Read the root [README](../README.md) for the phase model.
+- Configure model providers with [Model Setup](model-setup.md).
+- Understand the product boundary in [Comparison](comparison.md).
 - See [FAQ](faq.md) for common setup and workflow questions.

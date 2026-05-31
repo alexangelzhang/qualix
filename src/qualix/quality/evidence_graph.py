@@ -16,7 +16,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -96,7 +96,7 @@ class EvidenceGraph:
     # ---- 构建 ----
 
     @classmethod
-    def build(cls, output_dir: Path, project_id: str) -> "EvidenceGraph":
+    def build(cls, output_dir: Path, project_id: str) -> EvidenceGraph:
         """从现有 Phase 产物构建 EvidenceGraph（只读，不重跑检查）。"""
         graph = cls()
         graph._build_from_artifacts(output_dir, project_id)

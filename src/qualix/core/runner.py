@@ -349,7 +349,14 @@ def _dispatch(cmd: str) -> callable:
         return {"judge": cmd_judge, "critique": cmd_critique, "preference": cmd_preference, "golden": cmd_golden}[cmd]
 
     if cmd in ("orchestrate", "agent-run", "adaptive", "dag", "adaptive-override", "adaptive-diff"):
-        from qualix.commands.agents import cmd_adaptive, cmd_adaptive_diff, cmd_adaptive_override, cmd_agent_run, cmd_dag, cmd_orchestrate
+        from qualix.commands.agents import (
+            cmd_adaptive,
+            cmd_adaptive_diff,
+            cmd_adaptive_override,
+            cmd_agent_run,
+            cmd_dag,
+            cmd_orchestrate,
+        )
 
         return {
             "orchestrate": cmd_orchestrate,

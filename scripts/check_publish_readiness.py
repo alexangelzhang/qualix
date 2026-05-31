@@ -9,9 +9,8 @@ made public.
 from __future__ import annotations
 
 import re
-import sys
 from pathlib import Path
-
+from urllib.parse import urlparse
 
 ROOT = Path(__file__).resolve().parents[1]
 SKIP_DIRS = {".git", "__pycache__", ".pytest_cache", ".ruff_cache", "dist", "build", ".venv", "venv"}
@@ -27,14 +26,49 @@ FORBIDDEN_TEXT = [
     "d" + "qg-starter",
     "d" + "qg_starter",
     "d" + "qg.mdc",
+    "git.n." + "xiao" + "mi.com",
     "mi" + ".feishu",
     "xiao" + "mi",
+    "小米",
     "mi" + ".com",
     "bytedance",
     "customer/",
     "团队数据上报",
     "共享看板",
 ]
+
+FORBIDDEN_TEXT_LOWER = [item.lower() for item in FORBIDDEN_TEXT]
+
+URL_PATTERN = re.compile(r"https?://[^\s)\]>'\"`]+")
+PRIVATE_HOST_HINTS = (
+    "corp",
+    "internal",
+    "intranet",
+    "localhost.company",
+    "git.n.",
+    "feishu.cn",
+    "larksuite.com",
+    "larkoffice.com",
+)
+
+ALLOW_URL_HOSTS = {
+    "127.0.0.1",
+    "localhost",
+    "api.anthropic.com",
+    "api.moonshot.cn",
+    "api.openai.com",
+    "dashscope.aliyuncs.com",
+    "evil.com",
+    "example.com",
+    "example.feishu.cn",
+    "generativelanguage.googleapis.com",
+    "github.com",
+    "json-schema.org",
+    "nodejs.org",
+    "open.feishu.cn",
+    "openrouter.ai",
+    "qualix.local",
+}
 
 SECRET_PATTERNS = [
     re.compile(r"sk-[A-Za-z0-9][A-Za-z0-9_-]{20,}"),
@@ -62,6 +96,10 @@ ALLOW_FORBIDDEN_TEXT_FILES = {
     "scripts/check_publish_readiness.py",
 }
 
+ALLOW_PRIVATE_URL_FILES = {
+    "scripts/check_publish_readiness.py",
+}
+
 
 def iter_files() -> list[Path]:
     files: list[Path] = []
@@ -84,6 +122,10 @@ def check_names(files: list[Path]) -> list[str]:
         lowered = rel.lower()
         if ("d" + "qg") in lowered or ("rd" + "-gate") in lowered:
             issues.append(f"filename contains legacy name: {rel}")
+        if "open-source-plan" in lowered and rel != ".open-source-plan.local.md":
+            issues.append(f"open-source plan must stay local-only: {rel}")
+        if lowered.startswith(".open-source-plan"):
+            issues.append(f"temporary open-source plan still exists: {rel}")
     return issues
 
 
@@ -96,10 +138,27 @@ def check_text(files: list[Path]) -> list[str]:
         except UnicodeDecodeError:
             continue
 
+        text_lower = text.lower()
         if rel not in ALLOW_FORBIDDEN_TEXT_FILES:
-            for needle in FORBIDDEN_TEXT:
-                if needle in text:
+            for needle in FORBIDDEN_TEXT_LOWER:
+                if needle in text_lower:
                     issues.append(f"{rel}: contains forbidden text `{needle}`")
+
+        if rel not in ALLOW_PRIVATE_URL_FILES:
+            for match in URL_PATTERN.finditer(text):
+                raw_url = match.group(0).rstrip(".,;")
+                try:
+                    host = (urlparse(raw_url).hostname or "").lower()
+                except ValueError:
+                    continue
+                if not host:
+                    continue
+                if host in ALLOW_URL_HOSTS or host.endswith(".github.com"):
+                    continue
+                if host.startswith("example."):
+                    continue
+                if any(hint in host for hint in PRIVATE_HOST_HINTS):
+                    issues.append(f"{rel}: contains private-link-like URL `{raw_url}`")
 
         if rel not in ALLOW_SECRET_FILES:
             for pattern in SECRET_PATTERNS:

@@ -104,6 +104,8 @@ python -m pip install -e '.[deepeval]'
 
 Feishu/Lark ingestion is optional. Local Markdown or text requirement files work for basic experiments.
 
+For model-provider configuration, see [Model Setup](docs/model-setup.md).
+
 ## CLI Overview
 
 Global commands:
@@ -161,10 +163,16 @@ python -m pytest tests/test_version.py tests/test_install_sh.py -q
 
 The public repository should contain only synthetic or sanitized regression examples. Real enterprise failure libraries, customer requirements, and private review data should stay outside the public repo or be distributed under a separate commercial data license.
 
+## Comparison
+
+Qualix is adjacent to AI PR reviewers, test-generation tools, and coding-agent workflows, but its core differentiator is requirement-semantic traceability rather than line coverage or generic diff review. See [Comparison](docs/comparison.md) for details.
+
 ## Community And Security
 
 - Contributing guide: [CONTRIBUTING.md](CONTRIBUTING.md)
 - Security policy: [SECURITY.md](SECURITY.md)
+- Model setup: [docs/model-setup.md](docs/model-setup.md)
+- Comparison: [docs/comparison.md](docs/comparison.md)
 - Synthetic starter input: [examples/hello-prd.md](examples/hello-prd.md)
 
 ## License

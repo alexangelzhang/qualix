@@ -64,7 +64,7 @@ class TestCrossPhaseRefs:
                 "req_coverage": [{"req_id": "REQ-999", "status": "MISSING"}],
             },
         )
-        errors, hashes = check_cross_phase_refs(output_dir, "PROJ")
+        errors, _hashes = check_cross_phase_refs(output_dir, "PROJ")
         assert len(errors) == 1
         assert "REQ-999" in errors[0]
 
@@ -128,7 +128,7 @@ class TestCrossPhaseRefs:
                 ],
             },
         )
-        errors, hashes = check_cross_phase_refs(output_dir, "PROJ")
+        errors, _hashes = check_cross_phase_refs(output_dir, "PROJ")
         assert len(errors) == 1
         assert "SE-999" in errors[0]
         assert "EUT-001" in errors[0]
@@ -168,7 +168,7 @@ class TestCrossPhaseRefs:
                 "audit_items": [{"eut_id": "EUT-999", "status": "MISSING"}],
             },
         )
-        errors, hashes = check_cross_phase_refs(output_dir, "PROJ")
+        errors, _hashes = check_cross_phase_refs(output_dir, "PROJ")
         # G3 新增：Q05 EUT-001 未被 Q06 审计也会触发错误，故 errors >= 1
         assert len(errors) >= 1
         assert any("EUT-999" in e for e in errors)
@@ -193,7 +193,7 @@ class TestCrossPhaseRefs:
                 "audit_items": [{"eut_id": "EUT-001", "status": "MISSING"}],
             },
         )
-        errors, hashes = check_cross_phase_refs(output_dir, "PROJ")
+        errors, _hashes = check_cross_phase_refs(output_dir, "PROJ")
         assert len(errors) == 1
         assert "phase_b_structured.json" in errors[0]
 

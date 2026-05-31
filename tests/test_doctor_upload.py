@@ -81,7 +81,7 @@ def test_upload_via_glab_error(mock_run, tmp_path):
         stdout="",
         stderr="permission denied",
     )
-    ok, url, err = upload_via_glab(
+    ok, _url, err = upload_via_glab(
         title="t",
         description="d",
         bundle=bundle,

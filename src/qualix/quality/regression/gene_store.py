@@ -12,6 +12,7 @@
 from __future__ import annotations
 
 import re
+from contextlib import suppress
 from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
@@ -199,10 +200,8 @@ def _build_preference_from_pass(
     critique_data = {}
     if iteration_record.critique_result and iteration_record.critique_result.status != "failed":
         import json as _json
-        try:
+        with suppress(ValueError, AttributeError):
             critique_data = _json.loads(iteration_record.critique_result.content)
-        except (ValueError, AttributeError):
-            pass
 
     issues = critique_data.get("issues_found", [])
     effectiveness = [

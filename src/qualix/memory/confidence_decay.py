@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import math
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
@@ -17,7 +17,7 @@ HALF_LIFE_DAYS_PREFERENCE = 90.0
 HALF_LIFE_DAYS_FACT = 30.0
 
 
-class MemoryDecayCategory(str, Enum):
+class MemoryDecayCategory(StrEnum):
     """用于衰减策略的记忆大类（与 structured_facts 的 fact_type 不同层）."""
 
     CORRECTION = "correction"

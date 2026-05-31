@@ -19,6 +19,7 @@ from __future__ import annotations
 import inspect
 import time
 import uuid
+from contextlib import suppress
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
@@ -221,10 +222,8 @@ class AdaptiveLoop:
 
         for i in range(max_iterations):
             if progress_callback:
-                try:
+                with suppress(Exception):
                     progress_callback({"event": "iter_start", "iteration": i + 1, "total": max_iterations})
-                except Exception:
-                    pass
             record, passed, iter_llm_calls = self._execute_iteration(
                 i=i,
                 pd=pd,
@@ -252,7 +251,7 @@ class AdaptiveLoop:
             all_llm_calls.extend(iter_llm_calls)
 
             if progress_callback and record.judge_result:
-                try:
+                with suppress(Exception):
                     progress_callback({
                         "event": "iter_done",
                         "iteration": i + 1,
@@ -263,8 +262,6 @@ class AdaptiveLoop:
                         "schema_errors": len(record.schema_errors),
                         "duration": record.duration,
                     })
-                except Exception:
-                    pass
 
             # Issue lifecycle tracking
             if record.judge_result is not None:
@@ -409,7 +406,7 @@ class AdaptiveLoop:
             import hashlib as _hl
             from datetime import datetime as _dt
 
-            def _sha256_file(p: "Path") -> str | None:
+            def _sha256_file(p: Path) -> str | None:
                 try:
                     return _hl.sha256(p.read_bytes()).hexdigest()[:16]
                 except OSError:
@@ -418,10 +415,8 @@ class AdaptiveLoop:
             _hash_path = pd / "_pivot_hashes.json"
             _hashes: dict = {}
             if _hash_path.exists():
-                try:
+                with suppress(ValueError, OSError):
                     _hashes = __import__("json").loads(_hash_path.read_text(encoding="utf-8"))
-                except (ValueError, OSError):
-                    pass
             _key = f"iter_{iteration_n + 1}"
             _hashes[_key] = {
                 "json": _sha256_file(pd / json_fname) if json_fname and (pd / json_fname).exists() else None,
@@ -606,8 +601,8 @@ class AdaptiveLoop:
         if i == 0:
             # C 线 1M Context：大 context 模型直接单阶段 Worker（context 够大，无需 Collector→Writer 分离）
             # P0-C：小/中 context 模型走 TwoPhaseWorker，失败 fallback 单阶段
+            from qualix.context.loading.context_loader import ContextStrategy, resolve_context_strategy
             from qualix.core.model_registry import get_model_profile
-            from qualix.context.loading.context_loader import resolve_context_strategy, ContextStrategy
             _worker_profile = get_model_profile(worker_model)
             _worker_strategy = resolve_context_strategy(_worker_profile.context_window)
             _force_single_phase = (_worker_strategy == ContextStrategy.FULL)
@@ -875,10 +870,8 @@ class AdaptiveLoop:
                 _pref = _build_preference_from_pass(record, project_id, phase_id)
                 import json as _json_gene
                 _critique_data: dict = {}
-                try:
+                with suppress(ValueError, AttributeError):
                     _critique_data = _json_gene.loads(record.critique_result.content)
-                except (ValueError, AttributeError):
-                    pass
                 _new_genes = extract_genes_from_preference(_pref, _critique_data, phase_id, project_id)
                 if _new_genes:
                     save_genes(self.output_dir.parent, _new_genes, project_id=project_id)

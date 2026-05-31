@@ -465,7 +465,7 @@ def handle_results_tsv(ctx: ExecutionContext, result: PhaseResult) -> None:
         f.write(f"{ctx.project_id}\t{ctx.phase_id}\t{score}\t{ts}\n")
 
 
-def handle_q05b_coverage_increase(ctx: "ExecutionContext", result: "PhaseResult") -> None:
+def handle_q05b_coverage_increase(ctx: ExecutionContext, result: PhaseResult) -> None:
     """Q05b finalize：覆盖率净增检查（fail-open，无报告时跳过）。"""
     try:
         from qualix.quality.checks.test_execution_gate import check_q05b_coverage_increase
@@ -477,7 +477,7 @@ def handle_q05b_coverage_increase(ctx: "ExecutionContext", result: "PhaseResult"
         result.warnings.append(f"q05b_coverage_increase: 检查失败（非阻断）: {e}")
 
 
-def handle_semantic_coverage(ctx: "ExecutionContext", result: "PhaseResult") -> None:
+def handle_semantic_coverage(ctx: ExecutionContext, result: PhaseResult) -> None:
     """Q06 finalize：计算语义覆盖率 vs 行覆盖率对比报告（fail-open）。"""
     try:
         from qualix.quality.checks.semantic_coverage import compute_and_save_semantic_coverage
@@ -488,7 +488,7 @@ def handle_semantic_coverage(ctx: "ExecutionContext", result: "PhaseResult") -> 
         result.warnings.append(f"semantic_coverage: 计算失败（非阻断）: {e}")
 
 
-def handle_evidence_graph(ctx: "ExecutionContext", result: "PhaseResult") -> None:
+def handle_evidence_graph(ctx: ExecutionContext, result: PhaseResult) -> None:
     """Q06 finalize 后构建 SE→EUT→Coverage 链路图并持久化（fail-open）."""
     try:
         from qualix.quality.evidence_graph import EvidenceGraph

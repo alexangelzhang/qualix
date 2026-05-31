@@ -4,14 +4,14 @@ from __future__ import annotations
 
 import json
 from datetime import UTC, datetime
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
 from qualix.store import get_connection
 
 
-class TrustLevel(str, Enum):
+class TrustLevel(StrEnum):
     HIGH = "high"
     MEDIUM = "medium"
     LOW = "low"

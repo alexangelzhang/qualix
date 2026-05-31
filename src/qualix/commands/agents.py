@@ -394,7 +394,6 @@ def cmd_adaptive_override(args, output_dir: Path) -> int:
 
 def cmd_adaptive_diff(args, output_dir: Path) -> int:
     """展示 adaptive loop 各轮迭代产物的 diff summary。"""
-    import difflib
 
     from qualix.commands.cli_json import cli_envelope, cli_json_mode, print_cli_json
     from qualix.core.state_machine import PHASE_DEFS

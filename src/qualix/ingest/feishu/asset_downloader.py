@@ -14,7 +14,6 @@ from qualix.ingest.error_strategy import (
     map_failure_category,
 )
 
-
 _RE_UNSAFE_FILENAME = re.compile(r"[^A-Za-z0-9._-]+")
 
 

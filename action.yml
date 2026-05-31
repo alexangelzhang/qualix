@@ -1,21 +1,21 @@
 name: Qualix Quality Gate
-description: '运行 Qualix 质量门禁，读取已有 Phase verdict 并决定是否通过'
+description: 'Run Qualix quality gates from existing phase verdicts'
 
 inputs:
   project-id:
-    description: 'Qualix 项目 ID（对应 output/ 下的目录名）'
+    description: 'Qualix project ID, matching the directory name under output/'
     required: true
   phase:
-    description: '检查的 Phase ID（如 Q06），或 all 表示所有 Phase'
+    description: 'Phase ID to check, such as Q06, or all for every phase'
     default: 'Q06'
   fail-on:
-    description: '失败级别：hard（默认）/ soft / any'
+    description: 'Failure level: hard, soft, or any'
     default: 'hard'
   output-dir:
-    description: 'Qualix output 目录路径'
+    description: 'Path to the Qualix output directory'
     default: 'output'
   post-summary:
-    description: '是否将结果写入 GitHub Step Summary'
+    description: 'Whether to write results to the GitHub Step Summary'
     default: 'true'
 
 outputs:
@@ -23,7 +23,7 @@ outputs:
     description: 'PASS / HARD_BLOCK / SOFT_WARN'
     value: ${{ steps.gate.outputs.verdict }}
   semantic-coverage:
-    description: '语义覆盖率（EUT 粒度，0.0-1.0）'
+    description: 'Semantic coverage at EUT granularity, 0.0-1.0'
     value: ${{ steps.gate.outputs.semantic_coverage }}
 
 runs:
@@ -37,7 +37,7 @@ runs:
       id: gate
       shell: bash
       run: |
-        set +e  # 不让 shell 在 exit 1 时中断，让我们自己处理
+        set +e
 
         PHASE_ARG="${{ inputs.phase }}"
         if [ "$PHASE_ARG" = "all" ]; then
@@ -46,7 +46,6 @@ runs:
           PHASE_FLAG="$PHASE_ARG"
         fi
 
-        # 以 JSON 模式运行，捕获结构化结果
         JSON_OUT=$(qualix-run "${{ inputs.project-id }}" ci-gate $PHASE_FLAG \
           --fail-on "${{ inputs.fail-on }}" \
           --json \
@@ -55,7 +54,6 @@ runs:
 
         echo "exit_code=$EXIT_CODE" >> "$GITHUB_OUTPUT"
 
-        # 解析 verdict
         if echo "$JSON_OUT" | python3 -c "import sys,json; d=json.load(sys.stdin); print('hard' if d.get('data',{}).get('verdicts',{}) and any(v.get('hard_blocked') for v in d.get('data',{}).get('verdicts',{}).values()) else 'soft' if not d.get('success') else 'pass')" 2>/dev/null | grep -q "hard"; then
           echo "verdict=HARD_BLOCK" >> "$GITHUB_OUTPUT"
         elif [ "$EXIT_CODE" != "0" ]; then
@@ -64,11 +62,9 @@ runs:
           echo "verdict=PASS" >> "$GITHUB_OUTPUT"
         fi
 
-        # 语义覆盖率
         SEM_COV=$(echo "$JSON_OUT" | python3 -c "import sys,json; d=json.load(sys.stdin); sc=d.get('data',{}).get('semantic_coverage',{}); print(sc.get('semantic_coverage_rate',''))" 2>/dev/null || echo "")
         echo "semantic_coverage=$SEM_COV" >> "$GITHUB_OUTPUT"
 
-        # Step Summary（PR Comment 格式）
         if [ "${{ inputs.post-summary }}" = "true" ]; then
           qualix-run "${{ inputs.project-id }}" ci-gate $PHASE_FLAG \
             --fail-on "${{ inputs.fail-on }}" \
