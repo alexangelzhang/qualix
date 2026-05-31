@@ -70,14 +70,14 @@ T11 独立（RationalizationProbe 字段级护栏）
 
 ### 仍需回写（code → verified 缺的证据）
 
-- **T2**：schema / 必填清单已就位，但 Q06 2026-05-07 仍有 19 条 findings 缺字段类失败（commit `7b3970d`）。需在 shuangzhou-v4 05-09 后重跑一次确认归零
+- **T2**：schema / 必填清单已就位，但 Q06 2026-05-07 仍有 19 条 findings 缺字段类失败（commit `7b3970d`）。需在 workflow-approval-demo 05-09 后重跑一次确认归零
 - **T5**：`q05_structure_checks.py` 接入 + 测试通过，但 Q05 自 2026-04-29 起 0 条新增很可能是"没跑"而非"止血"（见下方 §本周失败量快照免责声明），需下次规模化跑批确认
 - **T9**：guard 精度报告可产出，但 `docs/system-health-reports/guard_precision.md` 需至少 7 天稳定观测数据才能说"三态均有样本"，目前刚上线
 - **T10**：Reflector 脚手架就位，`test_case_reflect` 通过，但新采集 case 自动填充率 ≥95% 的口径未跑实际数据
 
 ### 回写要求（T6 / T12 阻塞 `verified`）
 
-- **T6**：需提供 3 个项目（finance-model、shuangzhou-v4、store-ops）重跑后的 `no-exception-test` 新发数、关键方法异常分支 EUT 覆盖率。未回写前状态保持 `code`
+- **T6**：需提供 3 个项目（expense-approval-demo、workflow-approval-demo、inventory-demo）重跑后的 `no-exception-test` 新发数、关键方法异常分支 EUT 覆盖率。未回写前状态保持 `code`
 - **T12**：需提供 `observability/reports/q05-bug-regression/{project}.md` 三份报告，包含"能复现 bug 的 EUT 占比"。低于 20% 触发止损线（报告 §6.3），需升级决策
 
 ### 本周失败量快照
@@ -90,7 +90,7 @@ T11 独立（RationalizationProbe 字段级护栏）
 | Q03 | 969 | 2026-04-27 | — | 0 | 4-27 后无新增（需确认是"止血"还是"没跑"） |
 | Q04 | 11 | 2026-04-28 | — | 0 | 4-28 后无新增 |
 | Q05 | 225 | 2026-04-29 | — | 0 | 4-29 后无新增（同上，待 T12 回归实验验证） |
-| Q06 | 352 | 2026-05-07 | 19 | 19 | shuangzhou-v4 findings 缺字段问题（T2 治理） |
+| Q06 | 352 | 2026-05-07 | 19 | 19 | workflow-approval-demo findings 缺字段问题（T2 治理） |
 | Q07 | 127 | 2026-04-24 | — | 0 | 4-24 后无新增 |
 
 **重要免责声明**：5 月之后新增案例稀少有两种可能——(a) P0 阶段 guard 上线后真止血；(b) 窗口内没有规模化跑批，所以没有新失败机会。需要结合 `observability/reports/daily/` 的项目运行频次判断，不能直接归因为治理生效。

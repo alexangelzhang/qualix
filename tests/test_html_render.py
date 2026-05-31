@@ -9,17 +9,16 @@ import pytest
 
 from qualix.reporting.html_render import render_q05_eut_matrix
 
-FIXTURE_JSON = Path(__file__).parent.parent / "output" / "finance-model" / "Q05" / "phase_b_structured.json"
+FIXTURE_JSON = Path(__file__).parent / "fixtures" / "q05_eut_matrix" / "phase_b_structured.json"
 
 
-@pytest.mark.skipif(not FIXTURE_JSON.exists(), reason="finance-model Q05 fixture not present")
 def test_render_q05_smoke(tmp_path: Path):
     out = tmp_path / "eut_matrix.html"
     result = render_q05_eut_matrix(FIXTURE_JSON, out)
 
     # 基本契约
-    assert result["test_case_count"] == 73
-    assert result["project_id"] == "finance-model"
+    assert result["test_case_count"] == 2
+    assert result["project_id"] == "demo-q05-render"
     assert Path(result["html_path"]) == out.resolve()
     assert Path(result["source_json"]) == FIXTURE_JSON.resolve()
 

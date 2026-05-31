@@ -1,0 +1,15 @@
+{
+  "case_id": "PASS-Q05-expense-approval-demo-20260527-02",
+  "phase": "Q05",
+  "error_type": "PASS",
+  "project_id": "expense-approval-demo",
+  "source": "output_verified",
+  "judged_at": "2026-04-29T11:40:14.042577+00:00",
+  "created_at": "2026-05-27T18:19:24.965719",
+  "status": "open",
+  "expected_verdict": "PASS",
+  "tags": [
+    "pass-library",
+    "project:expense-approval-demo"
+  ]
+}

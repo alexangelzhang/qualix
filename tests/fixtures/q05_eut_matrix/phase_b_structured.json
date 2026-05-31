@@ -1,0 +1,19 @@
+{
+  "project_id": "demo-q05-render",
+  "test_cases": [
+    {
+      "id": "TC-001",
+      "scenario": "Approve an expense within policy",
+      "given": "An expense request below the approval threshold",
+      "when": "ExpensePolicy.approve(request)",
+      "then": "assert result.status == 'APPROVED'"
+    },
+    {
+      "id": "TC-002",
+      "scenario": "Reject an expense above policy",
+      "given": "An expense request above the approval threshold",
+      "when": "ExpensePolicy.approve(request)",
+      "then": "assert result.status == 'REJECTED'"
+    }
+  ]
+}

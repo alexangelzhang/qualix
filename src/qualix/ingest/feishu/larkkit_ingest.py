@@ -144,7 +144,7 @@ def ingest_via_larkkit(
 
     Args:
         url: 飞书文档 URL
-        output_dir: 项目 Phase 输出目录（如 output/kind-care/Q01）
+        output_dir: 项目 Phase 输出目录（如 output/support-care-demo/Q01）
         use_user_token: 是否使用 user token
         timeout: CLI 超时秒数
 

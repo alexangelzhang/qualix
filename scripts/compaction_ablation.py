@@ -63,7 +63,7 @@ def main():
         sys.exit(1)
 
     # Load report from latest output
-    output_dir = Path(__file__).resolve().parents[1] / "output" / "finance-model"
+    output_dir = Path(__file__).resolve().parents[1] / "output" / "expense-approval-demo"
     phase_dirs = {"Q03": "Q03", "Q04": "Q04", "Q07": "Q07"}
     report_names = {
         "Q03": "tech_design_quality_review.md",

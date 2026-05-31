@@ -35,6 +35,10 @@ FORBIDDEN_TEXT = [
     "customer/",
     "团队数据上报",
     "共享看板",
+    "finance" + "-model",
+    "shuang" + "zhou-v4",
+    "kind" + "-care",
+    "store" + "-ops",
 ]
 
 FORBIDDEN_TEXT_LOWER = [item.lower() for item in FORBIDDEN_TEXT]
