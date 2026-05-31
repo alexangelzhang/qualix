@@ -182,7 +182,7 @@ def print_doctor_human(base_dir: Path, issues: list[str], warnings: list[str], s
     if signals.get("larkkit_auth_ok"):
         print("  ✓ 飞书 token 有效")
     else:
-        print("  ⚠ 飞书 token 无效 (uvx larkkit auth login)")
+        print("  ⚠ 飞书 token 无效（运行 qualix-run auth status 查看配置方式）")
 
     if not shutil.which("git"):
         print("  ✗ git 未安装")

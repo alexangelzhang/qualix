@@ -106,6 +106,10 @@ DASHBOARD_PID_FILE = ".qualix/dashboard.pid"
 MEMORY_FILE = ".qualix/MEMORY.md"
 MEMORY_SIDECAR_QUEUE = ".qualix/memory_sidecar_queue.jsonl"
 MEMORY_GARDEN_REPORT = ".qualix/_memory_garden_report.json"
+QUALIX_LARK_AUTH_CONFIG = ".qualix/auth/lark.ini"
+QUALIX_LARK_TOKEN_ENV = "QUALIX_LARK_USER_TOKEN"
+QUALIX_LARK_EMAIL_ENV = "QUALIX_LARK_USER_EMAIL"
+QUALIX_LARK_EXPIRES_ENV = "QUALIX_LARK_TOKEN_EXPIRES_AT"
 # memory/garden: 同 Phase GAP 两两极性冲突检测的配对上限（O(n²) 保护）。
 # 超限后截断并发 log.info 告警，不抽样、不抛异常。GAP 数 >40 的场景目前罕见，
 # 真实出现后再考虑抽样策略或按 business_path 分桶。

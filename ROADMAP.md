@@ -473,16 +473,16 @@
 - 迁移文档 + 升级指南
 - 预估：3-5 工作日，建议单独 session
 
-### 从 VAF 借鉴（2026-05-10 补充）
+### 本地安装模式补充（2026-05-10）
 
-VAF（`~/git_dev/vibe-agentic-flow`）没发 PyPI 但通过 `install.sh + ~/.vcb/` 做硬了"工具/用户项目"边界，对 Qualix 有 4 条可直接借鉴的点，按 ROI 排序：
+内部 dogfood 已验证过 `install.sh + ~/.qualix/` 可以先把"工具/用户项目"边界做硬。对 Qualix 有 4 条可直接落地的点，按 ROI 排序：
 
 1. **`install.sh` 模式作为 L1 备选**：`install.sh` 把 `skills/` / `references/` / `profiles/` 拷到 `~/.qualix/`，0.5 天即可拿到"用户 cwd 没源码"的物理边界，不必等 PyPI 改造（3-5 天）完成。详见 `docs/distribution-gap.md` §L1 备选
-2. **独立 `VERSION` 文件**：VAF 用 `VERSION` 纯文本（`2.3.1-rc.20260304`）做版本源，不和 `pyproject.toml` 耦合。Qualix 当前 `version = "0.1.0"` 卡死一年没动 —— 根因是跟 PyPI 发布绑定的心理负担。加一个独立 VERSION 文件让版本号流转起来
-3. **双 starter 按角色分流**：VAF 根目录有 `vaf_starter.md` + `vaf_frontend_starter.md` 按角色分入口。Qualix 当前只有 `qualix_starter.md`，新手/熟手/维护者挤同一份。拆为 `qualix_user_starter.md`（使用者视角）+ `qualix_dev_starter.md`（维护者视角），工作量 <1 小时但对规模化新用户体验影响大
-4. **`core/` 规则外置**：VAF 用 `core/rules/*.md` + `core/standards/*.md` + `core/templates/*.md` 把规则从代码里拽出来。Qualix 的 `phase_registry.py` / `phase_contract.py` / `judge_rubrics.py` 现在是 Python 代码，用户改不了。长期演进方向是抽出 `core/rubrics/Q01.yaml` / `core/thresholds.yaml` 这类用户可定制的配置文件，Python 保留做运行时加载器。不用一次做完，下次改常量时顺手抽一个就是进了一步
+2. **独立 `VERSION` 文件**：用 `VERSION` 纯文本做版本源，不和 `pyproject.toml` 耦合。Qualix 当前 `version = "0.1.0"` 卡死一年没动 —— 根因是跟 PyPI 发布绑定的心理负担。加一个独立 VERSION 文件让版本号流转起来
+3. **双 starter 按角色分流**：拆为 `qualix_user_starter.md`（使用者视角）+ `qualix_dev_starter.md`（维护者视角），避免新手/熟手/维护者挤同一份入口
+4. **`core/` 规则外置**：长期演进方向是抽出 `core/rubrics/Q01.yaml` / `core/thresholds.yaml` 这类用户可定制的配置文件，Python 保留做运行时加载器。不用一次做完，下次改常量时顺手抽一个就是进了一步
 
-**Qualix 比 VAF 强的地方**（对称看，不单向借鉴）：Multi-Judge + Anti-Rat/Overcorrection Guard + Bug Case Library + Skill Evolution absorb 闭环 + 8 Tier 评分体系（`docs/evaluation-tiers.md`）都是 VAF 没有的。Qualix 的问题是 **内在质量 > 外在交付**，VAF 相反。本节 4 条借鉴是补齐外在交付那一侧
+Qualix 的问题是 **内在质量 > 外在交付**。本节 4 条是补齐外在交付那一侧。
 
 ---
 

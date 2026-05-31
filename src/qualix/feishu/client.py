@@ -1,40 +1,29 @@
 """Qualix Feishu/Lark client.
 
-直接读 ~/.vaf/config 的最新 user_token，不做本地缓存。
-larkkit 刷新 token 后，Qualix 下次调用自动拿到最新的。
-未安装 larkkit 的用户静默跳过，不影响主流程。
+Reads Qualix-owned auth config from environment variables or
+``~/.qualix/auth/lark.ini``. Missing credentials keep the caller in no-op mode.
 """
 
 from __future__ import annotations
 
-import configparser
 import urllib.error
 import urllib.request
-from pathlib import Path
 from typing import Any
 
+from qualix.feishu.auth_config import load_lark_auth_config
 from qualix.json_utils import dump_json_str, parse_json_str
 
-_VAF_CONFIG = Path.home() / ".vaf" / "config"
 _FEISHU_API = "https://open.feishu.cn/open-apis"
 
 
 def _get_user_token() -> str | None:
-    """从 ~/.vaf/config 读取最新 user_token."""
-    if not _VAF_CONFIG.exists():
-        return None
-    config = configparser.ConfigParser()
-    config.read(_VAF_CONFIG)
-    return config.get("feishu", "user_token", fallback=None) or None
+    """Return the configured Lark user token, if present."""
+    return load_lark_auth_config().user_token or None
 
 
 def _get_user_email() -> str:
-    """从 ~/.vaf/config 读取用户邮箱（如有）."""
-    if not _VAF_CONFIG.exists():
-        return "unknown"
-    config = configparser.ConfigParser()
-    config.read(_VAF_CONFIG)
-    return config.get("feishu", "email", fallback="unknown") or "unknown"
+    """Return the configured user email, if present."""
+    return load_lark_auth_config().email
 
 
 def is_logged_in() -> bool:

@@ -233,6 +233,44 @@ class TestAutoChecksPhaseA:
             errors = auto_derive_checks(output_dir, "test-proj", "Q01")
             assert any("decision_owner" in e and "OPEN-001" in e for e in errors)
 
+    def test_q01_analysis_sidecars_are_written(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            output_dir = _setup_phase_a(root, VALID_PHASE_A)
+            ingest_dir = root / "test-proj" / "Q01" / "ingest"
+            ingest_dir.mkdir()
+            (ingest_dir / "manifest.json").write_text(
+                json.dumps(
+                    {
+                        "schema_version": 1,
+                        "provider_id": "local-file",
+                        "source": "prd.md",
+                        "plain_text_path": str(ingest_dir / "plain_text.md"),
+                        "source_map_path": str(ingest_dir / "source_map.json"),
+                        "assets": [],
+                    },
+                    ensure_ascii=False,
+                ),
+                encoding="utf-8",
+            )
+
+            errors = auto_derive_checks(output_dir, "test-proj", "Q01")
+
+            assert errors == []
+            evidence = json.loads(
+                (root / "test-proj" / "Q01" / "_internal" / "_q01_evidence_pack.json").read_text(
+                    encoding="utf-8"
+                )
+            )
+            ambiguity = json.loads(
+                (root / "test-proj" / "Q01" / "_internal" / "_q01_ambiguity_queue.json").read_text(
+                    encoding="utf-8"
+                )
+            )
+            assert evidence["ingest"]["provider_id"] == "local-file"
+            assert any(item["item_id"] == "SE-001" for item in evidence["items"])
+            assert any(item["item_id"] == "GAP-001" for item in ambiguity["items"])
+
 
 class TestAutoChecksPhaseA6:
     def test_valid_a6_passes(self):

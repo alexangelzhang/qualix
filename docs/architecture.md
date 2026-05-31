@@ -4,7 +4,7 @@
 
 **项目类型**：CLI 框架 + AI Agent Pipeline
 **主要语言**：Python 3.11+
-**入口点**：`src/qualix/core/runner.py`（CLI）、`qualix_starter.md`（AI IDE）
+**入口点**：`src/qualix/core/runner.py`（CLI）、`docs/qualix_starter.md`（AI IDE）
 
 ## 包结构
 | 子包 | 职责 | 关键模块 |

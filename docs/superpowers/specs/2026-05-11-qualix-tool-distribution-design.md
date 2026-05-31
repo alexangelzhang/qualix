@@ -12,7 +12,7 @@ Qualix 当前只能 `git clone` 后在仓库内运行，工具源码与用户项
 
 目标是建立物理分发边界：用户项目 cwd 看不到 Qualix 源码，Claude 读不到就不会改。
 
-VAF (a reference implementation) 已用 `install.sh + ~/.vcb` 验证过这种模式；Qualix 借鉴它的拷贝流程，补上 Python 包安装环节。
+内部 dogfood 已用 `install.sh + ~/.qualix` 验证过这种模式；Qualix 借鉴它的拷贝流程，补上 Python 包安装环节。
 
 ## 关键决策概览
 
@@ -20,7 +20,7 @@ VAF (a reference implementation) 已用 `install.sh + ~/.vcb` 验证过这种模
 |-------|------|------|
 | 覆盖 ROADMAP §F 哪几层 | L1 备选 + L2 + L3 全覆盖 | 三层都是分发边界的一部分 |
 | Python 代码怎么装 | `pip install --user` 到 site-packages | 与 L1 正版 PyPI 路径兼容，升级顺滑 |
-| 资源放哪里 | `~/.qualix/` + site-packages 兜底 | 跨项目共享，VAF 验证过 |
+| 资源放哪里 | `~/.qualix/` + site-packages 兜底 | 跨项目共享，dogfood 验证过 |
 | 资源查找顺序 | 项目 `.qualix/` → `~/.qualix/` → `importlib.resources` | 高优先级覆盖低优先级 |
 | 用户工作区 `.qualix/` | `output/` + `settings.yaml`；`profiles/` / `skill-overrides/` 按需自建 | 工具低心智成本，能力保留但入口不推销 |
 | 开发者 vs 用户 | `install.sh --dev` 用 symlink + `pip install -e .` | 改源码即时生效 |
@@ -376,4 +376,4 @@ glab 缺失提示：
 
 - ROADMAP §F 规模化分发边界
 - docs/distribution-gap.md 诊断文档
-- VAF 仓库 install.sh（`https://github.com/alexangelzhang/qualix/blob/main/install.sh`）
+- Qualix 仓库 install.sh（`https://github.com/alexangelzhang/qualix/blob/main/install.sh`）

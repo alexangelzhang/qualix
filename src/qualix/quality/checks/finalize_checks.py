@@ -132,7 +132,7 @@ def check_reasoning_log(output_dir: Path, project_id: str, phase_id: str) -> lis
                     f"BLOCKED: Step 0.5 未完成——未发现 _bootstrap_context.md 已读取的证据。"
                     f"手动模式执行 {phase_id} 前必须先读取 {int_dir}/_bootstrap_context.md，"
                     f"以确保产物包含所有必填内容（PROFILE_CONTEXT/decision_owner/GAP P级等）。"
-                    f"读取后 sentinel 自动创建（~/.claude/scripts/bootstrap_context_sentinel.py），"
+                    f"读取后 sentinel 自动创建，"
                     f"再重新生成产物并 finalize。"
                 )
 

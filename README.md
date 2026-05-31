@@ -105,7 +105,13 @@ python -m pip install -e '.[vlm]'
 python -m pip install -e '.[deepeval]'
 ```
 
-Tree-sitter adds file-local symbol extraction and parse diagnostics for Java, TypeScript, Go, and Python. Feishu/Lark ingestion is optional. Local Markdown or text requirement files work for basic experiments.
+Tree-sitter adds file-local symbol extraction and parse diagnostics for Java, TypeScript, Go, and Python. Q01 document ingest works with local Markdown/text/html files today:
+
+```bash
+qualix-run ingest docs/prd.md --project my-project
+```
+
+Feishu/Lark ingestion is optional. Configure `QUALIX_LARK_USER_TOKEN` or `~/.qualix/auth/lark.ini` only when you need to process documents you are allowed to access.
 
 For model-provider configuration, see [Model Setup](docs/model-setup.md).
 

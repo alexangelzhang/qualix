@@ -1,6 +1,6 @@
 """Phase 状态机：管理 Phase 生命周期.
 
-借鉴 VAF 的三步执行模式：
+采用三步执行模式：
   execute  → 启动 Phase，状态 not_started → in_progress
   finalize → 校验产物，状态 in_progress → pending_review
   approve  → 人工确认，状态 pending_review → approved

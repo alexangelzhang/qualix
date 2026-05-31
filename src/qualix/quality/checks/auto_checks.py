@@ -22,6 +22,7 @@ from qualix.core.phase_registry import PHASE_DEFS
 from qualix.core.state_machine import phase_dir as _phase_dir
 from qualix.json_utils import load_json, save_json
 from qualix.log import get_logger
+from qualix.quality.checks.q01_evidence_pack import build_q01_analysis_sidecars
 from qualix.text_utils import STRUCTURED_JSON_MAP
 
 log = get_logger(__name__)
@@ -123,6 +124,8 @@ def auto_derive_checks(
             errors.extend(_check_code_identifier_leakage(output_dir, project_id, phase_id))
             # --- Q01-4: BR 数量与 PRD 信息密度合理性检查 ---
             errors.extend(_check_br_density_ratio(output_dir, project_id, phase_id))
+            # --- Q01 analysis sidecars: evidence pack + ambiguity queue ---
+            errors.extend(build_q01_analysis_sidecars(output_dir, project_id, phase_id))
 
         # --- Q05: REQ+BR+SE × 代码路径完整性（Happy/Exception/Boundary/并发幂等）---
         if phase_id in {"Q05", "Q05a"}:

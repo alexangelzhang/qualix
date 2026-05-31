@@ -38,6 +38,11 @@ FORBIDDEN_TEXT = [
 ]
 
 FORBIDDEN_TEXT_LOWER = [item.lower() for item in FORBIDDEN_TEXT]
+FORBIDDEN_PATTERNS = [
+    re.compile(r"\b" + "v" + "af" + r"\b", re.IGNORECASE),
+    re.compile(r"\b" + "v" + "kf" + r"\b", re.IGNORECASE),
+    re.compile(re.escape("." + "toon"), re.IGNORECASE),
+]
 
 URL_PATTERN = re.compile(r"https?://[^\s)\]>'\"`]+")
 PRIVATE_HOST_HINTS = (
@@ -143,6 +148,9 @@ def check_text(files: list[Path]) -> list[str]:
             for needle in FORBIDDEN_TEXT_LOWER:
                 if needle in text_lower:
                     issues.append(f"{rel}: contains forbidden text `{needle}`")
+            for pattern in FORBIDDEN_PATTERNS:
+                if pattern.search(text):
+                    issues.append(f"{rel}: matches forbidden pattern `{pattern.pattern}`")
 
         if rel not in ALLOW_PRIVATE_URL_FILES:
             for match in URL_PATTERN.finditer(text):

@@ -28,19 +28,18 @@ python -m pip install -e '.[dev]'
 Optional extras are available for integrations:
 
 ```bash
-python -m pip install -e '.[feishu]'   # Feishu/Lark ingestion through larkkit
+python -m pip install -e '.[feishu]'   # Optional Feishu/Lark ingestion
 python -m pip install -e '.[vlm]'      # VLM image analysis providers
 python -m pip install -e '.[deepeval]' # DeepEval calibration support
 ```
 
 ### Feishu/Lark login fails
 
-Feishu/Lark support is optional. If you need it, install and authenticate `larkkit`:
+Feishu/Lark support is optional. If you need it, configure a user token for documents you are allowed to process:
 
 ```bash
-python -m pip install larkkit
-uvx larkkit auth login
-uvx larkkit auth status
+export QUALIX_LARK_USER_TOKEN=<your-user-access-token>
+qualix-run auth status
 ```
 
 Local Markdown or text requirement files do not need this setup.

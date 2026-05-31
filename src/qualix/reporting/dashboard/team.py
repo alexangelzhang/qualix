@@ -28,7 +28,7 @@ def _page_team() -> None:
         records = _fetch_records()
 
     if not records:
-        st.warning("暂无数据，或 larkkit 未登录。请运行 `uvx larkkit auth login` 后刷新。")
+        st.warning("暂无数据，或 Lark/Feishu 凭证不可用。请运行 `qualix-run auth status` 查看配置方式。")
         return
 
     import pandas as pd

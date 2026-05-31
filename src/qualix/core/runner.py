@@ -620,6 +620,25 @@ def _handle_workspace_auth(argv: list[str]) -> int:
     return run_auth_status()
 
 
+def _handle_workspace_ingest(argv: list[str]) -> int:
+    """workspace-level `qualix-run ingest <source> --project <id>`."""
+    sub = argparse.ArgumentParser(prog="qualix-run ingest", description="摄入需求文档并生成 Q01 IngestBundle")
+    sub.add_argument("source", help="本地需求文档路径；后续 provider 可支持企业文档 URL")
+    sub.add_argument("--project", required=True, help="project_id")
+    sub.add_argument("--phase", default="Q01", choices=["Q01"], help="目标 Phase（当前支持 Q01）")
+    sub.add_argument("--output-root", default=None, help="输出根目录，默认 .qualix/output")
+    ns = sub.parse_args(argv)
+
+    from qualix.commands.ingest import run_ingest
+
+    return run_ingest(
+        source=ns.source,
+        project_id=ns.project,
+        phase_id=ns.phase,
+        output_root=Path(ns.output_root) if ns.output_root else None,
+    )
+
+
 class _TeeWriter(io.TextIOBase):
     """Write to both the original stream and an in-memory buffer (for stderr_tail)."""
 
@@ -666,6 +685,10 @@ def main() -> int:
 
         if len(sys.argv) >= 2 and sys.argv[1] == "auth":
             exit_code = _handle_workspace_auth(sys.argv[2:])
+            return exit_code
+
+        if len(sys.argv) >= 2 and sys.argv[1] == "ingest":
+            exit_code = _handle_workspace_ingest(sys.argv[2:])
             return exit_code
 
         parser = _build_parser()

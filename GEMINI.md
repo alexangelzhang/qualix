@@ -42,7 +42,7 @@
 | Claude Code CLI | `CLAUDE.md` + `AGENTS.md` |
 | OpenAI Codex CLI / opencode | `AGENTS.md` |
 | Google Gemini CLI | `GEMINI.md`（本文件）+ `AGENTS.md` |
-| Cursor | `.cursor/rules/qualix.mdc` + `AGENTS.md` |
+| Cursor | `AGENTS.md`（Cursor 规则可由 `qualix-run init` 在用户项目中生成） |
 | IntelliJ IDEA | `AGENTS.md` |
 
 *最后更新：2026-04-17*

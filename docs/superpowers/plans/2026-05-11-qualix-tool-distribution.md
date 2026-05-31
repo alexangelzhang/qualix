@@ -6,7 +6,7 @@
 
 **Architecture:** 采纳 ROADMAP §F 的 L1 备选路径（install.sh + `~/.qualix/`），Python 包装入 `site-packages`，资源（skills/references/profiles/regression）拷到 `~/.qualix/`，用户项目下建 `.qualix/` 工作区（output + settings.yaml），CLAUDE.md 追加 guardrail 章节。所有资源路径推导收口到统一 `ResourceResolver`。按三批实施：物理边界 → 用户工作区 → doctor。
 
-**Tech Stack:** Python 3.11+, hatchling ≥ 1.18, importlib.resources/metadata, bash + 内联 Python 脚本（install.sh 采用 VAF 模式），glab CLI（doctor 上传）。
+**Tech Stack:** Python 3.11+, hatchling ≥ 1.18, importlib.resources/metadata, bash + 内联 Python 脚本（install.sh 采用本地资源安装模式），glab CLI（doctor 上传）。
 
 ---
 
@@ -15,14 +15,14 @@
 - Spec: `docs/superpowers/specs/2026-05-11-qualix-tool-distribution-design.md`
 - 诊断: `docs/distribution-gap.md`
 - ROADMAP §F
-- VAF install.sh 模式: `https://github.com/alexangelzhang/qualix/blob/main/install.sh`
+- 本地资源安装模式: `https://github.com/alexangelzhang/qualix/blob/main/install.sh`
 
 ## File Structure
 
 | 文件 | 动作 | 职责 |
 |------|------|------|
 | `VERSION` | Create | 纯文本版本号，如 `0.2.0-dev.20260511`；hatchling 和 install.sh 的共同版本源 |
-| `install.sh` | Create | bash + 内联 Python 脚本，借鉴 VAF；拷资源 + pip 安装 |
+| `install.sh` | Create | bash + 内联 Python 脚本；拷资源 + pip 安装 |
 | `src/qualix/core/resource_resolver.py` | Create | 三层资源查找（项目 `.qualix/` → `~/.qualix/` → `importlib.resources`） |
 | `src/qualix/commands/init.py` | Create | `qualix-run init` 实现：建 .qualix/output、写 settings.yaml、注入 CLAUDE.md |
 | `src/qualix/commands/doctor.py` | Create | `qualix-run doctor` 实现：生成 bundle、脱敏、glab 上传 |

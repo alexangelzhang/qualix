@@ -70,8 +70,8 @@ Local Markdown and text requirement files work without any document-platform int
 
 ```bash
 python -m pip install -e '.[feishu]'
-uvx larkkit auth login
-uvx larkkit auth status
+export QUALIX_LARK_USER_TOKEN=<your-user-access-token>
+qualix-run auth status
 ```
 
 Only run document ingestion for documents you are allowed to process. Public issues and pull requests must use sanitized examples.

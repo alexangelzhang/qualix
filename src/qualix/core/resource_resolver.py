@@ -36,9 +36,9 @@ class ResourceResolver:
         candidate = Path(__file__).resolve().parents[3]
         if not (candidate / "pyproject.toml").exists():
             return None
-        # claude_commands 在 repo 里存放于 .claude/commands/
+        # Agent command templates live outside dot-directories in the public repo.
         _CATEGORY_ALIASES = {
-            "claude_commands": ".claude/commands",
+            "claude_commands": "agent_commands",
         }
         fs_name = _CATEGORY_ALIASES.get(category, category)
         target = candidate / fs_name

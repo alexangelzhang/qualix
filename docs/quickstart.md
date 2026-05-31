@@ -32,10 +32,9 @@ Optional Feishu/Lark ingestion support:
 
 ```bash
 python -m pip install -e '.[feishu]'
-uvx larkkit auth login
 ```
 
-Skip optional integrations for the first run. Local Markdown files are enough.
+Skip optional integrations for the first run. Local Markdown/text/html files are enough. For private enterprise documents, Qualix is moving toward a provider-based ingest layer so Q01 can consume URLs, browser-assisted exports, and local files through the same bundle format.
 
 ## 2. Initialize A Project
 
@@ -68,7 +67,22 @@ qualix-run my-first-project finalize Q01 --json
 qualix-run my-first-project approve Q01 --json
 ```
 
-Q01 accepts a local PRD/requirements document. Feishu/Lark URLs are optional and require the `feishu` extra plus `larkkit` login.
+Q01 consumes an ingest bundle. For a local file:
+
+```bash
+qualix-run ingest docs/prd.md --project my-first-project
+```
+
+The same operation is available from Python when embedding Qualix:
+
+```python
+from pathlib import Path
+from qualix.ingest import ingest_document
+
+ingest_document("docs/prd.md", Path(".qualix/output/my-first-project/Q01/ingest"))
+```
+
+Feishu/Lark URLs are optional and require the `feishu` extra plus a valid Lark auth token configured through `QUALIX_LARK_USER_TOKEN` or `~/.qualix/auth/lark.ini`.
 
 ## Common Commands
 

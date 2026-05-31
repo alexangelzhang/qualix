@@ -70,11 +70,21 @@ Step 0.5: 假设前置（列出所有假设，等用户确认后再继续）
 Step 1: 图片全量解析（逐张描述语义，输出图片资产表）
 Step 2: 通读全文+图片，建立完整业务理解（识别核心流程、状态机、角色关系）
 Step 3: 需求结构化（REQ/BR/SE/GAP/OPEN）
-Step 4: 自检（逐项对照 gate checklist，diff 旧版产物）
+Step 4: 自检（逐项对照 gate checklist，生成/检查 evidence pack 与 ambiguity queue，diff 旧版产物）
 Step 5: Judge/Critique（切换到批评者视角审视自己的输出）
 Step 6: 修正（根据 Judge/Critique 发现的问题修正报告）
 → 全部通过后才能 finalize
 ```
+
+### Q01 分析链路（可审计，不靠自由发挥）
+
+Q01 不是直接把 PRD 总结成 JSON。必须先建立证据和疑点，再结构化：
+
+1. Evidence Collector：从 IngestBundle、图片语义、表格、标题层级中收集证据，输出 `_internal/_q01_evidence_pack.json`。
+2. Ambiguity Pass：把 GAP/OPEN 和疑似模糊描述沉淀到 `_internal/_q01_ambiguity_queue.json`。
+3. Structuring Pass：生成 REQ/BR/SE，所有关键项必须能回到 evidence item 或 source 行号。
+4. Consistency Pass：检查未绑定 SE、无来源 BR、图片语义未覆盖、模糊项无 decision owner。
+5. Critique Pass：专门找"看起来合理但没有证据"的项。
 
 ### Step 0.5: 假设前置（Assumption Surfacing）
 
@@ -94,10 +104,32 @@ Step 6: 修正（根据 Judge/Critique 发现的问题修正报告）
 
 ### Step 0: 证据采集
 
+**统一摄入产物：**
+
+Q01 优先消费 `output/<id>/Q01/ingest/manifest.json` 描述的 IngestBundle。无论来源是本地文件、企业文档 URL、浏览器登录态还是后续 connector，都必须落成同一组文件：
+
+| 文件 | 说明 |
+|------|------|
+| `plain_text.md` 或 `aggregate_plain_text.txt` | 主文本，供 Q01 结构化读取 |
+| `source_map.json` | 源文档 block/段落到本地文本的映射 |
+| `blocks.json` / `aggregate_ingest.json` | provider 原始结构化块（如可用） |
+| `assets/` | 图片、附件、白板截图等 |
+| `manifest.json` | provider、路径、生成时间和元数据 |
+
+**本地文件摄入：**
+```python
+from pathlib import Path
+from qualix.ingest import ingest_document
+
+ingest_document("docs/prd.md", Path("output/<id>/Q01/ingest"))
+```
+
 **飞书直读：**
 ```bash
 python3 scripts/feishu_direct_ingest.py "<feishu_url>" -o output/<id>/Q01 --save-raw-blocks
 ```
+
+企业文档如果无法走 API，优先使用浏览器登录态导出/抓取到同一 IngestBundle，不要求用户手动转 Markdown。
 
 **图片语义解析（P0 必做）：**
 ```bash

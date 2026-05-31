@@ -37,17 +37,15 @@ observability/
 .vscode/
 *.swp
 
-# Session journals（个人短期接力，不提交）
-.claude/journals/
+# Local agent workspaces and generated settings.
+.agents/
+.claude/
+.codex/
+.cursor/
+.gemini/
 
 # Local-only open-source preparation notes
 .open-source-plan.local.md
-
-# 覆盖父目录的 .claude/ 全忽略规则，让团队共享的 hook 和项目配置可提交
-!.claude/
-!.claude/hooks/
-!.claude/hooks/**
-!.claude/settings.json
 
 # macOS
 .DS_Store

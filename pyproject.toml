@@ -54,7 +54,7 @@ packages = ["src/qualix"]
 "skills" = "qualix/skills"
 "references" = "qualix/references"
 "profiles" = "qualix/profiles"
-".claude/commands" = "qualix/claude_commands"
+"agent_commands" = "qualix/claude_commands"
 
 [tool.ruff]
 target-version = "py311"

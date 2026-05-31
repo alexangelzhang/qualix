@@ -111,7 +111,6 @@ def _cmd_init(args: argparse.Namespace) -> int:
         "CLAUDE.md": "Claude Code",
         "AGENTS.md": "Codex / opencode / IntelliJ",
         "GEMINI.md": "Gemini CLI",
-        ".cursor/rules/qualix.mdc": "Cursor",
     }
     for f, name in platform_files.items():
         path = base / f
