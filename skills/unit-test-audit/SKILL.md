@@ -110,14 +110,14 @@ Q06 最常见的失败模式是产出 JSON 时 schema 校验不过。先锁定�
         "line_start": 52,
         "class_name": "XxxTest",
         "method_name": "method1",
-        "repo": "car-mrs"
+        "repo": "order-service"
       },
       "production_location": {
         "file": "com/example/service/Xxx.java",
         "line_start": 88,
         "class_name": "Xxx",
         "method_name": "targetMethod",
-        "repo": "car-mrs"
+        "repo": "order-service"
       }
     }
   ],

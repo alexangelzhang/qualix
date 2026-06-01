@@ -21,12 +21,8 @@ CASES = [
     ("SYNTH-SE-based", "regression/failure-library/cases/Q05a/SYNTH-Q05a-se-based-violation-01/input.md", "FAIL"),
     ("SYNTH-vague-then", "regression/failure-library/cases/Q05a/SYNTH-Q05a-vague-then-01/input.md", "FAIL"),
     ("SYNTH-mixed", "regression/failure-library/cases/Q05a/SYNTH-Q05a-mixed-pattern-01/input.md", "FAIL"),
-    # PASS: must PASS
-    (
-        "PASS-home-replace",
-        "regression/pass-library/cases/Q05a/PASS-Q05a-home-replace-renewal-20260527-00/input.md",
-        "PASS",
-    ),
+    # PASS: must PASS — add a synthetic Q05a pass case here once available
+    # ("PASS-example", "regression/pass-library/cases/Q05a/PASS-Q05a-example/input.md", "PASS"),
 ]
 
 rubric = compose_rubric("Q05a")

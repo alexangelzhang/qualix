@@ -63,7 +63,9 @@ def main():
         sys.exit(1)
 
     # Load report from latest output
-    output_dir = Path(__file__).resolve().parents[1] / "output" / "expense-approval-demo"
+    # Default: expense-approval-demo synthetic example. Override with PROJECT_ID env var.
+    project_id = os.environ.get("PROJECT_ID", "expense-approval-demo")
+    output_dir = Path(__file__).resolve().parents[1] / "output" / project_id
     phase_dirs = {"Q03": "Q03", "Q04": "Q04", "Q07": "Q07"}
     report_names = {
         "Q03": "tech_design_quality_review.md",
