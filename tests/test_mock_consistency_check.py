@@ -224,3 +224,35 @@ class TestNeverBlocked:
             assert not item.startswith("BLOCKED:"), (
                 f"mock_consistency_check 不应产生 BLOCKED，但发现: {item}"
             )
+
+
+# ---------------------------------------------------------------------------
+# 场景 9: 普通 *Service（无 Application 限定符）+ @Mock Repository → 无 WARNING
+# ---------------------------------------------------------------------------
+
+class TestPlainServiceNoFalsePositive:
+    def test_no_warning_for_plain_service_with_repository_mock(self, tmp_path: Path):
+        """@InjectMocks OrderService（非 ApplicationService）不应产生 cross-layer WARNING."""
+        _write_java_test(tmp_path, "OrderServiceTest.java", """
+            @ExtendWith(MockitoExtension.class)
+            class OrderServiceTest {
+                @InjectMocks
+                OrderService orderService;
+
+                @Mock
+                OrderRepository orderRepository;
+
+                @Test
+                void shouldPlaceOrder() {
+                    when(orderRepository.save(any())).thenReturn(new Order());
+                    orderService.placeOrder(new Order());
+                    verify(orderRepository).save(any());
+                }
+            }
+        """)
+
+        result = check_mock_consistency(tmp_path, "proj1", [str(tmp_path)])
+        assert result == [], (
+            f"普通 OrderService 不应被识别为 ApplicationService，"
+            f"不应产生 cross-layer WARNING，实际得到: {result}"
+        )

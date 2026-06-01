@@ -36,7 +36,7 @@ def _infer_layer(class_name: str) -> str:
     name = class_name.lower()
     if name.endswith("domainservice"):
         return "domain"
-    if name.endswith("service") or name.endswith("manager"):
+    if name.endswith("applicationservice"):
         return "application"
     if (
         name.endswith("repository")
@@ -152,7 +152,8 @@ def check_mock_consistency(
         for test_root in test_roots:
             if not test_root.is_dir():
                 continue
-            for java_file in test_root.rglob("*Test.java"):
+            pattern = "*Test.kt" if "kotlin" in str(test_root) else "*Test.java"
+            for java_file in test_root.rglob(pattern):
                 file_warnings = _check_single_file(java_file)
                 all_warnings.extend(file_warnings)
 
