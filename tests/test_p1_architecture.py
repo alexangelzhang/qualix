@@ -18,68 +18,39 @@ if TYPE_CHECKING:
 
 
 def test_multi_judge_vote_runs_in_parallel_and_preserves_model_order(monkeypatch, tmp_path: Path) -> None:
+    """Primary judge-a PASS_WITH_CONCERNS(3.5) → boundary triggers secondary.
+
+    'broken' secondary raises RuntimeError (subprocess failure) → skipped.
+    'judge-b' secondary returns FAIL(2.0).
+    Tests that multi_judge_vote collects valid secondary votes and skips broken ones.
+    Now uses subprocess dispatch: mock _run_single_judge directly.
+    """
+    from qualix.agents.judge_vote import JudgeVote
+
     report_path = tmp_path / "report.md"
     report_path.write_text("# report", encoding="utf-8")
 
-    lock = threading.Lock()
-    stats = {"active": 0, "max_active": 0}
-    sleep_by_model = {"judge-a": 0.03, "judge-b": 0.01, "broken": 0.02}
+    called_models: list[str] = []
 
-    class _FakeBackend:
-        def __init__(self, model_name):
-            self.model_name = model_name
+    def _fake_run_single_judge(output_dir, report_path, rubric, model, fallback, warning_override=None):
+        called_models.append(model)
+        if model == "broken":
+            raise RuntimeError("judge exploded")
+        overall = 3.5 if model == "judge-a" else 2.0
+        verdict = "PASS_WITH_CONCERNS" if model == "judge-a" else "FAIL"
+        return JudgeVote(
+            model=model,
+            scores={"quality": int(overall)},
+            overall=overall,
+            verdict=verdict,
+            issues=[],
+            duration=0.01,
+            raw_output="",
+            health="HEALTHY",
+            token_usage={"input_tokens": 10, "output_tokens": 5},
+        )
 
-        def _make_payload(self):
-            if self.model_name == "broken":
-                raise RuntimeError("judge exploded")
-            return {
-                "scores": {"quality": 3 if self.model_name == "judge-a" else 2},
-                "overall": 3.5 if self.model_name == "judge-a" else 2.0,
-                "verdict": "PASS_WITH_CONCERNS" if self.model_name == "judge-a" else "FAIL",
-                "issues": [],
-            }
-
-        def chat(self, messages, **kwargs):
-            del messages, kwargs
-            with lock:
-                stats["active"] += 1
-                stats["max_active"] = max(stats["max_active"], stats["active"])
-            try:
-                time.sleep(sleep_by_model.get(self.model_name, 0.05))
-                payload = self._make_payload()
-                return (
-                    json.dumps(payload, ensure_ascii=False),
-                    {"input_tokens": 10, "output_tokens": 5},
-                )
-            finally:
-                with lock:
-                    stats["active"] -= 1
-
-        def chat_structured(self, messages, response_schema=None, **kwargs):
-            from qualix.agents.llm_backends import StructuredChatResult
-            with lock:
-                stats["active"] += 1
-                stats["max_active"] = max(stats["max_active"], stats["active"])
-            try:
-                time.sleep(sleep_by_model.get(self.model_name, 0.05))
-                payload = self._make_payload()
-                raw_text = json.dumps(payload, ensure_ascii=False)
-                return StructuredChatResult(parsed=payload, raw_text=raw_text, provider_meta={})
-            finally:
-                with lock:
-                    stats["active"] -= 1
-
-        def name(self):
-            return self.model_name
-
-    monkeypatch.setattr(
-        "qualix.quality.judge_runner.create_backend",
-        lambda model, api_key: _FakeBackend(model),
-    )
-    monkeypatch.setattr(
-        "qualix.quality.judge_runner.LLMConfig",
-        lambda **kw: SimpleNamespace(_resolve_api_key=lambda m: "fake-key"),
-    )
+    monkeypatch.setattr("qualix.agents.judge_vote._run_single_judge", _fake_run_single_judge)
 
     result = multi_judge_vote(
         tmp_path,
@@ -89,11 +60,14 @@ def test_multi_judge_vote_runs_in_parallel_and_preserves_model_order(monkeypatch
         fallback="fallback-model",
     )
 
-    # Primary score=3.5 在边界区间，触发 secondary 并行执行
-    assert stats["max_active"] >= 1
-    # judge-a 是 primary，broken 失败后 fallback，judge-b 是 secondary
+    # judge-a is primary; score=3.5 in boundary → secondary triggered
+    assert "judge-a" in called_models
     assert "judge-a" in [vote.model for vote in result.votes]
-    # 3 votes: judge-a=PASS_WITH_CONCERNS(3.5), broken→fallback, judge-b=FAIL(2.0)
+    # broken secondary must be skipped (RuntimeError caught)
+    assert "broken" not in [vote.model for vote in result.votes]
+    # judge-b secondary should be collected
+    assert "judge-b" in [vote.model for vote in result.votes]
+    # consensus from judge-a(PASS_WITH_CONCERNS) + judge-b(FAIL)
     assert result.consensus in ("FAIL", "PASS_WITH_CONCERNS")
     assert result.avg_score > 0
 
