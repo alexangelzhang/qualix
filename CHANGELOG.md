@@ -4,6 +4,18 @@ All notable changes to Qualix are documented here.
 
 ---
 
+## 0.2.0a1 (2026-06-01)
+
+First public pre-release on PyPI.
+
+- PyPI Trusted Publisher publishing workflow (`publish.yml`)
+- CI coverage reporting via Codecov
+- README badges: tests, PyPI version, Python versions, license, coverage
+- Four-layer `ResourceResolver` with `importlib.resources` fallback (Layer 3)
+- GitHub Actions composite action (`action.yml`) for CI gate integration
+
+---
+
 ## 2026-05-31 — Q05a/Q05b semantic split
 
 - Removed standalone Q05 from phase registry; Q05a (EUT matrix design) and Q05b (unit test codegen) are now separate phases with distinct gates

@@ -1,5 +1,11 @@
 # Qualix
 
+[![Tests](https://github.com/alexangelzhang/qualix/actions/workflows/qualix-self-check.yml/badge.svg)](https://github.com/alexangelzhang/qualix/actions/workflows/qualix-self-check.yml)
+[![PyPI](https://img.shields.io/pypi/v/qualix)](https://pypi.org/project/qualix/)
+[![Python](https://img.shields.io/pypi/pyversions/qualix)](https://pypi.org/project/qualix/)
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue)](LICENSE)
+[![codecov](https://codecov.io/gh/alexangelzhang/qualix/branch/main/graph/badge.svg)](https://codecov.io/gh/alexangelzhang/qualix)
+
 AI-native development quality gates for requirements, designs, tests, and code reviews.
 
 Qualix turns product requirements into traceable engineering checks. Instead of stopping at line coverage, it follows requirement IDs through design coverage, test intent, generated unit tests, audit reports, and review findings.
