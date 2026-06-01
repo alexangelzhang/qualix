@@ -59,11 +59,6 @@ def _is_repository_or_infra(type_name: str) -> bool:
     )
 
 
-def _is_domain_service(type_name: str) -> bool:
-    """判断 Mock 字段类型是否属于 DomainService."""
-    return type_name.lower().endswith("domainservice")
-
-
 # ---------------------------------------------------------------------------
 # 核心检查
 # ---------------------------------------------------------------------------

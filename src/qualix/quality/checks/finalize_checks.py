@@ -7,19 +7,20 @@
 
 from __future__ import annotations
 
-import logging
+import re
 from pathlib import Path
-
-log = logging.getLogger(__name__)
 from types import MappingProxyType
 from typing import Final
 
+from qualix.log import get_logger
 from qualix.core.state_machine import PHASE_DEFS
 from qualix.core.state_machine import internal_dir as _internal_dir
 from qualix.core.state_machine import phase_dir as _phase_dir
 from qualix.json_utils import load_json, save_json
 from qualix.path_utils import resolve_internal_file
 from qualix.text_utils import STRUCTURED_JSON_MAP, expand_eut_ids
+
+log = get_logger(__name__)
 
 # Phase → 需要检查数量的字段
 _COUNT_FIELDS: Final = MappingProxyType(
@@ -128,8 +129,7 @@ def check_reasoning_log(output_dir: Path, project_id: str, phase_id: str) -> lis
     if not errors and phase_id == "Q01" and log_path.exists():
         log_content = log_path.read_text(encoding="utf-8")
         if "## ReAct Evidence" in log_content:
-            import re as _re
-            rounds = _re.findall(r"### Round \d+", log_content)
+            rounds = re.findall(r"### Round \d+", log_content)
             if rounds:
                 # 仅作为透明度注解，不阻断，不写入 errors
                 log.info(
