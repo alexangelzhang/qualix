@@ -44,9 +44,19 @@ body:
     validations:
       required: true
   - type: textarea
+    id: doctor
+    attributes:
+      label: Doctor bundle
+      description: |
+        Run `qualix-run doctor` and paste the output here. Remove private project names, tokens, or internal paths.
+        If the command itself fails, paste the error.
+      render: text
+    validations:
+      required: false
+  - type: textarea
     id: reproduction
     attributes:
       label: Minimal reproduction
-      description: Link to a sanitized repo or paste a synthetic example.
+      description: Link to a sanitized repo or paste a synthetic example. The expense-approval demo (`examples/expense-approval/`) is a good starting point.
     validations:
       required: false

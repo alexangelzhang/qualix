@@ -31,6 +31,23 @@ body:
         - Other
     validations:
       required: true
+  - type: dropdown
+    id: phase
+    attributes:
+      label: Which phase does this affect most?
+      description: Leave blank if not phase-specific.
+      options:
+        - Q01 — Requirements structuring
+        - Q02 — Technical design generation
+        - Q03 — Technical design quality review
+        - Q04 — Technical design coverage audit
+        - Q05a — EUT matrix design
+        - Q05b — Unit test code generation
+        - Q06 — Unit test coverage audit
+        - Q07 — Code review
+        - Not phase-specific
+    validations:
+      required: false
   - type: textarea
     id: alternatives
     attributes:
