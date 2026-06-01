@@ -44,23 +44,6 @@ def _judge_result_to_dict(result: JudgeResult) -> dict[str, Any]:
     }
 
 
-def _infer_ids_from_path(report_path: str) -> tuple[str, str]:
-    """Replicate _run_single_judge path convention: output/{project_id}/{phase_id}/...
-
-    Returns (phase_id, project_id).
-    """
-    from pathlib import Path
-
-    try:
-        rp = Path(report_path)
-        phase_id = rp.parent.name
-        project_id = rp.parent.parent.name
-    except (AttributeError, IndexError):
-        phase_id = ""
-        project_id = ""
-    return phase_id, project_id
-
-
 def run_subprocess(data: dict[str, Any]) -> dict[str, Any]:
     """Execute JudgeRunner and return serialized result dict.
 
@@ -72,6 +55,7 @@ def run_subprocess(data: dict[str, Any]) -> dict[str, Any]:
     from pathlib import Path
 
     from qualix.agents.judge_vote import _get_dynamic_dim_generator
+    from qualix.agents.pipeline_io import infer_phase_project_ids
     from qualix.quality.judge_runner import JudgeRunner
 
     report_path: str = data["report_path"]
@@ -84,7 +68,7 @@ def run_subprocess(data: dict[str, Any]) -> dict[str, Any]:
 
     # Replicate dynamic-dim setup from _run_single_judge (only if not pre-supplied)
     if rubric_dims is None:
-        phase_id, project_id = _infer_ids_from_path(report_path)
+        phase_id, project_id = infer_phase_project_ids(report_path)
         gen = _get_dynamic_dim_generator(phase_id)
         if gen and project_id:
             rubric_dims = gen(Path(output_dir), project_id, phase_id)

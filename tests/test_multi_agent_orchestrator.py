@@ -1,5 +1,8 @@
-"""Tests for multi_agent.MultiAgentOrchestrator.run_phase() and
-agent_orchestrator.AgentOrchestrator concurrent-Critique behaviour (U10).
+"""Tests for agent_orchestrator.AgentOrchestrator run_pipeline() and
+concurrent-Critique behaviour (U10).
+
+Note: MultiAgentOrchestrator.run_phase() was removed as a shallow wrapper.
+Callers should use AgentOrchestrator.run_pipeline() directly.
 """
 
 from __future__ import annotations
@@ -10,6 +13,7 @@ from unittest.mock import MagicMock, call, patch
 import pytest
 
 from qualix.agents.agent import AgentResult
+from qualix.agents.agent_orchestrator import AgentOrchestrator
 from qualix.agents.multi_agent import MultiAgentOrchestrator
 
 
@@ -29,71 +33,103 @@ def _make_agent_result(role: str, status: str = "success") -> AgentResult:
 
 
 # ---------------------------------------------------------------------------
-# MultiAgentOrchestrator.run_phase() delegates to AgentOrchestrator
+# AgentOrchestrator.run_pipeline() core behaviour
 # ---------------------------------------------------------------------------
 
 
 class TestRunPhase:
-    def test_run_phase_calls_run_pipeline_and_returns_result(self, tmp_path: Path):
-        """run_phase() 应当调用 AgentOrchestrator.run_pipeline() 并返回其结果."""
+    def test_run_pipeline_returns_results(self, tmp_path: Path):
+        """run_pipeline() 应当执行 Worker→Judge→Critique 并返回结果 dict."""
         expected_results = {
             "worker": _make_agent_result("worker"),
             "judge": _make_agent_result("judge"),
             "critique": _make_agent_result("critique"),
         }
 
-        with patch(
-            "qualix.agents.agent_orchestrator.AgentOrchestrator"
-        ) as MockOrchestrator:
-            mock_instance = MagicMock()
-            mock_instance.run_pipeline.return_value = expected_results
-            MockOrchestrator.return_value = mock_instance
+        orch = AgentOrchestrator(tmp_path)
+        with (
+            patch.object(orch, "_run_worker") as mock_worker,
+            patch.object(orch, "_run_judge") as mock_judge,
+            patch.object(orch, "_run_critique") as mock_critique,
+            patch.object(orch, "_save_trajectories"),
+            patch.object(orch, "_auto_remediate_gaps"),
+        ):
+            w_result = _make_agent_result("worker")
+            mock_worker.return_value = (
+                w_result,
+                tmp_path / "Q01",
+                tmp_path / "Q01" / "report.md",
+                None,
+            )
+            mock_judge.return_value = (_make_agent_result("judge"), tmp_path / "Q01" / "_det.md")
+            mock_critique.return_value = _make_agent_result("critique")
 
-            orchestrator = MultiAgentOrchestrator(tmp_path)
-            result = orchestrator.run_phase("test-project", "Q01")
+            result = orch.run_pipeline(
+                project_id="test-project",
+                phase_id="Q01",
+                worker_prompt="wp",
+                judge_rubric="jr",
+                critique_prompt="cp",
+            )
 
-        assert result is expected_results
-        mock_instance.run_pipeline.assert_called_once()
-        call_kwargs = mock_instance.run_pipeline.call_args
-        assert call_kwargs.kwargs["project_id"] == "test-project"
-        assert call_kwargs.kwargs["phase_id"] == "Q01"
+        assert result["worker"].status == "success"
+        assert result["judge"].status == "success"
+        assert result["critique"].status == "success"
 
-    def test_run_phase_passes_worker_judge_critique_prompts(self, tmp_path: Path):
-        """run_phase() 应当向 run_pipeline() 传入三个 prompt 参数."""
-        with patch(
-            "qualix.agents.agent_orchestrator.AgentOrchestrator"
-        ) as MockOrchestrator:
-            mock_instance = MagicMock()
-            mock_instance.run_pipeline.return_value = {}
-            MockOrchestrator.return_value = mock_instance
+    def test_run_pipeline_stops_after_worker_failure(self, tmp_path: Path):
+        """Worker 失败时 pipeline 提前返回，不启动 Judge 和 Critique."""
+        orch = AgentOrchestrator(tmp_path)
+        with (
+            patch.object(orch, "_run_worker") as mock_worker,
+            patch.object(orch, "_run_judge") as mock_judge,
+            patch.object(orch, "_run_critique") as mock_critique,
+        ):
+            failed = _make_agent_result("worker", "failed")
+            mock_worker.return_value = (
+                failed,
+                tmp_path / "Q01",
+                tmp_path / "Q01" / "report.md",
+                None,
+            )
 
-            orchestrator = MultiAgentOrchestrator(tmp_path)
-            orchestrator.run_phase("proj", "Q01", inputs={"prd_url": "https://example.com"})
+            result = orch.run_pipeline(
+                project_id="proj",
+                phase_id="Q01",
+                worker_prompt="wp",
+                judge_rubric="jr",
+                critique_prompt="cp",
+            )
 
-        _, kwargs = mock_instance.run_pipeline.call_args
-        assert "worker_prompt" in kwargs
-        assert "judge_rubric" in kwargs
-        assert "critique_prompt" in kwargs
-        assert kwargs["worker_prompt"]   # 非空
-        assert kwargs["judge_rubric"]    # 非空
-        assert kwargs["critique_prompt"] # 非空
+        assert "judge" not in result
+        mock_judge.assert_not_called()
+        mock_critique.assert_not_called()
 
-    def test_run_phase_returns_cleanly_when_all_succeed(self, tmp_path: Path):
-        """run_phase() 三个 agent 均成功时返回完整 dict，无异常."""
-        results = {
-            "worker": _make_agent_result("worker"),
-            "judge": _make_agent_result("judge"),
-            "critique": _make_agent_result("critique"),
-        }
-        with patch(
-            "qualix.agents.agent_orchestrator.AgentOrchestrator"
-        ) as MockOrchestrator:
-            mock_instance = MagicMock()
-            mock_instance.run_pipeline.return_value = results
-            MockOrchestrator.return_value = mock_instance
+    def test_run_pipeline_returns_cleanly_when_all_succeed(self, tmp_path: Path):
+        """三个 agent 均成功时返回完整 dict，无异常."""
+        orch = AgentOrchestrator(tmp_path)
+        with (
+            patch.object(orch, "_run_worker") as mock_worker,
+            patch.object(orch, "_run_judge") as mock_judge,
+            patch.object(orch, "_run_critique") as mock_critique,
+            patch.object(orch, "_save_trajectories"),
+            patch.object(orch, "_auto_remediate_gaps"),
+        ):
+            mock_worker.return_value = (
+                _make_agent_result("worker"),
+                tmp_path / "Q01",
+                tmp_path / "Q01" / "r.md",
+                None,
+            )
+            mock_judge.return_value = (_make_agent_result("judge"), tmp_path / "Q01" / "_d.md")
+            mock_critique.return_value = _make_agent_result("critique")
 
-            orchestrator = MultiAgentOrchestrator(tmp_path)
-            returned = orchestrator.run_phase("proj", "Q01")
+            returned = orch.run_pipeline(
+                project_id="proj",
+                phase_id="Q01",
+                worker_prompt="wp",
+                judge_rubric="jr",
+                critique_prompt="cp",
+            )
 
         assert returned["worker"].status == "success"
         assert returned["judge"].status == "success"
@@ -212,54 +248,3 @@ class TestCritiqueAfterJudge:
         assert "critique" not in results
         mock_judge.assert_not_called()
         mock_critique.assert_not_called()
-
-
-# ---------------------------------------------------------------------------
-# _run_critique_subprocess: graceful fallback when module not available
-# ---------------------------------------------------------------------------
-
-
-class TestRunCritiqueSubprocess:
-    def test_fallback_when_subprocess_unavailable(self, tmp_path: Path):
-        """_run_critique_subprocess 应当在 critique_runner_subprocess 不存在时回退到主进程."""
-        from qualix.agents import agent_orchestrator
-
-        pd = tmp_path / "Q01"
-        pd.mkdir(parents=True, exist_ok=True)
-        report_path = pd / "phase_a_report.md"
-        report_path.write_text("# report", encoding="utf-8")
-        judge_path = pd / "_judge_result_v2.json"
-        judge_path.write_text('{"score": 3}', encoding="utf-8")
-
-        critique_result = _make_agent_result("critique")
-
-        orch = agent_orchestrator.AgentOrchestrator(tmp_path)
-
-        # 确保 _CRITIQUE_SUBPROCESS_AVAILABLE = False 时走 fallback 路径
-        with (
-            patch.object(agent_orchestrator, "_CRITIQUE_SUBPROCESS_AVAILABLE", False),
-            patch(
-                "qualix.agents.agent_orchestrator.build_builtin_tools",
-                return_value=[],
-            ),
-            patch(
-                "qualix.agents.agent_orchestrator.filter_tools_by_role",
-                return_value=[],
-            ),
-            patch.object(orch, "create_critique") as mock_create_critique,
-        ):
-            mock_agent = MagicMock()
-            mock_agent.run.return_value = critique_result
-            mock_create_critique.return_value = mock_agent
-
-            result = orch._run_critique_subprocess(
-                output_dir=tmp_path,
-                project_id="test",
-                phase_id="Q01",
-                critique_prompt="cp",
-                report_path=report_path,
-                judge_result_path=judge_path,
-            )
-
-        assert result.status == "success"
-        mock_agent.run.assert_called_once()

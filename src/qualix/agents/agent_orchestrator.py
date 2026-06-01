@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import importlib.util
-import sys
 from collections.abc import Callable
 from pathlib import Path
 
@@ -23,19 +21,6 @@ from qualix.log import get_logger
 from qualix.security.tool_permissions import filter_tools_by_role
 
 log = get_logger(__name__)
-
-# 检查 critique_runner_subprocess 是否已实现（sprint 后期才会加）
-try:
-    _CRITIQUE_SUBPROCESS_AVAILABLE = (
-        importlib.util.find_spec("qualix.agents.critique_runner_subprocess") is not None
-    )
-except Exception as exc:
-    log.warning(
-        "Could not probe critique_runner_subprocess availability: %s; defaulting to in-process",
-        exc,
-    )
-    _CRITIQUE_SUBPROCESS_AVAILABLE = False
-
 
 class AgentOrchestrator:
     """真 Multi-Agent 编排器：独立进程 + 不同模型 + 文件通信."""
@@ -174,147 +159,8 @@ class AgentOrchestrator:
 
         return results
 
-    def _run_critique_subprocess(
-        self,
-        output_dir: Path,
-        project_id: str,
-        phase_id: str,
-        critique_prompt: str,
-        report_path: Path,
-        judge_result_path: Path,
-    ) -> AgentResult:
-        """在独立子进程中运行 Critique（与 Judge subprocess 模式对称）.
-
-        如果 critique_runner_subprocess 尚未实现（当前 sprint 不包含），
-        则回退到主进程内执行，并记录 TODO。
-
-        Args:
-            output_dir: 产物根目录
-            project_id: 项目 ID
-            phase_id: Phase ID
-            critique_prompt: Critique 的 system prompt
-            report_path: Worker 产出报告路径（给 Critique 阅读）
-            judge_result_path: Judge 输出 JSON 路径
-
-        Returns:
-            AgentResult（成功/失败/fallback 均返回，不抛出异常）
-        """
-        if not _CRITIQUE_SUBPROCESS_AVAILABLE:
-            # TODO: replace with subprocess once critique_runner_subprocess is implemented
-            log.info(
-                "critique_runner_subprocess not yet available; running Critique in-process "
-                "(project=%s phase=%s)",
-                project_id,
-                phase_id,
-            )
-            phase_def = PHASE_DEFS.get(phase_id, {})
-            pd = _phase_dir(output_dir, project_id, phase_def)
-            pd.mkdir(parents=True, exist_ok=True)
-            builtin_tools = build_builtin_tools(
-                output_dir=output_dir,
-                project_id=project_id,
-                max_subagent_depth=self.MAX_SUBAGENT_DEPTH,
-                current_depth=self._depth,
-                subagent_result_limit=self.subagent_result_limit,
-            )
-            critique_tools = filter_tools_by_role(builtin_tools, "critique")
-            critique = self.create_critique(project_id, phase_id, critique_prompt, tools=critique_tools)
-            context_files: list[Path] = []
-            if report_path.exists():
-                context_files.append(report_path)
-            if judge_result_path.exists():
-                context_files.append(judge_result_path)
-            det_path = pd / "_deterministic_check.md"
-            if det_path.exists():
-                context_files.append(det_path)
-            result = critique.run(
-                "假设产物有遗漏和错误，主动找问题。输出结构化可执行反馈 JSON。",
-                context_files=context_files or None,
-            )
-            if result.status != "failed":
-                (pd / "_critique_v2.json").write_text(result.content, encoding="utf-8")
-                process_critique_feedback(result.content, pd, phase_id)
-            return result
-
-        # subprocess 路径（critique_runner_subprocess 实现后启用）
-        # TODO: wire up _run_critique_subprocess from run_pipeline() once
-        # critique_runner_subprocess is implemented; ensure tests cover this path.
-        import json
-        import subprocess
-        import tempfile
-
-        phase_def = PHASE_DEFS.get(phase_id, {})
-        pd = _phase_dir(output_dir, project_id, phase_def)
-        pd.mkdir(parents=True, exist_ok=True)
-
-        input_data = {
-            "report_path": str(report_path),
-            "judge_result_path": str(judge_result_path),
-            "critique_prompt": critique_prompt,
-            "output_dir": str(output_dir),
-            "model": DEFAULT_JUDGE_MODEL,
-            "fallback": DEFAULT_FALLBACK_MODEL,
-        }
-
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".json", delete=False, encoding="utf-8"
-        ) as f_in:
-            json.dump(input_data, f_in, ensure_ascii=False)
-            input_path = f_in.name
-
-        output_path = str(pd / "_critique_subprocess_result.json")
-
-        try:
-            proc = subprocess.run(
-                [
-                    sys.executable,
-                    "-m",
-                    "qualix.agents.critique_runner_subprocess",
-                    "--input",
-                    input_path,
-                    "--output",
-                    output_path,
-                ],
-                capture_output=True,
-                text=True,
-                timeout=120,
-            )
-        except subprocess.TimeoutExpired as exc:
-            log.error("Critique subprocess timed out for project=%s phase=%s", project_id, phase_id)
-            raise TimeoutError("Critique subprocess timed out") from exc
-        finally:
-            try:
-                Path(input_path).unlink(missing_ok=True)
-            except Exception as exc:
-                log.warning("Failed to clean up critique input file %s: %s", input_path, exc)
-
-        if proc.returncode != 0:
-            log.error("Critique subprocess failed: %s", proc.stderr[:400])
-            raise RuntimeError(f"Critique subprocess failed: {proc.stderr[:200]}")
-
-        try:
-            raw = Path(output_path).read_text(encoding="utf-8")
-            result_data = json.loads(raw)
-        except (OSError, json.JSONDecodeError) as exc:
-            log.error(
-                "Critique subprocess output unreadable/malformed for project=%s phase=%s: %s",
-                project_id, phase_id, exc,
-            )
-            raise RuntimeError("Critique subprocess produced invalid output") from exc
-        finally:
-            Path(output_path).unlink(missing_ok=True)
-
-        content = json.dumps(result_data, ensure_ascii=False, indent=2)
-        (pd / "_critique_v2.json").write_text(content, encoding="utf-8")
-        process_critique_feedback(content, pd, phase_id)
-
-        return AgentResult(
-            agent_name=f"{project_id}-{phase_id}-critique",
-            role="critique",
-            status="success",
-            content=content,
-            model_used=result_data.get("model", DEFAULT_JUDGE_MODEL),
-        )
+    # TODO: add subprocess isolation for Critique (critique_runner_subprocess) once
+    # that module is implemented — mirror the judge_vote._run_single_judge pattern.
 
     def _run_worker(
         self,
@@ -544,3 +390,160 @@ class AgentOrchestrator:
             if result.error:
                 lines.append(f"        error: {result.error[:100]}")
         return "\n".join(lines)
+
+
+# ---------------------------------------------------------------------------
+# Prompt builders — canonical home; multi_agent.py re-exports these
+# ---------------------------------------------------------------------------
+
+
+def generate_worker_prompt(
+    output_dir: Path,
+    project_id: str,
+    phase_id: str,
+    skill_path: str,
+    inputs: dict[str, str] | None = None,
+) -> str:
+    """生成 Worker Agent 的完整 prompt."""
+    phase_def = PHASE_DEFS.get(phase_id, {})
+    pd = _phase_dir(output_dir, project_id, phase_def)
+
+    from qualix.context.enum_contract import render_enum_contract_prefix
+
+    enum_block = render_enum_contract_prefix(phase_id)
+    head: list[str] = [
+        f"# Worker Agent — Phase {phase_id}",
+        f"项目: {project_id}",
+        f"产物目录: {pd}",
+        "",
+    ]
+    if enum_block:
+        head.extend(["## ENUM_CONTRACT（与 schema 同源）", "", enum_block, ""])
+    parts = [
+        *head,
+        "## 任务",
+        f"严格按照 skill 文件 `{skill_path}` 的 Step 0-6 执行 Phase {phase_id}。",
+        "输出报告和结构化 JSON 到产物目录。",
+        "必须输出 `_reasoning_log.md` 记录每步决策过程。",
+        "",
+        "## 约束",
+        "- 你是 Worker Agent，只负责执行，不负责评审",
+        "- 严格遵循 skill 中的规则和禁止事项",
+        "- 每条结论标注来源和置信度",
+        "",
+    ]
+
+    ctx_path = pd / "_upstream_context.md"
+    if ctx_path.exists():
+        parts.append("## 上游 Context（已缓存，直接使用）")
+        parts.append(f"文件: {ctx_path}")
+        parts.append("")
+
+    img_path = pd / "image_semantics.md"
+    if img_path.exists():
+        parts.append("## 图片语义（已缓存，不要重新读图片）")
+        parts.append(f"文件: {img_path}")
+        parts.append("")
+
+    if inputs:
+        parts.append("## 额外输入")
+        for k, v in inputs.items():
+            parts.append(f"- {k}: {v}")
+        parts.append("")
+
+    from qualix.constants import REPORT_MAP
+
+    report_file = REPORT_MAP.get(phase_id)
+    is_rerun = report_file and (pd / report_file).exists()
+    if is_rerun:
+        upstream_path = pd / "_upstream_context.md"
+        if not upstream_path.exists():
+            upstream_path = pd / "_internal" / "_upstream_context.md"
+        if upstream_path.exists():
+            from qualix.agents.handoff_builder import extract_anchor_summary
+
+            try:
+                anchor = extract_anchor_summary(upstream_path.read_text(encoding="utf-8", errors="replace"))
+                if anchor:
+                    parts.append(anchor)
+                    parts.append("")
+            except Exception as e:
+                log.debug("Anchor extraction failed (non-blocking): %s", e)
+
+    return "\n".join(parts)
+
+
+def generate_judge_prompt(
+    output_dir: Path,
+    project_id: str,
+    phase_id: str,
+) -> str:
+    """生成 Judge Agent 的 prompt（委托 quality/judge.py 的标准实现）."""
+    from qualix.quality.judge import generate_judge_prompt as _canonical_judge_prompt
+
+    result = _canonical_judge_prompt(output_dir, project_id, phase_id)
+    if result:
+        return result
+
+    phase_def = PHASE_DEFS.get(phase_id, {})
+    pd = _phase_dir(output_dir, project_id, phase_def)
+    return f"# Judge Agent — Phase {phase_id}\n项目: {project_id}\n\n请评审 {pd} 下的产物质量，按 1-5 分打分。\n"
+
+
+def generate_critique_prompt(
+    output_dir: Path,
+    project_id: str,
+    phase_id: str,
+) -> str:
+    """生成 Critique Agent 的 prompt."""
+    phase_def = PHASE_DEFS.get(phase_id, {})
+    pd = _phase_dir(output_dir, project_id, phase_def)
+
+    parts = [
+        f"# Critique Agent — Phase {phase_id}",
+        f"项目: {project_id}",
+        "",
+    ]
+
+    from qualix.quality.evaluation_protocols import get_protocol, render_protocol_for_prompt
+
+    _protocol = get_protocol(phase_id)
+    if _protocol:
+        parts.append(render_protocol_for_prompt(_protocol.critique))
+        parts.append("")
+    else:
+        parts.extend(
+            [
+                "## 你的角色",
+                "你是 Critique Agent。假设 Worker 的产物有遗漏和错误，主动找问题。",
+                "你已经看到了 Judge 的评审结果，你的任务是找到 Judge 也没发现的问题。",
+                "",
+                "## 重点检查方向",
+                "1. 并发/幂等/事务 — 是否遗漏了并发场景的 GAP？",
+                "2. 异常流 — 每个外部调用（保司接口/MQ/定时任务）的失败处理是否有 SE 或 GAP？",
+                "3. 状态迁移边界 — 每条状态迁移边是否都有数据流定义？",
+                "4. 权限/安全 — 数据隔离、脱敏、越权访问是否有 SE？",
+                "5. 业务常识 — 是否有把正常业务流程当缺口的 GAP？",
+                "",
+            ]
+        )
+
+    parts.extend(
+        [
+            "## 输入",
+            f"报告: {pd / 'phase_a_report.md'}",
+            f"Judge 结果: {pd / '_judge_result.json'}",
+            "",
+            "## 输出格式",
+            f"写入 JSON 到: {pd / '_critique.json'}",
+            "```json",
+            "{",
+            '  "issues_found": [{"type": "FN/FP", "severity": "...", "description": "...", "suggestion": "..."}],',
+            '  "revision_needed": true/false,',
+            '  "summary": "..."',
+            "}",
+            "```",
+        ]
+    )
+
+    return "\n".join(parts)

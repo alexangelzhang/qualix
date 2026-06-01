@@ -5,13 +5,7 @@ after Judge completes.
 
 Worker 在主进程 adaptive_loop 中执行（迭代需要内存状态）。
 Judge 通过 judge_runner_subprocess 在独立子进程运行（context 完全隔离）。
-Critique 在 Judge 输出文件写入后立即由 ThreadPoolExecutor 并发启动。
-
-用法:
-    orchestrator = MultiAgentOrchestrator(output_dir)
-    result = orchestrator.run_phase("damage-assessment", "Q01", {
-        "prd_url": "https://...",
-    })
+Critique 在 Judge 输出文件写入后立即启动。
 """
 
 from __future__ import annotations
@@ -23,11 +17,19 @@ from typing import TYPE_CHECKING, Final
 if TYPE_CHECKING:
     from pathlib import Path
 
+from qualix.agents.agent_orchestrator import (
+    generate_critique_prompt,
+    generate_judge_prompt,
+    generate_worker_prompt,
+)
 from qualix.core.state_machine import PHASE_DEFS
 from qualix.log import get_logger
 
 log = get_logger(__name__)
 from qualix.core.state_machine import phase_dir as _phase_dir
+
+# Re-exported for backward compatibility
+__all__ = ["generate_worker_prompt", "generate_judge_prompt", "generate_critique_prompt"]
 
 # ---------------------------------------------------------------------------
 # Agent 角色定义
@@ -81,184 +83,15 @@ PHASE_DAG: Final = MappingProxyType(
 
 
 # ---------------------------------------------------------------------------
-# Prompt 生成
+# Prompt 生成（实装在 agent_orchestrator.py，此处 re-export 供向后兼容）
+# generate_worker_prompt / generate_judge_prompt / generate_critique_prompt
+# 已在文件顶部通过 import 引入，__all__ 声明向外暴露
 # ---------------------------------------------------------------------------
-
-
-def generate_worker_prompt(
-    output_dir: Path,
-    project_id: str,
-    phase_id: str,
-    skill_path: str,
-    inputs: dict[str, str] | None = None,
-) -> str:
-    """生成 Worker Agent 的完整 prompt."""
-    phase_def = PHASE_DEFS.get(phase_id, {})
-    pd = _phase_dir(output_dir, project_id, phase_def)
-
-    from qualix.context.enum_contract import render_enum_contract_prefix
-
-    enum_block = render_enum_contract_prefix(phase_id)
-    head: list[str] = [
-        f"# Worker Agent — Phase {phase_id}",
-        f"项目: {project_id}",
-        f"产物目录: {pd}",
-        "",
-    ]
-    if enum_block:
-        head.extend(["## ENUM_CONTRACT（与 schema 同源）", "", enum_block, ""])
-    parts = [
-        *head,
-        "## 任务",
-        f"严格按照 skill 文件 `{skill_path}` 的 Step 0-6 执行 Phase {phase_id}。",
-        "输出报告和结构化 JSON 到产物目录。",
-        "必须输出 `_reasoning_log.md` 记录每步决策过程。",
-        "",
-        "## 约束",
-        "- 你是 Worker Agent，只负责执行，不负责评审",
-        "- 严格遵循 skill 中的规则和禁止事项",
-        "- 每条结论标注来源和置信度",
-        "",
-    ]
-
-    # 加载上游 context（如果存在）
-    ctx_path = pd / "_upstream_context.md"
-    if ctx_path.exists():
-        parts.append("## 上游 Context（已缓存，直接使用）")
-        parts.append(f"文件: {ctx_path}")
-        parts.append("")
-
-    # 加载图片语义缓存
-    img_path = pd / "image_semantics.md"
-    if img_path.exists():
-        parts.append("## 图片语义（已缓存，不要重新读图片）")
-        parts.append(f"文件: {img_path}")
-        parts.append("")
-
-    # 额外输入
-    if inputs:
-        parts.append("## 额外输入")
-        for k, v in inputs.items():
-            parts.append(f"- {k}: {v}")
-        parts.append("")
-
-    # P2 锚点注入：重跑时自动追加原始需求摘要，防止 Worker 只看 Judge 反馈漂移
-    from qualix.constants import REPORT_MAP
-
-    report_file = REPORT_MAP.get(phase_id)
-    is_rerun = report_file and (pd / report_file).exists()
-    if is_rerun:
-        upstream_path = pd / "_upstream_context.md"
-        if not upstream_path.exists():
-            upstream_path = pd / "_internal" / "_upstream_context.md"
-        if upstream_path.exists():
-            from qualix.agents.handoff_builder import extract_anchor_summary
-
-            try:
-                anchor = extract_anchor_summary(upstream_path.read_text(encoding="utf-8", errors="replace"))
-                if anchor:
-                    parts.append(anchor)
-                    parts.append("")
-            except Exception as e:
-                log.debug("Anchor extraction failed (non-blocking): %s", e)
-
-    return "\n".join(parts)
-
-
-def generate_judge_prompt(
-    output_dir: Path,
-    project_id: str,
-    phase_id: str,
-) -> str:
-    """生成 Judge Agent 的 prompt（委托 quality/judge.py 的标准实现）.
-
-    保留此函数签名以兼容 dag_scheduler 等调用方。
-    """
-    from qualix.quality.judge import generate_judge_prompt as _canonical_judge_prompt
-
-    result = _canonical_judge_prompt(output_dir, project_id, phase_id)
-    if result:
-        return result
-
-    # fallback: 如果 quality/judge.py 不支持该 Phase（不应发生），返回最小 prompt
-    phase_def = PHASE_DEFS.get(phase_id, {})
-    pd = _phase_dir(output_dir, project_id, phase_def)
-    return f"# Judge Agent — Phase {phase_id}\n项目: {project_id}\n\n请评审 {pd} 下的产物质量，按 1-5 分打分。\n"
-
-
-def generate_critique_prompt(
-    output_dir: Path,
-    project_id: str,
-    phase_id: str,
-) -> str:
-    """生成 Critique Agent 的 prompt."""
-    phase_def = PHASE_DEFS.get(phase_id, {})
-    pd = _phase_dir(output_dir, project_id, phase_def)
-
-    parts = [
-        f"# Critique Agent — Phase {phase_id}",
-        f"项目: {project_id}",
-        "",
-    ]
-
-    # Inject Phase evaluation protocol for Critique
-    from qualix.quality.evaluation_protocols import get_protocol, render_protocol_for_prompt
-
-    _protocol = get_protocol(phase_id)
-    if _protocol:
-        parts.append(render_protocol_for_prompt(_protocol.critique))
-        parts.append("")
-    else:
-        parts.extend(
-            [
-                "## 你的角色",
-                "你是 Critique Agent。假设 Worker 的产物有遗漏和错误，主动找问题。",
-                "你已经看到了 Judge 的评审结果，你的任务是找到 Judge 也没发现的问题。",
-                "",
-                "## 重点检查方向",
-                "1. 并发/幂等/事务 — 是否遗漏了并发场景的 GAP？",
-                "2. 异常流 — 每个外部调用（保司接口/MQ/定时任务）的失败处理是否有 SE 或 GAP？",
-                "3. 状态迁移边界 — 每条状态迁移边是否都有数据流定义？",
-                "4. 权限/安全 — 数据隔离、脱敏、越权访问是否有 SE？",
-                "5. 业务常识 — 是否有把正常业务流程当缺口的 GAP？",
-                "",
-            ]
-        )
-
-    parts.extend(
-        [
-            "## 输入",
-            f"报告: {pd / 'phase_a_report.md'}",
-            f"Judge 结果: {pd / '_judge_result.json'}",
-            "",
-            "## 输出格式",
-            f"写入 JSON 到: {pd / '_critique.json'}",
-            "```json",
-            "{",
-            '  "issues_found": [{"type": "FN/FP", "severity": "...", "description": "...", "suggestion": "..."}],',
-            '  "revision_needed": true/false,',
-            '  "summary": "..."',
-            "}",
-            "```",
-        ]
-    )
-
-    return "\n".join(parts)
 
 
 # ---------------------------------------------------------------------------
 # Orchestrator
 # ---------------------------------------------------------------------------
-
-
-@dataclass
-class AgentResult:
-    agent_name: str
-    role: str
-    status: str  # success / failed / skipped
-    output_files: list[str] = field(default_factory=list)
-    duration_seconds: float = 0
-    error: str = ""
 
 
 class MultiAgentOrchestrator:
@@ -366,47 +199,3 @@ class MultiAgentOrchestrator:
 
         return "\n".join(lines)
 
-    def run_phase(
-        self,
-        project_id: str,
-        phase_id: str,
-        inputs: dict[str, str] | None = None,
-    ) -> dict:
-        """执行单个 Phase 的完整 Worker → Judge → Critique 流水线.
-
-        Phase 2: Worker 在主进程运行；Judge 在独立子进程运行；
-        Critique 在 Judge 输出文件写入后立即并发启动。
-
-        Args:
-            project_id: 项目 ID
-            phase_id: Phase ID（如 "Q01"）
-            inputs: 额外输入参数（透传给 generate_worker_prompt）
-
-        Returns:
-            AgentOrchestrator.run_pipeline() 返回的 dict[str, AgentResult]
-        """
-        from qualix.agents.agent_orchestrator import AgentOrchestrator
-
-        # 生成三个 Agent 的 prompt（写入文件的同时返回内容）
-        phase_def = PHASE_DEFS.get(phase_id, {})
-        from qualix.core.state_machine import phase_dir as _get_phase_dir
-
-        pd = _get_phase_dir(self.output_dir, project_id, phase_def)
-        pd.mkdir(parents=True, exist_ok=True)
-
-        skill_path = phase_def.get("skill", "")
-        worker_prompt = generate_worker_prompt(self.output_dir, project_id, phase_id, skill_path, inputs)
-        judge_prompt = generate_judge_prompt(self.output_dir, project_id, phase_id)
-        critique_prompt = generate_critique_prompt(self.output_dir, project_id, phase_id)
-
-        log.info("run_phase: project=%s phase=%s — delegating to AgentOrchestrator.run_pipeline()", project_id, phase_id)
-
-        orchestrator = AgentOrchestrator(self.output_dir)
-        result = orchestrator.run_pipeline(
-            project_id=project_id,
-            phase_id=phase_id,
-            worker_prompt=worker_prompt,
-            judge_rubric=judge_prompt,
-            critique_prompt=critique_prompt,
-        )
-        return result

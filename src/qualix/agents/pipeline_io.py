@@ -12,6 +12,21 @@ log = get_logger(__name__)
 _RE_JSON_BLOCK = re.compile(r"```json\s*\n([\s\S]*?)\n```")
 
 
+def infer_phase_project_ids(report_path: str) -> tuple[str, str]:
+    """Infer (phase_id, project_id) from report path convention: output/{project_id}/{phase_id}/...
+
+    Returns (phase_id, project_id). Returns empty strings on failure.
+    """
+    try:
+        rp = Path(report_path)
+        phase_id = rp.parent.name
+        project_id = rp.parent.parent.name
+    except (AttributeError, IndexError):
+        phase_id = ""
+        project_id = ""
+    return phase_id, project_id
+
+
 def _extract_json_block(content: str) -> str | None:
     """从文本中提取 JSON 块（```json 或裸 JSON）."""
     json_match = _RE_JSON_BLOCK.search(content)
