@@ -121,6 +121,19 @@ def check_reasoning_log(output_dir: Path, project_id: str, phase_id: str) -> lis
                 f"推理日志必须记录每个 Step 的决策过程、依据、发现。"
             )
 
+    # ReAct Evidence soft bonus（Q01 专属，advisory only，不改变 BLOCKED/WARNING 阈值）
+    if not errors and phase_id == "Q01" and log_path.exists():
+        log_content = log_path.read_text(encoding="utf-8")
+        if "## ReAct Evidence" in log_content:
+            import re as _re
+            rounds = _re.findall(r"### Round \d+", log_content)
+            if rounds:
+                # 仅作为透明度注解，不阻断
+                errors.append(
+                    f"INFO: ReAct Evidence 已记录（{len(rounds)} 轮），"
+                    "source annotation 质量检查包含额外证据来源。"
+                )
+
     # B: 手动模式 Step 0.5 守卫——检查 _bootstrap_context.md 是否已读取
     # adaptive 模式有 _adaptive_summary.json（framework 自动注入 context），跳过此检查
     if not errors:
@@ -421,6 +434,19 @@ def run_finalize_checks(output_dir: Path, project_id: str, phase_id: str) -> lis
                 code_status_path = _phase_dir(output_dir, project_id, phase_def_q05b) / _SJM2["Q05b"]
                 code_status = load_json(code_status_path) if code_status_path.is_file() else {}
                 errors.extend(_check_assertion_type_consistency(eut_data or {}, code_status or {}))
+
+    # Phase Q05b: Mock 一致性静态检查（DDD 层级 @InjectMocks/@Mock 对齐，始终 WARNING）
+    if phase_id == "Q05b":
+        from .mock_consistency_check import check_mock_consistency
+
+        phase_def_q05b_mc = PHASE_DEFS.get("Q05b")
+        if phase_def_q05b_mc:
+            int_dir_q05b_mc = _internal_dir(output_dir, project_id, phase_def_q05b_mc)
+            inputs_mc = load_json(int_dir_q05b_mc / "_inputs.json") or {}
+            code_repos_mc: list[str] = inputs_mc.get("code_repos", [])
+            if not code_repos_mc and inputs_mc.get("code_repo"):
+                code_repos_mc = [inputs_mc["code_repo"]]
+            errors.extend(check_mock_consistency(output_dir, project_id, code_repos_mc))
 
     # Phase Q05b: 单测编译 gate（从 _inputs.json 读 code_repos，逐仓库检查）
     if phase_id == "Q05b":
