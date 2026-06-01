@@ -84,11 +84,22 @@ def list_profiles() -> list[QualixProfile]:
 
 
 def get_profile(profile_id: str | None = None) -> QualixProfile:
+    """Return a profile by ID, optionally pinned to a version with the @version suffix.
+
+    Examples:
+        get_profile("java-ddd-tmf")       # latest
+        get_profile("java-ddd-tmf@v1")    # pinned — requires profiles/java-ddd-tmf@v1/profile.json
+    """
     target = profile_id or "java-ddd-tmf"
     for profile in list_profiles():
         if profile.profile_id == target:
             return profile
-    raise ValueError(f"Unknown profile: {target}")
+    if "@" in target:
+        base_id = target.split("@", 1)[0]
+        candidates = [p.profile_id for p in list_profiles() if p.profile_id.startswith(base_id)]
+        if candidates:
+            raise ValueError(f"Unknown profile version: {target!r}. Available: {candidates}")
+    raise ValueError(f"Unknown profile: {target!r}")
 
 
 def validate_profile_file(path: Path, repo_root: Path | None = None) -> list[str]:

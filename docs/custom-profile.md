@@ -89,6 +89,29 @@ If you omit `--profile`, Qualix falls back to the closest built-in profile based
 
 5. If contributing back, add a benchmark case to `benchmarks/semantic-coverage/cases.md` that shows a finding your profile enables.
 
+## Profile Versioning
+
+Qualix supports pinning a project to a specific version of a profile. This is useful when an organization wants to lock a project to a known-good baseline while the default profile evolves.
+
+**Convention**: create a versioned profile at `profiles/<id>@<version>/profile.json` with `profile_id` set to `<id>@<version>`:
+
+```
+profiles/
+├── java-ddd-tmf/         # current version (profile_id = "java-ddd-tmf")
+│   └── profile.json
+└── java-ddd-tmf@v1/      # pinned version (profile_id = "java-ddd-tmf@v1")
+    ├── profile.json
+    └── baseline.md
+```
+
+Use the `@version` suffix in the `--profile` flag:
+
+```bash
+qualix-run --profile java-ddd-tmf@v1 my-project init
+```
+
+Without the suffix, Qualix uses the profile whose `profile_id` exactly matches the name (the current version). The `@version` label is free-form — `@v1`, `@2024-Q1`, `@stable` all work.
+
 ## Profile Validation
 
 Run `qualix-run doctor` after creating a profile to check for structural issues. A malformed `profile.json` will be reported with the specific validation error.

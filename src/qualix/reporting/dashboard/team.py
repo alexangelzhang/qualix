@@ -1,4 +1,4 @@
-"""团队视图 — 从飞书 bitable 拉取多用户执行数据."""
+"""团队视图 — 本地多项目聚合 + 飞书 bitable 远程数据."""
 
 from __future__ import annotations
 
@@ -134,3 +134,72 @@ def _page_team() -> None:
             else filtered[display_cols],
             use_container_width=True,
         )
+
+
+def _page_local_projects() -> None:
+    """本地多项目聚合视图 — 不需要飞书凭证."""
+    from .cache import _cached_projects, _cached_summary
+    from .constants import OUTPUT_DIR
+    from .trend import _load_phase_score_history
+
+    st.subheader("本地多项目汇总")
+    st.caption("从本机 output/ 目录聚合，无需飞书凭证。")
+
+    projects = _cached_projects()
+    if not projects:
+        st.info("暂无项目数据，请先执行 qualix-run <pid> init 并运行一些 Phase。")
+        return
+
+    import pandas as pd
+    from qualix.constants import PHASE_DIR_MAP
+
+    rows = []
+    for pid in projects:
+        summary = _cached_summary(pid)
+        score_map = summary.get("latest_judge_scores") or {}
+        avg_score = (sum(v for v in score_map.values() if v is not None) / max(len(score_map), 1)) if score_map else None
+        rows.append(
+            {
+                "项目": pid,
+                "Phase 通过率": f"{summary.get('phase_approval_rate', 0) * 100:.0f}%",
+                "平均 Judge 评分": f"{avg_score:.1f}/5" if avg_score is not None else "—",
+                "已完成 Phase 数": summary.get("total_finalized", 0),
+                "已批准 Phase 数": summary.get("total_approved", 0),
+            }
+        )
+    df = pd.DataFrame(rows)
+    st.dataframe(df, use_container_width=True, hide_index=True)
+
+    # Phase 状态矩阵
+    st.divider()
+    with st.expander("Phase 状态矩阵", expanded=True):
+        from qualix.core.state_machine import load_state
+
+        phase_ids = list(PHASE_DIR_MAP.keys())
+        matrix_rows = []
+        for pid in projects:
+            try:
+                state = load_state(OUTPUT_DIR, pid)
+                row: dict[str, str] = {"项目": pid}
+                for qid in phase_ids:
+                    ps = getattr(state, "phases", {}).get(qid) if hasattr(state, "phases") else None
+                    status = ps.status if ps else "—"
+                    row[qid] = status
+                matrix_rows.append(row)
+            except Exception:
+                matrix_rows.append({"项目": pid, **{qid: "?" for qid in phase_ids}})
+
+        if matrix_rows:
+            df_matrix = pd.DataFrame(matrix_rows)
+
+            def _color_status(val):
+                if val == "approved":
+                    return "background-color: #d4edda"
+                if val in ("hard_blocked", "failed"):
+                    return "background-color: #f8d7da"
+                if val in ("in_progress", "pending_review"):
+                    return "background-color: #fff3cd"
+                return ""
+
+            styled = df_matrix.style.applymap(_color_status, subset=phase_ids)
+            st.dataframe(styled, use_container_width=True, hide_index=True)
