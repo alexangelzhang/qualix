@@ -53,6 +53,9 @@ docs/designs/plans/
 docs/designs/specs/
 docs/system-health-reports/
 
+# Git worktrees
+.worktrees/
+
 # macOS
 .DS_Store
 
