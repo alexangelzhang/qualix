@@ -43,6 +43,8 @@ Three production Java services run through the full Q01→Q06 pipeline:
 
 In the platform service, 18 of 103 audited test targets had assertion gaps that line coverage did not flag.
 
+For full details — what each finding looked like and why line coverage missed it — see [docs/real-world-results.md](docs/real-world-results.md).
+
 ## The Short Version
 
 Give Qualix a PRD, then move through small quality checkpoints:

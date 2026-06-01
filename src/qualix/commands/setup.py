@@ -95,6 +95,44 @@ def cmd_init(args, output_dir: Path) -> int:
     if not cli_json_mode(args):
         print(f"  ✓ version.json 已创建 (v{QUALIX_VERSION})")
 
+    # L2: 创建用户工作区 .qualix/
+    project_root = output_dir.parent
+    qualix_dir = project_root / ".qualix"
+    workspace_created = False
+    if not qualix_dir.exists():
+        (qualix_dir / "profiles").mkdir(parents=True, exist_ok=True)
+        (qualix_dir / "skill-overrides").mkdir(exist_ok=True)
+        settings_path = qualix_dir / "settings.yaml"
+        settings_path.write_text(
+            "# Qualix user workspace settings\n"
+            "# Docs: https://github.com/alexangelzhang/qualix/blob/main/docs/custom-profile.md\n"
+            "\n"
+            "# profile: java-ddd-tmf   # override default profile\n"
+            "# skill_overrides: true   # enable skill-overrides/ directory\n",
+            encoding="utf-8",
+        )
+        workspace_created = True
+
+    # L3: 在用户 CLAUDE.md 末尾追加 guardrail（幂等）
+    guardrail_added = False
+    _GUARDRAIL_MARKER = "## Qualix Usage"
+    claude_md_path = project_root / "CLAUDE.md"
+    if claude_md_path.exists():
+        existing = claude_md_path.read_text(encoding="utf-8")
+        if _GUARDRAIL_MARKER not in existing:
+            guardrail_text = (
+                "\n\n## Qualix Usage\n\n"
+                "Qualix is installed as a tool (`pip install qualix`). Do not modify its source code.\n\n"
+                "If Qualix reports an error:\n"
+                "1. Run `qualix-run doctor` to generate a diagnostic bundle\n"
+                "2. Report the bundle at https://github.com/alexangelzhang/qualix/issues"
+                " — do not patch the tool directly\n"
+                "3. To customize behavior, edit `.qualix/` (profiles, skill overrides, settings)\n"
+            )
+            with claude_md_path.open("a", encoding="utf-8") as f:
+                f.write(guardrail_text)
+            guardrail_added = True
+
     # 汇总
     phase_dirs = [PHASE_DEFS[pid]["dir_suffix"] for pid in PHASE_ORDER]
     if cli_json_mode(args):
@@ -111,6 +149,8 @@ def cmd_init(args, output_dir: Path) -> int:
                     "state_json_created": state_json_created,
                     "state_existed_before": had_state_before,
                     "version_path": str(version_path),
+                    "workspace_created": workspace_created,
+                    "guardrail_added": guardrail_added,
                 },
             )
         )
@@ -119,6 +159,13 @@ def cmd_init(args, output_dir: Path) -> int:
         print(f"    Profile: {profile_id}")
         print(f"    输出目录: {project_dir}")
         print(f"    Phase 目录: {', '.join(phase_dirs)}")
+        if workspace_created:
+            print(f"  ✓ .qualix/ workspace created")
+            print(f"    .qualix/profiles/        — custom profile overrides")
+            print(f"    .qualix/skill-overrides/ — skill customizations")
+            print(f"    .qualix/settings.yaml    — user preferences")
+        if guardrail_added:
+            print(f"  ✓ CLAUDE.md guardrail added")
         print(f"\n  下一步: qualix-run {project_id} startup")
     return 0
 
