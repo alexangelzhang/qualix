@@ -7,16 +7,20 @@
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 from types import MappingProxyType
 from typing import Final
 
+from qualix.log import get_logger
 from qualix.core.state_machine import PHASE_DEFS
 from qualix.core.state_machine import internal_dir as _internal_dir
 from qualix.core.state_machine import phase_dir as _phase_dir
 from qualix.json_utils import load_json, save_json
 from qualix.path_utils import resolve_internal_file
 from qualix.text_utils import STRUCTURED_JSON_MAP, expand_eut_ids
+
+log = get_logger(__name__)
 
 # Phase → 需要检查数量的字段
 _COUNT_FIELDS: Final = MappingProxyType(
@@ -120,6 +124,19 @@ def check_reasoning_log(output_dir: Path, project_id: str, phase_id: str) -> lis
                 f"BLOCKED: _reasoning_log.md 内容过少（{len(content)} 字符）。"
                 f"推理日志必须记录每个 Step 的决策过程、依据、发现。"
             )
+
+    # ReAct Evidence soft bonus（Q01 专属，advisory only，不改变 BLOCKED/WARNING 阈值）
+    if not errors and phase_id == "Q01" and log_path.exists():
+        log_content = log_path.read_text(encoding="utf-8")
+        if "## ReAct Evidence" in log_content:
+            rounds = re.findall(r"### Round \d+", log_content)
+            if rounds:
+                # 仅作为透明度注解，不阻断，不写入 errors
+                log.info(
+                    "ReAct Evidence 已记录（%d 轮），"
+                    "source annotation 质量检查包含额外证据来源。",
+                    len(rounds),
+                )
 
     # B: 手动模式 Step 0.5 守卫——检查 _bootstrap_context.md 是否已读取
     # adaptive 模式有 _adaptive_summary.json（framework 自动注入 context），跳过此检查
@@ -422,6 +439,19 @@ def run_finalize_checks(output_dir: Path, project_id: str, phase_id: str) -> lis
                 code_status = load_json(code_status_path) if code_status_path.is_file() else {}
                 errors.extend(_check_assertion_type_consistency(eut_data or {}, code_status or {}))
 
+    # Phase Q05b: Mock 一致性静态检查（DDD 层级 @InjectMocks/@Mock 对齐，始终 WARNING）
+    if phase_id == "Q05b":
+        from .mock_consistency_check import check_mock_consistency
+
+        phase_def_q05b_mc = PHASE_DEFS.get("Q05b")
+        if phase_def_q05b_mc:
+            int_dir_q05b_mc = _internal_dir(output_dir, project_id, phase_def_q05b_mc)
+            inputs_mc = load_json(int_dir_q05b_mc / "_inputs.json") or {}
+            code_repos_mc: list[str] = inputs_mc.get("code_repos", [])
+            if not code_repos_mc and inputs_mc.get("code_repo"):
+                code_repos_mc = [inputs_mc["code_repo"]]
+            errors.extend(check_mock_consistency(output_dir, project_id, code_repos_mc))
+
     # Phase Q05b: 单测编译 gate（从 _inputs.json 读 code_repos，逐仓库检查）
     if phase_id == "Q05b":
         from .compile_check import check_phase_b_compilation
@@ -435,6 +465,19 @@ def run_finalize_checks(output_dir: Path, project_id: str, phase_id: str) -> lis
                 code_repos_q05b_compile = [inputs_data_q05b_compile["code_repo"]]
             for repo in code_repos_q05b_compile:
                 errors.extend(check_phase_b_compilation(output_dir, project_id, repo))
+
+    # Phase Q05b: Import Whitelist gate（幻觉 import 检测，编译前快速反馈）
+    if phase_id == "Q05b":
+        from .import_whitelist_check import check_import_whitelist
+
+        phase_def_q05b_iw = PHASE_DEFS.get("Q05b")
+        if phase_def_q05b_iw:
+            int_dir_q05b_iw = _internal_dir(output_dir, project_id, phase_def_q05b_iw)
+            inputs_iw = load_json(int_dir_q05b_iw / "_inputs.json") or {}
+            code_repos_iw: list[str] = inputs_iw.get("code_repos", [])
+            if not code_repos_iw and inputs_iw.get("code_repo"):
+                code_repos_iw = [inputs_iw["code_repo"]]
+            errors.extend(check_import_whitelist(output_dir, project_id, code_repos_iw))
 
     # Phase Q05b: 单测编译+运行铁律 gate（不可跳过）
     if phase_id == "Q05b":
