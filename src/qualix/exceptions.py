@@ -45,3 +45,11 @@ class LLMError(QualixError):
     def __init__(self, model: str, message: str) -> None:
         self.model = model
         super().__init__(f"[{model}] {message}")
+
+
+ISSUE_URL = "https://github.com/alexangelzhang/qualix/issues"
+
+
+def format_error_hint() -> str:
+    """Return a one-line hint pointing users to doctor and the issue tracker."""
+    return f"Run 'qualix-run doctor' for diagnostics, or report at {ISSUE_URL}"

@@ -205,6 +205,9 @@ def _build_parser() -> argparse.ArgumentParser:
     # version
     sub.add_parser("version", help="显示 Qualix 版本号")
 
+    # demo
+    sub.add_parser("demo", help="Show a demo of Qualix output (no API key required)")
+
     # task
     p_task = sub.add_parser("task", help="Task 管理（list/resume）")
     p_task.add_argument(
@@ -377,10 +380,10 @@ def _dispatch(cmd: str) -> callable:
 
         return {"wiki-compile": cmd_wiki_compile, "wiki-lint": cmd_wiki_lint}[cmd]
 
-    if cmd in ("init", "doctor", "update", "version"):
-        from qualix.commands.setup import cmd_doctor, cmd_init, cmd_update, cmd_version
+    if cmd in ("init", "doctor", "update", "version", "demo"):
+        from qualix.commands.setup import cmd_demo, cmd_doctor, cmd_init, cmd_update, cmd_version
 
-        return {"init": cmd_init, "doctor": cmd_doctor, "update": cmd_update, "version": cmd_version}[cmd]
+        return {"init": cmd_init, "doctor": cmd_doctor, "update": cmd_update, "version": cmd_version, "demo": cmd_demo}[cmd]
 
     if cmd in ("metrics", "observe", "regression"):
         from qualix.commands.ops import cmd_metrics, cmd_observe, cmd_regression
@@ -713,7 +716,10 @@ def main() -> int:
 
         handler = _dispatch(args.command)
         if not handler:
+            from qualix.exceptions import format_error_hint
+
             print(f"未知命令: {args.command}", file=sys.stderr)
+            print(format_error_hint(), file=sys.stderr)
             exit_code = 1
             return exit_code
 

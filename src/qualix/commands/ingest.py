@@ -21,7 +21,12 @@ def run_ingest(source: str, project_id: str, phase_id: str = "Q01", output_root:
     try:
         bundle = ingest_document(source, phase_root / "ingest")
     except IngestError as exc:
+        import sys
+
+        from qualix.exceptions import format_error_hint
+
         print(dump_json_str({"status": "error", "error_type": "ingest_error", "message": str(exc)}))
+        print(format_error_hint(), file=sys.stderr)
         return 1
     print(dump_json_str(bundle.to_manifest()))
     return 0

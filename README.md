@@ -113,10 +113,10 @@ qualix-run expense-demo startup --json
 
 To try without private project data, start with the simpler [examples/hello-prd.md](examples/hello-prd.md).
 
-Inside an AI coding agent, use the project starter instructions:
+See what Qualix output looks like without running anything:
 
-```text
-$qualix-starter
+```bash
+qualix-run demo
 ```
 
 You can also run phases manually:
@@ -126,6 +126,51 @@ qualix-run my-project execute Q01 --json
 qualix-run my-project finalize Q01 --json
 qualix-run my-project approve Q01 --json
 ```
+
+## Works Natively with AI Coding Agents
+
+Qualix ships with instruction files for the three most common AI coding environments:
+
+| File | Environment |
+| --- | --- |
+| `CLAUDE.md` | Claude Code (Anthropic) |
+| `AGENTS.md` | Codex, opencode, and other OpenAI-compatible agents |
+| `GEMINI.md` | Gemini CLI |
+
+Inside any of these agents, load the project starter to begin:
+
+```text
+$qualix-starter
+```
+
+The starter walks the agent through the project's phase model, current state, and the next recommended action — without requiring the agent to read all instruction files upfront.
+
+This is a core design goal: Qualix is built to be used *by* an AI coding agent, not just reviewed by one.
+
+## CI and pre-commit Integration
+
+**GitHub Actions** — use the composite action after your pipeline runs phases locally or in CI:
+
+```yaml
+- uses: alexangelzhang/qualix@v0.2.0a1
+  with:
+    project-id: my-project
+    phase: Q06
+    fail-on: hard
+```
+
+**pre-commit** — gate on push after running the Q01–Q06 pipeline:
+
+```yaml
+repos:
+  - repo: https://github.com/alexangelzhang/qualix
+    rev: v0.2.0a1
+    hooks:
+      - id: qualix-gate
+        args: [my-project, ci-gate, --fail-on, hard]
+```
+
+Both integrations read existing verdict files — no LLM calls at gate time.
 
 ## Phase Model
 

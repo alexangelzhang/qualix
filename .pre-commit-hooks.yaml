@@ -1,0 +1,13 @@
+- id: qualix-gate
+  name: Qualix Quality Gate
+  description: >
+    Run the Qualix semantic coverage gate against existing phase verdicts.
+    Reads verdict files produced by qualix-run finalize/approve — no LLM calls.
+    Requires qualix to be installed (pip install qualix) and a project to be
+    initialized (qualix-run <project-id> init).
+  entry: qualix-run
+  language: python
+  pass_filenames: false
+  stages: [pre-push]
+  args: [ci-gate, --fail-on, hard]
+  additional_dependencies: []

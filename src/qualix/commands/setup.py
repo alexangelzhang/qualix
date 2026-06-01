@@ -226,4 +226,44 @@ def cmd_update(args, output_dir: Path) -> int:
                 extra={"git_pull_stdout": pull_out, "version": version_bump, "qualix_version": QUALIX_VERSION},
             )
         )
+
+
+# ---------------------------------------------------------------------------
+# demo
+# ---------------------------------------------------------------------------
+
+
+def cmd_demo(args, output_dir: Path) -> int:  # noqa: ARG001
+    """Show a demo of Qualix output without requiring an API key."""
+    from qualix.core.resource_resolver import ResourceResolver
+
+    resolver = ResourceResolver()
+
+    def _read(relative: str) -> str:
+        try:
+            path = resolver.resolve("examples", f"expense-approval/{relative}")
+            return path.read_text(encoding="utf-8")
+        except FileNotFoundError:
+            return f"[demo file not found: examples/expense-approval/{relative}]"
+
+    bar = "=" * 60
+    print(f"\n{bar}")
+    print("  Qualix Demo — Expense Approval")
+    print("  No API key required. These are pre-computed expected outputs.")
+    print(bar)
+
+    print("\n── Q01: Requirements Structuring ──────────────────────────\n")
+    print(_read("expected/q01-summary.md"))
+
+    print(f"\n{bar}")
+    print("\n── Q06: Unit Test Coverage Audit ──────────────────────────\n")
+    print(_read("expected/q06-audit.md"))
+
+    print(f"\n{bar}")
+    print("\nRun your own PRD:")
+    print("  qualix-run --profile python-service <project> init")
+    print("  qualix-run ingest <prd.md> --project <project>")
+    print("  qualix-run <project> startup --json")
+    print(f"{bar}\n")
+    return 0
     return 0
