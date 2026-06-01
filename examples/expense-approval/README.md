@@ -23,14 +23,28 @@ The sample implementation and test files are synthetic. They are not meant to be
 
 ## Try It
 
-From a project where Qualix is installed:
+**No API key — see pre-computed results immediately:**
+
+```bash
+./scripts/run_expense_demo.sh
+```
+
+**With a model API key — run the live pipeline:**
+
+```bash
+export ANTHROPIC_API_KEY="..."   # or OPENAI_API_KEY / GEMINI_API_KEY
+./scripts/run_expense_demo.sh --live
+```
+
+Or step through manually with an AI coding agent:
 
 ```bash
 qualix-run --profile python-service expense-demo init
+qualix-run ingest examples/expense-approval/prd.md --project expense-demo
 qualix-run expense-demo startup --json
 ```
 
-Then ask your coding agent to run Q01 against `examples/expense-approval/prd.md`, followed by Q05a and Q06. If you are evaluating manually, read the three files under `expected/` in order.
+Then ask your agent to run Q01, Q05a, and Q06. If you are evaluating manually, read the three files under `expected/` in order.
 
 ## The Point
 

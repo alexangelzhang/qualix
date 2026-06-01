@@ -115,10 +115,12 @@ qualix-run expense-demo startup --json
 
 To try without private project data, start with the simpler [examples/hello-prd.md](examples/hello-prd.md).
 
-See what Qualix output looks like without running anything:
+See what Qualix output looks like without running anything (no API key needed):
 
 ```bash
-qualix-run demo
+qualix-run demo                        # built-in static demo
+./scripts/run_expense_demo.sh          # full expense-approval walkthrough
+./scripts/run_expense_demo.sh --live   # live pipeline with your API key
 ```
 
 You can also run phases manually:
@@ -323,3 +325,5 @@ Qualix is adjacent to AI PR reviewers, test-generation tools, and coding-agent w
 ## License
 
 Apache License 2.0. See [LICENSE](LICENSE).
+
+The core phases (Q01–Q07), CLI, all language profiles, all skill files, and all benchmark cases are Apache 2.0 and will remain so. Any future commercial offerings would focus on hosted services and team collaboration tooling — not on gating or restricting the open-source core.

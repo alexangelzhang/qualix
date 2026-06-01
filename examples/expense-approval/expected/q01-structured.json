@@ -1,0 +1,97 @@
+{
+  "project_id": "expense-demo",
+  "requirements": [
+    {
+      "req_id": "REQ-001",
+      "description": "Employees can create expense requests with amount, currency, category, reason, and receipt attachment."
+    },
+    {
+      "req_id": "BR-001",
+      "description": "amount must be greater than zero."
+    },
+    {
+      "req_id": "BR-002",
+      "description": "currency must be one of USD, EUR, or CNY."
+    },
+    {
+      "req_id": "BR-003",
+      "description": "Requests below 500 USD equivalent need manager approval only."
+    },
+    {
+      "req_id": "BR-004",
+      "description": "Requests at or above 500 USD equivalent require manager and finance approval."
+    },
+    {
+      "req_id": "BR-005",
+      "description": "A manager cannot approve their own request."
+    },
+    {
+      "req_id": "BR-006",
+      "description": "Rejection requires a requester-visible reason."
+    }
+  ],
+  "semantic_expectations": [
+    {
+      "se_id": "SE-001",
+      "description": "Every status change sends exactly one requester notification.",
+      "bound_reqs": [
+        "REQ-001"
+      ],
+      "confidence": "High",
+      "source": "prd.md:16"
+    },
+    {
+      "se_id": "SE-002",
+      "description": "Approval transitions are idempotent: repeating the same approval must not create a second audit entry or send a second notification.",
+      "bound_reqs": [
+        "BR-003",
+        "BR-004"
+      ],
+      "confidence": "High",
+      "source": "prd.md:30"
+    },
+    {
+      "se_id": "SE-003",
+      "description": "A request at exactly 500 USD requires manager AND finance approval — the threshold is inclusive, not exclusive.",
+      "bound_reqs": [
+        "BR-003",
+        "BR-004"
+      ],
+      "confidence": "High",
+      "source": "prd.md:12"
+    },
+    {
+      "se_id": "SE-004",
+      "description": "Approval decisions are audit logged with actor_id, timestamp, previous_status, next_status, and comment.",
+      "bound_reqs": [
+        "REQ-001"
+      ],
+      "confidence": "High",
+      "source": "prd.md:31"
+    },
+    {
+      "se_id": "SE-005",
+      "description": "Amount comparison uses decimal arithmetic, not floating point.",
+      "bound_reqs": [
+        "BR-003",
+        "BR-004"
+      ],
+      "confidence": "Medium",
+      "source": "prd.md:33"
+    }
+  ],
+  "gaps": [
+    {
+      "gap_id": "GAP-001",
+      "description": "Non-USD exchange-rate source is not specified in the PRD.",
+      "risk_level": "P1"
+    }
+  ],
+  "open_items": [
+    {
+      "open_id": "OPEN-001",
+      "question": "Should a rejected request be editable and resubmittable by the requester?"
+    }
+  ],
+  "conclusion": "PRD is clear on the core approval flow. SE-003 (inclusive 500 USD boundary) and SE-002 (idempotency) are the two semantics most at risk of being missed by a standard test suite."
+}
