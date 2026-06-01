@@ -99,6 +99,8 @@ qualix-run hello approve Q01 --json
 
 ## Flagship Demo: Expense Approval
 
+![Qualix demo — init, ingest, Q01 report, Q06 audit findings](docs/assets/demo.gif)
+
 The [expense approval demo](examples/expense-approval/README.md) is the fastest way to see what Qualix catches. It ships with a synthetic PRD, a Python implementation with deliberate gaps, and tests that pass ordinary coverage — but miss the 500 USD boundary and idempotency rules.
 
 Expected outputs are in [`examples/expense-approval/expected/`](examples/expense-approval/expected/): what Q01 should extract, what EUT matrix Q05a should produce, and what Q06 should report.
