@@ -97,7 +97,41 @@ Q05b 的执行遵循 Ralph Loop（来源：github.com/snarktank/ralph）：
 
 ### Step 2: 写 @Test 方法
 
-严格遵照分层职责界限，详见 `references/test-generation-rules.md`：
+严格遵照分层职责界限，详见 `references/test-generation-rules.md`。
+
+#### Step 2.0: Skeleton 前置注入（每批必须先做）
+
+**在为每批 EUT 写代码之前**，必须先提取目标类的方法骨架，生成 Skeleton Preamble：
+
+```python
+from pathlib import Path
+from qualix.context.analysis.code_skeleton import extract_skeleton_for_files
+
+# 从 _q05_target_modules.json 找出当前批次目标类对应的文件路径
+# file_paths 是当前批次目标类的 Path 对象列表
+skeleton_results = extract_skeleton_for_files(file_paths)
+
+# 拼接 preamble
+preamble_parts = []
+for file_path_str, result in skeleton_results.items():
+    preamble_parts.append(result.skeleton_text)
+skeleton_preamble = "\n\n".join(preamble_parts)
+```
+
+将 skeleton_preamble 以如下格式前置在写 @Test 方法前呈现：
+
+```
+## Available Methods (do not invent others)
+
+{java
+<skeleton_preamble 内容>
+}
+```
+
+**Skeleton 契约（强制）：**
+- Agent 只能调用 preamble 中列出的方法；禁止调用任何 preamble 未出现的方法名
+- 若某个 EUT 的 `when` 或 `then` 需要调用 preamble 中不存在的方法，**不得凭空发明**——将该 EUT 标注为 `passes: false`（failure_reason: "需要方法 <method_name> 但在骨架中未找到"）并跳过，等待人工确认
+- 详见 `references/test-generation-rules.md` 的 "Skeleton Contract" 章节
 
 **必须遵守：**
 - 每个 @Test 方法必须有 `// EUT-xxx` 追溯注释（C9 精确模式依赖此注释）
@@ -141,8 +175,45 @@ errors = _check_eut_implementation_completeness(phase_b_data, [test_file_path])
 
 ```bash
 # Java: 确认测试代码能编译（offline 模式依赖本地 Maven cache）
-mvn test-compile -pl <module> -am -o -q
+# 捕获 stderr 用于错误解析
+mvn test-compile -pl <module> -am -o 2>&1 | tee /tmp/mvn_compile_stderr.txt
 ```
+
+**编译失败时——解析错误并注入 handoff（必须执行）：**
+
+当 `mvn test-compile` 返回非零退出码时，执行以下解析和注入流程：
+
+1. **解析 `cannot find symbol` 错误**：
+   ```
+   # 从编译输出中提取 cannot find symbol 错误
+   # 匹配格式示例：
+   #   error: cannot find symbol
+   #     symbol: method fooBar(String)
+   #     location: class com.example.MyClass
+   ```
+   对于每条 `cannot find symbol` 错误，提取：
+   - `symbol_name`：`symbol: method/variable/class <name>` 中的 `<name>`
+   - `class_name`：`location: class <ClassName>` 中的 `<ClassName>`（取简单类名）
+
+2. **查询已提取的骨架（使用本批 Step 2.0 的 skeleton_results）**：
+   对每个出错的 `class_name`，从 `skeleton_results` 中找到对应的 `SkeletonResult`，
+   调用 `result.skeleton_text` 获取已知方法列表（以 `, ` 连接方法签名中的方法名）。
+
+3. **追加编译错误块到当前迭代的 handoff 文档**：
+   在 `_handoff_iter{N}.md`（N = 当前轮次编号）末尾追加：
+   ```markdown
+   ## Compile Errors (fix in next iteration)
+
+   C-1. [compile] <symbol_name> not found in <class_name> — known methods: [<methods from skeleton>]
+   C-2. [compile] <symbol_name2> not found in <class_name2> — known methods: [<methods from skeleton>]
+   ```
+   - `C-N` 编号从 1 开始，每条错误递增
+   - `known methods` 列出该类骨架中所有方法名（以逗号分隔），供 Fixer 选择正确方法
+   - 若某 class_name 不在 skeleton_results 中，`known methods` 写 `(unknown — check source file)`
+
+4. **不标记 passes: true**：本批所有 EUT 保持 `passes: false`；下一轮 Fixer 读取 `_handoff_iter{N}.md` 中的 `C-N` 条目修正方法名后重试。
+
+> **设计说明**：此错误注入格式与 `handoff_builder.py` 的 `S-N. [schema]` 模式一致（见该文件第 52-56 行）——`C-N. [compile]` 是其编译错误对应形式，Fixer 可以统一处理两类错误。
 
 **3.3 覆盖率验证（所有 EUT passes:true 后执行一次）**
 
