@@ -159,7 +159,23 @@ def _run_single_judge(
             log.error("Judge subprocess failed for model=%s: %s", model, proc.stderr[:400])
             raise RuntimeError(f"Judge subprocess failed: {proc.stderr[:200]}")
 
-        result_dict: dict[str, Any] = json.loads(output_path.read_text(encoding="utf-8"))
+        try:
+            raw = output_path.read_text(encoding="utf-8")
+        except OSError as exc:
+            log.error(
+                "Judge subprocess output file unreadable for model=%s (subprocess stderr: %s): %s",
+                model, proc.stderr[:200], exc,
+            )
+            raise RuntimeError("Judge subprocess output file missing or unreadable") from exc
+
+        try:
+            result_dict: dict[str, Any] = json.loads(raw)
+        except json.JSONDecodeError as exc:
+            log.error(
+                "Judge subprocess wrote malformed JSON for model=%s (first 200 chars: %s)",
+                model, raw[:200],
+            )
+            raise RuntimeError("Judge subprocess produced malformed JSON") from exc
     finally:
         input_path.unlink(missing_ok=True)
         output_path.unlink(missing_ok=True)
@@ -193,7 +209,11 @@ def _run_secondary_fallback(
     """Collect votes from secondary models and compute consensus."""
     votes: list[JudgeVote] = []
     for model in secondary_models:
-        vote = _run_single_judge(output_dir, report_path, rubric, model, fallback)
+        try:
+            vote = _run_single_judge(output_dir, report_path, rubric, model, fallback)
+        except Exception as exc:
+            log.warning("Secondary judge %s failed in fallback path: %s", model, exc)
+            vote = None
         if vote is not None:
             votes.append(vote)
     if not votes:
