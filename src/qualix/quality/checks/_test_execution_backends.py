@@ -191,4 +191,11 @@ def _run_go_gate(
                 + ", ".join(failing[:5])
             )
 
+        if proc.returncode != 0 and not failing:
+            errors.append(
+                "BLOCKED: Q05b test execution: go test exited with code "
+                + str(proc.returncode)
+                + (f" — {proc.stderr[:200]}" if proc.stderr.strip() else "")
+            )
+
     return errors

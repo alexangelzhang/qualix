@@ -217,3 +217,34 @@ def test_go_gate_test_failure(tmp_path: Path) -> None:
     assert len(errors) == 1
     assert "BLOCKED" in errors[0]
     assert "TestFoo" in errors[0]
+
+
+# ---------------------------------------------------------------------------
+# Test 7: Go compile passes, go test exits non-zero with empty stdout → BLOCKED
+# ---------------------------------------------------------------------------
+
+
+def test_go_gate_nonzero_exit_empty_stdout(tmp_path: Path) -> None:
+    repo_dir = tmp_path / "repo"
+    repo_dir.mkdir()
+    (repo_dir / "go.mod").write_text("module example\n\ngo 1.21\n")
+
+    from qualix.languages.base import CompileResult
+
+    mock_proc = MagicMock()
+    mock_proc.returncode = 1
+    mock_proc.stdout = ""
+    mock_proc.stderr = "linker error"
+
+    with patch(
+        "qualix.languages.go.provider.GoProvider.compile_check",
+        return_value=CompileResult(passed=True, build_tool="go", error_summary=""),
+    ), patch(
+        "qualix.quality.checks.test_execution_gate.subprocess.run",
+        return_value=mock_proc,
+    ):
+        errors = _run_go_gate(tmp_path, "proj", [str(repo_dir)])
+
+    assert len(errors) == 1
+    assert "BLOCKED" in errors[0]
+    assert "go test exited with code 1" in errors[0]
