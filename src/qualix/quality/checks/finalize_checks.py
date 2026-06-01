@@ -452,19 +452,6 @@ def run_finalize_checks(output_dir: Path, project_id: str, phase_id: str) -> lis
                 code_repos_mc = [inputs_mc["code_repo"]]
             errors.extend(check_mock_consistency(output_dir, project_id, code_repos_mc))
 
-    # Phase Q05b: Import Whitelist gate（幻觉 import 检测，编译前快速反馈）
-    if phase_id == "Q05b":
-        from .import_whitelist_check import check_import_whitelist
-
-        phase_def_q05b_iw = PHASE_DEFS.get("Q05b")
-        if phase_def_q05b_iw:
-            int_dir_q05b_iw = _internal_dir(output_dir, project_id, phase_def_q05b_iw)
-            inputs_iw = load_json(int_dir_q05b_iw / "_inputs.json") or {}
-            code_repos_iw: list[str] = inputs_iw.get("code_repos", [])
-            if not code_repos_iw and inputs_iw.get("code_repo"):
-                code_repos_iw = [inputs_iw["code_repo"]]
-            errors.extend(check_import_whitelist(output_dir, project_id, code_repos_iw))
-
     # Phase Q05b: 单测编译 gate（从 _inputs.json 读 code_repos，逐仓库检查）
     if phase_id == "Q05b":
         from .compile_check import check_phase_b_compilation
@@ -478,6 +465,19 @@ def run_finalize_checks(output_dir: Path, project_id: str, phase_id: str) -> lis
                 code_repos_q05b_compile = [inputs_data_q05b_compile["code_repo"]]
             for repo in code_repos_q05b_compile:
                 errors.extend(check_phase_b_compilation(output_dir, project_id, repo))
+
+    # Phase Q05b: Import Whitelist gate（幻觉 import 检测，编译前快速反馈）
+    if phase_id == "Q05b":
+        from .import_whitelist_check import check_import_whitelist
+
+        phase_def_q05b_iw = PHASE_DEFS.get("Q05b")
+        if phase_def_q05b_iw:
+            int_dir_q05b_iw = _internal_dir(output_dir, project_id, phase_def_q05b_iw)
+            inputs_iw = load_json(int_dir_q05b_iw / "_inputs.json") or {}
+            code_repos_iw: list[str] = inputs_iw.get("code_repos", [])
+            if not code_repos_iw and inputs_iw.get("code_repo"):
+                code_repos_iw = [inputs_iw["code_repo"]]
+            errors.extend(check_import_whitelist(output_dir, project_id, code_repos_iw))
 
     # Phase Q05b: 单测编译+运行铁律 gate（不可跳过）
     if phase_id == "Q05b":
