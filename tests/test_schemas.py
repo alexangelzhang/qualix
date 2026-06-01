@@ -206,7 +206,7 @@ class TestPhaseBSchema:
             test_cases=[
                 TCItem(
                     id="TC-001",
-                    repo="car-mrs",
+                    repo="order-service",
                     status="COVERED",
                     covered_by="SomeTest#testMethod",
                     scenario="正常场景",

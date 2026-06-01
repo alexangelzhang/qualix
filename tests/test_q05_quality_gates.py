@@ -263,7 +263,7 @@ class OrderServiceTest {
             "test_cases": [
                 {
                     "id": "TC-001",
-                    "repo": "car-mrs",
+                    "repo": "order-service",
                     "covered_by": "OrderServiceTest#shouldOnlyCheckNotNull",
                     "se_refs": ["SE-001"],
                 }
@@ -330,7 +330,7 @@ class OrderServiceTest {
         structured = {
             "project_id": "test",
             "eut_items": [],
-            "test_cases": [{"id": "TC-001", "repo": "car-mrs", "covered_by": "", "se_refs": ["SE-001"]}],
+            "test_cases": [{"id": "TC-001", "repo": "order-service", "covered_by": "", "se_refs": ["SE-001"]}],
         }
         (phase_root / "phase_b_structured.json").write_text(json.dumps(structured), encoding="utf-8")
 

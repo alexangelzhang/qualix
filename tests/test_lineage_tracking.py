@@ -28,10 +28,10 @@ class TestSourceLocation:
             line_end=72,
             class_name="OrderServiceTest",
             method_name="testApprove_success",
-            repo="car-mrs",
+            repo="order-service",
         )
         assert loc.line_end == 72
-        assert loc.repo == "car-mrs"
+        assert loc.repo == "order-service"
 
     def test_line_start_must_be_positive(self):
         with pytest.raises(ValidationError):
@@ -50,7 +50,7 @@ class TestTCItemWithLocation:
     def test_tc_item_without_location_is_valid(self):
         from qualix.schemas.phase_q05 import TCItem
 
-        item = TCItem(id="TC-001", repo="car-mrs")
+        item = TCItem(id="TC-001", repo="order-service")
         assert item.test_location is None
         assert item.production_location is None
 
@@ -58,7 +58,7 @@ class TestTCItemWithLocation:
         from qualix.schemas.phase_q05 import TCItem
 
         loc = SourceLocation(file="OrderServiceTest.java", line_start=45)
-        item = TCItem(id="TC-001", repo="car-mrs", test_location=loc)
+        item = TCItem(id="TC-001", repo="order-service", test_location=loc)
         assert item.test_location.line_start == 45
 
     def test_tc_item_with_both_locations(self):
@@ -66,21 +66,21 @@ class TestTCItemWithLocation:
 
         item = TCItem(
             id="TC-001",
-            repo="car-mrs",
+            repo="order-service",
             test_location=SourceLocation(
                 file="OrderServiceTest.java",
                 line_start=45,
                 line_end=72,
                 class_name="OrderServiceTest",
                 method_name="testApprove",
-                repo="car-mrs",
+                repo="order-service",
             ),
             production_location=SourceLocation(
                 file="OrderService.java",
                 line_start=88,
                 class_name="OrderService",
                 method_name="approve",
-                repo="car-mrs",
+                repo="order-service",
             ),
         )
         assert item.production_location.method_name == "approve"
@@ -105,14 +105,14 @@ class TestEutAuditItemWithLocation:
                 line_start=52,
                 class_name="OrderServiceTest",
                 method_name="testApprove_success",
-                repo="car-mrs",
+                repo="order-service",
             ),
             production_location=SourceLocation(
                 file="OrderService.java",
                 line_start=88,
                 class_name="OrderService",
                 method_name="approve",
-                repo="car-mrs",
+                repo="order-service",
             ),
         )
         assert item.test_location.line_start == 52
@@ -135,7 +135,7 @@ class TestFindingItemWithLocation:
             production_location=SourceLocation(
                 file="OrderService.java",
                 line_start=88,
-                repo="car-mrs",
+                repo="order-service",
             ),
         )
         assert item.production_location.file == "OrderService.java"

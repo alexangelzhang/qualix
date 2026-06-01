@@ -213,6 +213,8 @@ Qualix is adjacent to AI PR reviewers, test-generation tools, and coding-agent w
 ## Community And Security
 
 - Contributing guide: [CONTRIBUTING.md](CONTRIBUTING.md)
+- Changelog: [CHANGELOG.md](CHANGELOG.md)
+- Roadmap: [ROADMAP.md](ROADMAP.md)
 - Security policy: [SECURITY.md](SECURITY.md)
 - Concepts: [docs/concepts.md](docs/concepts.md)
 - Model setup: [docs/model-setup.md](docs/model-setup.md)

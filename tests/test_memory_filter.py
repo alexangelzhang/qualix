@@ -15,12 +15,12 @@ class TestParseMemoryEntries:
         assert all(e.scope == "global" for e in entries)
 
     def test_project_tagged(self):
-        text = "- [project:rights-platform] 权益中心使用 TMF 链路"
+        text = "- [project:order-service] 订单服务使用 TMF 链路"
         entries = parse_memory_entries(text)
         assert len(entries) == 1
-        assert entries[0].scope == "project:rights-platform"
-        assert entries[0].project_id == "rights-platform"
-        assert entries[0].content == "权益中心使用 TMF 链路"
+        assert entries[0].scope == "project:order-service"
+        assert entries[0].project_id == "order-service"
+        assert entries[0].content == "订单服务使用 TMF 链路"
 
     def test_global_tagged(self):
         text = "- [global] PRD 图片必须解析"

@@ -47,6 +47,9 @@ observability/
 # Local-only open-source preparation notes
 .open-source-plan.local.md
 
+# Internal planning and team-facing docs
+docs/internal/
+
 # macOS
 .DS_Store
 
