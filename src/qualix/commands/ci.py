@@ -86,16 +86,18 @@ def _render_pr_comment(
         summary = verdict.get("summary", {})
         lines.append(f"### {phase_icon} Phase {phase_id}")
         lines.append("")
-        lines.append(f"通过: {summary.get('passed', 0)} / {summary.get('total', 0)}  "
-                     f"HARD失败: {summary.get('hard_failures', 0)}  "
-                     f"SOFT失败: {summary.get('soft_failures', 0)}")
+        lines.append(
+            f"Passed: {summary.get('passed', 0)} / {summary.get('total', 0)}  "
+            f"Hard failures: {summary.get('hard_failures', 0)}  "
+            f"Soft warnings: {summary.get('soft_failures', 0)}"
+        )
         lines.append("")
 
         checks = verdict.get("checks", [])
         failures = [c for c in checks if not c.get("passed", True)]
         if failures:
-            lines.append("| 级别 | 检查项 | 说明 |")
-            lines.append("|------|--------|------|")
+            lines.append("| Level | Check | Message |")
+            lines.append("|-------|-------|---------|")
             for check in failures:
                 level = check.get("level", "SOFT")
                 icon = _FAIL_ICON if level == "HARD" else _WARN_ICON
@@ -104,21 +106,21 @@ def _render_pr_comment(
                 lines.append(f"| {icon} {level} | `{name}` | {msg} |")
             lines.append("")
 
-    # 语义覆盖率对比
     if semantic_coverage:
         sem_rate = semantic_coverage.get("semantic_coverage_rate")
         line_rate = semantic_coverage.get("line_coverage_rate")
         if sem_rate is not None:
             lines.append("---")
-            lines.append("### 覆盖率对比")
+            lines.append("### Coverage Comparison")
             sem_pct = f"{sem_rate * 100:.1f}%"
             if line_rate is not None:
                 line_pct = f"{line_rate * 100:.1f}%"
-                lines.append(f"**语义覆盖率（EUT）**: {sem_pct}  ←→  **行覆盖率（JaCoCo）**: {line_pct}")
+                lines.append(f"**Semantic coverage (EUT)**: {sem_pct}  ←→  **Line coverage**: {line_pct}")
                 if sem_rate < line_rate - 0.05:
-                    lines.append(f"> 差距 {(line_rate - sem_rate) * 100:.1f}%：部分代码行被执行，但对应业务语义未被充分验证")
+                    gap = (line_rate - sem_rate) * 100
+                    lines.append(f"> Gap {gap:.1f}%: lines are executed but the underlying business semantics are not fully verified")
             else:
-                lines.append(f"**语义覆盖率（EUT）**: {sem_pct}（行覆盖率不可用）")
+                lines.append(f"**Semantic coverage (EUT)**: {sem_pct} (line coverage unavailable)")
             lines.append("")
 
     return "\n".join(lines)

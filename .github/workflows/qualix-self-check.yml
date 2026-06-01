@@ -40,12 +40,39 @@ jobs:
           files: coverage.xml
           fail_ci_if_error: false
 
-  quality-gate-example:
-    name: Composite Action Smoke Test
+  action-integration:
+    name: Composite Action Integration Test
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
 
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
       - name: Validate action metadata
-        run: test -f action.yml
+        run: test -f action.yml && python3 -c "import yaml; yaml.safe_load(open('action.yml'))"
+
+      - name: Install Qualix from action path
+        shell: bash
+        run: pip install -e "$GITHUB_WORKSPACE" --quiet
+
+      - name: Init expense-demo project
+        run: qualix-run --profile python-service expense-demo init
+
+      - name: Run composite action against expense-demo (expect PASS — no verdicts yet)
+        uses: ./
+        id: gate
+        with:
+          project-id: expense-demo
+          phase: Q06
+          fail-on: hard
+        continue-on-error: true
+
+      - name: Verify action outputs are present
+        run: |
+          echo "verdict=${{ steps.gate.outputs.verdict }}"
+          echo "semantic_coverage=${{ steps.gate.outputs.semantic-coverage }}"
+          test -n "${{ steps.gate.outputs.verdict }}"

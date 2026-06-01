@@ -1,6 +1,10 @@
 name: Qualix Quality Gate
 description: 'Run Qualix quality gates from existing phase verdicts'
 
+branding:
+  icon: shield
+  color: blue
+
 inputs:
   project-id:
     description: 'Qualix project ID, matching the directory name under output/'
