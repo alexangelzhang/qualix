@@ -49,6 +49,8 @@ observability/
 
 # Internal planning and team-facing docs
 docs/internal/
+docs/superpowers/
+docs/system-health-reports/
 
 # macOS
 .DS_Store
