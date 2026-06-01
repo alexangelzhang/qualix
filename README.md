@@ -10,7 +10,38 @@ AI-native development quality gates for requirements, designs, tests, and code r
 
 Qualix turns product requirements into traceable engineering checks. Instead of stopping at line coverage, it follows requirement IDs through design coverage, test intent, generated unit tests, audit reports, and review findings.
 
-In plain language: Qualix helps an AI coding agent keep track of what the product asked for, what the design promised, what the tests actually prove, and what still looks risky. It is a workflow and evidence system around your agent, not another test runner.
+## The Problem in One Example
+
+A PRD says: *requests at or above 500 USD require manager **and** finance approval.*
+
+Your tests pass:
+
+```
+120 USD → manager approval only ✓
+600 USD → finance approval required ✓
+```
+
+Line coverage is green. But the test at exactly **500 USD** is missing — and the implementation uses `> 500` instead of `>= 500`, so the boundary case silently escapes to the wrong path.
+
+Qualix calls this a **semantic coverage gap**. Q06 reports it even when coverage tools do not:
+
+```
+[HIGH] Missing boundary test for exactly 500 USD.
+       Implementation uses > 500; threshold rule says ≥ 500.
+       Add: approve(Request(amount=Decimal("500.00"))) → finance_required
+```
+
+## Numbers from Real Projects
+
+Three production Java services run through the full Q01→Q06 pipeline:
+
+| Project | PRD size | Q01: SE extracted | Q06: EUT audited | Weak / missing |
+| --- | --- | --- | --- | --- |
+| Approval workflow | 67 requirements | 22 semantic expectations | 22 | 1 partial |
+| Renewal service | 31 requirements | 11 semantic expectations | 90 | 0 |
+| Platform service | 50 requirements | 18 semantic expectations | 103 | 16 partial, 2 missing |
+
+In the platform service, 18 of 103 audited test targets had assertion gaps that line coverage did not flag.
 
 ## The Short Version
 
@@ -51,17 +82,13 @@ Qualix is early and evolving. The repository is useful for experimentation, inte
 ## Quick Start
 
 ```bash
-git clone https://github.com/alexangelzhang/qualix.git
-cd qualix
-./install.sh --dev
+pip install qualix
 qualix-run --profile python-service hello init
 qualix-run ingest examples/hello-prd.md --project hello
 qualix-run hello startup --json
 ```
 
-This creates a local `.qualix/` workspace and ingests a synthetic PRD. It does not require an enterprise document login.
-
-Then, when you are ready to run an AI-backed phase, set a model key and execute Q01:
+Then run an AI-backed phase (requires a model API key):
 
 ```bash
 export ANTHROPIC_API_KEY="..."   # or OPENAI_API_KEY / GEMINI_API_KEY / DASHSCOPE_API_KEY
@@ -70,7 +97,19 @@ qualix-run hello finalize Q01 --json
 qualix-run hello approve Q01 --json
 ```
 
-To try Qualix without private project data, start with the synthetic example in [examples/hello-prd.md](examples/hello-prd.md), or read the fuller expense approval demo in [examples/expense-approval](examples/expense-approval/README.md).
+## Flagship Demo: Expense Approval
+
+The [expense approval demo](examples/expense-approval/README.md) is the fastest way to see what Qualix catches. It ships with a synthetic PRD, a Python implementation with deliberate gaps, and tests that pass ordinary coverage — but miss the 500 USD boundary and idempotency rules.
+
+Expected outputs are in [`examples/expense-approval/expected/`](examples/expense-approval/expected/): what Q01 should extract, what EUT matrix Q05a should produce, and what Q06 should report.
+
+```bash
+qualix-run --profile python-service expense-demo init
+qualix-run ingest examples/expense-approval/prd.md --project expense-demo
+qualix-run expense-demo startup --json
+```
+
+To try without private project data, start with the simpler [examples/hello-prd.md](examples/hello-prd.md).
 
 Inside an AI coding agent, use the project starter instructions:
 
