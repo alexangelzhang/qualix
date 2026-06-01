@@ -1,6 +1,6 @@
 # Multi-Agent 架构详解
 
-> 本文件从 AGENTS.md 拆分，仅在使用 `agent-run` / `adaptive` / `dag` 命令时需要参考。
+> Reference when using `agent-run`, `adaptive`, or `dag` commands.
 
 ## Agent 角色
 
@@ -51,10 +51,10 @@ qualix-run <project> agent-run <phase> \
 | OpenAI | gpt-4o, o4-mini, codex-mini | `OPENAI_API_KEY` |
 | Google | gemini-2.5-pro, gemini-2.5-flash | `GOOGLE_API_KEY` |
 | DeepSeek | deepseek-chat, deepseek-coder | `DEEPSEEK_API_KEY` |
-| 阿里 | qwen-plus, qwen-max | `DASHSCOPE_API_KEY` |
+| Alibaba Cloud (Qwen) | qwen-plus, qwen-max | `DASHSCOPE_API_KEY` |
 | Moonshot | kimi-chat, moonshot-v1-8k | `MOONSHOT_API_KEY` |
 
-Fallback 机制：主模型调用失败（网络/限流/被墙）→ 自动切换备用模型 → 结果标记为 `fallback`。
+Fallback: when the primary model call fails (network error, rate limit, regional block) → automatically switches to the fallback model → result is tagged as `fallback`.
 
 源码: `src/qualix/agent_framework.py`
 

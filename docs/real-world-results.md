@@ -1,6 +1,6 @@
 # Real-World Results
 
-These results are from running Qualix on three production Java services at a large consumer electronics company. All identifying information has been removed; domain names and service descriptions are generic.
+These results are from running Qualix on three production Java services. All identifying information has been removed; domain names and service descriptions are generic.
 
 The pipeline was: Q01 (requirements structuring) → Q05a (EUT matrix design) → Q05b (unit test generation) → Q06 (unit test coverage audit). Q03/Q04 (design review) was not run on these services.
 
@@ -80,4 +80,4 @@ The most common pattern Q06 identified: tests that **verify execution** (the met
 
 ---
 
-*These results are from internal runs. The pipeline has since been integrated into the CI process for these services. The full pipeline output files are not published; the numbers above are the final gate verdicts.*
+*These results are from private production deployments. The full pipeline output files are not published; the numbers above are the final gate verdicts.*
