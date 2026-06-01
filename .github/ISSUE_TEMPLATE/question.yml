@@ -1,0 +1,30 @@
+name: Question
+description: Ask a question about using Qualix
+title: "[Question]: "
+labels: [question]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before asking, check [docs/quickstart.md](https://github.com/alexangelzhang/qualix/blob/main/docs/quickstart.md), [docs/concepts.md](https://github.com/alexangelzhang/qualix/blob/main/docs/concepts.md), and [docs/faq.md](https://github.com/alexangelzhang/qualix/blob/main/docs/faq.md).
+  - type: textarea
+    id: question
+    attributes:
+      label: What would you like to know?
+      description: Describe what you are trying to do or understand.
+    validations:
+      required: true
+  - type: input
+    id: phase
+    attributes:
+      label: Relevant phase (if any)
+      placeholder: "e.g. Q01, Q05a, Q06"
+    validations:
+      required: false
+  - type: textarea
+    id: tried
+    attributes:
+      label: What have you tried?
+      description: Commands run, docs read, errors seen.
+    validations:
+      required: false

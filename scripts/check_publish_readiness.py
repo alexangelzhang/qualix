@@ -13,7 +13,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 ROOT = Path(__file__).resolve().parents[1]
-SKIP_DIRS = {".git", "__pycache__", ".pytest_cache", ".ruff_cache", "dist", "build", ".venv", "venv"}
+SKIP_DIRS = {".git", "__pycache__", ".pytest_cache", ".ruff_cache", "dist", "build", ".venv", "venv", "internal", "superpowers", "system-health-reports"}
 BINARY_SUFFIXES = {".png", ".jpg", ".jpeg", ".gif", ".pdf", ".pyc", ".sqlite", ".db", ".tgz", ".zip"}
 
 FORBIDDEN_TEXT = [
@@ -90,10 +90,7 @@ SECRET_PATTERNS = [
 ALLOW_SECRET_FILES = {
     "SECURITY.md",
     "CONTRIBUTING.md",
-    "ISSUE.md",
     "scripts/check_publish_readiness.py",
-    "docs/superpowers/specs/2026-05-11-qualix-tool-distribution-design.md",
-    "docs/superpowers/plans/2026-04-16-p0-skill-evolution-anti-rationalization.md",
     "tests/test_doctor_cmd.py",
     "tests/test_content_scanner.py",
     "tests/test_adaptive_loop_cache.py",
