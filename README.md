@@ -208,6 +208,8 @@ collect evidence -> execute skill -> write report + structured JSON -> self-chec
 
 New to the terms? Read [Concepts](docs/concepts.md) for the short version of Phase, Gate, Harness, Judge, Critique, SE, EUT, and RSM.
 
+For a deeper explanation of why phases exist, how SE extraction works, and what the Judge/Critique isolation achieves, see [How It Works](docs/how-it-works.md).
+
 ## Installation Notes
 
 The root `install.sh` installs the Python package and copies runtime resources into a user-level Qualix directory. Development mode keeps those resources symlinked to this repository:
@@ -312,6 +314,7 @@ Qualix is adjacent to AI PR reviewers, test-generation tools, and coding-agent w
 - Changelog: [CHANGELOG.md](CHANGELOG.md)
 - Roadmap: [ROADMAP.md](ROADMAP.md)
 - Security policy: [SECURITY.md](SECURITY.md)
+- How it works: [docs/how-it-works.md](docs/how-it-works.md)
 - Concepts: [docs/concepts.md](docs/concepts.md)
 - Model setup: [docs/model-setup.md](docs/model-setup.md)
 - Language support: [docs/language-support.md](docs/language-support.md)
