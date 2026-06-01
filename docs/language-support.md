@@ -58,12 +58,33 @@ qualix-run --profile python-service my-project init
 
 For another unsupported language, start with Q01 and Q05a. Those phases can still produce useful requirement structure and test intent. Treat Q05b/Q06 as experimental unless you provide clear test commands and examples to the agent.
 
+## Python Q05b Status
+
+Python has basic provider support for detection and static checks, but Q05b (unit test code generation) is not yet fully supported for Python projects. The reasons are practical rather than fundamental:
+
+- Python test generation patterns (pytest fixtures, parametrize, monkeypatching) differ significantly from Java and TypeScript mock patterns.
+- The compile-check gate uses `python -m compileall`, which catches syntax errors but not import or runtime failures the way `mvn test-compile` does for Java.
+- Coverage reporting varies more across Python project layouts than in Java or TypeScript.
+
+For Python projects today:
+- Q01 through Q04 work without restriction — requirements structuring, design review, and coverage audit are language-independent.
+- Q05a (EUT matrix design) works and produces test intent documents.
+- Q05b should be treated as experimental. The agent can generate pytest stubs, but the compile-check and weak-assertion gates are less reliable than in Java.
+- Q06 can run against human-written or agent-generated tests and will flag weak assertions.
+
+Python Q05b is on the roadmap. Progress is blocked by two specific gaps:
+1. A reliable compile-and-import check that works across `src/` layouts, namespace packages, and virtual environments.
+2. A standard mock template library for common Python dependency injection patterns (constructor injection, `unittest.mock.patch`, `pytest-mock`).
+
+If you are using Qualix on a Python project and want to help close these gaps, the most useful contributions are benchmark cases and real-world fixture examples under `regression/`.
+
 ## Roadmap
 
 The next language work should be practical rather than broad:
 
-1. Add small TypeScript and Go demos parallel to the expense approval example.
+1. ~~Add small TypeScript and Go demos~~ — done: [rate-limiter](../examples/rate-limiter/) (TypeScript/Jest) and [order-status](../examples/order-status/) (Go/testify).
 2. Expand Go assertion parsing beyond the common `testing` and `testify` patterns.
-3. Expand Python provider support for project layouts that keep tests outside the source tree.
-4. Expand Q05a target-symbol checks from warnings into configurable gates once more public fixtures exist.
-5. Publish language-specific benchmark rows instead of claiming blanket support.
+3. Python Q05b: reliable compile-and-import check + pytest mock template library (see Python Q05b Status above).
+4. Expand Python provider support for project layouts that keep tests outside the source tree.
+5. Expand Q05a target-symbol checks from warnings into configurable gates once more public fixtures exist.
+6. Publish language-specific benchmark rows instead of claiming blanket support.

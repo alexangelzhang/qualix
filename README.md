@@ -314,7 +314,9 @@ Qualix is adjacent to AI PR reviewers, test-generation tools, and coding-agent w
 - Comparison: [docs/comparison.md](docs/comparison.md)
 - Benchmark seed cases: [benchmarks/semantic-coverage](benchmarks/semantic-coverage/README.md)
 - Synthetic starter input: [examples/hello-prd.md](examples/hello-prd.md)
-- Expense approval demo: [examples/expense-approval](examples/expense-approval/README.md)
+- Expense approval demo (Python): [examples/expense-approval](examples/expense-approval/README.md)
+- Rate limiter demo (TypeScript/Jest): [examples/rate-limiter](examples/rate-limiter/README.md)
+- Order status demo (Go/testify): [examples/order-status](examples/order-status/README.md)
 
 ## License
 
