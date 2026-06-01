@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import importlib.util
+import sys
 from collections.abc import Callable
 from pathlib import Path
 
@@ -21,6 +23,18 @@ from qualix.log import get_logger
 from qualix.security.tool_permissions import filter_tools_by_role
 
 log = get_logger(__name__)
+
+# 检查 critique_runner_subprocess 是否已实现（sprint 后期才会加）
+try:
+    _CRITIQUE_SUBPROCESS_AVAILABLE = (
+        importlib.util.find_spec("qualix.agents.critique_runner_subprocess") is not None
+    )
+except Exception as exc:
+    log.warning(
+        "Could not probe critique_runner_subprocess availability: %s; defaulting to in-process",
+        exc,
+    )
+    _CRITIQUE_SUBPROCESS_AVAILABLE = False
 
 
 class AgentOrchestrator:
@@ -83,9 +97,16 @@ class AgentOrchestrator:
         critique_prompt: str,
         context_files: list[Path] | None = None,
     ) -> dict[str, AgentResult]:
-        """执行 Worker -> Judge -> Critique 流水线."""
+        """执行 Worker -> Judge -> Critique 流水线.
 
-        results = {}
+        Phase 2 行为：
+        - Worker 在主进程 adaptive_loop 中执行（保留迭代内存状态）
+        - Judge 在独立子进程执行（context 完全隔离，见 judge_vote._run_single_judge）
+        - Critique 在 Judge 完成后立即提交线程池，与 Worker 下轮迭代无依赖；
+          pipeline 等待 Critique 完成后返回完整结果（阻塞直至 Critique 结束）
+        """
+
+        results: dict[str, AgentResult] = {}
         builtin_tools = build_builtin_tools(
             output_dir=self.output_dir,
             project_id=project_id,
@@ -94,7 +115,7 @@ class AgentOrchestrator:
             subagent_result_limit=self.subagent_result_limit,
         )
 
-        # Step 1: Worker
+        # Step 1: Worker（主进程，adaptive_loop 管理迭代）
         worker_result, pd, worker_output, structured_json_path = self._run_worker(
             project_id,
             phase_id,
@@ -106,7 +127,7 @@ class AgentOrchestrator:
         if worker_result.status == "failed":
             return results
 
-        # Step 2: Judge
+        # Step 2: Judge（子进程，context 完全隔离）
         judge_result, det_path = self._run_judge(
             project_id,
             phase_id,
@@ -118,18 +139,31 @@ class AgentOrchestrator:
         )
         results["judge"] = judge_result
 
-        # Step 3: Critique
-        critique_result = self._run_critique(
-            project_id,
-            phase_id,
-            critique_prompt,
-            builtin_tools,
-            pd,
-            worker_output,
-            structured_json_path,
-            det_path,
-            judge_result,
-        )
+        # Step 3: Critique — Judge 完成后直接调用（无需 ThreadPoolExecutor）
+        try:
+            critique_result = self._run_critique(
+                project_id,
+                phase_id,
+                critique_prompt,
+                builtin_tools,
+                pd,
+                worker_output,
+                structured_json_path,
+                det_path,
+                judge_result,
+            )
+        except Exception as exc:
+            log.error(
+                "Critique failed for project=%s phase=%s: %s",
+                project_id, phase_id, exc, exc_info=True,
+            )
+            critique_result = AgentResult(
+                agent_name=f"{project_id}-{phase_id}-critique",
+                role="critique",
+                status="failed",
+                error=str(exc),
+            )
+
         results["critique"] = critique_result
 
         self._save_trajectories(results, project_id, phase_id)
@@ -139,6 +173,148 @@ class AgentOrchestrator:
             self._auto_remediate_gaps(project_id, phase_id, gap_tasks_path, worker_prompt, builtin_tools)
 
         return results
+
+    def _run_critique_subprocess(
+        self,
+        output_dir: Path,
+        project_id: str,
+        phase_id: str,
+        critique_prompt: str,
+        report_path: Path,
+        judge_result_path: Path,
+    ) -> AgentResult:
+        """在独立子进程中运行 Critique（与 Judge subprocess 模式对称）.
+
+        如果 critique_runner_subprocess 尚未实现（当前 sprint 不包含），
+        则回退到主进程内执行，并记录 TODO。
+
+        Args:
+            output_dir: 产物根目录
+            project_id: 项目 ID
+            phase_id: Phase ID
+            critique_prompt: Critique 的 system prompt
+            report_path: Worker 产出报告路径（给 Critique 阅读）
+            judge_result_path: Judge 输出 JSON 路径
+
+        Returns:
+            AgentResult（成功/失败/fallback 均返回，不抛出异常）
+        """
+        if not _CRITIQUE_SUBPROCESS_AVAILABLE:
+            # TODO: replace with subprocess once critique_runner_subprocess is implemented
+            log.info(
+                "critique_runner_subprocess not yet available; running Critique in-process "
+                "(project=%s phase=%s)",
+                project_id,
+                phase_id,
+            )
+            phase_def = PHASE_DEFS.get(phase_id, {})
+            pd = _phase_dir(output_dir, project_id, phase_def)
+            pd.mkdir(parents=True, exist_ok=True)
+            builtin_tools = build_builtin_tools(
+                output_dir=output_dir,
+                project_id=project_id,
+                max_subagent_depth=self.MAX_SUBAGENT_DEPTH,
+                current_depth=self._depth,
+                subagent_result_limit=self.subagent_result_limit,
+            )
+            critique_tools = filter_tools_by_role(builtin_tools, "critique")
+            critique = self.create_critique(project_id, phase_id, critique_prompt, tools=critique_tools)
+            context_files: list[Path] = []
+            if report_path.exists():
+                context_files.append(report_path)
+            if judge_result_path.exists():
+                context_files.append(judge_result_path)
+            det_path = pd / "_deterministic_check.md"
+            if det_path.exists():
+                context_files.append(det_path)
+            result = critique.run(
+                "假设产物有遗漏和错误，主动找问题。输出结构化可执行反馈 JSON。",
+                context_files=context_files or None,
+            )
+            if result.status != "failed":
+                (pd / "_critique_v2.json").write_text(result.content, encoding="utf-8")
+                process_critique_feedback(result.content, pd, phase_id)
+            return result
+
+        # subprocess 路径（critique_runner_subprocess 实现后启用）
+        # TODO: wire up _run_critique_subprocess from run_pipeline() once
+        # critique_runner_subprocess is implemented; ensure tests cover this path.
+        import json
+        import subprocess
+        import tempfile
+
+        phase_def = PHASE_DEFS.get(phase_id, {})
+        pd = _phase_dir(output_dir, project_id, phase_def)
+        pd.mkdir(parents=True, exist_ok=True)
+
+        input_data = {
+            "report_path": str(report_path),
+            "judge_result_path": str(judge_result_path),
+            "critique_prompt": critique_prompt,
+            "output_dir": str(output_dir),
+            "model": DEFAULT_JUDGE_MODEL,
+            "fallback": DEFAULT_FALLBACK_MODEL,
+        }
+
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".json", delete=False, encoding="utf-8"
+        ) as f_in:
+            json.dump(input_data, f_in, ensure_ascii=False)
+            input_path = f_in.name
+
+        output_path = str(pd / "_critique_subprocess_result.json")
+
+        try:
+            proc = subprocess.run(
+                [
+                    sys.executable,
+                    "-m",
+                    "qualix.agents.critique_runner_subprocess",
+                    "--input",
+                    input_path,
+                    "--output",
+                    output_path,
+                ],
+                capture_output=True,
+                text=True,
+                timeout=120,
+            )
+        except subprocess.TimeoutExpired as exc:
+            log.error("Critique subprocess timed out for project=%s phase=%s", project_id, phase_id)
+            raise TimeoutError("Critique subprocess timed out") from exc
+        finally:
+            try:
+                Path(input_path).unlink(missing_ok=True)
+            except Exception as exc:
+                log.warning("Failed to clean up critique input file %s: %s", input_path, exc)
+
+        if proc.returncode != 0:
+            log.error("Critique subprocess failed: %s", proc.stderr[:400])
+            raise RuntimeError(f"Critique subprocess failed: {proc.stderr[:200]}")
+
+        try:
+            raw = Path(output_path).read_text(encoding="utf-8")
+            result_data = json.loads(raw)
+        except (OSError, json.JSONDecodeError) as exc:
+            log.error(
+                "Critique subprocess output unreadable/malformed for project=%s phase=%s: %s",
+                project_id, phase_id, exc,
+            )
+            raise RuntimeError("Critique subprocess produced invalid output") from exc
+        finally:
+            Path(output_path).unlink(missing_ok=True)
+
+        content = json.dumps(result_data, ensure_ascii=False, indent=2)
+        (pd / "_critique_v2.json").write_text(content, encoding="utf-8")
+        process_critique_feedback(content, pd, phase_id)
+
+        return AgentResult(
+            agent_name=f"{project_id}-{phase_id}-critique",
+            role="critique",
+            status="success",
+            content=content,
+            model_used=result_data.get("model", DEFAULT_JUDGE_MODEL),
+        )
 
     def _run_worker(
         self,

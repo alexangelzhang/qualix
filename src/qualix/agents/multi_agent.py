@@ -1,7 +1,11 @@
 """Multi-Agent Orchestrator: DAG 调度 Worker/Judge/Critique 独立 Agent.
 
-Phase 1 实现：用 Claude Code 的 Agent tool 模拟独立 agent，
-通过文件交换数据，context 隔离。
+Phase 2: true subprocess isolation for Judge; Critique dispatched immediately
+after Judge completes.
+
+Worker 在主进程 adaptive_loop 中执行（迭代需要内存状态）。
+Judge 通过 judge_runner_subprocess 在独立子进程运行（context 完全隔离）。
+Critique 在 Judge 输出文件写入后立即由 ThreadPoolExecutor 并发启动。
 
 用法:
     orchestrator = MultiAgentOrchestrator(output_dir)
@@ -361,3 +365,48 @@ class MultiAgentOrchestrator:
                 lines.append("      └── Worker → Judge → Critique")
 
         return "\n".join(lines)
+
+    def run_phase(
+        self,
+        project_id: str,
+        phase_id: str,
+        inputs: dict[str, str] | None = None,
+    ) -> dict:
+        """执行单个 Phase 的完整 Worker → Judge → Critique 流水线.
+
+        Phase 2: Worker 在主进程运行；Judge 在独立子进程运行；
+        Critique 在 Judge 输出文件写入后立即并发启动。
+
+        Args:
+            project_id: 项目 ID
+            phase_id: Phase ID（如 "Q01"）
+            inputs: 额外输入参数（透传给 generate_worker_prompt）
+
+        Returns:
+            AgentOrchestrator.run_pipeline() 返回的 dict[str, AgentResult]
+        """
+        from qualix.agents.agent_orchestrator import AgentOrchestrator
+
+        # 生成三个 Agent 的 prompt（写入文件的同时返回内容）
+        phase_def = PHASE_DEFS.get(phase_id, {})
+        from qualix.core.state_machine import phase_dir as _get_phase_dir
+
+        pd = _get_phase_dir(self.output_dir, project_id, phase_def)
+        pd.mkdir(parents=True, exist_ok=True)
+
+        skill_path = phase_def.get("skill", "")
+        worker_prompt = generate_worker_prompt(self.output_dir, project_id, phase_id, skill_path, inputs)
+        judge_prompt = generate_judge_prompt(self.output_dir, project_id, phase_id)
+        critique_prompt = generate_critique_prompt(self.output_dir, project_id, phase_id)
+
+        log.info("run_phase: project=%s phase=%s — delegating to AgentOrchestrator.run_pipeline()", project_id, phase_id)
+
+        orchestrator = AgentOrchestrator(self.output_dir)
+        result = orchestrator.run_pipeline(
+            project_id=project_id,
+            phase_id=phase_id,
+            worker_prompt=worker_prompt,
+            judge_rubric=judge_prompt,
+            critique_prompt=critique_prompt,
+        )
+        return result

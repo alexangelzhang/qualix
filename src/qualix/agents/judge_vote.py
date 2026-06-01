@@ -101,52 +101,99 @@ def _run_single_judge(
     fallback: str,
     warning_override: str | None = None,
 ) -> JudgeVote | None:
-    """Thin wrapper: delegates to JudgeRunner, handles round orchestration.
+    """Thin wrapper: dispatches JudgeRunner in an isolated subprocess for context isolation.
 
-    自动从 report_path 推 project_id/phase_id，通过 _get_dynamic_dim_generator
-    注入动态维度，让门限机制生效（任一维度 score<fail_threshold → verdict=FAIL）。
+    Runs judge_runner_subprocess as a child process so that Worker reasoning traces
+    (e.g. <thinking> blocks) are never present in the Judge's memory space.
+
+    自动从 report_path 推 project_id/phase_id，通过 subprocess 内部的
+    _get_dynamic_dim_generator 注入动态维度，让门限机制生效。
     当前仅 Q01 注册了生成器；其他 Phase 待 regression audit 后按需扩展。
     """
-    from qualix.quality.judge_runner import JudgeRunner
+    import json
+    import subprocess
+    import sys
+    from pathlib import Path
+    from uuid import uuid4
 
-    rubric_dims: list[dict[str, Any]] | None = None
-    # 路径约定：output/{project_id}/{phase_id}/phase_a_report.md
+    internal_dir = Path(output_dir) / "_internal"
+    internal_dir.mkdir(parents=True, exist_ok=True)
+
+    uid = uuid4().hex[:8]
+    input_path = internal_dir / f"judge_input_{uid}.json"
+    output_path = internal_dir / f"judge_output_{uid}.json"
+
+    input_data: dict[str, Any] = {
+        "report_path": str(report_path),
+        "output_dir": str(output_dir),
+        "model": model,
+        "fallback": fallback,
+        "rubric": rubric,
+        "warning_override": warning_override,
+        "rubric_dims": None,  # subprocess re-derives via _get_dynamic_dim_generator
+    }
+
     try:
-        phase_id = report_path.parent.name
-        project_id = report_path.parent.parent.name
-    except (AttributeError, IndexError):
-        phase_id = ""
-        project_id = ""
+        input_path.write_text(json.dumps(input_data, ensure_ascii=False), encoding="utf-8")
 
-    gen = _get_dynamic_dim_generator(phase_id)
-    if gen and project_id:
-        rubric_dims = gen(output_dir, project_id, phase_id)
+        try:
+            proc = subprocess.run(
+                [
+                    sys.executable,
+                    "-m",
+                    "qualix.agents.judge_runner_subprocess",
+                    "--input",
+                    str(input_path),
+                    "--output",
+                    str(output_path),
+                ],
+                timeout=120,
+                capture_output=True,
+                text=True,
+            )
+        except subprocess.TimeoutExpired as exc:
+            log.error("Judge subprocess timed out for model=%s", model)
+            raise TimeoutError("Judge subprocess timed out") from exc
 
-    runner = JudgeRunner(rubric_dims=rubric_dims)
-    result = runner.run(
-        phase="",
-        report_path=str(report_path),
-        output_dir=str(output_dir),
-        model=model,
-        fallback=fallback,
-        rubric=rubric,
-        warning_override=warning_override,
-    )
+        if proc.returncode != 0:
+            log.error("Judge subprocess failed for model=%s: %s", model, proc.stderr[:400])
+            raise RuntimeError(f"Judge subprocess failed: {proc.stderr[:200]}")
 
-    if result.health == "INFRA_FAILURE":
+        try:
+            raw = output_path.read_text(encoding="utf-8")
+        except OSError as exc:
+            log.error(
+                "Judge subprocess output file unreadable for model=%s (subprocess stderr: %s): %s",
+                model, proc.stderr[:200], exc,
+            )
+            raise RuntimeError("Judge subprocess output file missing or unreadable") from exc
+
+        try:
+            result_dict: dict[str, Any] = json.loads(raw)
+        except json.JSONDecodeError as exc:
+            log.error(
+                "Judge subprocess wrote malformed JSON for model=%s (first 200 chars: %s)",
+                model, raw[:200],
+            )
+            raise RuntimeError("Judge subprocess produced malformed JSON") from exc
+    finally:
+        input_path.unlink(missing_ok=True)
+        output_path.unlink(missing_ok=True)
+
+    if result_dict.get("health") == "INFRA_FAILURE":
         log.warning("JudgeRunner returned INFRA_FAILURE for model=%s", model)
         return None
 
     return JudgeVote(
-        model=result.model,
-        scores={d["id"]: d.get("score", 0) for d in result.dimensions},
-        overall=result.overall_score,
-        verdict=result.verdict,
-        issues=result.issues,
-        duration=result.duration,
-        raw_output=result.raw_output,
-        health=result.health,
-        token_usage=result.token_usage,
+        model=result_dict["model"],
+        scores={d["id"]: d.get("score", 0) for d in result_dict.get("dimensions", [])},
+        overall=result_dict["overall_score"],
+        verdict=result_dict["verdict"],
+        issues=result_dict.get("issues", []),
+        duration=result_dict.get("duration", 0.0),
+        raw_output=result_dict.get("raw_output", ""),
+        health=result_dict.get("health", "HEALTHY"),
+        token_usage=result_dict.get("token_usage", {}),
     )
 
 
@@ -162,7 +209,11 @@ def _run_secondary_fallback(
     """Collect votes from secondary models and compute consensus."""
     votes: list[JudgeVote] = []
     for model in secondary_models:
-        vote = _run_single_judge(output_dir, report_path, rubric, model, fallback)
+        try:
+            vote = _run_single_judge(output_dir, report_path, rubric, model, fallback)
+        except Exception as exc:
+            log.warning("Secondary judge %s failed in fallback path: %s", model, exc)
+            vote = None
         if vote is not None:
             votes.append(vote)
     if not votes:
@@ -301,7 +352,12 @@ def multi_judge_vote(
                 for model in secondary_models
             }
             for future in as_completed(futures):
-                vote = future.result()
+                model_name = futures[future]
+                try:
+                    vote = future.result()
+                except Exception as exc:
+                    log.warning("Secondary judge %s failed (subprocess): %s", model_name, exc)
+                    vote = None
                 if vote is not None:
                     votes.append(vote)
     elif not is_boundary and not force_secondary:

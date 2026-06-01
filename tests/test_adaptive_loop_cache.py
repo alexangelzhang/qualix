@@ -5,69 +5,49 @@ from types import SimpleNamespace
 from typing import TYPE_CHECKING
 
 from qualix.agents.adaptive_loop import AdaptiveLoop, multi_judge_vote
+from qualix.agents.judge_vote import JudgeVote
 from qualix.agents.llm_backends import StructuredChatResult, _extract_json
 
 if TYPE_CHECKING:
     from pathlib import Path
 
 
-class _FakeBackend:
-    def __init__(self, name: str, response: tuple[str, dict[str, int]]) -> None:
-        self._name = name
-        self._response = response
-        self.calls = 0
-
-    def chat(self, messages, **kwargs):
-        del messages, kwargs
-        self.calls += 1
-        return self._response
-
-    def chat_structured(self, messages, response_schema, **kwargs):
-        del response_schema
-        raw_text, usage = self.chat(messages, **kwargs)
-        parsed = _extract_json(raw_text)
-        return StructuredChatResult(parsed=parsed or {}, raw_text=raw_text, provider_meta={"usage": usage})
-
-    def name(self) -> str:
-        return self._name
+def _make_judge_vote(model: str, overall: float, verdict: str) -> JudgeVote:
+    return JudgeVote(
+        model=model,
+        scores={"quality": int(overall)},
+        overall=overall,
+        verdict=verdict,
+        issues=[],
+        duration=0.01,
+        raw_output="",
+        health="HEALTHY",
+        token_usage={"input_tokens": 10, "output_tokens": 5},
+    )
 
 
 def test_multi_judge_vote_reuses_agent_query_cache(monkeypatch, tmp_path: Path) -> None:
+    """Primary judge score=4.5 (clear PASS) → secondary not called.
+
+    Now uses subprocess dispatch: mock _run_single_judge directly to count calls.
+    """
     output_dir = tmp_path / "output"
     output_dir.mkdir(parents=True, exist_ok=True)
 
     report_path = tmp_path / "report.md"
     report_path.write_text("# report\n\nbody", encoding="utf-8")
 
-    backend_by_model = {
-        "judge-a": _FakeBackend(
-            "judge-a",
-            (
-                json.dumps(
-                    {"scores": {"quality": 5}, "overall": 4.5, "verdict": "PASS", "issues": []}, ensure_ascii=False
-                ),
-                {"input_tokens": 11, "output_tokens": 5},
-            ),
-        ),
-        "judge-b": _FakeBackend(
-            "judge-b",
-            (
-                json.dumps(
-                    {"scores": {"quality": 4}, "overall": 4.0, "verdict": "PASS", "issues": []}, ensure_ascii=False
-                ),
-                {"input_tokens": 10, "output_tokens": 4},
-            ),
-        ),
+    call_counts: dict[str, int] = {"judge-a": 0, "judge-b": 0}
+    vote_by_model = {
+        "judge-a": _make_judge_vote("judge-a", 4.5, "PASS"),
+        "judge-b": _make_judge_vote("judge-b", 4.0, "PASS"),
     }
 
-    monkeypatch.setattr(
-        "qualix.agents.llm_backends.create_backend",
-        lambda model, api_key: backend_by_model.get(model, backend_by_model.get("judge-a")),
-    )
-    monkeypatch.setattr(
-        "qualix.quality.judge_runner.create_backend",
-        lambda model, api_key: backend_by_model.get(model, backend_by_model.get("judge-a")),
-    )
+    def _fake_run_single_judge(output_dir, report_path, rubric, model, fallback, warning_override=None):
+        call_counts[model] = call_counts.get(model, 0) + 1
+        return vote_by_model.get(model)
+
+    monkeypatch.setattr("qualix.agents.judge_vote._run_single_judge", _fake_run_single_judge)
 
     first = multi_judge_vote(
         output_dir,
@@ -90,8 +70,8 @@ def test_multi_judge_vote_reuses_agent_query_cache(monkeypatch, tmp_path: Path) 
     assert [vote.model for vote in first.votes] == ["judge-a"]
     assert [vote.model for vote in second.votes] == ["judge-a"]
     # Primary 每次调用一次，secondary 不被调用
-    assert backend_by_model["judge-a"].calls == 2
-    assert backend_by_model["judge-b"].calls == 0
+    assert call_counts["judge-a"] == 2
+    assert call_counts.get("judge-b", 0) == 0
 
 
 def test_multi_judge_vote_boundary_triggers_secondary(monkeypatch, tmp_path: Path) -> None:
@@ -102,36 +82,17 @@ def test_multi_judge_vote_boundary_triggers_secondary(monkeypatch, tmp_path: Pat
     report_path = tmp_path / "report.md"
     report_path.write_text("# report\n\nbody", encoding="utf-8")
 
-    backend_by_model = {
-        "judge-a": _FakeBackend(
-            "judge-a",
-            (
-                json.dumps(
-                    {"scores": {"quality": 3}, "overall": 3.5, "verdict": "PASS_WITH_CONCERNS", "issues": []},
-                    ensure_ascii=False,
-                ),
-                {"input_tokens": 11, "output_tokens": 5},
-            ),
-        ),
-        "judge-b": _FakeBackend(
-            "judge-b",
-            (
-                json.dumps(
-                    {"scores": {"quality": 4}, "overall": 4.0, "verdict": "PASS", "issues": []}, ensure_ascii=False
-                ),
-                {"input_tokens": 10, "output_tokens": 4},
-            ),
-        ),
+    call_counts: dict[str, int] = {}
+    vote_by_model = {
+        "judge-a": _make_judge_vote("judge-a", 3.5, "PASS_WITH_CONCERNS"),
+        "judge-b": _make_judge_vote("judge-b", 4.0, "PASS"),
     }
 
-    monkeypatch.setattr(
-        "qualix.agents.llm_backends.create_backend",
-        lambda model, api_key: backend_by_model.get(model, backend_by_model.get("judge-a")),
-    )
-    monkeypatch.setattr(
-        "qualix.quality.judge_runner.create_backend",
-        lambda model, api_key: backend_by_model.get(model, backend_by_model.get("judge-a")),
-    )
+    def _fake_run_single_judge(output_dir, report_path, rubric, model, fallback, warning_override=None):
+        call_counts[model] = call_counts.get(model, 0) + 1
+        return vote_by_model.get(model)
+
+    monkeypatch.setattr("qualix.agents.judge_vote._run_single_judge", _fake_run_single_judge)
 
     result = multi_judge_vote(
         output_dir,
@@ -143,8 +104,8 @@ def test_multi_judge_vote_boundary_triggers_secondary(monkeypatch, tmp_path: Pat
 
     # Primary score=3.5 在边界区间 [3.0, 4.0]，secondary 应被调用
     assert len(result.votes) == 2
-    assert backend_by_model["judge-a"].calls == 1
-    assert backend_by_model["judge-b"].calls == 1
+    assert call_counts["judge-a"] == 1
+    assert call_counts["judge-b"] == 1
 
 
 def test_adaptive_loop_passes_output_dir_to_all_agents(monkeypatch, tmp_path: Path) -> None:
@@ -171,27 +132,12 @@ def test_adaptive_loop_passes_output_dir_to_all_agents(monkeypatch, tmp_path: Pa
                 prompt_hash="fake",
             )
 
-    # Judge 直接调 LLM backend，mock 它
-    class _FakeBackendInner:
-        def chat(self, messages, **kwargs):
-            return (
-                json.dumps(
-                    {"scores": {"quality": 2}, "overall": 2.0, "verdict": "FAIL", "issues": []}, ensure_ascii=False
-                ),
-                {"input_tokens": 10, "output_tokens": 5},
-            )
-
-        def chat_structured(self, messages, response_schema, **kwargs):
-            raw_text, usage = self.chat(messages, **kwargs)
-            parsed = _extract_json(raw_text)
-            return StructuredChatResult(parsed=parsed or {}, raw_text=raw_text, provider_meta={"usage": usage})
-
-        def name(self):
-            return "fake"
+    # Judge 现在通过 subprocess 调用，直接 mock _run_single_judge 返回 FAIL vote
+    def _fake_run_single_judge(output_dir, report_path, rubric, model, fallback, warning_override=None):
+        return _make_judge_vote(model, 2.0, "FAIL")
 
     monkeypatch.setattr("qualix.agents.adaptive_loop.Agent", _FakeAgent)
-    monkeypatch.setattr("qualix.agents.llm_backends.create_backend", lambda model, api_key: _FakeBackendInner())
-    monkeypatch.setattr("qualix.quality.judge_runner.create_backend", lambda model, api_key: _FakeBackendInner())
+    monkeypatch.setattr("qualix.agents.judge_vote._run_single_judge", _fake_run_single_judge)
 
     loop = AdaptiveLoop(tmp_path / "output")
     loop.run(
