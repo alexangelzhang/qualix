@@ -81,3 +81,161 @@ logisticExchangeIdentifyManager.isLogisticExchangeService("SVC001");
 | 测试类名 | `<被测类名>Test.java`，放在 `src/test/java/` 对应包路径下 |
 | @Test 方法名 | `<被测方法>_<场景描述>_<期望结果>()`，中文描述用下划线分隔 |
 | EUT 注释 | `// EUT-xxx SE-yyy <Happy/Exception/Boundary> Path: <场景简述>` |
+
+---
+
+## DDD+TMF Mock Templates
+
+以下模板为各 DDD 层级定义正确的 `@ExtendWith(MockitoExtension.class)` + `@InjectMocks` + `@Mock`
+setup block。根据被测类所属层级选择对应模板。
+
+### 1. Domain Service
+
+Domain Service 持有业务逻辑，依赖 Repository/Port 接口。
+
+```java
+@ExtendWith(MockitoExtension.class)
+class OrderDomainServiceTest {
+
+    @InjectMocks
+    private OrderDomainService orderDomainService;   // 被测类
+
+    @Mock
+    private OrderRepository orderRepository;         // 持久化端口（接口）
+
+    @Mock
+    private InventoryPort inventoryPort;             // 出站端口（接口）
+
+    @Test
+    // SE-001 / EUT-001
+    void shouldReserveInventoryWhenOrderPlaced() {
+        // given
+        when(inventoryPort.reserve(anyString(), anyInt())).thenReturn(true);
+        // when
+        orderDomainService.placeOrder(new Order("SKU-1", 2));
+        // then
+        verify(inventoryPort, times(1)).reserve("SKU-1", 2);
+    }
+}
+```
+
+**规则：**
+- `@InjectMocks` 目标为 DomainService 本身。
+- `@Mock` 字段为 Repository 或 Port **接口**，不得 Mock 具体基础设施实现类。
+- 不得通过 ApplicationService 来测试 DomainService 逻辑，应直接测试领域层。
+
+---
+
+### 2. Application Service
+
+Application Service 编排 Domain Service，**不得直接依赖 Repository**。
+
+```java
+@ExtendWith(MockitoExtension.class)
+class OrderApplicationServiceTest {
+
+    @InjectMocks
+    private OrderApplicationService orderApplicationService;
+
+    @Mock
+    private OrderDomainService orderDomainService;           // 领域层依赖 ✓
+
+    @Mock
+    private NotificationDomainService notificationDomainService;
+
+    // 禁止：@Mock OrderRepository orderRepository;
+    // 原因：直接 Mock Repository 会绕过领域层，破坏 DDD 层级边界
+
+    @Test
+    // SE-002 / EUT-002
+    void shouldNotifyCustomerAfterOrderConfirmed() {
+        // given
+        Order order = new Order("ORD-1");
+        when(orderDomainService.confirmOrder("ORD-1")).thenReturn(order);
+        // when
+        orderApplicationService.confirmAndNotify("ORD-1");
+        // then
+        verify(notificationDomainService).sendConfirmation(order);
+    }
+}
+```
+
+**规则：**
+- `@InjectMocks` 目标为 ApplicationService。
+- `@Mock` 字段必须是 DomainService，**绝对不允许直接 Mock Repository 或 Mapper**。
+- Application Service 直接 Mock Repository 是层级违规：绕过领域层，把测试耦合到基础设施关注点。
+  `check_mock_consistency` 会自动检测此问题并产生 WARNING。
+
+---
+
+### 3. Infrastructure Adapter
+
+适配器（持久化适配器、REST 客户端、消息发布者）通常依赖框架管理的构造器。
+`@InjectMocks` 在此**不可靠**——改用构造器注入。
+
+```java
+@ExtendWith(MockitoExtension.class)
+class JpaOrderAdapterTest {
+
+    // 禁止：@InjectMocks JpaOrderAdapter adapter;
+    // 原因：适配器通常没有无参构造器，Mockito 注入会静默失败
+    private JpaOrderAdapter adapter;
+
+    @Mock
+    private OrderJpaRepository jpaRepository;   // Spring Data 仓库（基础设施）
+
+    @BeforeEach
+    void setUp() {
+        adapter = new JpaOrderAdapter(jpaRepository);   // 显式构造
+    }
+
+    @Test
+    // SE-003 / EUT-003
+    void shouldPersistOrderEntity() {
+        // given
+        OrderEntity entity = new OrderEntity("ORD-1");
+        when(jpaRepository.save(entity)).thenReturn(entity);
+        // when
+        adapter.save(new Order("ORD-1"));
+        // then
+        verify(jpaRepository).save(any(OrderEntity.class));
+    }
+}
+```
+
+**规则：**
+- 适配器常无无参构造器，`@InjectMocks` 注入可能静默失败。
+- 始终在 `@BeforeEach` 中使用 `new Adapter(mockDep)` 显式构造。
+- 此层的 `@Mock` 字段可以是底层框架仓库或 HTTP 客户端——基础设施依赖在此层是合法的。
+
+---
+
+### @InjectMocks 使用限制
+
+| 场景 | 行为 | 推荐修复 |
+|------|------|---------|
+| 内部类（`Outer$Inner`） | `@InjectMocks` 无效 | 改用构造器注入 |
+| `final` 类 | Mockito 无法生成子类 | 使用 `MockMaker.INLINE` 或重构为接口 |
+| 无无参构造器 | 注入静默失败 | 在 `@BeforeEach` 中显式调用构造器 |
+
+### verify() 调用次数
+
+| 表达式 | 含义 |
+|--------|------|
+| `verify(mock)` | 恰好 1 次调用（等同于 `verify(mock, times(1))`） |
+| `verify(mock, times(N))` | 恰好 N 次调用，N > 1 时必须显式写出 |
+| `verify(mock, never())` | 零次调用 |
+| `verify(mock, atLeastOnce())` | 至少 1 次调用 |
+
+**常见错误：** 期望调用 2 次时忘写 `times(2)`，导致测试在只调用 1 次时也通过，是覆盖缺口。
+
+### 层级边界速查
+
+```
+ApplicationService  →  @Mock DomainService          ✓  正确
+ApplicationService  →  @Mock Repository              ✗  层级违规
+DomainService       →  @Mock Repository/Port         ✓  正确
+InfraAdapter        →  constructor(mockJpaRepo)       ✓  正确
+InfraAdapter        →  @InjectMocks                  ✗  静默失败风险
+Inner class         →  @InjectMocks                  ✗  不支持
+```
