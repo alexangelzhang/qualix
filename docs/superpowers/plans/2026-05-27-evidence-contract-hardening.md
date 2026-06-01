@@ -576,7 +576,7 @@ Expected: 3 PASSED
 
 - [ ] **Step 5: 接入 `finalize_checks.py`**
 
-读取 `finalize_checks.py`，在 `run_finalize_checks` 中找到 `if phase_id in ("Q05", "Q05a"):` 的结构合规块（约 L194），在其**之后**插入 Q05a 的 code_target 检查：
+读取 `finalize_checks.py`，在 `run_finalize_checks` 中找到 `if phase_id == "Q05a":` 的结构合规块，在其**之后**插入 Q05a 的 code_target 检查：
 
 ```python
     # Q05a: EUT → SE.code_target 可追溯性检查（始终 WARNING）

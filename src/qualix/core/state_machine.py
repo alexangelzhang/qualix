@@ -296,11 +296,11 @@ def reset_phase(state: ProjectState, phase_id: str) -> list[str]:
 
 
 def get_available_phases(state: ProjectState) -> list[str]:
-    """获取当前可执行的 Phase 列表（gate 通过 + 未完成）."""
+    """获取当前可执行的 Phase 列表（gate 通过 + 尚未启动）."""
     available = []
     for phase_id in PHASE_ORDER:
         phase_state = state.phases.get(phase_id)
-        if not phase_state or phase_state.status in (PhaseStatus.APPROVED, PhaseStatus.SKIPPED):
+        if not phase_state or phase_state.status != PhaseStatus.NOT_STARTED:
             continue
         if not check_gate(state, phase_id):
             available.append(phase_id)
@@ -333,7 +333,10 @@ def record_judge_score(
 
 
 def get_parallel_groups(state: ProjectState) -> list[list[str]]:
-    """获取可并行执行的 Phase 分组."""
+    """获取可并行执行的 Phase 分组.
+
+    每组是当前可执行节点的依赖反链：组内 Phase 之间没有依赖关系。
+    """
     available = get_available_phases(state)
     if not available:
         return []
@@ -344,14 +347,18 @@ def get_parallel_groups(state: ProjectState) -> list[list[str]]:
     for phase_id in available:
         if phase_id in used:
             continue
-        phase_def = PHASE_DEFS[phase_id]
         group = [phase_id]
         used.add(phase_id)
 
-        for parallel_id in phase_def["parallel_with"]:
-            if parallel_id in available and parallel_id not in used:
-                group.append(parallel_id)
-                used.add(parallel_id)
+        for candidate in available:
+            if candidate in used:
+                continue
+            candidate_deps = set(PHASE_DEFS[candidate].get("depends_on", []))
+            group_deps = set().union(*(set(PHASE_DEFS[p].get("depends_on", [])) for p in group))
+            if candidate in group_deps or any(p in candidate_deps for p in group):
+                continue
+            group.append(candidate)
+            used.add(candidate)
 
         groups.append(group)
 

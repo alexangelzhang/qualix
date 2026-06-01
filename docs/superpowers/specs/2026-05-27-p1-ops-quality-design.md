@@ -99,7 +99,7 @@ def cmd_task_resume(args, output_dir: Path) -> int:
 
 ```
 TASK_ID        TYPE       PROJECT  PHASE  STATUS     STARTED
-abc123def...   adaptive   proj1    Q05    running    2026-05-27T10:00
+abc123def...   adaptive   proj1    Q05a    running    2026-05-27T10:00
 ...
 ```
 
@@ -107,9 +107,9 @@ abc123def...   adaptive   proj1    Q05    running    2026-05-27T10:00
 
 ```
 可恢复任务: abc123def...
-  类型: adaptive  项目: proj1  Phase: Q05
+  类型: adaptive  项目: proj1  Phase: Q05a
   最新 checkpoint: iter_3 (2026-05-27T10:30)
-  恢复命令: qualix-run proj1 adaptive Q05 --resume abc123def...
+  恢复命令: qualix-run proj1 adaptive Q05a --resume abc123def...
 ```
 
 **注册到 core/cli.py** (`main()` 里的 subparser 区)：

@@ -44,7 +44,7 @@ qualix-run PROJ approve D
 Phase Q06 FAIL → 补充测试（Phase Q05b 或手动） → 重置 Phase Q06 → 重新执行 Phase Q06
 ```
 
-**可选**: 如果需要 Phase Q05 重新生成测试，先重置 Q05 再重置 Q06。
+**可选**: 如果需要 Phase Q05a 重新生成测试，先重置 Q05a 再重置 Q06。
 
 ### 类型 3: 代码更新后增量重跑
 
@@ -59,7 +59,7 @@ Phase Q06 FAIL → 补充测试（Phase Q05b 或手动） → 重置 Phase Q06 �
 | 变更类型 | 需重跑的 Phase |
 |---------|--------------|
 | PRD 变更 | Q01 → Q04 → Q03 → Q05a → Q05b → Q06 → Q07（全部） |
-| 技术方案变更 | Q04 → Q03（不影响 Q05/Q06/Q07） |
+| 技术方案变更 | Q04 → Q03（不影响 Q05a/Q06/Q07） |
 | 代码重构（不改接口） | Q06 → Q07 |
 | 新增代码 | Q05a → Q05b → Q06 → Q07 |
 | 仅补充测试 | Q06 |
@@ -70,7 +70,7 @@ Phase Q06 FAIL → 补充测试（Phase Q05b 或手动） → 重置 Phase Q06 �
 
 **流程**:
 ```
-模块 X 代码更新 → 重置 Phase Q03/Q05/Q06/Q07 → 重新执行（仅模块 X 的部分）
+模块 X 代码更新 → 重置 Phase Q03/Q05a/Q06/Q07 → 重新执行（仅模块 X 的部分）
 ```
 
 **注意**: Phase Q01 和 Q04 通常不需要重跑（需求和覆盖度不受单模块代码变更影响）。
@@ -106,7 +106,7 @@ cp output/PROJ/Q07/review_report.md output/PROJ/Q07/review_report_v2.md
 1. Phase Q01: 所有 GAP/OPEN 已闭环或显式延期
 2. Phase Q04: REQ 覆盖率 100%，GAP 闭环率 >= 60%
 3. Phase Q03: 无 CRITICAL_GAP，P0 问题已有方案
-4. Phase Q05: EUT 矩阵覆盖所有 REQ/BR/SE
+4. Phase Q05a: EUT 矩阵覆盖所有 REQ/BR/SE
 5. Phase Q06: PASS 或 PASS_WITH_RISKS（无 FAIL）
 6. Phase Q07: DONE 或 DONE_WITH_CONCERNS（无 BLOCKED）
 

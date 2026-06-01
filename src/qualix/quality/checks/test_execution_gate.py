@@ -1,4 +1,4 @@
-"""Q05 单测编译+运行铁律 gate：生成的测试必须编译通过且运行无错误."""
+"""Q05b 单测编译+运行铁律 gate：生成的测试必须编译通过且运行无错误."""
 
 from __future__ import annotations
 
@@ -226,7 +226,7 @@ def check_q05_test_execution(
     output_dir: Path,
     project_id: str,
 ) -> list[str]:
-    """Q05 铁律 gate：对每个业务仓库编译+运行新增测试.
+    """Q05b 铁律 gate：对每个业务仓库编译+运行新增测试.
 
     Returns:
         BLOCKED 错误列表。空列表 = 全部通过。
@@ -234,7 +234,7 @@ def check_q05_test_execution(
     from qualix.core.phase_registry import PHASE_DEFS
     from qualix.core.state_machine import internal_dir as _internal_dir
 
-    phase_def = PHASE_DEFS.get("Q05")
+    phase_def = PHASE_DEFS.get("Q05b")
     if not phase_def:
         return []
 
@@ -305,7 +305,7 @@ def check_q05_test_execution(
                     errors.append(f"  错误摘要:\n{result['error_summary']}")
 
     if total_tested == 0 and not errors:
-        errors.append("BLOCKED: Q05 未在任何业务仓库中发现新增测试文件")
+        errors.append("BLOCKED: Q05b 未在任何业务仓库中发现新增测试文件")
 
     return errors
 

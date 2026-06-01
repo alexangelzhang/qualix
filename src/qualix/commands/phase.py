@@ -626,6 +626,32 @@ def cmd_skip(args, output_dir: Path) -> int:
 
     state = load_state(output_dir, args.project_id)
     comment = args.comment or "skipped"
+    phase_def = PHASE_DEFS.get(args.phase)
+    force = bool(getattr(args, "force", False))
+    if not phase_def:
+        errors = [f"未知的 Phase: {args.phase}"]
+    elif not phase_def.get("skippable", False) and not force:
+        errors = [f"Phase {args.phase} 不允许跳过；如确需跳过，请使用 --force 并提供 --comment"]
+    elif force and not (args.comment or "").strip():
+        errors = [f"Phase {args.phase} 强制跳过必须提供 --comment"]
+    else:
+        errors = []
+    if errors:
+        if not cli_json_mode(args):
+            for e in errors:
+                print(f"  ERROR: {e}", file=sys.stderr)
+        if cli_json_mode(args):
+            print_cli_json(
+                cli_envelope(
+                    command="skip",
+                    project_id=args.project_id,
+                    success=False,
+                    exit_code=1,
+                    phase_id=args.phase,
+                    extra={"errors": errors},
+                )
+            )
+        return 1
     errors = skip_phase(state, args.phase, comment)
     if errors:
         if not cli_json_mode(args):

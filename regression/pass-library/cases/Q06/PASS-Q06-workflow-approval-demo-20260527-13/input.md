@@ -187,41 +187,41 @@ Phase 输出目录: `/Users/zhangyiqian/git_dev/qualix/qualix/output/workflow-ap
 
 ### 反例 1: audit_items.11.eut_id [漏报]
 
-**教训**: EUT 编号须来自 Q05 phase_b_structured.json，禁止按测试代码臆造编号
+**教训**: EUT 编号须来自 Q05a phase_b_structured.json，禁止按测试代码臆造编号
 
-### 反例 2: Phase Q06 审计了 EUT-001,EUT-002,EUT-008~012，但 Phase Q05 中不存在 [漏报]
-
-**教训**: Skill 规则未覆盖此失败场景，需要补充检查项
-
-### 反例 3: Phase Q06 审计了 EUT-041,EUT-042,EUT-095，但 Phase Q05 中不存在 [漏报]
+### 反例 2: Phase Q06 审计了 EUT-001,EUT-002,EUT-008~012，但 Phase Q05a 中不存在 [漏报]
 
 **教训**: Skill 规则未覆盖此失败场景，需要补充检查项
 
-### 反例 4: Phase Q06 审计了 EUT-015~022，但 Phase Q05 中不存在 [漏报]
+### 反例 3: Phase Q06 审计了 EUT-041,EUT-042,EUT-095，但 Phase Q05a 中不存在 [漏报]
 
 **教训**: Skill 规则未覆盖此失败场景，需要补充检查项
 
-### 反例 5: Phase Q06 审计了 EUT-031,EUT-032，但 Phase Q05 中不存在 [漏报]
+### 反例 4: Phase Q06 审计了 EUT-015~022，但 Phase Q05a 中不存在 [漏报]
 
 **教训**: Skill 规则未覆盖此失败场景，需要补充检查项
 
-### 反例 6: Phase Q06 审计了 EUT-034,EUT-037，但 Phase Q05 中不存在 [漏报]
+### 反例 5: Phase Q06 审计了 EUT-031,EUT-032，但 Phase Q05a 中不存在 [漏报]
 
 **教训**: Skill 规则未覆盖此失败场景，需要补充检查项
 
-### 反例 7: Phase Q06 审计了 EUT-035,EUT-038，但 Phase Q05 中不存在 [漏报]
+### 反例 6: Phase Q06 审计了 EUT-034,EUT-037，但 Phase Q05a 中不存在 [漏报]
 
 **教训**: Skill 规则未覆盖此失败场景，需要补充检查项
 
-### 反例 8: Phase Q06 审计了 EUT-023~026,EUT-030，但 Phase Q05 中不存在 [漏报]
+### 反例 7: Phase Q06 审计了 EUT-035,EUT-038，但 Phase Q05a 中不存在 [漏报]
 
 **教训**: Skill 规则未覆盖此失败场景，需要补充检查项
 
-### 反例 9: Phase Q06 审计了 EUT-027~029，但 Phase Q05 中不存在 [漏报]
+### 反例 8: Phase Q06 审计了 EUT-023~026,EUT-030，但 Phase Q05a 中不存在 [漏报]
 
 **教训**: Skill 规则未覆盖此失败场景，需要补充检查项
 
-### 反例 10: Phase Q06 审计了 EUT-036,EUT-044,EUT-093,EUT-094,EUT-101，但 Phase Q05 中不存在 [漏报]
+### 反例 9: Phase Q06 审计了 EUT-027~029，但 Phase Q05a 中不存在 [漏报]
+
+**教训**: Skill 规则未覆盖此失败场景，需要补充检查项
+
+### 反例 10: Phase Q06 审计了 EUT-036,EUT-044,EUT-093,EUT-094,EUT-101，但 Phase Q05a 中不存在 [漏报]
 
 **教训**: Skill 规则未覆盖此失败场景，需要补充检查项
 

@@ -8,7 +8,7 @@
 Q01 需求结构化（起点）
  ├── Q03 技术方案质量评审（可与 Q04 并行）
  ├── Q04 技术方案覆盖度审计（可与 Q03 并行）
- ├── Q05 单测生成
+ ├── Q05a EUT矩阵设计 → Q05b 单测代码生成
  ├── Q06 单测覆盖审计
  └── Q07 代码评审
 ```
@@ -74,22 +74,40 @@ Q01 需求结构化（起点）
 
 ---
 
-## Phase Q05: 单测生成
+## Phase Q05a: EUT 矩阵设计
 
 | Step | 名称 | 说明 |
 |------|------|------|
 | 0 | 输入确认与上下文加载 | 读取 Q01 产物 + 代码仓库 |
 | 0.5 | 目标模块确定 | 三层驱动（Q01 产物 + 代码仓库 + 用户指定），不可跳过 |
-| 1 | 单测设计 | EUT 矩阵 + 分支逻辑扫描，输出结构化 JSON |
-| 2 | 架构上下文代码脚手架生成 | DDD+TMF 脚手架 |
-| 3 | 单测强断言约束代码实现 | MockedStatic\<TMF\> 模式，禁止空洞 assertThrows |
-| 3.5 | 多仓库完整性自检 | BLOCKED gate，任何仓库有 MISSING TC 则不能进入 Step 4 |
+| 1 | EUT 矩阵设计 | 每条 SE 设计测试场景，输出结构化 JSON（`eut_matrix.md`） |
+| 2 | 分支逻辑扫描 | Happy Path / Exception / Boundary 覆盖检查 |
+| 3 | 断言意图标注 | then 字段必须含具体断言方法和预期值，不接受描述性文字 |
+| 3.5 | 多仓库完整性自检 | BLOCKED gate，任何仓库有 MISSING EUT 则不能进入 Step 4 |
 | 4 | 自检 | 逐项对照 gate checklist |
 | 5 | Judge/Critique | 切换到批评者视角审视输出 |
 | 6 | 修正 | 根据 Step 5 发现的问题修正 |
 
-**产出**: `eut_matrix.md`, `temp/*QualixTest.java`
-**放行**: EUT 覆盖所有 REQ/BR/SE, 强断言, 异常路径有测试
+**产出**: `eut_matrix.md`, `phase_b_structured.json`
+**放行**: EUT 覆盖所有 REQ/BR/SE, then 字段具体, 异常路径有设计
+
+---
+
+## Phase Q05b: 单测代码生成
+
+| Step | 名称 | 说明 |
+|------|------|------|
+| 0 | 输入确认 | 读取 Q05a EUT 矩阵 + 代码仓库 |
+| 1 | 架构上下文代码脚手架生成 | DDD+TMF 脚手架 |
+| 2 | 单测代码实现 | 按 EUT 矩阵生成 @Test，MockedStatic\<TMF\> 模式，禁止空洞 assertThrows |
+| 3 | 编译验证 | 真实编译（maven/gradle/go），BLOCKED if 编译失败 |
+| 4 | 多仓库完整性自检 | BLOCKED gate，任何仓库有 MISSING TC 则不能进入 Step 5 |
+| 5 | 自检 | 逐项对照 gate checklist |
+| 6 | Judge/Critique | 切换到批评者视角审视输出 |
+| 7 | 修正 | 根据 Step 6 发现的问题修正 |
+
+**产出**: `codegen_progress.md`, `phase_b_code_status.json`, `temp/*QualixTest.java`
+**放行**: 编译通过, EUT 覆盖所有 REQ/BR/SE, 弱断言 high-risk < 1
 
 ---
 

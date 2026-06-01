@@ -18,7 +18,7 @@ from qualix.reporting.collect_metrics import collect_all_metrics
 from qualix.reporting.telemetry import PhaseRunRecord, load_records
 from qualix.tracking.regression import build_failure_trend
 
-ALLOWED_PHASES: Final = frozenset({"Q01", "Q04", "Q03", "Q05", "Q05a", "Q05b", "Q06", "Q07"})
+ALLOWED_PHASES: Final = frozenset({"Q01", "Q04", "Q03", "Q05a", "Q05b", "Q06", "Q07"})
 DATE_FMT = "%Y-%m-%d"
 
 

@@ -1,4 +1,4 @@
-"""Q05 专属 auto_check 函数（auto_checks.py 内部实现模块，不直接被外部调用）."""
+"""Q05a 专属 auto_check 函数（auto_checks.py 内部实现模块，不直接被外部调用）."""
 
 from __future__ import annotations
 
@@ -59,7 +59,7 @@ def _check_q05_req_br_se_coverage(
     output_dir: Path,
     project_id: str,
 ) -> list[str]:
-    """Q05 核心覆盖完整性：REQ+BR+SE × 代码路径（Happy/Exception/Boundary/并发幂等）.
+    """Q05a 核心覆盖完整性：REQ+BR+SE × 代码路径（Happy/Exception/Boundary/并发幂等）.
 
     原则（不可违反）：
     - 每条 REQ/BR/SE 必须有 Exception EUT（100%）
@@ -67,7 +67,7 @@ def _check_q05_req_br_se_coverage(
     - 有边界语义的条目必须有 Boundary EUT（100%）
     - 有并发/幂等语义的 SE 必须有并发测试（CountDownLatch/ExecutorService 等）
     """
-    if phase_id not in {"Q05", "Q05a"}:
+    if phase_id not in {"Q05a"}:
         return []
 
     # 读 Q01 upstream JSON 获取 REQ/BR/SE 完整列表
@@ -134,19 +134,19 @@ def _check_q05_req_br_se_coverage(
             happy_covered += 1
         else:
             errors.append(
-                f"BLOCKED: Q05 {item_id} 缺少 Happy Path EUT（直接 bound_item 或通过 SE.bound_reqs 间接覆盖均可）。"
+                f"BLOCKED: Q05a {item_id} 缺少 Happy Path EUT（直接 bound_item 或通过 SE.bound_reqs 间接覆盖均可）。"
             )
 
         # Exception（100%，直接 or 间接）
         if not _has_route_coverage(item_id, "Exception"):
             errors.append(
-                f"BLOCKED: Q05 {item_id} 缺少 Exception EUT（要求 100%）。必须覆盖该条目实现代码的所有异常/错误分支。"
+                f"BLOCKED: Q05a {item_id} 缺少 Exception EUT（要求 100%）。必须覆盖该条目实现代码的所有异常/错误分支。"
             )
 
         # Boundary（有边界语义时 100%，直接 or 间接）
         has_boundary = any(kw in desc for kw in _BOUNDARY_KEYWORDS)
         if has_boundary and not _has_route_coverage(item_id, "Boundary"):
-            errors.append(f"BLOCKED: Q05 {item_id} 描述含边界语义但缺少 Boundary EUT（要求 100%）。")
+            errors.append(f"BLOCKED: Q05a {item_id} 描述含边界语义但缺少 Boundary EUT（要求 100%）。")
 
         # 并发/幂等/多线程（有相关语义时必须有并发测试）
         concurrent_kw = next((kw for kw in _CONCURRENT_KEYWORDS if kw in desc), None)
@@ -157,7 +157,7 @@ def _check_q05_req_br_se_coverage(
             has_concurrent = any(_is_concurrent_eut(e) for e in item_euts)
             if not has_concurrent:
                 errors.append(
-                    f"BLOCKED: Q05 {item_id} 有并发/幂等语义（含关键词「{concurrent_kw}」）"
+                    f"BLOCKED: Q05a {item_id} 有并发/幂等语义（含关键词「{concurrent_kw}」）"
                     "但缺少 Concurrent EUT 或强并发断言（CountDownLatch/Promise.all/asyncio.gather/WaitGroup 等）。"
                 )
 
@@ -166,7 +166,7 @@ def _check_q05_req_br_se_coverage(
     if happy_rate < 0.8:
         errors.insert(
             0,
-            f"BLOCKED: Q05 REQ+BR+SE Happy Path 覆盖率 {happy_rate:.0%} < 80%"
+            f"BLOCKED: Q05a REQ+BR+SE Happy Path 覆盖率 {happy_rate:.0%} < 80%"
             f"（已覆盖 {happy_covered}/{total} 条）。"
             "每条 REQ/BR/SE 的实现代码必须有正向路径测试。",
         )
@@ -194,14 +194,14 @@ def _check_q05_git_diff_coverage(
     output_dir: Path,
     project_id: str,
 ) -> list[str]:
-    """Q05 代码维度覆盖：git diff 变更的类/方法必须在 EUT when 字段中出现.
+    """Q05a 代码维度覆盖：git diff 变更的类/方法必须在 EUT when 字段中出现.
 
     覆盖源 = REQ+BR+SE（需求维度）+ git diff 变更方法（代码维度），两者等权。
     每个在 feature branch 新增/修改的 public 方法，必须有对应 EUT 的 when 字段引用它。
     """
     import subprocess
 
-    q05_def = PHASE_DEFS.get("Q05")
+    q05_def = PHASE_DEFS.get("Q05a")
     if not q05_def:
         return []
 
@@ -211,7 +211,7 @@ def _check_q05_git_diff_coverage(
     if not code_repos and inputs_data.get("code_repo"):
         code_repos = [inputs_data["code_repo"]]
     if not code_repos:
-        return ["NOT_APPLICABLE: Q05 git diff 覆盖检查——无 code_repo 配置"]
+        return ["NOT_APPLICABLE: Q05a git diff 覆盖检查——无 code_repo 配置"]
 
     eut_items = getattr(validated, "eut_items", []) or []
 
@@ -290,17 +290,17 @@ def _check_q05_git_diff_coverage(
             # 变更类未出现在任何 EUT when 字段中
             if not routes:
                 errors.append(
-                    f"FAIL: Q05 git diff — {class_name} 变更类未在任何 EUT when 字段中出现。"
+                    f"FAIL: Q05a git diff — {class_name} 变更类未在任何 EUT when 字段中出现。"
                     "每个 feature branch 变更的业务类必须有 EUT 覆盖其主要方法。"
                 )
                 continue
 
             # 有 EUT 但缺少 Happy Path
             if "Happy Path" not in routes:
-                errors.append(f"FAIL: Q05 git diff — {class_name} 有 EUT 但缺少 Happy Path（正常流程测试）。")
+                errors.append(f"FAIL: Q05a git diff — {class_name} 有 EUT 但缺少 Happy Path（正常流程测试）。")
 
             # 有 EUT 但缺少 Exception
             if "Exception" not in routes:
-                errors.append(f"FAIL: Q05 git diff — {class_name} 有 EUT 但缺少 Exception EUT（异常/错误分支测试）。")
+                errors.append(f"FAIL: Q05a git diff — {class_name} 有 EUT 但缺少 Exception EUT（异常/错误分支测试）。")
 
     return errors

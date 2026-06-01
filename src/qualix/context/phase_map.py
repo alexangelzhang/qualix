@@ -21,7 +21,6 @@ log = get_logger(__name__)
 # 例如 Q06 依赖 Q05b（直接前置），但 worker 需要的是 Q05a 的 EUT 矩阵和 Q01 的 SE 列表。
 _UPSTREAM_MAP: dict[str, list[str]] = {
     "Q04": ["Q01"],
-    "Q05": ["Q01"],
     "Q05a": ["Q01"],
     "Q05b": ["Q05a"],
     "Q06": ["Q05a", "Q01"],

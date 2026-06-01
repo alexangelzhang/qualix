@@ -672,7 +672,7 @@ def test_compose_rubric_all_phases_have_routed():
     """Every known Phase (Q01-Q07) has routed rubric dimensions."""
     from qualix.quality.judge_rubrics import compose_rubric, PHASE_ROUTED_RUBRICS
 
-    for phase_id in ("Q01", "Q03", "Q04", "Q05", "Q06", "Q07"):
+    for phase_id in ("Q01", "Q03", "Q04", "Q05a", "Q06", "Q07"):
         assert phase_id in PHASE_ROUTED_RUBRICS, f"{phase_id} missing from PHASE_ROUTED_RUBRICS"
         result = compose_rubric(phase_id)
         assert "source_citation" in result  # shared always present
@@ -1050,7 +1050,7 @@ In `AdaptiveLoop.run()`, after the P2 upstream context block, add rubric composi
         # P3: Compose shared + routed rubric (replaces raw rubric string if phase_id known)
         from qualix.quality.judge_rubrics import compose_rubric as _compose_rubric
 
-        if phase_id in ("Q01", "Q03", "Q04", "Q05", "Q06", "Q07"):
+        if phase_id in ("Q01", "Q03", "Q04", "Q05a", "Q06", "Q07"):
             _dynamic_dims = None
             try:
                 from qualix.quality.dynamic_rubric import generate_dynamic_dimensions

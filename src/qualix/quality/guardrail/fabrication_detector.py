@@ -199,7 +199,7 @@ class FabricationDetectorGuardrail(PhaseGuardrail):
 
     def check(self, ctx: GuardrailContext) -> list[GuardrailResult]:
         # 只对涉及代码的 Phase 检测
-        if ctx.phase_id not in ("Q03", "Q04", "Q05", "Q05a", "Q05b", "Q06", "Q07"):
+        if ctx.phase_id not in ("Q03", "Q04", "Q05a", "Q05b", "Q06", "Q07"):
             return []
 
         # 提取标识符
@@ -262,7 +262,7 @@ class FabricationDetectorGuardrail(PhaseGuardrail):
         """从本 Phase 的 _inputs.json 获取 code_repo 路径列表；
         若当前 Phase 没有，则回退扫所有已有 Phase 的 _inputs.json 取并集。
 
-        场景：用户可能只在 Q01/Q05 传过 --code-repo，到 Q06 execute 忘了传，
+        场景：用户可能只在 Q01/Q05a 传过 --code-repo，到 Q06 execute 忘了传，
         但 code_repos 对整个 project 都是同一组——应该能被复用而不是因缺失而跳过校验。
         """
         try:

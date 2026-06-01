@@ -1,4 +1,4 @@
-"""Q05 EUT 实现完整性校验（C9 每条 EUT 有 @Test，check_eut_method_alignment 公开方法）."""
+"""Q05a EUT 实现完整性校验（C9 每条 EUT 有 @Test，check_eut_method_alignment 公开方法）."""
 
 from __future__ import annotations
 
@@ -64,7 +64,7 @@ def _check_eut_implementation_completeness(
             sample = ", ".join(eut_ids[:3])
             suffix = "..." if len(eut_ids) > 3 else ""
             errors.append(
-                f"BLOCKED: Q05 eut_not_implemented — {cls} 有 {len(eut_ids)} 条 EUT 设计"
+                f"BLOCKED: Q05a eut_not_implemented — {cls} 有 {len(eut_ids)} 条 EUT 设计"
                 f"（{sample}{suffix}）但无对应测试文件（{cls}Test.java）。"
                 "EUT 矩阵必须全部实现为 @Test 方法后才能 finalize。"
             )
@@ -94,7 +94,7 @@ def _check_eut_implementation_completeness(
                 sample = ", ".join(missing[:5])
                 suffix = "..." if len(missing) > 5 else ""
                 errors.append(
-                    f"BLOCKED: Q05 eut_method_missing — {cls}Test.java 有 {test_method_count} 个"
+                    f"BLOCKED: Q05a eut_method_missing — {cls}Test.java 有 {test_method_count} 个"
                     f" @Test 方法，但以下 {len(missing)} 条 EUT 没有对应实现"
                     f"（按 EUT-xxx 追溯）：{sample}{suffix}。"
                     "请为每条 EUT 添加独立 @Test 方法并标注追溯注释（// EUT-xxx）。"
@@ -103,7 +103,7 @@ def _check_eut_implementation_completeness(
             # 代理模式：无追溯注释，用方法数作下界
             if test_method_count < len(eut_ids):
                 errors.append(
-                    f"BLOCKED: Q05 eut_method_count — {cls} 有 {len(eut_ids)} 条 EUT 设计，"
+                    f"BLOCKED: Q05a eut_method_count — {cls} 有 {len(eut_ids)} 条 EUT 设计，"
                     f"但 {cls}Test.java 只有 {test_method_count} 个 @Test 方法。"
                     "每条 EUT 应有独立 @Test 方法（建议同时添加 // EUT-xxx 追溯注释）。"
                 )

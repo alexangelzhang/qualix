@@ -120,7 +120,7 @@ class TestPhaseSourceExtraQ04:
 
 
 class TestPhaseSourceExtraQ05:
-    """PHASE_SOURCE_EXTRA['Q05'] — 单测设计来源（SE/EUT）."""
+    """PHASE_SOURCE_EXTRA['Q05a'] — 单测设计来源（SE/EUT）."""
 
     @pytest.mark.parametrize(
         "text",
@@ -134,19 +134,19 @@ class TestPhaseSourceExtraQ05:
     def test_should_match(self, text):
         from qualix.quality.rules.source_spec import PHASE_SOURCE_EXTRA
 
-        assert PHASE_SOURCE_EXTRA["Q05"].search(text), f"Q05 应匹配: {text!r}"
+        assert PHASE_SOURCE_EXTRA["Q05a"].search(text), f"Q05a 应匹配: {text!r}"
 
     @pytest.mark.parametrize(
         "text",
         [
-            "REQ-001 缺少测试",     # REQ 不是 Q05 来源
+            "REQ-001 缺少测试",     # REQ 不是 Q05a 来源
             "无任何 ID 引用",
         ],
     )
     def test_should_not_match(self, text):
         from qualix.quality.rules.source_spec import PHASE_SOURCE_EXTRA
 
-        assert not PHASE_SOURCE_EXTRA["Q05"].search(text), f"Q05 不应匹配: {text!r}"
+        assert not PHASE_SOURCE_EXTRA["Q05a"].search(text), f"Q05a 不应匹配: {text!r}"
 
 
 class TestConclusionPattern:
@@ -195,7 +195,7 @@ class TestValidIdPattern:
         [
             "| REQ-001 | COVERED |",
             "| SE-003 | PARTIAL |",
-            "| EUT-007 | 已实现 |",       # Q05 特有 — 修复点
+            "| EUT-007 | 已实现 |",       # Q05a 特有 — 修复点
             "| D-001 | BLOCKER |",         # Q07 特有 — 修复点
             "| ARCH-002 | 架构决策 |",    # Q02/Q03 特有 — 修复点
             "| API-003 | 接口定义 |",
@@ -240,9 +240,9 @@ class TestIsSourceAnnotated:
             # Q04 不接受主语 ID（修复点）
             ("REQ-001 COVERED", "Q04", False),
             ("SE-003 已覆盖", "Q04", False),
-            # Q05 接受 SE/EUT
-            ("SE-003 对应的边界测试", "Q05", True),
-            ("EUT-007 已覆盖", "Q05", True),
+            # Q05a 接受 SE/EUT
+            ("SE-003 对应的边界测试", "Q05a", True),
+            ("EUT-007 已覆盖", "Q05a", True),
             # Q07 接受文件行号
             ("OrderService.java:42 存在空指针风险", "Q07", True),
             ("D-001 缺陷已确认", "Q07", True),

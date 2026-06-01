@@ -13,7 +13,7 @@ Qualix 产物存在三类幻觉风险：
 | 维度 | 当前状态 | 风险 |
 |------|---------|------|
 | Q01 SE.source | 字段存在但从不校验真实性 | LLM 可捏造行号 |
-| Q05 EUT → impl class | EUT 的 bound_item 链接到 SE，SE.code_target 标注实现类，但无 grep 验证 | 测试描述指向不存在的类 |
+| Q05a EUT → impl class | EUT 的 bound_item 链接到 SE，SE.code_target 标注实现类，但无 grep 验证 | 测试描述指向不存在的类 |
 | Q06 COVERED | test_class/test_location 字段可填可不填，即使 COVERED 也无强制证据 | 覆盖审计结论无可追溯证据 |
 
 ## 范围

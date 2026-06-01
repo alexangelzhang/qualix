@@ -32,7 +32,6 @@ _ORCH_EXTRA: Final = MappingProxyType(
         "Q01": {"command": "/qualix", "description": "PRD → 需求点/关键语义/缺口/待确认项"},
         "Q04": {"command": "/tech-coverage-audit", "description": "验证技术方案有没有漏掉需求"},
         "Q03": {"command": "/tech-quality-review", "description": "审架构/接口/数据/异常/性能"},
-        "Q05": {"command": "/ut-generator", "description": "从需求生成测试大纲和单测代码"},
         "Q05a": {"command": "/ut-design", "description": "设计 EUT 矩阵（三层驱动），approve 后锁定为 Q05b 规格"},
         "Q05b": {"command": "/ut-codegen", "description": "按 EUT 矩阵逐条生成 @Test 代码，Ralph Loop 直到 C9 全通过"},
         "Q06": {"command": "/ut-audit-zh", "description": "验证单测是否真正测对了业务场景"},
@@ -46,7 +45,6 @@ _PHASE_NAMES: Final = MappingProxyType(
         "Q01": "需求结构化",
         "Q04": "技术方案覆盖度审计",
         "Q03": "技术方案质量评审",
-        "Q05": "单测生成",
         "Q05a": "EUT 矩阵设计",
         "Q05b": "单测代码生成",
         "Q06": "单测覆盖审计",
@@ -63,7 +61,7 @@ PHASES = [
         "key_file": REPORT_MAP[pid],
         **_ORCH_EXTRA[pid],
     }
-    for pid in ["Q01", "Q04", "Q03", "Q05", "Q05a", "Q05b", "Q06", "Q07"]
+    for pid in ["Q01", "Q04", "Q03", "Q05a", "Q05b", "Q06", "Q07"]
 ]
 
 

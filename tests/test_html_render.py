@@ -1,4 +1,4 @@
-"""Tests for qualix.reporting.html_render (Q05 EUT Matrix HTML renderer)."""
+"""Tests for qualix.reporting.html_render (Q05a EUT Matrix HTML renderer)."""
 
 from __future__ import annotations
 

@@ -79,7 +79,7 @@ class TestFilterMemoryForPhase:
     def test_disclaimer_present(self):
         """注入的 memory 前有免责声明."""
         entries = self._make_entries()
-        result = filter_memory_for_phase(entries, "proj-a", "Q05")
+        result = filter_memory_for_phase(entries, "proj-a", "Q05a")
         assert result.startswith("[System note:")
 
     def test_empty_returns_empty(self):

@@ -231,7 +231,7 @@ def _get_phase_criteria(phase_id: str) -> str:
             "1) Issues are real with evidence 2) Failure mode analysis done "
             "3) Exception categories reviewed 4) No false positives"
         ),
-        "Q05": (
+        "Q05a": (
             "Check test generation: "
             "1) EUT covers all SE 2) Strong assertions used "
             "3) Exception paths tested 4) Code compilable"

@@ -34,7 +34,7 @@ _SCHEMA_MAP: Final = MappingProxyType(
         "Q02": "qualix.schemas.phase_q02:PhaseA3Output",
         "Q04": "qualix.schemas.phase_q04:PhaseA5Output",
         "Q03": "qualix.schemas.phase_q03:PhaseA6Output",
-        "Q05": "qualix.schemas.phase_q05:PhaseBOutput",
+        "Q05a": "qualix.schemas.phase_q05:PhaseBOutput",
         "Q05a": "qualix.schemas.phase_q05:PhaseBOutput",
         "Q05b": "qualix.schemas.phase_q05:PhaseBCodeStatusOutput",
         "Q06": "qualix.schemas.phase_q06:PhaseCOutput",
@@ -127,20 +127,20 @@ def auto_derive_checks(
             # --- Q01 analysis sidecars: evidence pack + ambiguity queue ---
             errors.extend(build_q01_analysis_sidecars(output_dir, project_id, phase_id))
 
-        # --- Q05: REQ+BR+SE × 代码路径完整性（Happy/Exception/Boundary/并发幂等）---
-        if phase_id in {"Q05", "Q05a"}:
+        # --- Q05a: REQ+BR+SE × 代码路径完整性（Happy/Exception/Boundary/并发幂等）---
+        if phase_id in {"Q05a"}:
             errors.extend(_check_q05_req_br_se_coverage(validated, phase_id, output_dir, project_id))
 
         # --- Q06: coverage_gate 自报 ↔ JaCoCo 一致性 (G2) ---
         if phase_id == "Q06":
             errors.extend(_check_coverage_gate_consistency(output_dir, project_id, phase_id))
-            # --- Q06: audit_items 数量 ≥ Q05 EUT 数量 (G7) ---
+            # --- Q06: audit_items 数量 ≥ Q05a EUT 数量 (G7) ---
             errors.extend(_check_audit_items_count(output_dir, project_id, phase_id))
             # --- Q06: evidence 行号内容验证 (G5) ---
             errors.extend(_check_evidence_line_reality(output_dir, project_id, phase_id))
 
     # --- 5. RSM 覆盖率校验（跨 Phase，在 A.5/B/D finalize 时触发）---
-    if phase_id in {"Q04", "Q05", "Q05a", "Q05b", "Q06", "Q07"}:
+    if phase_id in {"Q04", "Q05a", "Q05b", "Q06", "Q07"}:
         errors.extend(_check_rsm_coverage(output_dir, project_id, phase_id))
 
     return errors
@@ -298,7 +298,7 @@ def _check_rsm_coverage(output_dir: Path, project_id: str, phase_id: str) -> lis
                         }
                     )
 
-    if phase_id in ("Q05", "Q05a", "Q05b", "Q06") and coverage.total_ses > 0 and coverage.test_coverage_rate < 0.6:
+    if phase_id in ("Q05a", "Q05b", "Q06") and coverage.total_ses > 0 and coverage.test_coverage_rate < 0.6:
         # B/C finalize 时：SE 应该有对应 EUT
         errors.append(
             f"RSM_COVERAGE: SE→EUT 测试覆盖率 {coverage.test_coverage_rate:.0%} "

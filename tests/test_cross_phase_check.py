@@ -81,7 +81,7 @@ class TestCrossPhaseRefs:
             },
         )
         _write_json(
-            output_dir / "PROJ" / "Q05" / "phase_b_structured.json",
+            output_dir / "PROJ" / "Q05a" / "phase_b_structured.json",
             {
                 "project_id": "PROJ",
                 "eut_items": [
@@ -98,7 +98,7 @@ class TestCrossPhaseRefs:
         )
         errors, hashes = check_cross_phase_refs(output_dir, "PROJ")
         assert errors == []
-        assert "Q05/phase_b_structured.json" in hashes
+        assert "Q05a/phase_b_structured.json" in hashes
 
     def test_b_refs_missing_se(self, tmp_path: Path):
         output_dir = tmp_path / "output"
@@ -113,7 +113,7 @@ class TestCrossPhaseRefs:
             },
         )
         _write_json(
-            output_dir / "PROJ" / "Q05" / "phase_b_structured.json",
+            output_dir / "PROJ" / "Q05a" / "phase_b_structured.json",
             {
                 "project_id": "PROJ",
                 "eut_items": [
@@ -146,7 +146,7 @@ class TestCrossPhaseRefs:
             },
         )
         _write_json(
-            output_dir / "PROJ" / "Q05" / "phase_b_structured.json",
+            output_dir / "PROJ" / "Q05a" / "phase_b_structured.json",
             {
                 "project_id": "PROJ",
                 "eut_items": [
@@ -169,12 +169,12 @@ class TestCrossPhaseRefs:
             },
         )
         errors, _hashes = check_cross_phase_refs(output_dir, "PROJ")
-        # G3 新增：Q05 EUT-001 未被 Q06 审计也会触发错误，故 errors >= 1
+        # G3 新增：Q05a EUT-001 未被 Q06 审计也会触发错误，故 errors >= 1
         assert len(errors) >= 1
         assert any("EUT-999" in e for e in errors)
 
     def test_c_refs_when_phase_b_file_missing(self, tmp_path: Path):
-        """Q06 引用 EUT 但 Q05 产物不存在时须报错（phantom / 无法对齐子集）。"""
+        """Q06 引用 EUT 但 Q05a 产物不存在时须报错（phantom / 无法对齐子集）。"""
         output_dir = tmp_path / "output"
         _write_json(
             output_dir / "PROJ" / "Q01" / "phase_a_structured.json",

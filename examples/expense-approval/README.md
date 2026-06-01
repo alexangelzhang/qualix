@@ -26,7 +26,7 @@ The sample implementation and test files are synthetic. They are not meant to be
 From a project where Qualix is installed:
 
 ```bash
-qualix-run expense-demo init --profile python
+qualix-run --profile python-service expense-demo init
 qualix-run expense-demo startup --json
 ```
 
@@ -39,4 +39,3 @@ A line-coverage tool can be happy if the tests execute both branches. The real q
 > Did the tests prove that finance approval is required exactly at the 500 USD boundary, and that duplicate approval calls do not create duplicate audit entries?
 
 That is the sort of question Qualix tries to keep visible.
-

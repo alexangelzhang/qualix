@@ -1,4 +1,4 @@
-"""Q05 EUT 基础校验：缺失 SE、目录、Mock、追溯、多仓库."""
+"""Q05a EUT 基础校验：缺失 SE、目录、Mock、追溯、多仓库."""
 
 from __future__ import annotations
 
@@ -22,7 +22,7 @@ def _check_eut_missing_se(data: dict[str, Any]) -> list[str]:
         eid = eut.get("eut_id", "?")
         bs = (eut.get("bound_se") or "").strip()
         if not bs:
-            errors.append(f"BLOCKED: Q05 eut_missing_se — eut_items[{i}] {eid} 缺少 bound_se")
+            errors.append(f"BLOCKED: Q05a eut_missing_se — eut_items[{i}] {eid} 缺少 bound_se")
     return errors
 
 
@@ -39,7 +39,7 @@ def _check_wrong_directory(data: dict[str, Any]) -> list[str]:
         # Java/Kotlin: 测试文件不应放在 src/main/
         if "src/main/" in fl and ("test" in fl or fl.endswith(".java") or fl.endswith(".kt")):
             errors.append(
-                f"BLOCKED: Q05 wrong_directory — test_cases[{i}] test_location 指向 src/main: {loc.get('file')}"
+                f"BLOCKED: Q05a wrong_directory — test_cases[{i}] test_location 指向 src/main: {loc.get('file')}"
             )
         # TypeScript: 测试文件不应放在 src/ 根目录下（应在 __tests__/ 或同文件 *.test.ts）
         # 判断：路径在 src/ 下，但既不含 __tests__ 也不是 .test.ts/.spec.ts
@@ -48,7 +48,7 @@ def _check_wrong_directory(data: dict[str, Any]) -> list[str]:
             is_test_file = ".test." in name or ".spec." in name or "__tests__" in fl
             if not is_test_file:
                 errors.append(
-                    f"BLOCKED: Q05 wrong_directory — test_cases[{i}] test_location 指向非测试 TS 文件: {loc.get('file')}"
+                    f"BLOCKED: Q05a wrong_directory — test_cases[{i}] test_location 指向非测试 TS 文件: {loc.get('file')}"
                 )
     return errors
 
@@ -72,7 +72,7 @@ def _check_mock_patterns(java_paths: list[Path]) -> list[str]:
         for pat in _TYPO_METHOD_PATTERNS:
             if pat.search(text):
                 errors.append(
-                    f"BLOCKED: Q05 mock_wrong — {path.name} 疑似错误方法名拼写（{pat.pattern}），请核对被测 API"
+                    f"BLOCKED: Q05a mock_wrong — {path.name} 疑似错误方法名拼写（{pat.pattern}），请核对被测 API"
                 )
                 break
         # mock_phantom_method 启发式：when(...).X( 且 X 长度 <=2（极少为真实业务方法）
@@ -80,7 +80,7 @@ def _check_mock_patterns(java_paths: list[Path]) -> list[str]:
             name = m.group(1)
             if len(name) == 1 and name.isalpha():
                 errors.append(
-                    f"BLOCKED: Q05 mock_phantom_method — {path.name} when().{name}() 单字母方法名，"
+                    f"BLOCKED: Q05a mock_phantom_method — {path.name} when().{name}() 单字母方法名，"
                     "请确认是否为臆造方法名"
                 )
                 break
@@ -117,7 +117,7 @@ def _check_method_level_assert_strength(path: Path, text: str) -> list[str]:
     weak_count = len(weak_methods)
     if total > 0 and weak_count / total > 0.4:
         return [
-            f"BLOCKED: Q05 weak_assert_method — {path.name} {weak_count}/{total} 个 @Test 方法仅有弱断言"
+            f"BLOCKED: Q05a weak_assert_method — {path.name} {weak_count}/{total} 个 @Test 方法仅有弱断言"
             f"（assertNotNull 等），缺少 assertEquals/assertThrows/verify：{', '.join(weak_methods[:4])}"
         ]
     return []
@@ -165,7 +165,7 @@ def _check_se_traceability(test_files: list[Path]) -> list[str]:
     rate = traced_methods / total_methods
     if rate < 0.6:
         return [
-            f"WARNING: Q05 traceability — {traced_methods}/{total_methods} 个 @Test 方法有 SE/EUT 追溯标注"
+            f"WARNING: Q05a traceability — {traced_methods}/{total_methods} 个 @Test 方法有 SE/EUT 追溯标注"
             f"（{rate:.0%}，要求 ≥60%）。请在方法注释或名称中加入 SE-xxx/EUT-xxx 标识。"
         ]
     return []
@@ -206,7 +206,7 @@ def _check_multi_repo_coverage(code_repos: list[str], test_files: list[Path]) ->
         repo_has_tests = any(str(f).startswith(str(repo)) for f in test_files)
         if not repo_has_tests:
             errors.append(
-                f"BLOCKED: Q05 multi_repo_coverage — 仓库 {repo.name} 有 {len(changed_prod)} 个生产代码变更但无新增测试文件。"
+                f"BLOCKED: Q05a multi_repo_coverage — 仓库 {repo.name} 有 {len(changed_prod)} 个生产代码变更但无新增测试文件。"
                 "SKILL.md Step 3.5：有代码变更的仓库必须有对应的测试生成，禁止静默跳过。"
             )
     return errors

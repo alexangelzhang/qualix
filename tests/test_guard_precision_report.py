@@ -10,7 +10,7 @@ from qualix.reporting.guard_precision_report import (
 
 
 def test_build_summary_counts(tmp_path: Path) -> None:
-    proj = tmp_path / "output" / "demo" / "Q05" / "_internal"
+    proj = tmp_path / "output" / "demo" / "Q05a" / "_internal"
     proj.mkdir(parents=True)
     payload = [
         {"guardrail": "finalize_checks", "passed": True, "level": "INFO"},

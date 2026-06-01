@@ -8,7 +8,7 @@ from qualix.quality.evaluation_protocols import (
 
 
 def test_all_phases_have_protocols():
-    for phase_id in ("Q01", "Q02", "Q03", "Q04", "Q05", "Q05a", "Q05b", "Q06", "Q07"):
+    for phase_id in ("Q01", "Q02", "Q03", "Q04", "Q05a", "Q05b", "Q06", "Q07"):
         assert phase_id in PHASE_PROTOCOLS, f"{phase_id} missing from PHASE_PROTOCOLS"
 
 

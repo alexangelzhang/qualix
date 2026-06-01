@@ -31,7 +31,7 @@ PHASE_DEFS: Final = MappingProxyType(
             "depends_on": [],
             "parallel_with": [],
             "required_inputs": [
-                {"key": "prd", "label": "需求文档", "prompt": "PRD 路径或飞书链接", "required": True},
+                {"key": "prd", "label": "需求文档", "prompt": "PRD 本地路径或企业文档 URL", "required": True},
             ],
             "optional_inputs": [
                 {"key": "images", "label": "补充图片目录", "prompt": "图片/原型图目录路径（没有直接回车跳过）"},
@@ -68,7 +68,7 @@ PHASE_DEFS: Final = MappingProxyType(
                 {
                     "key": "existing_tech_design",
                     "label": "已有技术方案",
-                    "prompt": "如已有技术方案文档，提供路径或飞书链接（提供则跳过生成，直接进入评审）",
+                    "prompt": "如已有技术方案文档，提供本地路径或企业文档 URL（提供则跳过生成，直接进入评审）",
                 },
                 {
                     "key": "code_repo",
@@ -112,7 +112,7 @@ PHASE_DEFS: Final = MappingProxyType(
                 {
                     "key": "tech_design",
                     "label": "技术方案文档",
-                    "prompt": "技术方案路径或飞书链接（Q02 跳过时必填）",
+                    "prompt": "技术方案本地路径或企业文档 URL（Q02 跳过时必填）",
                     "required": True,
                 },
             ],
@@ -155,7 +155,7 @@ PHASE_DEFS: Final = MappingProxyType(
                 {
                     "key": "tech_design",
                     "label": "技术方案文档",
-                    "prompt": "技术方案路径或飞书链接（多个用逗号分隔）",
+                    "prompt": "技术方案本地路径或企业文档 URL（多个用逗号分隔）",
                     "required": True,
                 },
             ],
@@ -165,7 +165,7 @@ PHASE_DEFS: Final = MappingProxyType(
                     "label": "代码仓库(master分支)",
                     "prompt": "代码仓库路径，多个用逗号分隔（没有直接回车跳过）",
                 },
-                {"key": "knowledge_base", "label": "知识库", "prompt": "知识库路径或飞书链接（没有直接回车跳过）"},
+                {"key": "knowledge_base", "label": "知识库", "prompt": "知识库本地路径或企业文档 URL（没有直接回车跳过）"},
             ],
             "deliverables": [
                 "tech_design_coverage_review.md — 覆盖度审计报告",
@@ -181,45 +181,6 @@ PHASE_DEFS: Final = MappingProxyType(
                 {"canonical": "BR 覆盖度", "aliases": ["BR Coverage", "BR覆盖", "分支需求覆盖"]},
                 {"canonical": "缺失项", "aliases": ["Missing Items", "遗漏"]},
             ],
-        },
-        "Q05": {
-            "name": "单测生成",
-            "dir_suffix": "Q05",
-            "skill": "skills/unit-test-generation/SKILL.md",
-            "recommended_model": "standard",
-            "reasoning_profile": {"planning": "high", "execution": "standard", "verification": "standard"},
-            "depends_on": ["Q01"],
-            "parallel_with": [],
-            "required_inputs": [
-                {
-                    "key": "code_repo",
-                    "label": "代码仓库",
-                    "prompt": "代码仓库路径，多个用逗号分隔（本地路径或 Git URL）",
-                    "required": True,
-                },
-                {
-                    "key": "target_modules",
-                    "label": "目标模块",
-                    "prompt": "要生成单测的模块/类路径（多个用逗号分隔）",
-                    "required": True,
-                },
-            ],
-            "optional_inputs": [],
-            "deliverables": [
-                "eut_matrix.md — EUT 测试大纲",
-                "phase_b_structured.json — 结构化 EUT 矩阵",
-                "生成的单测代码文件",
-            ],
-            "approve_checklist": [
-                "EUT 矩阵覆盖了所有 REQ/BR/SE",
-                "单测代码使用强断言（非仅执行流程）",
-                "异常路径有对应测试",
-            ],
-            "required_report_sections": [
-                {"canonical": "测试用例清单", "aliases": ["单测用例", "Test Cases", "EUT Matrix"]},
-                {"canonical": "覆盖率矩阵", "aliases": ["Coverage Matrix", "覆盖率"]},
-            ],
-            "judge_pass_threshold": 4.7,  # 单测生成质量要求高，高于其他 Phase 默认 3.5
         },
         "Q05a": {
             "name": "EUT 矩阵设计",
@@ -285,7 +246,7 @@ PHASE_DEFS: Final = MappingProxyType(
             ],
             "approve_checklist": [
                 "C9: 所有 EUT 都有对应 @Test 方法（精确模式：EUT-xxx 追溯注释）",
-                "C10: git diff 实现类全部有 EUT 覆盖（无 BLOCKED: Q05 git_diff_not_covered）",
+                "C10: git diff 实现类全部有 EUT 覆盖（无 BLOCKED: Q05a git_diff_not_covered）",
                 "编译通过（mvn test-compile），无幻觉方法名",
                 "断言强度达标（无 try/catch 仅防 NPE 的弱断言）",
             ],
@@ -363,4 +324,4 @@ PHASE_DEFS: Final = MappingProxyType(
 )
 
 # Phase 执行顺序
-PHASE_ORDER: Final = ("Q01", "Q02", "Q03", "Q04", "Q05", "Q05a", "Q05b", "Q06", "Q07")
+PHASE_ORDER: Final = ("Q01", "Q02", "Q03", "Q04", "Q05a", "Q05b", "Q06", "Q07")

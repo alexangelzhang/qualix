@@ -13,12 +13,12 @@
 ## 2026-04-10
 - multi_agent.py judge prompt 统一到 quality/judge.py
 - cmd_auto 切换到 runtime
-- adaptive_loop report_map 补齐 Q02/Q05/Q06/Q07
+- adaptive_loop report_map 补齐 Q02/Q05a/Q06/Q07
 - skill_loader 接入 dag_scheduler（progressive disclosure 激活）
 - Skill 结构标准化（7 个 Phase skill 统一追加 Anti-Rationalization + Verification 节）
 - Agent Persona（Judge: 10 年质量负责人；Critique: 资深 QA 架构师）
 - Phase Q01 假设前置（Step 0.5 Assumption Surfacing）
-- Phase Q05 Mock 优先级（Real > Fake > Stub > Mock）+ DAMP 原则
+- Phase Q05a Mock 优先级（Real > Fake > Stub > Mock）+ DAMP 原则
 - Phase Q07 变更大小门禁 + 评论严重级别标签
 - 全局错误恢复协议（Stop-the-Line + Triage 五步法）
 - 上下文层级模型（五级金字塔 + 信任级别 + 行数阈值）
@@ -34,7 +34,7 @@
 - 跨项目知识自动注入（`_cross_project_insights.md`）
 - 案例相关性二级匹配（同义词扩展）
 - 图片→Mermaid 验证闭环
-- Phase Q05 编译验证 gate
+- Phase Q05b 编译验证 gate（原 Q05a 分拆后，编译 gate 归属 Q05b）
 - Q04 覆盖度结构化映射表
 - 业务域变异测试推导
 - Harness/Domain 分层 Phase 0
@@ -44,7 +44,7 @@
 - Judge anti-rationalization table + 事实索引 confidence tagging
 - Phase skill progressive disclosure
 - Hyperedge 多实体关联
-- Phase Q05/Q07 Judge rubric 补齐
+- Phase Q05a/Q07 Judge rubric 补齐
 - 覆盖率门禁代码化
 
 ## 2026-04-08

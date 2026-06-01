@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** 为 Q05/Q06 的每条审计判定和测试用例附加结构化双坐标（测试代码位置 + 被测生产代码位置），同时服务于人工 review 和自动修复 agent。
+**Goal:** 为 Q05a/Q06 的每条审计判定和测试用例附加结构化双坐标（测试代码位置 + 被测生产代码位置），同时服务于人工 review 和自动修复 agent。
 
-**Architecture:** 新增共享 `SourceLocation` Pydantic 模型，在 Q05 `TCItem` 和 Q06 `EutAuditItem`/`FindingItem` 上追加两个可选字段。Finalize gate 在 `auto_checks.py` 追加校验规则：COVERED 判定缺少 `test_location` 时降级为 PARTIAL。Skill prompt 更新 JSON 格式示例并新增 IRON LAW。
+**Architecture:** 新增共享 `SourceLocation` Pydantic 模型，在 Q05a `TCItem` 和 Q06 `EutAuditItem`/`FindingItem` 上追加两个可选字段。Finalize gate 在 `auto_checks.py` 追加校验规则：COVERED 判定缺少 `test_location` 时降级为 PARTIAL。Skill prompt 更新 JSON 格式示例并新增 IRON LAW。
 
 **Tech Stack:** Python 3.11+, Pydantic v2, pytest
 
@@ -19,7 +19,7 @@
 | `src/qualix/schemas/phase_q05.py` | 修改（`TCItem` 加两个可选字段） |
 | `src/qualix/schemas/phase_q06.py` | 修改（`EutAuditItem`、`FindingItem` 加字段） |
 | `src/qualix/quality/checks/auto_checks.py` | 修改（追加 location 校验规则） |
-| `skills/unit-test-generation/SKILL.md` | 修改（JSON 示例 + IRON LAW） |
+| `skills/unit-test-design/SKILL.md` | 修改（JSON 示例 + IRON LAW） |
 | `skills/unit-test-audit/SKILL.md` | 修改（JSON 示例 + IRON LAW） |
 | `tests/test_lineage_tracking.py` | 新建 |
 
@@ -167,7 +167,7 @@ git commit -m "feat: export SourceLocation from schemas package"
 
 ---
 
-## Task 3: 更新 Q05 `TCItem` schema
+## Task 3: 更新 Q05a `TCItem` schema
 
 **Files:**
 - Modify: `src/qualix/schemas/phase_q05.py`
@@ -526,10 +526,10 @@ git commit -m "feat: finalize gate — downgrade COVERED to PARTIAL when test_lo
 
 ---
 
-## Task 6: 更新 Q05 Skill Prompt
+## Task 6: 更新 Q05a Skill Prompt
 
 **Files:**
-- Modify: `skills/unit-test-generation/SKILL.md`
+- Modify: `skills/unit-test-design/SKILL.md`
 
 - [ ] **Step 1: 在 `phase_b_structured.json` 格式示例中更新 TC 条目**
 
@@ -584,8 +584,8 @@ git commit -m "feat: finalize gate — downgrade COVERED to PARTIAL when test_lo
 - [ ] **Step 4: Commit**
 
 ```bash
-git add skills/unit-test-generation/SKILL.md
-git commit -m "feat: update Q05 skill prompt with location fields"
+git add skills/unit-test-design/SKILL.md
+git commit -m "feat: update Q05a skill prompt with location fields"
 ```
 
 ---

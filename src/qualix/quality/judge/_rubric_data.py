@@ -170,7 +170,7 @@ JUDGE_RUBRICS: Final[dict[str, dict[str, Any]]] = {
             {
                 "id": "audit_accuracy",
                 "name": "审计判定准确率",
-                "description": "COVERED/MISSING/WRONG_TARGET 的判定是否正确。严禁从 BUG_CASES 历史案例推断当前报告存在同类问题——BUG_CASES 是已修正的历史错误，不是当前审计的缺陷；EUT ID 是否存在于 Q05 必须从实际文件验证，不能靠历史案例推断",
+                "description": "COVERED/MISSING/WRONG_TARGET 的判定是否正确。严禁从 BUG_CASES 历史案例推断当前报告存在同类问题——BUG_CASES 是已修正的历史错误，不是当前审计的缺陷；EUT ID 是否存在于 Q05a 必须从实际文件验证，不能靠历史案例推断",
                 "weight": 0.35,
                 "rubric": {
                     5: "所有审计状态判定正确，COVERED 确实有强断言，WRONG_TARGET 确实是弱断言，无漏报；EUT ID 引用验证充分",
@@ -221,7 +221,7 @@ JUDGE_RUBRICS: Final[dict[str, dict[str, Any]]] = {
             },
         ],
     },
-    "Q05": {
+    "Q05a": {
         "name": "单测生成",
         "dimensions": [
             {

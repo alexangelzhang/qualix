@@ -47,7 +47,7 @@ _TITLE_PATTERNS: Final[list[tuple[str, str]]] = [
     ),
     (r"issues\.\d+\.issue_id", "issues 条目 issue_id 或 severity 不符合 schema，禁止自造枚举词"),
     (r"findings?\[\d+\]|finding", "findings 条目缺 id/severity 等必填字段，与 phase_c 契约对齐"),
-    (r"eut_id|phantom|不存在.*eut", "EUT 编号须来自 Q05 phase_b_structured.json，禁止按测试代码臆造编号"),
+    (r"eut_id|phantom|不存在.*eut", "EUT 编号须来自 Q05a phase_b_structured.json，禁止按测试代码臆造编号"),
     (r"then|弱断言|vague", "EUT then 须写具体断言与期望值，禁止「验证成功」等模糊描述"),
 ]
 

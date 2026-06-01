@@ -15,16 +15,16 @@
 |----|------|------|------|-------|-------|------|------|------|
 | T1 | Q03 failure_modes schema + prompt 必填清单 | P0 | 0.5 | zhangyiqian3 | schema 修正 + Q03 skill prompt 必填表 | — | code | verified |
 | T2 | Q06 findings schema + prompt 必填清单 | P0 | 0.5 | zhangyiqian3 | `skills/unit-test-audit/references/phase_c_structured.schema.json` + Q06 skill 必填表 | — | code | todo |
-| T3 | Q05→Q06 EUT ID 子集硬约束 | P0 | 0.5 | zhangyiqian3 | `cross_phase_check.validate_eut_id_subset` | — | code | verified |
+| T3 | Q05a→Q06 EUT ID 子集硬约束 | P0 | 0.5 | zhangyiqian3 | `cross_phase_check.validate_eut_id_subset` | — | code | verified |
 | T4 | 失败案例库 lesson 补齐 + case_category 五类 | P0 | 1 | zhangyiqian3 | `case_category.py`、`lesson_inference` 扩展、`scripts/backfill_failure_case_lessons.py`（全库 `--apply` 完成） | — | code | verified |
-| T5 | Q05 剩余结构合规 validator（mock_wrong / mock_phantom_method / eut_missing_se / wrong_directory；compile_fail 由 `test_execution_gate` 兜底） | P0 | 2 | zhangyiqian3 | `q05_structure_checks.py` + 接入 `finalize_checks` | T4 | code | todo |
-| T6 | Q05 生成范式三步改造 + Guardrail 分支覆盖 | P1 | 3 | zhangyiqian3 | `references/q05-three-step-paradigm.md` + SKILL 三步节 + `Q05BranchCoverageGuardrail` | T5 | code | **todo**（见下方 §回写要求） |
+| T5 | Q05a 剩余结构合规 validator（mock_wrong / mock_phantom_method / eut_missing_se / wrong_directory；compile_fail 由 `test_execution_gate` 兜底） | P0 | 2 | zhangyiqian3 | `q05_structure_checks.py` + 接入 `finalize_checks` | T4 | code | todo |
+| T6 | Q05a 生成范式三步改造 + Guardrail 分支覆盖 | P1 | 3 | zhangyiqian3 | `skills/unit-test-design/SKILL.md` + SKILL 三步节 + `Q05BranchCoverageGuardrail` | T5 | code | **todo**（见下方 §回写要求） |
 | T7 | 统一枚举源 EnumSource + prompt 注入 | P1 | 0.5 | zhangyiqian3 | `context/enum_contract.py`；`resolve_worker_prompt` / `generate_worker_prompt` 注入 | — | code | verified |
 | T8 | Schema↔Prompt 一致性 CI | P1 | 1 | zhangyiqian3 | `scripts/check_schema_prompt_sync.py` + `.pre-commit-config.yaml` hook | T7 | code | verified |
 | T9 | Guard 精度仪表盘 | P1 | 1.5 | zhangyiqian3 | `reporting/guard_precision_report.py` + `observe guard-precision` 命令 + `docs/.../guard_precision.md` | T1–T5 有一周稳定运行数据 | code | todo |
 | T10 | Failure → Reflector 自动回流 | P2 | 1 | zhangyiqian3 | `scripts/reflect_case.py` + 采集钩子 | T4 | code | todo |
 | T11 | RationalizationProbe 字段级 | P2 | 2 | zhangyiqian3 | `PhaseGuardrail::RationalizationProbe` | — | code | verified |
-| T12 | Q05 生产 bug 回归实验 | P2 | 2 | zhangyiqian3（需业务方提供 bug 列表） | 3 项目 × 10 条历史 bug 重跑报告（路径：`observability/reports/q05-bug-regression/{project}.md`） | T6 | **todo** | **todo**（见下方 §回写要求） |
+| T12 | Q05a 生产 bug 回归实验 | P2 | 2 | zhangyiqian3（需业务方提供 bug 列表） | 3 项目 × 10 条历史 bug 重跑报告（路径：`observability/reports/q05-bug-regression/{project}.md`） | T6 | **todo** | **todo**（见下方 §回写要求） |
 
 ### 依赖图
 
@@ -35,11 +35,11 @@ T1 ─┐
 T2 ─┤ (并行 P0 首周收尾，三条独立)
 T3 ─┘
 
-T4 ──┬──► T5 (Q05 结构合规五 validator)
+T4 ──┬──► T5 (Q05a 结构合规五 validator)
      │
      └──► T10 (Reflector 需 T4 的 case_category 语料)
 
-T5 ──► T6 (Q05 范式改造复用 T5 的校验基座)
+T5 ──► T6 (Q05a 范式改造复用 T5 的校验基座)
        │
        └──► T12 (bug 回归只能测新范式)
 
@@ -71,7 +71,7 @@ T11 独立（RationalizationProbe 字段级护栏）
 ### 仍需回写（code → verified 缺的证据）
 
 - **T2**：schema / 必填清单已就位，但 Q06 2026-05-07 仍有 19 条 findings 缺字段类失败（commit `7b3970d`）。需在 workflow-approval-demo 05-09 后重跑一次确认归零
-- **T5**：`q05_structure_checks.py` 接入 + 测试通过，但 Q05 自 2026-04-29 起 0 条新增很可能是"没跑"而非"止血"（见下方 §本周失败量快照免责声明），需下次规模化跑批确认
+- **T5**：`q05_structure_checks.py` 接入 + 测试通过，但 Q05a 自 2026-04-29 起 0 条新增很可能是"没跑"而非"止血"（见下方 §本周失败量快照免责声明），需下次规模化跑批确认
 - **T9**：guard 精度报告可产出，但 `docs/system-health-reports/guard_precision.md` 需至少 7 天稳定观测数据才能说"三态均有样本"，目前刚上线
 - **T10**：Reflector 脚手架就位，`test_case_reflect` 通过，但新采集 case 自动填充率 ≥95% 的口径未跑实际数据
 
@@ -89,7 +89,7 @@ T11 独立（RationalizationProbe 字段级护栏）
 | Q01 | 92 | 2026-05-06 | 86 | 86 | bitable 解析问题集中涌现（T1+T5 治理） |
 | Q03 | 969 | 2026-04-27 | — | 0 | 4-27 后无新增（需确认是"止血"还是"没跑"） |
 | Q04 | 11 | 2026-04-28 | — | 0 | 4-28 后无新增 |
-| Q05 | 225 | 2026-04-29 | — | 0 | 4-29 后无新增（同上，待 T12 回归实验验证） |
+| Q05a | 225 | 2026-04-29 | — | 0 | 4-29 后无新增（同上，待 T12 回归实验验证） |
 | Q06 | 352 | 2026-05-07 | 19 | 19 | workflow-approval-demo findings 缺字段问题（T2 治理） |
 | Q07 | 127 | 2026-04-24 | — | 0 | 4-24 后无新增 |
 
@@ -145,18 +145,18 @@ T11 独立（RationalizationProbe 字段级护栏）
 ### 2026-05-08
 
 - ~~**缺少 phase_c_structured.schema.json**~~ — 已于 2026-05-09 补充：`skills/unit-test-audit/references/phase_c_structured.schema.json`。
-- **缺少 phase_b_structured.schema.json（Q05）** — 原备注把它挂在 T5 范围下不准确（T5 是 validator，不是 schema 文档）。独立为 **T13（P1，0.5 周）**：补一份 Q05 输出层 schema 文档，配合 T7 EnumSource 做硬约束。
+- **缺少 phase_b_structured.schema.json（Q05a）** — 原备注把它挂在 T5 范围下不准确（T5 是 validator，不是 schema 文档）。独立为 **T13（P1，0.5 周）**：补一份 Q05a 输出层 schema 文档，配合 T7 EnumSource 做硬约束。
 
 ## 2026-05-10 — Skill 治理发现的架构缺陷（T14）
 
-来源：本 session 对 skills/ 目录结构治理 + Q05/Q06 failure-library 归类分析。
+来源：本 session 对 skills/ 目录结构治理 + Q05a/Q06 failure-library 归类分析。
 
 ### T14：adaptive_loop schema 校验反馈回路（P1，2 周）
 
 **现状**：Pydantic schema 校验只在 finalize 阶段（`phase_runtime.py:210`）执行，错误写入 telemetry/state 但**不回流到 adaptive_loop 的下一轮 iteration**。agent 在 loop 内永远看不到 schema 错误，下轮继续用同样方式产 JSON，schema 校验失败 → 无限循环。
 
 **证据**：
-- failure-library 抽样 20 个 Q05/Q06 case 归类，Q06 约 30% 是 E 类（schema 校验失败、修的是 schema 字段而非 skill 规则）
+- failure-library 抽样 20 个 Q05a/Q06 case 归类，Q06 约 30% 是 E 类（schema 校验失败、修的是 schema 字段而非 skill 规则）
 - `grep validate_phase_output src/qualix/agents/` → 0 命中，确认 adaptive_loop 完全不调用校验
 - `grep "iteration|feedback|judge_result.issues" src/qualix/agents/adaptive_loop.py` → 0 命中，确认 loop 无 per-iteration feedback 机制
 
@@ -169,7 +169,7 @@ T11 独立（RationalizationProbe 字段级护栏）
 
 **预估**：200-350 行代码改动 + 2-3 个新测试。
 
-**依赖**：本 session 已完成的 Q05/Q06 SKILL.md 规则侧改进（contract 提前、severity 歧义消除、Q05 补 4 条覆盖判定规则），形成"规则+反馈"闭环。
+**依赖**：本 session 已完成的 Q05a/Q06 SKILL.md 规则侧改进（contract 提前、severity 歧义消除、Q05a 补 4 条覆盖判定规则），形成"规则+反馈"闭环。
 
 **验收**：Q06 iteration 1 缺 `findings[0].severity` 时，iteration 2 的 worker prompt 必须看到该错误且大概率补齐；finalize 阶段 `validate_phase_output` 作为最后防线不变。
 

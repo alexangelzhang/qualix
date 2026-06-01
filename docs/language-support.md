@@ -39,7 +39,7 @@ The first implementation is `TreeSitterCodeIntelligenceProvider`. It supports Ja
 python -m pip install -e '.[tree-sitter]'
 ```
 
-Tree-sitter is intentionally treated as optional. If a grammar is missing, Qualix leaves code intelligence unavailable for that language and continues with the normal phase workflow. This keeps the first-run path short while still giving Q05/Q06 a better view of source structure when the parsers are present.
+Tree-sitter is intentionally treated as optional. If a grammar is missing, Qualix leaves code intelligence unavailable for that language and continues with the normal phase workflow. This keeps the first-run path short while still giving Q05a/Q06 a better view of source structure when the parsers are present.
 
 Q05a now uses that source structure when `_q05_target_modules.json` lists changed files. If Tree-sitter is available, Qualix enriches the target-module file with `code_symbols` and warns when changed classes, functions, or methods are not mentioned by any EUT `when` field. That check is intentionally a warning: it catches likely blind spots without blocking projects that are still mapping code targets by hand.
 
@@ -50,10 +50,10 @@ This is not an LSP integration. It does not run a project-wide language server, 
 Use the closest profile rather than waiting for a perfect one:
 
 ```bash
-qualix-run my-project init --profile java-ddd-tmf
-qualix-run my-project init --profile typescript-service
-qualix-run my-project init --profile go-service
-qualix-run my-project init --profile python-service
+qualix-run --profile java-ddd-tmf my-project init
+qualix-run --profile typescript-service my-project init
+qualix-run --profile go-service my-project init
+qualix-run --profile python-service my-project init
 ```
 
 For another unsupported language, start with Q01 and Q05a. Those phases can still produce useful requirement structure and test intent. Treat Q05b/Q06 as experimental unless you provide clear test commands and examples to the agent.

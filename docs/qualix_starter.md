@@ -25,14 +25,15 @@ Q02 可 skip（已有技术方案时）；Q05a/Q05b/Q06 与 Q02/Q03/Q04 独立�
 | Q02 | phase_contract | 推理日志 + 防回退 + auto_checks | 实施切片指导(XS/S/M/L/XL) + 范围外发现 |
 | Q03 | phase_contract | 推理日志 + 防回退 + auto_checks | 12类异常矩阵 + Failure Mode 分析 |
 | Q04 | phase_contract + coverage_matrix | 推理日志 + 防回退 + auto_checks | REQ/BR/SE→技术设计映射矩阵 |
-| Q05 | phase_contract + data_patterns + se_code_mapping | 推理日志 + 防回退 + **编译验证** + auto_checks | Mock优先级 + DAMP + 范围外发现 |
+| Q05a | phase_contract + data_patterns + se_code_mapping | 推理日志 + 防回退 + auto_checks | EUT矩阵设计 + Mock优先级策略 + DAMP + 范围外发现 |
+| Q05b | phase_contract + data_patterns + se_code_mapping | 推理日志 + 防回退 + **编译验证** + **弱断言gate** + auto_checks | @Test代码生成 + MockedStatic<TMF> + 多仓库完整性 |
 | Q06 | phase_contract + weak_assert + business_mutations + blast_radius + data_patterns + se_code_mapping + diff_context | 推理日志 + 防回退 + **覆盖率≥80%** + auto_checks | CONFLICT状态 + 变异测试 + 弱断言检测 |
 | Q07 | phase_contract + diff_context + se_code_mapping | 推理日志 + 防回退 + auto_checks | 变更大小门禁 + 评论标签 + 依赖审查 |
 
 ### 跨 Phase 数据流
 
 - Q01 SE 列表 → dynamic_rubric + business_mutations + coverage_matrix + phase_contract
-- Q06 bug cases → data_patterns → 注入 Q05/Q06
+- Q06 bug cases → data_patterns → 注入 Q05a/Q06
 - 所有 Phase bug cases → skill_factory + lesson_inference + skill_evolution
 - 跨项目 knowledge_network → 自动注入 `_cross_project_insights.md`
 - 下游 Phase 发现需求问题 → UPSTREAM_UPDATE_NEEDED → 触发 Q01 重开
@@ -62,10 +63,12 @@ Q02 可 skip（已有技术方案时）；Q05a/Q05b/Q06 与 Q02/Q03/Q04 独立�
 
 根据 JSON 中的 `required_inputs` 和 `optional_inputs` **逐项**收集，每次只问一个，等回复后再问下一个。
 
-**飞书文档**：用户提供飞书链接时必须自动调用：
+**文档摄入**：用户提供本地文档或企业文档 URL 时，先生成标准 IngestBundle：
 ```bash
-python3 scripts/feishu_direct_ingest.py "<feishu_url>" -o output/<project_id>/phaseA --save-raw-blocks
+qualix-run ingest "<document_source>" --project <project_id>
 ```
+
+企业文档 URL 依赖可选 connector；未配置 connector 时不要自动触发 OAuth，改为提示用户使用浏览器导出或配置自己的 connector。
 
 **图片语义解析**：ingest 产出图片时询问是否解析，如是：
 ```bash
@@ -138,22 +141,22 @@ SubAgent prompt 模板：
 | 条件 | 模式 |
 |------|------|
 | 技术方案 > 1000 行，或 Phase 涉及逐条审计（Q03/Q04/Q06） | Orchestrator（必须） |
-| 需要读取代码仓库（Q05/Q07） | Orchestrator |
+| 需要读取代码仓库（Q05a/Q07） | Orchestrator |
 | PRD < 500 行的简单 Q01 | 直接执行（可选） |
 | 调试或重跑单个 Phase | 直接执行（可选） |
 
 #### 并行调度（多 Phase 同时可执行时）
 
-当 `qualix-run status` 显示多个 Phase 可执行（如 Q02 + Q05 都 available），Orchestrator 应并行派发：
+当 `qualix-run status` 显示多个 Phase 可执行（如 Q02 + Q05a 都 available），Orchestrator 应并行派发：
 
 **判断规则**：同一批 available phases 之间没有互相依赖（A 不在 B 的 depends_on 里，B 也不在 A 的 depends_on 里），即可并行。
 
 **并行 Phase DAG 示例**：
 ```
-Q01 完成后 → Q02 + Q05 可并行
-Q02 完成后 → Q03（Q05 可能仍在执行，不阻塞）
+Q01 完成后 → Q02 + Q05a 可并行
+Q02 完成后 → Q03（Q05a 可能仍在执行，不阻塞）
 Q03 完成后 → Q04
-Q04 完成后 → Q07（需等 Q05/Q06 链路也完成）
+Q04 完成后 → Q07（需等 Q05a/Q06 链路也完成）
 ```
 
 **Orchestrator 并行派发方式**：
@@ -161,7 +164,7 @@ Q04 完成后 → Q07（需等 Q05/Q06 链路也完成）
 ```
 # 在同一条消息中发起多个 Agent tool 调用（Claude Code 原生支持并行 tool call）
 Agent(prompt="执行 Phase Q02...", subagent_type="general-purpose")
-Agent(prompt="执行 Phase Q05...", subagent_type="general-purpose")
+Agent(prompt="执行 Phase Q05a...", subagent_type="general-purpose")
 ```
 
 每个 SubAgent 在独立上下文中执行，互不干扰。主 Agent 等待所有并行 SubAgent 完成后，逐个 finalize + approve，再检查下一批可执行 Phase。
@@ -204,6 +207,6 @@ approve 后重新执行 `qualix-run startup` 刷新菜单，**等待用户选择
 5. 手动修改 `state.json` 或 `_telemetry.jsonl`
 6. 在 Q01/Q02/Q04/Q03 输出 UT/EUT
 7. 一次性列出所有输入问题（必须逐步交互）
-8. 对 Feishu/Lark 文档或其他远程文档，跳过必要的 ingest 步骤
+8. 对企业文档 URL 或其他远程文档，跳过必要的 ingest 步骤
 9. 跳过 Judge/Critique 直接 finalize
 10. 跳过 `_reasoning_log.md` 的输出

@@ -52,7 +52,7 @@ def test_compose_rubric_all_phases_have_routed():
     """Every known Phase including Q05a/Q05b has routed rubric dimensions."""
     from qualix.quality.judge_rubrics import PHASE_ROUTED_RUBRICS, compose_rubric
 
-    for phase_id in ("Q01", "Q03", "Q04", "Q05", "Q05a", "Q05b", "Q06", "Q07"):
+    for phase_id in ("Q01", "Q03", "Q04", "Q05a", "Q05b", "Q06", "Q07"):
         assert phase_id in PHASE_ROUTED_RUBRICS, f"{phase_id} missing from PHASE_ROUTED_RUBRICS"
         result = compose_rubric(phase_id)
         assert "source_citation" in result  # shared always present

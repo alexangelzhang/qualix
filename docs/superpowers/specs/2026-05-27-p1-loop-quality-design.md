@@ -202,7 +202,7 @@ monitor.record_iteration(
 
 ## 验收口径
 
-- Q05 执行后 `_data_patterns.md` 包含 Q05 相关 bug case 的模式（而非 Q06 的）
+- Q05a 执行后 `_data_patterns.md` 包含 Q05a 相关 bug case 的模式（而非 Q06 的）
 - adaptive loop 在 Worker 连续 2 轮输出相同 JSON 时触发 EARLY_STOP
 - adaptive loop 在 Judge 连续驳回相同 issue 时触发 EARLY_STOP
 - Judge FAIL 且有下一轮时，`_pivot_v{n}/` 目录存在并包含该轮的 JSON+报告

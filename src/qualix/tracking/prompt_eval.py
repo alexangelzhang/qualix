@@ -1,4 +1,4 @@
-"""Prompt-level A/B regression for Q05/Q06.
+"""Prompt-level A/B regression for Q05a/Q06.
 
 Reads prompt_versions/*.md under a regression case directory, executes each
 version through an injectable executor or offline prompt_outputs/*.json, computes

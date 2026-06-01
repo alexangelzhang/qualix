@@ -19,7 +19,7 @@ _PHASE_ROOT_MODELS: dict[str, type[BaseModel]] = {
     "Q02": PhaseA3Output,
     "Q03": PhaseA6Output,
     "Q04": PhaseA5Output,
-    "Q05": PhaseBOutput,
+    "Q05a": PhaseBOutput,
     "Q05a": PhaseBOutput,
     "Q05b": PhaseBCodeStatusOutput,
     "Q06": PhaseCOutput,

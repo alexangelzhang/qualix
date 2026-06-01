@@ -129,7 +129,7 @@ class TestConfidenceAnnotations:
 
     def test_skips_non_applicable_phases(self):
         text = "REQ-001 COVERED\n"
-        issues = check_confidence_annotations(text, "Q05")
+        issues = check_confidence_annotations(text, "Q05a")
         assert len(issues) == 0
 
     def test_passes_with_confidence(self):

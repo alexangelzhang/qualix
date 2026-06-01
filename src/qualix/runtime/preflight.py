@@ -98,7 +98,9 @@ def _check_checkpoint(output_dir: Path, project_id: str, phase_id: str) -> dict[
     """检查是否有可恢复的 checkpoint."""
     from qualix.runtime.task_store import get_resumable_task
 
-    task = get_resumable_task(output_dir, project_id=project_id, phase_id=phase_id)
+    task = get_resumable_task(output_dir, project_id=project_id, task_type="adaptive")
+    if task and task.get("phase_id") != phase_id:
+        task = None
     if task:
         return {
             "name": "checkpoint",

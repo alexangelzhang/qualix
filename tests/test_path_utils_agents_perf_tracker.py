@@ -29,7 +29,7 @@ def _phase_root(output_dir: Path, project_id: str, phase_id: str) -> Path:
 
 
 def test_resolve_context_files_supports_legacy_layout(tmp_path: Path) -> None:
-    phase_root = tmp_path / "output" / "demo" / "Q05"
+    phase_root = tmp_path / "output" / "demo" / "Q05a"
     expected = [
         _write(phase_root / "_upstream_context.md", "upstream"),
         _write(phase_root / "_profile_context.md", "profile"),
@@ -46,7 +46,7 @@ def test_resolve_context_files_supports_legacy_layout(tmp_path: Path) -> None:
 
 
 def test_resolve_context_files_supports_new_layout(tmp_path: Path) -> None:
-    phase_root = tmp_path / "output" / "demo" / "Q05"
+    phase_root = tmp_path / "output" / "demo" / "Q05a"
     expected = [
         _write(phase_root / "_internal" / "_upstream_context.md", "upstream"),
         _write(phase_root / "_internal" / "_profile_context.md", "profile"),
@@ -63,7 +63,7 @@ def test_resolve_context_files_supports_new_layout(tmp_path: Path) -> None:
 
 
 def test_resolve_effective_context_files_keeps_legacy_layout_without_upstream(tmp_path: Path) -> None:
-    phase_root = tmp_path / "output" / "demo" / "Q05"
+    phase_root = tmp_path / "output" / "demo" / "Q05a"
     expected = [
         _write(phase_root / "_profile_context.md", "profile"),
         _write(phase_root / "_bug_cases.md", "bug"),
@@ -79,7 +79,7 @@ def test_resolve_effective_context_files_keeps_legacy_layout_without_upstream(tm
 
 
 def test_resolve_effective_context_files_deduplicates_new_layout_with_upstream(tmp_path: Path) -> None:
-    phase_root = tmp_path / "output" / "demo" / "Q05"
+    phase_root = tmp_path / "output" / "demo" / "Q05a"
     expected = [
         _write(phase_root / "_internal" / "_upstream_context.md", "upstream"),
         _write(phase_root / "image_semantics.md", "image"),
@@ -98,7 +98,7 @@ def test_resolve_effective_context_files_deduplicates_new_layout_with_upstream(t
 def test_collect_phase_metrics_counts_tokens_sizes_and_reuses_cache(tmp_path: Path, monkeypatch) -> None:
     output_dir = tmp_path / "output"
     project_id = "demo"
-    phase_id = "Q05"
+    phase_id = "Q05a"
     phase_root = _phase_root(output_dir, project_id, phase_id)
 
     upstream_text = "upstream block\n" * 4

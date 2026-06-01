@@ -221,7 +221,7 @@ saveDraft(req):
 
 ## DDD+TMF 链路追踪规则
 
-对于 DDD+TMF 架构的项目，所有涉及代码分析的 Phase（Q04/Q03/Q05/Q06/Q07）必须遵守：
+对于 DDD+TMF 架构的项目，所有涉及代码分析的 Phase（Q04/Q03/Q05a/Q06/Q07）必须遵守：
 
 1. **禁止孤立分析** — 不得仅看单个类就下结论。某个能力（幂等、并发控制、状态校验、事务保护）可能在调用链路的任意层实现
 2. **完整链路追踪** — 分析任何功能点时，必须追踪完整的 TMF 链路：
@@ -262,7 +262,7 @@ saveDraft(req):
 | Q02 | 技术方案需要的字段/接口在 REQ/BR 中未定义 | 标记 `UPSTREAM_UPDATE_NEEDED: Phase Q01 缺少 XXX 的 REQ/BR 定义` |
 | Q03 | 质量评审发现需求本身有歧义（不是方案问题） | 标记 `UPSTREAM_UPDATE_NEEDED: Phase Q01 的 REQ-XXX 描述有歧义` |
 | Q04 | 覆盖度审计发现 REQ/SE 定义不够细无法判定覆盖 | 标记 `UPSTREAM_UPDATE_NEEDED: Phase Q01 的 SE-XXX 粒度不足` |
-| Q05 | EUT 建模时发现 SE 缺少判定依据 | 标记 `UPSTREAM_UPDATE_NEEDED: Phase Q01 的 SE-XXX 缺少判定依据` |
+| Q05a | EUT 建模时发现 SE 缺少判定依据 | 标记 `UPSTREAM_UPDATE_NEEDED: Phase Q01 的 SE-XXX 缺少判定依据` |
 | Q06 | 审计时发现需求场景在 Phase Q01 中未建模 | 标记 `UPSTREAM_UPDATE_NEEDED: Phase Q01 缺少 XXX 场景` |
 
 ### 处理流程

@@ -140,7 +140,6 @@ _RENDERERS: Final = MappingProxyType(
     {
         "Q01": render_phase_a,
         "Q03": render_phase_a6,
-        "Q05": render_phase_b,
         "Q05a": render_phase_b,
         "Q07": render_phase_d,
     }

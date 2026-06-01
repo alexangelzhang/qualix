@@ -1,4 +1,4 @@
-"""Q05: 分支清单 vs Exception/Boundary 类 EUT 覆盖（T6 配套 Guardrail）."""
+"""Q05a: 分支清单 vs Exception/Boundary 类 EUT 覆盖（T6 配套 Guardrail）."""
 
 from __future__ import annotations
 
@@ -27,7 +27,7 @@ class Q05BranchCoverageGuardrail(PhaseGuardrail):
                     guardrail_name=self.name,
                     passed=False,
                     level=GuardrailLevel.WARNING,
-                    message="未执行 Q05 三步范式 Step A，分支清单缺失，异常/边界路径覆盖无法验证（_internal/_q05_branch_inventory.json）",
+                    message="未执行 Q05a 三步范式 Step A，分支清单缺失，异常/边界路径覆盖无法验证（_internal/_q05_branch_inventory.json）",
                 )
             ]
 

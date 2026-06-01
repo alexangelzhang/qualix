@@ -49,7 +49,7 @@ def _page_scoring_overview():
         "Judge 评分 = Rubric 维度加权分（1-5）｜Contract = 硬检查通过率｜Eval = 指标对比基线状态｜质量 = 严重/高危问题数"
     )
 
-    dag_order = ["Q01", "Q02", "Q03", "Q04", "Q05", "Q05a", "Q05b", "Q06", "Q07"]
+    dag_order = ["Q01", "Q02", "Q03", "Q04", "Q05a", "Q05b", "Q06", "Q07"]
     rows = []
     for qid in dag_order:
         ps = phases.get(qid, {})

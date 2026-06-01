@@ -211,7 +211,7 @@ def _check_schema_semantic_completeness(
         "Q02": ["req_mapping", "interfaces"],
         "Q03": ["issues"],
         "Q04": ["coverage_summary"],
-        "Q05": ["eut_items"],
+        "Q05a": ["eut_items"],
         "Q05a": ["eut_items"],
         "Q05b": ["tasks"],
         "Q06": ["audit_items"],

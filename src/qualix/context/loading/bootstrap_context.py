@@ -24,7 +24,6 @@ _PREV_PHASE_STRUCTURED: Final = MappingProxyType(
         "Q02": ("Q01", "phase_a_structured.json"),
         "Q03": ("Q02", "phase_a3_structured.json"),
         "Q04": ("Q03", "phase_a6_structured.json"),
-        "Q05": ("Q01", "phase_a_structured.json"),
         "Q05a": ("Q01", "phase_a_structured.json"),
         "Q05b": ("Q05a", "phase_b_structured.json"),
         "Q06": ("Q05a", "phase_b_structured.json"),

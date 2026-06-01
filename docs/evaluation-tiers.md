@@ -29,15 +29,15 @@ Qualix 评估机制按"从硬门槛到元评分"分 8 个 Tier，层层叠加。
 | Phase Contract hard_checks | `runtime/phase_contract.py` | `_get_hard_checks()` 每 Phase 必填字段/结构约束，fail 即 BLOCKED |
 | Schema 校验 | `schemas/phase_q01..q07.py` | Pydantic，fail_closed（错误列表而非 None） |
 | AutoChecks | `quality/checks/auto_checks.py::auto_derive_checks` | schema + phase_registry 自动推导：合规 / 交叉引用 / 严重等级 / RSM 覆盖率 |
-| Cross-Phase 交叉引用 | `quality/checks/cross_phase_check.py::check_cross_phase_refs` | Q06 审计的 EUT 必须在 Q05 存在等 |
-| Compile check | `quality/checks/compile_check.py` | Q05 代码真编译（maven/gradle/go） |
+| Cross-Phase 交叉引用 | `quality/checks/cross_phase_check.py::check_cross_phase_refs` | Q06 审计的 EUT 必须在 Q05a 存在等 |
+| Compile check | `quality/checks/compile_check.py` | Q05b 代码真编译（maven/gradle/go） |
 | Coverage gate | `quality/checks/coverage_gate.py` | JaCoCo 解析，line/branch ≥ 80%；blast radius 内优先增量 |
 | Rule compliance | `quality/rules/rule_compliance.py::compute_rule_compliance` | 11 条规则逐条检测 |
 | Report quality checks | `quality/checks/report_quality_checks.py` | 来源标注 / ID 格式 / GAP 风险 / OPEN 决策方等 6 项正则 |
 | Requirement smell | `quality/checks/requirement_smell.py` | 5 类异味 VAGUE / INCOMPLETE 等正则 |
 | Requirement graph | `quality/checks/requirement_graph.py` | REQ→BR→SE networkx 图，5 类异常检测 |
 | Demand trace + code skeleton | `quality/checks/demand_trace.py` / `code_skeleton.py` | SE→入口方法→调用链 + TREEFRAG 代码骨架 |
-| Q05 structure check | `quality/checks/q05_structure_checks.py` | mock_wrong / phantom_method / eut_missing_se 等 |
+| Q05a structure check | `quality/checks/q05_structure_checks.py` | mock_wrong / phantom_method / eut_missing_se 等 |
 | Weak assert gate | `runtime/handlers/handlers_detection.py` + `languages/**/assertions.py` | tree-sitter AST 弱断言识别，high-risk ≥ 1 BLOCKED |
 | Mock coincidence | `runtime/handlers/handlers_detection.py::handle_mock_coincidence_check` | 固定返回 / 硬编码关键词扫描 |
 
@@ -57,7 +57,7 @@ Qualix 评估机制按"从硬门槛到元评分"分 8 个 Tier，层层叠加。
 | `report_semantic` | `semantic_guardrail.py::ReportSemanticGuardrail` | BLOCKED/WARNING | BR 概括性 / 覆盖度虚高 / 跨 Phase 越权 / P0 未闭环 |
 | `output_completeness` | `output_completeness.py` | BLOCKED | 报告截断检测 + 最小长度 |
 | `fabrication_detector` | `fabrication_detector.py` | BLOCKED | 虚构字段 / 编造引用 |
-| `q05_branch_coverage` | `q05_branch_coverage.py` | WARNING | Q05 分支覆盖校验 |
+| `q05_branch_coverage` | `q05_branch_coverage.py` | WARNING | Q05a 分支覆盖校验 |
 | `rationalization_probe_structured` | `rationalization_probe.py` | WARNING | Q03/Q06 结构化字段级放水词扫描 |
 
 ---
@@ -115,7 +115,7 @@ Qualix 评估机制按"从硬门槛到元评分"分 8 个 Tier，层层叠加。
 | Score calibration | `quality/judge/score_calibration.py` | 评分趋势监控（通胀/通缩）；DeepEval 校准已禁用（见 ROADMAP） |
 | Behavioral fingerprint | `quality/eval/behavioral_fingerprint.py::BehavioralFingerprint` | trajectory 工具调用模式 / ID 数量 / 输出长度，PASS/FAIL/INCONCLUSIVE 三态 |
 | Regression runner | `tracking/regression.py` + `commands/ops.py::cmd_regression` | 基线样例回放 + 失败样例库趋势 |
-| Prompt eval | `tracking/prompt_eval.py::PromptEvalExecutor` | Q05/Q06 curated test case，不同 prompt 版本 A/B |
+| Prompt eval | `tracking/prompt_eval.py::PromptEvalExecutor` | Q05a/Q06 curated test case，不同 prompt 版本 A/B |
 | Rule impact | `tracking/rule_impact.py` | 规则变更 → 指标变化归因 |
 | Bug case library | `regression/failure-library/` + `tracking/bug_cases.py` | 失败案例库（2000+ 条）+ fingerprint 聚类 |
 | Observability anomalies | `reporting/observability_anomalies.py::detect_metric_anomalies` | Z-score 指标异常检测 |

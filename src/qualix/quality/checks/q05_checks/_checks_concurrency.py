@@ -1,4 +1,4 @@
-"""Q05 并发/幂等/锁检查."""
+"""Q05a 并发/幂等/锁检查."""
 
 from __future__ import annotations
 
@@ -143,7 +143,7 @@ def _check_concurrent_se_no_eut(
 
         if not matched_euts:
             errors.append(
-                f"BLOCKED: Q05 concurrent_se_no_eut — {se_id}（描述含并发/幂等/锁语义）"
+                f"BLOCKED: Q05a concurrent_se_no_eut — {se_id}（描述含并发/幂等/锁语义）"
                 f" 没有任何 EUT 绑定。"
                 f" 即使 AOP 无法在单测中验证锁行为，也必须用反射验证注解存在性或设计注解守护测试。"
                 f" SE 描述：{str(desc)[:60]}"
@@ -154,7 +154,7 @@ def _check_concurrent_se_no_eut(
             if not non_todo:
                 eut_ids = [e.get("eut_id", "?") for e in matched_euts]
                 errors.append(
-                    f"BLOCKED: Q05 concurrent_se_todo_only — {se_id}（并发/幂等/锁语义）"
+                    f"BLOCKED: Q05a concurrent_se_todo_only — {se_id}（并发/幂等/锁语义）"
                     f" 的所有 EUT {eut_ids} then 字段均为 TODO 占位，不算有效覆盖。"
                     f" 至少需要一个注解验证或防回归守护测试。"
                 )
@@ -242,7 +242,7 @@ def _check_concurrent_scope(
                 if cls not in mentioned_classes:
                     signal_str = ", ".join(dict.fromkeys(signals))  # 去重保序
                     warnings.append(
-                        f"WARNING: Q05 concurrent_scope — "
+                        f"WARNING: Q05a concurrent_scope — "
                         f"{java_file.name} 中 {cls} 含并发/锁信号（{signal_str}）"
                         f"，但未出现在任何 EUT 的 given/when/then 或 class_under_test 中。"
                         f" 请确认是否需要补充注解验证或并发场景测试（参考 SE-006 处理模式）。"
@@ -288,7 +288,7 @@ def _check_concurrency_eut_multithread(
     java_files = [f for f in test_files if f.suffix == ".java"]
     if not java_files:
         return [
-            "BLOCKED: Q05 concurrent_no_multithread — 存在并发/幂等 SE 但无新增测试文件，"
+            "BLOCKED: Q05a concurrent_no_multithread — 存在并发/幂等 SE 但无新增测试文件，"
             "无法验证并发测试是否使用 CountDownLatch 多线程模式。"
         ]
 
@@ -304,7 +304,7 @@ def _check_concurrency_eut_multithread(
 
     if not multithread_found:
         return [
-            "BLOCKED: Q05 concurrent_no_multithread — 存在并发/幂等 SE，但所有新增测试文件均未使用"
+            "BLOCKED: Q05a concurrent_no_multithread — 存在并发/幂等 SE，但所有新增测试文件均未使用"
             " CountDownLatch/Thread/ExecutorService 等多线程模式。"
             " SKILL.md：仅 assertThrows 验证重复提交不算并发测试，必须多线程同时触发。"
         ]

@@ -79,7 +79,7 @@ def _setup_full_project(tmpdir: Path) -> Path:
     _write_phase_json(
         tmpdir,
         pid,
-        "Q05",
+        "Q05a",
         "phase_b_structured.json",
         {
             "project_id": pid,

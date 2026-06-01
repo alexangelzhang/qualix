@@ -51,7 +51,7 @@ _SCHEMA_MAP: Final = MappingProxyType(
         "Q02": "qualix.schemas.phase_q02:PhaseA3Output",
         "Q03": "qualix.schemas.phase_q03:PhaseA6Output",
         "Q04": "qualix.schemas.phase_q04:PhaseA5Output",
-        "Q05": "qualix.schemas.phase_q05:PhaseBOutput",
+        "Q05a": "qualix.schemas.phase_q05:PhaseBOutput",
         "Q06": "qualix.schemas.phase_q06:PhaseCOutput",
         "Q07": "qualix.schemas.phase_q07:PhaseDOutput",
     }

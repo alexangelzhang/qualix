@@ -1,4 +1,4 @@
-"""Q05 테스트 파일 수집 및 git diff 도우미."""
+"""Q05a 테스트 파일 수집 및 git diff 도우미."""
 
 from __future__ import annotations
 

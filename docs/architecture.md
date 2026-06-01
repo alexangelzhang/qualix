@@ -58,7 +58,7 @@
 ## 外部依赖
 - **存储**：SQLite（内置，零部署）
 - **LLM API**：Anthropic / OpenAI / Google Gemini / DeepSeek / Qwen / Moonshot（按需）
-- **飞书 API**：文档抓取（larkkit，可选）
+- **企业文档 API**：可选 connector，用于把远程文档落成标准 IngestBundle
 
 ## Common Tasks → Files
 

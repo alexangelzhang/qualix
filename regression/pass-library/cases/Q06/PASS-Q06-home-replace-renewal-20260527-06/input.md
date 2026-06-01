@@ -179,43 +179,43 @@ Phase 输出目录: `/Users/zhangyiqian/git_dev/qualix/qualix/output/home-replac
 
 ### 反例 1: audit_items.0.eut_id [漏报]
 
-**教训**: EUT 编号须来自 Q05 phase_b_structured.json，禁止按测试代码臆造编号
+**教训**: EUT 编号须来自 Q05a phase_b_structured.json，禁止按测试代码臆造编号
 
 ### 反例 2: audit_items.1.eut_id [漏报]
 
-**教训**: EUT 编号须来自 Q05 phase_b_structured.json，禁止按测试代码臆造编号
+**教训**: EUT 编号须来自 Q05a phase_b_structured.json，禁止按测试代码臆造编号
 
 ### 反例 3: audit_items.2.eut_id [漏报]
 
-**教训**: EUT 编号须来自 Q05 phase_b_structured.json，禁止按测试代码臆造编号
+**教训**: EUT 编号须来自 Q05a phase_b_structured.json，禁止按测试代码臆造编号
 
 ### 反例 4: audit_items.3.eut_id [漏报]
 
-**教训**: EUT 编号须来自 Q05 phase_b_structured.json，禁止按测试代码臆造编号
+**教训**: EUT 编号须来自 Q05a phase_b_structured.json，禁止按测试代码臆造编号
 
 ### 反例 5: audit_items.4.eut_id [漏报]
 
-**教训**: EUT 编号须来自 Q05 phase_b_structured.json，禁止按测试代码臆造编号
+**教训**: EUT 编号须来自 Q05a phase_b_structured.json，禁止按测试代码臆造编号
 
 ### 反例 6: audit_items.5.eut_id [漏报]
 
-**教训**: EUT 编号须来自 Q05 phase_b_structured.json，禁止按测试代码臆造编号
+**教训**: EUT 编号须来自 Q05a phase_b_structured.json，禁止按测试代码臆造编号
 
 ### 反例 7: audit_items.6.eut_id [漏报]
 
-**教训**: EUT 编号须来自 Q05 phase_b_structured.json，禁止按测试代码臆造编号
+**教训**: EUT 编号须来自 Q05a phase_b_structured.json，禁止按测试代码臆造编号
 
 ### 反例 8: audit_items.7.eut_id [漏报]
 
-**教训**: EUT 编号须来自 Q05 phase_b_structured.json，禁止按测试代码臆造编号
+**教训**: EUT 编号须来自 Q05a phase_b_structured.json，禁止按测试代码臆造编号
 
 ### 反例 9: audit_items.8.eut_id [漏报]
 
-**教训**: EUT 编号须来自 Q05 phase_b_structured.json，禁止按测试代码臆造编号
+**教训**: EUT 编号须来自 Q05a phase_b_structured.json，禁止按测试代码臆造编号
 
 ### 反例 10: audit_items.9.eut_id [漏报]
 
-**教训**: EUT 编号须来自 Q05 phase_b_structured.json，禁止按测试代码臆造编号
+**教训**: EUT 编号须来自 Q05a phase_b_structured.json，禁止按测试代码臆造编号
 
 ## Anti-Rationalization（禁止放水）
 

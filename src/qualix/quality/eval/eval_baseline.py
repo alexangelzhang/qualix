@@ -112,7 +112,7 @@ PHASE_METRICS: Final[dict[str, list[dict[str, Any]]]] = {
         {"id": "total_issues", "name": "总问题数", "type": "custom", "fn": "_count_issues"},
         {"id": "fm_count", "name": "Failure Mode 数量", "type": "count", "field": "failure_modes"},
     ],
-    "Q05": [
+    "Q05a": [
         {"id": "eut_count", "name": "EUT 数量", "type": "count", "field": "eut_matrix"},
         {
             "id": "happy_path_ratio",

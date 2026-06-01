@@ -109,7 +109,7 @@ def test_run_deepeval_scoring_score_boundaries():
 def test_get_phase_criteria_covers_all_known_phases():
     from src.qualix.quality.judge.score_calibration import _get_phase_criteria
 
-    for phase_id in ("Q01", "Q03", "Q04", "Q05", "Q05a", "Q05b", "Q06", "Q07"):
+    for phase_id in ("Q01", "Q03", "Q04", "Q05a", "Q05b", "Q06", "Q07"):
         criteria = _get_phase_criteria(phase_id)
         assert isinstance(criteria, str) and len(criteria) > 20, f"Missing criteria for {phase_id}"
 

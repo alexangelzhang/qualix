@@ -1,7 +1,7 @@
 # Harness 组件总览
 
-> 共 26 个组件，按作用范围排序：全局 → Q01 → Q04 → Q05 → Q06 → Q07。
-> 多 Phase 组件（如 blast_radius 覆盖 Q05/Q06）归入首个 Phase 分组。
+> 共 26 个组件，按作用范围排序：全局 → Q01 → Q04 → Q05a → Q06 → Q07。
+> 多 Phase 组件（如 blast_radius 覆盖 Q05a/Q06）归入首个 Phase 分组。
 
 ---
 
@@ -42,16 +42,16 @@
 
 ---
 
-## Q05 组件（4 个）
+## Q05a 组件（4 个）
 
-> blast_radius、data_patterns、se_code_mapping 同时作用于 Q05/Q06（或更多），归入首个 Phase。
+> blast_radius、data_patterns、se_code_mapping 同时作用于 Q05a/Q06（或更多），归入首个 Phase。
 
 | 组件名称 | 流程节点 | 能力说明 | 解决的问题 | 目标/收益 |
 |---|---|---|---|---|
-| blast_radius | Execute handler（Q05/Q06） | 分析代码改动影响范围，计算 risk_tier（LOW/MEDIUM/HIGH/CRITICAL） | 不同风险的改动用同等审计深度，高风险改动被轻放过 | 驱动 ACT depth 动态调整 max_iterations；高风险多跑 |
-| data_patterns | Execute handler（Q05/Q06） | 从 2000+ 条历史 bug case 提取高频故障数据模式注入 Worker | Worker 不知道哪些数据边界是真实线上踩过的坑 | 把历史故障经验转化为当次执行的先验约束，提升 FN 召回率 |
-| se_code_mapping | Execute handler（Q05/Q06/Q07） | 自动建立 SE（语义期望）→ 代码实现的映射关系 | SE 是需求语言，代码是实现语言，LLM 需显式映射才能精准审计 | 消除 SE 粒度和代码粒度的语义鸿沟，使覆盖判定有据可查 |
-| compile_check | Finalize gate | 对 Q05 生成的 Java 测试代码执行实际编译验证 | 生成语法正确但无法编译的代码是 Q05 的高频失败模式 | 编译通过作为 finalize 硬门禁，不可人工绕过 |
+| blast_radius | Execute handler（Q05a/Q06） | 分析代码改动影响范围，计算 risk_tier（LOW/MEDIUM/HIGH/CRITICAL） | 不同风险的改动用同等审计深度，高风险改动被轻放过 | 驱动 ACT depth 动态调整 max_iterations；高风险多跑 |
+| data_patterns | Execute handler（Q05a/Q06） | 从 2000+ 条历史 bug case 提取高频故障数据模式注入 Worker | Worker 不知道哪些数据边界是真实线上踩过的坑 | 把历史故障经验转化为当次执行的先验约束，提升 FN 召回率 |
+| se_code_mapping | Execute handler（Q05a/Q06/Q07） | 自动建立 SE（语义期望）→ 代码实现的映射关系 | SE 是需求语言，代码是实现语言，LLM 需显式映射才能精准审计 | 消除 SE 粒度和代码粒度的语义鸿沟，使覆盖判定有据可查 |
+| compile_check | Finalize gate | 对 Q05a 生成的 Java 测试代码执行实际编译验证 | 生成语法正确但无法编译的代码是 Q05a 的高频失败模式 | 编译通过作为 finalize 硬门禁，不可人工绕过 |
 
 ---
 
@@ -65,7 +65,7 @@
 | weak_assert | Execute handler | 用 tree-sitter 静态分析检测弱断言（assertTrue(true)、非常量布尔断言等） | LLM 无法可靠识别编译合法但语义空洞的测试断言 | 将弱断言检测从软约束变硬证据，提前暴露骨架测试 |
 | business_mutations | Execute handler | 注入业务域变异规则（金额边界、状态非法跳转、幂等场景等） | 通用测试充分性评估缺失业务语义；只测"有没有"不测"对不对" | 让 Q06 审计知晓业务特有的等价类和边界，识别遗漏变异 |
 | coverage_gate | Finalize gate | 计算实际测试覆盖率，与项目配置的最低阈值比较 | 覆盖率门禁靠人工审查不可靠；Q06 可能通过 Judge 但未达覆盖线 | 覆盖率不达标则 finalize 阻断，强制补充覆盖后才能 approve |
-| blast_radius（兼） | ← 见 Q05 分组 | — | — | — |
+| blast_radius（兼） | ← 见 Q05a 分组 | — | — | — |
 
 ---
 

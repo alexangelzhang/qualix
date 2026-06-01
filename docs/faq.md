@@ -28,21 +28,21 @@ python -m pip install -e '.[dev]'
 Optional extras are available for integrations:
 
 ```bash
-python -m pip install -e '.[feishu]'   # Optional Feishu/Lark ingestion
+python -m pip install -e '.[feishu]'   # Optional enterprise-document connector
 python -m pip install -e '.[vlm]'      # VLM image analysis providers
 python -m pip install -e '.[deepeval]' # DeepEval calibration support
 ```
 
-### Feishu/Lark login fails
+### Enterprise document login fails
 
-Feishu/Lark support is optional. If you need it, configure a user token for documents you are allowed to process:
+Enterprise document support is optional. For a first run, use a local Markdown/text/html file. If you later enable a connector, use credentials for documents you are allowed to process:
 
 ```bash
 export QUALIX_LARK_USER_TOKEN=<your-user-access-token>
 qualix-run auth status
 ```
 
-Local Markdown or text requirement files do not need this setup.
+Local Markdown or text requirement files do not need this setup, and `qualix-run ingest` does not start OAuth automatically.
 
 ### Do I need to understand every phase first?
 
@@ -55,7 +55,7 @@ For the short glossary, see [Concepts](concepts.md).
 ### Where do I start?
 
 ```bash
-qualix-run my-project init --profile java-ddd-tmf
+qualix-run --profile java-ddd-tmf my-project init
 qualix-run my-project startup --json
 ```
 

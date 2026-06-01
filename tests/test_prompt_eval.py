@@ -106,7 +106,7 @@ def test_format_comparison_table_includes_execution_source(tmp_path) -> None:
 
 def test_builtin_prompt_eval_cases_use_offline_outputs() -> None:
     repo_root = Path(__file__).resolve().parents[1]
-    q05 = run_prompt_eval_case(repo_root / "regression" / "cases" / "prompt-eval" / "Q05-basic")
+    q05 = run_prompt_eval_case(repo_root / "regression" / "cases" / "prompt-eval" / "Q05a-basic")
     q06 = run_prompt_eval_case(repo_root / "regression" / "cases" / "prompt-eval" / "Q06-basic")
 
     q05_rows = {row["version"]: row for row in q05["rows"]}

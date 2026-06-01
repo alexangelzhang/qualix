@@ -26,9 +26,9 @@ class EnumSource:
         "CONFLICT",
     )
 
-    Q05_ROUTE_TYPES: Final[tuple[str, ...]] = ("Happy Path", "Exception", "Boundary")
-    Q05_RISK_TIERS: Final[tuple[str, ...]] = ("T1", "T2", "T3")
-    Q05_EUT_ID_PATTERN: Final[str] = r"^EUT-\d+$"
+    Q05A_ROUTE_TYPES: Final[tuple[str, ...]] = ("Happy Path", "Exception", "Boundary")
+    Q05A_RISK_TIERS: Final[tuple[str, ...]] = ("T1", "T2", "T3")
+    Q05A_EUT_ID_PATTERN: Final[str] = r"^EUT-\d+$"
 
 
 def render_enum_contract_prefix(phase_id: str) -> str:
@@ -39,8 +39,8 @@ def render_enum_contract_prefix(phase_id: str) -> str:
         return _q01_block()
     if phase_id == "Q06":
         return _q06_block()
-    if phase_id in {"Q05", "Q05a"}:
-        return _q05_block()
+    if phase_id == "Q05a":
+        return _q05a_block()
     return ""
 
 
@@ -73,18 +73,18 @@ def _q06_block() -> str:
         "## 枚举契约（Q06）\n\n"
         f"- **audit_items[].status** 仅允许: {st}\n"
         "- **findings[]** 每条必填: `id`, `severity`（禁止整段缺失）\n"
-        "- **audit_items[].eut_id** 必须可追溯到 Q05 `eut_items`\n"
+        "- **audit_items[].eut_id** 必须可追溯到 Q05a `eut_items`\n"
     )
 
 
-def _q05_block() -> str:
-    rt = ", ".join(f"`{x}`" for x in EnumSource.Q05_ROUTE_TYPES)
-    rk = ", ".join(EnumSource.Q05_RISK_TIERS)
+def _q05a_block() -> str:
+    rt = ", ".join(f"`{x}`" for x in EnumSource.Q05A_ROUTE_TYPES)
+    rk = ", ".join(EnumSource.Q05A_RISK_TIERS)
     return (
-        "<!-- ENUM_CONTRACT:Q05 -->\n"
-        "## 枚举契约（Q05）\n\n"
+        "<!-- ENUM_CONTRACT:Q05a -->\n"
+        "## 枚举契约（Q05a）\n\n"
         f"- **eut_items[].route_type** 仅允许: {rt}\n"
         f"- **eut_items[].risk_tier** 仅允许: `{rk}`\n"
-        f"- **eut_items[].eut_id** 正则: `{EnumSource.Q05_EUT_ID_PATTERN}`\n"
+        f"- **eut_items[].eut_id** 正则: `{EnumSource.Q05A_EUT_ID_PATTERN}`\n"
         "- **eut_items[].bound_se** 必填，须为 Q01 已存在 SE/REQ\n"
     )

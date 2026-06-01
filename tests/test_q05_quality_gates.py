@@ -1,4 +1,4 @@
-"""Q05 左移质量门控测试：EUT then validator + weak_assert_gate BLOCKED + mock_coincidence BLOCKED + scan handler."""
+"""Q05a 左移质量门控测试：EUT then validator + weak_assert_gate BLOCKED + mock_coincidence BLOCKED + scan handler."""
 
 from __future__ import annotations
 
@@ -90,11 +90,11 @@ class TestEutThenValidator:
 
 
 # ---------------------------------------------------------------------------
-# Layer 2: weak_assert_gate Q05 BLOCKED
+# Layer 2: weak_assert_gate Q05a BLOCKED
 # ---------------------------------------------------------------------------
 
 
-def _make_ctx(tmp_path: Path, phase_id: str = "Q05") -> ExecutionContext:
+def _make_ctx(tmp_path: Path, phase_id: str = "Q05a") -> ExecutionContext:
     """构造最小 ExecutionContext."""
     internal_dir = tmp_path / "internal"
     internal_dir.mkdir(parents=True, exist_ok=True)
@@ -110,7 +110,7 @@ def _make_ctx(tmp_path: Path, phase_id: str = "Q05") -> ExecutionContext:
 
 
 class TestWeakAssertGateQ05:
-    """Q05 弱断言 gate: high-risk >= 1 触发 BLOCKED."""
+    """Q05a 弱断言 gate: high-risk >= 1 触发 BLOCKED."""
 
     def test_q05_high_risk_1_triggers_blocked(self, tmp_path: Path):
         from qualix.runtime.handlers_detection import handle_weak_assert_gate
@@ -175,8 +175,8 @@ class TestWeakAssertGateQ05:
         """_weak_assert_context.json 不存在时静默跳过."""
         from qualix.runtime.handlers_detection import handle_weak_assert_gate
 
-        ctx = _make_ctx(tmp_path, "Q05")
-        result = PhaseResult(phase_id="Q05")
+        ctx = _make_ctx(tmp_path, "Q05a")
+        result = PhaseResult(phase_id="Q05a")
         handle_weak_assert_gate(ctx, result)
 
         assert result.success
@@ -185,18 +185,18 @@ class TestWeakAssertGateQ05:
 
 
 # ---------------------------------------------------------------------------
-# Layer 3: mock_coincidence_check Q05 BLOCKED
+# Layer 3: mock_coincidence_check Q05a BLOCKED
 # ---------------------------------------------------------------------------
 
 
 class TestMockCoincidenceQ05:
-    """Q05 Mock 巧合正确检测: Q05 跳过（测试代码用 Mock 是正常的）."""
+    """Q05a Mock 巧合正确检测: Q05a 跳过（测试代码用 Mock 是正常的）."""
 
     def test_q05_coincidence_skipped(self, tmp_path: Path):
         from qualix.runtime.handlers_detection import handle_mock_coincidence_check
 
-        ctx = _make_ctx(tmp_path, "Q05")
-        result = PhaseResult(phase_id="Q05")
+        ctx = _make_ctx(tmp_path, "Q05a")
+        result = PhaseResult(phase_id="Q05a")
         handle_mock_coincidence_check(ctx, result)
 
         assert result.success
@@ -226,7 +226,7 @@ class TestMockCoincidenceQ05:
 
 
 class TestWeakAssertScanQ05:
-    """Q05 finalize 扫描 handler: 从 structured JSON 提取测试文件并扫描."""
+    """Q05a finalize 扫描 handler: 从 structured JSON 提取测试文件并扫描."""
 
     def test_scans_test_files_from_structured_json(self, tmp_path: Path):
         from qualix.runtime.handlers_detection import handle_weak_assert_scan_q05
@@ -250,8 +250,10 @@ class OrderServiceTest {
             encoding="utf-8",
         )
 
-        # 构造 output 目录和 structured JSON
-        phase_root = tmp_path / "output" / "test" / "phaseB"
+        # handler 从 output_dir/project_id/Q05a/phase_b_structured.json 读取
+        q05a_root = tmp_path / "output" / "test" / "Q05a"
+        q05a_root.mkdir(parents=True)
+        phase_root = tmp_path / "output" / "test" / "Q05b"
         internal_dir = phase_root / "_internal"
         internal_dir.mkdir(parents=True)
 
@@ -267,7 +269,7 @@ class OrderServiceTest {
                 }
             ],
         }
-        (phase_root / "phase_b_structured.json").write_text(json.dumps(structured), encoding="utf-8")
+        (q05a_root / "phase_b_structured.json").write_text(json.dumps(structured), encoding="utf-8")
 
         ctx = ExecutionContext(
             output_dir=tmp_path / "output",
@@ -276,7 +278,7 @@ class OrderServiceTest {
             code_repo=str(repo),
             internal_dir=internal_dir,
             phase_root=phase_root,
-            phase_def={"dir_suffix": "phaseB"},
+            phase_def={"dir_suffix": "Q05b"},
             shared={},
         )
 
@@ -307,9 +309,9 @@ class OrderServiceTest {
 
         repo = tmp_path / "repo"
         repo.mkdir()
-        ctx = _make_ctx(tmp_path, "Q05")
+        ctx = _make_ctx(tmp_path, "Q05a")
         ctx.code_repo = str(repo)
-        result = PhaseResult(phase_id="Q05")
+        result = PhaseResult(phase_id="Q05a")
         handle_weak_assert_scan_q05(ctx, result)
 
         assert not (ctx.internal_dir / "_weak_assert_context.json").exists()
@@ -335,14 +337,14 @@ class OrderServiceTest {
         ctx = ExecutionContext(
             output_dir=tmp_path / "output",
             project_id="test",
-            phase_id="Q05",
+            phase_id="Q05a",
             code_repo=str(repo),
             internal_dir=internal_dir,
             phase_root=phase_root,
             phase_def={"dir_suffix": "phaseB"},
             shared={},
         )
-        result = PhaseResult(phase_id="Q05")
+        result = PhaseResult(phase_id="Q05a")
         handle_weak_assert_scan_q05(ctx, result)
 
         assert not (internal_dir / "_weak_assert_context.json").exists()

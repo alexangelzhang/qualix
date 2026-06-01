@@ -1,6 +1,6 @@
 """语义覆盖率 vs 行覆盖率对比报告.
 
-语义覆盖率：有 Q06 COVERED 状态的 EUT / Q05 总 EUT 数（业务语义层）
+语义覆盖率：有 Q06 COVERED 状态的 EUT / Q05a 总 EUT 数（业务语义层）
 行覆盖率：JaCoCo 报告的行/分支覆盖率（代码层）
 
 两者差距揭示：有代码行被执行，但对应业务语义（EUT）未被充分验证。
@@ -58,7 +58,7 @@ def compute_semantic_coverage(output_dir: Path, project_id: str) -> SemanticCove
     report = SemanticCoverageReport(generated_at=datetime.now(UTC).isoformat(timespec="seconds"))
 
     # 加载 Q05a EUT 矩阵
-    q05a_dir = output_dir / project_id / PHASE_DIR_MAP.get("Q05a", "Q05a")
+    q05a_dir = output_dir / project_id / PHASE_DIR_MAP.get("Q05a")
     q05a_data = load_json(q05a_dir / "phase_b_structured.json") or {}
     eut_list: list[dict] = q05a_data.get("eut_items", [])
     report.total_eut = len(eut_list)

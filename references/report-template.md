@@ -1,7 +1,7 @@
 # 需求评审产出报告（Phase Q01：产品需求阶段）
 
 > 本模板用于产品需求阶段，默认仅输出：`REQ/BR/SE + GAP + OPEN`。
-> `UT/EUT` 在后续单测阶段（Phase Q05）单独输出。
+> `UT/EUT` 在后续单测阶段（Phase Q05a）单独输出。
 
 ## PROFILE_CONTEXT
 > 从 `output/<project>_phaseA/_profile_context.md` 复制，声明本次分析使用的 profile、baseline、风险词典和阈值。

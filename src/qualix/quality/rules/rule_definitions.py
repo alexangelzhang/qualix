@@ -154,7 +154,7 @@ def get_rules(phase_id: str) -> list[dict[str, Any]]:
                 "check": "_check_traceability",
             },
         ],
-        "Q05": [
+        "Q05a": [
             {"id": "R-DESIGN-MATRIX", "name": "单测设计矩阵存在", "category": "流程", "check": "_check_design_matrix"},
             {"id": "R-REQ-COVERAGE", "name": "REQ 覆盖率 100%", "category": "质量", "check": "_check_req_coverage"},
             {"id": "R-BR-COVERAGE", "name": "BR 覆盖率 ≥80%", "category": "质量", "check": "_check_br_coverage"},
@@ -252,7 +252,7 @@ def get_rules(phase_id: str) -> list[dict[str, Any]]:
     }
 
     rules = common.copy()
-    # Q05a (EUT matrix design) uses Q05 rule set
-    phase_lookup = "Q05" if phase_id == "Q05a" else phase_id
+    # Q05a (EUT matrix design) uses Q05a rule set
+    phase_lookup = "Q05a" if phase_id == "Q05a" else phase_id
     rules.extend(phase_specific.get(phase_lookup, []))
     return rules

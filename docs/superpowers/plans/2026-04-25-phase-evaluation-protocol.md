@@ -523,7 +523,7 @@ def test_protocol_renders_into_judge_prompt():
     """Protocol renders into text suitable for Judge prompt injection."""
     from qualix.quality.evaluation_protocols import get_protocol, render_protocol_for_prompt
 
-    for phase_id in ("Q01", "Q03", "Q04", "Q05", "Q06", "Q07"):
+    for phase_id in ("Q01", "Q03", "Q04", "Q05a", "Q06", "Q07"):
         proto = get_protocol(phase_id)
         assert proto is not None
         judge_text = render_protocol_for_prompt(proto.judge)

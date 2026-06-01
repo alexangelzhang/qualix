@@ -147,13 +147,14 @@ def main() -> int:
 
     print("\n✓ 安装完成")
 
-    print("\n可选：如需 Feishu/Lark 文档摄入，可安装并登录 larkkit：")
-    print("  python -m pip install larkkit")
-    print("  uvx larkkit auth login")
+    print("\n文档输入：")
+    print("  首次试用建议使用本地 Markdown/text/html 文件。")
+    print("  企业文档 URL 通过可选 connector 接入；Qualix 不会自动启动 OAuth。")
 
     print("\n下一步：")
     print("  cd 你的项目目录")
-    print("  qualix-run init")
+    print("  qualix-run my-project init")
+    print("  qualix-run ingest /path/to/prd.md --project my-project")
     return 0
 
 

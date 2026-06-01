@@ -1,6 +1,6 @@
-"""Phase Q05/Q06 规则检查函数.
+"""Phase Q05a/Q06 规则检查函数.
 
-从 rule_checks.py 拆分，包含单测生成（Q05）和单测审计（Q06）的检查函数。
+从 rule_checks.py 拆分，包含单测生成（Q05a）和单测审计（Q06）的检查函数。
 """
 
 from __future__ import annotations
@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 from .rule_definitions import RE_REQ_ID, RE_SE_ID
 
 # ---------------------------------------------------------------------------
-# Phase Q05 检查
+# Phase Q05a 检查
 # ---------------------------------------------------------------------------
 
 
@@ -87,7 +87,7 @@ def _check_br_coverage(pd: Path, report: str, phase_id: str) -> tuple[bool, str]
     se_bound_reqs: dict[str, set[str]] = {s["se_id"]: set(s.get("bound_reqs", []) or []) for s in ses}
 
     # EUT → SE → BR
-    eut_data = load_json(pd / STRUCTURED_JSON_MAP.get("Q05", "phase_b_structured.json")) or {}
+    eut_data = load_json(pd / STRUCTURED_JSON_MAP.get("Q05a", "phase_b_structured.json")) or {}
     euts = eut_data.get("eut_items", eut_data.get("test_cases", []))
     covered_brs: set[str] = set()
     for eut in euts:
@@ -137,7 +137,7 @@ def _check_code_branch_coverage(pd: Path, report: str, phase_id: str) -> tuple[b
             _count_exception_euts,
         )
 
-        b5d = load_json(pd / STRUCTURED_JSON_MAP.get("Q05", "phase_b_structured.json")) or {}
+        b5d = load_json(pd / STRUCTURED_JSON_MAP.get("Q05a", "phase_b_structured.json")) or {}
         exc_br = _count_exception_branches(inv)
         bnd_br = _count_boundary_branches(inv)
         exc_eut = _count_exception_euts(b5d)
@@ -177,7 +177,7 @@ def _check_eut_count(pd: Path, report: str, phase_id: str) -> tuple[bool, str]:
     min_euts = max(10, req_count + br_count + se_count)
     threshold_desc = f"REQ({req_count})+BR({br_count})+SE({se_count})={min_euts}"
 
-    json_path = pd / STRUCTURED_JSON_MAP.get("Q05", "phase_b_structured.json")
+    json_path = pd / STRUCTURED_JSON_MAP.get("Q05a", "phase_b_structured.json")
     data = load_json(json_path)
     if data:
         euts = data.get("eut_items", data.get("eut_matrix", data.get("test_cases", [])))
@@ -242,7 +242,7 @@ def _check_path_balance(pd: Path, report: str, phase_id: str) -> tuple[bool, str
     from qualix.constants import STRUCTURED_JSON_MAP
     from qualix.json_utils import load_json
 
-    json_path = pd / STRUCTURED_JSON_MAP.get("Q05", "phase_b_structured.json")
+    json_path = pd / STRUCTURED_JSON_MAP.get("Q05a", "phase_b_structured.json")
     data = load_json(json_path)
     if not data:
         return False, "phase_b_structured.json 不存在，路径覆盖无法验证"
@@ -366,7 +366,7 @@ def _check_se_bound(pd: Path, report: str, phase_id: str) -> tuple[bool, str]:
     from qualix.constants import STRUCTURED_JSON_MAP
     from qualix.json_utils import load_json
 
-    json_path = pd / STRUCTURED_JSON_MAP.get("Q05", "phase_b_structured.json")
+    json_path = pd / STRUCTURED_JSON_MAP.get("Q05a", "phase_b_structured.json")
     data = load_json(json_path)
 
     # 从 Q01 获取全量 SE ID
@@ -496,7 +496,7 @@ def _check_t1_se_three_paths(pd: Path, report: str, phase_id: str) -> tuple[bool
     from qualix.constants import STRUCTURED_JSON_MAP
     from qualix.json_utils import load_json
 
-    json_path = pd / STRUCTURED_JSON_MAP.get("Q05", "phase_b_structured.json")
+    json_path = pd / STRUCTURED_JSON_MAP.get("Q05a", "phase_b_structured.json")
     data = load_json(json_path)
     if not data:
         return True, "phase_b_structured.json 不存在，跳过 T1 SE 检查"
@@ -533,7 +533,7 @@ def _check_never_verify(pd: Path, report: str, phase_id: str) -> tuple[bool, str
     from qualix.constants import STRUCTURED_JSON_MAP
     from qualix.json_utils import load_json
 
-    json_path = pd / STRUCTURED_JSON_MAP.get("Q05", "phase_b_structured.json")
+    json_path = pd / STRUCTURED_JSON_MAP.get("Q05a", "phase_b_structured.json")
     data = load_json(json_path)
     if not data:
         return True, "phase_b_structured.json 不存在，跳过 never() 检查"
@@ -600,7 +600,7 @@ def _check_risk_tier_consistency(pd: Path, report: str, phase_id: str) -> tuple[
     from qualix.constants import STRUCTURED_JSON_MAP
     from qualix.json_utils import load_json
 
-    json_path = pd / STRUCTURED_JSON_MAP.get("Q05", "phase_b_structured.json")
+    json_path = pd / STRUCTURED_JSON_MAP.get("Q05a", "phase_b_structured.json")
     data = load_json(json_path)
     if not data:
         return True, "phase_b_structured.json 不存在，跳过 risk_tier 一致性检查"
@@ -647,7 +647,7 @@ def _check_bound_se_validity(pd: Path, report: str, phase_id: str) -> tuple[bool
     from qualix.constants import STRUCTURED_JSON_MAP
     from qualix.json_utils import load_json
 
-    json_path = pd / STRUCTURED_JSON_MAP.get("Q05", "phase_b_structured.json")
+    json_path = pd / STRUCTURED_JSON_MAP.get("Q05a", "phase_b_structured.json")
     data = load_json(json_path)
     if not data:
         return True, "phase_b_structured.json 不存在，跳过 bound_se 有效性检查"

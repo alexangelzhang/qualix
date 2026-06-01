@@ -4,6 +4,30 @@ AI-native development quality gates for requirements, designs, tests, and code r
 
 Qualix turns product requirements into traceable engineering checks. Instead of stopping at line coverage, it follows requirement IDs through design coverage, test intent, generated unit tests, audit reports, and review findings.
 
+In plain language: Qualix helps an AI coding agent keep track of what the product asked for, what the design promised, what the tests actually prove, and what still looks risky. It is a workflow and evidence system around your agent, not another test runner.
+
+## The Short Version
+
+Give Qualix a PRD, then move through small quality checkpoints:
+
+1. Turn messy requirements into explicit requirement items and business rules.
+2. Check whether a technical design really covers those requirements.
+3. Design tests around business behavior, not just lines of code.
+4. Audit generated tests and code review findings against the original intent.
+
+The terms map to normal development work:
+
+| Term | Plain meaning |
+| --- | --- |
+| Phase | One workflow step, such as structuring requirements or auditing tests |
+| Gate | A pass/fail check before moving on |
+| Judge / Critique | A second-pass review of the agent's own output |
+| SE | A key semantic expectation the product depends on |
+| EUT | A test target: behavior that should be proven by unit tests |
+| RSM | A requirement-to-code/test trace map used to catch missing coverage |
+
+You can learn the vocabulary gradually. For a first run, start with Q01 and inspect the generated requirement report.
+
 ## Why Qualix
 
 | Problem | What Usually Happens | Qualix Approach |
@@ -24,14 +48,20 @@ Qualix is early and evolving. The repository is useful for experimentation, inte
 git clone https://github.com/alexangelzhang/qualix.git
 cd qualix
 ./install.sh --dev
+qualix-run --profile python-service hello init
+qualix-run ingest examples/hello-prd.md --project hello
+qualix-run hello startup --json
 ```
 
-Then initialize a project workspace:
+This creates a local `.qualix/` workspace and ingests a synthetic PRD. It does not require an enterprise document login.
+
+Then, when you are ready to run an AI-backed phase, set a model key and execute Q01:
 
 ```bash
-cd /path/to/your/project
-qualix-run my-project init --profile java-ddd-tmf
-qualix-run my-project startup --json
+export ANTHROPIC_API_KEY="..."   # or OPENAI_API_KEY / GEMINI_API_KEY / DASHSCOPE_API_KEY
+qualix-run --profile python-service hello execute Q01 --json
+qualix-run hello finalize Q01 --json
+qualix-run hello approve Q01 --json
 ```
 
 To try Qualix without private project data, start with the synthetic example in [examples/hello-prd.md](examples/hello-prd.md), or read the fuller expense approval demo in [examples/expense-approval](examples/expense-approval/README.md).

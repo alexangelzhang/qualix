@@ -20,7 +20,6 @@ PHASE_DIR_MAP: Final = MappingProxyType(
         "Q02": "Q02",
         "Q03": "Q03",
         "Q04": "Q04",
-        "Q05": "Q05",
         "Q05a": "Q05a",
         "Q05b": "Q05b",
         "Q06": "Q06",
@@ -35,7 +34,6 @@ STRUCTURED_JSON_MAP: Final = MappingProxyType(
         "Q02": "phase_a3_structured.json",
         "Q03": "phase_a6_structured.json",
         "Q04": "phase_a5_structured.json",
-        "Q05": "phase_b_structured.json",
         "Q05a": "phase_b_structured.json",  # EUT 矩阵设计产物
         "Q05b": "phase_b_code_status.json",  # @Test 实现进度（Ralph prd.json 等价物）
         "Q06": "phase_c_structured.json",
@@ -50,7 +48,6 @@ REPORT_MAP: Final = MappingProxyType(
         "Q02": "tech_design.md",
         "Q03": "tech_design_quality_review.md",
         "Q04": "tech_design_coverage_review.md",
-        "Q05": "eut_matrix.md",
         "Q05a": "eut_matrix.md",
         "Q05b": "codegen_progress.md",
         "Q06": "ut_audit_report.md",
@@ -65,7 +62,6 @@ SKILL_FILE_MAP: Final = MappingProxyType(
         "Q02": "skills/tech-design-generation/SKILL.md",
         "Q03": "skills/tech-quality-review/SKILL.md",
         "Q04": "skills/tech-coverage-audit/SKILL.md",
-        "Q05": "skills/unit-test-generation/SKILL.md",
         "Q05a": "skills/unit-test-design/SKILL.md",
         "Q05b": "skills/unit-test-codegen/SKILL.md",
         "Q06": "skills/unit-test-audit/SKILL.md",
@@ -91,7 +87,6 @@ LEGACY_PHASE_ID_MAP: Final = MappingProxyType(
         "A.3": "Q02",
         "A.6": "Q03",
         "A.5": "Q04",
-        "B": "Q05",
         "C": "Q06",
         "D": "Q07",
     }

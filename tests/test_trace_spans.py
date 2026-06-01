@@ -12,16 +12,16 @@ def test_enrich_llm_call_span_path() -> None:
     out = enrich_llm_call_span(
         base,
         project_id="proj",
-        phase_id="Q05",
+        phase_id="Q05a",
         iteration=2,
         agent_step="worker",
         trace_run_id="runxyz",
         llm_index=0,
     )
     assert out["trace_run_id"] == "runxyz"
-    assert out["span_path"] == "Q05/iter2/worker"
-    assert out["span_parent"] == "Q05/iter2"
-    assert out["span_root"] == "proj/Q05"
+    assert out["span_path"] == "Q05a/iter2/worker"
+    assert out["span_parent"] == "Q05a/iter2"
+    assert out["span_root"] == "proj/Q05a"
 
 
 def test_build_trace_summary_counts_paths() -> None:

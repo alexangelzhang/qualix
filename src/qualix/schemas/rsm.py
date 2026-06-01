@@ -170,8 +170,8 @@ def build_lifecycle(
 
     lifecycle: dict[str, RequirementLifecycle] = {}
 
-    # 并行加载各 Phase 的 JSON（Q05a 优先，Q05 作 legacy fallback）
-    phase_ids = ("Q01", "Q04", "Q05", "Q05a", "Q07")
+    # 并行加载各 Phase 的 JSON
+    phase_ids = ("Q01", "Q04", "Q05a", "Q07")
     with ThreadPoolExecutor(max_workers=5) as pool:
         futures = {pid: pool.submit(_load_phase_json, output_dir, project_id, pid) for pid in phase_ids}
         phase_data = {pid: f.result() for pid, f in futures.items()}
@@ -233,8 +233,8 @@ def build_lifecycle(
             if oid and oid in lifecycle:
                 lifecycle[oid].closure_status = item.get("status", "")
 
-    # Phase B: EUT 关联（Q05a 优先，Q05 作 legacy fallback）
-    data_b = phase_data.get("Q05a") or phase_data.get("Q05")
+    # Phase Q05a: EUT 关联
+    data_b = phase_data.get("Q05a")
     if data_b:
         eut_list = data_b.get("eut_items", []) or data_b.get("test_cases", [])
         for eut in eut_list:
@@ -340,7 +340,7 @@ def _is_rsm_stale(output_dir: Path, project_id: str, rsm_path: Path) -> bool:
     except OSError:
         return True
 
-    phase_ids = ("Q01", "Q04", "Q05", "Q05a", "Q07")
+    phase_ids = ("Q01", "Q04", "Q05a", "Q07")
     for pid in phase_ids:
         json_file = STRUCTURED_JSON_MAP.get(pid)
         phase_def = PHASE_DEFS.get(pid)

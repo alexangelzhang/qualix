@@ -102,7 +102,7 @@ Q05b 的执行遵循 Ralph Loop（来源：github.com/snarktank/ralph）：
 **必须遵守：**
 - 每个 @Test 方法必须有 `// EUT-xxx` 追溯注释（C9 精确模式依赖此注释）
 - then 字段描述的断言必须在代码里实现（assertEquals/assertThrows/verify 等）
-- 禁止 try/catch 仅防 NPE 的弱断言（Q05 历史错误模式）
+- 禁止 try/catch 仅防 NPE 的弱断言（Q05a 历史错误模式）
 - 禁止 `assertTrue(true)` 占位符
 
 **@Test 方法模板：**

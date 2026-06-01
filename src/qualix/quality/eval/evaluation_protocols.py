@@ -215,51 +215,6 @@ _Q04 = PhaseProtocol(
 )
 
 # ---------------------------------------------------------------------------
-# Q05 — 单测生成
-# ---------------------------------------------------------------------------
-_Q05 = PhaseProtocol(
-    phase_id="Q05",
-    judge=AgentProtocol(
-        role_label="单测质量审查员",
-        checklist=(
-            "每条 REQ/BR/SE 是否有对应 EUT",
-            "Happy Path + Exception + Boundary 三种路径是否覆盖",
-            "断言是否验证业务语义（不是 assertNotNull）",
-            "Mock 层级是否合理（Real > Fake > Stub > Mock）",
-            "代码是否可编译",
-        ),
-        red_lines=(
-            "不评估被测代码质量",
-            "不接受 assertNotNull 冒充覆盖",
-        ),
-        domain_vocab={
-            "EUT": "Expected Unit Test，预期单元测试",
-            "DAMP": "Descriptive And Meaningful Phrases，测试可读性优先原则",
-            "弱断言": "assertNotNull/assertTrue(true) 等不验证业务语义的断言",
-        },
-        focus_areas=(
-            "断言强度",
-            "SE 追溯性",
-            "编译可行性",
-        ),
-    ),
-    critique=AgentProtocol(
-        role_label="测试可维护性审查员",
-        checklist=(
-            "测试是否过度依赖 Mock 导致脆弱",
-            "Mock 数据是否贴近真实业务（不是全用默认值）",
-            "测试数据模式是否覆盖已知故障路径",
-        ),
-        red_lines=("不重复 Judge 已发现的问题",),
-        focus_areas=(
-            "Mock 真实性",
-            "测试可维护性",
-            "数据模式缺口",
-        ),
-    ),
-)
-
-# ---------------------------------------------------------------------------
 # Q06 — 单测覆盖审计
 # ---------------------------------------------------------------------------
 _Q06 = PhaseProtocol(
@@ -450,7 +405,6 @@ PHASE_PROTOCOLS: Final[dict[str, PhaseProtocol]] = {
     "Q02": _Q02,
     "Q03": _Q03,
     "Q04": _Q04,
-    "Q05": _Q05,
     "Q05a": _Q05a,
     "Q05b": _Q05b,
     "Q06": _Q06,

@@ -117,7 +117,7 @@ def resolve_worker_prompt(phase: str, skill_override: str | None = None) -> str:
     All paths go through load_skill_progressive() to ensure prompt equivalence.
 
     Args:
-        phase: Phase identifier (e.g., "Q01", "Q05", "Q06")
+        phase: Phase identifier (e.g., "Q01", "Q05a", "Q06")
         skill_override: Optional path to override skill file
 
     Returns:

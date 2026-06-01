@@ -1,6 +1,6 @@
 # 5-Minute Quick Start
 
-This is the shortest path from a fresh clone to a working Qualix project.
+This is the shortest path from a fresh clone to a working Qualix project. It uses a synthetic local PRD, so no enterprise document login is required.
 
 ## Prerequisites
 
@@ -36,18 +36,42 @@ python -m pip install -e '.[feishu]'
 
 Skip optional integrations for the first run. Local Markdown/text/html files are enough. For private enterprise documents, Qualix uses a provider-based ingest layer so Q01 can consume URLs, browser-assisted exports, and local files through the same bundle format.
 
-## 2. Initialize A Project
+## 2. Run The Local Demo
+
+From the Qualix repository root:
+
+```bash
+qualix-run --profile python-service hello init
+qualix-run ingest examples/hello-prd.md --project hello
+qualix-run hello startup --json
+```
+
+The ingest command writes the local PRD into `output/hello/Q01/ingest/` as a standard IngestBundle. This step is deterministic and does not need a model key.
+
+To let an AI coding agent run Q01, set one model provider key first, then execute the phase lifecycle:
+
+```bash
+export ANTHROPIC_API_KEY="..."   # or OPENAI_API_KEY / GEMINI_API_KEY / DASHSCOPE_API_KEY
+qualix-run --profile python-service hello execute Q01 --json
+qualix-run hello finalize Q01 --json
+qualix-run hello approve Q01 --json
+```
+
+Q01 produces a structured requirement report and JSON under `output/hello/Q01/`.
+
+## 3. Initialize Your Own Project
 
 Run this inside the repository you want to analyze:
 
 ```bash
-qualix-run my-first-project init --profile java-ddd-tmf
+qualix-run --profile python-service my-first-project init
+qualix-run ingest /path/to/prd.md --project my-first-project
 qualix-run my-first-project startup --json
 ```
 
 The init command creates a local `.qualix/` workspace for project state and output files.
 
-## 3. Start From An AI Agent
+## 4. Start From An AI Agent
 
 Inside Codex or another AI coding agent, invoke the Qualix starter:
 
@@ -57,7 +81,7 @@ $qualix-starter
 
 The agent should show the available phase menu and wait for your choice.
 
-## 4. Run Q01 Manually
+## 5. Run Q01 Manually
 
 You can also run the first phase directly:
 

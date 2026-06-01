@@ -1,6 +1,6 @@
 # Java + DDD + TMF 技术栈基线
 
-> 本文件是 Phase Q05/Q06/Q07 的语言特定规则集，从主流程中解耦。
+> 本文件是 Phase Q05a/Q06/Q07 的语言特定规则集，从主流程中解耦。
 > 主流程（AGENTS.md）定义语言无关的审计框架，本文件提供 Java 生态的具体规则。
 > 适配其他技术栈时，创建对应的 baseline 文件（如 `go-baseline.md`、`react-baseline.md`）即可。
 

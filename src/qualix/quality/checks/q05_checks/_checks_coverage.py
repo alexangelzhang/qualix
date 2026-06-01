@@ -1,4 +1,4 @@
-"""Q05 覆盖率/目标模块/追溯 gate 检查."""
+"""Q05a 覆盖率/目标模块/追溯 gate 检查."""
 
 from __future__ import annotations
 
@@ -68,7 +68,7 @@ def _check_target_modules_json(
 
     if not target_path.exists():
         return [
-            "BLOCKED: Q05 missing_target_modules — "
+            "BLOCKED: Q05a missing_target_modules — "
             "_internal/_q05_target_modules.json 不存在。"
             "SKILL.md Step 0.5e 要求：三层驱动（REQ/BR→类 + SE→类 + git diff）完成后"
             "必须输出此文件，否则无法证明 Step 0.5 被真正执行。"
@@ -76,13 +76,13 @@ def _check_target_modules_json(
 
     data = load_json(target_path)
     if not data or not isinstance(data, dict):
-        return ["BLOCKED: Q05 target_modules_empty — _q05_target_modules.json 为空或格式错误"]
+        return ["BLOCKED: Q05a target_modules_empty — _q05_target_modules.json 为空或格式错误"]
 
     errors: list[str] = []
     try:
         target_modules = Q05TargetModules.model_validate(data)
     except Exception as exc:
-        errors.append(f"BLOCKED: Q05 target_modules_schema — _q05_target_modules.json schema 校验失败: {exc}")
+        errors.append(f"BLOCKED: Q05a target_modules_schema — _q05_target_modules.json schema 校验失败: {exc}")
         target_modules = None
 
     # ── 层 1：SE 覆盖完整性 ─────────────────────────────────────────────────
@@ -95,7 +95,7 @@ def _check_target_modules_json(
         missing_se = sorted(all_se_ids - mapped_se_ids)
         if missing_se:
             errors.append(
-                f"BLOCKED: Q05 target_modules_incomplete — "
+                f"BLOCKED: Q05a target_modules_incomplete — "
                 f"_q05_target_modules.json 缺少以下 SE 的类映射: {', '.join(missing_se)}。"
                 "请在 Step 0.5b 中为每条 SE 搜索对应实现类（未找到填 found=false + gap_reason）。"
             )
@@ -114,7 +114,7 @@ def _check_target_modules_json(
         missing_br = sorted(all_br_ids - mapped_br_ids)
         if missing_br:
             errors.append(
-                f"BLOCKED: Q05 target_modules_br_incomplete — "
+                f"BLOCKED: Q05a target_modules_br_incomplete — "
                 f"_q05_target_modules.json 缺少以下 BR 的类映射: {', '.join(missing_br)}。"
                 "请在 Step 0.5a 中为每条 BR 搜索对应实现类（未找到填 found=false + gap_reason）。"
             )
@@ -123,7 +123,7 @@ def _check_target_modules_json(
     diff_files = data.get("git_diff_files", [])
     if not diff_files and code_repos:
         errors.append(
-            "BLOCKED: Q05 target_modules_no_diff — "
+            "BLOCKED: Q05a target_modules_no_diff — "
             "_q05_target_modules.json 的 git_diff_files 为空，"
             "说明 Step 0.5c 未执行 git diff。请执行 git diff --name-only 获取变更文件列表。"
         )
@@ -153,7 +153,7 @@ def _check_target_modules_json(
         not_tested = sorted(found_classes - tested_classes)
         if not_tested and len(not_tested) / max(len(found_classes), 1) > 0.5:
             errors.append(
-                f"WARNING: Q05 target_modules_not_tested — "
+                f"WARNING: Q05a target_modules_not_tested — "
                 f"se_mappings 声明的 {len(not_tested)}/{len(found_classes)} 个实现类"
                 f"未出现在新增测试文件的 @InjectMocks/import 中: {', '.join(not_tested[:5])}。"
                 "可能是 Step 0.5 的映射表与实际生成的测试代码不一致（映射了但未写测试）。"
@@ -187,7 +187,7 @@ def _check_target_code_symbol_coverage(target_modules: Q05TargetModules, structu
         return []
     sample = ", ".join(missing[:8])
     return [
-        f"WARNING: Q05 target_symbols_not_covered — Tree-sitter 在 git diff 目标文件中识别到 "
+        f"WARNING: Q05a target_symbols_not_covered — Tree-sitter 在 git diff 目标文件中识别到 "
         f"{len(missing)} 个 class/function/method 未出现在任何 EUT.when 中: {sample}。"
         "请确认这些符号是否为无业务逻辑辅助代码；否则补充 EUT。"
     ]
@@ -240,7 +240,7 @@ def _check_uncovered_br_reasons(
 
     if suspicious:
         return [
-            f"WARNING: Q05 uncovered_reason_mismatch — "
+            f"WARNING: Q05a uncovered_reason_mismatch — "
             f"{len(suspicious)} 个 BR 标注为前端/配置原因，但描述含后端语义（Service/接口/数据库等），"
             f"疑似错误排除: {', '.join(suspicious[:4])}。"
             "请确认这些 BR 确实无后端实现，否则应生成对应单测。"
@@ -290,7 +290,7 @@ def _check_branch_file_reality(
     if ghost_files:
         unique_ghosts = sorted(set(ghost_files))
         return [
-            f"WARNING: Q05 ghost_branch_file — 设计矩阵 code_branch_coverage 中 {len(unique_ghosts)} 个文件"
+            f"WARNING: Q05a ghost_branch_file — 设计矩阵 code_branch_coverage 中 {len(unique_ghosts)} 个文件"
             f"不在 git diff 变更列表里，疑似虚构：{', '.join(unique_ghosts[:5])}。"
             "请确认分支清单对应的文件是本次实际变更的文件。"
         ]
@@ -358,7 +358,7 @@ def _check_q05_git_diff_coverage(
     for cls, path in missing:
         short_path = "/".join(path.split("/")[-3:])
         errors.append(
-            f"BLOCKED: Q05 git_diff_not_covered — {cls} 在 git diff 中有变更"
+            f"BLOCKED: Q05a git_diff_not_covered — {cls} 在 git diff 中有变更"
             f"（{short_path}）但未出现在任何 EUT 的 when/given 字段。"
             "变更的实现类必须有对应 EUT，请补充到 EUT 矩阵后重新 finalize。"
         )

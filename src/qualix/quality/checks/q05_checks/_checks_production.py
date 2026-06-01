@@ -1,4 +1,4 @@
-"""Q05 生产代码真实性检查（幽灵方法等）."""
+"""Q05a 生产代码真实性检查（幽灵方法等）."""
 
 from __future__ import annotations
 

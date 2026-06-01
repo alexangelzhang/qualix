@@ -507,7 +507,7 @@ def register_execute_handlers() -> None:
         "blast_radius",
         handle_blast_radius,
         stage="execute",
-        phases={"Q05", "Q05a", "Q05b", "Q06"},
+        phases={"Q05a", "Q05b", "Q06"},
         order=50,
         depends_on=["diff_context"],
     )
@@ -522,14 +522,14 @@ def register_execute_handlers() -> None:
         "data_patterns",
         handle_data_patterns,
         stage="execute",
-        phases={"Q05", "Q05a", "Q05b", "Q06"},
+        phases={"Q05a", "Q05b", "Q06"},
         order=60,
     )
     register_handler(
         "se_code_mapping",
         handle_se_code_mapping,
         stage="execute",
-        phases={"Q02", "Q05", "Q05a", "Q05b", "Q06", "Q07"},
+        phases={"Q02", "Q05a", "Q05b", "Q06", "Q07"},
         order=70,
     )
     register_handler(

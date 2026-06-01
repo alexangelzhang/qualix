@@ -260,7 +260,7 @@ def test_cmd_task_list_returns_records(tmp_path):
     # 创建两条 task run
     tid1 = create_task_run(tmp_path, task_type="adaptive", project_id="p1", phase_id="Q01")
     complete_task_run(tmp_path, tid1, status="completed", result_summary="done")
-    tid2 = create_task_run(tmp_path, task_type="adaptive", project_id="p1", phase_id="Q05")
+    tid2 = create_task_run(tmp_path, task_type="adaptive", project_id="p1", phase_id="Q05a")
 
     args = type("A", (), {
         "project_id": "p1",

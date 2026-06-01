@@ -10,7 +10,7 @@
 2. `git log <base>..HEAD --oneline` 提交信息。
 3. `git diff <base> --stat` 变更文件清单。
 4. 需求依据（至少一项）：PRD、评审纪要、验收条目、需求单。
-5. （可选）飞书直读结果：
+5. （可选）文档 ingest 结果：
    - `ingest.json / plain_text.txt`
    - `image_semantics.json / image_semantics.md`
 

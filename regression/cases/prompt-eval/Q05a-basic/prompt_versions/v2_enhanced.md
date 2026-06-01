@@ -1,4 +1,4 @@
-# Q05 Enhanced Prompt — Test Generation
+# Q05a Enhanced Prompt — Test Generation
 
 Goal: generate a complete EUT matrix from structured requirements, with explicit happy and exception paths.
 

@@ -10,7 +10,7 @@
 | SE 显式率 | 每条需求挂够可验证 SE | Q01 | 大量 NEEDS_CONTEXT 未进 GAP |
 | GAP/OPEN 闭环率 | OPEN 清零或显式延期 | Q01→Q04→Q07 | OPEN 滞留多轮 |
 | 多模态置信度 | 图片/白板已解析并进 SEM | Q01,Q06 | 图示规则未进矩阵即判通过 |
-| EUT↔契约对齐率 | EUT 覆盖 Phase Q01 的 REQ/BR/SE | Q05 | 孤儿 EUT 或从代码反推 |
+| EUT↔契约对齐率 | EUT 覆盖 Phase Q01 的 REQ/BR/SE | Q05a | 孤儿 EUT 或从代码反推 |
 | 覆盖质地 | COVERED vs WRONG_TARGET/MISSING 占比 | Q06 | WRONG_TARGET 占比上升 |
 | T1 异常门禁 | T1 异常分支无 MISSING | Q06 | 同类漏测重复出现 |
 | SEM 溯源率 | 用例/SEM 可追溯到 PRD 原文 | Q01,Q06 | 低置信度场景过多 |

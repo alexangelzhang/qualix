@@ -49,7 +49,7 @@ def _page_dag():
 
     # 流程进度卡片
     st.subheader("流程进度")
-    dag_order = ["Q01", "Q02", "Q03", "Q04", "Q05", "Q05a", "Q05b", "Q06", "Q07"]
+    dag_order = ["Q01", "Q02", "Q03", "Q04", "Q05a", "Q05b", "Q06", "Q07"]
     cols = st.columns(len(dag_order))
     for i, qid in enumerate(dag_order):
         ps = phases.get(qid, {})
@@ -71,7 +71,7 @@ def _page_dag():
             )
 
     # 依赖关系说明
-    st.caption("依赖链：Q01 → Q02(可选) → Q03 → Q04 → Q07 ｜ Q01 → Q05(可选) → Q06 → Q07")
+    st.caption("依赖链：Q01 → Q02(可选) → Q03 → Q04 → Q07 ｜ Q01 → Q05a(可选) → Q06 → Q07")
 
     # 状态明细表
     st.subheader("Phase 状态明细")

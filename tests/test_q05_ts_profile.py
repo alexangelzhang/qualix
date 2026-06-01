@@ -1,4 +1,4 @@
-"""Q05/Q06 TypeScript profile 单测.
+"""Q05a/Q06 TypeScript profile 单测.
 
 覆盖：test_execution_gate / handlers_detection / coverage_gate / q05_structure_checks
 的 TS 相关改动，保证 TS 项目不被错误 BLOCKED，且弱断言/覆盖率门禁正常工作。
@@ -30,7 +30,7 @@ from qualix.runtime.execution_context import ExecutionContext
 # ---------------------------------------------------------------------------
 
 
-def _make_ctx(tmp_path: Path, phase_id: str = "Q05") -> ExecutionContext:
+def _make_ctx(tmp_path: Path, phase_id: str = "Q05a") -> ExecutionContext:
     internal_dir = tmp_path / "internal"
     internal_dir.mkdir(parents=True, exist_ok=True)
     return ExecutionContext(

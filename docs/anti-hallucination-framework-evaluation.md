@@ -1,7 +1,7 @@
 # 三层防幻觉框架多维度评估
 
 > 评估日期：2026-05-19  
-> 适用范围：Qualix 全 Phase，重点覆盖 Q01 / Q05 / Q06 的防幻觉链路。
+> 适用范围：Qualix 全 Phase，重点覆盖 Q01 / Q05a / Q06 的防幻觉链路。
 
 ## 1. 结论摘要
 
@@ -12,7 +12,7 @@
 | 评估对象 | 评分 | 结论 |
 | --- | ---: | --- |
 | 原则框架 | 9.0 / 10 | 方向非常正确，抓住了“声明不等于事实”的核心问题 |
-| Qualix 当前落地骨架 | 8.4 / 10 | Q01/Q05/Q06 已形成对称防幻觉链路，Q05 最硬，Q06 已补齐骨架 |
+| Qualix 当前落地骨架 | 8.4 / 10 | Q01/Q05a/Q06 已形成对称防幻觉链路，Q05a 最硬，Q06 已补齐骨架 |
 | 不可绕过审计系统成熟度 | 7.8 / 10 | 还需要统一 HARD/SOFT 语义、Evidence Graph 和 fail-closed 策略 |
 
 一句话结论：三层框架已经能系统性降低幻觉，但下一阶段不应只是继续增加散点规则，而应收束为统一的 `claim / evidence / verifier / gate` 架构。
@@ -60,11 +60,12 @@ Qualix 天然适合三层框架，因为它本身就是 Phase pipeline：
 | Phase | 主要职责 | 防幻觉重点 |
 | --- | --- | --- |
 | Q01 | 需求结构化 | `SE.source`、`verification`、`bound_reqs`、代码反推检测 |
-| Q05 | 单测生成 | `bound_se`、`then_must_be_concrete`、`impl_class ↔ @InjectMocks/import`、编译/执行 |
+| Q05a | EUT矩阵设计 | `bound_se`、`then_must_be_concrete`、`impl_class ↔ @InjectMocks/import` |
+| Q05b | 单测代码生成 | `impl_class` 反查、编译 gate、执行 gate |
 | Q06 | 单测覆盖审计 | `COVERED ↔ 断言强度`、`evidence ↔ 行号`、`audit_items` 反向完整、coverage 一致性 |
 | Q07 | 代码评审 | 需求链路、调用链、代码证据、严重级别 |
 
-其中 Q01 是真相源，Q05 是可执行产物层，Q06 是对 Q05 的反向审计层。三者形成了当前 Qualix 最关键的防幻觉闭环。
+其中 Q01 是真相源，Q05a→Q05b 是设计+可执行产物层，Q06 是对 Q05a/Q05b 的反向审计层。三者形成了当前 Qualix 最关键的防幻觉闭环。
 
 ## 5. 当前落地成熟度
 
@@ -80,18 +81,28 @@ Qualix 天然适合三层框架，因为它本身就是 Phase pipeline：
 
 成熟度判断：覆盖面较完整，但 `SE.source` 虚报、代码反推、BR 密度当前更适合作为风险提示，若按源头真相标准，应把 `SE.source` 虚报升级为硬阻断。
 
-### Q05：测试生成层
+### Q05a：EUT 矩阵设计层
 
 已覆盖能力：
 
-- `then_must_be_concrete` 在 schema 层拒绝模糊 then。
+- `then_must_be_concrete` 在 schema 层拒绝模糊 then（must 含具体断言方法和预期值）。
 - `bound_se` 与 Q01 真实 SE 对齐。
-- Step 0.5 三层防御：目标模块文件存在、覆盖全部 SE、记录 git diff、`impl_class` 反查测试代码。
-- EUT `when/then ↔ 测试代码` 交叉验证。
-- 并发/幂等/锁相关 SE 要求非占位 EUT 和多线程验证。
-- 编译和测试执行 gate，防止测试代码只停留在文档层。
+- Step 0.5 三层防御：目标模块文件存在、覆盖全部 SE、记录 git diff、`impl_class` 反查。
+- EUT `when/then` 交叉验证场景完整性。
+- 并发/幂等/锁相关 SE 要求非占位 EUT。
 
-成熟度判断：Q05 是当前三层框架中最硬的一环。它已经把 L1 的 EUT JSON、L2 的测试代码和 L0 的编译器/测试框架连起来，是最接近不可造假的部分。
+成熟度判断：Q05a 的防幻觉硬性在设计层（EUT JSON），编译/执行 gate 已移至 Q05b。
+
+### Q05b：单测代码生成层
+
+已覆盖能力：
+
+- `impl_class ↔ @InjectMocks/import` 反查，防止测试代码与被测类对不上。
+- 编译 gate（真实 maven/gradle/go 编译）防止测试代码只停留在文档层。
+- 测试执行 gate，防止测试通过率伪高。
+- 弱断言 gate：high-risk 方法数 ≥ 1 BLOCKED。
+
+成熟度判断：Q05b 是当前三层框架中最硬的一环，把 L1 的 EUT JSON、L2 的测试代码和 L0 的编译器/测试框架连起来，是最接近不可造假的部分。
 
 ### Q06：测试审计层
 
@@ -99,7 +110,7 @@ Qualix 天然适合三层框架，因为它本身就是 Phase pipeline：
 
 - `COVERED` 判定反查测试方法断言强度。
 - `evidence` 行号反查测试代码附近是否有 assert/verify。
-- `audit_items` 必须覆盖 Q05 大多数 EUT，防止漏审导致覆盖率虚高。
+- `audit_items` 必须覆盖 Q05a 大多数 EUT，防止漏审导致覆盖率虚高。
 - weak assert sidecar 存在时检查是否被 Q06 消费。
 - `WRONG_TARGET` 判定反查测试代码，防止随意制造问题。
 - coverage gate 自报与 JaCoCo/Istanbul 结果做一致性校验。
@@ -174,7 +185,7 @@ Claim(SE-001)
 | --- | --- | --- |
 | P0 | 统一失败语义 | 消除 `FAIL:` / `WARNING:` / `BLOCKED:` 字符串前缀散落表达严重性的歧义 |
 | P0 | Q01 `SE.source` 虚报硬阻断 | 源头真相断裂不可进入下游 |
-| P0 | coverage report 缺失 fail-closed | 有 code_repo/Q05 测试时，Q06 缺 coverage evidence 不应静默通过 |
+| P0 | coverage report 缺失 fail-closed | 有 code_repo/Q05a 测试时，Q06 缺 coverage evidence 不应静默通过 |
 | P1 | Claim Registry | 所有核心声明统一登记，可查询、可追溯 |
 | P1 | Evidence Contract | 每类 claim 明确必须的 evidence 类型和最低强度 |
 | P1 | Verifier Registry | 规则插件化，避免散落在各 Phase 函数中 |
@@ -184,4 +195,4 @@ Claim(SE-001)
 
 三层防幻觉框架架构合理、方向正确、可落地性强。它比单纯增加 Judge 更高级，因为它把幻觉治理变成了 claim verification problem。
 
-当前 Qualix 已经完成从原则到工程骨架的关键跨越，尤其 Q05 已接近不可造假。下一阶段的重点是统一抽象和统一 gate 语义，让所有检查从散点规则变成一张可审计、可演进、可查询的事实验证网络。
+当前 Qualix 已经完成从原则到工程骨架的关键跨越，尤其 Q05a 已接近不可造假。下一阶段的重点是统一抽象和统一 gate 语义，让所有检查从散点规则变成一张可审计、可演进、可查询的事实验证网络。

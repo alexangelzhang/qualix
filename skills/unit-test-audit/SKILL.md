@@ -49,7 +49,7 @@ IRON LAW: 每条 audit_item 的 evidence 字段必须引用具体代码位置（
 
 1. 优先读取 `_upstream_context.md`，不要回读原始 PRD 文档或 `plain_text.txt`。
 2. 图片语义已预解析到 `image_semantics.md`，直接引用文本结论，不要重新读取图片文件。
-3. Phase Q01 结构化产物是唯一的需求基线，不要回溯飞书原文。
+3. Phase Q01 结构化产物是唯一的需求基线，不要回溯原始需求文档。
 4. 若存在 `_internal/_weak_assert_context.md`，必须优先读取；它是基于 diff 测试文件生成的 weak assert 候选 sidecar，可作为 `WRONG_TARGET` 的优先复核清单。
 5. weak assert sidecar 只是候选清单，不能直接照抄结论；必须回到测试代码逐条核实。
 
@@ -140,13 +140,13 @@ Q06 最常见的失败模式是产出 JSON 时 schema 校验不过。先锁定�
 
 ## 执行流程
 
-### Phase Q06 的定位（与 Phase Q05 的分工）
+### Phase Q06 的定位（与 Phase Q05a 的分工）
 
-Phase Q05 保障质量下限（按规则写出合格单测），Phase Q06 保障质量上限（发现按规则写了仍然遗漏的深层问题）。
+Phase Q05a 保障质量下限（按规则写出合格单测），Phase Q06 保障质量上限（发现按规则写了仍然遗漏的深层问题）。
 
 **Phase Q06 的核心目标不是"打分"，而是保证单测质量能防住线上 bug。** 审计报告必须回答四个问题：
 1. **有没有？**（定性）— 每个方法/分支/边界是否有测试
-2. **全不全？**（定量）— 覆盖率是否达到 Phase Q05 定义的 100% 标准
+2. **全不全？**（定量）— 覆盖率是否达到 Phase Q05a 定义的 100% 标准
 3. **好不好？**（质量）— 断言是否验证了正确的业务语义，Mock 是否贴近真实场景
 4. **准不准？**（正确性）— 测试断言的期望值是否和需求/代码一致，测试本身是否正确
 
@@ -158,11 +158,11 @@ Phase Q05 保障质量下限（按规则写出合格单测），Phase Q06 保障
 
 审计范围 = REQ/BR/SE 映射到的后端方法 ∪ git diff 变更的方法。未变更且未被需求映射的方法不在范围内。
 
-**第二层：全不全（定量 — 与 Phase Q05 硬标准对齐）**
+**第二层：全不全（定量 — 与 Phase Q05a 硬标准对齐）**
 
-Phase Q06 必须按 Phase Q05 的硬标准逐条验证，不能降级：
+Phase Q06 必须按 Phase Q05a 的硬标准逐条验证，不能降级：
 
-| 指标 | Phase Q05 标准 | Phase Q06 审计方式 |
+| 指标 | Phase Q05a 标准 | Phase Q06 审计方式 |
 |------|-------------|-----------------|
 | Happy Path | ≥80% 方法 | 逐个方法检查是否有正常链路测试，列出缺失方法 |
 | Exception | 100% | 逐个 throw/catch 检查是否有对应测试，列出未覆盖的异常分支 |
@@ -174,9 +174,9 @@ Phase Q06 必须按 Phase Q05 的硬标准逐条验证，不能降级：
 | 变更文件覆盖 | P0 100% / P1 ≥80% | 检查 git diff 变更的核心类是否全部有测试 |
 | 并发场景 | 必须覆盖 | check-then-act 竞态窗口必须有测试验证 |
 
-**第三层：好不好（质量 — 超越 Phase Q05 的深度检查）**
+**第三层：好不好（质量 — 超越 Phase Q05a 的深度检查）**
 
-Phase Q05 保证"按规则写了"，Phase Q06 检查"写得好不好"：
+Phase Q05a 保证"按规则写了"，Phase Q06 检查"写得好不好"：
 
 | 检查项 | 审计方式 |
 |--------|---------|
@@ -249,7 +249,7 @@ Phase Q05 保证"按规则写了"，Phase Q06 检查"写得好不好"：
    - 反射命名：`TestXxx.java`、`XxxSpec.java`、`XxxTestSuite.java`
 2. **按包路径穷举**：在 `<code_repo>/**/src/test/java/<被测类包路径>/` 下 `find` 所有 `.java`，不预设命名模式。
 3. **按 public 方法名反查**：对每个被测类的 public 业务方法（`applyXxx`、`createXxx`、`handleXxx`），grep 所有测试代码里是否调用了这个方法，即使测试类命名不带 `Xxx`。
-4. **列出完整测试文件清单**，并与 Q05 产出的 `eut_matrix.md` / `phase_b_structured.json` 里的 EUT `test_class` 字段**逐个交叉核对**，不得遗漏。
+4. **列出完整测试文件清单**，并与 Q05a 产出的 `eut_matrix.md` / `phase_b_structured.json` 里的 EUT `test_class` 字段**逐个交叉核对**，不得遗漏。
 5. 若存在 `_internal/_se_code_mapping.md`，其中标注的测试文件必须全部纳入扫描。
 
 **输出要求**：本步必须在推理日志 `_reasoning_log.md` 中显式列出每个被测类对应的测试文件完整清单（含主测试 + 补充测试），空清单或只有补充测试无主测试的情况要 flag。
@@ -476,7 +476,7 @@ Phase Q05 保证"按规则写了"，Phase Q06 检查"写得好不好"：
 
 ## 禁止事项
 
-- **禁止创建或修改任何 `.java` / `.kt` / `.ts` 测试文件**（Q06 不是 Q05，不写测试）
+- **禁止创建或修改任何 `.java` / `.kt` / `.ts` 测试文件**（Q06 不是 Q05a，不写测试）
 - **禁止因覆盖率 < 80% 而去补写测试**——覆盖率不足 → 判 FAIL + 列 MISSING，period
 - 禁止在 Phase Q01/Q04/Q03 输出 UT/EUT
 - 禁止自动 commit/push 代码

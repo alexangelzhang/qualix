@@ -19,7 +19,6 @@ if TYPE_CHECKING:
 def _prepare_state(output_dir: Path, project_id: str = "demo") -> None:
     state = ProjectState(project_id=project_id)
     state.phases["Q01"].status = PhaseStatus.APPROVED
-    state.phases["Q05"].status = PhaseStatus.APPROVED
     state.phases["Q05a"].status = PhaseStatus.APPROVED
     state.phases["Q05b"].status = PhaseStatus.APPROVED
     save_state(output_dir, state)

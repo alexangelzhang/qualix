@@ -167,7 +167,7 @@ def get_guardrails(phase_id: str) -> list[PhaseGuardrail]:
     if custom is not None:
         return custom
     base: list[PhaseGuardrail] = list(DEFAULT_OUTPUT_GUARDRAILS)
-    if phase_id in ("Q05", "Q05a"):
+    if phase_id == "Q05a":
         from qualix.quality.guardrail.q05_branch_coverage import Q05BranchCoverageGuardrail
 
         base.append(Q05BranchCoverageGuardrail())

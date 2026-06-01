@@ -32,7 +32,7 @@ def main() -> int:
 
     phases_to_check: list[str] = []
     if args.all:
-        phases_to_check = ["Q01", "Q04", "Q03", "Q05", "Q05a", "Q05b", "Q06", "Q07"]
+        phases_to_check = ["Q01", "Q04", "Q03", "Q05a", "Q05b", "Q06", "Q07"]
     elif args.phase:
         phases_to_check = [args.phase]
     else:

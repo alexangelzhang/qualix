@@ -85,7 +85,7 @@ PHASE_CONSTRAINTS: Final = MappingProxyType(
                 "label": "BR 覆盖率 ≥ 80%",
             },
         ],
-        "Q05": [
+        "Q05a": [
             {
                 "metric": "eut_count",
                 "op": ">=",

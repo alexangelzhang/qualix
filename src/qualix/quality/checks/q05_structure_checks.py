@@ -1,4 +1,4 @@
-"""Q05 结构合规检查 façade — 实现已拆入 q05_checks/ 子包.
+"""Q05a 结构合规检查 façade — 实现已拆入 q05_checks/ 子包.
 
 外部 import 路径向后兼容：所有在 finalize_checks.py 和 tests 中引用的符号均在此 re-export。
 """

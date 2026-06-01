@@ -87,8 +87,8 @@ def test_no_structured_returns_empty(tmp_path: Path) -> None:
 
 
 def test_legacy_q05_path_still_works(tmp_path: Path) -> None:
-    """Legacy Q05 directory path (backward compat)."""
-    out, pid = _make_layout(tmp_path, "Q05")
+    """Legacy Q05a directory path (backward compat)."""
+    out, pid = _make_layout(tmp_path, "Q05a")
     structured = {
         "project_id": pid,
         "eut_items": [
@@ -103,8 +103,8 @@ def test_legacy_q05_path_still_works(tmp_path: Path) -> None:
         ],
         "test_cases": [],
     }
-    (out / pid / "Q05" / "phase_b_structured.json").write_text(json.dumps(structured, ensure_ascii=False))
-    errs = run_q05_structure_checks(out, pid)  # default phase_id="Q05"
+    (out / pid / "Q05a" / "phase_b_structured.json").write_text(json.dumps(structured, ensure_ascii=False))
+    errs = run_q05_structure_checks(out, pid)  # default phase_id="Q05a"
     assert len(errs) == 1
     assert "eut_missing_se" in errs[0]
 

@@ -363,7 +363,7 @@ def run_finalize_checks(output_dir: Path, project_id: str, phase_id: str) -> lis
     errors.extend(check_se_based_pattern(output_dir, project_id, phase_id))
 
     # Phase B: 结构合规（EUT/路径/Mock 启发式）先于编译执行
-    if phase_id in ("Q05", "Q05a"):
+    if phase_id == "Q05a":
         from .q05_structure_checks import run_q05_structure_checks
 
         errors.extend(run_q05_structure_checks(output_dir, project_id, phase_id=phase_id))
@@ -423,7 +423,7 @@ def run_finalize_checks(output_dir: Path, project_id: str, phase_id: str) -> lis
                 errors.extend(_check_assertion_type_consistency(eut_data or {}, code_status or {}))
 
     # Phase Q05b: 单测编译 gate（从 _inputs.json 读 code_repos，逐仓库检查）
-    if phase_id in {"Q05", "Q05b"}:
+    if phase_id == "Q05b":
         from .compile_check import check_phase_b_compilation
 
         phase_def_q05b = PHASE_DEFS.get(phase_id)
@@ -437,7 +437,7 @@ def run_finalize_checks(output_dir: Path, project_id: str, phase_id: str) -> lis
                 errors.extend(check_phase_b_compilation(output_dir, project_id, repo))
 
     # Phase Q05b: 单测编译+运行铁律 gate（不可跳过）
-    if phase_id in {"Q05", "Q05b"}:
+    if phase_id == "Q05b":
         from .test_execution_gate import check_q05_test_execution
 
         errors.extend(check_q05_test_execution(output_dir, project_id))

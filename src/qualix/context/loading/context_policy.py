@@ -26,7 +26,6 @@ _DEFAULT_POLICIES: dict[str, ContextPolicy] = {
     "Q02": ContextPolicy(inject_gap=False, inject_profile=False, inject_rsm=True, inject_bug_cases=False),
     "Q03": ContextPolicy(inject_gap=False, inject_profile=True, inject_rsm=True),
     "Q04": ContextPolicy(inject_gap=False, inject_profile=True, inject_rsm=True),
-    "Q05": ContextPolicy(inject_gap=False, inject_profile=True, inject_rsm=True),
     "Q05a": ContextPolicy(inject_gap=False, inject_profile=True, inject_rsm=True),
     "Q05b": ContextPolicy(inject_gap=False, inject_profile=True, inject_rsm=True),
     "Q06": ContextPolicy(inject_gap=False, inject_profile=True, inject_rsm=True, inject_diff_context=True),

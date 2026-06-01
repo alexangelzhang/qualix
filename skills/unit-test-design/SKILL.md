@@ -145,7 +145,7 @@ Q05a 设计阶段必须对每个目标类做静态覆盖率投影：
 
 规则：
 - `se_mappings` 必须覆盖 Q01 的所有 SE（未找到的填 `found: false` + `gap_reason`）
-- `br_mappings` 必须覆盖 Q01 的所有后端可测 BR（**新增强制要求，旧 Q05 仅要求 se_mappings**）
+- `br_mappings` 必须覆盖 Q01 的所有后端可测 BR（**新增强制要求，旧 Q05a 仅要求 se_mappings**）
 - `git_diff_files` 必须非空（证明执行了 `git diff`，不能是 LLM 凭记忆填写）
 - git diff 里的每个实现类必须出现在某条 EUT 的 `when` 字段（C10 BLOCKED gate）
 

@@ -283,7 +283,7 @@ def cmd_evidence_audit(args: argparse.Namespace, output_dir: Path) -> int:
         # Evidence Graph 尚未实现时，降级到基本摘要
         report = _basic_evidence_summary(output_dir, args.project_id, phase_arg)
         if report is None:
-            msg = f"无法生成 evidence audit（{e}）。请先完成 Q01/Q05/Q06 的 finalize。"
+            msg = f"无法生成 evidence audit（{e}）。请先完成 Q01/Q05a/Q06 的 finalize。"
             if json_mode:
                 print_cli_json(cli_envelope(command="evidence-audit", project_id=args.project_id,
                                             success=False, exit_code=1, errors=[msg]))

@@ -1,6 +1,6 @@
 """qualix-run render：把 Phase 结构化产物渲染成交互式 HTML (lab).
 
-PoC 限制：仅 Q05。扩展到其他 Phase 时，改 _RENDERERS 注册表与错误提示。
+PoC 限制：仅 Q05a。扩展到其他 Phase 时，改 _RENDERERS 注册表与错误提示。
 """
 
 from __future__ import annotations
@@ -13,8 +13,8 @@ from qualix.commands.cli_json import cli_envelope, cli_json_mode, print_cli_json
 from qualix.constants import PHASE_DIR_MAP, STRUCTURED_JSON_MAP
 from qualix.reporting.html_render import render_q05_eut_matrix
 
-_SUPPORTED_PHASES = {"Q05", "Q05a"}
-_DEFAULT_OUTPUT_NAME = {"Q05": "eut_matrix.html", "Q05a": "eut_matrix.html"}
+_SUPPORTED_PHASES = {"Q05a"}
+_DEFAULT_OUTPUT_NAME = {"Q05a": "eut_matrix.html"}
 
 
 def _emit(
@@ -51,9 +51,9 @@ def _emit(
 
 
 def cmd_render(args: Any, output_dir: Path) -> int:
-    """渲染 Phase 结构化产物为 HTML. PoC 仅支持 Q05."""
+    """渲染 Phase 结构化产物为 HTML. PoC 仅支持 Q05a."""
     project_id = args.project_id
-    phase_id = (getattr(args, "phase", None) or "").upper()
+    phase_id = getattr(args, "phase", None) or ""
 
     if phase_id not in _SUPPORTED_PHASES:
         supported = ", ".join(sorted(_SUPPORTED_PHASES))

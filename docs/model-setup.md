@@ -84,7 +84,7 @@ Only run document ingestion for documents you are allowed to process. Public iss
 4. Run Q01 first, then inspect the generated report and structured JSON.
 
 ```bash
-qualix-run hello init --profile java-ddd-tmf
+qualix-run --profile java-ddd-tmf hello init
 qualix-run hello startup --json
 qualix-run hello execute Q01 --json
 qualix-run hello finalize Q01 --json

@@ -56,6 +56,8 @@ class PhaseResult:
     mode: str = ""  # agent-run / adaptive
     duration_seconds: float = 0
     error: str = ""
+    preflight: list[dict[str, str]] = field(default_factory=list)
+    blocked_by: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -67,6 +69,7 @@ class DAGResult:
     total_duration: float = 0
     phases_executed: int = 0
     phases_failed: int = 0
+    resumed_from: str | None = None
 
 
 # ---------------------------------------------------------------------------
@@ -140,10 +143,14 @@ class DAGScheduler:
         project_id: str,
         *,
         skip_phases: list[str] | None = None,
+        skip_reason: str = "",
+        force_skip: bool = False,
         mode: str = DAG_DEFAULT_MODE,
         max_parallel: int = DAG_DEFAULT_MAX_PARALLEL,
         primary_model: str = DEFAULT_PRIMARY_MODEL,
         fallback_model: str = DEFAULT_FALLBACK_MODEL,
+        auto_approve: bool = False,
+        resume: bool = True,
     ) -> DAGResult:
         """全自动 DAG 调度：循环推进所有可执行 Phase 直到无可执行."""
         skip_set = set(skip_phases or [])
@@ -151,23 +158,54 @@ class DAGScheduler:
         dag_start = time.time()
 
         # Task store: 创建 DAG task run
-        from qualix.runtime.task_store import complete_task_run, create_task_run
+        from qualix.json_utils import parse_json_str
+        from qualix.runtime.task_store import complete_task_run, create_task_run, get_resumable_task
 
-        task_id = create_task_run(
-            self.output_dir,
-            task_type="dag",
-            project_id=project_id,
-            config={"mode": mode, "max_parallel": max_parallel, "skip_phases": list(skip_set)},
-        )
+        completed_from_checkpoint: set[str] = set()
+        resumable = get_resumable_task(self.output_dir, project_id=project_id, task_type="dag") if resume else None
+        if resumable:
+            task_id = str(resumable["task_id"])
+            dag_result.resumed_from = str(resumable.get("checkpoint_id") or task_id)
+            snapshot = parse_json_str(resumable.get("state_snapshot") or "{}") or {}
+            completed_from_checkpoint = set(snapshot.get("completed_phases") or [])
+            dag_result.phases_executed = int(snapshot.get("phases_executed") or 0)
+            dag_result.phases_failed = int(snapshot.get("phases_failed") or 0)
+            log.info("恢复 DAG task %s from %s", task_id, dag_result.resumed_from)
+        else:
+            task_id = create_task_run(
+                self.output_dir,
+                task_type="dag",
+                project_id=project_id,
+                config={
+                    "mode": mode,
+                    "max_parallel": max_parallel,
+                    "skip_phases": list(skip_set),
+                    "auto_approve": auto_approve,
+                },
+            )
 
         # 先跳过指定 Phase
         if skip_set:
-            self._apply_skips(project_id, skip_set)
+                skip_errors = self._apply_skips(project_id, skip_set, skip_reason=skip_reason, force_skip=force_skip)
+            if skip_errors:
+                for pid, errors in skip_errors.items():
+                    dag_result.phase_results.append(
+                        PhaseResult(phase_id=pid, status="failed", error="; ".join(errors), blocked_by=errors)
+                    )
+                    dag_result.phases_failed += 1
+                dag_result.total_duration = time.time() - dag_start
+                complete_task_run(
+                    self.output_dir,
+                    task_id,
+                    status="failed",
+                    result_summary=f"skip failed: {len(skip_errors)} phase(s)",
+                )
+                return dag_result
 
         while True:
             state = load_state(self.output_dir, project_id)
             available = get_available_phases(state)
-            available = [p for p in available if p not in skip_set]
+            available = [p for p in available if p not in skip_set and p not in completed_from_checkpoint]
 
             if not available:
                 log.info("无可执行 Phase，DAG 调度结束")
@@ -193,6 +231,7 @@ class DAGScheduler:
                 primary_model,
                 fallback_model,
                 task_id,
+                auto_approve,
             )
 
         dag_result.total_duration = time.time() - dag_start
@@ -219,10 +258,12 @@ class DAGScheduler:
         primary_model: str,
         fallback_model: str,
         task_id: str,
+        auto_approve: bool,
     ) -> None:
         from qualix.runtime.task_store import add_task_event, save_checkpoint
 
         # 标记 in_progress + 执行 runtime handler
+        executable_batch: list[str] = []
         for pid in batch:
             from qualix.runtime.execution_context import ExecutionContext
             from qualix.runtime.phase_runtime import runtime_execute
@@ -236,14 +277,25 @@ class DAGScheduler:
             if not result.success:
                 log.warning("Phase %s 启动失败: %s", pid, result.errors)
                 dag_result.phase_results.append(
-                    PhaseResult(phase_id=pid, status="failed", error="; ".join(result.errors))
+                    PhaseResult(
+                        phase_id=pid,
+                        status="failed",
+                        run_status=result.run_status,
+                        error="; ".join(result.errors),
+                        blocked_by=list(result.errors),
+                    )
                 )
                 dag_result.phases_failed += 1
+                continue
+            executable_batch.append(pid)
+
+        if not executable_batch:
+            return
 
         # 并行执行
         batch_results = self.execute_parallel_phases(
             project_id,
-            batch,
+            executable_batch,
             mode=mode,
             max_parallel=max_parallel,
             primary_model=primary_model,
@@ -282,6 +334,19 @@ class DAGScheduler:
             fin_result = runtime_finalize(fin_ctx)
             if not fin_result.success:
                 log.warning("Phase %s finalize 失败: %s", pr.phase_id, fin_result.errors)
+                pr.status = "failed"
+                pr.error = "; ".join(fin_result.errors)
+                pr.blocked_by = list(fin_result.errors)
+                dag_result.phases_failed += 1
+                continue
+
+            if auto_approve:
+                approve_errors = self._auto_approve(project_id, pr.phase_id)
+                if approve_errors:
+                    pr.status = "failed"
+                    pr.error = "; ".join(approve_errors)
+                    pr.blocked_by = approve_errors
+                    dag_result.phases_failed += 1
 
         # Task store: 批次完成检查点
         add_task_event(
@@ -333,6 +398,8 @@ class DAGScheduler:
                 mode=mode,
                 duration_seconds=round(time.time() - start, 1),
                 error=f"Preflight blocked: {'; '.join(fail_details)}",
+                preflight=preflight.checks,
+                blocked_by=fail_details,
             )
 
         pd = _phase_dir(self.output_dir, project_id, phase_def)
@@ -380,6 +447,7 @@ class DAGScheduler:
             run_status=run_status,
             mode=mode,
             duration_seconds=round(duration, 1),
+            preflight=preflight.checks,
         )
 
     def _run_agent(
@@ -434,17 +502,64 @@ class DAGScheduler:
         )
         return RunStatus.OK if result.final_verdict != "FAIL" else RunStatus.TAINTED
 
-    def _apply_skips(self, project_id: str, skip_set: set[str]) -> None:
+    def _apply_skips(
+        self,
+        project_id: str,
+        skip_set: set[str],
+        *,
+        skip_reason: str,
+        force_skip: bool,
+    ) -> dict[str, list[str]]:
         """将指定 Phase 标记为 skipped."""
         from qualix.core.state_machine import skip_phase
 
         state = load_state(self.output_dir, project_id)
+        errors_by_phase: dict[str, list[str]] = {}
         for pid in skip_set:
-            if pid in PHASE_DEFS:
-                ps = state.phases.get(pid)
-                if ps and ps.status == PhaseStatus.NOT_STARTED:
-                    skip_phase(state, pid, comment="DAG --skip")
+            phase_def = PHASE_DEFS.get(pid)
+            if not phase_def:
+                errors_by_phase[pid] = [f"未知的 Phase: {pid}"]
+                continue
+            if not phase_def.get("skippable", False) and not force_skip:
+                errors_by_phase[pid] = [f"Phase {pid} 不允许跳过；如确需跳过，请使用 --force-skip 并提供 --skip-reason"]
+                continue
+            if force_skip and not skip_reason.strip():
+                errors_by_phase[pid] = [f"Phase {pid} 强制跳过必须提供 --skip-reason"]
+                continue
+            ps = state.phases.get(pid)
+            if ps and ps.status == PhaseStatus.NOT_STARTED:
+                skip_errors = skip_phase(state, pid, comment=skip_reason.strip() or "DAG --skip")
+                if skip_errors:
+                    errors_by_phase[pid] = skip_errors
         save_state(self.output_dir, state)
+        return errors_by_phase
+
+    def _auto_approve(self, project_id: str, phase_id: str) -> list[str]:
+        """显式 auto-approve：复用 approve 命令的 Gate/Judge 检查."""
+        import contextlib
+        import io
+        from argparse import Namespace
+
+        from qualix.commands.phase import cmd_approve
+
+        args = Namespace(
+            project_id=project_id,
+            phase=phase_id,
+            comment="DAG --auto-approve",
+            force=False,
+            allow_synthetic_review=False,
+            json=False,
+            profile=None,
+        )
+        stdout = io.StringIO()
+        stderr = io.StringIO()
+        with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
+            code = cmd_approve(args, self.output_dir)
+        if code == 0:
+            return []
+        details = [line.strip() for line in stderr.getvalue().splitlines() if line.strip()]
+        details.extend(line.strip() for line in stdout.getvalue().splitlines() if line.strip())
+        return details or [f"Phase {phase_id} auto-approve failed"]
 
     # -- 格式化输出 --------------------------------------------------------
 

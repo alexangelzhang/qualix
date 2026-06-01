@@ -35,7 +35,7 @@ def test_write_phase_profile_manifest_writes_relevance_matched_bug_cases(tmp_pat
 
 def test_write_phase_profile_manifest_removes_stale_bug_case_files_when_no_relevance(tmp_path, monkeypatch) -> None:
     output_dir = tmp_path / "output"
-    phase_dir = output_dir / "demo" / "Q05"
+    phase_dir = output_dir / "demo" / "Q05a"
     internal_dir = phase_dir / "_internal"
     internal_dir.mkdir(parents=True, exist_ok=True)
     (internal_dir / "_bug_cases.md").write_text("stale internal", encoding="utf-8")
@@ -46,7 +46,7 @@ def test_write_phase_profile_manifest_removes_stale_bug_case_files_when_no_relev
 
     monkeypatch.setattr(phase_service, "render_relevant_cases_for_prompt", fake_render)
 
-    phase_service.write_phase_profile_manifest(output_dir, "demo", "Q05", "java-ddd-tmf")
+    phase_service.write_phase_profile_manifest(output_dir, "demo", "Q05a", "java-ddd-tmf")
 
     assert not (internal_dir / "_bug_cases.md").exists()
     assert not (phase_dir / "_bug_cases.md").exists()

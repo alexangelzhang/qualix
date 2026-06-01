@@ -82,7 +82,7 @@ def load_eut_from_phase_b(
     project_id: str,
 ) -> list[dict[str, Any]]:
     """从 Phase B 结构化产物加载 EUT 列表."""
-    phase_b_json = Path(output_dir) / project_id / PHASE_DIR_MAP["Q05"] / STRUCTURED_JSON_MAP["Q05"]
+    phase_b_json = Path(output_dir) / project_id / PHASE_DIR_MAP["Q05a"] / STRUCTURED_JSON_MAP["Q05a"]
     if not phase_b_json.exists():
         return []
     data = load_json(phase_b_json)

@@ -1,6 +1,6 @@
 ---
 name: requirement-structuring
-description: "Phase Q01: 将 PRD 需求结构化为 REQ/BR/SE + GAP + OPEN，防止需求遗漏。当用户提供 PRD 或飞书需求文档，要求做需求评审/结构化/防漏分析时触发。"
+description: "Phase Q01: 将 PRD 需求结构化为 REQ/BR/SE + GAP + OPEN，防止需求遗漏。当用户提供 PRD、本地需求文档或企业文档 URL，要求做需求评审/结构化/防漏分析时触发。"
 license: MIT
 compatibility:
   claude: ">=3"
@@ -291,7 +291,7 @@ python -m qualix.quality.checks.report_quality_checks output/<project_id> <proje
 | `plain_text_summary.md` | 用摘要代替全文 | PRD >3000 行时执行摘要预处理 |
 | `phase_a_structured.json`（重跑） | 先读取作为基线，增量修改 | 首次执行正常生成 |
 
-禁止在 `image_semantics.md` 已存在时重新逐张读取图片；禁止在 `_upstream_context.md` 已存在时回读飞书原文。
+禁止在 `image_semantics.md` 已存在时重新逐张读取图片；禁止在 `_upstream_context.md` 已存在时回读原始企业文档。
 
 ## 输出模板
 

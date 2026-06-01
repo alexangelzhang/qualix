@@ -61,7 +61,7 @@ def _check_coverage_gate_consistency(output_dir: Path, project_id: str, phase_id
 
 
 def _check_audit_items_count(output_dir: Path, project_id: str, phase_id: str) -> list[str]:
-    """G7: Q06 audit_items 数量应 ≥ Q05 eut_items 数量（允许 ≤10% 的漏审）.
+    """G7: Q06 audit_items 数量应 ≥ Q05a eut_items 数量（允许 ≤10% 的漏审）.
 
     防止 LLM 只审计部分 EUT，跳过质量最差的测试使覆盖率数字虚高。
     """
@@ -81,9 +81,9 @@ def _check_audit_items_count(output_dir: Path, project_id: str, phase_id: str) -
 
     q06_count = len(data.get("audit_items", []))
 
-    # 读 Q05 EUT 数量
-    q05_json = STRUCTURED_JSON_MAP.get("Q05")
-    q05_dir = PHASE_DIR_MAP.get("Q05")
+    # 读 Q05a EUT 数量
+    q05_json = STRUCTURED_JSON_MAP.get("Q05a")
+    q05_dir = PHASE_DIR_MAP.get("Q05a")
     if not q05_json or not q05_dir:
         return []
     phase_b = load_json(output_dir / project_id / q05_dir / q05_json)
@@ -96,8 +96,8 @@ def _check_audit_items_count(output_dir: Path, project_id: str, phase_id: str) -
     if q06_count < q05_count * 0.9:
         return [
             f"FAIL: Q06 audit_items_insufficient — Q06 审计了 {q06_count} 条 EUT，"
-            f"但 Q05 共有 {q05_count} 条（覆盖率 {q06_count * 100 // q05_count}%，要求 ≥90%）。"
-            "Q06 必须覆盖 Q05 绝大多数 EUT，不能跳过质量差的测试。"
+            f"但 Q05a 共有 {q05_count} 条（覆盖率 {q06_count * 100 // q05_count}%，要求 ≥90%）。"
+            "Q06 必须覆盖 Q05a 绝大多数 EUT，不能跳过质量差的测试。"
         ]
     return []
 

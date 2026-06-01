@@ -3,7 +3,7 @@
 You are a test coverage auditor. Given the EUT matrix and existing test files, assess coverage status for each scenario.
 
 ## Input
-- eut_matrix: list of EUT entries from Q05
+- eut_matrix: list of EUT entries from Q05a
 - test_files: list of test file paths and their test functions
 
 ## Output Format

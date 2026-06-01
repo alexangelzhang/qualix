@@ -41,8 +41,7 @@ _SCHEMA_CLASS_MAP: Final = MappingProxyType(
         "Q02": PhaseA3Output,
         "Q03": PhaseA6Output,
         "Q04": PhaseA5Output,
-        "Q05": PhaseBOutput,
-        "Q05a": PhaseBOutput,  # EUT 矩阵设计，同 Q05 产物格式
+        "Q05a": PhaseBOutput,
         "Q05b": PhaseBCodeStatusOutput,
         "Q06": PhaseCOutput,
         "Q07": PhaseDOutput,

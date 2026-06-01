@@ -88,7 +88,7 @@ def run_doctor_checks(base_dir: Path) -> tuple[list[str], list[str], dict[str, A
         )
         signals["larkkit_auth_ok"] = result.returncode == 0
         if result.returncode != 0:
-            warnings.append("飞书 token 无效或未配置")
+            warnings.append("可选企业文档凭证无效或未配置")
     except (FileNotFoundError, subprocess.TimeoutExpired):
         signals["larkkit_auth_ok"] = False
         warnings.append("larkkit 未安装或超时")
@@ -180,9 +180,9 @@ def print_doctor_human(base_dir: Path, issues: list[str], warnings: list[str], s
         print("  ✗ skills/ 目录不存在")
 
     if signals.get("larkkit_auth_ok"):
-        print("  ✓ 飞书 token 有效")
+        print("  ✓ 可选企业文档凭证有效")
     else:
-        print("  ⚠ 飞书 token 无效（运行 qualix-run auth status 查看配置方式）")
+        print("  ⚠ 可选企业文档凭证无效（本地文件摄入不受影响）")
 
     if not shutil.which("git"):
         print("  ✗ git 未安装")

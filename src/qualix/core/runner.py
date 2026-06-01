@@ -8,10 +8,10 @@
     qualix-run <project_id> status              # 查看状态看板
     qualix-run <project_id> next                # 显示下一步可执行的 Phase
     qualix-run <project_id> log                 # 查看执行记录
-    qualix-run <project_id> spec --phase Q05    # Phase 规范（JSON：schema + contract）
+    qualix-run <project_id> spec --phase Q05a   # Phase 规范（JSON：schema + contract）
 
 各子命令可追加 --json，stdout 仅输出一条 JSON（execute/finalize/approve/…）。
-Phase ID: Q01-Q07（旧 ID A/A.3/A.5/A.6/B/C/D 仍兼容）
+Phase ID: Q01-Q04, Q05a, Q05b, Q06-Q07
 """
 
 from __future__ import annotations
@@ -88,6 +88,7 @@ def _build_parser() -> argparse.ArgumentParser:
     p_skip = sub.add_parser("skip", help="跳过 Phase")
     p_skip.add_argument("phase", help="Phase ID")
     p_skip.add_argument("--comment", "-c", default="", help="跳过原因")
+    p_skip.add_argument("--force", action="store_true", help="强制跳过不可跳过 Phase（必须提供 --comment）")
 
     # reset
     p_reset = sub.add_parser("reset", help="重置 Phase 到 not_started（允许重新执行）")
@@ -173,7 +174,11 @@ def _build_parser() -> argparse.ArgumentParser:
 
     # dag
     p_dag = sub.add_parser("dag", help="DAG 并行调度: 全自动推进所有可执行 Phase")
-    p_dag.add_argument("--skip", nargs="*", default=[], help="跳过指定 Phase（如 Q03 Q05）")
+    p_dag.add_argument("--skip", nargs="*", default=[], help="跳过指定 Phase（如 Q02）")
+    p_dag.add_argument("--skip-reason", default="", help="DAG 跳过原因；--force-skip 时必填")
+    p_dag.add_argument("--force-skip", action="store_true", help="允许跳过不可跳过 Phase（必须提供 --skip-reason）")
+    p_dag.add_argument("--auto-approve", action="store_true", help="finalize 后自动执行 approve；默认停在 pending_review")
+    p_dag.add_argument("--no-resume", action="store_true", help="不复用已有 running DAG checkpoint")
     p_dag.add_argument("--max-parallel", type=int, default=3, help="最大并行数（默认 3）")
     p_dag.add_argument(
         "--mode", choices=["agent-run", "adaptive"], default="adaptive", help="执行模式（默认 adaptive）"
@@ -192,7 +197,7 @@ def _build_parser() -> argparse.ArgumentParser:
     sub.add_parser("init", help="一键初始化项目（创建目录结构、state.json、version.json）")
 
     # doctor
-    sub.add_parser("doctor", help="环境健康检查（Python/依赖/脚本/profiles/飞书 token）")
+    sub.add_parser("doctor", help="环境健康检查（Python/依赖/脚本/profiles/可选文档凭证）")
 
     # update
     sub.add_parser("update", help="更新 Qualix 到最新版本（git pull + version.json 同步）")
@@ -292,10 +297,10 @@ def _build_parser() -> argparse.ArgumentParser:
     p_spec = sub.add_parser("spec", help="输出 Phase 规范（JSON Schema + phase_contract），供 Agent 解析")
     p_spec.add_argument("--phase", required=True, help="Phase ID (Q01-Q07)")
 
-    # render：渲染 Phase 产物为交互式 HTML（lab, PoC: 仅 Q05）
-    p_render = sub.add_parser("render", help="渲染 Phase 产物为交互式 HTML（PoC: 仅 Q05）")
-    p_render.add_argument("--phase", required=True, help="Phase ID (目前仅 Q05)")
-    p_render.add_argument("--output", default=None, help="输出 HTML 路径（默认 output/<pid>/Q05/eut_matrix.html）")
+    # render：渲染 Phase 产物为交互式 HTML
+    p_render = sub.add_parser("render", help="渲染 EUT 矩阵为交互式 HTML")
+    p_render.add_argument("--phase", required=True, help="Phase ID (目前仅 Q05a)")
+    p_render.add_argument("--output", default=None, help="输出 HTML 路径（默认 output/<pid>/Q05a/eut_matrix.html）")
     p_render.add_argument("--open", action="store_true", help="生成后在浏览器打开")
 
     _inject_json_flag_on_all_subparsers(parser)
@@ -611,8 +616,8 @@ def _handle_workspace_contribute(argv: list[str]) -> int:
 
 def _handle_workspace_auth(argv: list[str]) -> int:
     """workspace-level `qualix-run auth status`."""
-    sub = argparse.ArgumentParser(prog="qualix-run auth", description="Qualix 飞书认证状态")
-    sub.add_argument("action", choices=["status"], help="status: 查看飞书认证状态")
+    sub = argparse.ArgumentParser(prog="qualix-run auth", description="Qualix 可选企业文档认证状态")
+    sub.add_argument("action", choices=["status"], help="status: 查看可选企业文档认证状态")
     sub.parse_args(argv)
 
     from qualix.commands.auth import run_auth_status
@@ -626,7 +631,7 @@ def _handle_workspace_ingest(argv: list[str]) -> int:
     sub.add_argument("source", help="本地需求文档路径；后续 provider 可支持企业文档 URL")
     sub.add_argument("--project", required=True, help="project_id")
     sub.add_argument("--phase", default="Q01", choices=["Q01"], help="目标 Phase（当前支持 Q01）")
-    sub.add_argument("--output-root", default=None, help="输出根目录，默认 .qualix/output")
+    sub.add_argument("--output-root", default=None, help="输出根目录，默认跟随项目 state.json 所在位置")
     ns = sub.parse_args(argv)
 
     from qualix.commands.ingest import run_ingest
@@ -635,7 +640,7 @@ def _handle_workspace_ingest(argv: list[str]) -> int:
         source=ns.source,
         project_id=ns.project,
         phase_id=ns.phase,
-        output_root=Path(ns.output_root) if ns.output_root else None,
+        output_root=Path(ns.output_root) if ns.output_root else _resolve_output_dir(".", project_id=ns.project),
     )
 
 

@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 
 
 def handle_weak_assert_gate(ctx: ExecutionContext, result: PhaseResult) -> None:
-    """弱断言 gate 阻断：读取 _weak_assert_context.json，Q05 high-risk 触发 BLOCKED，Q06 触发 WARNING."""
+    """弱断言 gate 阻断：读取 _weak_assert_context.json，Q05a high-risk 触发 BLOCKED，Q06 触发 WARNING."""
     from qualix.constants import (
         WEAK_ASSERT_HIGH_RISK_BLOCK,
         WEAK_ASSERT_HIGH_RISK_WARN,
@@ -38,11 +38,11 @@ def handle_weak_assert_gate(ctx: ExecutionContext, result: PhaseResult) -> None:
     weak_methods = summary.get("weak_method_count", 0)
     weak_ratio = weak_methods / total_methods if total_methods > 0 else 0.0
 
-    is_q05 = ctx.phase_id in {"Q05", "Q05b"}
+    is_q05 = ctx.phase_id in {"Q05a", "Q05b"}
     issues: list[str] = []
     blocked = False
 
-    # Q05/Q05b: high-risk 弱断言直接 BLOCKED（左移卡控）
+    # Q05a/Q05b: high-risk 弱断言直接 BLOCKED（左移卡控）
     if is_q05 and high_risk >= WEAK_ASSERT_HIGH_RISK_BLOCK:
         issues.append(f"high-risk 弱断言 {high_risk} 个（BLOCKED 阈值 {WEAK_ASSERT_HIGH_RISK_BLOCK}）")
         blocked = True
@@ -88,7 +88,7 @@ def handle_weak_assert_gate(ctx: ExecutionContext, result: PhaseResult) -> None:
 
 
 def _collect_test_code_text(phase_root) -> str:
-    """收集 Q05 supplemental_tests 目录下的测试代码文本."""
+    """收集 Q05b supplemental_tests 目录下的测试代码文本."""
     from pathlib import Path
 
     test_dir = Path(phase_root) / "supplemental_tests"
@@ -145,7 +145,7 @@ def handle_mock_coincidence_check(ctx: ExecutionContext, result: PhaseResult) ->
     from qualix.constants import MOCK_COINCIDENCE_KEYWORDS, MOCK_REALITY_KEYWORDS
     from qualix.text_utils import REPORT_MAP
 
-    is_q05 = ctx.phase_id in {"Q05", "Q05a", "Q05b"}
+    is_q05 = ctx.phase_id in {"Q05a", "Q05b"}
 
     if is_q05:
         return
@@ -215,7 +215,7 @@ def handle_mock_coincidence_check(ctx: ExecutionContext, result: PhaseResult) ->
 
 
 def handle_weak_assert_scan_q05(ctx: ExecutionContext, result: PhaseResult) -> None:
-    """Q05 finalize: 扫描生成的测试文件，产出 _weak_assert_context.json 供 weak_assert_gate 消费（支持多 repo）."""
+    """Q05b finalize: 扫描生成的测试文件，产出 _weak_assert_context.json 供 weak_assert_gate 消费（支持多 repo）."""
     from pathlib import Path
 
     from qualix.context.weak_assert_context import (
@@ -228,8 +228,9 @@ def handle_weak_assert_scan_q05(ctx: ExecutionContext, result: PhaseResult) -> N
     if not repos:
         return
 
-    # 从 phase_b_structured.json 提取测试文件路径
-    structured_path = ctx.phase_root / "phase_b_structured.json"
+    # 从 Q05a phase_b_structured.json 提取测试文件路径
+    q05a_root = ctx.output_dir / ctx.project_id / "Q05a"
+    structured_path = q05a_root / "phase_b_structured.json"
     if not structured_path.exists():
         return
 
@@ -297,7 +298,7 @@ def handle_weak_assert_scan_q05(ctx: ExecutionContext, result: PhaseResult) -> N
     class _Q05DiffProxy:
         def __init__(self, files: list[str]) -> None:
             self._files = files
-            self.summary = "Q05 generated test files"
+            self.summary = "Q05a generated test files"
             self.error = ""
 
         def test_files(self) -> list[str]:
@@ -402,14 +403,14 @@ def register_detection_handlers() -> None:
         "weak_assert_scan_q05",
         handle_weak_assert_scan_q05,
         stage="finalize",
-        phases={"Q05", "Q05b"},
+        phases={"Q05b"},
         order=55,
     )
     register_handler(
         "weak_assert_gate",
         handle_weak_assert_gate,
         stage="finalize",
-        phases={"Q05", "Q05b", "Q06"},
+        phases={"Q05a", "Q05b", "Q06"},
         order=56,
         depends_on=["weak_assert_scan_q05"],
     )
@@ -417,7 +418,7 @@ def register_detection_handlers() -> None:
         "mock_coincidence_check",
         handle_mock_coincidence_check,
         stage="finalize",
-        phases={"Q05", "Q05b", "Q06"},
+        phases={"Q05a", "Q05b", "Q06"},
         order=57,
     )
     register_handler("ai_origin_detection", handle_ai_origin_detection, stage="finalize", order=58)
@@ -428,6 +429,6 @@ def register_detection_handlers() -> None:
         "superset_gate",
         handle_superset_gate,
         stage="finalize",
-        phases={"Q05", "Q05b"},
+        phases={"Q05a", "Q05b"},
         order=59,
     )

@@ -108,7 +108,7 @@ class TestContextLoader:
         output_dir.mkdir()
         _setup_phase_a(output_dir, "TEST")
 
-        ctx = load_context(output_dir, "TEST", "Q05")
+        ctx = load_context(output_dir, "TEST", "Q05a")
         assert len(ctx.chunks) > 0
         assert any("结构化产物" in c.source for c in ctx.chunks)
         assert ctx.total_tokens > 0
@@ -118,7 +118,7 @@ class TestContextLoader:
         output_dir.mkdir()
         _setup_phase_a(output_dir, "TEST")
 
-        ctx = load_context(output_dir, "TEST", "Q05")
+        ctx = load_context(output_dir, "TEST", "Q05a")
         text = ctx.full_text
         assert text.startswith("# Evidence Pack")
         assert "## 证据摘要" in text
@@ -130,7 +130,7 @@ class TestContextLoader:
         output_dir.mkdir()
         _setup_phase_a(output_dir, "TEST")
 
-        ctx = load_context(output_dir, "TEST", "Q05")
+        ctx = load_context(output_dir, "TEST", "Q05a")
         out_path = tmp_path / "streamed.md"
 
         ctx.write_full_text(out_path)
@@ -177,7 +177,7 @@ class TestContextLoader:
         output_dir.mkdir()
         _setup_phase_a(output_dir, "TEST")
 
-        ctx = load_context(output_dir, "TEST", "Q05")
+        ctx = load_context(output_dir, "TEST", "Q05a")
         seed = ctx.relevance_seed
 
         assert "REQ-001" in seed
@@ -188,7 +188,7 @@ class TestContextLoader:
         output_dir.mkdir()
         _setup_phase_a(output_dir, "TEST")
 
-        ctx = load_context(output_dir, "TEST", "Q05", model_name="claude-opus-4-1m")
+        ctx = load_context(output_dir, "TEST", "Q05a", model_name="claude-opus-4-1m")
         assert ctx.model.name == "claude-opus-4-1m"
         # Phase B execution=standard → budget 缩减到 60%（Reasoning Sandwich）
         assert ctx.budget_tokens > 500_000
@@ -198,9 +198,9 @@ class TestContextLoader:
         output_dir.mkdir()
         _setup_phase_a(output_dir, "TEST")
 
-        ctx = load_context(output_dir, "TEST", "Q05")
+        ctx = load_context(output_dir, "TEST", "Q05a")
         summary = ctx.summary
-        assert "Phase Q05" in summary
+        assert "Phase Q05a" in summary
         assert "chunks" in summary
 
     def test_phase_a_no_upstream(self, tmp_path: Path):
@@ -226,7 +226,7 @@ class TestContextLoader:
         phase_dir.mkdir(parents=True)
         (phase_dir / "phase_a_structured.json").write_text('{"project_id": "TEST", "requirements": []}')
 
-        ctx = load_context(output_dir, "TEST", "Q05")
+        ctx = load_context(output_dir, "TEST", "Q05a")
         assert len(ctx.chunks) == 1
         assert "Profile java-ddd-tmf" in ctx.chunks[0].source
         assert ctx.relevance_seed == ""
@@ -240,5 +240,5 @@ class TestContextLoader:
         state.profile_id = "go-service"
         save_state(output_dir, state)
 
-        ctx = load_context(output_dir, "TEST", "Q05")
+        ctx = load_context(output_dir, "TEST", "Q05a")
         assert any("Profile go-service" in chunk.source for chunk in ctx.chunks)

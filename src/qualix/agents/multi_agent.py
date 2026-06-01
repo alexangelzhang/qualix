@@ -70,18 +70,9 @@ PHASE_A_AGENTS: Final = MappingProxyType(
     }
 )
 
-# Phase 间 DAG
+# Phase 间 DAG 单一来源来自 phase_registry.PHASE_DEFS。
 PHASE_DAG: Final = MappingProxyType(
-    {
-        "Q01": [],
-        "Q04": ["Q01"],
-        "Q03": ["Q01"],
-        "Q05": ["Q01"],
-        "Q05a": ["Q01"],
-        "Q05b": ["Q05a"],
-        "Q06": ["Q05b"],
-        "Q07": ["Q04", "Q03"],
-    }
+    {phase_id: list(phase_def.get("depends_on", [])) for phase_id, phase_def in PHASE_DEFS.items()}
 )
 
 

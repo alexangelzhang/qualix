@@ -4,7 +4,7 @@
 
 ## 1. 背景
 
-Qualix 的 Q05（单测生成）、Q06（单测审计）、Q07（Code Review）三个 Phase 是语言敏感的。当前 Java 逻辑硬编码在以下模块中：
+Qualix 的 Q05a（单测生成）、Q06（单测审计）、Q07（Code Review）三个 Phase 是语言敏感的。当前 Java 逻辑硬编码在以下模块中：
 
 | 模块 | 语言耦合点 |
 |------|-----------|
@@ -236,7 +236,7 @@ Phase 1 (抽象层定义)
 - Phase 2 完成后：现有 Java 项目行为与迁移前完全一致
 - Phase 3 完成后：对未知语言优雅降级，不 crash
 - Phase 4 完成后：对 service-cli 的 `runner.test.ts` 能正确解析断言
-- Phase 6 完成后：Q05 + Q06 对 service-cli 产出完整报告
+- Phase 6 完成后：Q05a + Q06 对 service-cli 产出完整报告
 
 ## 7. 未来扩展路径
 

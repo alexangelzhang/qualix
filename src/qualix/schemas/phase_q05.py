@@ -205,7 +205,7 @@ class EutItem(BaseModel):
 
 
 class TCItem(BaseModel):
-    """Q05 实际产出的 TC 条目（兼容 LLM 输出格式）."""
+    """Q05a 实际产出的 TC 条目（兼容 LLM 输出格式）."""
 
     id: str = Field(min_length=1)
     repo: str = Field(min_length=1, description="归属仓库名")

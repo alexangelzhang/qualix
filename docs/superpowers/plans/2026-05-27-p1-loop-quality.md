@@ -57,9 +57,9 @@ def test_write_data_patterns_uses_phase_id():
                 "pattern_distribution": {}, "cases_by_pattern": {}}
 
     with _patch("qualix.tracking.data_patterns.analyze_data_patterns", side_effect=_fake_analyze):
-        write_data_patterns(Path("/tmp"), "proj", "Q05")
+        write_data_patterns(Path("/tmp"), "proj", "Q05a")
 
-    assert captured_phase == ["Q05"], f"Expected ['Q05'], got {captured_phase}"
+    assert captured_phase == ["Q05a"], f"Expected ['Q05a'], got {captured_phase}"
 
 
 def test_analyze_data_patterns_includes_top_lessons():
@@ -68,13 +68,13 @@ def test_analyze_data_patterns_includes_top_lessons():
     from qualix.tracking.data_patterns import analyze_data_patterns
 
     fake_cases = [
-        {"case_id": "c1", "phase": "Q05", "lesson": "字段映射必须显式转换枚举值",
+        {"case_id": "c1", "phase": "Q05a", "lesson": "字段映射必须显式转换枚举值",
          "title": "字段映射错误", "description": "金额字段未转换", "error_type": "field_mapping"},
     ]
 
     with _patch("qualix.tracking.data_patterns.load_cases_by_phase", return_value=fake_cases), \
          _patch("qualix.tracking.data_patterns.get_case_with_inferred_lesson", side_effect=lambda c: c):
-        result = analyze_data_patterns("Q05")
+        result = analyze_data_patterns("Q05a")
 
     for pattern in result.get("top_patterns", []):
         assert "top_lessons" in pattern, f"Pattern {pattern['id']} missing top_lessons"

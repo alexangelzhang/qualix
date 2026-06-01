@@ -216,7 +216,7 @@ def _check_wrong_target_code_validation(
 
 
 def run_q06_structure_checks(output_dir: Path, project_id: str) -> list[str]:
-    """Q06 结构合规补充校验（对标 Q05 run_q05_structure_checks 的深度）."""
+    """Q06 结构合规补充校验（对标 Q05a run_q05_structure_checks 的深度）."""
     phase_def = PHASE_DEFS.get("Q06")
     if not phase_def:
         return []
@@ -249,7 +249,7 @@ def run_q06_structure_checks(output_dir: Path, project_id: str) -> list[str]:
     # G6: WRONG_TARGET 代码端验证
     errors.extend(_check_wrong_target_code_validation(data, code_repos))
 
-    # G9: test_class 磁盘存在性（对标 Q05 C7）
+    # G9: test_class 磁盘存在性（对标 Q05a C7）
     errors.extend(_check_test_class_method_exists(data, code_repos))
 
     # G10: COVERED 条目证据字段强制
@@ -314,7 +314,7 @@ def _check_test_class_method_exists(
 ) -> list[str]:
     """G9: audit_items 里声明的 test_class 必须在业务仓库磁盘上真实存在.
 
-    防止 LLM 填写不存在的测试类名（等价于 Q05 C7 test_location 文件存在性验证）。
+    防止 LLM 填写不存在的测试类名（等价于 Q05a C7 test_location 文件存在性验证）。
     test_class 必须能在 code_repo 的 src/test/java 下找到对应 .java 文件。
     """
     if not code_repos:

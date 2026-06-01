@@ -39,7 +39,7 @@ _VERIFICATION_STRONG_ANCHORS: Final = (
 
 
 def _check_se_verification_quality(validated: BaseModel, phase_id: str) -> list[str]:
-    """Q01-2: SE.verification 字段质量升级为 FAIL 级（对标 Q05 then_must_be_concrete）.
+    """Q01-2: SE.verification 字段质量升级为 FAIL 级（对标 Q05a then_must_be_concrete）.
 
     - 空字符串 → FAIL（不再向后兼容，每条 SE 必须有可执行验证步骤）
     - 非空但弱（<20字 且无强锚点词）→ FAIL
@@ -108,7 +108,7 @@ def _save_se_source_evidence(output_dir: Path, project_id: str, phase_id: str) -
     产物：_internal/_se_source_evidence.json
     Schema: [{se_id, source_file, source_line, line_text, context_hash, verified_at}]
 
-    下游 Phase（Q05/Q06）引用 SE 时可通过 se_id → evidence 查到原始 PRD 依据，
+    下游 Phase（Q05a/Q06）引用 SE 时可通过 se_id → evidence 查到原始 PRD 依据，
     而不依赖自由文本 source 字段（自由文本可以被随意修改）。
     """
     phase_def = PHASE_DEFS.get(phase_id)
@@ -217,7 +217,7 @@ def _check_se_bound_reqs_nonempty(validated: BaseModel, phase_id: str) -> list[s
         bound_reqs = getattr(se, "bound_reqs", []) or []
         if not bound_reqs:
             errors.append(
-                f"FAIL: Q01 {se_id} bound_reqs 为空。每条 SE 必须绑定至少一个 REQ 或 BR，否则 Q05 BR 覆盖率链路断裂。"
+                f"FAIL: Q01 {se_id} bound_reqs 为空。每条 SE 必须绑定至少一个 REQ 或 BR，否则 Q05a BR 覆盖率链路断裂。"
             )
     return errors
 

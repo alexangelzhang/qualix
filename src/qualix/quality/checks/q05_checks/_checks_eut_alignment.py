@@ -1,4 +1,4 @@
-"""Q05 EUT 代码对齐检查（when/then 关键词、never()、SE-id 追溯、test_location）."""
+"""Q05a EUT 代码对齐检查（when/then 关键词、never()、SE-id 追溯、test_location）."""
 
 from __future__ import annotations
 
@@ -83,13 +83,13 @@ def _check_eut_code_alignment(
     errors: list[str] = []
     if c1_mismatches and len(c1_mismatches) / max(len(euts), 1) > 0.3:
         errors.append(
-            f"WARNING: Q05 eut_when_mismatch — {len(c1_mismatches)} 个 EUT 的 when 字段方法名"
+            f"WARNING: Q05a eut_when_mismatch — {len(c1_mismatches)} 个 EUT 的 when 字段方法名"
             f"未出现在测试代码中: {', '.join(c1_mismatches[:4])}。"
             "EUT JSON 的 when 描述与实际测试调用可能不一致。"
         )
     if c2_mismatches and len(c2_mismatches) / max(len(euts), 1) > 0.3:
         errors.append(
-            f"WARNING: Q05 eut_then_mismatch — {len(c2_mismatches)} 个 EUT 的 then 字段断言"
+            f"WARNING: Q05a eut_then_mismatch — {len(c2_mismatches)} 个 EUT 的 then 字段断言"
             f"未出现在测试代码中: {', '.join(c2_mismatches[:4])}。"
             "EUT then 描述的断言方法与实际测试代码可能不一致。"
         )
@@ -115,7 +115,7 @@ def _check_never_verify_in_code(
     java_files = [f for f in test_files if f.suffix == ".java"]
     if not java_files:
         return [
-            "BLOCKED: Q05 never_verify_no_testfile — 存在「不应调用」语义 SE 但无新增测试文件，"
+            "BLOCKED: Q05a never_verify_no_testfile — 存在「不应调用」语义 SE 但无新增测试文件，"
             "无法验证 verify(never()) 实际存在于代码中。"
         ]
 
@@ -125,7 +125,7 @@ def _check_never_verify_in_code(
     if not found_never:
         se_ids = [s["se_id"] for s in non_invoke_ses]
         return [
-            f"BLOCKED: Q05 never_verify_missing_in_code — 存在「不应调用」SE（{', '.join(se_ids[:3])}）"
+            f"BLOCKED: Q05a never_verify_missing_in_code — 存在「不应调用」SE（{', '.join(se_ids[:3])}）"
             "但测试代码中未发现 verify(mock, never())/times(0)。"
             "请在对应测试方法里加入 verify(mock, never()).targetMethod() 验证。"
         ]
@@ -155,7 +155,7 @@ def _check_se_id_validity_in_traceability(
     if ghost_refs:
         unique = sorted(set(ghost_refs))
         return [
-            f"WARNING: Q05 ghost_se_ref — 测试代码中引用了 {len(unique)} 个 Q01 不存在的 SE ID: "
+            f"WARNING: Q05a ghost_se_ref — 测试代码中引用了 {len(unique)} 个 Q01 不存在的 SE ID: "
             f"{', '.join(unique[:5])}。请核对注释里的 SE 编号是否拼写正确。"
         ]
     return []
@@ -197,7 +197,7 @@ def _check_test_location_file_exists(
     if missing:
         unique = sorted(set(missing))
         return [
-            f"WARNING: Q05 test_location_not_found — {len(unique)} 个 test_location.file 在 code_repo 中未找到: "
+            f"WARNING: Q05a test_location_not_found — {len(unique)} 个 test_location.file 在 code_repo 中未找到: "
             f"{', '.join(unique[:5])}。test_location 可能是虚填路径，请确认文件已写入 src/test/java。"
         ]
     return []
@@ -245,7 +245,7 @@ def _check_test_file_eut_reverse(
     if orphan_tests:
         unique = sorted(set(orphan_tests))[:5]
         return [
-            f"WARNING: Q05 orphan_test — {len(orphan_tests)} 个测试文件的被测类（@InjectMocks）"
+            f"WARNING: Q05a orphan_test — {len(orphan_tests)} 个测试文件的被测类（@InjectMocks）"
             f"未出现在 EUT 矩阵 when/given 或 target_modules 中: {', '.join(unique)}。"
             "这些测试可能是无需求溯源的幽灵测试，请确认是否有对应的 EUT 条目。"
         ]

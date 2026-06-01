@@ -50,14 +50,14 @@ class TestCheckGate:
 
     def test_phase_b_needs_a(self):
         state = ProjectState(project_id="TEST")
-        errors = check_gate(state, "Q05")
+        errors = check_gate(state, "Q05a")
         assert len(errors) == 1
         assert "Q01" in errors[0]
 
     def test_phase_b_passes_after_a_approved(self):
         state = ProjectState(project_id="TEST")
         state.phases["Q01"].status = PhaseStatus.APPROVED
-        assert check_gate(state, "Q05") == []
+        assert check_gate(state, "Q05a") == []
 
     def test_already_approved_blocked(self):
         state = ProjectState(project_id="TEST")
@@ -81,7 +81,7 @@ class TestExecutePhase:
 
     def test_execute_b_without_a(self):
         state = ProjectState(project_id="TEST")
-        errors = execute_phase(state, "Q05")
+        errors = execute_phase(state, "Q05a")
         assert len(errors) > 0
 
     def test_execute_already_in_progress(self):
@@ -154,14 +154,14 @@ class TestGetAvailablePhases:
         state = ProjectState(project_id="TEST")
         state.phases["Q01"].status = PhaseStatus.APPROVED
         available = get_available_phases(state)
-        # Q01 approved unlocks Q02 (depends Q01) and Q05 (depends Q01)
+        # Q01 approved unlocks Q02 (depends Q01) and Q05a (depends Q01)
         # Q03 depends on Q02 — not yet available
         # Q04 depends on Q03 — not yet available
-        # Q06 depends on Q05 — not yet available
+        # Q06 depends on Q05a — not yet available
         # Q07 depends on Q04+Q03 — not yet available
         assert "Q02" in available
         assert "Q03" not in available
-        assert "Q05" in available
+        assert "Q05a" in available
         assert "Q04" not in available
         assert "Q06" not in available
         assert "Q07" not in available
@@ -196,10 +196,10 @@ class TestGetParallelGroups:
         state.phases["Q01"].status = PhaseStatus.APPROVED
         state.phases["Q02"].status = PhaseStatus.SKIPPED
         groups = get_parallel_groups(state)
-        # Q03 and Q04 should be in the same parallel group
+        # Q03, Q04, Q05a 都只依赖 Q01，Q02 skip 后三者同时可用并行
         parallel_group = next((g for g in groups if len(g) > 1), None)
         assert parallel_group is not None
-        assert set(parallel_group) == {"Q03", "Q04"}
+        assert set(parallel_group) == {"Q03", "Q04", "Q05a"}
 
     def test_initial_no_parallel(self):
         state = ProjectState(project_id="TEST")

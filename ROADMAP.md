@@ -131,11 +131,11 @@
 
 2026-05-19 规划（统一 claim/evidence/verifier/gate 防幻觉架构）：
 
-- 背景：Q01/Q05/Q06 已形成对称防幻觉链路，但检查规则仍分散在 schema、auto checks、structure checks、cross-phase checks、guardrail 和 finalize handler 中；下一阶段目标是把散点规则收束为统一事实验证架构。评估详见 [`docs/anti-hallucination-framework-evaluation.md`](docs/anti-hallucination-framework-evaluation.md)
+- 背景：Q01/Q05a/Q06 已形成对称防幻觉链路，但检查规则仍分散在 schema、auto checks、structure checks、cross-phase checks、guardrail 和 finalize handler 中；下一阶段目标是把散点规则收束为统一事实验证架构。评估详见 [`docs/anti-hallucination-framework-evaluation.md`](docs/anti-hallucination-framework-evaluation.md)
 - 架构目标：所有 LLM 或工具产出的 `SE`、`EUT`、`AUDIT_COVERED`、`COVERAGE_RATE`、`FINDING` 都先登记为 claim，再绑定 evidence，由 verifier 输出结构化 CheckItem，最终由 gate 统一裁决 HARD/SOFT/INFO/NOT_APPLICABLE/INFRA_FAILURE
 - P0：统一失败语义。新增 `GateSeverity` / structured `CheckItem` 作为唯一严重级别载体，把现有 `BLOCKED:` / `FAIL:` / `WARNING:` 前缀映射到 HARD/SOFT/INFO，并逐步移除 approve/finalize 对字符串前缀的依赖
-- P0：Evidence Contract 硬化。Q01 `SE.source` 必须命中真实 PRD 行号；Q05 `EUT.impl_class` / `when` / `then` 必须能反查测试代码和目标类；Q06 `COVERED` 必须有断言强度、测试行号和 coverage evidence 支撑
-- P0：fail-closed 口径。存在 `code_repo` 或 Q05 测试产物时，Q06 缺 coverage report 不再静默跳过，应落为 `MISSING_EVIDENCE` 并按 HARD/SOFT 策略进入 GateVerdict
+- P0：Evidence Contract 硬化。Q01 `SE.source` 必须命中真实 PRD 行号；Q05a `EUT.impl_class` / `when` / `then` 必须能反查测试代码和目标类；Q06 `COVERED` 必须有断言强度、测试行号和 coverage evidence 支撑
+- P0：fail-closed 口径。存在 `code_repo` 或 Q05a 测试产物时，Q06 缺 coverage report 不再静默跳过，应落为 `MISSING_EVIDENCE` 并按 HARD/SOFT 策略进入 GateVerdict
 - P1：Claim Registry。统一 claim 字段：`id`、`type`、`phase`、`source_claims`、`evidence_refs`、`status`、`confidence`，支持跨 Phase 从 SE 追溯到 EUT、测试方法、审计项和代码评审发现
 - P1：Evidence Registry / Evidence Graph。统一证据类型：`PRD_LINE`、`CODE_LOCATION`、`TEST_METHOD`、`COVERAGE_REPORT`、`COMPILE_RESULT`、`TEST_RUN`、`HUMAN_DECISION`，证据必须带路径、行号或 hash，避免证据漂移后旧结论继续有效
 - P1：Verifier Registry。沉淀 `source_line_verifier`、`cross_phase_ref_verifier`、`test_assertion_verifier`、`compile_verifier`、`coverage_verifier`、`summary_derivation_verifier`，让新增 Phase 通过注册 verifier 接入同一套 gate
@@ -150,7 +150,7 @@
 - 多仓库场景 `--code-repo /a,/b,/c` + 单 `--coverage-report` 即可跑通；若需要每仓独立 jacoco.xml，后续可扩展为逗号分隔
 - Guardrail `ReportSemanticGuardrail._check_coverage_evidence` 修复：`phase_runtime.py` 构造 `GuardrailContext` 时加载 `phase_{b,c,...}_structured.json` 注入 `structured_data`，让 JSON 路径优先于 markdown 报告路径——解决"audit 明细表 evidence 列被 120 字符截断 → 行号丢失 → 20 条 COVERED 无证据"的误报
 - `fabrication_detector._grep_fallback` 从 `rglob("*.java")[:200]`（前 200 文件就截断）改为 `subprocess grep -rl -F`（全量扫描），修复 szV4 等大型 monorepo 里 AdminClaimProviderImpl 等真实类被误判"编造"
-- `fabrication_detector._get_code_repos` 增加跨 Phase 兜底：当前 Phase `_inputs.json` 缺失时扫其他 Phase（code_repos 对整个 project 通用），避免"用户 Q05 传过 --code-repo 但 Q06 忘传 → fabrication guardrail 整段跳过"
+- `fabrication_detector._get_code_repos` 增加跨 Phase 兜底：当前 Phase `_inputs.json` 缺失时扫其他 Phase（code_repos 对整个 project 通用），避免"用户 Q05a 传过 --code-repo 但 Q06 忘传 → fabrication guardrail 整段跳过"
 - `handle_mock_coincidence_check` 新增 `_strip_meta_sections` 过滤元章节（自我评审/Judge/Critique/反模式/改进建议/审计结论）和讨论性行（含「未扫描到/例如/风险/建议/smell」等修饰词），避免把"讨论 mock 返回 null 是问题"误判为"真的写了 mock 巧合代码"
 - `reset_phase` 完整字段清理修复：原实现只清 status/started_at/finished_at/validation_errors/comment，残留 approved_at/judge_score/judge_dimensions/judge_passed/judged_at/duration_seconds/run_status 会导致下轮 execute 被 `check_gate` 判定"已经 approved"而拒绝执行。同步修复"已经 not_started 就 early return"误判——status 虽是 not_started 但其它字段脏的场景应真正 reset。`tests/test_state_machine.py` 新增 `TestResetPhase` 4 个单测覆盖
 
@@ -170,7 +170,7 @@
 - 静默失败修复（`runtime/handlers/handlers_finalize.py`）— `_async_write_json` 和 `_emit_handler` 的 `except: pass` 改为 `log.debug` 记录失败原因，消除调试盲区
 - CLI 命令整合 — 砍掉 4 个孤儿 entry point（qualix-orchestrate/qualix-metrics/qualix-observe/qualix-regression），收编为 `qualix-run` 子命令（metrics/observe/regression）；统一 Phase ID help 文本为 Q01-Q07；`qualix version` 去重委托 setup.py
 - 增量上下文检测（`context/loading/file_snapshot.py`）— sha256 + mtime 快照比对，上游 Phase 产物未变更时跳过重读，减少 DAG 模式和重跑场景的 IO 开销
-- 异构检测层（`runtime/handlers/handlers_detection.py`）— 四个 finalize handler：弱断言 gate（Q05 high-risk≥1 BLOCKED 左移卡控 / Q06 WARNING）、Q05 弱断言扫描（从 structured JSON 提取测试文件并生成 _weak_assert_context.json）、Mock 巧合正确检测（Q05 coincidence_hits BLOCKED / Q06 WARNING）、AI 产出标记（git blame + Co-Authored-By 推断代码来源）；EUT then 字段模糊检测（schema validator 拒绝"验证成功"等模糊描述，要求包含具体断言或值）
+- 异构检测层（`runtime/handlers/handlers_detection.py`）— 四个 finalize handler：弱断言 gate（Q05a high-risk≥1 BLOCKED 左移卡控 / Q06 WARNING）、Q05a 弱断言扫描（从 structured JSON 提取测试文件并生成 _weak_assert_context.json）、Mock 巧合正确检测（Q05a coincidence_hits BLOCKED / Q06 WARNING）、AI 产出标记（git blame + Co-Authored-By 推断代码来源）；EUT then 字段模糊检测（schema validator 拒绝"验证成功"等模糊描述，要求包含具体断言或值）
 - Skill Evolution 全自动闭环（`tracking/skill_auto_merge.py`）— 高置信度规则（3+ case 支撑）自动合入 SKILL.md + holdout 验证 + overfitting 自动 revert；低置信度仍走 HUMAN_REVIEW；`SKILL_AUTO_MERGE_ENABLED` 全局开关
 
 2026-04-24 新增（卡控机制审计 Phase 1 — 堵漏洞）：
@@ -178,10 +178,10 @@
 - Handler required/optional 分级（`lifecycle.py`）— required handler 失败→BLOCKED 阻断 finalize，optional handler 失败→WARNING 继续执行；依赖死锁时报错而非静默降级为 order 排序
 - Phase Contract 不可绕过（`phase.py`）— `--force` 无法绕过 Phase Contract 硬约束，blocking violation 必须修复后重新 finalize
 - 指标解析失败视为约束失败（`phase_constraints.py`）— `_resolve_metric` 返回 None 时记录 WARNING 并生成 violation（reason=metric_resolve_failed），不再静默跳过
-- Q01/Q02/Q05 Phase Contract 补齐（`phase_constraints.py`）— Q01 至少 1 条 REQ、Q02 至少 1 条需求→技术映射、Q05 至少 1 条 EUT
+- Q01/Q02/Q05a Phase Contract 补齐（`phase_constraints.py`）— Q01 至少 1 条 REQ、Q02 至少 1 条需求→技术映射、Q05a 至少 1 条 EUT
 - Schema 校验 fail-closed（`schemas/__init__.py`）— 产物目录/文件不存在时返回错误列表而非 None，消除 fail-open 漏洞
 - Auto-Judge gate_checklist 动态判定（`judge.py`）— 含 CRITICAL/blocker/阻断关键词的 checklist 项在有 critical 问题时标记 failed；precision/recall 根据 critical_count 和 score 动态计算
-- 全 Phase core_arrays 补齐（`handlers_flow_integrity.py`）— Q02/Q04/Q05/Q06 加入空数组检查；critique closure 从 HIGH 升级为 CRITICAL
+- 全 Phase core_arrays 补齐（`handlers_flow_integrity.py`）— Q02/Q04/Q05a/Q06 加入空数组检查；critique closure 从 HIGH 升级为 CRITICAL
 - Critique 依赖链断裂检测（`handlers_finalize.py`）— critique prompt 写入失败时标记 BLOCKED；review_chain handler 标记为 required
 - flow_integrity handler 标记为 required — pre/post 两阶段检查失败均阻断 finalize
 
@@ -203,9 +203,9 @@
 
 2026-05-09 新增（系统健康报告 T1–T12 落地）：
 
-- T3 — `validate_eut_id_subset`（`quality/checks/cross_phase_check.py`）拦截 Q06 审计 Q05 不存在的 EUT 编号（phantom EUT），接入 `finalize_checks`
-- T5 — Q05 结构合规 validator（`quality/checks/q05_structure_checks.py`）覆盖 mock_wrong / mock_phantom_method / eut_missing_se / wrong_directory 四类失败，compile_fail 仍由 `test_execution_gate` 兜底；新增并发/幂等/锁强管控：`concurrent_se_no_eut`（SE 描述含并发关键词时必须有非占位 EUT，BLOCKED）+ `lock_annotation_not_in_scope`（@DistributedLocked 等注解持有类未出现在 EUT scope 中，WARNING）
-- T6 — Q05 生成范式三步改造（`references/q05-three-step-paradigm.md` + SKILL 三步节）+ `Q05BranchCoverageGuardrail`（`quality/guardrail/q05_branch_coverage.py`），分支覆盖校验挂入 `get_phase_guardrails("Q05")`
+- T3 — `validate_eut_id_subset`（`quality/checks/cross_phase_check.py`）拦截 Q06 审计 Q05a 不存在的 EUT 编号（phantom EUT），接入 `finalize_checks`
+- T5 — Q05a 结构合规 validator（`quality/checks/q05_structure_checks.py`）覆盖 mock_wrong / mock_phantom_method / eut_missing_se / wrong_directory 四类失败，compile_fail 仍由 `test_execution_gate` 兜底；新增并发/幂等/锁强管控：`concurrent_se_no_eut`（SE 描述含并发关键词时必须有非占位 EUT，BLOCKED）+ `lock_annotation_not_in_scope`（@DistributedLocked 等注解持有类未出现在 EUT scope 中，WARNING）
+- T6 — Q05a 生成范式三步改造（`skills/unit-test-design/SKILL.md` + SKILL 三步节）+ `Q05BranchCoverageGuardrail`（`quality/guardrail/q05_branch_coverage.py`），分支覆盖校验挂入 `get_phase_guardrails("Q05a")`
 - T7 — EnumSource 统一枚举源（`context/enum_contract.py::render_enum_contract_prefix`），在 `skill_loader.load_skill_progressive` 和 `agents/multi_agent.py` prompt 装配时自动注入 `ENUM_CONTRACT` 前缀节，与 schema 同源
 - T8 — Schema↔Prompt 一致性 CI（`scripts/check_schema_prompt_sync.py`），挂入 `.pre-commit-config.yaml` 的 pre-commit hook
 - T9 — Guard 精度周报（`reporting/guard_precision_report.py`）+ `qualix-run observe guard-precision` 命令 + finalize 后自动刷新
@@ -343,7 +343,7 @@
 2026-04-23 新增（借鉴 LangChain Evaluating Skills 方法论）：
 
 - Prompt Fingerprint 基础设施 — `AgentResult.prompt_hash`（SHA256 前 16 位）+ `PhaseRunRecord.llm_calls` 聚合字段，自动捕获每次 LLM 调用的 model_id/prompt_hash/input_tokens/output_tokens/cache_hit，finalize 时从 `_adaptive_summary.json` 注入 telemetry；SQLite schema 同步扩展 + 存量 DB 自动迁移
-- Prompt Regression Test Set — `qualix-regression prompt-eval` 子命令，Q05/Q06 各有 curated test case（固定输入 + 已知正确输出），支持不同 prompt 版本的 A/B 指标对比；逻辑提取到 `tracking/prompt_eval.py`
+- Prompt Regression Test Set — `qualix-regression prompt-eval` 子命令，Q05a/Q06 各有 curated test case（固定输入 + 已知正确输出），支持不同 prompt 版本的 A/B 指标对比；逻辑提取到 `tracking/prompt_eval.py`
 - Profile Rule Impact Measurement — `compute_rule_hash()` 按 Markdown 标题拆分规则块并计算 SHA256，`compare_with_baseline()` 扩展 `rule_changes` 归因字段，`qualix-regression rule-impact` 子命令输出规则变更→指标变化关联报告；逻辑提取到 `tracking/rule_impact.py`
 - Prompt-Level Observability — observe 报告新增"Prompt 效果"section：prompt 版本分布（top 10 hash）、token 成本分布（phase × model 汇总）、cache 命中率；旧数据 graceful 跳过
 
@@ -544,7 +544,7 @@ Qualix 的问题是 **内在质量 > 外在交付**。本节 4 条是补齐外�
 - LLM Result Cache 100%（缓存键含 skill/rubric 签名 + 全局统计 + Preference 缓存）
 - FTS5 中文分词 jieba 集成（词级分词+停用词过滤，降级兼容 n-gram）
 - 弱断言检测 tree-sitter Java AST（链式调用/变量追踪/跨方法 Helper 分析/5种弱断言信号）
-- 弱断言业务语义映射（断言与 Phase Q01 SE / Phase Q05 EUT 自动关联）
+- 弱断言业务语义映射（断言与 Phase Q01 SE / Phase Q05a EUT 自动关联）
 - DAG 并行调度器（`qualix-run dag`，Phase 间全自动并行执行，ThreadPoolExecutor）
 - CLAUDE.md/AGENTS.md 职责分离（AGENTS.md 为通用知识单一来源，CLAUDE.md/GEMINI.md/.cursor 为适配层）
 - SKIPPED 状态可满足依赖（可选 Phase 跳过后不阻塞下游）
@@ -555,7 +555,7 @@ Qualix 的问题是 **内在质量 > 外在交付**。本节 4 条是补齐外�
 - 跨项目知识自动注入（`phase_service.py` 在 execute 时调用 knowledge_network，历史 GAP/BUG/LESSON 自动注入 prompt）
 - 案例相关性二级匹配（`case_selector.py` 同义词扩展，"幂等"↔"重复提交"↔"并发安全" 等语义等价词自动关联）
 - 图片→Mermaid 验证闭环（VLM prompt 要求输出 Mermaid 代码+节点/边数量，`validate_mermaid.py` 自动校验结构完整性）
-- Phase Q05 编译验证 gate（`compile_check.py`，finalize 前自动编译检查，失败则 BLOCKED，支持 Maven/Gradle/Go，自动检测 pom.xml 目标 JDK 版本并切换 JAVA_HOME）
+- Phase Q05a 编译验证 gate（`compile_check.py`，finalize 前自动编译检查，失败则 BLOCKED，支持 Maven/Gradle/Go，自动检测 pom.xml 目标 JDK 版本并切换 JAVA_HOME）
 - Q04 覆盖度结构化映射表（`coverage_matrix.py`，从 Phase Q01 自动生成 REQ/BR/SE→技术设计映射矩阵，LLM 填充而非自由审计）
 - 业务域变异测试推导（`business_mutations.py`，从 Phase Q01 SE 自动推导金额精度/状态机跳转/并发保护/空值注入等变异规则）
 - Harness/Domain 分层 Phase 0（`PHASE_DEFS` 提取到 `phase_registry.py`，store schema 拆为 `_HARNESS_SCHEMA` + `_DOMAIN_SCHEMA`）
@@ -576,12 +576,12 @@ Qualix 的问题是 **内在质量 > 外在交付**。本节 4 条是补齐外�
 - 新增模块测试补齐（compile_check/blast_radius/coverage_matrix/dynamic_rubric/coverage_gate 共 21 条测试）
 - multi_agent.py judge prompt 统一到 quality/judge/judge.py（消除 Phase-A-only 的独立实现，dag_scheduler 自动获得全 Phase rubric）
 - cmd_auto 切换到 runtime 入口（execute/finalize handler 在 auto 模式下正常触发）
-- adaptive_loop report_map 补齐 Q02/Q05/Q06/Q07（消除 fallback 到不存在文件的问题）
+- adaptive_loop report_map 补齐 Q02/Q05a/Q06/Q07（消除 fallback 到不存在文件的问题）
 - skill_loader 接入 dag_scheduler（progressive disclosure 从死代码变为活代码）
 - Skill 结构标准化（`SKILL_TEMPLATE.md` 模板 + 7 个 Phase skill 统一追加 Anti-Rationalization / Verification 节）
 - Agent Persona 行为描述（Judge: 10 年质量负责人视角；Critique: 资深 QA 架构师视角）
 - Phase Q01 假设前置（Step 0.5 Assumption Surfacing，列出假设等用户确认后再继续，防止 Agent 默默填充模糊需求）
-- Phase Q05 Mock 优先级层级（Real > Fake > Stub > Mock）+ DAMP 原则（测试可读性优先）
+- Phase Q05a Mock 优先级层级（Real > Fake > Stub > Mock）+ DAMP 原则（测试可读性优先）
 - Phase Q07 变更大小门禁（~100 行好/~300 可接受/~1000 必须拆分）+ 评论严重级别标签（Critical/Important/Suggestion/Nit/FYI）
 - 全局错误恢复协议（`error-recovery-protocol.md`，Stop-the-Line + Triage 五步法：Reproduce→Localize→Reduce→Fix→Guard）
 - 上下文层级模型（`context-hierarchy.md`，五级金字塔 + 信任级别 + 行数阈值，统一所有 Phase 的上下文加载策略）
@@ -591,14 +591,14 @@ Qualix 的问题是 **内在质量 > 外在交付**。本节 4 条是补齐外�
 - Phase Q01 输出增加"边界约定"节（必须做/需确认/禁止做三级，下游 Phase 可引用）
 - 下游→上游反馈触发机制（UPSTREAM_UPDATE_NEEDED 标记，下游发现需求问题时显式标记而非静默处理）
 - 错误恢复协议增强（bisection 回归定位 + 不可复现 bug 四分支决策树：时序/环境/状态/随机）
-- 范围外发现协议（Phase Q01/Q02/Q05 输出模板增加 Noticed But Not Touching 节）
+- 范围外发现协议（Phase Q01/Q02/Q05a 输出模板增加 Noticed But Not Touching 节）
 - 上下文硬性行数阈值（2000 行/任务聚焦，5000 行降级触发，写入 system-rules.md）
 - Phase Q07 依赖新增 5 问审查 + feature flag 检查
 - Skill Factory（`skill_factory.py`，基于 bug case 库自动分析失败模式，生成 Anti-Rationalization 条目 + 红线规则补充建议，finalize 时自动触发，输出 `_skill_suggestions.md` 供人工 review）
 - Bug Case Lesson 自动推断（`lesson_inference.py`，从 title/tags/error_type/source 字段推断缺失的 lesson，覆盖率从 26% 提升到 86%）
-- 测试数据模式推导（`data_patterns.py`，从 Phase Q06 bug case 提取 8 种故障数据模式，Phase Q05/Q06 execute 时自动注入 `_data_patterns.md`，解决 Layer 3 场景 gap）
+- 测试数据模式推导（`data_patterns.py`，从 Phase Q06 bug case 提取 8 种故障数据模式，Phase Q05a/Q06 execute 时自动注入 `_data_patterns.md`，解决 Layer 3 场景 gap）
 - Skill Evolution 技能自进化闭环（`skill_evolution.py`，生成具体 diff 而非建议文本 + 进化谱系记录 + 高置信度规则标记自动合入，借鉴 OpenSpace FIX/CAPTURED 模式）
-- 代码语义检索增强（`code_semantic_search.py`，SE→Code 自动映射 + 概念映射动态扩展 + 调用链查询，零新依赖复用 FTS5+tree-sitter，Phase Q05/Q06/Q07 execute 时自动注入 `_se_code_mapping.md`）
+- 代码语义检索增强（`code_semantic_search.py`，SE→Code 自动映射 + 概念映射动态扩展 + 调用链查询，零新依赖复用 FTS5+tree-sitter，Phase Q05a/Q06/Q07 execute 时自动注入 `_se_code_mapping.md`）
 - Skill 目录结构改造为 agentskills.io 标准（7 个 Phase skill 从扁平 .md 改为 `skills/<name>/SKILL.md` + `references/` 目录结构，所有 SKILL.md < 500 行，详细规则拆到 references/，旧路径保留 facade 兼容）
 
 2026-04-23 新增：
@@ -835,7 +835,7 @@ Qualix 的问题是 **内在质量 > 外在交付**。本节 4 条是补齐外�
 | 三层检查包装 | **已完成** | `quality/guardrail/guardrail_impl.py`：FinalizeChecksGuardrail / PhaseConstraintsGuardrail / RuleComplianceGuardrail |
 | 并发执行 + 结果持久化 | **已完成** | `run_guardrails()` 支持 ThreadPoolExecutor 并发，结果写入 `_guardrail_results.json` |
 | 接入 runtime_finalize | **已完成** | finalize handler 执行后统一跑 guardrail，不阻断主流程 |
-| Phase 级 guardrail 注入（T6/T11） | **已完成** | `get_phase_guardrails(phase_id)` 按 Phase 挂额外 guardrail：Q05 接 `Q05BranchCoverageGuardrail`，Q03/Q06 接 `RationalizationProbeGuardrail` |
+| Phase 级 guardrail 注入（T6/T11） | **已完成** | `get_phase_guardrails(phase_id)` 按 Phase 挂额外 guardrail：Q05a 接 `Q05BranchCoverageGuardrail`，Q03/Q06 接 `RationalizationProbeGuardrail` |
 
 ### 长期（规划中，依赖 Agent SDK 迁移）
 
@@ -865,7 +865,7 @@ Qualix 的问题是 **内在质量 > 外在交付**。本节 4 条是补齐外�
 
 | 项目 | 触发条件 | 说明 |
 |------|---------|------|
-| Git Worktree 隔离 | Q05/Q07 需要代码仓库时 | 每个并行 Phase 在独立 worktree 执行，避免代码文件冲突 |
+| Git Worktree 隔离 | Q05a/Q07 需要代码仓库时 | 每个并行 Phase 在独立 worktree 执行，避免代码文件冲突 |
 | Agent Teams 集成 | Claude Code Agent Teams GA 后 | 替代手动多 SubAgent 派发，用 Team Lead + Teammate 模型 |
 
 *最后更新：2026-05-22*

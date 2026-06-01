@@ -23,6 +23,8 @@ def _dag_phase_result_dict(pr: Any) -> dict[str, Any]:
         "mode": pr.mode,
         "duration_seconds": pr.duration_seconds,
         "error": pr.error,
+        "preflight": list(getattr(pr, "preflight", []) or []),
+        "blocked_by": list(getattr(pr, "blocked_by", []) or []),
     }
 
 
@@ -277,6 +279,9 @@ def cmd_dag(args, output_dir: Path) -> int:
     skip_phases = getattr(args, "skip", None) or []
     max_parallel = getattr(args, "max_parallel", 3)
     mode = getattr(args, "mode", "adaptive")
+    auto_approve = bool(getattr(args, "auto_approve", False))
+    force_skip = bool(getattr(args, "force_skip", False))
+    skip_reason = getattr(args, "skip_reason", "") or ""
 
     # --plan: 只显示执行计划
     if getattr(args, "plan", False):
@@ -309,16 +314,24 @@ def cmd_dag(args, output_dir: Path) -> int:
     if not cli_json_mode(args):
         print(f"\n  DAG 调度启动 — 项目: {args.project_id}")
         print(f"  模式: {mode}, 最大并行: {max_parallel}")
+        if auto_approve:
+            print("  自动 approve: 开启")
+        else:
+            print("  生命周期: finalize 后停在 pending_review")
         if skip_phases:
             print(f"  跳过: {', '.join(skip_phases)}")
 
     result = scheduler.run_dag(
         args.project_id,
         skip_phases=skip_phases,
+        skip_reason=skip_reason,
+        force_skip=force_skip,
         mode=mode,
         max_parallel=max_parallel,
         primary_model=getattr(args, "primary", "claude-opus-4-6"),
         fallback_model=getattr(args, "fallback", None),
+        auto_approve=auto_approve,
+        resume=not bool(getattr(args, "no_resume", False)),
     )
     exit_code = 0 if result.phases_failed == 0 else 1
     if cli_json_mode(args):
@@ -333,6 +346,10 @@ def cmd_dag(args, output_dir: Path) -> int:
                     "mode": mode,
                     "max_parallel": max_parallel,
                     "skip_phases": list(skip_phases),
+                    "skip_reason": skip_reason,
+                    "force_skip": force_skip,
+                    "auto_approve": auto_approve,
+                    "resumed_from": result.resumed_from,
                     "total_duration": result.total_duration,
                     "phases_executed": result.phases_executed,
                     "phases_failed": result.phases_failed,

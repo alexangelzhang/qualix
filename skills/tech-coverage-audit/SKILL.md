@@ -42,7 +42,7 @@ allowed-tools:
 
 1. 优先读取 `_upstream_context.md`，不要回读原始 PRD 文档或 `plain_text.txt`。
 2. 图片语义已预解析到 `image_semantics.md`，直接引用文本结论，不要重新读取图片文件。
-3. Phase Q01 结构化产物（`phase_a_structured.json` / `phase_a_report.md`）是唯一的需求基线，不要回溯飞书原文。
+3. Phase Q01 结构化产物（`phase_a_structured.json` / `phase_a_report.md`）是唯一的需求基线，不要回溯原始需求文档。
 
 ## 执行流程
 
@@ -65,7 +65,7 @@ Step 8: 修正（根据 Step 7 发现的问题修正报告，重新执行 Step 6
 ### Step 0: 输入准备与范围确认
 
 1. 确认 Phase Q01 报告路径。
-2. 收集技术方案文档清单（飞书直读优先）。
+2. 收集技术方案文档清单（本地文件或已配置的企业文档 connector）。
 3. 无权限文档标记 `NEEDS_ACCESS` 列入风险项。
 4. **技术方案输入质量检查**：
    - 检查是否有 HLD（整体架构+数据模型+状态机）

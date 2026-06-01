@@ -41,12 +41,12 @@ class TestPhaseResult:
         assert r.artifacts["report"] == "/tmp/report.md"
 
     def test_to_dict_structure(self):
-        r = PhaseResult(phase_id="Q05", action="execute")
+        r = PhaseResult(phase_id="Q05a", action="execute")
         r.add_event(EventType.PHASE_STARTED, "started")
         r.add_artifact("ctx", "/tmp/ctx.md")
         d = r.to_dict()
         assert d["success"] is True
-        assert d["phase_id"] == "Q05"
+        assert d["phase_id"] == "Q05a"
         assert d["action"] == "execute"
         assert len(d["events"]) == 1
         assert d["events"][0]["event"] == "phase_started"
@@ -403,8 +403,8 @@ def test_fabrication_fallback_across_phases(tmp_path, monkeypatch):
     from qualix.quality.guardrail import GuardrailContext
     from qualix.quality.guardrail.fabrication_detector import FabricationDetectorGuardrail
 
-    # 在 Q05 目录下种 _inputs.json，Q06 无
-    q05_dir = internal_dir(tmp_path, "demo", PHASE_DEFS["Q05"])
+    # 在 Q05a 目录下种 _inputs.json，Q06 无
+    q05_dir = internal_dir(tmp_path, "demo", PHASE_DEFS["Q05a"])
     q05_dir.mkdir(parents=True, exist_ok=True)
     fake_repo = tmp_path / "fake_repo"
     fake_repo.mkdir()

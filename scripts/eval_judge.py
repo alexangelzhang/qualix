@@ -14,7 +14,7 @@ eval_judge.py — 用 regression/failure-library 中的 GT case 评估 judge rub
   详细的每条 case 判断结果，按 FN/FP 分类统计
 
 参数：
-  --phase       Phase ID（必填），如 Q03/Q05/Q05a/Q05b/Q06/Q07
+  --phase       Phase ID（必填），如 Q03/Q05a/Q05a/Q05b/Q06/Q07
   --limit       最多评估多少条 case（默认 30，-1 = 全量）
   --error-types 只评估指定类型，逗号分隔（默认 FN,FP）
   --verbose     输出详细每条结果

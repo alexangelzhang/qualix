@@ -3,7 +3,7 @@
 Goal: assess EUT coverage against the test codebase with direct evidence, mismatch detection, and confidence labels.
 
 ## Input
-- eut_matrix: list of EUT entries from Q05 with steps and expected results
+- eut_matrix: list of EUT entries from Q05a with steps and expected results
 - test_files: list of test file paths, function names, and assertion targets
 
 ## Output Format

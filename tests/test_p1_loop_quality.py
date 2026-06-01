@@ -27,9 +27,9 @@ def test_write_data_patterns_uses_phase_id(tmp_path):
         }
 
     with _patch("qualix.tracking.data_patterns.analyze_data_patterns", side_effect=_fake_analyze):
-        result_path = write_data_patterns(tmp_path, "proj", "Q05")
+        result_path = write_data_patterns(tmp_path, "proj", "Q05a")
 
-    assert captured_phase == ["Q05"], f"Expected ['Q05'], got {captured_phase}"
+    assert captured_phase == ["Q05a"], f"Expected ['Q05a'], got {captured_phase}"
     assert result_path is not None, "write_data_patterns should return a path when patterns exist"
 
 
@@ -42,7 +42,7 @@ def test_analyze_data_patterns_includes_top_lessons():
     fake_cases = [
         {
             "case_id": "c1",
-            "phase": "Q05",
+            "phase": "Q05a",
             "lesson": "字段映射必须显式转换枚举值",
             "title": "字段映射错误",
             "description": "金额字段未转换",
@@ -54,7 +54,7 @@ def test_analyze_data_patterns_includes_top_lessons():
         _patch("qualix.tracking.data_patterns.load_cases_by_phase", return_value=fake_cases),
         _patch("qualix.tracking.data_patterns.get_case_with_inferred_lesson", side_effect=lambda c: c),
     ):
-        result = analyze_data_patterns("Q05")
+        result = analyze_data_patterns("Q05a")
 
     for pattern in result.get("top_patterns", []):
         assert "top_lessons" in pattern, f"Pattern {pattern['id']} missing top_lessons"

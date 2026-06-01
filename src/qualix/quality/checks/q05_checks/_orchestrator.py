@@ -47,8 +47,8 @@ from ._code_intelligence import collect_symbols_for_diff_files
 from ._collect import _collect_new_test_files_from_repos, _collect_supplemental_files
 
 
-def run_q05_structure_checks(output_dir: Path, project_id: str, phase_id: str = "Q05") -> list[str]:
-    """对 Q05/Q05a phase_b_structured + supplemental_tests 做结构类校验."""
+def run_q05_structure_checks(output_dir: Path, project_id: str, phase_id: str = "Q05a") -> list[str]:
+    """对 Q05a phase_b_structured + supplemental_tests 做结构类校验."""
     phase_def = PHASE_DEFS.get(phase_id)
     if not phase_def:
         return []
@@ -148,9 +148,9 @@ def run_q05_structure_checks(output_dir: Path, project_id: str, phase_id: str = 
     # 同时检测注解（@DistributedLocked 等）和代码级并发原语（ReentrantLock/synchronized/Atomic* 等）
     concurrent_warnings = _check_concurrent_scope(data, code_repos)
     if concurrent_warnings:
-        log.warning("Q05 concurrent_scope: %d warning(s)", len(concurrent_warnings))
+        log.warning("Q05a concurrent_scope: %d warning(s)", len(concurrent_warnings))
         errors.extend(concurrent_warnings)  # WARNING 前缀，approve guardrail 会区分
 
     if errors:
-        log.info("Q05 structure checks: %d issue(s)", len(errors))
+        log.info("Q05a structure checks: %d issue(s)", len(errors))
     return errors

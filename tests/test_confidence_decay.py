@@ -99,7 +99,7 @@ def test_compute_for_project_uses_db_trust(tmp_path: Path) -> None:
     record_trust_event(
         out,
         project_id="px",
-        phase_id="Q05",
+        phase_id="Q05a",
         event_type="judge_auto_synthesized",
         trust_level=TrustLevel.MEDIUM,
     )

@@ -36,8 +36,8 @@ PHASE_SOURCE_EXTRA: dict[str, re.Pattern[str]] = {
     # Q04: 覆盖度审计，来源是技术方案原文或代码坐标
     # REQ/BR/SE/GAP 是被审计的主语，不是结论的出处，不能作为来源
     "Q04": re.compile(r"tech_design\.md|HLD|\.java(?::\d+)?|ARCH-\d+|API-\d+"),
-    # Q05: 单测设计
-    "Q05": re.compile(r"SE-\d+|EUT-\d+|target_class|target_method"),
+    # Q05a: 单测设计
+    "Q05a": re.compile(r"SE-\d+|EUT-\d+|target_class|target_method"),
     "Q05a": re.compile(r"SE-\d+|EUT-\d+|target_class|target_method"),
     "Q05b": re.compile(r"EUT-\d+|\.java:\d+|@Test"),
     # Q06: 单测实现审计（剔除 assertEquals/assertThrows/A组/B组，那是断言方法不是来源）

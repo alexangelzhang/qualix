@@ -59,7 +59,7 @@ def test_agent_run_caps_total_context_bundle_size(monkeypatch, tmp_path: Path) -
     third = tmp_path / "third.md"
     fourth = tmp_path / "fourth.md"
     first.write_text("Q01" * 5000, encoding="utf-8")
-    second.write_text("Q05" * 5000, encoding="utf-8")
+    second.write_text("Q05a" * 5000, encoding="utf-8")
     third.write_text("Q06" * 5000, encoding="utf-8")
     fourth.write_text("Q07" * 5000, encoding="utf-8")
 

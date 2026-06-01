@@ -107,15 +107,15 @@ class TestBuildNextCommand:
                 key_file_path="/output/PROJ1/Q01/phase_a_report.md",
             ),
         ]
-        phase_b = PHASES[3]  # Phase B
+        phase_b = PHASES[3]  # Q05a (EUT矩阵设计)
         cmd = build_next_command(phase_b, statuses, "PROJ1")
-        assert "/ut-generator" in cmd
+        assert "/ut-design" in cmd
         assert "phase_a_report.md" in cmd
 
 
 class TestDiscoverProjects:
     def test_discovers_standard_naming(self, tmp_path: Path):
-        output_dir = _make_output(tmp_path, "ABC", ["Q01", "Q05"])
+        output_dir = _make_output(tmp_path, "ABC", ["Q01", "Q05a"])
         projects = discover_projects(output_dir)
         assert len(projects) == 1
         assert projects[0]["id"] == "ABC"
