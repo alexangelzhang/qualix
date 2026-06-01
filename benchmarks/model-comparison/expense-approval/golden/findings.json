@@ -1,0 +1,66 @@
+{
+  "case_id": "expense-approval",
+  "description": "Golden Q06 audit findings for the expense-approval example. The test suite passes but does not prove the full PRD semantics.",
+  "source": "examples/expense-approval/expected/q06-audit.md",
+  "se_index": [
+    {
+      "se_id": "SE-001",
+      "description": "Every status change sends exactly one requester notification."
+    },
+    {
+      "se_id": "SE-002",
+      "description": "Approval transitions are idempotent: repeating the same approval must not create a second audit entry or send a second notification."
+    },
+    {
+      "se_id": "SE-003",
+      "description": "A request at exactly 500 USD requires manager AND finance approval; the threshold is inclusive, not exclusive."
+    },
+    {
+      "se_id": "SE-004",
+      "description": "Approval decisions are audit logged with actor_id, timestamp, previous_status, next_status, and comment."
+    },
+    {
+      "se_id": "SE-005",
+      "description": "Amount comparison uses decimal arithmetic, not floating point."
+    }
+  ],
+  "findings": [
+    {
+      "id": "F-001",
+      "severity": "high",
+      "type": "boundary_missing",
+      "related_se": ["SE-003"],
+      "description": "Missing boundary test for exactly 500.00 USD. Tests check 120 and 600 only. Implementation uses `> 500`, so 500 incorrectly skips finance approval.",
+      "evidence": "tests/test_expense_policy.py asserts behavior at 120 (PAID_READY) and 600 (MANAGER_APPROVED); no test exercises amount_usd == Decimal('500')."
+    },
+    {
+      "id": "F-002",
+      "severity": "high",
+      "type": "idempotency_uncovered",
+      "related_se": ["SE-002"],
+      "description": "Idempotency is not tested. Repeating approve_by_manager appends another audit row; PRD requires repeated transitions to not create duplicate audit entries or notifications.",
+      "evidence": "approve_by_manager unconditionally appends to audit_log; no test calls approve_by_manager twice and asserts len(audit_log) == 1."
+    },
+    {
+      "id": "F-003",
+      "severity": "medium",
+      "type": "schema_incomplete",
+      "related_se": ["SE-004"],
+      "description": "Audit log schema is incomplete. PRD requires timestamp, but approve_by_manager writes only actor, previous status, next status, and comment.",
+      "evidence": "Audit row built in approve_by_manager has keys actor_id, previous_status, next_status, comment; no timestamp key, and no test asserts the timestamp field."
+    },
+    {
+      "id": "F-004",
+      "severity": "medium",
+      "type": "rejection_uncovered",
+      "related_se": [],
+      "description": "Rejection reason behavior is not covered. No test exercises rejection without a visible reason.",
+      "evidence": "tests/test_expense_policy.py contains only manager-approval flows; no rejection path is exercised."
+    }
+  ],
+  "scoring_notes": {
+    "precision": "Of the findings the model reports, how many map to a golden finding (true positives / total reports).",
+    "recall": "Of the golden findings, how many did the model surface (true positives / 4).",
+    "match_rule": "A model finding matches a golden finding when their `type` matches OR when the model's `related_se` overlaps the golden `related_se`. Manual review can override this heuristic."
+  }
+}

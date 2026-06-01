@@ -1,0 +1,81 @@
+{
+  "name": "qualix-phases",
+  "displayName": "Qualix Phase Status",
+  "description": "Sidebar view of Qualix phase status (Q01-Q07) for the current workspace.",
+  "version": "0.1.0",
+  "publisher": "qualix",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "main": "./src/extension.js",
+  "activationEvents": [
+    "workspaceContains:.qualix"
+  ],
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "qualix",
+          "title": "Qualix",
+          "icon": "$(checklist)"
+        }
+      ]
+    },
+    "views": {
+      "qualix": [
+        {
+          "id": "qualix-phases",
+          "name": "Phases",
+          "icon": "$(checklist)",
+          "contextualTitle": "Qualix Phases"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "qualix.refresh",
+        "title": "Qualix: Refresh",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "qualix.runPhase",
+        "title": "Qualix: Run Phase"
+      },
+      {
+        "command": "qualix.openDashboard",
+        "title": "Qualix: Open Dashboard"
+      },
+      {
+        "command": "qualix.focusView",
+        "title": "Qualix: Focus Phases View"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "qualix.refresh",
+          "when": "view == qualix-phases",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "qualix.runPhase",
+          "when": "view == qualix-phases && viewItem == qualixPhase",
+          "group": "qualix@1"
+        }
+      ]
+    },
+    "keybindings": [
+      {
+        "command": "qualix.refresh",
+        "key": "f5",
+        "when": "focusedView == qualix-phases"
+      }
+    ]
+  }
+}

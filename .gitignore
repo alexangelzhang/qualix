@@ -56,6 +56,7 @@ docs/system-health-reports/
 docs/observability/reports/
 docs/brainstorms/
 docs/plans/
+benchmarks/model-comparison/results/*.json
 
 # Git worktrees
 .worktrees/
