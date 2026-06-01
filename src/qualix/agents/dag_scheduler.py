@@ -186,7 +186,7 @@ class DAGScheduler:
 
         # 先跳过指定 Phase
         if skip_set:
-                skip_errors = self._apply_skips(project_id, skip_set, skip_reason=skip_reason, force_skip=force_skip)
+            skip_errors = self._apply_skips(project_id, skip_set, skip_reason=skip_reason, force_skip=force_skip)
             if skip_errors:
                 for pid, errors in skip_errors.items():
                     dag_result.phase_results.append(
