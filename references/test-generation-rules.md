@@ -239,3 +239,110 @@ InfraAdapter        →  constructor(mockJpaRepo)       ✓  正确
 InfraAdapter        →  @InjectMocks                  ✗  静默失败风险
 Inner class         →  @InjectMocks                  ✗  不支持
 ```
+
+---
+
+## Runtime Failure Feedback Format
+
+Q05b Ralph Loop 在每批 `mvn test` 失败时，将结构化运行时失败信息注入 `_handoff_iter{N}.md`，供下一轮 Fixer 定点修复。本节描述该格式规范。
+
+### 前缀约定
+
+| 前缀 | 来源 | 注入来源 |
+|------|------|---------|
+| `S-N. [schema]` | Q05a/Q05b JSON schema 校验失败 | `handoff_builder.py` |
+| `C-N. [compile]` | `mvn test-compile` 编译失败 | SKILL.md Step 3.2 |
+| `R-N. [runtime]` | `mvn test` 运行时测试失败 | SKILL.md Step 3.3 |
+
+三类前缀统一注入同一个 `_handoff_iter{N}.md` 文件，Fixer 读取后统一处理。
+
+### 如何定位 Surefire XML 报告
+
+Maven Surefire 插件在每次 `mvn test` 后将测试结果写入 XML：
+
+```
+<module-root>/target/surefire-reports/<全限定类名>.xml
+```
+
+多模块项目中，每个子模块有各自的 `target/` 目录，例如：
+
+```
+maf-srv-service/target/surefire-reports/com.example.FooTest.xml
+maf-service-provider/target/surefire-reports/com.example.BarTest.xml
+maf-srv-aftersale/target/surefire-reports/com.example.BazTest.xml
+```
+
+遍历所有模块时，使用 glob 模式：`*/target/surefire-reports/*.xml`。
+
+### 从 XML 中提取的信息
+
+Surefire XML 的 `<testcase>` 元素示例：
+
+```xml
+<testcase classname="com.example.FooTest" name="testBar_正常路径" time="0.123">
+  <failure message="expected:&lt;200&gt; but was:&lt;500&gt;" type="org.opentest4j.AssertionFailedError">
+org.opentest4j.AssertionFailedError: expected:&lt;200&gt; but was:&lt;500&gt;
+    at com.example.FooTest.testBar_正常路径(FooTest.java:42)
+    at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+  </failure>
+</testcase>
+```
+
+对每个包含 `<failure>` 或 `<error>` 子元素的 `<testcase>`，提取：
+
+| 字段 | 来源 | 说明 |
+|------|------|------|
+| `TestClass` | `classname` 属性 | 取简单类名（最后一段），去掉包名 |
+| `method` | `name` 属性 | 完整方法名 |
+| `failure_message_first_line` | `<failure>` 或 `<error>` 文本第一行 | 截断到换行符前 |
+| `L`（行号） | `<failure>` body 中第一个含测试类名的 `at` 行 | 从括号内提取数字 |
+
+### 格式模板
+
+```
+R-N. [runtime] {TestClass}#{method}: {failure_message_first_line} (line {L})
+```
+
+示例：
+
+```
+R-1. [runtime] FooTest#testBar_正常路径: expected:<200> but was:<500> (line 42)
+R-2. [runtime] BazTest#testQux_异常场景: NullPointerException (line 87)
+→ Likely layer mismatch — see DDD+TMF Mock Templates in references/test-generation-rules.md
+```
+
+- `R-N` 编号从 1 开始，在同一 handoff 文档内全局递增（跨测试类连续编号）
+- 行号 `L` 不可用时写 `(line ?)`
+- 提示行紧跟在触发 NPE 提示的 `R-N` 行之后，不单独编号
+
+### NPE → 层级错误提示触发条件
+
+当同时满足以下两个条件时，在对应 `R-N` 行之后追加提示：
+
+1. 失败消息（`failure_message_first_line`）包含字符串 `NullPointerException`
+2. 堆栈帧指向的行（行号 `L`）疑似 Mock 字段访问——即代码中该行形如 `mockField.someMethod(...)` 或字段名与测试类的 `@Mock` 声明一致
+
+追加内容：
+```
+→ Likely layer mismatch — see DDD+TMF Mock Templates in references/test-generation-rules.md
+```
+
+**典型触发场景**：ApplicationService 测试中直接 `@Mock Repository` 而非 `@Mock DomainService`，导致领域层调用 null 而抛出 NPE。此提示引导 Fixer 参照 DDD+TMF 模板（本文件 `## DDD+TMF Mock Templates` 章节）检查层级边界。
+
+### handoff 文档结构（多类错误并存时）
+
+同一迭代中，`_handoff_iter{N}.md` 可同时包含多类错误块，各块独立：
+
+```markdown
+## Compile Errors
+
+C-1. [compile] fooBar not found in MyService — known methods: [doFoo, doBar, validate]
+
+## Runtime Failures (fix in next iteration)
+
+R-1. [runtime] MyServiceTest#testFoo_正常路径: expected:<true> but was:<false> (line 55)
+R-2. [runtime] MyServiceTest#testBar_异常场景: NullPointerException (line 88)
+→ Likely layer mismatch — see DDD+TMF Mock Templates in references/test-generation-rules.md
+```
+
+Fixer 在下一轮先修 `C-N` 编译错误（优先级更高，运行时错误可能由此触发），再修 `R-N` 运行时错误。

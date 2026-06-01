@@ -215,7 +215,55 @@ mvn test-compile -pl <module> -am -o 2>&1 | tee /tmp/mvn_compile_stderr.txt
 
 > **设计说明**：此错误注入格式与 `handoff_builder.py` 的 `S-N. [schema]` 模式一致（见该文件第 52-56 行）——`C-N. [compile]` 是其编译错误对应形式，Fixer 可以统一处理两类错误。
 
-**3.3 覆盖率验证（所有 EUT passes:true 后执行一次）**
+**3.3 运行时失败诊断（每批 mvn test 运行后执行）**
+
+每批 EUT 编译通过后，运行测试并捕获 Surefire 报告：
+
+```bash
+# 运行当前批次的测试，不因失败中断
+mvn test -pl <module> -am -o -Dmaven.test.failure.ignore=true 2>&1 | tee /tmp/mvn_test_stdout.txt
+```
+
+**When `mvn test` FAILS（有 `<failure>` 或 `<error>` 的 testcase）：**
+
+1. **定位 Surefire XML 报告**：在每个 code repo 模块下的 `target/surefire-reports/*.xml`  
+   多模块项目中每个子模块有各自的 `target/` 目录，例如：
+   ```
+   maf-srv-service/target/surefire-reports/com.example.FooTest.xml
+   maf-service-provider/target/surefire-reports/com.example.BarTest.xml
+   ```
+
+2. **从 XML 中提取失败信息**：对每个包含 `<failure>` 或 `<error>` 子元素的 `<testcase>` 元素，提取：
+   - `classname` 属性（测试类全限定名，取简单类名用于展示）
+   - `name` 属性（测试方法名）
+   - 失败消息：`<failure>` 或 `<error>` 元素文本内容的**第一行**
+   - 堆栈帧：从 `<failure>` body 中找第一个指向测试文件的行（含测试类名的 `at` 行），提取行号 `L`
+
+3. **格式化每条运行时失败**：
+   ```
+   R-N. [runtime] {TestClass}#{method}: {failure_message_first_line} (line {L})
+   ```
+   `R-N` 编号从 1 开始，每条失败递增；`N` 在同一 handoff 文档中全局连续。
+
+4. **NPE → 层级错误提示**：若失败消息包含 `NullPointerException` **且**堆栈帧指向的行中有 Mock 字段访问（形如 `mockField.method(...)` 或字段名与 `@Mock` 声明一致），追加提示行：
+   ```
+   → Likely layer mismatch — see DDD+TMF Mock Templates in references/test-generation-rules.md
+   ```
+
+5. **追加运行时失败块到当前迭代的 handoff 文档**：在 `_handoff_iter{N}.md` 末尾追加（与 `## Compile Errors` 同文件，独立章节）：
+   ```markdown
+   ## Runtime Failures (fix in next iteration)
+
+   R-1. [runtime] FooTest#testBar_正常路径: expected:<200> but was:<500> (line 42)
+   R-2. [runtime] BazTest#testQux_异常场景: NullPointerException (line 87)
+   → Likely layer mismatch — see DDD+TMF Mock Templates in references/test-generation-rules.md
+   ```
+
+6. **不标记 passes: true**：本批所有失败 EUT 保持 `passes: false`；回到 Step 2 进入 fixer 模式，读取 `_handoff_iter{N}.md` 中的 `R-N` 条目修正运行时问题后重试。
+
+> **设计说明**：`R-N. [runtime]` 前缀与 `C-N. [compile]`（Step 3.2）和 `S-N. [schema]`（`handoff_builder.py`）保持同一命名约定，Fixer 可统一处理三类错误，无需区分来源。
+
+**3.4 覆盖率验证（所有 EUT passes:true 后执行一次）**
 
 当 `phase_b_code_status.json` 中所有 EUT `passes: true` 时，运行 JaCoCo 并验证覆盖率：
 
@@ -248,9 +296,9 @@ mvn org.jacoco:jacoco-maven-plugin:0.8.12:report -am -o -q
 
 **两个条件同时满足** → Q05b 完成，可 finalize：
 1. 所有 EUT `passes: true`
-2. **增量行覆盖率 ≥ 80% AND 增量分支覆盖率 ≥ 80%**（Step 3.3 验证通过）
+2. **增量行覆盖率 ≥ 80% AND 增量分支覆盖率 ≥ 80%**（Step 3.4 验证通过）
 
-若只满足条件 1 但覆盖率不足：按 Step 3.3 补充 EUT → 继续 Ralph Loop。
+若只满足条件 1 但覆盖率不足：按 Step 3.4 补充 EUT → 继续 Ralph Loop。
 
 输出 `codegen_progress.md`：
 
