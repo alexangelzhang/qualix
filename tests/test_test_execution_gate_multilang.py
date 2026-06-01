@@ -85,7 +85,7 @@ def test_ts_gate_success(tmp_path: Path) -> None:
             "returncode": 0,
         },
     ):
-        errors = _run_ts_gate(tmp_path, "proj", [str(repo_dir)])
+        errors = _run_ts_gate([str(repo_dir)])
 
     assert errors == []
 
@@ -108,7 +108,7 @@ def test_ts_gate_failure(tmp_path: Path) -> None:
             "returncode": 1,
         },
     ):
-        errors = _run_ts_gate(tmp_path, "proj", [str(repo_dir)])
+        errors = _run_ts_gate([str(repo_dir)])
 
     assert len(errors) == 1
     assert "BLOCKED" in errors[0]
@@ -135,7 +135,7 @@ def test_go_gate_compile_failure(tmp_path: Path) -> None:
             error_summary="build failed: undefined: Foo",
         ),
     ):
-        errors = _run_go_gate(tmp_path, "proj", [str(repo_dir)])
+        errors = _run_go_gate([str(repo_dir)])
 
     assert len(errors) == 1
     assert "BLOCKED" in errors[0]
@@ -175,7 +175,7 @@ def test_go_gate_test_success(tmp_path: Path) -> None:
         "qualix.quality.checks.test_execution_gate.subprocess.run",
         return_value=mock_proc,
     ):
-        errors = _run_go_gate(tmp_path, "proj", [str(repo_dir)])
+        errors = _run_go_gate([str(repo_dir)])
 
     assert errors == []
 
@@ -212,7 +212,7 @@ def test_go_gate_test_failure(tmp_path: Path) -> None:
         "qualix.quality.checks.test_execution_gate.subprocess.run",
         return_value=mock_proc,
     ):
-        errors = _run_go_gate(tmp_path, "proj", [str(repo_dir)])
+        errors = _run_go_gate([str(repo_dir)])
 
     assert len(errors) == 1
     assert "BLOCKED" in errors[0]
@@ -243,7 +243,7 @@ def test_go_gate_nonzero_exit_empty_stdout(tmp_path: Path) -> None:
         "qualix.quality.checks.test_execution_gate.subprocess.run",
         return_value=mock_proc,
     ):
-        errors = _run_go_gate(tmp_path, "proj", [str(repo_dir)])
+        errors = _run_go_gate([str(repo_dir)])
 
     assert len(errors) == 1
     assert "BLOCKED" in errors[0]

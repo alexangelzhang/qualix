@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 from qualix.log import get_logger
@@ -18,8 +19,6 @@ def parse_coverage_summary(coverage_json_path: Path) -> dict | None:
     if not coverage_json_path.exists():
         return None
     try:
-        import json
-
         data = json.loads(coverage_json_path.read_text(encoding="utf-8"))
         total = data.get("total", {})
         lines_pct = total.get("lines", {}).get("pct")

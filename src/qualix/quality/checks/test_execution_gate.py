@@ -291,12 +291,12 @@ def check_q05_test_execution(
                     pass
 
     if lang_id == "typescript":
-        return _run_ts_gate(output_dir, project_id, code_repos)
+        return _run_ts_gate(code_repos)
     if lang_id == "go":
-        return _run_go_gate(output_dir, project_id, code_repos)
+        return _run_go_gate(code_repos)
 
     # Java 路径（默认，含 lang_id=None）
-    return _run_java_gate(output_dir, project_id, code_repos)
+    return _run_java_gate(code_repos)
 
 
 def check_q05b_coverage_increase(output_dir: Path, project_id: str) -> list[str]:

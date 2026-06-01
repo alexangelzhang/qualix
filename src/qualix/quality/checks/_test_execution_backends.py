@@ -6,6 +6,7 @@ of BLOCKED error strings (empty = pass).
 
 from __future__ import annotations
 
+import json
 import subprocess
 from pathlib import Path
 
@@ -15,8 +16,6 @@ log = get_logger(__name__)
 
 
 def _run_java_gate(
-    output_dir: Path,
-    project_id: str,
     code_repos: list[str],
     *,
     _discover_fn=None,
@@ -53,21 +52,7 @@ def _run_java_gate(
             log.info("仓库 %s 无新增测试文件，跳过", repo_path.name)
             continue
 
-        # 按语言分组：TS 文件整批执行，Java 文件按 Maven 模块分组
-        ts_files = [tf for tf in test_files if tf.get("language") == "typescript"]
-        java_files = [tf for tf in test_files if tf.get("language") != "typescript"]
-
-        if ts_files:
-            ts_paths = [tf["path"] for tf in ts_files]
-            log.info("测试验证(TS): %s — %d 个测试文件", repo_path.name, len(ts_paths))
-            result = run_check(repo_path, ts_paths, language="typescript")
-            total_tested += len(ts_paths)
-            if not result["passed"]:
-                errors.append(f"BLOCKED: {repo_path.name} TS 测试失败 ({len(ts_paths)} 个文件)")
-                if result["error_summary"]:
-                    errors.append(f"  错误摘要:\n{result['error_summary']}")
-
-        by_module = group(java_files)
+        by_module = group(test_files)
         for module, classes in by_module.items():
             mod_arg = module if module else None
             log.info(
@@ -95,8 +80,6 @@ def _run_java_gate(
 
 
 def _run_ts_gate(
-    output_dir: Path,
-    project_id: str,
     code_repos: list[str],
 ) -> list[str]:
     """TypeScript 路径：对每个 repo 调用 TypeScriptProvider.run_tests()."""
@@ -133,13 +116,9 @@ def _run_ts_gate(
 
 
 def _run_go_gate(
-    output_dir: Path,
-    project_id: str,
     code_repos: list[str],
 ) -> list[str]:
     """Go 路径：compile_check + go test ./... -json."""
-    import json as _json
-
     from qualix.languages.go.provider import GoProvider
 
     errors: list[str] = []
@@ -179,8 +158,8 @@ def _run_go_gate(
             if not line:
                 continue
             try:
-                entry = _json.loads(line)
-            except _json.JSONDecodeError:
+                entry = json.loads(line)
+            except json.JSONDecodeError:
                 continue
             if entry.get("Action") == "fail" and entry.get("Test"):
                 failing.append(entry["Test"])
