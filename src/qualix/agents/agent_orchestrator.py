@@ -5,7 +5,6 @@ from __future__ import annotations
 import importlib.util
 import sys
 from collections.abc import Callable
-from concurrent.futures import Future, ThreadPoolExecutor
 from pathlib import Path
 
 from qualix.agents.agent import Agent, AgentResult
@@ -26,9 +25,16 @@ from qualix.security.tool_permissions import filter_tools_by_role
 log = get_logger(__name__)
 
 # 检查 critique_runner_subprocess 是否已实现（sprint 后期才会加）
-_CRITIQUE_SUBPROCESS_AVAILABLE = (
-    importlib.util.find_spec("qualix.agents.critique_runner_subprocess") is not None
-)
+try:
+    _CRITIQUE_SUBPROCESS_AVAILABLE = (
+        importlib.util.find_spec("qualix.agents.critique_runner_subprocess") is not None
+    )
+except Exception as exc:
+    log.warning(
+        "Could not probe critique_runner_subprocess availability: %s; defaulting to in-process",
+        exc,
+    )
+    _CRITIQUE_SUBPROCESS_AVAILABLE = False
 
 
 class AgentOrchestrator:
@@ -133,15 +139,9 @@ class AgentOrchestrator:
         )
         results["judge"] = judge_result
 
-        # Step 3: Critique — Judge 输出文件写入后立即并发启动
-        # Critique 只读 report + judge_result，不需要等待其他操作，
-        # 用 ThreadPoolExecutor 在 Judge 完成后立即触发。
-        judge_result_path = pd / "_judge_result_v2.json"
-        report_path = structured_json_path or worker_output
-
-        with ThreadPoolExecutor(max_workers=1) as executor:
-            critique_future: Future[AgentResult] = executor.submit(
-                self._run_critique,
+        # Step 3: Critique — Judge 完成后直接调用（无需 ThreadPoolExecutor）
+        try:
+            critique_result = self._run_critique(
                 project_id,
                 phase_id,
                 critique_prompt,
@@ -152,8 +152,17 @@ class AgentOrchestrator:
                 det_path,
                 judge_result,
             )
-            # 等待 Critique 完成（保持流水线语义，结果写入后再保存轨迹）
-            critique_result = critique_future.result()
+        except Exception as exc:
+            log.error(
+                "Critique failed for project=%s phase=%s: %s",
+                project_id, phase_id, exc, exc_info=True,
+            )
+            critique_result = AgentResult(
+                agent_name=f"{project_id}-{phase_id}-critique",
+                role="critique",
+                status="failed",
+                error=str(exc),
+            )
 
         results["critique"] = critique_result
 
@@ -192,7 +201,7 @@ class AgentOrchestrator:
         """
         if not _CRITIQUE_SUBPROCESS_AVAILABLE:
             # TODO: replace with subprocess once critique_runner_subprocess is implemented
-            log.debug(
+            log.info(
                 "critique_runner_subprocess not yet available; running Critique in-process "
                 "(project=%s phase=%s)",
                 project_id,
@@ -228,6 +237,8 @@ class AgentOrchestrator:
             return result
 
         # subprocess 路径（critique_runner_subprocess 实现后启用）
+        # TODO: wire up _run_critique_subprocess from run_pipeline() once
+        # critique_runner_subprocess is implemented; ensure tests cover this path.
         import json
         import subprocess
         import tempfile
@@ -274,14 +285,25 @@ class AgentOrchestrator:
         finally:
             try:
                 Path(input_path).unlink(missing_ok=True)
-            except Exception:
-                pass
+            except Exception as exc:
+                log.warning("Failed to clean up critique input file %s: %s", input_path, exc)
 
         if proc.returncode != 0:
             log.error("Critique subprocess failed: %s", proc.stderr[:400])
             raise RuntimeError(f"Critique subprocess failed: {proc.stderr[:200]}")
 
-        result_data = json.loads(Path(output_path).read_text(encoding="utf-8"))
+        try:
+            raw = Path(output_path).read_text(encoding="utf-8")
+            result_data = json.loads(raw)
+        except (OSError, json.JSONDecodeError) as exc:
+            log.error(
+                "Critique subprocess output unreadable/malformed for project=%s phase=%s: %s",
+                project_id, phase_id, exc,
+            )
+            raise RuntimeError("Critique subprocess produced invalid output") from exc
+        finally:
+            Path(output_path).unlink(missing_ok=True)
+
         content = json.dumps(result_data, ensure_ascii=False, indent=2)
         (pd / "_critique_v2.json").write_text(content, encoding="utf-8")
         process_critique_feedback(content, pd, phase_id)
