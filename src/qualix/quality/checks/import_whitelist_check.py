@@ -19,6 +19,8 @@ from qualix.log import get_logger
 
 log = get_logger(__name__)
 
+_BLOCKED_THRESHOLD: float = 0.5
+
 # ---------------------------------------------------------------------------
 # 标准前缀白名单（始终允许，无需警告）
 # ---------------------------------------------------------------------------
@@ -102,22 +104,21 @@ def _check_single_file(
     if not imports:
         return []
 
-    # 过滤掉标准前缀
+    # 过滤掉标准前缀和通配符 import
     non_standard = [
         fqcn for fqcn in imports
         if not any(fqcn.startswith(prefix) for prefix in _STANDARD_PREFIXES)
+        and not fqcn.endswith(".*")
     ]
     if not non_standard:
         return []
 
+    total_non_standard = len(non_standard)
+
     # 判断哪些不在已知类列表中
     unrecognized: list[str] = []
     for fqcn in non_standard:
-        # 简单类名（最后一段）
         simple = fqcn.rsplit(".", 1)[-1]
-        # 通配符 import（import com.example.*）—— 无法判断，跳过
-        if simple == "*":
-            continue
         if fqcn not in known_classes and simple not in known_classes:
             unrecognized.append(fqcn)
 
@@ -128,12 +129,11 @@ def _check_single_file(
             f" (file: {path.name})"
         )
 
-    # 阈值检查：>50% 非标准 import 无法识别 → BLOCKED
-    total_non_standard = len([f for f in non_standard if not f.endswith(".*")])
+    # 阈值检查：超过阈值的非标准 import 无法识别 → BLOCKED
     n_unrecognized = len(unrecognized)
-    if total_non_standard > 0 and n_unrecognized / total_non_standard > 0.5:
+    if total_non_standard > 0 and n_unrecognized / total_non_standard > _BLOCKED_THRESHOLD:
         messages.append(
-            f"BLOCKED: import whitelist: >{50}% unrecognized imports in {path.name}"
+            f"BLOCKED: import whitelist: >{_BLOCKED_THRESHOLD:.0%} unrecognized imports in {path.name}"
             f" ({n_unrecognized}/{total_non_standard})"
         )
 
@@ -190,14 +190,11 @@ def check_import_whitelist(
             log.debug("import_whitelist_check: 仓库路径不存在，跳过: %s", repo)
             continue
 
-        test_roots = [
-            repo / "src" / "test" / "java",
-        ]
-        for test_root in test_roots:
-            if not test_root.is_dir():
-                continue
-            for java_file in test_root.rglob("*Test.java"):
-                file_messages = _check_single_file(java_file, known_classes)
-                all_messages.extend(file_messages)
+        test_root = repo / "src" / "test" / "java"
+        if not test_root.is_dir():
+            continue
+        for java_file in test_root.rglob("*Test.java"):
+            file_messages = _check_single_file(java_file, known_classes)
+            all_messages.extend(file_messages)
 
     return all_messages
