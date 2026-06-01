@@ -1,90 +1,82 @@
-# Qualix 0.1 → 0.2 迁移指南
+# Qualix 0.1 → 0.2 Migration Guide
 
-> 0.2 引入了工具化分发边界：Qualix 源码与你的项目物理隔离。
+Qualix 0.2 changed how the tool is distributed. In 0.1, Qualix was used by cloning the repository and running from inside it. In 0.2, Qualix is a standard pip package and your project files live separately from the tool source.
 
-## 变化
+## What Changed
 
-- Qualix 源码不再在你的 cwd 下；通过 `pip install --user` 装到 site-packages
-- 资源（skills/references/profiles/regression）拷贝到 `~/.qualix/`
-- 你的项目下新建 `.qualix/` 工作区（output + settings）
-- `CLAUDE.md` 会被追加一段 Qualix 使用规约（marker 包裹）
+| 0.1 | 0.2 |
+| --- | --- |
+| `git clone` + run from repo root | `pip install qualix` |
+| `skills/`, `references/`, `profiles/` in your cwd | Packaged inside the wheel |
+| Output in `output/<pid>/` at repo root | Output in `.qualix/output/<pid>/` in your project |
+| No separation between tool source and user config | `.qualix/` workspace separates user config from tool |
 
-## 从 0.1 迁移步骤
+## Migration Steps
 
-### 1. 安装新版 Qualix
+### 1. Install the new version
 
 ```bash
-cd <Qualix repo 目录>
+pip install --upgrade qualix
+```
+
+Or from the source repository for development:
+
+```bash
 git pull
-./install.sh            # 非 dev 用户
-# 或
-./install.sh --dev      # 你是 Qualix 维护者
+python -m pip install -e '.[dev]'
 ```
 
-### 2. 在你的项目目录初始化工作区
+### 2. Initialize your project workspace
+
+In your project directory (not the Qualix repo):
 
 ```bash
-cd <你的项目目录>
-qualix-run init
+cd /path/to/your-project
+qualix-run --profile <your-profile> <project-id> init
 ```
 
-这会创建：
-- `.qualix/output/` — 运行输出写这里
-- `.qualix/settings.yaml` — profile、code_repos 等
-- `.gitignore` 追加 `.qualix/output/`
-- `CLAUDE.md` 追加 guardrail 段落
+This creates `.qualix/` in your project directory with:
+- `output/<project-id>/` — phase outputs
+- `settings.yaml` — profile and configuration
 
-### 3. 迁移自定义配置（如果有）
+### 3. Move any custom configurations
 
-| 0.1 放哪里 | 0.2 放哪里 |
-|-----------|------------|
-| Qualix repo 下 `profiles/your-profile/` | `<你的项目>/.qualix/profiles/your-profile/` |
-| Qualix repo 下你改过的 skills 片段 | `<你的项目>/.qualix/skill-overrides/` |
-| Qualix repo 下 `output/<pid>/` | `<你的项目>/.qualix/output/<pid>/` |
+| Was in (0.1) | Move to (0.2) |
+| --- | --- |
+| `profiles/your-profile/` inside Qualix repo | `.qualix/profiles/your-profile/` in your project |
+| Modified skill fragments | `.qualix/skill-overrides/` in your project |
+| `output/<pid>/` at Qualix repo root | `.qualix/output/<pid>/` in your project |
 
-`.qualix/profiles/` 和 `.qualix/skill-overrides/` 子目录 `init` 不会预建；有需要手动 `mkdir` 后放进去，`ResourceResolver` 会自动检测并优先使用。
+The `ResourceResolver` checks `.qualix/` first, then `~/.qualix/`, then the installed package. Drop your overrides in `.qualix/` and they take precedence automatically.
 
-### 4. 填写 settings.yaml 的 code_repos
+### 4. Update your CLAUDE.md (if using Claude Code)
 
-```yaml
-code_repos:
-  - /absolute/path/to/your-service
-```
+`qualix-run <pid> init` appends a Qualix usage guardrail to your project's `CLAUDE.md` automatically. If you have an existing `CLAUDE.md`, check that the section was added correctly.
 
-### 5. 验证
+### 5. Verify
 
 ```bash
-qualix-run status --json
+qualix-run <project-id> status --json
 ```
 
-预期：正常输出，无 deprecation warning。
+Expected: clean JSON output, no deprecation warnings.
 
-## 常见问题
+## Common Issues
 
-### deprecation warning 出现
+### Deprecation warning appears
 
-表示 cwd 里仍有 `src/qualix/` 和 `skills/` 共存的老布局。按上面步骤换到新工作区。3 个月后 warning 升级为 error。
+The warning means the current working directory still has `src/qualix/` and `skills/` co-located (the old layout). Run `qualix-run <pid> init` from a directory outside the Qualix repo.
 
-### `~/.qualix/` 要不要手动清理
+### Output files from 0.1
 
-重跑 `./install.sh` 会覆盖资源目录，不会删额外文件。要彻底清理运行 `rm -rf ~/.qualix`。
+Old output in `output/<pid>/` at the Qualix repo root can be copied to `.qualix/output/<pid>/` in your project directory. Phase state is stored in `state.json` inside the project output directory.
 
-### 多项目复用
+### Multiple projects
 
-一次 `install.sh` 后，每个项目分别 `cd` 进去跑 `qualix-run init`，各自有独立 `.qualix/output/`，共享 `~/.qualix/` 资源。
+After installing Qualix once, run `qualix-run --profile <profile> <pid> init` in each project directory. Each project gets its own `.qualix/output/`. Shared resources (skills, references, profiles) come from the installed package.
 
-### 如何回滚到 0.1
+## Related
 
-```bash
-pip uninstall qualix
-rm -rf ~/.qualix
-cd <Qualix repo>
-git checkout <0.1 tag>
-pip install -e .
-```
-
-## 相关文档
-
-- 设计背景: `docs/superpowers/specs/2026-05-11-qualix-tool-distribution-design.md`
-- 实施 plan: `docs/superpowers/plans/2026-05-11-qualix-tool-distribution.md`
-- ROADMAP §F
+- [Custom profiles](custom-profile.md)
+- [Model setup](model-setup.md)
+- [Quick start](quickstart.md)

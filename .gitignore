@@ -49,6 +49,7 @@ observability/
 
 # Internal planning and team-facing docs
 docs/internal/
+docs/dev-notes/
 docs/designs/plans/
 docs/designs/specs/
 docs/system-health-reports/
