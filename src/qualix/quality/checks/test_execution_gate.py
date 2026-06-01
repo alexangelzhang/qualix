@@ -222,11 +222,27 @@ def _extract_errors(output: str) -> str:
     return "\n".join(errors)
 
 
+from ._test_execution_backends import _run_go_gate, _run_java_gate, _run_ts_gate
+
+__all__ = [
+    "_run_go_gate",
+    "_run_java_gate",
+    "_run_ts_gate",
+]
+
+
 def check_q05_test_execution(
     output_dir: Path,
     project_id: str,
+    language_provider: Any = None,
 ) -> list[str]:
     """Q05b 铁律 gate：对每个业务仓库编译+运行新增测试.
+
+    Args:
+        output_dir: Qualix 输出目录
+        project_id: 项目 ID
+        language_provider: LanguageProvider 实例（可选）。传入时按语言路由到对应
+            _run_ts_gate / _run_go_gate / _run_java_gate；省略时自动检测。
 
     Returns:
         BLOCKED 错误列表。空列表 = 全部通过。
@@ -255,59 +271,32 @@ def check_q05_test_execution(
     if not code_repos:
         return ["WARNING: _inputs.json 中未配置 code_repo，测试执行 gate 已跳过"]
 
-    errors: list[str] = []
-    total_tested = 0
+    # 确定语言路由
+    lang_id: str | None = None
+    if language_provider is not None:
+        lang_id = getattr(language_provider, "language_id", None)
+    else:
+        # 从 inputs 或第一个仓库自动检测
+        lang_id = inputs_data.get("language_id")
+        if not lang_id and code_repos:
+            first_repo = Path(code_repos[0]).expanduser().resolve()
+            if first_repo.is_dir():
+                try:
+                    from qualix.languages import get_registry
 
-    for repo_str in code_repos:
-        repo_path = Path(repo_str).expanduser().resolve()
-        if not repo_path.is_dir():
-            errors.append(f"BLOCKED: 代码仓库路径不存在: {repo_path}")
-            continue
+                    detected = get_registry().detect(first_repo)
+                    if detected:
+                        lang_id = detected.language_id
+                except Exception:
+                    pass
 
-        test_files = _discover_new_test_classes(repo_path)
-        if not test_files:
-            log.info("仓库 %s 无新增测试文件，跳过", repo_path.name)
-            continue
+    if lang_id == "typescript":
+        return _run_ts_gate(code_repos)
+    if lang_id == "go":
+        return _run_go_gate(code_repos)
 
-        # 按语言分组：TS 文件整批执行，Java 文件按 Maven 模块分组
-        ts_files = [tf for tf in test_files if tf.get("language") == "typescript"]
-        java_files = [tf for tf in test_files if tf.get("language") != "typescript"]
-
-        if ts_files:
-            ts_paths = [tf["path"] for tf in ts_files]
-            log.info("测试验证(TS): %s — %d 个测试文件", repo_path.name, len(ts_paths))
-            result = run_test_check(repo_path, ts_paths, language="typescript")
-            total_tested += len(ts_paths)
-            if not result["passed"]:
-                errors.append(f"BLOCKED: {repo_path.name} TS 测试失败 ({len(ts_paths)} 个文件)")
-                if result["error_summary"]:
-                    errors.append(f"  错误摘要:\n{result['error_summary']}")
-
-        by_module = _group_by_module(java_files)
-        for module, classes in by_module.items():
-            mod_arg = module if module else None
-            log.info(
-                "测试验证: %s [%s] — %d 个测试类",
-                repo_path.name,
-                module or "root",
-                len(classes),
-            )
-            result = run_test_check(repo_path, classes, mod_arg)
-            total_tested += len(classes)
-
-            if not result["passed"]:
-                phase = result["phase"]
-                phase_label = "编译" if phase == "compile" else "运行"
-                errors.append(
-                    f"BLOCKED: {repo_path.name}/{module or 'root'} 测试{phase_label}失败 ({len(classes)} 个测试类)"
-                )
-                if result["error_summary"]:
-                    errors.append(f"  错误摘要:\n{result['error_summary']}")
-
-    if total_tested == 0 and not errors:
-        errors.append("BLOCKED: Q05b 未在任何业务仓库中发现新增测试文件")
-
-    return errors
+    # Java 路径（默认，含 lang_id=None）
+    return _run_java_gate(code_repos)
 
 
 def check_q05b_coverage_increase(output_dir: Path, project_id: str) -> list[str]:

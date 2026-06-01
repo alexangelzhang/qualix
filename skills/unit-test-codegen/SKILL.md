@@ -99,6 +99,15 @@ Q05b 的执行遵循 Ralph Loop（来源：github.com/snarktank/ralph）：
 
 严格遵照分层职责界限，详见 `references/test-generation-rules.md`。
 
+#### Step 2.detect: 语言检测（Language Detection）
+
+在开始生成测试代码前，检测项目语言：
+1. 优先读取 `_upstream_context.md` 中的 `language:` 字段
+2. 若无，检测代码仓库中是否存在 `package.json`（TypeScript/JavaScript）或 `go.mod`（Go）
+3. 若仍无法判断，默认使用 Java 模板
+
+检测到的语言记录到 `_reasoning_log.md` 的开头：`[Language detected: typescript/go/java]`
+
 #### Step 2.0: Skeleton 前置注入（每批必须先做）
 
 **在为每批 EUT 写代码之前**，必须先提取目标类的方法骨架，生成 Skeleton Preamble：
@@ -139,7 +148,9 @@ skeleton_preamble = "\n\n".join(preamble_parts)
 - 禁止 try/catch 仅防 NPE 的弱断言（Q05a 历史错误模式）
 - 禁止 `assertTrue(true)` 占位符
 
-**@Test 方法模板：**
+**@Test 方法模板（按检测到的语言选用对应模板）：**
+
+**Java（默认）：**
 ```java
 /**
  * EUT-007 SE-003 Happy Path: 远程维修工单 → 跳过所有校验
@@ -157,6 +168,54 @@ public void validateMethod_远程维修工单_跳过所有校验() throws Except
     verify(logisticExchangeIdentifyManager, never()).isLogisticExchangeService("SVC001");
 }
 ```
+
+**TypeScript（Jest/Vitest）：**
+```typescript
+// EUT-001 SE-003 Happy Path: 订单创建成功
+describe('OrderService', () => {
+  it('createOrder_validInput_returnsCreatedOrder', async () => {
+    // given
+    const mockRepo = { save: jest.fn().mockResolvedValue({ id: '123' }) };
+    const service = new OrderService(mockRepo);
+
+    // when
+    const result = await service.createOrder({ amount: 100 });
+
+    // then
+    expect(result.id).toBe('123');
+    expect(mockRepo.save).toHaveBeenCalledTimes(1);
+  });
+});
+```
+
+TypeScript 模板关键规则（详见 `references/test-generation-rules.md` `## TypeScript Template Rules`）：
+- `// EUT-xxx SE-xxx Route_type: description` 注释是**必须的**，放在 `it`/`test` 回调体的第一行（C9 gate 依赖此注释）
+- 每个 `describe` 块对应一个目标类；每条 EUT 对应一个 `it`/`test` 函数
+- `// EUT-xxx` 注释格式与 Java 完全相同
+
+**Go（testing + testify）：**
+```go
+// EUT-001 SE-003 Happy Path: 订单创建成功
+func TestOrderService_CreateOrder_ValidInput_ReturnsCreatedOrder(t *testing.T) {
+    // given
+    mockRepo := &MockOrderRepository{}
+    mockRepo.On("Save", mock.Anything).Return(&Order{ID: "123"}, nil)
+    service := NewOrderService(mockRepo)
+
+    // when
+    result, err := service.CreateOrder(context.Background(), CreateOrderInput{Amount: 100})
+
+    // then
+    assert.NoError(t, err)
+    assert.Equal(t, "123", result.ID)
+    mockRepo.AssertExpectations(t)
+}
+```
+
+Go 模板关键规则（详见 `references/test-generation-rules.md` `## Go Template Rules`）：
+- `// EUT-xxx SE-xxx Route_type: description` 注释是**必须的**，放在测试函数体的第一行（C9 gate 依赖此注释）
+- 测试函数名必须遵循 `TestXxx_Method_Condition_ExpectedResult` 模式
+- `// EUT-xxx` 注释格式与 Java 完全相同
 
 ### Step 3: 验证（Deterministic Gate）
 

@@ -346,3 +346,164 @@ R-2. [runtime] MyServiceTest#testBar_异常场景: NullPointerException (line 88
 ```
 
 Fixer 在下一轮先修 `C-N` 编译错误（优先级更高，运行时错误可能由此触发），再修 `R-N` 运行时错误。
+
+---
+
+## TypeScript Template Rules
+
+适用于以 Jest 或 Vitest 为测试框架的 TypeScript/JavaScript 项目。
+
+### 结构约定
+
+```typescript
+// EUT-001 SE-003 Happy Path: 订单创建成功
+describe('OrderService', () => {
+  it('createOrder_validInput_returnsCreatedOrder', async () => {
+    // given
+    const mockRepo = { save: jest.fn().mockResolvedValue({ id: '123' }) };
+    const service = new OrderService(mockRepo);
+
+    // when
+    const result = await service.createOrder({ amount: 100 });
+
+    // then
+    expect(result.id).toBe('123');
+    expect(mockRepo.save).toHaveBeenCalledTimes(1);
+  });
+});
+```
+
+- 每个 `describe` 块对应一个目标类（`describe('TargetClass', ...)`）
+- 每条 EUT 对应一个 `it`/`test` 函数；`it` 函数名遵循 `method_condition_expectedResult` 格式
+
+### EUT 追溯注释位置
+
+`// EUT-xxx SE-xxx Route_type: description` 注释放在 `it`/`test` 回调体的**第一行**（开头大括号后紧接），C9 gate 精确模式依赖此注释：
+
+```typescript
+it('createOrder_validInput_returnsCreatedOrder', async () => {
+  // EUT-001 SE-003 Happy Path: 订单创建成功   <- 第一行
+  // given
+  ...
+});
+```
+
+### Mock 模式
+
+| 场景 | 推荐写法 |
+|------|---------|
+| 内联函数 Mock | `jest.fn().mockReturnValue(value)` / `jest.fn().mockResolvedValue(value)` |
+| 模块级 Mock | `jest.mock('module-path')` 放在文件顶层（import 语句之后） |
+| Spy | `jest.spyOn(object, 'method').mockImplementation(...)` |
+
+### 异步测试（Error Path）
+
+```typescript
+it('createOrder_invalidAmount_throwsValidationError', async () => {
+  // EUT-002 SE-003 Exception Path: 金额非法抛出校验错误
+  // given
+  expect.assertions(1);   // 确保 catch 分支一定执行
+  const service = new OrderService(mockRepo);
+
+  // when / then
+  await expect(service.createOrder({ amount: -1 }))
+    .rejects.toThrow(ValidationError);
+});
+```
+
+- 异常路径测试必须写 `expect.assertions(N)`，防止异步 Promise 被静默 resolved 而测试假通过
+- 使用 `rejects.toThrow(ErrorClass)` 断言具体异常类型，禁止空 `catch` 块
+
+---
+
+## Go Template Rules
+
+适用于使用标准 `testing` 包 + `testify` 库的 Go 项目。
+
+### 结构约定
+
+```go
+// EUT-001 SE-003 Happy Path: 订单创建成功
+func TestOrderService_CreateOrder_ValidInput_ReturnsCreatedOrder(t *testing.T) {
+    // given
+    mockRepo := &MockOrderRepository{}
+    mockRepo.On("Save", mock.Anything).Return(&Order{ID: "123"}, nil)
+    service := NewOrderService(mockRepo)
+
+    // when
+    result, err := service.CreateOrder(context.Background(), CreateOrderInput{Amount: 100})
+
+    // then
+    assert.NoError(t, err)
+    assert.Equal(t, "123", result.ID)
+    mockRepo.AssertExpectations(t)
+}
+```
+
+### 测试函数命名
+
+Go 测试函数必须遵循以下模式：
+
+```
+TestTargetClass_MethodName_Condition_ExpectedOutcome
+```
+
+示例：
+- `TestOrderService_CreateOrder_ValidInput_ReturnsCreatedOrder`
+- `TestOrderService_CreateOrder_NegativeAmount_ReturnsValidationError`
+- `TestOrderService_CancelOrder_AlreadyCancelled_ReturnsError`
+
+### EUT 追溯注释位置
+
+`// EUT-xxx SE-xxx Route_type: description` 注释放在测试函数体的**第一行**（开头大括号后紧接），C9 gate 精确模式依赖此注释：
+
+```go
+func TestOrderService_CreateOrder_ValidInput_ReturnsCreatedOrder(t *testing.T) {
+    // EUT-001 SE-003 Happy Path: 订单创建成功   <- 第一行
+    // given
+    ...
+}
+```
+
+### Mock 设置（testify/mock）
+
+```go
+type MockOrderRepository struct {
+    mock.Mock   // 嵌入 mock.Mock
+}
+
+func (m *MockOrderRepository) Save(ctx context.Context, order *Order) (*Order, error) {
+    args := m.Called(ctx, order)
+    return args.Get(0).(*Order), args.Error(1)
+}
+
+// 在测试中设置期望行为
+mockRepo.On("Save", mock.Anything).Return(&Order{ID: "123"}, nil)
+
+// 验证所有 On() 期望均被调用
+mockRepo.AssertExpectations(t)
+```
+
+- Mock struct 必须嵌入 `mock.Mock`（非指针嵌入）
+- 使用 `.On("MethodName", args).Return(values)` 设置期望行为
+- 测试结束时调用 `mockRepo.AssertExpectations(t)` 验证调用次数
+
+### Context 传递
+
+接受 `context.Context` 的方法必须以 `context.Background()`（单元测试）或 `context.TODO()`（待明确语义）作为第一个参数传入：
+
+```go
+// 正确
+result, err := service.CreateOrder(context.Background(), input)
+
+// 禁止：传 nil context（会在某些实现中导致 panic）
+result, err := service.CreateOrder(nil, input)
+```
+
+### 依赖库
+
+| 依赖 | 用途 |
+|------|------|
+| `github.com/stretchr/testify/assert` | 断言：`assert.Equal`, `assert.NoError`, `assert.Error` 等 |
+| `github.com/stretchr/testify/mock` | Mock 对象：`mock.Mock`, `mock.Anything`, `mock.MatchedBy` |
+| `github.com/stretchr/testify/require` | 致命断言：失败时立即停止测试（用于 Setup 阶段） |
