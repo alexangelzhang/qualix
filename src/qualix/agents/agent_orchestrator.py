@@ -96,8 +96,8 @@ class AgentOrchestrator:
         Phase 2 行为：
         - Worker 在主进程 adaptive_loop 中执行（保留迭代内存状态）
         - Judge 在独立子进程执行（context 完全隔离，见 judge_vote._run_single_judge）
-        - Critique 在 Judge 输出文件写入后立即由 ThreadPoolExecutor 并发启动，
-          不等待 Critique 完成即可返回 pipeline 结果（非阻塞）
+        - Critique 在 Judge 完成后立即提交线程池，与 Worker 下轮迭代无依赖；
+          pipeline 等待 Critique 完成后返回完整结果（阻塞直至 Critique 结束）
         """
 
         results: dict[str, AgentResult] = {}
