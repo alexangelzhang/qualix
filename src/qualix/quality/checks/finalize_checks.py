@@ -7,7 +7,10 @@
 
 from __future__ import annotations
 
+import logging
 from pathlib import Path
+
+log = logging.getLogger(__name__)
 from types import MappingProxyType
 from typing import Final
 
@@ -128,10 +131,11 @@ def check_reasoning_log(output_dir: Path, project_id: str, phase_id: str) -> lis
             import re as _re
             rounds = _re.findall(r"### Round \d+", log_content)
             if rounds:
-                # 仅作为透明度注解，不阻断
-                errors.append(
-                    f"INFO: ReAct Evidence 已记录（{len(rounds)} 轮），"
-                    "source annotation 质量检查包含额外证据来源。"
+                # 仅作为透明度注解，不阻断，不写入 errors
+                log.info(
+                    "ReAct Evidence 已记录（%d 轮），"
+                    "source annotation 质量检查包含额外证据来源。",
+                    len(rounds),
                 )
 
     # B: 手动模式 Step 0.5 守卫——检查 _bootstrap_context.md 是否已读取
