@@ -123,9 +123,9 @@ skeleton_preamble = "\n\n".join(preamble_parts)
 ```
 ## Available Methods (do not invent others)
 
-{java
+```java
 <skeleton_preamble 内容>
-}
+```
 ```
 
 **Skeleton 契约（强制）：**
@@ -197,12 +197,12 @@ mvn test-compile -pl <module> -am -o 2>&1 | tee /tmp/mvn_compile_stderr.txt
 
 2. **查询已提取的骨架（使用本批 Step 2.0 的 skeleton_results）**：
    对每个出错的 `class_name`，从 `skeleton_results` 中找到对应的 `SkeletonResult`，
-   调用 `result.skeleton_text` 获取已知方法列表（以 `, ` 连接方法签名中的方法名）。
+   从 `skeleton_results[class_name].classes[0].methods` 提取各 `method.name`，以逗号连接作为已知方法列表。
 
 3. **追加编译错误块到当前迭代的 handoff 文档**：
    在 `_handoff_iter{N}.md`（N = 当前轮次编号）末尾追加：
    ```markdown
-   ## Compile Errors (fix in next iteration)
+   ## Compile Errors
 
    C-1. [compile] <symbol_name> not found in <class_name> — known methods: [<methods from skeleton>]
    C-2. [compile] <symbol_name2> not found in <class_name2> — known methods: [<methods from skeleton>]
