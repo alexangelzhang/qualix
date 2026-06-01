@@ -4,6 +4,7 @@
 
 页面: 总览 / 评分总览 / 流程 DAG / Token 消耗 / 执行瀑布图 / 质量评分
       / 事件追踪 / Bug 案例库 / 质量趋势 / Phase 评分趋势 / 可观测性 / 数据管理 / 团队视图
+      / Guard 精度
 性能: 查询结果缓存 60s，避免重复 SQLite I/O
 """
 
@@ -14,6 +15,7 @@ import streamlit as st
 from .cache import _ensure_db
 from .data_mgmt import _page_dag, _page_data_management, _page_token, _page_waterfall
 from .events import _page_bug_cases, _page_events
+from .guard_dashboard import _page_guard_precision
 from .observability import _page_observability
 from .overview import _page_overview
 from .scores import _page_scores
@@ -43,6 +45,7 @@ def main():
             "质量趋势",
             "Phase 评分趋势",
             "可观测性",
+            "Guard 精度",
             "数据管理",
         ],
     )
@@ -60,6 +63,7 @@ def main():
         "质量趋势": _page_quality_trend,
         "Phase 评分趋势": _page_phase_score_trend,
         "可观测性": _page_observability,
+        "Guard 精度": _page_guard_precision,
         "数据管理": _page_data_management,
     }
     pages[page]()

@@ -196,6 +196,12 @@ def render_guard_precision_markdown(summary: dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
+def _guard_precision_doc_path_default() -> Path:
+    """Default path for the weekly guard precision Markdown report."""
+    repo = Path(__file__).resolve().parents[3]
+    return repo / "docs" / "observability" / "reports" / "weekly" / "guard_precision.md"
+
+
 def write_guard_precision_report(output_dir: Path, dest: Path | None = None) -> Path:
     """写入 Markdown 周报；默认路径 docs/observability/reports/weekly/guard_precision.md。"""
     summary = build_guard_precision_summary(output_dir)

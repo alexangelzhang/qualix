@@ -87,6 +87,11 @@ def cmd_execute(args, output_dir: Path) -> int:
     code_repos: list[str] = []
     if raw_code_repo:
         code_repos = [p.strip() for p in raw_code_repo.split(",") if p.strip()]
+    # --diff REF is a shorthand for --base-branch REF --feature-branch HEAD
+    diff_ref = getattr(args, "diff", None)
+    base_branch = getattr(args, "base_branch", None) or (diff_ref if diff_ref else "master")
+    feature_branch = getattr(args, "feature_branch", "HEAD")
+
     ctx = ExecutionContext(
         output_dir=output_dir,
         project_id=args.project_id,
@@ -95,8 +100,8 @@ def cmd_execute(args, output_dir: Path) -> int:
         model_name=getattr(args, "model", None),
         code_repo=code_repos[0] if code_repos else None,
         code_repos=code_repos,
-        base_branch=getattr(args, "base_branch", "master"),
-        feature_branch=getattr(args, "feature_branch", "HEAD"),
+        base_branch=base_branch,
+        feature_branch=feature_branch,
         coverage_report=getattr(args, "coverage_report", None),
     )
 

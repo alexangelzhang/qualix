@@ -53,6 +53,20 @@ allowed-tools:
 3. 禁止对已存在的接口重新设计——如"搜索历史"接口已存在，方案中应写"复用现有 /api/xxx 接口"而非重新设计
 4. 新增接口必须说明为什么不能复用现有接口
 
+## 从零生成场景（无现有技术方案）
+
+当用户没有提供 `existing_tech_design` 且明确要求生成技术方案时：
+
+1. **确认 Q01 已 approve**：读取 `output/<project_id>/state.json`，确认 Q01 status = `approved`。未 approve 时提示用户先完成 Q01。
+2. **说明覆盖范围**：向用户确认本次生成将覆盖 Q01 中的哪些 REQ/SE，对 GAP/OPEN 项说明处理策略（方案末尾列出，标注为待确认事项）。
+3. **GAP 处理**：无法在架构层面解决的 GAP 必须在方案末尾的 "Pending Decisions" 章节明确列出，不允许静默跳过。
+4. **OPEN 项处理**：OPEN 项中对架构有重大影响的，必须在 Step 0 用 `AskUserQuestion` 逐一确认后再设计；不影响架构的 OPEN 项可在方案末尾记录。
+5. **质量基线**：从零生成的方案必须通过相同的 finalize gate（所有 REQ/BR 有对应章节，接口含幂等性描述，HLD+LLD 齐备）。
+
+**从零生成不降低质量要求**，只影响上下文加载方式（无 existing_tech_design 输入，纯从 Q01 产物推导）。
+
+See also: [docs/q02-guide.md](../../docs/q02-guide.md)
+
 ## 执行流程
 
 ### Step 0: 需求理解与范围确认

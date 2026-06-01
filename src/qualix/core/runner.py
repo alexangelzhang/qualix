@@ -50,8 +50,14 @@ def _build_parser() -> argparse.ArgumentParser:
     p_exec.add_argument("phase", help="Phase ID (Q01-Q07)")
     p_exec.add_argument("--model", "-m", default=None, help="模型名称（自动计算 token budget）")
     p_exec.add_argument("--code-repo", default=None, help="代码仓库路径，多个用逗号分隔（如 /path/a,/path/b）")
-    p_exec.add_argument("--base-branch", default="master", help="基线分支（默认 master）")
+    p_exec.add_argument("--base-branch", default=None, help="基线分支（默认 master）")
     p_exec.add_argument("--feature-branch", default="HEAD", help="特性分支（默认 HEAD）")
+    p_exec.add_argument(
+        "--diff",
+        metavar="REF",
+        default=None,
+        help="Compare against a git ref (e.g. HEAD~1, main). Shorthand for --base-branch REF --feature-branch HEAD.",
+    )
     p_exec.add_argument(
         "--coverage-report",
         default=None,
