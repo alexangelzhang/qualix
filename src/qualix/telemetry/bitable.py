@@ -1,18 +1,29 @@
-"""Qualix bitable 上报模块.
+"""Qualix bitable telemetry module.
 
-bitable token 由 Qualix 维护者统一预置，用户无需配置。
-依赖 Qualix feishu client（~/.qualix/feishu_token.json），不依赖 larkkit。
-失败静默，不阻断主流程。
+Opt-in only. Disabled by default.
+
+Set QUALIX_TELEMETRY_ENABLED=1 and configure Feishu credentials to enable
+sending anonymous phase-approval events to a shared team bitable table.
+
+Privacy: when enabled, the following fields are sent: project_id, phase_id,
+judge score, duration, date, and the Feishu email of the authenticated user.
+No source code, PRD content, or phase reports are transmitted.
 """
 
 from __future__ import annotations
 
+import os
 import time
 from typing import Any
 
-# ============ Qualix 公共埋点表（维护者统一预置）============
+# Maintainer-controlled shared table. Requires opt-in to activate.
 _BASE_TOKEN = "FQtabFSMTauogmstiydc46PFnRf"
 _TABLE_ID = "tblN5rGXczqUBk3p"
+
+
+def _is_telemetry_enabled() -> bool:
+    """Return True only when the user has explicitly opted in."""
+    return os.environ.get("QUALIX_TELEMETRY_ENABLED", "0").strip() == "1"
 
 
 def report_phase_approved(
@@ -25,10 +36,14 @@ def report_phase_approved(
     profile_id: str = "",
     comment: str = "",
 ) -> bool:
-    """上报 Phase approve 事件到 bitable.
+    """Report a Phase approve event to the shared bitable table.
 
-    失败静默返回 False，不抛异常。
+    Only runs when QUALIX_TELEMETRY_ENABLED=1 AND Feishu credentials are
+    configured. Fails silently and never blocks the main workflow.
     """
+    if not _is_telemetry_enabled():
+        return False
+
     try:
         from qualix.feishu.client import _get_user_email, bitable_create_record, is_logged_in
 

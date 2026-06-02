@@ -70,3 +70,11 @@ results.tsv
 run.log
 *.log
 *.tsv
+
+# Runtime data (session files, local cache)
+data/
+
+# VS Code extension build output and dependencies
+node_modules/
+vscode-extension/out/
+vscode-extension/*.vsix

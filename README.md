@@ -275,18 +275,24 @@ qualix-run <project_id> doctor
 
 ```text
 qualix/
-├── src/qualix/          # Python package and CLI/runtime implementation
-├── skills/              # Phase skills and workflow prompts
-├── references/          # Report templates and risk catalogs
-├── profiles/            # Language/domain profiles
-├── regression/          # Regression cases and failure-library examples
-├── examples/            # Synthetic input examples
-├── docs/                # User and architecture docs
-├── tests/               # pytest suite
-├── AGENTS.md            # Codex/opencode instructions
-├── CLAUDE.md            # Claude Code instructions
-├── GEMINI.md            # Gemini CLI instructions
-└── install.sh           # Local installer
+├── src/qualix/                 # Python package and CLI/runtime implementation
+├── skills/                     # Phase skills and workflow prompts
+├── references/                 # Report templates and risk catalogs
+├── profiles/                   # Language/domain profiles (versioned with @v1 suffix)
+├── regression/                 # Regression cases and failure-library examples
+├── examples/                   # Synthetic input examples (Python, TypeScript, Go)
+├── benchmarks/                 # Benchmark cases
+│   ├── semantic-coverage/      # SC-001–SC-016 seed cases
+│   └── model-comparison/       # Multi-model Q06 audit comparison framework
+├── vscode-extension/           # VS Code extension (preview): sidebar phase status
+├── github-app/                 # GitHub App (preview): zero-config PR gate comments
+├── docs/                       # User and architecture docs
+│   └── sandbox/                # Online SE extractor (GitHub Pages)
+├── tests/                      # pytest suite
+├── AGENTS.md                   # Codex/opencode instructions
+├── CLAUDE.md                   # Claude Code instructions
+├── GEMINI.md                   # Gemini CLI instructions
+└── install.sh                  # Local installer
 ```
 
 ## Development

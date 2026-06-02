@@ -152,13 +152,13 @@ COVERED/PARTIAL/MISSING/IMPLICIT 的判定是否正确
 
 ## 评审输入
 
-Phase 输出目录: `/Users/zhangyiqian/git_dev/qualix/qualix/output/expense-approval-demo/Q04`
+Phase 输出目录: `<PATH>/Q04`
 
 请读取以下文件进行评审：
 
-1. `/Users/zhangyiqian/git_dev/qualix/qualix/output/expense-approval-demo/Q04/tech_design_coverage_review.md`
-2. `/Users/zhangyiqian/git_dev/qualix/qualix/output/expense-approval-demo/Q04/phase_a5_structured.json`
-3. Phase Q01 产物: `/Users/zhangyiqian/git_dev/qualix/qualix/output/expense-approval-demo/Q01/phase_a_structured.json`
+1. `<PATH>/tech_design_coverage_review.md`
+2. `<PATH>/phase_a5_structured.json`
+3. Phase Q01 产物: `<PATH>/phase_a_structured.json`
 
 ## BUG_CASES — 已知判错案例（务必避免重犯）
 
@@ -172,17 +172,17 @@ Phase 输出目录: `/Users/zhangyiqian/git_dev/qualix/qualix/output/expense-app
 
 **教训**: SE-12 标 MISSING 正确，但未分析 BPM 回调并发场景：同一流程多个回调消息同时到达时的处理顺序（与 Q03 EXC-005 同源）
 
-### 反例 4: SE-05（待交车状态下工单流转状态不变）标 COVERED，但未验证非法状态跳转拦截：工单在非待交车状态下发起提前交车申请时的状态机行为 [漏报]
+### 反例 4: SE-05（pending-delivery status下work-order transition state不变）标 COVERED，但未验证非法状态跳转拦截：工单在非pending-delivery status下发起提前delivery申请时的状态机行为 [漏报]
 
-**教训**: SE-05（待交车状态下工单流转状态不变）标 COVERED，但未验证非法状态跳转拦截：工单在非待交车状态下发起提前交车申请时的状态机行为
+**教训**: SE-05（pending-delivery status下work-order transition state不变）标 COVERED，但未验证非法状态跳转拦截：工单在非pending-delivery status下发起提前delivery申请时的状态机行为
 
 ### 反例 5: For further information visit https://errors.pydantic.dev/2.12/v/list_type [漏报]
 
 ### 反例 6: 1 validation error for PhaseA5Output [错判]
 
-### 反例 7: GAP-03（代驾单取消后状态回退）标「未闭环」但未分析该场景对状态机的影响：代驾单取消后提前交车标识是否回退、工单状态如何处理 [漏报]
+### 反例 7: GAP-03（service-orderpost-cancellation state rollback）标「未闭环」但未分析该场景对状态机的影响：service-order取消后提前delivery标识是否回退、工单状态如何处理 [漏报]
 
-**教训**: GAP-03（代驾单取消后状态回退）标「未闭环」但未分析该场景对状态机的影响：代驾单取消后提前交车标识是否回退、工单状态如何处理
+**教训**: GAP-03（service-orderpost-cancellation state rollback）标「未闭环」但未分析该场景对状态机的影响：service-order取消后提前delivery标识是否回退、工单状态如何处理
 
 ## Anti-Rationalization（禁止放水）
 
@@ -204,7 +204,7 @@ Phase 输出目录: `/Users/zhangyiqian/git_dev/qualix/qualix/output/expense-app
 ## 输出格式
 
 请输出以下 JSON 格式的评审结果，保存到：
-`/Users/zhangyiqian/git_dev/qualix/qualix/output/expense-approval-demo/Q04/_judge_result.json`
+`<PATH>/_judge_result.json`
 
 ```json
 {

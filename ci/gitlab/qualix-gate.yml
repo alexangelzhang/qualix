@@ -3,7 +3,7 @@
 # 使用方式（在项目的 .gitlab-ci.yml 中）：
 #
 #   include:
-#     - project: 'nr-car-service/qualix'
+#     - project: 'acme-corp/my-service'
 #       ref: main
 #       file: 'qualix/ci/gitlab/qualix-gate.yml'
 #

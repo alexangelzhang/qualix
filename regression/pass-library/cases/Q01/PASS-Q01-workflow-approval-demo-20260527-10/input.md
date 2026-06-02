@@ -176,12 +176,12 @@ PRD 中的模糊点、缺失定义是否被识别为 GAP
 
 ## 评审输入
 
-Phase 输出目录: `/Users/zhangyiqian/git_dev/qualix/qualix/output/workflow-approval-demo/Q01`
+Phase 输出目录: `<PATH>/Q01`
 
 请读取以下文件进行评审：
 
-1. `/Users/zhangyiqian/git_dev/qualix/qualix/output/workflow-approval-demo/Q01/phase_a_report.md`
-2. `/Users/zhangyiqian/git_dev/qualix/qualix/output/workflow-approval-demo/Q01/phase_a_structured.json`
+1. `<PATH>/phase_a_report.md`
+2. `<PATH>/phase_a_structured.json`
 
 ## BUG_CASES — 已知判错案例（务必避免重犯）
 
@@ -247,7 +247,7 @@ Phase 输出目录: `/Users/zhangyiqian/git_dev/qualix/qualix/output/workflow-ap
 ## 输出格式
 
 请输出以下 JSON 格式的评审结果，保存到：
-`/Users/zhangyiqian/git_dev/qualix/qualix/output/workflow-approval-demo/Q01/_judge_result.json`
+`<PATH>/_judge_result.json`
 
 ```json
 {

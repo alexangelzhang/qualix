@@ -705,6 +705,13 @@ def main() -> int:
             exit_code = _handle_workspace_ingest(sys.argv[2:])
             return exit_code
 
+        if len(sys.argv) >= 2 and sys.argv[1] == "demo":
+            from qualix.commands.setup import cmd_demo
+            import types as _types
+            _demo_args = _types.SimpleNamespace(project_id="", json=False)
+            exit_code = cmd_demo(_demo_args, Path.cwd())
+            return exit_code
+
         parser = _build_parser()
         args = parser.parse_args()
         quiet_env = bool(getattr(args, "json", False))

@@ -74,13 +74,13 @@
 
 ## 评审输入
 
-Phase 输出目录: `/Users/zhangyiqian/git_dev/qualix/qualix/output/workflow-approval-demo/Q07`
+Phase 输出目录: `<PATH>/Q07`
 
 请读取以下文件进行评审：
 
-1. `/Users/zhangyiqian/git_dev/qualix/qualix/output/workflow-approval-demo/Q07/review_report.md`
-2. `/Users/zhangyiqian/git_dev/qualix/qualix/output/workflow-approval-demo/Q07/phase_d_structured.json`
-3. Phase Q01 产物: `/Users/zhangyiqian/git_dev/qualix/qualix/output/workflow-approval-demo/Q01/phase_a_structured.json`
+1. `<PATH>/review_report.md`
+2. `<PATH>/phase_d_structured.json`
+3. Phase Q01 产物: `<PATH>/phase_a_structured.json`
 
 ## Anti-Rationalization（禁止放水）
 
@@ -103,7 +103,7 @@ Phase 输出目录: `/Users/zhangyiqian/git_dev/qualix/qualix/output/workflow-ap
 ## 输出格式
 
 请输出以下 JSON 格式的评审结果，保存到：
-`/Users/zhangyiqian/git_dev/qualix/qualix/output/workflow-approval-demo/Q07/_judge_result.json`
+`<PATH>/_judge_result.json`
 
 ```json
 {

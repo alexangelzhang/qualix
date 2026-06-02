@@ -4,7 +4,7 @@
   "description": "Sidebar view of Qualix phase status (Q01-Q07) for the current workspace.",
   "version": "0.1.0",
   "publisher": "qualix",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "engines": {
     "vscode": "^1.75.0"
   },

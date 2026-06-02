@@ -61,7 +61,7 @@ def test_upload_via_glab_success(mock_run, tmp_path):
         title="t",
         description="d",
         bundle=bundle,
-        repo_path="nr-car-service/qualix",
+        repo_path="example-org/example-project",
         timeout=5,
     )
     assert ok
