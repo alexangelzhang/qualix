@@ -313,4 +313,3 @@ def cmd_demo(args, output_dir: Path) -> int:  # noqa: ARG001
     print("  qualix-run <project> startup --json")
     print(f"{bar}\n")
     return 0
-    return 0

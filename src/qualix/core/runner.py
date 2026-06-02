@@ -707,9 +707,7 @@ def main() -> int:
 
         if len(sys.argv) >= 2 and sys.argv[1] == "demo":
             from qualix.commands.setup import cmd_demo
-            import types as _types
-            _demo_args = _types.SimpleNamespace(project_id="", json=False)
-            exit_code = cmd_demo(_demo_args, Path.cwd())
+            exit_code = cmd_demo(None, Path.cwd())
             return exit_code
 
         parser = _build_parser()
