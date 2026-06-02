@@ -1,0 +1,8 @@
+fastapi>=0.110
+uvicorn[standard]>=0.29
+PyGithub>=2.1
+PyJWT>=2.8
+cryptography>=42.0
+requests>=2.31
+pyyaml>=6.0
+qualix>=0.2.0a1

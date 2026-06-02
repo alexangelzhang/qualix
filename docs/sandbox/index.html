@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Qualix SE Extractor — Try Online</title>
+  <meta name="description" content="Paste a PRD and instantly extract Semantic Expectations — the business rules a shallow test suite is likely to miss. No installation required." />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- ── Header ── -->
+  <header class="header">
+    <a class="logo" href="https://github.com/alexangelzhang/qualix">
+      Quali<span>x</span>
+    </a>
+    <span class="header-subtitle">SE Extractor — Try It Online</span>
+  </header>
+
+  <!-- ── App layout ── -->
+  <div class="app-layout">
+
+    <!-- ── Left: Input panel ── -->
+    <aside class="input-panel">
+
+      <!-- Provider -->
+      <div class="field-group">
+        <div class="field-label">Provider</div>
+        <div class="radio-group">
+          <label class="radio-option">
+            <input type="radio" name="provider" value="anthropic" checked />
+            Anthropic
+          </label>
+          <label class="radio-option">
+            <input type="radio" name="provider" value="openai" />
+            OpenAI
+          </label>
+        </div>
+      </div>
+
+      <!-- API Key -->
+      <div class="field-group">
+        <div class="field-label">API Key</div>
+        <input
+          id="api-key"
+          type="password"
+          placeholder="sk-ant-… or sk-…"
+          autocomplete="off"
+          spellcheck="false"
+        />
+        <div class="key-lock-note">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
+          Not stored — key stays in memory only
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- PRD input -->
+      <div class="field-group" style="flex:1;">
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div class="field-label">PRD Text</div>
+          <button id="load-example-btn" class="btn btn-secondary" type="button">
+            Load expense-approval example
+          </button>
+        </div>
+        <textarea
+          id="prd-input"
+          placeholder="Paste your PRD here…&#10;&#10;Tip: try the expense-approval example above."
+          spellcheck="false"
+          style="min-height:280px;flex:1;"
+        ></textarea>
+        <div class="field-hint">
+          Focuses on boundary values, idempotency, state constraints, and authorization rules.
+        </div>
+      </div>
+
+      <!-- Submit -->
+      <button id="extract-btn" class="btn btn-primary" type="button">
+        Extract Semantic Expectations
+      </button>
+
+    </aside>
+
+    <!-- ── Right: Output panel ── -->
+    <main id="output-panel" class="output-panel">
+      <!-- Filled by sandbox.js -->
+    </main>
+
+  </div>
+
+  <!-- ── Footer ── -->
+  <footer class="footer-note">
+    <a href="https://github.com/alexangelzhang/qualix" target="_blank" rel="noopener noreferrer">Qualix on GitHub</a>
+    &nbsp;·&nbsp;
+    Apache 2.0
+    &nbsp;·&nbsp;
+    Your API key is never sent anywhere except the provider endpoint you select.
+  </footer>
+
+  <script src="sandbox.js"></script>
+</body>
+</html>

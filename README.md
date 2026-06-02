@@ -131,6 +131,10 @@ qualix-run my-project finalize Q01 --json
 qualix-run my-project approve Q01 --json
 ```
 
+## Try It Online
+
+[→ Qualix SE Extractor](https://alexangelzhang.github.io/qualix/sandbox/) — paste a PRD, get a structured SE list in your browser. No installation required. Bring your own API key.
+
 ## Works Natively with AI Coding Agents
 
 Qualix ships with instruction files for the three most common AI coding environments:

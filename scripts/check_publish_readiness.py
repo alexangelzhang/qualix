@@ -13,7 +13,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 ROOT = Path(__file__).resolve().parents[1]
-SKIP_DIRS = {".git", "__pycache__", ".pytest_cache", ".ruff_cache", "dist", "build", ".venv", "venv", "internal", "system-health-reports", "plans", "specs"}
+SKIP_DIRS = {".git", ".claude", "__pycache__", ".pytest_cache", ".ruff_cache", "dist", "build", ".venv", "venv", "internal", "system-health-reports", "plans", "specs"}
 BINARY_SUFFIXES = {".png", ".jpg", ".jpeg", ".gif", ".pdf", ".pyc", ".sqlite", ".db", ".tgz", ".zip"}
 
 FORBIDDEN_TEXT = [
@@ -96,6 +96,9 @@ ALLOW_SECRET_FILES = {
     "tests/test_adaptive_loop_cache.py",
     "src/qualix/agents/agent.py",
     "src/qualix/tracking/import_bug_cases.py",
+    # sandbox.js uses `apiKey` as a variable name; the pattern fires on
+    # `apiKey = document.getElementById(...)` which is not a real secret.
+    "docs/sandbox/sandbox.js",
 }
 
 ALLOW_FORBIDDEN_TEXT_FILES = {
