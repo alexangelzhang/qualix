@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import ast
 import subprocess
+import sys
+import tempfile
 from pathlib import Path
 
 from qualix.languages.base import (
@@ -66,6 +68,7 @@ class PythonProvider(LanguageProvider):
         return deps
 
     def compile_check(self, repo_root: Path, module: str | None = None) -> CompileResult:
+        # Phase 1: syntax check via compileall
         target = module or "."
         cmd = ["python3", "-m", "compileall", "-q", target]
         try:
@@ -74,14 +77,35 @@ class PythonProvider(LanguageProvider):
             return CompileResult(passed=False, build_tool="compileall", command=" ".join(cmd), error_summary="python3 not found")
         except subprocess.TimeoutExpired:
             return CompileResult(passed=False, build_tool="compileall", command=" ".join(cmd), error_summary="compileall timed out")
-        return CompileResult(
-            passed=result.returncode == 0,
-            build_tool="compileall",
-            command=" ".join(cmd),
-            stdout=result.stdout[-2000:],
-            stderr=result.stderr[-2000:],
-            error_summary="" if result.returncode == 0 else _last_lines(result.stdout + result.stderr),
-        )
+        if result.returncode != 0:
+            return CompileResult(
+                passed=False,
+                build_tool="compileall",
+                command=" ".join(cmd),
+                stdout=result.stdout[-2000:],
+                stderr=result.stderr[-2000:],
+                error_summary=_last_lines(result.stdout + result.stderr),
+            )
+
+        # Phase 2: import check — catches missing deps and NameError that compileall misses
+        test_files = _find_test_files(repo_root, module)
+        if test_files:
+            import_result = _import_check(repo_root, test_files)
+            if not import_result.passed:
+                return import_result
+
+        return CompileResult(passed=True, build_tool="compileall+import", command=" ".join(cmd))
+
+    def import_check(self, repo_root: Path, test_files: list[Path] | None = None) -> CompileResult:
+        """Standalone import check: actually imports generated test files in a subprocess.
+
+        Catches ModuleNotFoundError, ImportError, NameError and similar runtime
+        import failures that ``python -m compileall`` cannot detect.
+        """
+        files = test_files or _find_test_files(repo_root, None)
+        if not files:
+            return CompileResult(passed=True, build_tool="import_check", skipped=True, error_summary="no test files found")
+        return _import_check(repo_root, files)
 
     def lint_check(self, repo_root: Path) -> LintResult:
         if not _has_command("ruff"):
@@ -186,12 +210,26 @@ class PythonProvider(LanguageProvider):
         return source_file.with_name(f"test_{source_file.name}")
 
     def get_test_gen_context(self, source_file: Path) -> TestGenContext:
+        # Walk up to find the project root (directory containing pyproject.toml / setup.py)
+        repo_root = _find_project_root(source_file)
+        fw = self.detect_test_framework(repo_root)
+        has_pytest_mock = _has_pytest_mock(repo_root)
+        mock_library = "pytest-mock (mocker fixture)" if has_pytest_mock else "unittest.mock"
         return TestGenContext(
             language="python",
-            test_framework="pytest",
-            assertion_style="plain assert / pytest.raises",
-            mock_library="unittest.mock",
-            conventions=["use Arrange-Act-Assert", "assert concrete values and side effects", "prefer Decimal for money"],
+            test_framework=fw.name if fw else "pytest",
+            assertion_style="plain assert / pytest.raises(ExceptionClass, match=...)",
+            mock_library=mock_library,
+            conventions=[
+                "use class TestTargetClass with method test_method_condition_expected",
+                "place EUT traceability comment as first line of test body",
+                "prefer constructor injection (MagicMock passed to __init__) over patch",
+                "use patch('module.under.test.DepName') when dependency is imported not injected",
+                "use @pytest.mark.parametrize for boundary value coverage",
+                "assert concrete values and side effects — never bare assert result",
+                "use mock.assert_called_once() not mock.assert_called()",
+                "prefer Decimal for money comparisons",
+            ],
         )
 
     def _source_extensions(self) -> tuple[str, ...]:
@@ -219,6 +257,23 @@ def _assertion_from_node(node: ast.AST, method_start: int) -> AssertionInfo | No
     return None
 
 
+def _find_project_root(source_file: Path) -> Path:
+    """Walk up from source_file until a pyproject.toml / setup.py / requirements.txt is found."""
+    for parent in [source_file.parent, *source_file.parents]:
+        if any((parent / f).exists() for f in ("pyproject.toml", "setup.py", "requirements.txt")):
+            return parent
+    return source_file.parent
+
+
+def _has_pytest_mock(repo_root: Path) -> bool:
+    """Return True if pytest-mock is listed as a dependency in the project."""
+    for name in ("pyproject.toml", "requirements.txt", "requirements-dev.txt"):
+        path = repo_root / name
+        if path.exists() and "pytest-mock" in path.read_text(encoding="utf-8", errors="replace").lower():
+            return True
+    return False
+
+
 def _has_command(name: str) -> bool:
     try:
         result = subprocess.run([name, "--version"], capture_output=True, text=True, timeout=5)
@@ -230,4 +285,63 @@ def _has_command(name: str) -> bool:
 def _last_lines(text: str, limit: int = 8) -> str:
     lines = [line.strip() for line in text.splitlines() if line.strip()]
     return "\n".join(lines[-limit:])
+
+
+def _find_test_files(repo_root: Path, module: str | None) -> list[Path]:
+    """Find test_*.py files under repo_root (or module subdirectory)."""
+    search_root = repo_root / module if module else repo_root
+    if not search_root.exists():
+        return []
+    return list(search_root.rglob("test_*.py")) + list(search_root.rglob("*_test.py"))
+
+
+def _import_check(repo_root: Path, test_files: list[Path]) -> CompileResult:
+    """Import each test file in an isolated subprocess to catch runtime import errors.
+
+    Uses a minimal script that inserts repo_root into sys.path and attempts
+    ``importlib.import_module`` for each file. Failures are surfaced as a
+    structured error summary so Q05b can show actionable diagnostics.
+    """
+    # Write a small driver script to a temp file to avoid shell-quoting issues
+    driver = (
+        "import sys, importlib.util, pathlib\n"
+        "root = sys.argv[1]\n"
+        "sys.path.insert(0, root)\n"
+        "errors = []\n"
+        "for p in sys.argv[2:]:\n"
+        "    spec = importlib.util.spec_from_file_location('_chk', p)\n"
+        "    mod = importlib.util.module_from_spec(spec)\n"
+        "    try:\n"
+        "        spec.loader.exec_module(mod)\n"
+        "    except Exception as e:\n"
+        "        rel = pathlib.Path(p).relative_to(root) if pathlib.Path(p).is_relative_to(root) else pathlib.Path(p).name\n"
+        "        errors.append(f'{rel}: {type(e).__name__}: {e}')\n"
+        "if errors:\n"
+        "    print('\\n'.join(errors), file=sys.stderr)\n"
+        "    sys.exit(1)\n"
+    )
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
+        f.write(driver)
+        driver_path = f.name
+
+    cmd = [sys.executable, driver_path, str(repo_root)] + [str(tf) for tf in test_files[:20]]
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=_PY_TIMEOUT)
+    except subprocess.TimeoutExpired:
+        return CompileResult(passed=False, build_tool="import_check", command="import_check", error_summary="import check timed out")
+    finally:
+        try:
+            Path(driver_path).unlink(missing_ok=True)
+        except Exception:
+            pass
+
+    if result.returncode != 0:
+        return CompileResult(
+            passed=False,
+            build_tool="import_check",
+            command="import_check",
+            stderr=result.stderr[-2000:],
+            error_summary=_last_lines(result.stderr),
+        )
+    return CompileResult(passed=True, build_tool="import_check")
 

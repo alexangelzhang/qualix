@@ -507,3 +507,155 @@ result, err := service.CreateOrder(nil, input)
 | `github.com/stretchr/testify/assert` | 断言：`assert.Equal`, `assert.NoError`, `assert.Error` 等 |
 | `github.com/stretchr/testify/mock` | Mock 对象：`mock.Mock`, `mock.Anything`, `mock.MatchedBy` |
 | `github.com/stretchr/testify/require` | 致命断言：失败时立即停止测试（用于 Setup 阶段） |
+
+---
+
+## Python Template Rules
+
+适用于使用 `pytest` + `unittest.mock` / `pytest-mock` 的 Python 项目。
+
+### 结构约定
+
+```python
+# EUT-001 SE-003 Happy Path: 请求金额恰好 500 USD 时需要 manager + finance 审批
+class TestApprovalService:
+    def test_classify_exactly_500_requires_both_approvals(self):
+        # EUT-001 SE-003 Happy Path: 请求金额恰好 500 USD 时需要 manager + finance 审批
+        # given
+        service = ApprovalService()
+
+        # when
+        result = service.classify(Decimal("500"))
+
+        # then
+        assert result.status == "MANAGER_AND_FINANCE"
+        assert result.requires_finance is True
+```
+
+- 每个 `class Test<TargetClass>` 对应一个目标类
+- 每条 EUT 对应一个 `test_<method>_<condition>_<expected>` 函数
+- EUT 追溯注释 `# EUT-xxx SE-xxx Route_type: description` 放在函数体**第一行**
+
+### Mock 模式
+
+**模式 A — Constructor Injection（推荐）**
+
+依赖通过构造函数注入时，直接传 `MagicMock`：
+
+```python
+from unittest.mock import MagicMock
+
+def test_create_order_valid_input_returns_saved_order():
+    # EUT-001 SE-003 Happy Path: 订单创建成功
+    # given
+    mock_repo = MagicMock()
+    mock_repo.save.return_value = Order(id="123", status="CREATED")
+    service = OrderService(repo=mock_repo)
+
+    # when
+    result = service.create_order(amount=Decimal("100"))
+
+    # then
+    assert result.id == "123"
+    assert result.status == "CREATED"
+    mock_repo.save.assert_called_once()
+```
+
+**模式 B — `unittest.mock.patch`（模块级依赖）**
+
+依赖通过模块导入而非构造函数时，用 `patch` 作为 decorator：
+
+```python
+from unittest.mock import patch, MagicMock
+
+@patch("myapp.services.order_service.send_notification")
+def test_create_order_sends_notification(mock_send):
+    # EUT-002 SE-004 Side Effect: 订单创建后触发通知
+    # given
+    mock_send.return_value = None
+    service = OrderService(repo=MagicMock())
+
+    # when
+    service.create_order(amount=Decimal("100"))
+
+    # then
+    mock_send.assert_called_once()
+    call_args = mock_send.call_args[0]
+    assert call_args[0] == "order_created"   # 检查事件类型，不只是 called
+```
+
+> **patch 路径规则**：patch 目标是**被测模块里的名字**，不是原始定义位置。
+> `myapp.services.order_service` 导入了 `send_notification`，就 patch `myapp.services.order_service.send_notification`。
+
+**模式 C — `pytest-mock` 的 `mocker` fixture**
+
+```python
+def test_create_order_calls_repo(mocker):
+    # EUT-003 SE-003 Happy Path: 调用 repo.save 恰好一次
+    # given
+    mock_repo = mocker.MagicMock()
+    mock_repo.save.return_value = Order(id="456")
+    service = OrderService(repo=mock_repo)
+
+    # when
+    service.create_order(amount=Decimal("200"))
+
+    # then
+    mock_repo.save.assert_called_once()
+```
+
+### 异常路径（Error Path）
+
+```python
+import pytest
+from decimal import Decimal
+
+def test_classify_negative_amount_raises_value_error():
+    # EUT-004 SE-005 Exception Path: 负数金额抛出 ValueError
+    service = ApprovalService()
+    with pytest.raises(ValueError, match="amount must be positive"):
+        service.classify(Decimal("-1"))
+```
+
+- 必须用 `pytest.raises(ExceptionClass)`，禁止空 `try/except` 吞异常
+- `match=` 参数断言错误消息，避免捕获错误类型的同名异常
+
+### 参数化测试（边界值覆盖）
+
+```python
+import pytest
+from decimal import Decimal
+
+@pytest.mark.parametrize("amount,expected_status", [
+    (Decimal("499.99"), "MANAGER_ONLY"),
+    (Decimal("500.00"), "MANAGER_AND_FINANCE"),   # 边界值：恰好 500
+    (Decimal("500.01"), "MANAGER_AND_FINANCE"),
+    (Decimal("0"),      "NO_APPROVAL"),
+])
+def test_classify_boundary_values(amount, expected_status):
+    # EUT-005 SE-003 Boundary: 边界值覆盖（含恰好 500 USD）
+    result = ApprovalService().classify(amount)
+    assert result.status == expected_status
+```
+
+> 边界值测试用 `@pytest.mark.parametrize`，不要为每个边界值单独写函数。
+
+### 断言强度规则
+
+| 强断言（推荐） | 弱断言（禁止） |
+|---|---|
+| `assert result.status == "APPROVED"` | `assert result` |
+| `assert result.amount == Decimal("500")` | `assert result is not None` |
+| `mock_repo.save.assert_called_once()` | `mock_repo.save.assert_called()` |
+| `pytest.raises(ValueError, match="...")` | 空 `try/except` |
+| `assert len(result.audit_log) == 2` | `assert result.audit_log` |
+
+### 依赖库
+
+| 依赖 | 用途 |
+|------|------|
+| `pytest` | 测试运行器、fixture、参数化 |
+| `unittest.mock.MagicMock` | Mock 对象（标准库，无需安装） |
+| `unittest.mock.patch` | 模块级依赖替换（标准库） |
+| `pytest-mock` | `mocker` fixture，简化 patch 生命周期管理（可选） |
+| `decimal.Decimal` | 金额计算（禁止用 float）|
