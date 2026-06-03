@@ -101,7 +101,9 @@ qualix-run hello approve Q01 --json
 
 ## Flagship Demo: Expense Approval
 
-![Qualix demo — init, ingest, Q01 report, Q06 audit findings](docs/assets/demo.gif)
+[![Qualix demo video](docs/assets/demo.gif)](https://youtu.be/wtI07KJYXRI)
+
+▶ [Watch on YouTube](https://youtu.be/wtI07KJYXRI) — tests pass, coverage 100%, but the 500 USD boundary is missing.
 
 The [expense approval demo](examples/expense-approval/README.md) is the fastest way to see what Qualix catches. It ships with a synthetic PRD, a Python implementation with deliberate gaps, and tests that pass ordinary coverage — but miss the 500 USD boundary and idempotency rules.
 
