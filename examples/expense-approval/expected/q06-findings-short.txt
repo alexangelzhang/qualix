@@ -1,0 +1,13 @@
+Q06 Audit — expense-approval
+════════════════════════════════════════════════════
+
+[HIGH]   Missing boundary test for exactly 500.00 USD
+         tests/ checks 120 and 600 only. Code uses '> 500',
+         so 500 USD silently routes to wrong approval branch.
+
+[HIGH]   Idempotency not tested
+         Repeating approve_by_manager appends duplicate audit rows.
+
+[MEDIUM] Audit log missing timestamp field
+
+Line coverage: 100%   Semantic coverage: 0 / 4 SEs proven
