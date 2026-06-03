@@ -162,6 +162,24 @@ Qualix computes a diff against the base branch, identifies which source files ch
 
 ---
 
+## Research alignment
+
+The core structure of Qualix — extract semantic expectations from requirements,
+then audit a candidate artifact against those expectations — is structurally
+equivalent to the Rubric Reward Model pattern studied in recent alignment
+research. Scale AI's *Agentic Rubrics as Contextual Verifiers for SWE Agents*
+(arXiv:2601.04171) applies the same two-stage approach to SWE agents: generate
+rubric criteria from the issue and repository context, then score candidate
+patches against those criteria without executing them.
+
+The main difference is application domain: Qualix targets the test-suite
+coverage gap (does the test suite prove the business rule?), while rubric RMs
+target patch quality (does the patch satisfy the issue?). Both are trying to
+answer whether a candidate artifact satisfies a stated requirement at a level
+of semantic precision that line coverage and test-pass signals cannot provide.
+
+---
+
 ## Further reading
 
 - [Concepts](concepts.md) — short glossary of terms

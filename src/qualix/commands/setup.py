@@ -303,13 +303,25 @@ def cmd_demo(args, output_dir: Path) -> int:  # noqa: ARG001
     print(_read("expected/q01-summary.md"))
 
     print(f"\n{bar}")
+    print("\n── Q05a: EUT Matrix Design ─────────────────────────────────\n")
+    print(_read("expected/q05a-eut-matrix.md"))
+
+    print(f"\n{bar}")
     print("\n── Q06: Unit Test Coverage Audit ──────────────────────────\n")
     print(_read("expected/q06-audit.md"))
 
     print(f"\n{bar}")
-    print("\nRun your own PRD:")
+    print("\nKey finding: both tests pass and branch coverage is green.")
+    print("The implementation uses '> 500' instead of '>= 500'.")
+    print("The boundary at exactly 500 USD — which the PRD explicitly defines —")
+    print("is never tested. Q06 flags it as MISSING regardless of coverage numbers.")
+    print(f"\n{bar}")
+    print("\nTo run on your own PRD (requires an API key):")
+    print("  export ANTHROPIC_API_KEY=...")
     print("  qualix-run --profile python-service <project> init")
     print("  qualix-run ingest <prd.md> --project <project>")
     print("  qualix-run <project> startup --json")
+    print("\nTo drill into a specific SE finding after running the pipeline:")
+    print("  qualix-run <project> explain SE-003")
     print(f"{bar}\n")
     return 0

@@ -298,6 +298,10 @@ def _build_parser() -> argparse.ArgumentParser:
     p_ci.add_argument("--pr-comment", action="store_true", dest="pr_comment",
                       help="输出 GitHub PR Comment 格式 Markdown")
 
+    # explain：SE 证据链 drill-down
+    p_explain = sub.add_parser("explain", help="Show evidence chain for a SE ID (PRD → EUT → Q06 verdict)")
+    p_explain.add_argument("se_id", help="SE ID to inspect, e.g. SE-003")
+
     # evidence-audit：SE → EUT → Test → Coverage 链路健康度
     p_eaudit = sub.add_parser("evidence-audit", help="展示 SE → EUT → Coverage 链路健康度")
     p_eaudit.add_argument("--phase", default="Q06", help="Phase ID（默认 Q06）")
@@ -405,6 +409,11 @@ def _dispatch(cmd: str) -> callable:
         from qualix.commands.ci import cmd_ci_gate
 
         return cmd_ci_gate
+
+    if cmd == "explain":
+        from qualix.commands.explain import cmd_explain
+
+        return cmd_explain
 
     if cmd == "evidence-audit":
         from qualix.commands.ci import cmd_evidence_audit
