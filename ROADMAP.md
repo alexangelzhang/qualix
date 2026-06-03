@@ -49,6 +49,12 @@ Python test generation is experimental. The two specific gaps blocking it are do
 - Online sandbox: paste a PRD, get Q01 output without installing anything
 - Multi-model benchmark: compare Q06 finding quality across GPT / Claude / Gemini on the public benchmark cases
 
+**SE weight modeling** (issue #se-weights): today semantic_coverage_rate treats all SEs equally. A SE that captures the core business invariant (e.g., the boundary at exactly 500 USD) should carry more weight than an auxiliary SE (e.g., audit log format). This issue tracks adding an optional `weight` field to SE items (values: `critical` / `high` / `normal`, defaulting to `normal`) so that Q06 can produce a weighted semantic coverage score alongside the unweighted one. This aligns with the weight modeling used in Scale AI's Agentic Rubrics work (arXiv:2601.04171), where must-have criteria (weight=3) dominate patch selection over nice-to-have criteria (weight=1). Prerequisite: establish a weighting heuristic in Q01 based on RE/BR coupling strength before exposing the field to users.
+
+**Q06 failure axis tagging** (issue #failure-axis): Q06 audit items currently report status (COVERED / PARTIAL / MISSING / WRONG_TARGET) and severity, but not *why* the item failed. Tagging each non-COVERED item with a failure axis — `spec_alignment` (SE not tested), `integrity` (test written but assertion weakened), `runtime` (behavior incorrect), or `scope` (wrong module targeted) — enables per-axis rollup in the dashboard and gives developers actionable triage ("write the test" vs "fix the assertion" vs "fix the logic"). Inspired by the four-axis rubric structure in arXiv:2601.04171.
+
+**Q01 over-specification guard** (issue #se-overspec): SEs that describe implementation means ("must call XxxValidator.check()") rather than observable outcomes ("must return HTTP 400 with errorCode=INVALID_AMOUNT") produce false MISSING findings in Q06 when equivalent implementations satisfy the business rule via a different code path. Adding an over-specification check to Q01's SE quality gate — analogous to the low-utility rubric patterns (Over-Specified Fix, Spec Clash) identified in arXiv:2601.04171 — would reduce Q06 false positive rate without changing the audit logic.
+
 ## Not Planned
 
 - Replacing existing test runners (pytest, JUnit, Jest) — Qualix sits above them
