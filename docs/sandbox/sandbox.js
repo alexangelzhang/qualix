@@ -47,6 +47,59 @@ const EXPENSE_APPROVAL_PRD = [
   '- Should a requester be allowed to edit and resubmit a rejected request?',
 ].join('\n');
 
+// ── Baked-in demo result (zero API calls) ────────────────────────────────────
+// Pre-computed Q01 output for the expense-approval PRD above, so the first-time
+// visitor sees a concrete result instantly — no API key, no button click.
+// Values mirror examples/expense-approval/expected/q01-structured.json.
+const EXPENSE_APPROVAL_RESULT = {
+  semantic_expectations: [
+    {
+      se_id: 'SE-001',
+      description: 'Every status change sends exactly one requester notification.',
+      why_it_matters: 'A test that asserts "a notification was sent" passes even when two are sent. The "exactly one" semantic is the part that breaks on a non-idempotent retry.'
+    },
+    {
+      se_id: 'SE-002',
+      description: 'Approval transitions are idempotent: repeating the same approval must not create a second audit entry or send a second notification.',
+      why_it_matters: 'Shallow tests check the happy-path approval once. They rarely replay the same approval, so a duplicate audit row or double notification escapes undetected.'
+    },
+    {
+      se_id: 'SE-003',
+      description: 'A request at exactly 500 USD requires manager AND finance approval — the threshold is inclusive, not exclusive.',
+      why_it_matters: 'Tests at 120 USD and 600 USD exercise both branches and turn coverage green, but the exact 500 boundary is never asserted. An implementation using > 500 instead of >= 500 silently routes 500 to the wrong path.'
+    },
+    {
+      se_id: 'SE-004',
+      description: 'Approval decisions are audit logged with actor_id, timestamp, previous_status, next_status, and comment.',
+      why_it_matters: 'A test that checks "an audit row exists" passes even when a required field like timestamp is missing. Schema completeness is the semantic, not row existence.'
+    },
+    {
+      se_id: 'SE-005',
+      description: 'Amount comparison uses decimal arithmetic, not floating point.',
+      why_it_matters: 'Float comparison can make 499.99 + 0.01 fail an == 500 check. A test using float literals may pass while production data crosses the boundary incorrectly.'
+    }
+  ],
+  shallow_misses: [
+    'A test that only checks amounts 120 and 600 — both approval branches are hit, coverage is green, but the exact 500 boundary is never asserted.',
+    'A test that only checks that an audit entry was created, not that a second identical approval fails to create a duplicate one.',
+    'A test that only asserts a notification was sent, not that exactly one was sent per status change.'
+  ],
+  gaps: [
+    {
+      gap_id: 'GAP-001',
+      description: 'Non-USD exchange-rate source is not specified in the PRD.',
+      risk_level: 'P1'
+    }
+  ],
+  open_items: [
+    {
+      open_id: 'OPEN-001',
+      question: 'Should a rejected request be editable and resubmittable by the requester?'
+    }
+  ],
+  conclusion: 'PRD is clear on the core approval flow. SE-003 (inclusive 500 USD boundary) and SE-002 (idempotency) are the two semantics most at risk of being missed by a standard test suite.'
+};
+
 // ── System prompt ─────────────────────────────────────────────────────────────
 function buildSystemPrompt() {
   return [
@@ -410,7 +463,18 @@ async function handleExtract() {
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 function init() {
-  setOutput(renderEmpty());
+  // First-time visitor sees a concrete result instantly: the expense PRD is
+  // pre-loaded and its Q01 output is rendered from a baked-in result with zero
+  // API calls. "Extract" re-runs it live against the user's own API key.
+  document.getElementById('prd-input').value = EXPENSE_APPROVAL_PRD;
+  setOutput(
+    '<div class="demo-banner">' +
+      '⚡ Example result below — 0 API calls. ' +
+      'Edit the PRD or paste your own, add an API key, and click ' +
+      '<strong>Extract Semantic Expectations</strong> to run it live.' +
+    '</div>' +
+    renderResults(EXPENSE_APPROVAL_RESULT)
+  );
 
   document.getElementById('load-example-btn').addEventListener('click', function() {
     document.getElementById('prd-input').value = EXPENSE_APPROVAL_PRD;

@@ -605,3 +605,19 @@ textarea {
     display: none;
   }
 }
+
+/* ── Demo banner (baked-in first-run result) ─────────────────────────────── */
+.demo-banner {
+  margin-bottom: 16px;
+  padding: 10px 14px;
+  border: 1px solid var(--color-tag-se);
+  border-left: 3px solid var(--color-primary);
+  border-radius: 6px;
+  background: var(--color-tag-se);
+  color: var(--color-tag-se-text);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.demo-banner strong {
+  font-weight: 600;
+}

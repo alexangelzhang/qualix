@@ -10,4 +10,4 @@ Q06 Audit — expense-approval
 
 [MEDIUM] Audit log missing timestamp field
 
-Line coverage: 100%   Semantic coverage: 0 / 4 SEs proven
+Line coverage: 95%   Semantic coverage: 0 / 4 SEs proven

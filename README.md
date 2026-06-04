@@ -1,16 +1,8 @@
 # Qualix
 
-[![Tests](https://github.com/alexangelzhang/qualix/actions/workflows/qualix-self-check.yml/badge.svg)](https://github.com/alexangelzhang/qualix/actions/workflows/qualix-self-check.yml)
-[![PyPI](https://img.shields.io/pypi/v/qualix)](https://pypi.org/project/qualix/)
-[![Python](https://img.shields.io/pypi/pyversions/qualix)](https://pypi.org/project/qualix/)
-[![License](https://img.shields.io/badge/license-Apache%202.0-blue)](LICENSE)
-[![codecov](https://codecov.io/gh/alexangelzhang/qualix/branch/main/graph/badge.svg)](https://codecov.io/gh/alexangelzhang/qualix)
-
 AI-native development quality gates for requirements, designs, tests, and code reviews.
 
-Qualix turns product requirements into traceable engineering checks. Instead of stopping at line coverage, it follows requirement IDs through design coverage, test intent, generated unit tests, audit reports, and review findings.
-
-## The Problem in One Example
+## Your Tests Pass. Your Coverage Is Green. But Did They Prove the Requirement?
 
 A PRD says: *requests at or above 500 USD require manager **and** finance approval.*
 
@@ -30,6 +22,8 @@ Qualix calls this a **semantic coverage gap**. Q06 reports it even when coverage
        Implementation uses > 500; threshold rule says ≥ 500.
        Add: approve(Request(amount=Decimal("500.00"))) → finance_required
 ```
+
+Qualix turns product requirements into traceable engineering checks. Instead of stopping at line coverage, it follows requirement IDs through design coverage, test intent, generated unit tests, audit reports, and review findings.
 
 ## Numbers from Real Projects
 
@@ -342,3 +336,11 @@ Qualix is adjacent to AI PR reviewers, test-generation tools, and coding-agent w
 Apache License 2.0. See [LICENSE](LICENSE).
 
 The core phases (Q01–Q07), CLI, all language profiles, all skill files, and all benchmark cases are Apache 2.0 and will remain so. Any future commercial offerings would focus on hosted services and team collaboration tooling — not on gating or restricting the open-source core.
+
+---
+
+[![Tests](https://github.com/alexangelzhang/qualix/actions/workflows/qualix-self-check.yml/badge.svg)](https://github.com/alexangelzhang/qualix/actions/workflows/qualix-self-check.yml)
+[![PyPI](https://img.shields.io/pypi/v/qualix)](https://pypi.org/project/qualix/)
+[![Python](https://img.shields.io/pypi/pyversions/qualix)](https://pypi.org/project/qualix/)
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue)](LICENSE)
+[![codecov](https://codecov.io/gh/alexangelzhang/qualix/branch/main/graph/badge.svg)](https://codecov.io/gh/alexangelzhang/qualix)
