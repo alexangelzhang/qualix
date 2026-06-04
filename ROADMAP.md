@@ -55,6 +55,8 @@ Python test generation is experimental. The two specific gaps blocking it are do
 
 **Q01 over-specification guard** (issue #se-overspec): SEs that describe implementation means ("must call XxxValidator.check()") rather than observable outcomes ("must return HTTP 400 with errorCode=INVALID_AMOUNT") produce false MISSING findings in Q06 when equivalent implementations satisfy the business rule via a different code path. Adding an over-specification check to Q01's SE quality gate — analogous to the low-utility rubric patterns (Over-Specified Fix, Spec Clash) identified in arXiv:2601.04171 — would reduce Q06 false positive rate without changing the audit logic.
 
+**Incremental re-run and output versioning** (issue #incremental-rerun): three design patterns worth adopting once real-world re-run latency becomes a user complaint — (1) `isLatest` + `parent_run_id` on SE/EUT/Q06 outputs so dashboard and CLI surface current results without relying on directory timestamp ordering; (2) `stability: "core" | "derived"` field on SE items so core SEs (bound to stable PRD requirements) are not regenerated on every run; (3) EUT upsert keyed on `(pid, eut_id, phase)` so unchanged EUTs reuse the previous Q06 judge score rather than re-scoring from scratch. Inspired by the version-chain and deduplication patterns in supermemoryai/supermemory (not a dependency — patterns only).
+
 ## Not Planned
 
 - Replacing existing test runners (pytest, JUnit, Jest) — Qualix sits above them
