@@ -8,7 +8,7 @@ from typing import Any
 
 import streamlit as st
 
-from qualix.constants import GUARD_EVENT_FILENAME, GUARD_PAIR_DIRNAME, PHASE_DIR_MAP
+from qualix.constants import GUARD_EVENT_FILENAME, PHASE_DIR_MAP
 from qualix.log import get_logger
 
 from .constants import OUTPUT_DIR
@@ -76,7 +76,7 @@ def _save_annotation(output_dir: Path, project: str, event_id: str, label: str) 
         {
             "event_id": event_id,
             "label": label,
-            "annotated_at": datetime.datetime.now(tz=datetime.timezone.utc).isoformat(),
+            "annotated_at": datetime.datetime.now(tz=datetime.UTC).isoformat(),
         },
         ensure_ascii=False,
     )

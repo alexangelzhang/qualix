@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     from pathlib import Path
 
 # Re-exported for backward compatibility
-__all__ = ["JudgeVote", "VoteResult", "IterationRecord"]
+__all__ = ["IterationRecord", "JudgeVote", "VoteResult"]
 
 
 def _write_hard_block_result(output_dir: Path, vote: JudgeVote, guard_result: Any) -> None:

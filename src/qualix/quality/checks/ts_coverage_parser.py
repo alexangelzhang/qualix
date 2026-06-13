@@ -27,6 +27,6 @@ def parse_coverage_summary(coverage_json_path: Path) -> dict | None:
             log.debug("coverage-summary.json missing pct fields: %s", coverage_json_path)
             return None
         return {"lines_pct": float(lines_pct), "branches_pct": float(branches_pct)}
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         log.debug("Failed to parse coverage-summary.json at %s: %s", coverage_json_path, exc)
         return None

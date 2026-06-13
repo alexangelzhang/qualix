@@ -9,11 +9,9 @@ Verifies:
 from __future__ import annotations
 
 import json
-import subprocess
 from pathlib import Path
 from subprocess import CompletedProcess
 from unittest.mock import patch
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -139,15 +137,16 @@ class TestSubprocessFailure:
             args=[], returncode=1, stdout="", stderr="model error: rate limit exceeded"
         )
 
-        with patch("subprocess.run", return_value=failed_proc):
-            with pytest.raises(RuntimeError, match="Judge subprocess failed"):
-                _run_single_judge(
-                    output_dir=tmp_path,
-                    report_path=report_file,
-                    rubric="Test rubric",
-                    model="claude-sonnet-4-6",
-                    fallback="claude-haiku-4-6",
-                )
+        with patch("subprocess.run", return_value=failed_proc), pytest.raises(
+            RuntimeError, match="Judge subprocess failed"
+        ):
+            _run_single_judge(
+                output_dir=tmp_path,
+                report_path=report_file,
+                rubric="Test rubric",
+                model="claude-sonnet-4-6",
+                fallback="claude-haiku-4-6",
+            )
 
     def test_subprocess_failure_stderr_in_message(self, tmp_path: Path) -> None:
         """RuntimeError message should include a fragment of stderr."""
@@ -162,15 +161,14 @@ class TestSubprocessFailure:
             args=[], returncode=1, stdout="", stderr="specific error detail here"
         )
 
-        with patch("subprocess.run", return_value=failed_proc):
-            with pytest.raises(RuntimeError) as exc_info:
-                _run_single_judge(
-                    output_dir=tmp_path,
-                    report_path=report_file,
-                    rubric="Test rubric",
-                    model="claude-sonnet-4-6",
-                    fallback=None,
-                )
+        with patch("subprocess.run", return_value=failed_proc), pytest.raises(RuntimeError) as exc_info:
+            _run_single_judge(
+                output_dir=tmp_path,
+                report_path=report_file,
+                rubric="Test rubric",
+                model="claude-sonnet-4-6",
+                fallback=None,
+            )
 
         assert "specific error detail here" in str(exc_info.value)
 

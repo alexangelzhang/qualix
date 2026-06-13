@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import types
-from pathlib import Path
 
 
 def _make_args(project_id: str = "test-proj", profile: str = "python-service") -> types.SimpleNamespace:

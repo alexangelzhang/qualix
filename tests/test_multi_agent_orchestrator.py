@@ -8,14 +8,10 @@ Callers should use AgentOrchestrator.run_pipeline() directly.
 from __future__ import annotations
 
 from pathlib import Path
-from unittest.mock import MagicMock, call, patch
-
-import pytest
+from unittest.mock import MagicMock, patch
 
 from qualix.agents.agent import AgentResult
 from qualix.agents.agent_orchestrator import AgentOrchestrator
-from qualix.agents.multi_agent import MultiAgentOrchestrator
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -40,12 +36,6 @@ def _make_agent_result(role: str, status: str = "success") -> AgentResult:
 class TestRunPhase:
     def test_run_pipeline_returns_results(self, tmp_path: Path):
         """run_pipeline() 应当执行 Worker→Judge→Critique 并返回结果 dict."""
-        expected_results = {
-            "worker": _make_agent_result("worker"),
-            "judge": _make_agent_result("judge"),
-            "critique": _make_agent_result("critique"),
-        }
-
         orch = AgentOrchestrator(tmp_path)
         with (
             patch.object(orch, "_run_worker") as mock_worker,

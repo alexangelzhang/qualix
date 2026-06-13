@@ -1,9 +1,7 @@
 from __future__ import annotations
 
 import json
-import threading
 import time
-from types import SimpleNamespace
 from typing import TYPE_CHECKING
 
 from qualix.agents.adaptive_loop import multi_judge_vote

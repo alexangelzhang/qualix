@@ -129,23 +129,6 @@ PHASE_METRICS: Final[dict[str, list[dict[str, Any]]]] = {
             "args": {"path_type": "Exception"},
         },
     ],
-    "Q05a": [
-        {"id": "eut_count", "name": "EUT 数量", "type": "count", "field": "eut_matrix"},
-        {
-            "id": "happy_path_ratio",
-            "name": "Happy Path 占比",
-            "type": "custom",
-            "fn": "_calc_path_ratio",
-            "args": {"path_type": "Happy"},
-        },
-        {
-            "id": "exception_path_ratio",
-            "name": "Exception Path 占比",
-            "type": "custom",
-            "fn": "_calc_path_ratio",
-            "args": {"path_type": "Exception"},
-        },
-    ],
     "Q06": [
         {
             "id": "covered_rate",

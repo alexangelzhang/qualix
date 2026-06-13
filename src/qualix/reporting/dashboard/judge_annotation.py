@@ -79,7 +79,7 @@ def _save_annotation(output_dir: Path, project: str, issue_key: str, label: str)
         {
             "issue_key": issue_key,
             "label": label,
-            "annotated_at": datetime.datetime.now(tz=datetime.timezone.utc).isoformat(),
+            "annotated_at": datetime.datetime.now(tz=datetime.UTC).isoformat(),
         },
         ensure_ascii=False,
     )
@@ -118,7 +118,7 @@ def _page_judge_annotation() -> None:
     st.divider()
 
     # Filter
-    filter_pid = st.selectbox("Filter by project", ["All"] + projects, key="ja_filter")
+    filter_pid = st.selectbox("Filter by project", ["All", *projects], key="ja_filter")
     show_only_unlabeled = st.checkbox("Show only unlabeled issues", value=True, key="ja_unlabeled")
 
     for result in all_results:

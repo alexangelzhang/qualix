@@ -140,7 +140,6 @@ def _page_local_projects() -> None:
     """本地多项目聚合视图 — 不需要飞书凭证."""
     from .cache import _cached_projects, _cached_summary
     from .constants import OUTPUT_DIR
-    from .trend import _load_phase_score_history
 
     st.subheader("本地多项目汇总")
     st.caption("从本机 output/ 目录聚合，无需飞书凭证。")
@@ -151,6 +150,7 @@ def _page_local_projects() -> None:
         return
 
     import pandas as pd
+
     from qualix.constants import PHASE_DIR_MAP
 
     rows = []

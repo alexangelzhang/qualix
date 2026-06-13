@@ -29,7 +29,7 @@ log = get_logger(__name__)
 from qualix.core.state_machine import phase_dir as _phase_dir
 
 # Re-exported for backward compatibility
-__all__ = ["generate_worker_prompt", "generate_judge_prompt", "generate_critique_prompt"]
+__all__ = ["generate_critique_prompt", "generate_judge_prompt", "generate_worker_prompt"]
 
 # ---------------------------------------------------------------------------
 # Agent 角色定义

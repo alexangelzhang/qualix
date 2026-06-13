@@ -5,10 +5,7 @@ from __future__ import annotations
 import textwrap
 from pathlib import Path
 
-import pytest
-
 from qualix.quality.checks.mock_consistency_check import check_mock_consistency
-
 
 # ---------------------------------------------------------------------------
 # 辅助：在临时目录里创建 Java 测试文件

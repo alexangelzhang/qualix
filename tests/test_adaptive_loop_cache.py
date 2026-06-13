@@ -1,12 +1,10 @@
 from __future__ import annotations
 
-import json
 from types import SimpleNamespace
 from typing import TYPE_CHECKING
 
 from qualix.agents.adaptive_loop import AdaptiveLoop, multi_judge_vote
 from qualix.agents.judge_vote import JudgeVote
-from qualix.agents.llm_backends import StructuredChatResult, _extract_json
 
 if TYPE_CHECKING:
     from pathlib import Path

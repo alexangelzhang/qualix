@@ -16,14 +16,11 @@ import json
 import textwrap
 from pathlib import Path
 
-import pytest
-
 from qualix.quality.checks.import_whitelist_check import (
     _check_single_file,
     _extract_known_classes,
     check_import_whitelist,
 )
-
 
 # ---------------------------------------------------------------------------
 # 辅助工具

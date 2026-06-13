@@ -12,11 +12,11 @@ from pathlib import Path
 from types import MappingProxyType
 from typing import Final
 
-from qualix.log import get_logger
 from qualix.core.state_machine import PHASE_DEFS
 from qualix.core.state_machine import internal_dir as _internal_dir
 from qualix.core.state_machine import phase_dir as _phase_dir
 from qualix.json_utils import load_json, save_json
+from qualix.log import get_logger
 from qualix.path_utils import resolve_internal_file
 from qualix.text_utils import STRUCTURED_JSON_MAP, expand_eut_ids
 

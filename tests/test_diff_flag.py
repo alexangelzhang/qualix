@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import types
-from pathlib import Path
+from contextlib import suppress
 from unittest.mock import MagicMock, patch
 
 
@@ -39,10 +39,9 @@ def _run_cmd_execute_capture_ctx(args, tmp_path):
 
     with patch("qualix.runtime.phase_runtime.runtime_execute", side_effect=fake_runtime_execute):
         from qualix.commands.phase import cmd_execute
-        try:
+
+        with suppress(Exception):
             cmd_execute(args, output_dir)
-        except Exception:
-            pass  # may fail at runtime level; we only care about ctx construction
 
     return captured.get("ctx")
 

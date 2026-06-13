@@ -183,7 +183,6 @@ def _count_artifacts(data: dict[str, Any], phase_id: str) -> dict[str, int]:
         "Q04": ["req_coverage", "se_coverage", "gap_closure"],
         "Q03": ["issues", "failure_modes"],
         "Q05a": ["eut_items"],
-        "Q05a": ["eut_items"],
         "Q05b": ["tasks"],
         "Q06": ["audit_items"],
         "Q07": ["findings"],

@@ -222,63 +222,6 @@ JUDGE_RUBRICS: Final[dict[str, dict[str, Any]]] = {
         ],
     },
     "Q05a": {
-        "name": "单测生成",
-        "dimensions": [
-            {
-                "id": "eut_coverage",
-                "name": "EUT 覆盖完备性",
-                "description": "EUT 矩阵是否覆盖了所有 REQ/BR/SE，包括 Happy Path、Exception、Boundary",
-                "weight": 0.3,
-                "rubric": {
-                    5: "每条 REQ/BR/SE 都有对应 EUT，三种路径类型均覆盖",
-                    4: "90%+ REQ/SE 有 EUT，仅遗漏 1-2 个边界场景",
-                    3: "主要 REQ 有 EUT，但 Exception/Boundary 路径覆盖不足",
-                    2: "EUT 覆盖不足 70%，大量 SE 无对应测试",
-                    1: "EUT 矩阵严重不完整",
-                },
-            },
-            {
-                "id": "assert_strength",
-                "name": "断言强度",
-                "description": "生成的单测是否使用强断言验证业务语义，而非仅 assertNotNull/assertTrue(true)",
-                "weight": 0.35,
-                "rubric": {
-                    5: "所有测试都有 assertEquals 验证业务字段、verify 验证交互、assertThrows 验证异常码",
-                    4: "90%+ 测试有强断言，个别测试断言稍弱",
-                    3: "主要测试有强断言，但存在 assertNotNull 冒充覆盖的情况",
-                    2: "多个测试仅有弱断言，未验证业务语义",
-                    1: "大量测试无实质断言或仅 assertNotNull",
-                },
-            },
-            {
-                "id": "code_compilability",
-                "name": "代码可编译性",
-                "description": "生成的单测代码是否能通过编译，import/mock/setup 是否正确",
-                "weight": 0.2,
-                "rubric": {
-                    5: "所有测试代码编译通过，import 正确，mock 配置完整",
-                    4: "90%+ 编译通过，个别 import 缺失但易修复",
-                    3: "主要测试可编译，但 mock 配置有遗漏导致部分编译失败",
-                    2: "多个测试编译失败，缺少关键依赖或 mock",
-                    1: "大面积编译失败",
-                },
-            },
-            {
-                "id": "se_traceability",
-                "name": "SE 追溯性",
-                "description": "每个测试方法是否能追溯到对应的 SE/EUT ID",
-                "weight": 0.15,
-                "rubric": {
-                    5: "每个 @Test 方法都有 @Tag 或注释标注对应的 EUT/SE ID",
-                    4: "90%+ 测试有追溯标注",
-                    3: "部分测试有标注，但缺少系统性的追溯",
-                    2: "追溯标注不足 50%",
-                    1: "几乎无追溯标注",
-                },
-            },
-        ],
-    },
-    "Q05a": {
         "name": "EUT 矩阵设计",
         "dimensions": [
             {

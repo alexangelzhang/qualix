@@ -28,7 +28,6 @@ _MIN_REPORT_LENGTH: dict[str, int] = {
     "Q02": 800,  # 技术方案
     "Q03": 500,  # 技术方案评审
     "Q04": 300,  # 覆盖度矩阵
-    "Q05a": 600,  # 单测生成（legacy）
     "Q05a": 600,  # EUT 矩阵设计（eut_matrix.md 内容量与 Q05a 相当）
     "Q05b": 200,  # 单测代码生成进度报告（codegen_progress.md 内容较短）
     "Q06": 600,  # 单测审计
