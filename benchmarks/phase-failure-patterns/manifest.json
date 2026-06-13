@@ -1,0 +1,60 @@
+{
+  "benchmark_id": "phase-failure-patterns",
+  "version": 1,
+  "description": "Public benchmark manifest for phase-specific Qualix failure patterns.",
+  "relationship_to_semantic_coverage": "semantic-coverage captures requirement behaviors that tests miss; phase-failure-patterns captures where the Q01-Q06 pipeline can miss, misclassify, or weaken those behaviors by phase.",
+  "required_case_fields": [
+    "case_id",
+    "phase",
+    "error_type",
+    "severity",
+    "title",
+    "root_cause",
+    "fix_target",
+    "expected",
+    "actual",
+    "lesson",
+    "case_category"
+  ],
+  "patterns": [
+    {
+      "pattern_id": "PFP-Q01-uniqueness-boundary",
+      "phase": "Q01",
+      "case_id": "SYNTH-Q01-001",
+      "case_path": "regression/failure-library/cases/Q01/SYNTH-Q01-001/case.json",
+      "failure_pattern": "Requirement structuring drops scoped uniqueness constraints and turns a concrete validation rule into generic creation behavior.",
+      "benchmark_focus": "Does Q01 extract a business rule with scope, duplicate condition, and rejection behavior?",
+      "expected_signal": "A BR item states that active rule_code values must be unique per account and duplicates are rejected.",
+      "actual_miss": "The uniqueness boundary is absent from the structured requirement output.",
+      "why_it_matters": "Downstream EUT and Q06 audits cannot test a business invariant that Q01 never materializes.",
+      "triage": "Repair the Q01 skill rule for scoped uniqueness wording before expanding downstream tests.",
+      "source_safety": "synthetic"
+    },
+    {
+      "pattern_id": "PFP-Q05a-inclusive-threshold",
+      "phase": "Q05a",
+      "case_id": "SYNTH-Q05A-001",
+      "case_path": "regression/failure-library/cases/Q05a/SYNTH-Q05A-001/case.json",
+      "failure_pattern": "EUT matrix covers values around an inclusive threshold but omits the exact boundary value.",
+      "benchmark_focus": "Does Q05a create one EUT for the exact inclusive boundary, not only values below and above it?",
+      "expected_signal": "An EUT item covers exactly 500.00 USD and states the required manager plus finance approval behavior.",
+      "actual_miss": "The matrix has below-threshold and above-threshold examples but no exact-boundary EUT.",
+      "why_it_matters": "Boundary omissions inflate semantic coverage while leaving the riskiest product decision untested.",
+      "triage": "Repair Q05a boundary expansion and keep Q05a/Q06 EUT-per-item.",
+      "source_safety": "synthetic"
+    },
+    {
+      "pattern_id": "PFP-Q06-idempotency-single-shot",
+      "phase": "Q06",
+      "case_id": "SYNTH-Q06-001",
+      "case_path": "regression/failure-library/cases/Q06/SYNTH-Q06-001/case.json",
+      "failure_pattern": "Coverage audit treats a single successful side-effect assertion as evidence for idempotency.",
+      "benchmark_focus": "Does Q06 require a repeated command plus unchanged side-effect assertions before marking idempotency covered?",
+      "expected_signal": "The audit item for the idempotency EUT is non-covered when tests never retry the transition or assert duplicate prevention.",
+      "actual_miss": "A happy-path approval assertion is accepted as sufficient for an idempotency requirement.",
+      "why_it_matters": "Idempotency failures usually appear under retries, where line coverage and single-shot assertions look deceptively strong.",
+      "triage": "Repair the Q06 audit skill so repeated-action semantics are checked per EUT.",
+      "source_safety": "synthetic"
+    }
+  ]
+}

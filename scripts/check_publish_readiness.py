@@ -9,11 +9,13 @@ made public.
 from __future__ import annotations
 
 import re
+import subprocess
+import sys
 from pathlib import Path
 from urllib.parse import urlparse
 
 ROOT = Path(__file__).resolve().parents[1]
-SKIP_DIRS = {".git", ".claude", "__pycache__", ".pytest_cache", ".ruff_cache", "dist", "build", ".venv", "venv", "internal", "system-health-reports", "plans", "specs"}
+SKIP_DIRS = {".git", ".gitnexus", ".claude", "__pycache__", ".pytest_cache", ".ruff_cache", "dist", "build", ".venv", "venv", "internal", "system-health-reports", "plans", "specs"}
 BINARY_SUFFIXES = {".png", ".jpg", ".jpeg", ".gif", ".pdf", ".pyc", ".sqlite", ".db", ".tgz", ".zip"}
 
 FORBIDDEN_TEXT = [
@@ -194,12 +196,28 @@ def check_failure_library() -> list[str]:
     return issues
 
 
+def check_phase_failure_patterns() -> list[str]:
+    script = ROOT / "scripts" / "check_phase_failure_patterns.py"
+    completed = subprocess.run(
+        [sys.executable, str(script)],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if completed.returncode == 0:
+        return []
+    output = completed.stdout.strip() or completed.stderr.strip()
+    return [f"phase failure patterns benchmark is invalid: {output}"]
+
+
 def main() -> int:
     files = iter_files()
     issues = []
     issues.extend(check_names(files))
     issues.extend(check_text(files))
     issues.extend(check_failure_library())
+    issues.extend(check_phase_failure_patterns())
 
     if issues:
         print("Publish-readiness check failed:\n")
