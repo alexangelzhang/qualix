@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import ast
+import contextlib
 import subprocess
 import sys
 import tempfile
@@ -215,11 +216,13 @@ class PythonProvider(LanguageProvider):
         fw = self.detect_test_framework(repo_root)
         has_pytest_mock = _has_pytest_mock(repo_root)
         mock_library = "pytest-mock (mocker fixture)" if has_pytest_mock else "unittest.mock"
+        example_test = _load_pytest_mock_template(repo_root, has_pytest_mock)
         return TestGenContext(
             language="python",
             test_framework=fw.name if fw else "pytest",
             assertion_style="plain assert / pytest.raises(ExceptionClass, match=...)",
             mock_library=mock_library,
+            example_test=example_test,
             conventions=[
                 "use class TestTargetClass with method test_method_condition_expected",
                 "place EUT traceability comment as first line of test body",
@@ -274,6 +277,38 @@ def _has_pytest_mock(repo_root: Path) -> bool:
     return False
 
 
+def _load_pytest_mock_template(repo_root: Path, has_pytest_mock: bool) -> str:
+    """Load the standard pytest mock template for Q05b generation context."""
+    template_path = _find_profile_resource(repo_root, "templates/pytest_mock_patterns.py.tmpl")
+    if template_path is None:
+        return ""
+    template = template_path.read_text(encoding="utf-8")
+    if has_pytest_mock:
+        return template
+    return template.replace("pytest-mock `mocker` fixture", "optional pytest-mock `mocker` fixture")
+
+
+def _find_profile_resource(repo_root: Path, relative: str) -> Path | None:
+    """Find python-service profile resources from project, package, or repo root."""
+    local = repo_root / ".qualix" / "profiles" / "python-service" / relative
+    if local.exists():
+        return local
+    try:
+        from importlib.resources import files
+
+        package_path = files("qualix") / "profiles" / "python-service" / relative
+        if hasattr(package_path, "_path"):
+            candidate = Path(str(package_path._path))
+        else:
+            candidate = Path(str(package_path))
+        if candidate.exists():
+            return candidate
+    except (ModuleNotFoundError, TypeError):
+        pass
+    repo_candidate = Path(__file__).resolve().parents[4] / "profiles" / "python-service" / relative
+    return repo_candidate if repo_candidate.exists() else None
+
+
 def _has_command(name: str) -> bool:
     try:
         result = subprocess.run([name, "--version"], capture_output=True, text=True, timeout=5)
@@ -307,6 +342,8 @@ def _import_check(repo_root: Path, test_files: list[Path]) -> CompileResult:
         "import sys, importlib.util, pathlib\n"
         "root = sys.argv[1]\n"
         "sys.path.insert(0, root)\n"
+        "src = str(pathlib.Path(root) / 'src')\n"
+        "sys.path.insert(0, src) if pathlib.Path(src).is_dir() else None\n"
         "errors = []\n"
         "for p in sys.argv[2:]:\n"
         "    spec = importlib.util.spec_from_file_location('_chk', p)\n"
@@ -330,10 +367,8 @@ def _import_check(repo_root: Path, test_files: list[Path]) -> CompileResult:
     except subprocess.TimeoutExpired:
         return CompileResult(passed=False, build_tool="import_check", command="import_check", error_summary="import check timed out")
     finally:
-        try:
+        with contextlib.suppress(Exception):
             Path(driver_path).unlink(missing_ok=True)
-        except Exception:
-            pass
 
     if result.returncode != 0:
         return CompileResult(
@@ -344,4 +379,3 @@ def _import_check(repo_root: Path, test_files: list[Path]) -> CompileResult:
             error_summary=_last_lines(result.stderr),
         )
     return CompileResult(passed=True, build_tool="import_check")
-

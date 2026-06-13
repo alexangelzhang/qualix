@@ -1,0 +1,62 @@
+# Standard pytest mock patterns for Qualix Q05b.
+# Keep the EUT traceability comment as the first line of every test body.
+
+from decimal import Decimal
+from unittest.mock import MagicMock, patch
+
+import pytest
+
+
+def test_constructor_injection_boundary_value():
+    # EUT-001 SE-003 Boundary: exactly 500.00 requires finance approval
+    notifier = MagicMock()
+    service = ApprovalService(notifier=notifier)
+
+    result = service.classify(Decimal("500.00"))
+
+    assert result.status == "MANAGER_AND_FINANCE"
+    notifier.send.assert_called_once_with("finance_required", amount=Decimal("500.00"))
+
+
+def test_patch_imported_dependency():
+    # EUT-002 SE-004 Error Path: downstream timeout returns retryable error
+    with patch("approval.service.PaymentGateway") as gateway_cls:
+        gateway = gateway_cls.return_value
+        gateway.charge.side_effect = TimeoutError("gateway timeout")
+        service = ApprovalService()
+
+        with pytest.raises(RetryablePaymentError, match="gateway timeout"):
+            service.submit_payment(Decimal("120.00"))
+
+        gateway.charge.assert_called_once_with(Decimal("120.00"))
+
+
+def test_pytest_mock_fixture(mocker):
+    # EUT-003 SE-005 Side Effect: audit event is persisted once
+    audit_repo = mocker.Mock()
+    service = ApprovalService(audit_repo=audit_repo)
+
+    result = service.approve("REQ-123")
+
+    assert result.approved is True
+    audit_repo.save.assert_called_once()
+    saved_event = audit_repo.save.call_args.args[0]
+    assert saved_event.request_id == "REQ-123"
+    assert saved_event.action == "APPROVED"
+
+
+@pytest.mark.parametrize(
+    ("amount", "expected_status"),
+    [
+        (Decimal("499.99"), "MANAGER_ONLY"),
+        (Decimal("500.00"), "MANAGER_AND_FINANCE"),
+        (Decimal("500.01"), "MANAGER_AND_FINANCE"),
+    ],
+)
+def test_parametrized_thresholds(amount, expected_status):
+    # EUT-004 SE-003 Boundary: threshold behavior is explicit around 500.00
+    service = ApprovalService(notifier=MagicMock())
+
+    result = service.classify(amount)
+
+    assert result.status == expected_status

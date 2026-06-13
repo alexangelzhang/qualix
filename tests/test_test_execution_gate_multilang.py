@@ -12,15 +12,12 @@ import json
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-import pytest
-
 from qualix.quality.checks.test_execution_gate import (
     _run_go_gate,
-    _run_java_gate,
+    _run_python_gate,
     _run_ts_gate,
     check_q05_test_execution,
 )
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -248,3 +245,51 @@ def test_go_gate_nonzero_exit_empty_stdout(tmp_path: Path) -> None:
     assert len(errors) == 1
     assert "BLOCKED" in errors[0]
     assert "go test exited with code 1" in errors[0]
+
+
+# ---------------------------------------------------------------------------
+# Test 8: Python compile/import gate success and failure paths
+# ---------------------------------------------------------------------------
+
+
+def test_python_gate_success_with_src_layout(tmp_path: Path) -> None:
+    repo_dir = tmp_path / "pyrepo"
+    (repo_dir / "src" / "app").mkdir(parents=True)
+    (repo_dir / "src" / "app" / "service.py").write_text("VALUE = 42\n", encoding="utf-8")
+    (repo_dir / "tests").mkdir()
+    (repo_dir / "tests" / "test_service.py").write_text(
+        "from app.service import VALUE\n\n"
+        "def test_value():\n"
+        "    assert VALUE == 42\n",
+        encoding="utf-8",
+    )
+
+    errors = _run_python_gate([str(repo_dir)])
+
+    assert errors == []
+
+
+def test_python_gate_blocks_import_error(tmp_path: Path) -> None:
+    repo_dir = tmp_path / "pyrepo"
+    repo_dir.mkdir()
+    (repo_dir / "test_bad.py").write_text("from missing_dependency_xyz import Thing\n", encoding="utf-8")
+
+    errors = _run_python_gate([str(repo_dir)])
+
+    assert len(errors) == 1
+    assert "BLOCKED" in errors[0]
+    assert "ModuleNotFoundError" in errors[0]
+
+
+def test_check_q05_dispatches_python_provider(tmp_path: Path) -> None:
+    repo_dir = tmp_path / "pyrepo"
+    repo_dir.mkdir()
+    _write_inputs(tmp_path, [str(repo_dir)])
+
+    provider = MagicMock()
+    provider.language_id = "python"
+    with patch("qualix.quality.checks.test_execution_gate._run_python_gate", return_value=[]) as run_python:
+        errors = check_q05_test_execution(tmp_path, "proj", language_provider=provider)
+
+    assert errors == []
+    run_python.assert_called_once_with([str(repo_dir)])

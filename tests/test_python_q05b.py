@@ -2,14 +2,9 @@
 
 from __future__ import annotations
 
-import textwrap
 from pathlib import Path
-from unittest.mock import patch
 
-import pytest
-
-from qualix.languages.python.provider import PythonProvider, _import_check, _find_test_files
-
+from qualix.languages.python.provider import PythonProvider, _find_test_files, _import_check
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -69,6 +64,16 @@ class TestImportCheck:
         repo.mkdir()
         tf = repo / "test_ok.py"
         tf.write_text("import os\ndef test_dummy(): assert os.sep\n")
+        result = _import_check(repo, [tf])
+        assert result.passed is True
+
+    def test_src_layout_import_passes(self, tmp_path: Path):
+        repo = tmp_path / "proj"
+        (repo / "src" / "app").mkdir(parents=True)
+        (repo / "src" / "app" / "service.py").write_text("VALUE = 42\n")
+        tf = repo / "tests" / "test_service.py"
+        tf.parent.mkdir()
+        tf.write_text("from app.service import VALUE\ndef test_value(): assert VALUE == 42\n")
         result = _import_check(repo, [tf])
         assert result.passed is True
 
@@ -156,3 +161,11 @@ class TestGetTestGenContext:
         repo = _make_py_project(tmp_path)
         ctx = PythonProvider().get_test_gen_context(repo / "src" / "approval.py")
         assert any("parametrize" in c for c in ctx.conventions)
+
+    def test_example_test_loads_standard_pytest_mock_template(self, tmp_path: Path):
+        repo = _make_py_project(tmp_path, with_pytest_mock=True)
+        ctx = PythonProvider().get_test_gen_context(repo / "src" / "approval.py")
+        assert "test_constructor_injection_boundary_value" in ctx.example_test
+        assert "test_patch_imported_dependency" in ctx.example_test
+        assert "test_pytest_mock_fixture" in ctx.example_test
+        assert "@pytest.mark.parametrize" in ctx.example_test

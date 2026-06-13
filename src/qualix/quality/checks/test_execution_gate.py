@@ -222,11 +222,12 @@ def _extract_errors(output: str) -> str:
     return "\n".join(errors)
 
 
-from ._test_execution_backends import _run_go_gate, _run_java_gate, _run_ts_gate
+from ._test_execution_backends import _run_go_gate, _run_java_gate, _run_python_gate, _run_ts_gate
 
 __all__ = [
     "_run_go_gate",
     "_run_java_gate",
+    "_run_python_gate",
     "_run_ts_gate",
 ]
 
@@ -294,6 +295,8 @@ def check_q05_test_execution(
         return _run_ts_gate(code_repos)
     if lang_id == "go":
         return _run_go_gate(code_repos)
+    if lang_id == "python":
+        return _run_python_gate(code_repos)
 
     # Java 路径（默认，含 lang_id=None）
     return _run_java_gate(code_repos)

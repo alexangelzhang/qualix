@@ -178,3 +178,25 @@ def _run_go_gate(
             )
 
     return errors
+
+
+def _run_python_gate(
+    code_repos: list[str],
+) -> list[str]:
+    """Python path: compileall + import generated tests through PythonProvider."""
+    from qualix.languages.python.provider import PythonProvider
+
+    errors: list[str] = []
+    for repo_str in code_repos:
+        repo_path = Path(repo_str).expanduser().resolve()
+        if not repo_path.is_dir():
+            errors.append(f"BLOCKED: 代码仓库路径不存在: {repo_path}")
+            continue
+
+        log.info("Q05b Python gate: compile/import check in %s", repo_path.name)
+        result = PythonProvider().compile_check(repo_path)
+        if not result.passed:
+            summary = result.error_summary or result.stderr[:500] or "Python compile/import check failed"
+            errors.append(f"BLOCKED: Q05b Python {result.build_tool or 'compile/import'}: {summary}")
+
+    return errors

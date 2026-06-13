@@ -103,10 +103,10 @@ Q05b 的执行遵循 Ralph Loop（来源：github.com/snarktank/ralph）：
 
 在开始生成测试代码前，检测项目语言：
 1. 优先读取 `_upstream_context.md` 中的 `language:` 字段
-2. 若无，检测代码仓库中是否存在 `package.json`（TypeScript/JavaScript）或 `go.mod`（Go）
+2. 若无，检测代码仓库中是否存在 `package.json`（TypeScript/JavaScript）、`go.mod`（Go）或 `pyproject.toml` / `requirements.txt`（Python）
 3. 若仍无法判断，默认使用 Java 模板
 
-检测到的语言记录到 `_reasoning_log.md` 的开头：`[Language detected: typescript/go/java]`
+检测到的语言记录到 `_reasoning_log.md` 的开头：`[Language detected: typescript/go/python/java]`
 
 #### Step 2.0: Skeleton 前置注入（每批必须先做）
 
@@ -217,6 +217,31 @@ Go 模板关键规则（详见 `references/test-generation-rules.md` `## Go Temp
 - 测试函数名必须遵循 `TestXxx_Method_Condition_ExpectedResult` 模式
 - `// EUT-xxx` 注释格式与 Java 完全相同
 
+**Python（pytest）：**
+
+优先复用 `profiles/python-service/templates/pytest_mock_patterns.py.tmpl`。核心规则：
+- `# EUT-xxx SE-xxx ...` 注释放在测试函数体第一行（C9 gate 依赖此注释）
+- 使用 plain `assert` 验证具体值或 side effect，不允许 `assert result` 这类 truthiness 断言
+- 依赖可注入时用 `MagicMock` constructor injection；生产模块直接 import 的依赖用 `patch("module.under.test.Dependency")`
+- 项目声明 `pytest-mock` 时可用 `mocker` fixture，否则使用 `unittest.mock`
+- 边界值用 `pytest.mark.parametrize`，异常用 `pytest.raises(ExceptionClass, match=...)`
+
+```python
+from decimal import Decimal
+from unittest.mock import MagicMock
+
+
+def test_classify_exact_threshold_requires_finance():
+    # EUT-002 SE-003 Boundary: exactly 500.00 requires finance approval
+    notifier = MagicMock()
+    service = ApprovalService(notifier=notifier)
+
+    result = service.classify(Decimal("500.00"))
+
+    assert result.status == "MANAGER_AND_FINANCE"
+    notifier.send.assert_called_once_with("finance_required", amount=Decimal("500.00"))
+```
+
 ### Step 3: 验证（Deterministic Gate）
 
 每批写完后必须验证：
@@ -237,6 +262,8 @@ errors = _check_eut_implementation_completeness(phase_b_data, [test_file_path])
 # 捕获 stderr 用于错误解析
 mvn test-compile -pl <module> -am -o 2>&1 | tee /tmp/mvn_compile_stderr.txt
 ```
+
+Python 项目使用 Qualix deterministic gate：`PythonProvider.compile_check()` 先跑 `python -m compileall`，再在子进程 import 生成的测试文件。这个 import check 会把 repo root 和 `src/` 同时加入 `sys.path`，用于捕获 `compileall` 无法发现的 `ModuleNotFoundError`、模块级 `NameError`、以及常见 `src/` layout 导入失败。
 
 **编译失败时——解析错误并注入 handoff（必须执行）：**
 
