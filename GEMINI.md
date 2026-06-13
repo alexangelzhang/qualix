@@ -7,6 +7,11 @@
 
 - `/qualix-starter` — 快速启动（command 文件自包含启动逻辑，按需加载执行指南）
 - CLI 启动: `qualix-run <project_id> startup`
+- P1 一键入口: `qualix-run <project_id> check --prd <path> --json`（返回 PRD ingest + Q01→Q05a→Q06 phase plan）
+- P0 公开验证: `qualix-run expense-demo run-demo --json`（无需模型 API key）
+- P2 安装验证: `python scripts/check_installed_wheel_smoke.py`（wheel 安装后验证 `check --json` + `run-demo --json`）
+- P3 Python Q05b: `python-service` 使用 compileall + import validation，pytest 模板在 `profiles/python-service/templates/`
+- P4 Benchmark: `python scripts/check_phase_failure_patterns.py` 校验 Q01/Q05a/Q06 phase failure patterns
 
 ## Skill 文件结构（agentskills.io 标准）
 
@@ -45,4 +50,4 @@
 | Cursor | `AGENTS.md`（Cursor 规则可由 `qualix-run init` 在用户项目中生成） |
 | IntelliJ IDEA | `AGENTS.md` |
 
-*最后更新：2026-04-17*
+*最后更新：2026-06-13*

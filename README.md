@@ -93,11 +93,23 @@ qualix-run hello finalize Q01 --json
 qualix-run hello approve Q01 --json
 ```
 
+### Quick path: one command from PRD to phase plan
+
+`check` collapses workspace init + project state creation + PRD ingest + the Q01→Q05a→Q06 semantic-coverage plan into one command. It does not run model reasoning; it prepares the workspace and returns the ordered phases for your AI coding agent to run:
+
+```bash
+qualix-run my-service check --prd docs/prd.md --code src/ --profile python-service --json
+```
+
+The JSON output includes `profile_id`, normalized `code_repos`, PRD ingest paths, project `state_path`, and a `phase_plan` with exact `execute` → `finalize` → `approve` commands. When `--code` is supplied, Q05a/Q06 commands include `--code-repo` automatically.
+
+Phase reasoning runs inside your AI coding agent — `check` is the on-ramp, not a replacement for the agent loop.
+
 ## Flagship Demo: Expense Approval
 
 [![Qualix demo video](docs/assets/demo.gif)](https://youtu.be/wtI07KJYXRI)
 
-▶ [Watch on YouTube](https://youtu.be/wtI07KJYXRI) — tests pass, coverage 100%, but the 500 USD boundary is missing.
+▶ [Watch on YouTube](https://youtu.be/wtI07KJYXRI) — tests pass, coverage is green, but the 500 USD boundary is missing.
 
 The [expense approval demo](examples/expense-approval/README.md) is the fastest way to see what Qualix catches. It ships with a synthetic PRD, a Python implementation with deliberate gaps, and tests that pass ordinary coverage — but miss the 500 USD boundary and idempotency rules.
 
@@ -115,9 +127,29 @@ See what Qualix output looks like without running anything (no API key needed):
 
 ```bash
 qualix-run demo                        # built-in static demo
+qualix-run expense-demo run-demo --json # materialize Q01→Q05a→Q06 proof loop
 ./scripts/run_expense_demo.sh          # full expense-approval walkthrough
 ./scripts/run_expense_demo.sh --live   # live pipeline with your API key
 ```
+
+`run-demo` writes precomputed Q01/Q05a/Q06 artifacts into the project output directory, builds the EvidenceGraph, and returns the proof signal as JSON:
+
+```json
+{
+  "model_required": false,
+  "ordinary_tests": {"passed": true, "line_coverage_rate": 0.95},
+  "semantic_coverage": {"total_se": 5, "covered_se": 1, "missing_eut": 2},
+  "next_command": "qualix-run expense-demo explain SE-003 --json"
+}
+```
+
+That last command drills into the boundary finding through the EvidenceGraph:
+
+```bash
+qualix-run expense-demo explain SE-003 --json
+```
+
+It shows the chain from `SE-003` to `EUT-002`, where Q06 marks the exact `500.00 USD` boundary test as `MISSING`.
 
 You can also run phases manually:
 
@@ -259,6 +291,7 @@ Project commands:
 
 ```bash
 qualix-run <project_id> init
+qualix-run <project_id> check --prd <path> [--code <dir>] [--profile <p>] --json
 qualix-run <project_id> startup --json
 qualix-run <project_id> status --json
 qualix-run <project_id> execute <phase_id> --json
@@ -279,6 +312,7 @@ qualix/
 ├── examples/                   # Synthetic input examples (Python, TypeScript, Go)
 ├── benchmarks/                 # Benchmark cases
 │   ├── semantic-coverage/      # SC-001–SC-016 seed cases
+│   ├── phase-failure-patterns/ # Per-phase failure pattern catalog
 │   └── model-comparison/       # Multi-model Q06 audit comparison framework
 ├── vscode-extension/           # VS Code extension (preview): sidebar phase status
 ├── github-app/                 # GitHub App (preview): zero-config PR gate comments
@@ -302,13 +336,18 @@ For a narrower smoke test after install changes:
 
 ```bash
 python -m pytest tests/test_version.py tests/test_install_sh.py -q
+python scripts/check_installed_wheel_smoke.py
 ```
+
+The installed-wheel smoke builds the package, installs it into a temporary virtualenv outside the source tree, and verifies `qualix-run <project_id> check --prd ... --json` plus `qualix-run expense-demo run-demo --json` from the real wheel entry point.
 
 ## Data And Examples
 
 The public repository should contain only synthetic or sanitized regression examples. Real enterprise failure libraries, customer requirements, and private review data should stay outside the public repo or be distributed under a separate commercial data license.
 
 Public benchmark seeds live in [benchmarks/semantic-coverage](benchmarks/semantic-coverage/README.md). They are small, synthetic cases for inspecting semantic coverage failures by hand.
+
+Phase-specific failure patterns live in [benchmarks/phase-failure-patterns](benchmarks/phase-failure-patterns/README.md). They connect each public failure-library case to the Qualix phase that failed and can be validated with `python scripts/check_phase_failure_patterns.py`.
 
 ## Comparison
 
@@ -326,6 +365,7 @@ Qualix is adjacent to AI PR reviewers, test-generation tools, and coding-agent w
 - Language support: [docs/language-support.md](docs/language-support.md)
 - Comparison: [docs/comparison.md](docs/comparison.md)
 - Benchmark seed cases: [benchmarks/semantic-coverage](benchmarks/semantic-coverage/README.md)
+- Phase failure patterns: [benchmarks/phase-failure-patterns](benchmarks/phase-failure-patterns/README.md)
 - Synthetic starter input: [examples/hello-prd.md](examples/hello-prd.md)
 - Expense approval demo (Python): [examples/expense-approval](examples/expense-approval/README.md)
 - Rate limiter demo (TypeScript/Jest): [examples/rate-limiter](examples/rate-limiter/README.md)

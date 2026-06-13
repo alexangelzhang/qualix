@@ -44,7 +44,7 @@ Qualix is useful when the diff is not enough context. It asks questions like:
 - Is this assertion checking the outcome users care about, or just that a method was called?
 - Did review findings cite evidence from code, tests, or upstream artifacts?
 
-The tradeoff is that Qualix needs more setup. It asks you to keep requirement IDs, phase outputs, and gate state. A PR-only tool is easier to drop into an existing repository.
+A PR-only tool is easier to drop in because it never leaves the diff. That is also its ceiling: it cannot tell you whether a requirement from the PRD was silently dropped before the diff existed, because it never saw the PRD. Qualix keeps requirement IDs, phase outputs, and gate state precisely so it can answer that question. The setup cost buys traceability a diff-only tool structurally cannot offer — and `qualix-run <pid> check --prd <path>` collapses that setup into one command.
 
 ## Qualix vs CoverAgent / Test-Generation Tools
 
@@ -94,7 +94,7 @@ Qualix does not make line coverage obsolete. It gives teams a second lens when l
 ## What Is Still Early
 
 - Public examples are synthetic.
-- The first-time setup still expects comfort with CLI tools and an AI coding agent.
+- The first-time setup still expects an AI coding agent; `qualix-run <pid> check` shortens the on-ramp but does not remove the agent loop.
 - Language support is not equally deep across ecosystems.
 - The public project needs more benchmark-style examples before broad claims would be fair.
 

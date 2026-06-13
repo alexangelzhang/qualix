@@ -24,6 +24,11 @@ Consequences: spec mismatch → schema rejection; SE-based → coverage inflatio
 
 - `/qualix-starter` — Quick start
 - `qualix-run <project_id> startup` — CLI startup
+- `qualix-run <project_id> check --prd <path> --json` — P1 one-command onboarding, returns PRD ingest + Q01→Q05a→Q06 phase plan
+- `qualix-run expense-demo run-demo --json` — Public P0 proof loop, no model API key required
+- `python scripts/check_installed_wheel_smoke.py` — P2 installed-wheel first-run smoke for `check --json` and `run-demo --json`
+- Python Q05b P3 baseline — `python-service` uses compileall + import validation and pytest templates under `profiles/python-service/templates/`
+- `python scripts/check_phase_failure_patterns.py` — P4 public benchmark guard for Q01/Q05a/Q06 phase failure patterns
 
 ## Behavioral Rules
 
@@ -63,8 +68,10 @@ Answer these questions before any tool call. If the answer to any is "yes", stop
 - For deep-reasoning Phases (Q04, Q06), adding `ultrathink` to the startup prompt activates stronger reasoning mode.
 - **Q05a/Q05b/Q06 must use EUT-per-item mode**: each `audit_item` must map to a single `eut_id`. The SE-based pattern obscures per-test assertion quality issues.
 - **SubAgent outputs require sanity checks**: after receiving an analysis report, directly `json.load` the raw data in the main session and verify 1–2 key claims before trusting the report.
+- Python Q05b cannot rely on `compileall` alone; import validation catches missing deps, module-level `NameError`, and common `src/` layout failures.
+- Phase failure pattern benchmark rows must link to synthetic or sanitized `regression/failure-library/` cases and pass `scripts/check_phase_failure_patterns.py` before release.
 
-*Last updated: 2026-05-30*
+*Last updated: 2026-06-13*
 
 <critical>
 Restating three rules (Lost-in-the-Middle defense, repeated at end of file):
@@ -73,3 +80,47 @@ Restating three rules (Lost-in-the-Middle defense, repeated at end of file):
 2. EUT-PER-ITEM — Each audit_item in Q05a/Q05b/Q06 must independently correspond to one eut_id. NEVER aggregate by SE.
 3. JSON-FLAG — All `qualix-run` calls MUST include `--json`.
 </critical>
+
+<!-- gitnexus:start -->
+# GitNexus — Code Intelligence
+
+This project is indexed by GitNexus as **qualix** (10605 symbols, 18587 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+
+> Index stale? Run `node .gitnexus/run.cjs analyze` from the project root — it auto-selects an available runner. No `.gitnexus/run.cjs` yet? `npx gitnexus analyze` (npm 11 crash → `npm i -g gitnexus`; #1939).
+
+## Always Do
+
+- **MUST run impact analysis before editing any symbol.** Before modifying a function, class, or method, run `impact({target: "symbolName", direction: "upstream"})` and report the blast radius (direct callers, affected processes, risk level) to the user.
+- **MUST run `detect_changes()` before committing** to verify your changes only affect expected symbols and execution flows. For regression review, compare against the default branch: `detect_changes({scope: "compare", base_ref: "main"})`.
+- **MUST warn the user** if impact analysis returns HIGH or CRITICAL risk before proceeding with edits.
+- When exploring unfamiliar code, use `query({query: "concept"})` to find execution flows instead of grepping. It returns process-grouped results ranked by relevance.
+- When you need full context on a specific symbol — callers, callees, which execution flows it participates in — use `context({name: "symbolName"})`.
+
+## Never Do
+
+- NEVER edit a function, class, or method without first running `impact` on it.
+- NEVER ignore HIGH or CRITICAL risk warnings from impact analysis.
+- NEVER rename symbols with find-and-replace — use `rename` which understands the call graph.
+- NEVER commit changes without running `detect_changes()` to check affected scope.
+
+## Resources
+
+| Resource | Use for |
+|----------|---------|
+| `gitnexus://repo/qualix/context` | Codebase overview, check index freshness |
+| `gitnexus://repo/qualix/clusters` | All functional areas |
+| `gitnexus://repo/qualix/processes` | All execution flows |
+| `gitnexus://repo/qualix/process/{name}` | Step-by-step execution trace |
+
+## CLI
+
+| Task | Read this skill file |
+|------|---------------------|
+| Understand architecture / "How does X work?" | `.claude/skills/gitnexus/gitnexus-exploring/SKILL.md` |
+| Blast radius / "What breaks if I change X?" | `.claude/skills/gitnexus/gitnexus-impact-analysis/SKILL.md` |
+| Trace bugs / "Why is X failing?" | `.claude/skills/gitnexus/gitnexus-debugging/SKILL.md` |
+| Rename / extract / split / refactor | `.claude/skills/gitnexus/gitnexus-refactoring/SKILL.md` |
+| Tools, resources, schema reference | `.claude/skills/gitnexus/gitnexus-guide/SKILL.md` |
+| Index, status, clean, wiki CLI commands | `.claude/skills/gitnexus/gitnexus-cli/SKILL.md` |
+
+<!-- gitnexus:end -->

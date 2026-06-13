@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import types
 from unittest.mock import MagicMock, patch
 
 # ---------------------------------------------------------------------------
@@ -34,6 +35,21 @@ def test_qualix_model_get_model_name():
 # ---------------------------------------------------------------------------
 
 
+def _stub_deepeval_modules(mock_metric: MagicMock, mock_test_case: MagicMock | None = None):
+    metrics_module = types.SimpleNamespace(GEval=MagicMock(return_value=mock_metric))
+    test_case_module = types.SimpleNamespace(
+        LLMTestCase=MagicMock(return_value=mock_test_case or MagicMock()),
+        LLMTestCaseParams=types.SimpleNamespace(ACTUAL_OUTPUT="actual_output"),
+    )
+    return patch.dict(
+        "sys.modules",
+        {
+            "deepeval.metrics": metrics_module,
+            "deepeval.test_case": test_case_module,
+        },
+    )
+
+
 def test_run_deepeval_scoring_returns_none_on_import_error():
     """ImportError（未安装 deepeval）时静默返回 None."""
     import builtins
@@ -61,10 +77,7 @@ def test_run_deepeval_scoring_maps_score_to_1_5():
 
     mock_test_case = MagicMock()
 
-    with (
-        patch("deepeval.metrics.GEval", return_value=mock_metric),
-        patch("deepeval.test_case.LLMTestCase", return_value=mock_test_case),
-    ):
+    with _stub_deepeval_modules(mock_metric, mock_test_case):
         result = _run_deepeval_scoring("Q03", "Some quality report text")
 
     assert result == 4.0
@@ -77,10 +90,7 @@ def test_run_deepeval_scoring_returns_none_on_exception():
     mock_metric = MagicMock()
     mock_metric.measure.side_effect = RuntimeError("LLM call failed")
 
-    with (
-        patch("deepeval.metrics.GEval", return_value=mock_metric),
-        patch("deepeval.test_case.LLMTestCase"),
-    ):
+    with _stub_deepeval_modules(mock_metric):
         result = _run_deepeval_scoring("Q03", "Some report")
 
     assert result is None
@@ -93,10 +103,7 @@ def test_run_deepeval_scoring_score_boundaries():
     for geval_score, expected_qualix in [(0.0, 1.0), (1.0, 5.0)]:
         mock_metric = MagicMock()
         mock_metric.score = geval_score
-        with (
-            patch("deepeval.metrics.GEval", return_value=mock_metric),
-            patch("deepeval.test_case.LLMTestCase"),
-        ):
+        with _stub_deepeval_modules(mock_metric):
             result = _run_deepeval_scoring("Q06", "report")
         assert result == expected_qualix
 

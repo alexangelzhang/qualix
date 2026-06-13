@@ -26,7 +26,22 @@ The sample implementation and test files are synthetic. They are not meant to be
 **No API key — see pre-computed results immediately:**
 
 ```bash
+qualix-run expense-demo run-demo --json
 ./scripts/run_expense_demo.sh
+```
+
+`run-demo` writes Q01/Q05a/Q06 artifacts under the Qualix output directory and builds an EvidenceGraph. Drill into the main boundary finding with:
+
+```bash
+qualix-run expense-demo explain SE-003 --json
+```
+
+Expected proof signal:
+
+```text
+ordinary tests: passed, line coverage 95%
+semantic coverage: 1/5 SEs covered by Q06, 2 missing EUTs
+EvidenceGraph chain: SE-003 → EUT-002 → MISSING
 ```
 
 **With a model API key — run the live pipeline:**

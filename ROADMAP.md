@@ -17,6 +17,7 @@ The following are complete and production-quality in the current release:
 - **User workspace isolation**: `qualix-run <pid> init` creates `.qualix/` separate from tool source
 - **Dashboard (17 pages)**: SE coverage heatmap, guard precision, judge annotation, multi-project aggregation, and more
 - **Benchmark cases SC-001–SC-016**: ten cases derived from real production pipeline runs, sanitized
+- **Phase failure patterns benchmark**: public Q01/Q05a/Q06 synthetic failure patterns backed by `regression/failure-library/` and validated by `scripts/check_phase_failure_patterns.py`
 
 ## Current Focus
 
@@ -24,23 +25,39 @@ The following are complete and production-quality in the current release:
 
 The biggest gap right now is that visitors cannot independently run Qualix and verify its claims in under 10 minutes. The `examples/expense-approval/` directory has the right PRD and implementation, but the full Q01 → Q05a → Q06 chain needs a scripted path that works without configuration.
 
-Work in progress:
-- A `qualix-run expense-demo run-demo` command that runs Q01, Q05a, and Q06 against the synthetic expense-approval PRD with a mock model (or minimal API key usage) and prints a structured report
+Done in the P0 proof loop:
+- `qualix-run expense-demo run-demo --json` materializes the synthetic expense-approval Q01 → Q05a → Q06 outputs without a model API key, runs the public test signal when possible, computes semantic coverage, and writes an EvidenceGraph for `qualix-run expense-demo explain SE-003 --json`
 
 **Improving the first-time experience**
 
-The Quick Start currently assumes an AI coding agent environment. A direct CLI path — give Qualix a PRD, get a structured SE report back in one command — lowers the barrier for users who want to evaluate without setting up an agent workflow first.
+Done in the P1 onboarding loop:
+- `qualix-run <project_id> check --prd <path> --code <dir> --profile <profile> --json` initializes the workspace, creates project state, ingests the PRD, records code repos, and returns an exact Q01 → Q05a → Q06 phase plan without requiring a model API key.
+
+Done in the P2 first-run hardening loop:
+- `scripts/check_installed_wheel_smoke.py` builds or reuses a wheel, installs it into a clean temporary virtualenv outside the source tree, and verifies both `check --json` and `run-demo --json` against the installed package.
+- `.github/workflows/qualix-self-check.yml` now runs the installed-wheel smoke on PR/push, and `.github/workflows/publish.yml` runs it after `hatch build` before publishing to PyPI.
 
 **Python Q05b**
 
-Python test generation is experimental. The two specific gaps blocking it are documented in [Language Support](docs/language-support.md). Target milestone: 0.3.0.
+Python test generation is still earlier than Java, but the P3 hardening loop closed the initial compile/import and pytest-template gaps documented in [Language Support](docs/language-support.md). Target milestone: 0.3.0.
+
+Done in the P3 Python Q05b hardening loop:
+- Q05b now dispatches `language_id=python` to a Python deterministic gate that runs `PythonProvider.compile_check()` across configured code repos.
+- Python compile validation now combines `compileall` with subprocess import validation that supports common `src/` layouts and catches import-time failures that syntax checks miss.
+- `profiles/python-service/templates/pytest_mock_patterns.py.tmpl` provides standard pytest patterns for constructor injection, `unittest.mock.patch`, `pytest-mock`, parametrized boundaries, exceptions, and side-effect assertions.
+
+**Public benchmark coverage**
+
+Done in the P4 benchmark loop:
+- `benchmarks/phase-failure-patterns/manifest.json` maps public failure-library seeds to phase-specific failure patterns for Q01, Q05a, and Q06.
+- `scripts/check_phase_failure_patterns.py` validates the benchmark manifest, linked case metadata, synthetic/sanitized source safety, and phase/case ID alignment.
+- `scripts/check_publish_readiness.py` runs the phase-failure-pattern checker so release readiness fails on benchmark schema drift.
 
 ## Near-Term (0.3.0)
 
-- Python Q05b: reliable compile-and-import check + pytest mock template library
-- End-to-end demo that runs Q01 + Q05a + Q06 with a single command, no agent required
-- Structured `qualix-run explain <se-id>` command: given a SE ID, show the full evidence chain (PRD source → design mapping → EUT → test assertion → Q06 verdict)
-- Expanded benchmark: per-phase failure patterns, not just semantic coverage gaps
+- Python Q05b: expand real-world fixture coverage and coverage-report normalization
+- End-to-end demo hardening: keep `run-demo` stable across packaged installs and add one CI smoke test for the installed wheel
+- Expanded benchmark: add more sanitized phase failure patterns beyond the Q01/Q05a/Q06 seed set
 
 ## Longer-Term
 
