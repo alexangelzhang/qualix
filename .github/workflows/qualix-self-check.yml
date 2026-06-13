@@ -40,6 +40,25 @@ jobs:
           files: coverage.xml
           fail_ci_if_error: false
 
+  wheel-smoke:
+    name: Installed Wheel Smoke
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+
+      - name: Install build tools
+        run: python -m pip install build
+
+      - name: Run installed-wheel smoke
+        run: python scripts/check_installed_wheel_smoke.py
+
   action-integration:
     name: Composite Action Integration Test
     runs-on: ubuntu-latest
@@ -60,7 +79,7 @@ jobs:
         run: pip install -e "$GITHUB_WORKSPACE" --quiet
 
       - name: Init expense-demo project
-        run: qualix-run --profile python-service expense-demo init
+        run: qualix-run --profile python-service expense-demo init --json
 
       - name: Run composite action against expense-demo (expect PASS — no verdicts yet)
         uses: ./
