@@ -138,3 +138,13 @@ class TestExplainJson:
         data = json.loads(out)
         assert data["success"] is False
         assert "SE-000" in data["errors"][0]
+
+    def test_json_output_includes_evidence_graph_chain(self, tmp_path, capsys):
+        output_dir = _write_fixtures(tmp_path)
+        from qualix.commands.explain import cmd_explain
+        rc = cmd_explain(_make_args("SE-003", json_mode=True), output_dir)
+        assert rc == 0
+        data = json.loads(capsys.readouterr().out)
+        chain = data["data"]["evidence_chain"]
+        assert any(item["claim_type"] == "has_eut" and item["object_id"] == "EUT-005" for item in chain)
+        assert any(item["claim_type"] == "has_audit" and item["object_id"] == "MISSING" for item in chain)

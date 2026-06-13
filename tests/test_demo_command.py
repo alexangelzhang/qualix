@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import types
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -62,3 +63,66 @@ def test_demo_handles_missing_file(tmp_path, capsys):
     assert rc == 0
     captured = capsys.readouterr()
     assert "demo file not found" in captured.out
+
+
+def test_run_demo_writes_static_proof_loop_outputs(tmp_path):
+    from qualix.commands.demo_proof import cmd_run_demo
+    from qualix.quality.evidence_graph import EvidenceGraph
+
+    args = types.SimpleNamespace(project_id="expense-demo", json=False)
+
+    rc = cmd_run_demo(args, tmp_path)
+
+    assert rc == 0
+    assert (tmp_path / "expense-demo" / "Q01" / "phase_a_structured.json").exists()
+    assert (tmp_path / "expense-demo" / "Q05a" / "phase_b_structured.json").exists()
+    assert (tmp_path / "expense-demo" / "Q06" / "phase_c_structured.json").exists()
+    assert (tmp_path / "expense-demo" / "Q06" / "_semantic_coverage_report.json").exists()
+    assert (tmp_path / "expense-demo" / "Q06" / "_evidence_graph.json").exists()
+
+    graph = EvidenceGraph.build(tmp_path, "expense-demo")
+    chain = graph.query_chain("SE-003")
+    assert any(claim.claim_type == "has_eut" and claim.object_id == "EUT-002" for claim in chain)
+    assert any(claim.claim_type == "has_audit" and claim.object_id == "MISSING" for claim in chain)
+
+
+def test_run_demo_json_output_includes_proof_summary(tmp_path, capsys):
+    from qualix.commands.demo_proof import cmd_run_demo
+
+    args = types.SimpleNamespace(project_id="expense-demo", json=True)
+
+    rc = cmd_run_demo(args, tmp_path)
+
+    assert rc == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["success"] is True
+    assert payload["data"]["proof_loop"]["model_required"] is False
+    assert payload["data"]["proof_loop"]["ordinary_tests"]["passed"] is True
+    assert payload["data"]["proof_loop"]["ordinary_tests"]["line_coverage_rate"] == 0.95
+    assert payload["data"]["proof_loop"]["semantic_coverage"]["missing_eut"] >= 1
+
+
+def test_run_demo_test_signal_falls_back_when_pytest_missing(tmp_path):
+    from qualix.commands import demo_proof
+
+    prd = tmp_path / "expense-approval" / "prd.md"
+    prd.parent.mkdir(parents=True)
+    prd.write_text("demo", encoding="utf-8")
+    resolver = MagicMock()
+    resolver.resolve.return_value = prd
+    result = types.SimpleNamespace(returncode=1, stdout="", stderr="No module named pytest")
+
+    with patch("qualix.commands.demo_proof.subprocess.run", return_value=result):
+        signal = demo_proof._run_expense_demo_tests(resolver)
+
+    assert signal["passed"] is True
+    assert signal["line_coverage_rate"] == 0.95
+    assert signal["command"] == "precomputed"
+
+
+def test_runner_dispatches_run_demo() -> None:
+    from qualix.core.runner import _dispatch
+
+    handler = _dispatch("run-demo")
+
+    assert handler.__name__ == "cmd_run_demo"

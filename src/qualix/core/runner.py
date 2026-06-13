@@ -214,6 +214,9 @@ def _build_parser() -> argparse.ArgumentParser:
     # demo
     sub.add_parser("demo", help="Show a demo of Qualix output (no API key required)")
 
+    # run-demo
+    sub.add_parser("run-demo", help="Materialize the public proof loop (no API key required)")
+
     # task
     p_task = sub.add_parser("task", help="Task 管理（list/resume）")
     p_task.add_argument(
@@ -390,10 +393,18 @@ def _dispatch(cmd: str) -> callable:
 
         return {"wiki-compile": cmd_wiki_compile, "wiki-lint": cmd_wiki_lint}[cmd]
 
-    if cmd in ("init", "doctor", "update", "version", "demo"):
+    if cmd in ("init", "doctor", "update", "version", "demo", "run-demo"):
+        from qualix.commands.demo_proof import cmd_run_demo
         from qualix.commands.setup import cmd_demo, cmd_doctor, cmd_init, cmd_update, cmd_version
 
-        return {"init": cmd_init, "doctor": cmd_doctor, "update": cmd_update, "version": cmd_version, "demo": cmd_demo}[cmd]
+        return {
+            "init": cmd_init,
+            "doctor": cmd_doctor,
+            "update": cmd_update,
+            "version": cmd_version,
+            "demo": cmd_demo,
+            "run-demo": cmd_run_demo,
+        }[cmd]
 
     if cmd in ("metrics", "observe", "regression"):
         from qualix.commands.ops import cmd_metrics, cmd_observe, cmd_regression
@@ -712,6 +723,14 @@ def main() -> int:
 
         if len(sys.argv) >= 2 and sys.argv[1] == "ingest":
             exit_code = _handle_workspace_ingest(sys.argv[2:])
+            return exit_code
+
+        # `qualix-run <pid> check --prd ...` — project_id precedes the verb,
+        # so dispatch on argv[2] and forward [<pid>] + the remaining flags.
+        if len(sys.argv) >= 3 and sys.argv[2] == "check":
+            from qualix.commands.check import _handle_workspace_check
+
+            exit_code = _handle_workspace_check([sys.argv[1], *sys.argv[3:]])
             return exit_code
 
         if len(sys.argv) >= 2 and sys.argv[1] == "demo":

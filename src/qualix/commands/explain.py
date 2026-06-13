@@ -63,6 +63,7 @@ def cmd_explain(args: argparse.Namespace, output_dir: Path) -> int:
         return any(eid.strip().upper() in eut_ids for eid in raw.split(","))
 
     audit_items = [a for a in audit_list if _matches_eut(a)]
+    evidence_chain = _build_evidence_chain(output_dir, project_id, se_id)
 
     if json_mode:
         print_cli_json(cli_envelope(
@@ -72,6 +73,7 @@ def cmd_explain(args: argparse.Namespace, output_dir: Path) -> int:
                 "se": se,
                 "euts": bound_euts,
                 "audit_items": audit_items,
+                "evidence_chain": evidence_chain,
             },
         ))
         return 0
@@ -126,3 +128,14 @@ def cmd_explain(args: argparse.Namespace, output_dir: Path) -> int:
 
     print()
     return 0
+
+
+def _build_evidence_chain(output_dir: Path, project_id: str, se_id: str) -> list[dict[str, Any]]:
+    """Return EvidenceGraph claims for a SE, falling back to an empty chain."""
+    try:
+        from qualix.quality.evidence_graph import EvidenceGraph
+
+        graph = EvidenceGraph.build(output_dir, project_id)
+        return [claim.to_dict() for claim in graph.query_chain(se_id)]
+    except Exception:
+        return []

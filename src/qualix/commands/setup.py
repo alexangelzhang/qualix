@@ -160,12 +160,12 @@ def cmd_init(args, output_dir: Path) -> int:
         print(f"    输出目录: {project_dir}")
         print(f"    Phase 目录: {', '.join(phase_dirs)}")
         if workspace_created:
-            print(f"  ✓ .qualix/ workspace created")
-            print(f"    .qualix/profiles/        — custom profile overrides")
-            print(f"    .qualix/skill-overrides/ — skill customizations")
-            print(f"    .qualix/settings.yaml    — user preferences")
+            print("  ✓ .qualix/ workspace created")
+            print("    .qualix/profiles/        — custom profile overrides")
+            print("    .qualix/skill-overrides/ — skill customizations")
+            print("    .qualix/settings.yaml    — user preferences")
         if guardrail_added:
-            print(f"  ✓ CLAUDE.md guardrail added")
+            print("  ✓ CLAUDE.md guardrail added")
         print(f"\n  下一步: qualix-run {project_id} startup")
     return 0
 
@@ -280,7 +280,7 @@ def cmd_update(args, output_dir: Path) -> int:
 # ---------------------------------------------------------------------------
 
 
-def cmd_demo(args, output_dir: Path) -> int:  # noqa: ARG001
+def cmd_demo(args, output_dir: Path) -> int:
     """Show a demo of Qualix output without requiring an API key."""
     from qualix.core.resource_resolver import ResourceResolver
 
