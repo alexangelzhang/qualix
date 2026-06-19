@@ -2,6 +2,8 @@
 
 AI-native development quality gates for requirements, designs, tests, and code reviews.
 
+[English](README.md) | [简体中文](README_CN.md)
+
 ## Your Tests Pass. Your Coverage Is Green. But Did They Prove the Requirement?
 
 A PRD says: *requests at or above 500 USD require manager **and** finance approval.*
