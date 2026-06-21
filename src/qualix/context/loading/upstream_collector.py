@@ -228,6 +228,22 @@ def load_sidecar_context(
                 )
             )
 
+    # Q06 locator citation context — deterministic read-only candidate evidence.
+    if target_phase == "Q06":
+        locator_path = resolve_internal_file(phase_root, "_evidence_citations.md")
+        if locator_path.exists():
+            locator_text = locator_path.read_text(encoding="utf-8")
+            if locator_text.strip():
+                all_chunks.append(
+                    ContextChunk(
+                        source="Q06 Evidence Citation Candidates (candidate evidence only)",
+                        content=locator_text,
+                        token_estimate=estimate_tokens(locator_text),
+                        priority=-2,
+                        file_path=str(locator_path),
+                    )
+                )
+
     # Memory 文件
     mem_file = Path(".qualix/MEMORY.md")
     if mem_file.exists():

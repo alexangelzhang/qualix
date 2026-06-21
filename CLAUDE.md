@@ -25,6 +25,7 @@ Consequences: spec mismatch → schema rejection; SE-based → coverage inflatio
 - `/qualix-starter` — Quick start
 - `qualix-run <project_id> startup` — CLI startup
 - `qualix-run <project_id> check --prd <path> --json` — P1 one-command onboarding, returns PRD ingest + Q01→Q05a→Q06 phase plan
+- `qualix-run <project_id> locate --phase Q06 --eut-id EUT-xxx --query <text> --code-repo <dir> --json` — Read-only EUT evidence locator; returns candidates, not Q06 verdicts
 - `qualix-run expense-demo run-demo --json` — Public P0 proof loop, no model API key required
 - `python scripts/check_installed_wheel_smoke.py` — P2 installed-wheel first-run smoke for `check --json` and `run-demo --json`
 - Python Q05b P3 baseline — `python-service` uses compileall + import validation and pytest templates under `profiles/python-service/templates/`
@@ -37,6 +38,7 @@ Consequences: spec mismatch → schema rejection; SE-based → coverage inflatio
 - All state management through `qualix-run` CLI; never manually edit `state.json`. Add `--json` to all `qualix-run` calls.
 - Four-step close: detect output → finalize → approve → refresh menu. Before finalize, check gate checklist item by item.
 - After code changes, sync instruction files — `completion_gate.py` auto-detects and blocks if out of sync.
+- Evidence locator outputs are candidate file-line citations only. They MUST stay EUT-scoped and MUST NOT be used as direct COVERED/PARTIAL/MISSING verdicts.
 
 <important if="executing any Phase in manual mode">
 In manual mode, do NOT dispatch a SubAgent to execute the Phase. Execute the skill directly in the main session.
@@ -84,7 +86,7 @@ Restating three rules (Lost-in-the-Middle defense, repeated at end of file):
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **qualix** (10605 symbols, 18587 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **qualix** (10734 symbols, 18821 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
 
 > Index stale? Run `node .gitnexus/run.cjs analyze` from the project root — it auto-selects an available runner. No `.gitnexus/run.cjs` yet? `npx gitnexus analyze` (npm 11 crash → `npm i -g gitnexus`; #1939).
 

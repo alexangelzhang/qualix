@@ -61,6 +61,31 @@
         "tc_id": { "type": "string" },
         "repo": { "type": "string" },
         "evidence": { "type": ["string", "object"] },
+        "evidence_citations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["path", "line_start", "kind", "phase", "eut_id"],
+            "additionalProperties": true,
+            "properties": {
+              "path": { "type": "string" },
+              "line_start": { "type": "integer" },
+              "line_end": { "type": "integer" },
+              "kind": { "type": "string" },
+              "phase": { "type": "string" },
+              "se_id": { "type": "string" },
+              "eut_id": { "type": "string", "pattern": "^EUT-\\d+$" },
+              "repo": { "type": "string" },
+              "locator": { "type": "string" },
+              "confidence": { "type": "string" },
+              "reason": { "type": "string" },
+              "matched_terms": {
+                "type": "array",
+                "items": { "type": "string" }
+              }
+            }
+          }
+        },
         "recommendation": { "type": "string" },
         "issues": {
           "type": "array",

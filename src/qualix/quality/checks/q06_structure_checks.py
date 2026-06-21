@@ -12,6 +12,7 @@ from qualix.core.state_machine import internal_dir as _internal_dir
 from qualix.core.state_machine import phase_dir as _phase_dir
 from qualix.json_utils import load_json
 from qualix.log import get_logger
+from qualix.quality.checks.q06_evidence_contract import _check_covered_evidence_fields
 
 log = get_logger(__name__)
 
@@ -255,56 +256,13 @@ def run_q06_structure_checks(output_dir: Path, project_id: str) -> list[str]:
     # G10: COVERED 条目证据字段强制
     errors.extend(_check_covered_evidence_fields(data, code_repos))
 
+    # G11: EvidenceCitation 只能作为 EUT-scoped candidate evidence，不能跨 EUT/SE 聚合
+    from qualix.context.evidence_locator import validate_evidence_citations_for_items
+
+    errors.extend(validate_evidence_citations_for_items(data))
+
     if errors:
         log.info("Q06 structure checks: %d issue(s)", len(errors))
-    return errors
-
-
-def _check_covered_evidence_fields(
-    data: dict[str, Any],
-    code_repos: list[str],
-) -> list[str]:
-    """G10: COVERED 条目必须提供 test_class 或 test_location 作为证据位置。
-
-    - test_class='' 且 test_location=None → WARNING（无证据，可能是 LLM 漏填）
-    - test_location.file 设置了但在 code_repos 中找不到 → BLOCKED（幻觉文件路径）
-    """
-    errors: list[str] = []
-    covered = [i for i in data.get("audit_items", []) if isinstance(i, dict) and str(i.get("status", "")) == "COVERED"]
-    if not covered:
-        return []
-
-    for item in covered:
-        eut_id = item.get("eut_id", "?")
-        test_class = (item.get("test_class") or "").strip()
-        test_location = item.get("test_location")
-        loc_file = ""
-        if isinstance(test_location, dict):
-            loc_file = (test_location.get("file") or "").strip()
-
-        if not test_class and not loc_file:
-            errors.append(
-                f"WARNING: [evidence_contract] {eut_id} COVERED 但未提供"
-                " test_class 或 test_location，无可追溯的测试证据"
-            )
-            continue
-
-        if loc_file and code_repos:
-            loc_name = Path(loc_file).name
-            found = any(
-                next(
-                    (f for f in Path(r).expanduser().resolve().rglob(loc_name) if f.is_file()),
-                    None,
-                )
-                for r in code_repos
-                if Path(r).expanduser().resolve().is_dir()
-            )
-            if not found:
-                errors.append(
-                    f"BLOCKED: [evidence_contract] {eut_id} COVERED test_location.file"
-                    f" '{loc_file}' 在代码仓库中不存在，疑似幻觉路径"
-                )
-
     return errors
 
 

@@ -85,6 +85,22 @@ qualix-run expense-demo execute Q01 --json
 
 [→ Qualix SE 提取器](https://alexangelzhang.github.io/qualix/sandbox/)——粘贴一段 PRD，直接在浏览器里看结构化语义期望输出。带上自己的 API Key 即可。
 
+### 定位 EUT 证据候选
+
+`locate` 是只读的上下文收敛工具，用于把 Q05/Q06 需要看的代码或测试缩小到 file-line evidence candidate。它不判定 EUT 是否 `COVERED` / `PARTIAL` / `MISSING`，语义结论仍由 Q06 负责。
+
+```bash
+qualix-run my-service locate \
+  --phase Q06 \
+  --eut-id EUT-003 \
+  --se-id SE-003 \
+  --query "approval threshold 500 finance required" \
+  --code-repo src/ \
+  --json
+```
+
+返回的 `citations[]` 包含 `path`、`line_start`、`line_end`、`kind`、`eut_id`、`se_id`、`locator` 和 `reason`。所有 citation 必须绑定单个 EUT，不能按 SE 聚合。
+
 ---
 
 ## Demo 视频

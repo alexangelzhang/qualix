@@ -76,6 +76,33 @@ def profile_context_warnings(output_dir: Path, project_id: str, phase_id: str) -
     return _profile_context_warnings(output_dir, project_id, phase_id)
 
 
+def _prepare_q06_evidence_citation_context(args, output_dir: Path, code_repos: list[str]) -> None:
+    """Best-effort Q06 locator sidecar generation before evidence pack loading.
+
+    The helper mirrors runtime_execute's gate precondition, so it does not write
+    sidecars when Q06 cannot start.  The later execute handler still covers
+    non-CLI runtime paths.
+    """
+
+    if getattr(args, "phase", "") != "Q06" or not code_repos:
+        return
+    try:
+        from qualix.context.evidence_locator import write_q06_evidence_citation_context
+        from qualix.core.profiles import get_profile
+        from qualix.core.state_machine import check_gate, load_state
+
+        state = load_state(output_dir, args.project_id)
+        if check_gate(state, "Q06"):
+            return
+        if getattr(args, "profile", None):
+            state.profile_id = get_profile(getattr(args, "profile", None)).profile_id
+        write_q06_evidence_citation_context(output_dir, args.project_id, code_repos)
+    except Exception:
+        # Locator context is candidate evidence only. It must not block execute
+        # or decide Q06 verdicts.
+        log.warning("Q06 evidence citation context generation skipped", exc_info=True)
+
+
 def cmd_execute(args, output_dir: Path) -> int:
     from qualix.commands.cli_json import cli_envelope, cli_json_mode, print_cli_json
     from qualix.core.profiles import get_profile
@@ -91,6 +118,8 @@ def cmd_execute(args, output_dir: Path) -> int:
     diff_ref = getattr(args, "diff", None)
     base_branch = getattr(args, "base_branch", None) or (diff_ref if diff_ref else "master")
     feature_branch = getattr(args, "feature_branch", "HEAD")
+
+    _prepare_q06_evidence_citation_context(args, output_dir, code_repos)
 
     ctx = ExecutionContext(
         output_dir=output_dir,

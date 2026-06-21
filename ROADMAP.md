@@ -33,6 +33,10 @@ Done in the P0 proof loop:
 Done in the P1 onboarding loop:
 - `qualix-run <project_id> check --prd <path> --code <dir> --profile <profile> --json` initializes the workspace, creates project state, ingests the PRD, records code repos, and returns an exact Q01 → Q05a → Q06 phase plan without requiring a model API key.
 
+Done in the P1 evidence-location loop:
+- `EvidenceCitation` defines EUT-scoped file-line evidence candidates for Q06 audit items; citations are not gate verdicts and cannot replace Q06 semantic judgment.
+- `qualix-run <project_id> locate --phase Q06 --eut-id EUT-xxx --query <text> --code-repo <dir> --json` provides a deterministic ripgrep-backed read-only locator before any optional model-based explorer.
+
 Done in the P2 first-run hardening loop:
 - `scripts/check_installed_wheel_smoke.py` builds or reuses a wheel, installs it into a clean temporary virtualenv outside the source tree, and verifies both `check --json` and `run-demo --json` against the installed package.
 - `.github/workflows/qualix-self-check.yml` now runs the installed-wheel smoke on PR/push, and `.github/workflows/publish.yml` runs it after `hatch build` before publishing to PyPI.

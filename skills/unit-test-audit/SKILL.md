@@ -98,12 +98,26 @@ Q06 最常见的失败模式是产出 JSON 时 schema 校验不过。先锁定�
     {
       "id": "AUDIT-001",
       "se_id": "SE-001",
-      "eut_id": "EUT-001,EUT-002",
+      "eut_id": "EUT-001",
       "description": "SE 描述",
       "status": "COVERED",
       "test_class": "XxxTest [来源: XxxTest.java:45]",
       "test_method": "method1, method2",
       "evidence": "assertEquals('expected', actual) [XxxTest.java:52]; verify(mock).call() [XxxTest.java:58]",
+      "evidence_citations": [
+        {
+          "path": "com/example/service/XxxTest.java",
+          "line_start": 52,
+          "line_end": 58,
+          "kind": "test",
+          "phase": "Q06",
+          "se_id": "SE-001",
+          "eut_id": "EUT-001",
+          "locator": "ripgrep",
+          "confidence": "medium",
+          "reason": "matched terms: EUT-001, assertEquals"
+        }
+      ],
       "recommendation": "",
       "test_location": {
         "file": "com/example/service/XxxTest.java",
@@ -127,6 +141,8 @@ Q06 最常见的失败模式是产出 JSON 时 schema 校验不过。先锁定�
   "summary": {}
 }
 ```
+
+`evidence_citations[]` 是只读 locator 生成的**候选证据**，用于帮助定位测试/实现/报告行号；它不决定 `COVERED` / `PARTIAL` / `MISSING` / `WRONG_TARGET`。每条 citation 必须绑定当前 audit item 的同一个 `eut_id`，禁止把 SE 级别命中复制给多个 EUT。
 
 **evidence 字段铁律：**
 - COVERED 判定必须有 `[文件名:行号]` 格式的证据引用，至少 1 处

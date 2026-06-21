@@ -140,6 +140,24 @@ def handle_weak_assert(ctx: ExecutionContext, result: PhaseResult) -> None:
     result.add_artifact("weak_assert_md", str(md_path))
 
 
+def handle_evidence_citations(ctx: ExecutionContext, result: PhaseResult) -> None:
+    """Phase Q06: generate EUT-scoped locator citation sidecars."""
+
+    if ctx.phase_id != "Q06":
+        return
+    repos = ctx.code_repos or ([ctx.code_repo] if ctx.code_repo else [])
+    if not repos:
+        return
+
+    from qualix.context.evidence_locator import write_q06_evidence_citation_context
+
+    paths = write_q06_evidence_citation_context(ctx.output_dir, ctx.project_id, repos)
+    if paths:
+        json_path, md_path = paths
+        result.add_artifact("evidence_citations_json", str(json_path))
+        result.add_artifact("evidence_citations_md", str(md_path))
+
+
 def handle_coverage_matrix(ctx: ExecutionContext, result: PhaseResult) -> None:
     """Phase A.5: 自动生成覆盖度矩阵."""
     from qualix.quality.coverage_matrix import write_coverage_matrix
@@ -502,6 +520,13 @@ def register_execute_handlers() -> None:
         stage="execute",
         phases={"Q06"},
         order=40,
+    )
+    register_handler(
+        "evidence_citations",
+        handle_evidence_citations,
+        stage="execute",
+        phases={"Q06"},
+        order=35,
     )
     register_handler(
         "blast_radius",

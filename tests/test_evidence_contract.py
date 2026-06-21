@@ -236,3 +236,145 @@ def test_covered_test_location_file_not_found_blocks(tmp_path):
     }
     errors = _check_covered_evidence_fields(data, [str(repo)])
     assert any("BLOCKED" in e for e in errors)
+
+
+def test_covered_with_same_eut_test_citation_passes(tmp_path):
+    """COVERED + 同 EUT 的 test evidence_citations → 可作为可追溯测试证据."""
+    from qualix.quality.checks.q06_structure_checks import _check_covered_evidence_fields
+
+    data = {
+        "audit_items": [
+            {
+                "eut_id": "EUT-001",
+                "status": "COVERED",
+                "test_class": "",
+                "test_location": None,
+                "evidence_citations": [
+                    {
+                        "path": "src/test/java/OrderServiceTest.java",
+                        "line_start": 10,
+                        "line_end": 14,
+                        "kind": "test",
+                        "phase": "Q06",
+                        "eut_id": "EUT-001",
+                    }
+                ],
+            },
+        ]
+    }
+    errors = _check_covered_evidence_fields(data, [])
+    assert errors == []
+
+
+def test_covered_with_hallucinated_test_citation_blocks_when_repo_available(tmp_path):
+    """COVERED 仅靠 citation 时，citation path 在 code_repo 中不存在必须 BLOCKED."""
+    from qualix.quality.checks.q06_structure_checks import _check_covered_evidence_fields
+
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    data = {
+        "audit_items": [
+            {
+                "eut_id": "EUT-001",
+                "status": "COVERED",
+                "test_class": "",
+                "test_location": None,
+                "evidence_citations": [
+                    {
+                        "path": "src/test/java/GhostTest.java",
+                        "line_start": 10,
+                        "line_end": 14,
+                        "kind": "test",
+                        "phase": "Q06",
+                        "eut_id": "EUT-001",
+                    }
+                ],
+            },
+        ]
+    }
+    errors = _check_covered_evidence_fields(data, [str(repo)])
+    assert any("BLOCKED" in e for e in errors)
+    assert any("evidence_citations" in e for e in errors)
+
+
+def test_covered_with_existing_test_citation_passes_when_repo_available(tmp_path):
+    """COVERED 仅靠 citation 时，同 EUT test path 在 code_repo 存在即可通过位置证据检查."""
+    from qualix.quality.checks.q06_structure_checks import _check_covered_evidence_fields
+
+    repo = tmp_path / "repo"
+    test_file = repo / "src/test/java/OrderServiceTest.java"
+    test_file.parent.mkdir(parents=True)
+    test_file.write_text("class OrderServiceTest {}", encoding="utf-8")
+    data = {
+        "audit_items": [
+            {
+                "eut_id": "EUT-001",
+                "status": "COVERED",
+                "test_class": "",
+                "test_location": None,
+                "evidence_citations": [
+                    {
+                        "path": "src/test/java/OrderServiceTest.java",
+                        "line_start": 1,
+                        "line_end": 1,
+                        "kind": "test",
+                        "phase": "Q06",
+                        "eut_id": "EUT-001",
+                    }
+                ],
+            },
+        ]
+    }
+    errors = _check_covered_evidence_fields(data, [str(repo)])
+    assert errors == []
+
+
+def test_evidence_citation_mismatched_eut_blocks(tmp_path):
+    """evidence_citations 不能跨 EUT 复用，否则 BLOCKED."""
+    from qualix.context.evidence_locator import validate_evidence_citations_for_items
+
+    data = {
+        "audit_items": [
+            {
+                "eut_id": "EUT-001",
+                "status": "COVERED",
+                "evidence_citations": [
+                    {
+                        "path": "src/test/java/OrderServiceTest.java",
+                        "line_start": 10,
+                        "kind": "test",
+                        "phase": "Q06",
+                        "eut_id": "EUT-002",
+                    }
+                ],
+            },
+        ]
+    }
+    errors = validate_evidence_citations_for_items(data)
+    assert any("BLOCKED" in e for e in errors)
+    assert any("EUT-001" in e and "EUT-002" in e for e in errors)
+
+
+def test_partial_with_citations_does_not_change_verdict(tmp_path):
+    """PARTIAL/MISSING/WRONG_TARGET 携带 citations 时只校验一致性，不改变 verdict."""
+    from qualix.context.evidence_locator import validate_evidence_citations_for_items
+
+    data = {
+        "audit_items": [
+            {
+                "eut_id": "EUT-001",
+                "status": "PARTIAL",
+                "evidence_citations": [
+                    {
+                        "path": "src/test/java/OrderServiceTest.java",
+                        "line_start": 10,
+                        "kind": "test",
+                        "phase": "Q06",
+                        "eut_id": "EUT-001",
+                    }
+                ],
+            },
+        ]
+    }
+    errors = validate_evidence_citations_for_items(data)
+    assert errors == []

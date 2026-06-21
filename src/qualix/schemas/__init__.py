@@ -13,6 +13,7 @@ from typing import Final
 
 from qualix.constants import PHASE_DIR_MAP, STRUCTURED_JSON_MAP
 from qualix.json_utils import load_json_strict
+from qualix.schemas.evidence import EvidenceCitation, EvidenceConfidence, EvidenceKind
 from qualix.schemas.location import SourceLocation
 from qualix.schemas.phase_q01 import PhaseAOutput
 from qualix.schemas.phase_q02 import PhaseA3Output
@@ -23,6 +24,9 @@ from qualix.schemas.phase_q06 import PhaseCOutput
 from qualix.schemas.phase_q07 import PhaseDOutput
 
 __all__ = [
+    "EvidenceCitation",
+    "EvidenceConfidence",
+    "EvidenceKind",
     "PhaseA3Output",
     "PhaseA5Output",
     "PhaseA6Output",

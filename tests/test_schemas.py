@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 
-from qualix.schemas import PhaseAOutput, validate_phase_output
+from qualix.schemas import EvidenceCitation, PhaseAOutput, validate_phase_output
 from qualix.schemas.phase_a5 import CoverageStatus, PhaseA5Output, ReqCoverageItem
 from qualix.schemas.phase_a6 import FailureModeItem, FailureModeStatus, PhaseA6Output, QualityIssue, Severity
 from qualix.schemas.phase_b import EutItem, PhaseBOutput, RiskTier, RouteType, TCItem
@@ -262,6 +262,32 @@ class TestPhaseCSchema:
         assert output.audit_items == []
         assert len(output.findings) == 1
         assert output.findings[0].id == "FINDING-01"
+
+    def test_eut_audit_item_accepts_eut_scoped_evidence_citations(self):
+        item = EutAuditItem(
+            eut_id="EUT-001",
+            status=AuditStatus.PARTIAL,
+            evidence_citations=[
+                EvidenceCitation(
+                    path="tests/test_approval.py",
+                    line_start=10,
+                    line_end=14,
+                    kind="test",
+                    phase="Q06",
+                    se_id="SE-003",
+                    eut_id="EUT-001",
+                    locator="ripgrep",
+                    reason="matched boundary amount",
+                )
+            ],
+        )
+
+        assert item.evidence_citations[0].reference() == "tests/test_approval.py:10-14"
+        assert item.evidence_citations[0].eut_id == "EUT-001"
+
+    def test_evidence_citation_requires_single_eut_id(self):
+        with pytest.raises(ValidationError):
+            EvidenceCitation(path="tests/test_approval.py", line_start=1, eut_id="SE-003")
 
 
 class TestValidatePhaseOutput:

@@ -6,6 +6,7 @@ from enum import StrEnum
 
 from pydantic import BaseModel, Field, model_validator
 
+from qualix.schemas.evidence import EvidenceCitation
 from qualix.schemas.location import SourceLocation
 
 
@@ -33,6 +34,13 @@ class EutAuditItem(BaseModel):
     tc_id: str = ""
     repo: str = ""
     evidence: str = ""
+    evidence_citations: list[EvidenceCitation] = Field(
+        default_factory=list,
+        description=(
+            "Read-only file-line evidence candidates for this EUT. "
+            "These citations do not decide COVERED/PARTIAL/MISSING; Q06 audit logic still owns the verdict."
+        ),
+    )
     recommendation: str = ""
     issues: list[str] = Field(default_factory=list)
     test_location: SourceLocation | None = None

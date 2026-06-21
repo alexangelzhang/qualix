@@ -309,6 +309,16 @@ def _build_parser() -> argparse.ArgumentParser:
     p_eaudit = sub.add_parser("evidence-audit", help="展示 SE → EUT → Coverage 链路健康度")
     p_eaudit.add_argument("--phase", default="Q06", help="Phase ID（默认 Q06）")
 
+    # locate：EUT 粒度 evidence candidates（read-only，不产生 gate verdict）
+    p_locate = sub.add_parser("locate", help="Locate read-only file-line evidence candidates for one EUT")
+    p_locate.add_argument("--phase", default="Q06", help="Phase ID requesting the evidence (default Q06)")
+    p_locate.add_argument("--eut-id", required=True, help="EUT ID, e.g. EUT-003")
+    p_locate.add_argument("--se-id", default="", help="Optional related SE ID, e.g. SE-003")
+    p_locate.add_argument("--query", required=True, help="Natural-language or keyword query")
+    p_locate.add_argument("--code-repo", required=True, help="Repository path, multiple paths comma-separated")
+    p_locate.add_argument("--limit", type=int, default=10, help="Maximum citations to return")
+    p_locate.add_argument("--context-lines", type=int, default=2, help="Context lines around each match")
+
     # spec：Phase 规范（JSON Schema + contract），代码为单一事实源
     p_spec = sub.add_parser("spec", help="输出 Phase 规范（JSON Schema + phase_contract），供 Agent 解析")
     p_spec.add_argument("--phase", required=True, help="Phase ID (Q01-Q07)")
@@ -430,6 +440,11 @@ def _dispatch(cmd: str) -> callable:
         from qualix.commands.ci import cmd_evidence_audit
 
         return cmd_evidence_audit
+
+    if cmd == "locate":
+        from qualix.commands.locate import cmd_locate
+
+        return cmd_locate
 
     if cmd == "spec":
         from qualix.commands.phase_spec import cmd_spec

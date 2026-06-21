@@ -107,6 +107,22 @@ The JSON output includes `profile_id`, normalized `code_repos`, PRD ingest paths
 
 Phase reasoning runs inside your AI coding agent — `check` is the on-ramp, not a replacement for the agent loop.
 
+### Locate EUT evidence candidates
+
+`locate` is a read-only helper for narrowing Q05/Q06 context to file-line evidence candidates. It does not decide whether an EUT is `COVERED`, `PARTIAL`, or `MISSING`; Q06 still owns the semantic verdict.
+
+```bash
+qualix-run my-service locate \
+  --phase Q06 \
+  --eut-id EUT-003 \
+  --se-id SE-003 \
+  --query "approval threshold 500 finance required" \
+  --code-repo src/ \
+  --json
+```
+
+The JSON response contains `citations[]` entries with `path`, `line_start`, `line_end`, `kind`, `eut_id`, `se_id`, `locator`, and `reason`. Every citation is EUT-scoped by contract; do not aggregate Q05/Q06 evidence by SE.
+
 ## Flagship Demo: Expense Approval
 
 [![Qualix demo video](docs/assets/demo.gif)](https://youtu.be/wtI07KJYXRI)
