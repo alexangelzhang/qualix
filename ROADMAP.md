@@ -37,6 +37,9 @@ Done in the P1 evidence-location loop:
 - `EvidenceCitation` defines EUT-scoped file-line evidence candidates for Q06 audit items; citations are not gate verdicts and cannot replace Q06 semantic judgment.
 - `qualix-run <project_id> locate --phase Q06 --eut-id EUT-xxx --query <text> --code-repo <dir> --json` provides a deterministic ripgrep-backed read-only locator before any optional model-based explorer.
 
+Done in the P3a Q06 evidence sidecar refinement loop:
+- Q06 evidence sidecar queries now include Q05a EUT semantic descriptions and test/production location metadata, so the first-pass upstream context can surface real test and implementation candidates rather than only EUT/SE design references.
+
 Done in the P2 first-run hardening loop:
 - `scripts/check_installed_wheel_smoke.py` builds or reuses a wheel, installs it into a clean temporary virtualenv outside the source tree, and verifies both `check --json` and `run-demo --json` against the installed package.
 - `.github/workflows/qualix-self-check.yml` now runs the installed-wheel smoke on PR/push, and `.github/workflows/publish.yml` runs it after `hatch build` before publishing to PyPI.

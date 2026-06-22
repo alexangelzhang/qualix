@@ -99,6 +99,56 @@ def test_write_q06_evidence_citation_context_is_eut_scoped(tmp_path: Path) -> No
     assert "candidate evidence only" in md_path.read_text(encoding="utf-8")
 
 
+def test_q06_evidence_citation_query_uses_description_and_test_location(tmp_path: Path) -> None:
+    from qualix.context.evidence_locator import write_q06_evidence_citation_context
+
+    output_dir = tmp_path / "output"
+    q05a_dir = output_dir / "demo" / "Q05a"
+    q05a_dir.mkdir(parents=True)
+    (q05a_dir / "phase_b_structured.json").write_text(
+        json.dumps(
+            {
+                "project_id": "demo",
+                "eut_items": [
+                    {
+                        "eut_id": "EUT-003",
+                        "bound_se": "SE-003",
+                        "description": "Above-threshold request waits for finance at 600.00 USD.",
+                        "test_location": {
+                            "file": "tests/test_expense_policy.py",
+                            "line_start": 21,
+                            "class_name": "",
+                            "method_name": "test_large_request_waits_for_finance",
+                        },
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+    repo = tmp_path / "repo"
+    test_dir = repo / "tests"
+    test_dir.mkdir(parents=True)
+    (test_dir / "test_expense_policy.py").write_text(
+        "def test_large_request_waits_for_finance():\n"
+        "    request = make_request(amount_usd='600.00')\n"
+        "    approved = approve_by_manager(request)\n"
+        "    assert approved.status == 'MANAGER_APPROVED'\n",
+        encoding="utf-8",
+    )
+
+    paths = write_q06_evidence_citation_context(output_dir, "demo", [str(repo)], limit_per_eut=10)
+
+    assert paths is not None
+    json_path, _ = paths
+    payload = json.loads(json_path.read_text(encoding="utf-8"))
+    item = payload["items"][0]
+    assert "Above-threshold request waits for finance" in item["query"]
+    assert "test_large_request_waits_for_finance" in item["query"]
+    assert any(c["kind"] == "test" and c["path"] == "tests/test_expense_policy.py" for c in item["citations"])
+    assert all(c["eut_id"] == "EUT-003" for c in item["citations"])
+
+
 def test_q06_evidence_citations_sidecar_is_injected_into_context(tmp_path: Path) -> None:
     from qualix.context.loading.context_loader import load_context
 

@@ -21,6 +21,24 @@ from qualix.schemas.evidence import EvidenceCitation
 SIDECAR_JSON = "_evidence_citations.json"
 SIDECAR_MD = "_evidence_citations.md"
 SIDECAR_CONTRACT = "candidate_evidence_only"
+_QUERY_FIELDS = (
+    "eut_id",
+    "bound_item",
+    "bound_se",
+    "description",
+    "given",
+    "when",
+    "then",
+    "route_type",
+    "then_assertion_type",
+    "test_class",
+    "test_method",
+    "source",
+    "notes",
+    "tc_id",
+    "repo",
+)
+_LOCATION_QUERY_FIELDS = ("file", "class_name", "method_name", "repo")
 
 
 def write_q06_evidence_citation_context(
@@ -227,19 +245,34 @@ def _eut_se_id(eut: dict[str, Any]) -> str:
 
 
 def _locator_query(eut: dict[str, Any]) -> str:
-    parts = [
-        eut.get("eut_id", ""),
-        eut.get("bound_item", ""),
-        eut.get("bound_se", ""),
-        eut.get("given", ""),
-        eut.get("when", ""),
-        eut.get("then", ""),
-        eut.get("repo", ""),
-    ]
+    parts: list[str] = []
+    _extend_query_parts(parts, (eut.get(field, "") for field in _QUERY_FIELDS))
+    for location_key in ("test_location", "production_location"):
+        _extend_location_query_parts(parts, eut.get(location_key))
     se_refs = eut.get("se_refs")
     if isinstance(se_refs, list):
-        parts.extend(str(ref) for ref in se_refs)
-    return " ".join(str(part).strip() for part in parts if str(part).strip())
+        _extend_query_parts(parts, se_refs)
+    return " ".join(parts)
+
+
+def _extend_location_query_parts(parts: list[str], location: Any) -> None:
+    if isinstance(location, dict):
+        _extend_query_parts(parts, (location.get(field, "") for field in _LOCATION_QUERY_FIELDS))
+    else:
+        _extend_query_parts(parts, [location])
+
+
+def _extend_query_parts(parts: list[str], values: Any) -> None:
+    seen = {part.lower() for part in parts}
+    for value in values:
+        text = str(value or "").strip()
+        if not text:
+            continue
+        key = text.lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        parts.append(text)
 
 
 def _citation_reference(citation: dict[str, Any]) -> str:
